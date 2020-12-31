@@ -62,7 +62,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     else{qualifier=qualifier.replaceAll(".properties","");}
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
-
         if(myShepherd.getUser(submitterName)!=null){
             user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
@@ -75,10 +74,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
-
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
-
-
 %>
 
 <script>
@@ -422,26 +418,6 @@ function placeMarkerLatLon(lat, lon) {  //convenience
     return pt;
 }
 
-function updateMap() {
-    var latVal = $('#lat').val();
-    var lonVal = $('#longitude').val();
-    var pt = placeMarkerLatLon(latVal, lonVal);
-    if (pt) {
-        map.setCenter(pt);
-        map.setZoom(5);
-    }
-}
-
-function placeMarkerLatLon(lat, lon) {  //convenience
-    var latFloat = parseFloat(lat);
-    var lonFloat = parseFloat(lon);
-    if (isNaN(latFloat) || isNaN(lonFloat)) return;
-    var pt = new google.maps.LatLng(latFloat, lonFloat);
-    if (!pt) return;
-    placeMarker(pt);
-    return pt;
-}
-
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
     marker = new google.maps.Marker({
@@ -710,8 +686,6 @@ function updateList(inp) {
                 eachFile += "</small></li>";
                 fileListGlobal.push(eachFile);
                 fileNameListGlobal.push(name);
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)'); //TODO this was from more recent
-                EXIF.getData(inp.files[i], function() { gotExif(this); }); //TODO this was from more recent
             }
         }
         fileListHTML = '<b id="fileCounter">' + fileListGlobal.length + ' file' + ((fileListGlobal.length == 1) ? '' : 's:') + '</b> ' + fileListGlobal.join('');
@@ -1014,6 +988,7 @@ function removeFile(id) {
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+				<p><label><small><%=props.getProperty("submit_date_guide")%></small></label></p>
 			</div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -1029,20 +1004,6 @@ function removeFile(id) {
       </div>
 
 </fieldset>
-<hr/>
-<fieldset class="field-indent">
-
-    <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" onChange="$('.required-missing').removeClass('required-missing');>
-      </div>
-    <%
-    }
-    %>
-  </div>
-
-</fieldset>
-
 <hr/>
 
 <fieldset class="field-indent">
@@ -1179,6 +1140,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <p class="help-block"><%=props.getProperty("ftConverter") %></p>
     </div>
 </fieldset>
+<hr/>
 
   <fieldset>
     <div class="row">
@@ -1392,11 +1354,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 <%
 	}
 %>
-
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
-          </div>
 
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
@@ -1668,13 +1625,7 @@ if (tagSwitch == true) {
 				  			'theme' : 'light'
 						});
 		        }
-
-
-
-
-
            </script>
-
         <%
          }
         %>
@@ -1727,11 +1678,11 @@ function sendButtonClicked() {
 		return false;
 	}
 
-	if (!$('#genusSpecies').val()) {
-		$('#genusSpecies').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-		return false;
-	}
+	// if (!$('#genusSpecies').val()) {
+	// 	$('#genusSpecies').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+	// 	return false;
+	// }
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');

@@ -61,15 +61,14 @@
     "/encounters/encounter" +
     ".jsp?number="+ number);
   new_message.append("<br><br>Quick stats:<br>");
-  //String photographer = "None";
-  //boolean emailPhoto = false;
+  String photographer = "None";
+  boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
   String addText = "";
-  //boolean hasImages = true;
-  //String submitter = "";
-  //String informOthers = "";
-  //String informMe = "";
-
+  boolean hasImages = true;
+  String submitter = "";
+  List<User> informOthers = new ArrayList<User>()  ;
+  String informMe = "";
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir);
 

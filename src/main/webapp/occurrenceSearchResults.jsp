@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -18,43 +18,6 @@
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
     occProps = ShepherdProperties.getProperties("occurrence.properties",langCode, context);
 
-    int startNum = 1;
-    int endNum = 10;
-
-
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int listNum = endNum;
-
-    int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
-    try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (Exception nfe) {
-    }
-
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("occurrenceSearchResults.jsp");
@@ -66,7 +29,6 @@
 
 
     Vector<Occurrence> rOccurrences = new Vector<Occurrence>();
-    Vector<Occurrence> rIndividuals = new Vector<Occurrence>();
     String order ="";
     String occsJson="";
     String prettyPrint="";
@@ -78,13 +40,6 @@
     	numOccurrences=myShepherd.getNumOccurrences();
 
     	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-      rIndividuals = result.getResult();
-      // viewOnly=true arg means this hiddenData relates to viewing the summary results
-    	HiddenOccReporter hiddenData = new HiddenOccReporter(rIndividuals, request, true,myShepherd);
-    	rIndividuals = hiddenData.viewableResults(rIndividuals, true,myShepherd);
-      if (rIndividuals.size() < listNum) {
-        listNum = rIndividuals.size();
-      }
 
     	jdoqlRep=result.getJDOQLRepresentation();
 
@@ -113,9 +68,6 @@
 			JSONObject occObject = occ.getJSONSummary();
 			jsonobj.put(occObject);
 		}
-
-  	// JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext()); //TODO from previous version
-  	// String indsJson = jsonobj.toString(); //TODO from previous version
 
 		occsJson = jsonobj.toString();
 
@@ -290,10 +242,8 @@ function _notZero(fieldName) {
 function _species(o) {
 	var taxonomies = o['taxonomies'];
 	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
-	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies'][0]['scientificName']==undefined) return '';
-	return o['taxonomies'][0]['scientificName'];
-  // if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies']==undefined) return ''; //TODO from new
-	// return o['taxonomies']; //TODO from new
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies']==undefined) return '';
+	return o['taxonomies'];
 }
 function _date(o) {
 	var millis = o['dateTimeLong'];
@@ -329,61 +279,6 @@ var colDefn = [
     value: _species,
   },
   {
-    key: 'individualCount',
-    label: '<%=occProps.getProperty("individualCount")%>',
-    value: _notUndefined('individualCount'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
-  {
-		key: 'decimalLatitude',
-		label: '<%=occProps.getProperty("latitude")%>',
-    value: _notZero('decimalLatitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  {
-		key: 'decimalLongitude',
-		label: '<%=occProps.getProperty("longitude")%>',
-    value: _notZero('decimalLongitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  {
-    key: 'effortCode',
-    label: '<%=occProps.getProperty("effort")%>',
-    value: _notUndefined('effortCode'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
-
-  /*
-  {
-    key: 'individualCount',
-    label: 'Encounters',
-    value: _notUndefined('individualCount'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
-	{
-		key: 'individual',
-		label: '<%=props.getProperty("markedIndividual")%>',
-		value: _colIndividual,
-		sortValue: function(o) { return o.individualID.toLowerCase(); },
-		//sortFunction: function(a,b) {},
-	},
-
-	{
-		key: 'maxYearsBetweenResightings',
-		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-	{
-		key: 'sex',
-		label: '<%=props.getProperty("sex")%>',//'Sex',
-	},
-	{
-		key: 'numberLocations',
-		label: '<%=props.getProperty("numLocationsSighted")%>',
-		value: _colNumberLocations,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	}*/
-  {
     key: 'locationIds',
     label: '<%=occProps.getProperty("locationIds")%>',
     value: _notUndefined('locationIds'),
@@ -399,7 +294,8 @@ var colDefn = [
     label: '<%=occProps.getProperty("individualCount")%>',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  }
+  },
+
 ];
 
 var howMany = 30;
@@ -749,21 +645,11 @@ function applyFilter() {
     if (request.getParameter("subsampleMonths") != null) {
       subsampleMonths = true;
     }
-    //numResults = count; //TODO commented out in new but not in old
+    //numResults = count;
   %>
 </table>
 
 
-<%
-  myShepherd.rollbackDBTransaction();
-  startNum += 10;
-  endNum += 10;
-  if (endNum > numResults) {
-    endNum = numResults;
-  }
-
-
-%>
 
 <p>
 <table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -772,18 +658,12 @@ function applyFilter() {
       <p><strong><%=occProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
-      <%
-      myShepherd.beginDBTransaction();
-      %>
+
       <p><strong><%=occProps.getProperty("totalOccurrences")%>
-    </strong>: <%=(myShepherd.getNumOccurrences())%>
+    </strong>: <%=numOccurrences %>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
 
-    %>
   </tr>
 </table>
 <%

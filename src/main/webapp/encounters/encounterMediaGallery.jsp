@@ -51,16 +51,6 @@ java.util.*" %>
     return false;
   }
 
-    String rotationInfo(MediaAsset ma) {
-        if ((ma == null) || (ma.getMetadata() == null)) return null;
-        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
-        if (orient == null) return null;
-        for (String k : orient.keySet()) {
-            if (orient.get(k).matches(".*90.*")) return orient.get(k);
-            if (orient.get(k).matches(".*270.*")) return orient.get(k);
-        }
-        return null;
-    }
   %>
 
 <%
@@ -199,8 +189,6 @@ function forceLink(el) {
                 if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
                     capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
                 }
-              // place to retreive current mid from photoswipe to refresh keyword UI
-              capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\"></div>";
 
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
 
@@ -245,12 +233,10 @@ function forceLink(el) {
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
 						ja.put("matchAgainst", ann.getMatchAgainst());
-						ja.put("viewpoint", ann.getViewpoint());
                                                 //ja.put("acmId", ann.getAcmId());
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
-                                                j.put("rotation", rotationInfo(ma));
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
@@ -450,7 +436,7 @@ figcaption div {
 .image-enhancer-feature-wrapper {
     width: 100%;
     height: 100%;
-    /*position: relative;*/
+    position: relative;
     overflow: hidden;
 }
 
@@ -613,7 +599,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   //
   var removeAsset = function(maId) {
-    if (confirm("Are you sure you want to remove this image? This will also remove all annotations associated with this image. The image will not be deleted from the database and can be recovered.")) {
+    if (confirm("Are you sure you want to remove this image from the encounter? The image will not be deleted from the database, and this action is reversible.")) {
       $.ajax({
         url: '../MediaAssetAttach',
         type: 'POST',
@@ -638,34 +624,6 @@ if(request.getParameter("encounterNumber")!=null){
   }
 
 
-
-  var removeAnnotation = function(maId, aid) {
-	    if (confirm("Are you sure you want to remove this Annotation from the encounter?")) {
-	      $.ajax({
-	        url: '../EncounterRemoveAnnotation',
-	        type: 'POST',
-	        dataType: 'json',
-	        contentType: "application/json",
-	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
-	        success: function(d) {
-	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
-	          //var res=JSON.parse(d);
-	          if(d.revertToTrivial){
-	        	  $('#image-enhancer-wrapper-' + maId + '-'+aid).remove();
-	          }
-	          else{
-	          	$('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove();
-	          }
-	        },
-	        error: function(x,y,z) {
-	          console.warn("failed to remove Annotation: "+aid);
-	          console.warn('%o %o %o', x, y, z);
-	        }
-	      });
-	    }
-	  }
-
-
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
@@ -675,7 +633,7 @@ if(request.getParameter("encounterNumber")!=null){
 
     	<% System.out.println("    EMG: calling grid version"); %>
 
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction);
     } else {
     	    	    console.log("   EMG : isGrid false!");
 
@@ -825,7 +783,6 @@ function niceId(id) {
 jQuery(document).ready(function() {
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
-/*
     $(document).bind('keydown keyup', function(ev) {
         if (wildbook.user.isAnonymous()) return true;
         var editModeWas = editMode;
@@ -844,7 +801,6 @@ jQuery(document).ready(function() {
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
-*/
 
 <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
     if (wildbookGlobals.username) {
@@ -869,48 +825,19 @@ function doImageEnhancer(sel) {
            <%
            if(!encNum.equals("")){
         	%>
-
-
-	            ['remove this image', function(enh) {
-	        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-	        		removeAsset(mid);
-	            }]
-
+            ['remove this image', function(enh) {
+		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		removeAsset(mid);
+            }],
             <%
     		}
             %>
 
-
-
+/*
+            ['replace this image', function(enh) {
+            }],
+*/
 	];
-
-			//remove annotation option for non-trivial annots
-        	opt.menu.push(
-	        	[
-	        		function(obj){
-	        				if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
-	        				var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
-	        				var ma = assetById(mid);
-	        				if (!ma) return false;
-	        				if(ma.features && ma.features[0] && ma.features[0].type){
-	        					return 'remove annotation';
-	        				}
-	        				return false;
-	        		}
-	        		,
-	        		function(enh) {
-					var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-		           	var aid = imageEnhancer.annotationIdFromElement(enh.imgEl.context);
-		           	removeAnnotation(maId,aid);
-	            	}
-	        	]
-        	);
-
-
-        	// opt.menu.push(['create optional feature region', function(enh) {
-            //     var mid = enh.imgEl.data('enh-mediaassetid');
-            //     window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
-            // }]);
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
@@ -936,7 +863,6 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
-
 
 
 /*
@@ -994,7 +920,7 @@ function showDuplicates() {
 function enhancerCaption(el, opt) {
 	var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
 	var ma = assetById(mid);
-//console.warn("====== enhancerCaption %o ", ma);
+console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
 	var title = ma.sourceAsset.filename || '';
 	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
@@ -1012,7 +938,7 @@ function enhancerCaption(el, opt) {
 	}
 	var tlink = (time ? '#t=' + time : '');
 	var timeDisp = (time ? 'At approx <b>' + time + '</b> in ' : '');
-//console.info(timeDisp);
+console.info(timeDisp);
 
 	var ycap = $('<div title="' + title + '" class="caption-youtube">' + timeDisp + ' YouTube video</div>');
 	ycap.on('click', function(ev) {
@@ -1027,12 +953,12 @@ function enhancerDisplayAnnots(el, opt) {
     if (opt.skipDisplayAnnots) return;
     //var mid = imageEnhancer.mediaAssetIdFromElement(el.context);
     var aid = imageEnhancer.annotationIdFromElement(el.context);
-//console.warn('foocontext --> %o', aid);
+console.warn('foocontext --> %o', aid);
     if (!aid) return;
     var ma = assetByAnnotationId(aid);
-//console.warn("====== enhancerDisplayAnnots %o ", ma);
+console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
-    var featwrap = $('<div class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    var featwrap = $('<div class="image-enhancer-feature-wrapper" />');
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
@@ -1083,10 +1009,6 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
-    for (var i = 0 ; i < assets.length ; i++) {
-    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;}
-    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.viewpoint){tooltip=tooltip+'<br>Viewpoint: '+assets[i].annotation.viewpoint;}
-    }
 
     fel.prop('id', feat.id);
     if (feat.annotationIsOfInterest) {
@@ -1094,9 +1016,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
     if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
-    if (focused) {
-    	fel.addClass('image-enhancer-feature-focused');
-    }
+    if (focused) fel.addClass('image-enhancer-feature-focused');
     fel.prop('data-tooltip', tooltip);
     fel.css({
         left: feat.parameters.x * scale,
@@ -1147,19 +1067,12 @@ function updateLabeledKeywordValue(el) {
   var jel = $(el);
   var label = jel.data("kw-label");
   var value = jel.val();
-  var wrapper = jel.closest('.image-enhancer-keyword-wrapper');
-
+  var wrapper = jel.closest('.image-enhancer-wrapper');
   if (!wrapper.length) {
     console.error("could not find MediaAsset id from closest wrapper");
     return;
   }
-
-  let wrapperId = $(wrapper).attr('id');
-  let mid = wrapperId.replace("asset-id-", "");
-  if (!mid) {
-      mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
-  }
-
+  var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
   if (!assetById(mid)) {
     console.error("could not find MediaAsset byId(%o)", mid);
     return;
@@ -1173,7 +1086,7 @@ function updateLabeledKeywordValue(el) {
   console.log("dataObj = %o",dataObj);
 
   var urlWithArgs = wildbookGlobals.baseUrl + '/AddLabeledKeyword?label='+label+'&value='+value+'&mid='+mid;
-  console.log("---> url with args: "+urlWithArgs);
+
   $.ajax({
     url: urlWithArgs,
     //data: JSON.stringify(dataObj),
@@ -1200,12 +1113,13 @@ function updateLabeledKeywordValue(el) {
       }
     },
     error: function(x,a,b) {
-      //console.error('%o %o %o', x, a, b);
-      console.log('<p class="error">ERROR making change: ' + b + '</p>');
+      console.error('%o %o %o', x, a, b);
+      $('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
     },
     type: 'POST',
     dataType: 'json'
   });
+
 
   return false;
 }
@@ -1214,24 +1128,15 @@ function updateLabeledKeywordValue(el) {
 
 
 var popupStartTime = 0;
-function addOrRemoveNewKeyword(el) {
-    event.stopPropagation();
+function addNewKeyword(el) {
 	console.warn(el);
 	var jel = $(el);
-    //var wrapper = jel.closest('.image-enhancer-wrapper');
-    console.log("in the remove keyword function...");
-
-    let wrapper = jel.closest('.image-enhancer-keyword-wrapper');
-
+	var wrapper = jel.closest('.image-enhancer-wrapper');
 	if (!wrapper.length) {
-        console.error("could not find MediaAsset id from closest wrapper");
+		console.error("could not find MediaAsset id from closest wrapper");
 		return;
 	}
-    let wrapperId = $(wrapper).attr('id');
-    let mid = wrapperId.replace("asset-id-", "");
-    if (!mid) {
-        mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
-    }
+	var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
 	if (!assetById(mid)) {
 		console.error("could not find MediaAsset byId(%o)", mid);
 		return;
@@ -1254,7 +1159,7 @@ function addOrRemoveNewKeyword(el) {
 		//imageEnhancer.popup('Adding keyword <b>' + name + '</b> to this image.');
 		data.onMediaAssets.add = [ val ];
 	}
-console.info("data in add new keyword function: "+data);
+console.info(data);
 
 	popupStartTime = new Date().getTime();
 	$.ajax({
@@ -1264,18 +1169,26 @@ console.info("data in add new keyword function: "+data);
 		success: function(d) {
 console.info(d);
 			if (d.success) {
+/*
+				var elapsed = new Date().getTime() - popupStartTime;
+				if (elapsed > 6000) {
+					$('.image-enhancer-popup').remove();
+				} else {
+					window.setTimeout(function() { $('.image-enhancer-popup').remove(); }, 6000 - elapsed);
+				}
+*/
 				if (d.newKeywords) {
 					for (var id in d.newKeywords) {
 						wildbookGlobals.keywords[id] = d.newKeywords[id];
 					}
 				}
-                var mainMid = false;
+				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                        refreshKeywordsForMediaAsset(mid, d);
+            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
-                if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
+                                if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
 			} else {
 				var msg = d.error || 'ERROR could not make change';
 				$('.popup-content').append('<p class="error">' + msg + '</p>');
@@ -1311,9 +1224,7 @@ console.info(d);
 
 function refreshKeywordsForMediaAsset(mid, data) {
   console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
-  console.log("assets.length = "+assets.length);
     for (var i = 0 ; i < assets.length ; i++) {
-        //console.log("looking at asset id="+assets[i].id);
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
         assets[i].keywords = [];  //we get *all* keywords in results, so blank this!
@@ -1321,33 +1232,26 @@ function refreshKeywordsForMediaAsset(mid, data) {
             assets[i].keywords.push({
                 indexname: id,
                 readableName: data.results[mid][id],
+                //displayName: data.results[mid][displayName],
+                //label: data.results[mid][label]
             });
         }
     }
-
     //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
-
-    console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
-    $('#asset-id-'+mid).each(function(i,el) {
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {
+           //update the ui
         $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
-
-        console.log("before imageLayerKeywords: mid="+mid+" el="+JSON.stringify(el));
         imageLayerKeywords($(el), { _mid: mid });
-        $(el).show();
     });
 }
 
 function refreshAllKeywordPulldowns() {
-    console.log("trying to refresh all keywords pulldowns...");
     $('.image-enhancer-keyword-wrapper').each(function(i, el) {
         var jel = $(el);
-
-        var mid = imageEnhancer.mediaAssetIdFromElement(jel);
-
-        console.log("each image-enhancer-keyword-wrapper... "+i+", also mid="+mid);
-        // we want to remove all existing keywords for this asset, and they will be regenerated along with the new one
-        jel.find('.image-enhancer-keyword-wrapper-hover').first().empty();
-        imageLayerKeywords(jel, { _mid: mid });
+        var p = jel.parent();
+        var mid = imageEnhancer.mediaAssetIdFromElement(p);
+        jel.remove();
+        imageLayerKeywords(p, { _mid: mid });
     });
 }
 
@@ -1362,11 +1266,8 @@ System.out.println("the stringy version is |"+labelsToValuesStr+"| with length()
 JSONObject jobj = new JSONObject(labelsToValues);
 System.out.println("got jobj "+jobj);
 
-String keywords_readable = encprops.getProperty("keywords");
-String keywords_focus = encprops.getProperty("keywords_focus");
-
 %>
-var kwReadable = '<%=encprops.getProperty("keywords")%>';
+
 
 function imageLayerKeywords(el, opt) {
 	var mid;
@@ -1381,37 +1282,29 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
+    //let h = '<div onmouseover="allVisible(this)" onmouseout="resetVisibility(this)" class="image-enhancer-keyword-wrapper">';
 
     // if this is a refresh, it will already have this element
-    let hasWrapper = el.hasClass('image-enhancer-keyword-wrapper');
+    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length;
+
     let h = '';
 
     if (!hasWrapper) {
-        h += '<div id="asset-id-'+mid+'" class="image-enhancer-keyword-wrapper">';
+        h += '<div class="image-enhancer-keyword-wrapper">';
 	    h += '<div class="image-enhancer-keyword-wrapper-hover">';
     }
 
-    //number of keywords for default display, keyword list hidden until hover
-
-    let outerCounter = '';
-    if (ma.keywords.length>0) {
-        h += '<div class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';
-        outerCounter = '<div class="image-enhancer-keyword keyword-number-cell number-cell-on-asset" title="<%=keywords_focus%>" onclick="showKeywordList(this)">'+kwReadable+': '+ma.keywords.length+'</div>';
-    } else {
-        outerCounter = '<div class="labeled iek-new-wrapper">add new <span class="keyword-label" onclick="showKeywordList(this)">labeled</span> keyword<div class="iek-new-labeled-form">';
-    }
+    // the refresh on 1235 removes the above, and so below
 
     for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
-
-
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
     } else {
       //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
-      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 
     }
 //console.info('keyword = %o', ma.keywords[i]);
@@ -1420,9 +1313,7 @@ console.info("############## mid=%s -> %o", mid, ma);
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
   let labeledAvailable = (labelsToValues.length>0);
-
-  h +='<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
-
+  h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1434,6 +1325,8 @@ console.info("############## mid=%s -> %o", mid, ma);
       //console.log("in labelsToValues loop with label %s and values %s",label, values);
       for (var i in values) {
         var value = values[i];
+        //console.log("in labelsToValues loop with label %s and value %s",label, value);
+        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
         valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
         hasSome = true;
       }
@@ -1451,10 +1344,12 @@ console.info("############## mid=%s -> %o", mid, ma);
   }
   h += '</div></div>';
 
+
+
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
 		var hasSome = false;
-		var mh = '<select onChange="return addOrRemoveNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
+		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
 		for (var j in wildbookGlobals.keywords) {
 			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
 			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
@@ -1463,92 +1358,27 @@ console.info("############## mid=%s -> %o", mid, ma);
 		mh += '</select>';
 		if (hasSome) h += mh;
 	}
-	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addOrRemoveNewKeyword(this);" />';
+	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
 
-    // we need to attach this to the outer container now
+    // image-enhancer-keyword-wrapper-hover
     if (!hasWrapper) {
         h += '</div></div>';
-    }
-
-    if ($('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').length>0) {
-        $('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').remove();
-    }
-    $('.image-enhancer-wrapper-mid-'+mid).prepend(outerCounter);
-
-    let kwContainer = $('#keyword-container');
-
-    if (!hasWrapper) {
-        $('#keyword-container').append(h);
+	    el.append(h);
     } else {
-        el.find('.image-enhancer-keyword-wrapper-hover').first().append(h);
+        el.find('.image-enhancer-keyword-wrapper-hover').append(h);
     }
 
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
 	});
+
+	el.find('.iek-remove').on('click', function(ev) {
+		//ev.stopPropagation();
+		addNewKeyword(ev.target);
+	});
 }
 
-function showKeywordList(el) {
-    if ($(el).hasClass('image-enhancer-feature-wrapper')) {
-        el = $(el).closest('.image-enhancer-feature-wrapper');
-    }
-    if (typeof $(el).parent().attr('class') !== undefined && $(el).parent().attr('class') !== false) {
-        $(el).parent().attr('class').split(' ').map(function(className){
-            if (className.startsWith('image-enhancer-wrapper-mid-')) {
-                let mid = className.replace('image-enhancer-wrapper-mid-', '');
-                $('.pswp__button--arrow--right').click(function(ev) {
-                    nextImageArrow(ev,mid);
-                });
-                $('.pswp__button--arrow--left').click(function(ev) {
-                    nextImageArrow(ev,mid);
-                });
-                $('#asset-id-'+mid).fadeIn(1000);
-                $('#asset-id-'+mid).addClass('asset-active');
-                $('.pswp__button--close').each(function() {
-                    $(this).click(function(ev) {
-                        ev.stopPropagation();
-                        $('#asset-id-'+mid).fadeOut(400);
-                        $('#asset-id-'+mid).removeClass('asset-active');
-                    });
-                });
-                $('.pswp__item').each(function() {
-                    //console.log('did ya find the pswp__img class?'+$(this).find('.pswp__img').length);
-                    $(this).click(function(ev) {
-                        ev.stopPropagation();
-                        $('#asset-id-'+mid).fadeOut(400);
-                        $('#asset-id-'+mid).removeClass('asset-active');
-                    });
-                });
-            }
-        });
-    }
-}
-
-function nextImageArrow(ev,mid) {
-    setTimeout(function() {
-        let rootSlide = $('.pswp, .pswp--open');
-        // some of these will have the additional class 'fake' and be incorrect, for some unknown horrible internal photoswipe reason
-        var idEls = rootSlide.find('.pswp__caption');
-        idEls.each(function() {
-            let el = $(this);
-            if (!el.hasClass('pswp__caption--fake')&&el.find('.current-asset-id').length!==0) {
-                //console.dir(el);
-                let id = el.find('.current-asset-id').first().attr('id');
-                if (typeof id !== undefined) {
-                    id = id.replace('current-','');
-                    $('.image-enhancer-keyword-wrapper').each(function() {
-                        $(this).hide().removeClass('asset-active');
-                    });
-                    $('#'+id).show().addClass('asset-active');
-                }
-            }
-        });
-    }, 200); // tip-toeing down the road to hell
-}
-
-
-// make sure MA specific
 function imagePopupInfo(obj) {
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return;
 	var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
@@ -1729,24 +1559,8 @@ function populateTaskResults(task, asset) {
         }
     }
 }
-</script>
 
-<%
-if (!Util.booleanNotFalse(CommonConfiguration.getProperty("videoDLNotLoggedIn", context))) {
-%>
 
-<script>
-var isUserLoggedIn = "<%=isUserLoggedIn%>";
-console.log("isUserLoggedIn = "+isUserLoggedIn);
-$(document).ready(function() {
-    if ("false"==isUserLoggedIn) {
-        let vidEl = $(".video-element");
-        vidEl.attr("controlsList", "nodownload");
-        vidEl.bind("contextmenu",function(e){
-            return false;
-        });
-    }
-});
 </script>
 
 <%

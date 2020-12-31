@@ -28,18 +28,4 @@
 
 </div>
 
-<h2>Logos</h2>
-The following logos may be used in conjunction with our project.
-
-<h3>Wild Me</h3>
-
-<p><img src="images/WildMe-Logo-04.png" width="500px" height="*" /></p>
-
-<h3>Wildbook&reg;</h3>
-
-<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
-
-
-
-      <!-- end maintext -->
-      </div>
+    <jsp:include page="footer.jsp" flush="true"/>
