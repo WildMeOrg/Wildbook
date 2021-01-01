@@ -1850,6 +1850,15 @@
     <url-pattern>/ImgSyncServlet0</url-pattern>
   </servlet-mapping>
 
+	<servlet-mapping>
+	          <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+	          <url-pattern>/IndividualAddIncrementalProjectId</url-pattern>
+	  </servlet-mapping>
+
+		<servlet-mapping>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <url-pattern>/IndividualCreateForProject</url-pattern>
+  </servlet-mapping>
 
 
     <servlet-mapping>
