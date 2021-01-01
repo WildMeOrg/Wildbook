@@ -235,7 +235,19 @@ h2.vidcap {
 		
   	
   	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
-  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
+  	<p class="lead"><%=props.getProperty("howItWorks3Description") %>
+  		<ul style="list-style-type: none;font-size:larger;">
+  			<li>Humpback whales <em>(Megaptera novaeangliae)</em></li>
+  			<li>Sperm whales <em>(Physeter macrocephalus)</em></li>
+  			<li>Orcas <em>(Orcinus orca)</em></li>
+  			<li>Bottlenose dolphins <em>(Tursiops truncatus)</em></li>
+  			<li>Spotted dolphins <em>(Stenella frontalis)</em></li>
+  			<li>Right whales <em>(Eubalaena sp.</em>)</li>
+  			<li>Fin whales <em>(Balaenoptera physalus)</em></li>
+  			<li>Humpback dolphins <em>(Sousa plumbea)</em></li>
+  			<li>...and more soon...</li>
+  		</ul>
+  	</p>
   	
   	<div class="row">
   		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
@@ -266,7 +278,7 @@ h2.vidcap {
   	
   	
 
-  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
+  	<p class="lead"><a target="_blank" href="https://docs.wildme.org/docs/researchers/ia_pipeline">Learn more about our machine learning research and engineering.</a></p>
 
 </section>
 
