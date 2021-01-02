@@ -519,8 +519,7 @@ finally{
                                 <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
 
-                                <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-
+                           
                                 <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
@@ -533,7 +532,7 @@ finally{
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://wiki.wildbook.org/"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <li><a target="_blank" href="https://docs.wildme.org/docs/researchers/overview"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
 
 
