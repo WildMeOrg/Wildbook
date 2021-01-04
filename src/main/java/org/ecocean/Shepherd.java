@@ -3192,17 +3192,17 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
     ArrayList<WildbookScheduledTask> taskList = new ArrayList();
-    Query query = null;
+    Extent taskClass = null;
     try {
-      Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
-      query = pm.newQuery(taskClass, filter);
-      query.setOrdering("this.taskScheduledExecutionTimeLong descending");
-      Collection c = (Collection) (query.execute());
-      taskList = new ArrayList(c);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      query.closeAll();
+      taskClass = pm.getExtent(WildbookScheduledTask.class, true);
+    } catch (Exception e) {}
+    if (taskClass!=null) {
+      try (Query query = pm.newQuery(taskClass, filter)) {
+        query.setOrdering("this.taskScheduledExecutionTimeLong descending");
+        Collection c = (Collection) (query.execute());
+        taskList = new ArrayList(c);
+        query.closeAll();
+      } catch (Exception e) {}
     }
     return taskList;
   }
