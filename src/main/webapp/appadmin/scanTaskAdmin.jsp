@@ -351,17 +351,11 @@ else{
     </td>
 
 
-
-						
 						<td>
 						<%
 						if(scanEnc.getIndividual()!=null){
 						%>
-<<<<<<< HEAD
-						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName()%></a>
-=======
 						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName(request, myShepherd)%></a>
->>>>>>> manualUserConsolidate
 						<%
       					}
       					else{
