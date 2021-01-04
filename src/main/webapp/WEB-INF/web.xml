@@ -85,9 +85,9 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
+                /SubmitSpots = authc, roles[researcher]
+				/InterconnectSubmitSpots = authc, roles[researcher]
+				/interconnectSubmitSpots = authc, roles[researcher]
 
 				/import/** = authc, roles[researcher]
 
@@ -95,8 +95,8 @@
 				/encounters/encounter.jsp = roles[]
 				/encounters/encounterMediaGallery.jsp = roles[]
 				/encounters/projectManagement.jsp = authc
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
+				/encounters/encounterSpotTool.jsp = authc, roles[researcher]
+				/SubmitSpotsAndImage = authc, roles[researcher]
 
 		/GenePopExport = authc, roles[researcher]
 
