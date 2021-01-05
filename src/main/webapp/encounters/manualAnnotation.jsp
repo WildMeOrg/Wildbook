@@ -217,17 +217,17 @@ try{
 		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
 		//results = (List)q2.execute();
 		IAJsonProperties iaj=new IAJsonProperties();
-		List<String> results2=iaj.getValidIAClasses(enc.getTaxonomy(myShepherd));
+		List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
 		
 		Iterator<String> it2 = results2.iterator();
 		while (it2.hasNext()) {
 		    String v = (String)it2.next();
 		    //System.out.println("Encooded v: "+v);
 		    if (!Util.stringExists(v)) continue;
-		    if(IBEISIA.validIAClassForIdentification(v, context)){
+		    //if(IBEISIA.validIAClassForIdentification(v, context)){
 		    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
 		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
-		    }
+		    //}
 		}
 		clist += "</select></p>";
 		//q2.closeAll();
