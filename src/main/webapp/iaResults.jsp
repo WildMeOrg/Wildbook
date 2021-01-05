@@ -4,6 +4,7 @@ org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 java.util.HashMap,
 org.ecocean.identity.IdentityServiceLog,
+org.ecocean.servlet.IndividualAddEncounter,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
@@ -23,6 +24,8 @@ String rotationInfo(MediaAsset ma) {
 <%
 
 String context = ServletUtilities.getContext(request);
+String langCode = ServletUtilities.getLanguageCode(request);
+
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 String scoreType = request.getParameter("scoreType");
@@ -250,6 +253,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		try {
 
+
 			enc.setState("approved");
 			enc2.setState("approved");
 			
@@ -263,6 +267,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
 					}
+					
+					
 
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
@@ -283,8 +289,14 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
+					
 					myShepherd.updateDBTransaction();
                     indiv.refreshNamesCache();
+                    
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    
+                    
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -297,8 +309,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-			} 	
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
 
+			} 	
+			
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
@@ -306,6 +320,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
+				
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
+				
 			} 
 
 
@@ -390,6 +407,8 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
+			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
+             
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
