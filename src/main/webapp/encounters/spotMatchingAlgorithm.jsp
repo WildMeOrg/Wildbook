@@ -474,6 +474,8 @@ function spotImageInit() {
 
 
 function spotInit(side) {
+
+	var imgEl = document.getElementById('spot-image-' + side);
 	var opts = {
 		toolsEnabled: {
 			cropRotate: false,
@@ -482,10 +484,8 @@ function spotInit(side) {
 
 		spots: spotJson[side],
 
-		imgEl: document.getElementById('spot-image-' + side),
+		imgEl: imgEl,
 
-		//wCanvas: document.getElementById('imageTools-workCanvas'),
-		//oCanvas: document.getElementById('imageTools-overlayCanvas'),
 		lCanvas: document.getElementById('spot-image-canvas-' + side)
 	};
 
@@ -494,11 +494,17 @@ function spotInit(side) {
 
 	console.info('initializing itool[%s] with opts %o', side, opts);
 	itool[side] = new ImageTools(opts);
-
 	itool[side].setRectFrom2(0,0,0, itool[side].imgEl.width, itool[side].imgEl.height);
+	itool[side].scale = opts.lCanvas.width / imgEl.naturalWidth;
 
-	itool[side].scale = opts.lCanvas.width / itool[side].imgEl.naturalWidth;
-	itool[side].drawSpots();
+	let imgOb = new Image();
+	let imgSrc = imgEl.src;
+	$(imgOb).load(function() {
+		let natWidth = $(this).prop('naturalWidth');
+		itool[side].scale = opts.lCanvas.width / natWidth;
+		itool[side].drawSpots();
+	}).attr({src: imgSrc});
+
 }
 
 
