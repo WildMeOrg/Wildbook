@@ -6,22 +6,17 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package org.ecocean.servlet;
-
 import org.ecocean.*;
 import org.ecocean.ia.*;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,11 +25,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
+import org.ecocean.resumableupload.UploadServlet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.net.URL;
-
 import java.io.*;
 
 public class MediaAssetCreate extends HttpServlet {
@@ -114,7 +109,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-        
+
         JSONObject res=new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class_nonum");
@@ -130,27 +125,54 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
           myShepherd.closeDBTransaction();
         }
 
+        //this does children assets in background
+        JSONArray ids = res.optJSONArray("allMediaAssetIds");
+        List<Integer> idInts = new ArrayList<Integer>();
+        for (int i = 0 ; i < ids.length() ; i++) {
+            int idInt = ids.optInt(i, -2);
+            if (idInt > 0) idInts.add(idInt);
+        }
+        MediaAsset.updateStandardChildrenBackground(context, idInts);
+
         //this has to be after commit (so queue can find them from different thread), so we do a little work here
-        if (!j.optBoolean("skipIA", false)) {
-            JSONArray ids = res.optJSONArray("allMediaAssetIds");
-            if ((ids != null) && (ids.length() > 0)) {
-                myShepherd = new Shepherd(context);
-                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
-                myShepherd.beginDBTransaction();
-                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
-                for (int i = 0 ; i < ids.length() ; i++) {
-                    int id = ids.optInt(i, -1);
-                    if (id < 0) continue;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma != null) allMAs.add(ma);
-                }
-                if (allMAs.size() > 0) {
-                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
-                    myShepherd.storeNewTask(task);
-                    res.put("IATaskId", task.getId());
-                }
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
+        if (!j.optBoolean("skipIA", false) && (idInts.size() > 0)) {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+            myShepherd.beginDBTransaction();
+            try {
+              List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+              for (Integer id : idInts) {
+                  if (id < 0) continue;
+                  MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                  if (ma != null) allMAs.add(ma);
+              }
+              if (allMAs.size() > 0) {
+                  System.out.println("Starting IA.intakeMediaAssets");
+
+                  final Task parentTask = new Task();
+                  Task task = null;
+                  Taxonomy taxy=null;
+                  if(j.getString("taxonomy")!=null && !j.getString("taxonomy").equals("null")) {
+                    taxy=new Taxonomy(j.getString("taxonomy"));
+                  }
+                  if(taxy!=null) {
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                  }
+                  else {
+                    task = IA.intakeMediaAssets(myShepherd, allMAs);
+                  }
+                    System.out.println("Out of IA.intakeMediaAssets");
+                  myShepherd.storeNewTask(task);
+                  res.put("IATaskId", task.getId());
+              }
+              myShepherd.commitDBTransaction();
+            }
+            catch(Exception e) {
+              e.printStackTrace();
+              myShepherd.rollbackDBTransaction();
+            }
+            finally {
+              myShepherd.closeDBTransaction();
             }
         }
 
@@ -171,24 +193,14 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     - local (via CommonConfiguration tmp dir and "filename" value)
     - URL
 */
-        String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
-        S3AssetStore sourceStoreS3 = null;
-        String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
-        if (s3key != null) {
-            JSONObject s3j = new JSONObject();
-            s3j.put("AWSAccessKeyId", s3key);
-            s3j.put("AWSSecretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
-            s3j.put("bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
-            AssetStoreConfig cfg = new AssetStoreConfig(s3j.toString());
-System.out.println("source config -> " + cfg.toString());
-            //note: sourceStore (and any MediaAssets created on it) should remain *temporary* and not be persisted!
-            sourceStoreS3 = new S3AssetStore("temporary upload s3", cfg, false);
-        }
+        String uploadTmpDir = UploadServlet.getUploadDir(request);
+
 
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
         ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);   //this is only needed if we get passed params for url
+        JSONArray attachRtn = new JSONArray();
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -227,6 +239,7 @@ System.out.println("source config -> " + cfg.toString());
                 continue;
             }
 
+            List<MediaAsset> mas = new ArrayList<MediaAsset>();
             for (int j = 0 ; j < assets.length() ; j++) {
                 boolean success = true;
                 MediaAsset targetMA = null;
@@ -258,31 +271,6 @@ System.out.println("source config -> " + cfg.toString());
                         targetMA = urlStore.create(params);
                     }
 
-                } else {  //if we fall thru, then we are going to assume S3
-                    if (sourceStoreS3 == null) throw new IOException("s3upload_ properties not set; no source S3 AssetStore possible in createMediaAssets()");
-                    //key must begin with "SETID/" otherwise it fails security sanity check
-                    if ((setId != null) && (params.optString("key", "FAIL").indexOf(setId + "/") != 0)) {
-                        System.out.println("WARNING createMediaAssets() asset params=" + params.toString() + " failed key value for setId=" + setId + "; skipping");
-                        continue;
-                    }
-                    MediaAsset sourceMA = sourceStoreS3.create(params);
-
-                    File fakeFile = new File(params.get("key").toString());
-                    params = targetStore.createParameters(fakeFile); //really just use bucket here
-                    if (accessKey != null) params.put("accessKey", accessKey);
-                    String dirId = setId;
-                    if (dirId == null) dirId = Util.generateUUID();
-                    params.put("key", Util.hashDirectories(dirId, "/") + "/" + fakeFile.getName());
-System.out.println(i + ") params -> " + params.toString());
-                    targetMA = targetStore.create(params);
-                    try {
-                        // we cannot use sourceMA.copyAssetTo(targetMA) as that uses aws credentials of the source AssetStore; we are assuming the target
-                        //   is stronger (since it is not the temporary store)
-                        targetStore.copyAsset(sourceMA, targetMA);
-                    } catch (Exception ex) {
-                        System.out.println("WARNING: MediaAssetCreate failed to copy " + sourceMA + " to " + targetMA + ": " + ex.toString());
-                        success = false;
-                    }
                 }
 
                 if (success) {
@@ -299,7 +287,6 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
-	            targetMA.updateStandardChildren(myShepherd);  //lets always do this (and can add flag to disable later if needed)
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                         sets.get(setId).addMediaAsset(targetMA);
@@ -308,9 +295,60 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
 System.out.println("no MediaAssetSet; created " + targetMA);
                         haveNoSet.add(targetMA);
                     }
+                    mas.add(targetMA);
                 }
+
+            }
+
+            //this duplicates some of MediaAssetAttach, but lets us get done in one API call
+            //  TODO we dont sanity-check *ownership* of the encounter.... :/
+            JSONObject attEnc = st.optJSONObject("attachToEncounter");
+            JSONObject attOcc = st.optJSONObject("attachToOccurrence");
+            if (attEnc != null) {
+                JSONObject artn = new JSONObject();
+                Encounter enc = myShepherd.getEncounter(attEnc.optString("id", "__FAIL__"));
+                if (enc != null) {
+                    artn.put("id", enc.getCatalogNumber());
+                    artn.put("type", "Encounter");
+                    artn.put("assets", new JSONArray());
+                    for (MediaAsset ema : mas) {
+                        if (enc.hasTopLevelMediaAsset(ema.getId())) continue;
+                        enc.addMediaAsset(ema);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    System.out.println("MediaAssetCreate.attachToEncounter added " + artn.getJSONArray("assets").length() + " assets to Enc " + enc.getCatalogNumber());
+                }
+                attachRtn.put(artn);
+            } else if (attOcc != null) {  //this requires a little extra, to make the enc, minimum is taxonomy
+                String tax = attOcc.optString("taxonomy", null);
+                JSONObject artn = new JSONObject();
+                Occurrence occ = myShepherd.getOccurrence(attOcc.optString("id", "__FAIL__"));
+                if ((tax == null) || (occ == null)) {
+                    System.out.println("MediaAssetCreate.attachToOccurrence ERROR had invalid .taxonomy or bad id; skipping " + attOcc);
+                } else {
+                    artn.put("id", occ.getOccurrenceID());
+                    artn.put("assets", new JSONArray());
+                    artn.put("type", "Occurrence");
+                    ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                    for (MediaAsset ema : mas) {
+                        Annotation ann = new Annotation(tax, ema);
+                        anns.add(ann);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    Encounter enc = new Encounter(anns);
+                    enc.setTaxonomyFromString(tax);
+                    enc.addSubmitter(AccessControl.getUser(request, myShepherd));
+                    enc.addComments("<p>created by MediaAssetCreate attaching to Occurrence " + occ.getOccurrenceID() + "</p>");
+                    occ.addEncounter(enc);
+                    artn.put("encounterId", enc.getCatalogNumber());
+                    myShepherd.getPM().makePersistent(enc);
+                    System.out.println("MediaAssetCreate.attachToOccurrence added Enc " + enc.getCatalogNumber() + " to Occ " + occ.getOccurrenceID());
+                }
+                attachRtn.put(artn);
             }
         }
+
+        if (attachRtn.length() > 0) rtn.put("attached", attachRtn);
 
         JSONObject js = new JSONObject();
         JSONArray allMAIds = new JSONArray();
@@ -360,5 +398,3 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
-  
-  

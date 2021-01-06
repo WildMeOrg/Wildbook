@@ -8,6 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenEncReporter;
 
 import javax.jdo.*;
 
@@ -84,6 +85,8 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
 				out.println("<html><body><p><strong>Access denied.</strong></p>");
 				out.println(ServletUtilities.getFooter(context));
 				out.close();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 				return;
 			}
       

@@ -66,7 +66,13 @@ wildbook.Collection.BaseClass = Backbone.Collection.extend({
 		if (options && options.jdoql) {
 			//this allows us to be "lazy" and not have to put "SELECT FROM [classname] WHERE..." but just "WHERE..."
 			if (options.jdoql.toLowerCase().indexOf('where') == 0) options.jdoql = 'SELECT FROM ' + this.model.prototype.className() + ' ' + options.jdoql;
-			this._altUrl = 'jdoql?' + options.jdoql;  //note this does not need the classname like /api/org.ecocean.Foo
+			var noDecorate='';
+			var fetch='';
+			let useProjectContext='';
+			if(options.useProjectContext=="true")useProjectContext='useProjectContext=true&';
+			if(options.noDecorate)noDecorate='noDecorate=true&';
+			if(options.fetch)fetch='fetch='+options.fetch+'&';
+			this._altUrl = '?'+noDecorate+useProjectContext+fetch+'query=' + options.jdoql;  //note this does not need the classname like /api/org.ecocean.Foo
 		} else if (options && options.fields) {
 			this._altUrl = this.model.prototype.className();
 			var arg = [];

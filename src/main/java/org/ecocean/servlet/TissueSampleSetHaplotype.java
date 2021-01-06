@@ -128,7 +128,7 @@ public class TissueSampleSetHaplotype extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the haplotype. I cannot find the encounter or tissue sample that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
-
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     out.close();
     myShepherd.closeDBTransaction();

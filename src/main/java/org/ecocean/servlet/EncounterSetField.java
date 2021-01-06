@@ -42,7 +42,7 @@ public class EncounterSetField extends HttpServlet {
     String fieldSetterName=request.getParameter("fieldSetterName");
     // if necessary and possible derive fieldSetterName from fieldName
     if (fieldSetterName==null && fieldName!=null) {
-      fieldSetterName = "set"+Util.capitolizeFirstLetter(fieldName);
+      fieldSetterName = "set"+Util.capitolizeFirstLetterOnly(fieldName);
     }
 
     Class fieldType=null;

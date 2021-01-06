@@ -124,7 +124,7 @@ function setPageOffsetFromCurrentPair() {
 var attrOrder = ['number', 'date', 'sex', 'assignedToShark', 'size', 'location', 'locationID'];
 var attrLabel = {
     number: 'Enc ID',
-    date: 'Date', 
+    date: 'Date',
     sex: 'Sex',
     assignedToShark: 'Assigned to',
     size: 'Size',
@@ -135,6 +135,9 @@ function spotDisplaySide(side, data) {
 console.log('spotDisplaySide ==> %i %o', side, data);
     $('#match-side-' + side + ' img').prop('src', data.imgUrl);
     var h = '<div class="match-side-attributes">';
+    $('#match-side-' + side + ' img').load(function() {
+        fitRightImage();
+    });
     for (var i = 0 ; i < attrOrder.length ; i++) {
         var label = attrLabel[attrOrder[i]] || attrOrder[i];
         var value = data[attrOrder[i]];

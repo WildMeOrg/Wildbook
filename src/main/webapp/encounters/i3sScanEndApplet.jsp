@@ -41,7 +41,7 @@ context=ServletUtilities.getContext(request);
         num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
     }
     myShepherd.rollbackDBTransaction();
-  }	
+  }
   String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
@@ -54,7 +54,7 @@ context=ServletUtilities.getContext(request);
   File file = new File("foo");
   String scanDate = "";
   String side2 = "";
-  
+
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -85,13 +85,13 @@ myShepherd.closeDBTransaction();
   // Part Two hackety hack to switch URLs for US users
   String linkURLBase = CommonConfiguration.getURLLocation(request);
 
- 
+
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
-  
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -130,14 +130,14 @@ myShepherd.closeDBTransaction();
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
 
 .tr-location-nonlocal {
     opacity: 0.6;
@@ -331,10 +331,7 @@ td, th {
 
 <p>
 
-<h2>I3S Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
+<h2>I3S Scan Results</h2>
 </p>
 <p>The following encounter(s) received the best
   match values using the I3S algorithm against a <%=side%>-side scan of
@@ -354,7 +351,7 @@ td, th {
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 		  <%
-		  
+
 
 		    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
 		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
@@ -425,13 +422,13 @@ $(document).ready(function() {
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-  
+
 <a name="resultstable"></a>
 <table class="tablesorter">
 
 <table width="800px">
   <thead>
-  
+
         <tr align="left" valign="top">
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
@@ -450,11 +447,11 @@ $(document).ready(function() {
             for (int p = 0; p < results.length; p++) {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr align="left" valign="top">
-         
+
                 <td width="60" align="left"><a
                   href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a></td>
-             
+
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
@@ -482,7 +479,7 @@ $(document).ready(function() {
             //end for loop
           }
 
-//or use XML output here	
+//or use XML output here
         } else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
@@ -498,7 +495,7 @@ $(document).ready(function() {
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
-          
+
                 <td width="60" align="left">
             <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
@@ -553,7 +550,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
         %>
 
-      
+
 </tbody>
 </table>
 
@@ -571,11 +568,10 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-    
+
 
 
 %>
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-

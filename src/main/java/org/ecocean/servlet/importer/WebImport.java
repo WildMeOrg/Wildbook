@@ -32,7 +32,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 
 import org.joda.time.DateTime;
@@ -83,7 +83,7 @@ public class WebImport extends HttpServlet {
 
   public String fileInDir(String filename, String directoryPath) {
     if (directoryPath.endsWith("/")) return (directoryPath+filename);
-    return (directoryPath+"/"+filename); 
+    return (directoryPath+"/"+filename);
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
@@ -157,12 +157,8 @@ public class WebImport extends HttpServlet {
 
 
     int printPeriod = 1;
-    String importId = Util.generateUUID();
-    LocalDateTime ldt = new LocalDateTime();
-    String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
-    System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Parsed Import Table</h2>"); 
+    out.println("<h2>Parsed Import Table</h2>");
     System.out.println("debug0");
     System.out.println("feedback headers = "+feedback.colNames);
     feedback.printStartTable();
@@ -186,9 +182,7 @@ public class WebImport extends HttpServlet {
         // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row);
         Encounter enc = loadEncounter(row, annotations);
-        enc.addComments(importComment);
         occ = loadOccurrence(row, occ, enc);
-        occ.addComments(importComment);
         mark = loadIndividual(row, enc);
 
         if (committing) {
@@ -224,7 +218,7 @@ public class WebImport extends HttpServlet {
         //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
         //  out.println("</tr>");
         }
-        
+
       }
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
@@ -239,7 +233,7 @@ public class WebImport extends HttpServlet {
     out.println("<li>Filename: "+filename+"</li>");
     out.println("<li>File found = "+dataFound+"</li>");
     out.println("<li>Num Sheets = "+numSheets+"</li>");
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");    
+    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");
     out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
@@ -270,10 +264,9 @@ public class WebImport extends HttpServlet {
     feedback.printFoundPhotos();
 
 
-    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");
 
     out.println("<h2>Import completed successfully</h2>");
-    if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
 
 
@@ -299,9 +292,12 @@ public class WebImport extends HttpServlet {
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
+
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
+
+  	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
+  	if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
 
   	Integer individualCount = getInteger(row, "Occurrence.individualCount");
   	if (individualCount!=null) occ.setIndividualCount(individualCount);
@@ -317,10 +313,60 @@ public class WebImport extends HttpServlet {
       occ.setDecimalLongitude(decimalLongitude);
     }
 
+  	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
+  	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
+
+  	String groupComposition = getString(row, "Occurrence.groupComposition");
+  	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
+
+  	String fieldSurveyCode = getString(row, "Survey.id");
+    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
+  	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
+
+  	String sightingPlatform = getString(row, "Survey.vessel");
+    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
+  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
     if (surveyComments!=null) occ.addComments(surveyComments);
 
+    Integer numAdults = getInteger(row, "Occurrence.numAdults");
+    if (numAdults!=null) occ.setNumAdults(numAdults);
+
+    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate");
+    if (minGroupSize!=null) occ.setMinGroupSizeEstimate(minGroupSize);
+    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate");
+    if (maxGroupSize!=null) occ.setMaxGroupSizeEstimate(maxGroupSize);
+    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate");
+    if (bestGroupSize!=null) occ.setBestGroupSizeEstimate(bestGroupSize);
+
+    Integer numCalves = getInteger(row, "Occurrence.numCalves");
+    if (numCalves!=null) occ.setNumCalves(numCalves);
+    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles");
+    if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
+
+
+    Double bearing = getDouble(row, "Occurrence.bearing");
+    if (bearing!=null) occ.setBearing(bearing);
+    Double distance = getDouble(row, "Occurrence.distance");
+    if (distance!=null) occ.setDistance(distance);
+
+    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
+    if (swellHeight!=null) occ.setSwellHeight(swellHeight);
+    String seaState = getString(row, "Occurrence.seaState");
+    if (seaState!=null) occ.setSeaState(seaState);
+    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
+
+    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
+    if (transectBearing!=null) occ.setTransectBearing(transectBearing);
+    String transectName = getString(row, "Occurrence.transectName");
+    if (transectName!=null) occ.setTransectName(transectName);
+
     String initialCue = getString(row, "Occurrence.initialCue");
+    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
+    if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
+    Double effortCode = getDouble(row, "Occurrence.effortCode");
+    if (effortCode!=null) occ.setEffortCode(effortCode);
 
     Taxonomy taxy = loadTaxonomy0(row);
     if (taxy!=null) occ.addTaxonomy(taxy);
@@ -329,6 +375,7 @@ public class WebImport extends HttpServlet {
     if (taxy1!=null) occ.addTaxonomy(taxy1);
 
   	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
+  	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
 
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
@@ -339,7 +386,7 @@ public class WebImport extends HttpServlet {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
-      //occ.setSubmitterIDFromEncs(false);
+      occ.setSubmitterIDFromEncs(false);
     }
 
   	return occ;
@@ -384,7 +431,7 @@ public class WebImport extends HttpServlet {
     if (millis!=null) {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
-    } 
+    }
 
 
   	// Location
@@ -428,6 +475,7 @@ public class WebImport extends HttpServlet {
   	if (submitterName!=null) enc.setSubmitterName(submitterName);
 
   	Integer patterningCode = getInteger(row, "Encounter.patterningCode");
+  	if (patterningCode!=null) enc.setFlukeType(patterningCode);
 
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
@@ -442,13 +490,16 @@ public class WebImport extends HttpServlet {
   	String behavior = getString(row, "Encounter.behavior");
   	if (behavior!=null) enc.setBehavior(behavior);
 
+/*  should not need this now, as (MarkedIndividual)mark has encounter added
   	String individualID = getIndividualID(row);
   	if (individualID!=null) enc.setIndividualID(individualID);
+*/
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
 
     String groupRole = getString(row, "Encounter.groupRole");
+    if (groupRole!=null) enc.setGroupRole(groupRole);
 
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
@@ -550,7 +601,7 @@ public class WebImport extends HttpServlet {
   		for (String columnHeader: colIndexMap.keySet()) {
   			if (columnHeader.contains(className+".")) {
   				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}	
+  			}
   		}
   	} catch (Exception e) {}
   	return fieldNames;
@@ -724,7 +775,7 @@ public class WebImport extends HttpServlet {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
     int maxKeywords=2;
-    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
+    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; //
     // we have up to two keywords per row.
     for (int i=n; i<stopAtKeyword; i++) {
       String kwColName = "Encounter.keyword0"+i;
@@ -953,7 +1004,7 @@ public class WebImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       ans = new Long( (long) val );
     }
-    catch (Exception e){      
+    catch (Exception e){
       try {
         String str = getStringNoLog(row, i);
         if (str==null) ans = null;
@@ -1141,7 +1192,6 @@ public class WebImport extends HttpServlet {
   // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
   // (as if I actually wrote this. thanks stackoverflow!)
   public static boolean isRowEmpty(Row row) {
-    if (row == null) return true;
     for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
         Cell cell = row.getCell(c);
         if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
@@ -1189,7 +1239,7 @@ public class WebImport extends HttpServlet {
     // }
 
     // return as;
-    
+
   }
 
 
@@ -1302,7 +1352,7 @@ public class WebImport extends HttpServlet {
         if (cell==null) str.append(nullCellHtml());
         else str.append(cell.html());
       }
-      str.append("</tr>"); 
+      str.append("</tr>");
       return str.toString();
     }
 
@@ -1366,7 +1416,7 @@ public class WebImport extends HttpServlet {
     public String titleStr() {
       if (isBlank) return "Cell was blank in excel file.";
       if (!success) return "ERROR: The import was unable to parse this cell. Please verify that your value conforms to the Wildbook Standard Format and re-import.";
-      return "Successfully parsed value from excel file.";    
+      return "Successfully parsed value from excel file.";
     }
 
 

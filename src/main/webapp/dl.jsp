@@ -14,8 +14,6 @@ org.ecocean.media.*
 
 <%
 
-System.out.println("Trying dl.jsp!!!!!!!!!!!!!");
-
 /*
 this can use a little nginx magic to allow something like /imagedl/MEDIA_ASSET_ID/some_file_name.jpg to deliver
 the *master* image associated with some media asset.  nice for downloading as the original filename.
@@ -39,17 +37,11 @@ if (!Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownl
     return;
 }
 
-Shepherd myShepherd = new Shepherd(context);
+
 
 String ddir = CommonConfiguration.getDataDirectoryName(context);
 
-System.out.println("Trying ddir: "+ddir);
-
-
 String idString = request.getParameter("id");
-
-System.out.println("Got idString for dl? : "+idString);
-
 int id = 0;
 if (idString != null) id = Integer.parseInt(idString);
 if (id < 1) {
@@ -59,11 +51,15 @@ if (id < 1) {
     return;
 }
 
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("dl.jsp");
+myShepherd.beginDBTransaction();
 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
 if (ma == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
@@ -74,16 +70,17 @@ if (ma == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
 //TODO now, should we do the *safe* child or the *master* ????  going to go with master for now....
-//ArrayList<MediaAsset> masters = ma.findChildrenByLabel(myShepherd, "_master");
-ArrayList<MediaAsset> masters = new ArrayList<MediaAsset>();  masters.add(ma);
+ArrayList<MediaAsset> masters = ma.findChildrenByLabel(myShepherd, "_master");
 if ((masters == null) || (masters.size() < 1)) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
@@ -96,13 +93,12 @@ if (path == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
-//response.setHeader("X-Accel-Redirect", "/" + ddir + "/" + path);
-response.setHeader("X-Accel-Redirect", masters.get(0).webURL().toString().substring(22));
+response.setHeader("X-Accel-Redirect", "/" + ddir + "/" + path);
 
-     System.out.println("######################## >>>> (" + ddir + ") (" + path + ")");
 //response.setHeader("X-Accel-Redirect", masters.get(0).webURL().toString());
 //response.setContentType("text/plain");
 //out.println(masters.get(0).getParameters());

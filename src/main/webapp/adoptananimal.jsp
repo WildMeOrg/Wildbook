@@ -100,6 +100,7 @@ context=ServletUtilities.getContext(request);
 			
 				<%
 				Shepherd myShepherd=new Shepherd(context);
+				myShepherd.setAction("adoptananimal.jsp");
 				myShepherd.beginDBTransaction();
 				try{
 					if(myShepherd.getNumAdoptions()>0){

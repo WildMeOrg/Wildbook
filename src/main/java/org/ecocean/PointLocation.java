@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.json.JSONObject;
 
 import org.ecocean.*;
 import org.joda.time.DateTime;
@@ -11,7 +13,7 @@ import org.joda.time.DateTime;
 /**
  * Each pointLocation is a specific spot on Earth defined by latitude, longitude
  * elevation above (or below) sea level and a time.
- * 
+ *
  * The Path object is made up of an array of these, and a group over time create
  * a useful way of tracking a survey and survey track.
  *
@@ -22,7 +24,7 @@ import org.joda.time.DateTime;
 public class PointLocation implements java.io.Serializable {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -3758129925666366058L;
 
@@ -61,12 +63,12 @@ public class PointLocation implements java.io.Serializable {
   }
 
   public PointLocation(Double lat, Double lon, Long date, Measurement el) {
-    if (latLonCheck(lat, lon)&&date!=null&& elevation!= null) {
+    //if (latLonCheck(lat, lon)&&date!=null&& elevation!= null) {
       this.longitude = lon;
       this.latitude = lat;
       this.dateTime = date;
       this.elevation = el;
-    }
+    //}
     generateUUID();
   }
 
@@ -76,26 +78,26 @@ public class PointLocation implements java.io.Serializable {
 
   public Long getDateTimeInMilli() {
     if (dateTime!=null){
-      return dateTime.longValue();      
+      return dateTime.longValue();
     }
     return null;
   }
-  
+
   public String getDateTimeAsString() {
-    if (dateTime!=null){    
+    if (dateTime!=null){
       DateTime dt = new DateTime(dateTime);
       return dt.toString();
     }
     return null;
   }
-  
-  public String getTimeAsString() { 
-    if (dateTime!=null){      
+
+  public String getTimeAsString() {
+    if (dateTime!=null){
       DateTime dt = new DateTime(dateTime);
       String time = String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
       return time;
     }
-    return null; 
+    return null;
   }
 
   public void setDateTimeInMilli(Long dt) {
@@ -187,10 +189,36 @@ public class PointLocation implements java.io.Serializable {
   }
 
   private boolean latLonCheck(Double lat, Double lon) {
-    if (lat!=null&&lon!=null&&lat>=-90&&lat<=90&&lon>-180&&lon<180) {
-      return true;
-    }
-    return false;
+    return Util.isValidDecimalLatitude(lat) && Util.isValidDecimalLongitude(lon);
   }
+
+    //distance squared
+    //  TODO maybe also take into account time? elev? etc?
+    public Double diff2(PointLocation p2) {
+        if (p2 == null) return null;
+        if ((this.longitude == null) || (this.latitude == null) || (p2.longitude == null) || (p2.latitude == null)) return null;
+        return (this.longitude - p2.longitude)*(this.longitude - p2.longitude) + (this.latitude - p2.latitude)*(this.latitude - p2.latitude);
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject rtn = new JSONObject();
+        rtn.put("id", getID());
+        rtn.put("latitude", latitude);
+        rtn.put("longitude", longitude);
+        rtn.put("bearing", bearing);
+        if (dateTime != null) rtn.put("dateTime", new DateTime(dateTime));
+        if (elevation != null) rtn.put("elevation", elevation.toJSONObject());
+        return rtn;
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("id", getID())
+            .append("bearing", bearing)
+            .append("(" + latitude + "," + longitude + ")")
+            .append("elev", elevation)
+            .append("dateTime", new DateTime(dateTime))
+            .toString();
+    }
 
 }

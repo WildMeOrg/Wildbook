@@ -5,9 +5,14 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.ecocean.TwitterUtil;
 import org.ecocean.servlet.*;
+
 import java.io.IOException;
+
 import javax.servlet.http.*;
+
 import edu.stanford.nlp.time.Options;
 import edu.stanford.nlp.time.TimeAnnotations;
 import edu.stanford.nlp.time.TimeExpression;
@@ -18,6 +23,7 @@ import edu.stanford.nlp.pipeline.Annotator;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.ling.CoreAnnotations;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 
 
@@ -49,9 +55,9 @@ public class SUTime {
     catch(Exception npe) {
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
       rulesDir="/data/wildbook_data_dir/WEB-INF/data/sutime/rules";
-      
+
     }
-    
+
     StringBuilder sb = new StringBuilder();
     for (String file:files) {
       if (sb.length() > 0) {
@@ -63,12 +69,12 @@ public class SUTime {
     return sb.toString();
   }
 
- 
+
   private static Properties getTimeAnnotatorProperties(String rootDir) {
     // Parses request and set up properties for time annotators
-    
+
     System.out.println("Entering "+"SUTime.getTimeAnnotatorProperties");
-    
+
     boolean markTimeRanges =false;
             //parseBoolean(request.getParameter("markTimeRanges"));
     boolean includeNested =false;
@@ -102,7 +108,7 @@ public class SUTime {
       props.setProperty("sutime.rules", ruleFile);
       props.setProperty("sutime.binders", "1");
       props.setProperty("sutime.binder.1", "edu.stanford.nlp.time.JollyDayHolidays");
-      
+
       try {
         props.setProperty("sutime.binder.1.xml", (rootDir+"/WEB-INF/data/holidays/Holidays_sutime.xml"));
       }
@@ -110,7 +116,7 @@ public class SUTime {
         props.setProperty("sutime.binder.1.xml", "/data/wildbook_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
         npe.printStackTrace();
       }
-      
+
       props.setProperty("sutime.binder.1.pathtype", "file");
     }
     props.setProperty("sutime.teRelHeurLevel",
@@ -122,7 +128,7 @@ public class SUTime {
     return props;
   }
 
-  
+
   private static List<CoreMap> getTimeAnnotations(String query, Annotation anno, boolean includeOffsets) {
     List<CoreMap> timexAnns = anno.get(TimeAnnotations.TimexAnnotations.class);
     List<String> pieces = new ArrayList<String>();
@@ -151,17 +157,17 @@ public class SUTime {
 
   }
 
-  
+
   //use the current date as the reference date
   private static List<CoreMap> getDates(String query,
       String rootDir,
         SUTimePipeline pipeline) throws IOException {
-        
+
       String dateString = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
       return getDates(query, rootDir, pipeline, dateString);
   }
-  
-  
+
+
   //use a provided date as a reference date
   private static List<CoreMap> getDates(String query,
                         String rootDir,
@@ -169,7 +175,7 @@ public class SUTime {
     throws IOException {
 
     System.out.println("Entering SUTime.getDates!");
-    
+
     boolean includeOffsets = false;
     //boolean includeOffsets = parseBoolean(request.getParameter("includeOffsets"));
     if ( ! StringUtils.isNullOrEmpty(query)) {
@@ -183,37 +189,37 @@ public class SUTime {
       if (timeAnnotator != null) {
         Annotation anno = pipeline.process(query, dateString, timeAnnotator);
         //out.println("<h3>Annotated Text</h3> <em>(tagged using " + annotatorType + "</em>)");
-      
-        
+
+
         List<CoreMap> timexAnns=getTimeAnnotations(query, anno, includeOffsets);
-        
+
         return timexAnns;
-      
-      
+
+
       } else {
         System.out.println("<br><br>Error creating annotator for " + StringEscapeUtils.escapeHtml4(annotatorType));
       }
-      
+
 
     }
     return null;
 
   }
-  
-  
+
+
   public static SUTimePipeline createPipeline(String rootDir) {
-    
+
     System.out.println("Creating the SUTimePipeline!");
     SUTimePipeline pipeline; // = null;
     String dataDir = "";
-    
+
     //check if we're calling this from a servlet context, which we should be
     try{
       dataDir=rootDir+"/WEB-INF/data";
       System.setProperty("de.jollyday.config", (rootDir+"/WEB-INF/classes/holidays/jollyday.properties"));
     }
     catch(Exception npe) {
-      
+
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
       dataDir="/data/wildbook_data_dir/WEB-INF/data";
       System.setProperty("de.jollyday.config", ("/data/wildbook_data_dir/WEB-INF/classes/holidays/jollyday.properties"));
@@ -225,32 +231,32 @@ public class SUTime {
     pipelineProps.setProperty("pos.model", taggerFilename);
     pipeline = new SUTimePipeline(pipelineProps);
     return pipeline;
-    
+
   }
-  
+
   public static ArrayList<String> parseStringForDates(String rootDir, String text) {
     String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     return parseStringForDates(rootDir, text, relativeDate);
   }
-  
-  
+
+
   public static ArrayList<String> parseStringForDates(String rootDir, String text, String relativeDate) {
-    
+
     ArrayList<String> arrayListDates = new ArrayList<String>();
-    
+
     SUTimePipeline pipeline=createPipeline(rootDir);
-    
+
     //clean up the text
     System.out.println("parseDates with text " + text);
-    
+
     //text = text.replaceAll("[,.!?;:]", "$0 ");
     //System.out.println("text: " + text);
     //String[] text1 = text.replaceAll("[^A-Za-z0-9 ]", " ").toLowerCase().split("\\s+"); //TODO I think this does a better version of what the above (text = text.replaceAll("[,.!?;:]", "$0 ");) does?? -Mark Fisher
     //String text2 = String.join(" ", text1);
 
     //System.out.println("Cleaned up text to text2: " + text2);
-    
-    
+
+
     /*
       try {
         if (request.getCharacterEncoding() == null) {
@@ -263,9 +269,9 @@ public class SUTime {
       */
 
       try {
-        
+
         List<CoreMap> timexAnnsAll=getDates(text,rootDir, pipeline, relativeDate);
-        
+
         for (CoreMap cm : timexAnnsAll) {
           Temporal myDate = cm.get(TimeExpression.Annotation.class).getTemporal();
           //        TimeExpression.Annotation:The CoreMap key for storing a TimeExpression annotation.
@@ -277,7 +283,7 @@ public class SUTime {
 
         //if (!arrayListDates.isEmpty()) {
           //turn arrayList into an array to be able to use the old For loop and compare dates.
-          
+
           //return arrayListDates;
         //}
       }
@@ -285,32 +291,32 @@ public class SUTime {
         ioe.printStackTrace();
       }
       return arrayListDates;
-  }  
-  
+  }
+
   //
   public static String parseDateStringForBestDate(String rootDir, String text) {
     String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     return parseDateStringForBestDate(rootDir, text, relativeDate);
   }
-  
-  
+
+
   public static String parseDateStringForBestDate(String rootDir, String text, String relativeDate) {
           ArrayList<String> arrayListDates=parseStringForDates(rootDir, text, relativeDate);
           String selectedDate = "";
           try{
             selectedDate = selectBestDateFromCandidates(arrayListDates);
-          } 
+          }
           catch(Exception e){
             e.printStackTrace();
           }
-          if(selectedDate == null | selectedDate.equals("")){
+          if(selectedDate == null || selectedDate.equals("")){
             return null;
-          } 
+          }
           else{
             return selectedDate;
           }
   }
-  
+
 public static String selectBestDateFromCandidates(ArrayList<String> candidates) throws Exception{
   String selectedDate = "";
 
@@ -344,7 +350,7 @@ public static String selectBestDateFromCandidates(ArrayList<String> candidates) 
       System.out.println("couldn't run removeFutureDates");
       // e.printStackTrace();
     }
-    
+
     //remove excessive past dates
     ArrayList<String> validDatesWithExcessiveDatesRemoved = new ArrayList<String>();
     try{
@@ -371,7 +377,7 @@ public static String selectBestDateFromCandidates(ArrayList<String> candidates) 
 
 
     //Now select the longest one?
-    if(validDatesFilteredByYesterday == null | validDatesFilteredByYesterday.size()<1){
+    if(validDatesFilteredByYesterday == null || validDatesFilteredByYesterday.size()<1){
       throw new Exception("validDatesFilteredByYesterday is null or empty before selecting the longest string");
     }
     if(validDatesFilteredByYesterday.size()>1){
@@ -391,7 +397,7 @@ public static String selectBestDateFromCandidates(ArrayList<String> candidates) 
     }
   }
 
-  if(selectedDate == null | selectedDate.equals("")){
+  if(selectedDate == null || selectedDate.equals("")){
     throw new Exception("selectedDate either null or empty after selecting for longest one");
   } else {
     return selectedDate;
@@ -556,31 +562,18 @@ public static java.util.Date getYesterday() {
 }
 
 //overloaded version to deal with tweets
-public static String parseDateStringForBestDate(String rootDir, String text, Status tweet) throws Exception{
-System.out.println("Entering nlpDateParse twitter version with text " + text);
+public static String parseDateStringForBestDate(String rootDir, Status tweet) throws Exception{
+String text=TwitterUtil.getText(tweet);
+  System.out.println("Entering nlpDateParse twitter version with text " + text);
 //create my pipeline with the help of the annotators I added.
 
+  //Date tweetDate=tweet.getCreatedAt();
+  String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
-  String selectedDate=parseDateStringForBestDate(rootDir, text);
 
-  if(selectedDate == null | selectedDate.equals("")){
-    try{
-      java.util.Date tweetDate = tweet.getCreatedAt();
-      DateFormat dfTweetStamp = new SimpleDateFormat("yyyy-MM-dd");
-      selectedDate = dfTweetStamp.format(tweetDate);
-      System.out.println("Date of tweet when all other candidates were eliminated is: " + selectedDate);
-      return selectedDate;
-    } 
-    catch(Exception e){
-      e.printStackTrace();
-      throw new Exception("Couldn't fetch a timeStamp for the tweet to use as a last-resort date after all other candidates were eliminated");
-    }
-  } else{
-    return null;
-  }
-
+  String selectedDate=parseDateStringForBestDate(rootDir, text, relativeDate);
+  System.out.println("Best guess for referenced Tweet date from NLP: " +selectedDate);
+  return selectedDate;
 }
 
-
 }
-
