@@ -9,6 +9,7 @@ import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.regexp.recompile;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
@@ -427,22 +428,33 @@ public class Collaboration implements java.io.Serializable {
 	    return false;
 	  }
 
-  public String toString() {
-      return new ToStringBuilder(this)
-              .append("username1", getUsername1())
-              .append("username2", getUsername2())
-              .append("state", getState())
-              .append("dateTimeCreated", getDateStringCreated())
-              .toString();
-  }
-  
-  public String getEditInitiator() {return editInitiator;}
-  public void setEditInitiator(String username) {
-    if(username==null) {this.editInitiator=null;}
-    else {
-      this.editInitiator = username;
-    }
-  }
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("username1", getUsername1())
+				.append("username2", getUsername2())
+				.append("state", getState())
+				.append("dateTimeCreated", getDateStringCreated())
+				.toString();
+	}
+	
+	public String getEditInitiator() {
+		if (editInitiator!=null&&!"".equals(editInitiator)) {
+			return editInitiator;
+		} else if (this.getState().equals(STATE_REJECTED)) {
+			return null; 
+		} else {
+			this.editInitiator = this.username1; // probably old collaboration request where position 1 is always initiator
+			return editInitiator;
+		}
+	}
+
+
+	public void setEditInitiator(String username) {
+		if(username==null) {this.editInitiator=null;}
+		else {
+		this.editInitiator = username;
+		}
+	}
 
 
 
