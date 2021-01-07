@@ -7,18 +7,18 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  
+
 
   //Shepherd myShepherd = new Shepherd(context);
-  
-  	
+
+
 
 //setup our Properties object to hold all properties
 
   //language setup
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/overview.properties"));
@@ -46,11 +46,11 @@ context=ServletUtilities.getContext(request);
 
 
 <div class="container maincontent">
-        
+
         <%
           if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
           %>
-          
+
           <p style="color:#FF0000;"><strong><em>Our records indicate that you have not yet accepted the Usage Agreement. Acceptance is required to use this resource. Please read the agreement below and click the "Accept" button to proceed or "Reject" to decline and return to the home page.</em></strong></p>
           <%
           }
@@ -135,7 +135,7 @@ context=ServletUtilities.getContext(request);
             <p>This Agreement is entire and complete, and no representations, warranties, agreements or covenants, express or implied, of any kind or character whatsoever have been made by either party hereto to the other, except as expressly set forth in this Agreement. Except as provided herein, this Agreement may not be modified or changed unless the same shall be in writing and signed by an authorized officer of the party to be bound thereby.</p>
             <p>You may not assign any of your rights or delegate any of your obligations under this Agreement without Wild Me's prior written consent. If any provision of this Agreement is held to be overly broad in scope or duration by a court of competent jurisdiction such provision shall be deemed modified to the broadest extent permitted under applicable law. If any provision of this Agreement shall be held to be illegal, invalid or unenforceable by a court of competent jurisdiction, the validity, legality and enforceability of the remaining provisions shall not, in any way, be affected or impaired thereby. No waiver by either party of any breach or default hereunder shall be deemed to be a waiver of any preceding or subsequent breach or default. The section headings used herein are for convenience only and shall not be given any legal import.</p>
             <p>The provisions of Sections 4, 6, 7 and 8 shall survive termination of this Agreement.</p>
-            
+
             <%
           	if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
           	%>
@@ -146,31 +146,32 @@ context=ServletUtilities.getContext(request);
           	%>
           	<p><strong>YOU WILL BE ASKED TO READ, UNDERSTAND AND AGREE TO BE BOUND BY ALL OF THE TERMS OF THIS AGREEMENT BEFORE BEING ISSUED AN ACCOUNT.</strong></p>
           	<%
-          	
-          	
+
+
           	}
           	%>
-          </div>
+
           <h1 class="intro">&nbsp;</h1>
-          
+
           <%
           if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
           %>
           <p><table cellpadding="5"><tr><td>
-          	<form name="accept_agreement" action="LoginUser" method="post">
-          		<input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
-          		<input type="hidden" name="password" value="<%=request.getParameter("password")%>" />
-          		<input type="submit" id="acceptUserAgreement" name="acceptUserAgreement" value="Accept"/>
-          	</form>
+            <form name="accept_agreement" action="LoginUser" method="post">
+              <input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
+              <input type="hidden" name="password" value="<%=request.getParameter("password")%>" />
+              <input type="submit" id="acceptUserAgreement" name="acceptUserAgreement" value="Accept"/>
+            </form>
           </td>
           <td><form name="reject_agreement" action="index.jsp" method="get">
-          		<input type="submit" name="rejectUserAgreement" value="Reject"/>
-          	</form></td>
+              <input type="submit" name="rejectUserAgreement" value="Reject"/>
+            </form></td>
           </tr></table>
           </p>
           <%
           }
           %>
+          </div>
         </div>
 
     <jsp:include page="footer.jsp" flush="true"/>

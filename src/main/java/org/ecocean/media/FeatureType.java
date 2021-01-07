@@ -55,7 +55,7 @@ public class FeatureType implements java.io.Serializable {
     }
     public void setId(String i) {
         id = i;
-    }   
+    }
 
     public String getDescription() {
         return description;
@@ -93,6 +93,7 @@ public class FeatureType implements java.io.Serializable {
         myShepherd.rollbackDBTransaction();
         System.out.println("INFO: FeatureType.initAll() found " + allTypes.size() + " FeatureTypes");
         if (allTypes.size() < 1) initializeFeatureTypes(myShepherd);
+        q.closeAll();
         return allTypes;
     }
 

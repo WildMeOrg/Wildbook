@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class EncounterCreateSurvey extends HttpServlet {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -66,26 +66,26 @@ public class EncounterCreateSurvey extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterCreateSurvey.class");
-    
+
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String surveyID = null;
 
-    
+
     Encounter enc = null;
     Survey svy = null;
     SurveyTrack st = null;
-    
+
     if (request.getParameter("surveyID") != null) {
-      surveyID = ServletUtilities.cleanFileName(request.getParameter("surveyID"));              
+      surveyID = ServletUtilities.cleanFileName(request.getParameter("surveyID"));
     }
-    
+
     if(request.getParameter("number") != null){
       String id = request.getParameter("number");
       try {
         myShepherd.beginDBTransaction();
         enc = myShepherd.getEncounter(id);
-        myShepherd.commitDBTransaction();      
+        myShepherd.commitDBTransaction();
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -93,13 +93,13 @@ public class EncounterCreateSurvey extends HttpServlet {
         out.println("Error retrieving encounter number "+id+" when creating survey.");
       }
     }
-    
+
     if (!myShepherd.isSurvey(surveyID) && surveyID != null && enc.getSurveyID() == null) {
       setDateLastModified(enc);
       try {
         svy = new Survey(enc.getDate());
         if (surveyID != null) {
-          svy.setID(surveyID);       
+          svy.setID(surveyID);
         }
         myShepherd.beginDBTransaction();
         myShepherd.storeNewSurvey(svy);
@@ -110,11 +110,13 @@ public class EncounterCreateSurvey extends HttpServlet {
         e.printStackTrace();
         out.println("Failed to create new Survey from ID : "+surveyID+". The survey could not be saved.");
       }
-      
+
       try {
-        st = new SurveyTrack(svy);
+        st = new SurveyTrack();
+        svy.addSurveyTrack(st);
         myShepherd.beginDBTransaction();
-        myShepherd.storeNewSurveyTrack(st);
+        myShepherd.getPM().makePersistent(svy);
+        //myShepherd.storeNewSurveyTrack(st);
         myShepherd.commitDBTransaction();
         out.println("Success!");
       } catch (Exception e) {
@@ -123,7 +125,7 @@ public class EncounterCreateSurvey extends HttpServlet {
         e.printStackTrace();
         out.println("Failed to create new SurveyTrack from Survey ID : "+surveyID+". The SurveyTrack could not be saved." );
       }
-      
+
     } else {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -136,5 +138,3 @@ public class EncounterCreateSurvey extends HttpServlet {
     out.close();
   }
 }
-
-

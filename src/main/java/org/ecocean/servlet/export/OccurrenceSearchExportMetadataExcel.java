@@ -8,6 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenOccReporter;
 
 import javax.jdo.*;
 
@@ -17,7 +18,7 @@ import jxl.write.*;
 import jxl.Workbook;
 
 
-public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
+public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
 
   private static final int BYTES_DOWNLOAD = 1024;
 
@@ -26,9 +27,37 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
     return obj.toString();
   }
 
+  private WritableSheet sheet; // main data sheet on the excel file that will be modified
+  private Map<String,Integer> colNames; // column headers (will be used to write cells by col name, not number)
+  private int currentRow; // having this as a class-wide var is great bc we don't have to pass around
+
+  private void loadColHeaders(String[] headers) throws jxl.write.WriteException {
+    for (int i=0; i<headers.length; i++) {
+      colNames.put(headers[i],i);
+      sheet.addCell(new Label(i, 0, headers[i]));
+    }
+  }
+
+  private int getColNum(String colName) throws jxl.write.WriteException {
+    if(colNames.containsKey(colName)) return colNames.get(colName);
+    int newColNum = colNames.size();
+    colNames.put(colName, newColNum);
+    sheet.addCell(new Label(newColNum, 0, colName));
+    return newColNum;
+  }
+
+  // write cell finds the right cell based on the col name, the running colHeaderList, and currentRow
+  private void writeCell(String colName, Object value) throws jxl.write.WriteException {
+    if (value==null) return;
+    int col = getColNum(colName);
+    sheet.addCell(new Label(col, currentRow, value.toString()));
+  }
 
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
+      colNames = new HashMap<String,Integer>();
+      sheet = null;
+      currentRow = 1; // start under the header row
     }
 
 
@@ -53,7 +82,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
 
 
     //set up the files
-    String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
+    String filename = "sightingSearchResults_export_" + request.getRemoteUser() + ".xls";
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -85,6 +114,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
         int numMatchingOccurrences=rOccurrences.size();
 
        //business logic start here
+        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request,myShepherd);
 
         //load the optional locales
         Properties props = new Properties();
@@ -102,59 +132,107 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet{
 
       //let's write out headers for the OBIS export file
         WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
-        WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
+        sheet = workbookOBIS.createSheet("Search Results", 0);
 
         String[] colHeaders = new String[]{
           "occurrenceID",
           "dateTime",
-          "individualCount"
-          
+          "decimalLatitude",
+          "decimalLongitude",
+          "taxonomies",
+          "individualCount",
+          "groupBehavior",
+          "comments",
+          "modified",
+          "dateTimeCreated",
+          "fieldStudySite",
+          "fieldSurveyCode",
+          "sightingPlatform",
+          "groupComposition",
+          "humanActivityNearby",
+          "initialCue",
+          "seaState",
+          "seaSurfaceTemp",
+          "swellHeight",
+          "visibilityIndex",
+          "effortCode",
+          "transectName",
+          "transectBearing",
+          "distance",
+          "bearing",
+          "minGroupSizeEstimate",
+          "maxGroupSizeEstimate",
+          "bestGroupSizeEstimate",
+          "numAdults",
+          "numJuveniles",
+          "numCalves",
+          "observer",
+          "submitterID",
+          "encounterIDs"
         };
 
-        for (int i=0; i<colHeaders.length; i++) {
-          sheet.addCell(new Label(i, 0, colHeaders[i]));
-        }
+        // if we don't call loadColHeaders, any fully-blank column is totally absent from the data.
+        // this is undesirable because "there is no data in this column" is important to show the user
+        loadColHeaders(colHeaders);
 
         // Excel export =========================================================
-        int count = 0;
 
+        int printPeriod = 10;
          for(int i=0;i<numMatchingOccurrences;i++){
-            Occurrence enc=(Occurrence)rOccurrences.get(i);
-            count++;
+            boolean verbose = (i%printPeriod == 0);
+            Occurrence occ=(Occurrence)rOccurrences.get(i);
+            if (hiddenData.contains(occ)) {
+              if (verbose) System.out.println("OSEME: Hiding row "+i);
+              continue;
+            }
+
+
             numResults++;
 
             List<Label> rowLabels = new ArrayList<Label>();
 
-            rowLabels.add(new Label(0, count, enc.getOccurrenceID()));
-            rowLabels.add(new Label(1, count, cleanToString(enc.getDateTime())));
-            //rowLabels.add(new Label(2, count, cleanToString(enc.getGroupSize())));
-            rowLabels.add(new Label(2, count, cleanToString(enc.getIndividualCount())));
-            
-            /*
-            rowLabels.add(new Label(4, count, enc.getHabitat()));
-            rowLabels.add(new Label(5, count, enc.getGroupType()));
-            rowLabels.add(new Label(6, count, enc.getGroupActivity()));
-            rowLabels.add(new Label(7, count, cleanToString(enc.getNumTerMales())));
-            rowLabels.add(new Label(8, count, cleanToString(enc.getNumBachMales())));
-            rowLabels.add(new Label(9, count, cleanToString(enc.getNumNonLactFemales())));
-            rowLabels.add(new Label(10, count, cleanToString(enc.getNumLactFemales())));
-            rowLabels.add(new Label(11, count, cleanToString(enc.getNumJuveniles())));
-            rowLabels.add(new Label(12, count, enc.getImageSet()));
-            rowLabels.add(new Label(13, count, enc.getSoil()));
-            rowLabels.add(new Label(14, count, enc.getRain()));
-            rowLabels.add(new Label(15, count, enc.getActivity()));
-            rowLabels.add(new Label(16, count, enc.getHabitat()));
-            rowLabels.add(new Label(17, count, enc.getGrassGreenness()));
-            rowLabels.add(new Label(18, count, enc.getGrassHeight()));
-            rowLabels.add(new Label(19, count, enc.getWeather()));
-            rowLabels.add(new Label(20, count, enc.getWind()));
-            
-            */
+            writeCell("occurrenceID", occ.getOccurrenceID());
+            writeCell("dateTime", occ.getDateTime());
+            writeCell("decimalLatitude", occ.getDecimalLatitude());
+            writeCell("decimalLongitude", occ.getDecimalLongitude());
+            writeCell("taxonomies", occ.getAllSpecies()); // the getAllSpecies List<String> toStrings nicely
+            writeCell("individualCount", occ.getIndividualCount());
+            writeCell("groupBehavior", occ.getGroupBehavior());
+            writeCell("commments", occ.getComments());
+            writeCell("modified", occ.getDWCDateLastModified());
+            writeCell("dateTimeCreated", occ.getDateTimeCreated());
+            writeCell("fieldStudySite", occ.getFieldStudySite());
+            writeCell("fieldSurveyCode", occ.getFieldSurveyCode());
+            writeCell("sightingPlatform", occ.getSightingPlatform());
+            writeCell("groupComposition", occ.getGroupComposition());
+            writeCell("humanActivityNearby", occ.getHumanActivityNearby());
+            writeCell("initialCue", occ.getInitialCue());
+            writeCell("seaState", occ.getSeaState());
+            writeCell("seaSurfaceTemp", occ.getSeaSurfaceTemp());
+            writeCell("swellHeight", occ.getSwellHeight());
+            writeCell("visibilityIndex", occ.getVisibilityIndex());
+            writeCell("effortCode", occ.getEffortCode());
+            writeCell("transectName", occ.getTransectName());
+            writeCell("transectBearing", occ.getTransectBearing());
+            writeCell("distance", occ.getDistance());
+            writeCell("bearing", occ.getBearing());
+            writeCell("minGroupSizeEstimate", occ.getMinGroupSizeEstimate());
+            writeCell("maxGroupSizeEstimate", occ.getMaxGroupSizeEstimate());
+            writeCell("bestGroupSizeEstimate", occ.getBestGroupSizeEstimate());
+            writeCell("numAdults", occ.getNumAdults());
+            writeCell("numJuveniles", occ.getNumJuveniles());
+            writeCell("numCalves", occ.getNumCalves());
+            writeCell("observer", occ.getObserver());
+            writeCell("submitterID", occ.getSubmitterID());
+            writeCell("encounterIDs", occ.getEncounterIDs());
+            writeCell("web link", occ.getWebUrl(request));
+            writeCell("encounter web links", occ.getEncounterWebUrls(request));            
 
-            for(Label lab: rowLabels) {
-              sheet.addCell(lab);
-            }
+            if (verbose) System.out.println("OccurrenceSearchExportMetadataExcel: done row "+currentRow);
+            currentRow++;
          } //end for loop iterating encounters
+
+         hiddenData.writeHiddenDataReport(workbookOBIS);
 
          workbookOBIS.write();
          workbookOBIS.close();

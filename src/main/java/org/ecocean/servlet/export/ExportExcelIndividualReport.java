@@ -88,6 +88,7 @@ public class ExportExcelIndividualReport extends HttpServlet{
     Encounter enc = null;
     while (all.hasNext()) {
         enc = (Encounter) all.next();
+        if (!enc.canUserAccess(request)) continue; // we don't need a hiddenDataReport bc the IndividualReport is assumed to be only your individuals
         if (!enc.hasMarkedIndividual()) continue;
         MarkedIndividual indiv = myShepherd.getMarkedIndividual(enc.getIndividualID());
 

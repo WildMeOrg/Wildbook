@@ -57,7 +57,7 @@ public class GridManager {
   private int numCollisions = 0;
   public int maxGroupSize = 240;
   public int numCompletedWorkItems = 0;
-  
+
   //public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
@@ -67,11 +67,11 @@ public class GridManager {
   private String maxTriangleRotation = "12.33";
   private String C = "0.998";
   private String secondRun = "true";
-  
+
   private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
   private static int numRightPatterns=0;
   private static int numLeftPatterns=0;
-  
+
   private static boolean creationThread=false;
 
 
@@ -84,16 +84,16 @@ public class GridManager {
   //in-process scan work items that have been checked out and sent to a node
   private ArrayList<ScanWorkItem> underway = new ArrayList<ScanWorkItem>();
 
-  
+
   public GridManager() {
   }
-  
-  
+
+
 
   public ArrayList<GridNode> getNodes() {
     return nodes;
   }
-  
+
   public void initializeNodes(int initialEstimateNodes){
     nodes = new ArrayList<GridNode>(initialEstimateNodes);
   }
@@ -120,11 +120,11 @@ public class GridManager {
     return nodeTimeout;
   }
   */
-  
+
   public void setCreationThread(boolean status) {
     creationThread=status;
   }
-  
+
   public boolean getCreationThread() {
     return creationThread;
   }
@@ -163,7 +163,7 @@ public class GridManager {
       //System.out.println("gridManager: Time diff is: "+(currenTime-nodes.get(i).getLastCheckin()));
       //if ((currenTime - nodes.get(i).getLastHeartbeat()) < nodeTimeout) {
         //returnValue++;
-      //} 
+      //}
       /*else {
         nodes.remove(i);
         i--;
@@ -426,7 +426,7 @@ public class GridManager {
 
   public synchronized ArrayList<ScanWorkItem> getWorkItems(int num) {
     ArrayList<ScanWorkItem> returnItems = new ArrayList<ScanWorkItem>();
-    int iterNum=num; 
+    int iterNum=num;
     if(iterNum>toDo.size())iterNum=toDo.size();
     //int toDoSize= toDo.size();
     //boolean cont = true;
@@ -448,8 +448,8 @@ public class GridManager {
       numScanTasks=numScanTasks-returnItems.size();
       underway.addAll(returnItems);
       return returnItems;
-    } 
-    
+    }
+
     //if toDO doesn't have any work, start popping stuff off underway to help finish up
     else {
       iterNum=underway.size();
@@ -515,21 +515,21 @@ public class GridManager {
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
     try{
-    
+
       //System.out.println("GM checking in a scan result!");
-  
+
       if (!doneContains(swir)) {
         done.add(swir);
         numCompletedWorkItems++;
-      } 
+      }
       else {
         numCollisions++;
       }
       //if(!done.contains(swir)){done.add(swir);}
-  
+
       //if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
         removeWorkItem(swir.getUniqueNumberWorkItem());
-      //} 
+      //}
      // else {
      //   ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
      //   swi.setDone(true);
@@ -581,7 +581,7 @@ public class GridManager {
   public int getNumWorkItemsIncompleteForTask(String taskID) {
     int num = 0;
     try{
-      
+
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	//int iter = numScanWorkItems;
     	for (int i = 0; i < toDo.size(); i++) {
@@ -589,7 +589,7 @@ public class GridManager {
       		  	num++;
       		}
     	}
-    	
+
       if(underway==null){underway = new ArrayList<ScanWorkItem>();}
       int iter = underway.size();
       for (int i = 0; i < iter; i++) {
@@ -597,9 +597,9 @@ public class GridManager {
               num++;
           }
       }
-    	
-    	
-    	
+
+
+
 	}
 	catch(Exception e){e.printStackTrace();}
     return num;
@@ -665,7 +665,7 @@ public class GridManager {
   public int getDoneSize() {
     return done.size();
   }
-  
+
   public int getUnderwaySize() {
     return underway.size();
   }
@@ -697,35 +697,35 @@ public class GridManager {
     return numProcessors;
 
   }
-  
+
   /*
   public static SummaryStatistics getDTWStats(HttpServletRequest request){
     if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
     return dtwStats;
   }
-  
+
   public static SummaryStatistics getI3SStats(HttpServletRequest request){
     if(i3sStats==null){i3sStats=TrainNetwork.getI3SStats(request);}
     return i3sStats;
   }
-  
+
   public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
     if(intersectionStats==null){intersectionStats=TrainNetwork.getIntersectionStats(request);}
     return intersectionStats;
   }
-  
+
   public static SummaryStatistics getProportionStats(HttpServletRequest request){
     if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
     return proportionStats;
   }
   */
-  
+
   //public void addScanTaskSize(String scanTaskID, int size){
   //  scanTaskSizes.put(scanTaskID, new Integer(size));
   //}
-  
+
   //public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
-  
+
   public static ConcurrentHashMap<String,EncounterLite> getMatchGraph(){return matchGraph;}
   public static void addMatchGraphEntry(String elID,EncounterLite el){
     matchGraph.put(elID, el);
@@ -742,7 +742,7 @@ public class GridManager {
   }
   public static synchronized int getNumRightPatterns(){return numRightPatterns;}
   public static synchronized int getNumLeftPatterns(){return numLeftPatterns;}
-  
+
   /*
    * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare against.
    */
@@ -756,14 +756,19 @@ public class GridManager {
       if((el.getSpots()!=null)&&(el.getSpots().size()>0)){numLeftPatterns++;}
       if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){numRightPatterns++;}
     }
-    
+
   }
-  
+
   public void clearDoneItems(){done = new ArrayList<ScanWorkItemResult>();}
-    
+
   public int getNumUnderway(){
     if(underway!=null)return underway.size();
     return 0;
+  }
+  
+  public void resetMatchGraphWithInitialCapacity(int initialCapacity) {
+    matchGraph=null;
+    matchGraph=new ConcurrentHashMap<String, EncounterLite>(initialCapacity);
   }
 
 }

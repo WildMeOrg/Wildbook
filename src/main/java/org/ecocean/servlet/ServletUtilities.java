@@ -6,24 +6,19 @@
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
-*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU General Public License for more details.
-*
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 package org.ecocean.servlet;
-
 import com.sun.syndication.feed.synd.*;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.XmlReader;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -34,16 +29,12 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
-
 import javax.jdo.Query;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
-import org.json.JSONObject;
-
-
 import java.io.*;
 import java.net.URL;
 import java.text.CharacterIterator;
@@ -56,22 +47,19 @@ import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
-
 import org.ecocean.*;
+import org.ecocean.security.Collaboration;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
-
 import java.util.Properties;
-
 import javax.servlet.http.Cookie;
-
-import org.apache.commons.lang.StringEscapeUtils;
-
+import org.apache.commons.lang3.StringEscapeUtils;
 
 public class ServletUtilities {
 
@@ -380,7 +368,7 @@ public class ServletUtilities {
       if (request.isUserInRole("admin")) {
         isOwner = true;
       }
-      else if (request.isUserInRole(enc.getLocationCode())) {
+      else if (enc.getLocationCode()!=null&&request.isUserInRole(enc.getLocationCode())) {
         isOwner = true;
       }
       else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
@@ -388,8 +376,8 @@ public class ServletUtilities {
       }
 
       //whaleshark.org custom
-      if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
 
+      else if (Collaboration.canEditEncounter(enc, request)) return true;
 
     }
     return isOwner;
@@ -410,7 +398,7 @@ public class ServletUtilities {
       int numEncs = encounters.size();
       for (int y = 0; y < numEncs; y++) {
         Encounter enc = (Encounter) encounters.get(y);
-        if (request.isUserInRole(enc.getLocationCode())) {
+        if (enc.getLocationCode()!=null && request.isUserInRole(enc.getLocationCode())) {
           return true;
         }
       }
@@ -429,7 +417,7 @@ public class ServletUtilities {
       int numEncs = encounters.size();
       for (int y = 0; y < numEncs; y++) {
         Encounter enc = (Encounter) encounters.get(y);
-        if (request.isUserInRole(enc.getLocationCode())) {
+        if (enc.getLocationCode() !=null && request.isUserInRole(enc.getLocationCode())) {
           return true;
         }
       }
@@ -501,6 +489,16 @@ return result.toString();
 }
 */
 
+public static String getEncounterUrl(String encID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/encounters/encounter.jsp?number="+encID);
+}
+public static String getIndividualUrl(String indID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/individuals.jsp?number="+indID);
+}
+public static String getOccurrenceUrl(String occID, HttpServletRequest request) {
+  return (CommonConfiguration.getServerURL(request)+"/occurrence.jsp?number="+occID);
+}
+
 public static String preventCrossSiteScriptingAttacks(String description) {
   description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   description = description.replaceAll("eval\\((.*)\\)", "");
@@ -508,7 +506,7 @@ public static String preventCrossSiteScriptingAttacks(String description) {
   description = description.replaceAll("((?i)script)", "");
   description = description.replaceAll("onerror", "");
   //description = description.replaceAll("alert", "");
-  description = StringEscapeUtils.escapeHtml(description);
+  description = StringEscapeUtils.escapeHtml4(description);
   return description;
 }
 
@@ -738,6 +736,15 @@ public static void printParams(HttpServletRequest request) {
   }
 }
 
+public static List<String> getIndexedParameters(String key, HttpServletRequest request) {
+  List<String> vals = new ArrayList<String>();
+  for(int i=0;i<100000;i++) { // hundred thousand seems like a reasonable upper limit right?
+    String val = request.getParameter(key+i);
+    if (Util.stringExists(val)) vals.add(val);
+    else return vals;
+  }
+  return vals;
+}
 
 public static String getParameterOrAttribute(String name, HttpServletRequest request) {
     if (name == null) return null;
@@ -853,6 +860,54 @@ public static String getRemoteHost(HttpServletRequest request) {
       request.getRequestDispatcher(filename).include(request, response);
 
     }
+
+// used to determine if we want to apply a custom UI style, e.g. for IndoCet or the New England Aquarium to a web page
+public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
+  // check url for "organization=____" arg
+  String organization = request.getParameter("organization");
+  String cookieOrg = getOrganizationCookie(request);
+
+  if (organization!=null && organization.toLowerCase().equals(orgName.toLowerCase())) {
+    return true;
+  }
+
+  if (cookieOrg!=null && orgName.toLowerCase().equals(cookieOrg.toLowerCase())) {
+    return true;
+  }
+
+  // The checks further below will also return true _right after logging out_ so we need this step
+  if (Util.requestHasVal(request, "logout")) return false;
+  // Shepherd handling w 'finally' to ensure we close the dbconnection after return.
+  Shepherd myShepherd = Shepherd.newActiveShepherd(request, "ServletUtilities.useCustomStyle");
+  try {
+    // check user affiliation
+    User user = myShepherd.getUser(request);
+    if (user==null) return false;
+    if (user.hasAffiliation(orgName)) return true;
+    // check organization object
+    Organization org = myShepherd.getOrganizationByName(orgName);
+    if (org==null) return false;
+    return org.hasMember(user);
+  } finally {
+    myShepherd.rollbackAndClose();
+  }
+}
+
+public static String getOrganizationCookie(HttpServletRequest request){
+  // Similar to langCode above, check for cookie to apply custom styles
+  String context=ServletUtilities.getContext(request);
+  Cookie[] cookies = request.getCookies();
+  if(cookies!=null){
+    for(Cookie cookie : cookies){
+      if("wildbookOrganization".equals(cookie.getName())){
+        // needed because of unicode in COOKIESPACE
+        String value = cookie.getValue().replaceAll("%20"," ");
+        return value;
+      }
+    }
+  }
+  return "";
+}
 
 
 }

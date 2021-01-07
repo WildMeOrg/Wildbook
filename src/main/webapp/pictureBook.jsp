@@ -7,6 +7,7 @@ java.util.Vector,
 java.util.ArrayList,
 java.util.List,
 org.datanucleus.api.rest.orgjson.JSONArray,
+org.ecocean.security.HiddenIndividualReporter,
 org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 org.datanucleus.api.rest.orgjson.JSONObject" %>
@@ -15,7 +16,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
   Properties props = new Properties();
   String langCode=ServletUtilities.getLanguageCode(request);
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
@@ -33,18 +33,19 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
   myShepherd.beginDBTransaction();
-  
+
   try {
-  
+
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
+  rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
 
   if (numResults < maxPages) maxPages = numResults;
   %>
-	
 	<jsp:include page="header.jsp" flush="true"/>
 
 	<!-- not sure why we need backbone or underscore but we get errors without 'em -->
@@ -61,7 +62,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	</ul></em></p>
 
 	<p class="instructions"> Your Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
-	
+
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
 	  <tr>
@@ -70,7 +71,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	      <p><strong><%=props.getProperty("matchingMarkedIndividuals")%>
 	      </strong>: <span id="count-total"> <%=numResults%> </span> (Showing only the <span id="image-count-total"></span> individuals with tagged exemplar images)
 	      </p>
-	      <%myShepherd.beginDBTransaction();%>
+
 	      <p><strong><%=props.getProperty("totalMarkedIndividuals")%>
 	      </strong>: <%=(myShepherd.getNumMarkedIndividuals())%>
 	      </p>
@@ -119,14 +120,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   		height: auto;
   	}
   	div.pictureBook-images {
-  		max-height:60vh;
+  		height: 40%;
   	}
-}
-
-	div.pictureBook-images img {
-		max-height:30vh;
 	}
-
 	.clickable-row:hover {
 		cursor: pointer;
 	}
@@ -149,6 +145,56 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	span.pictureBook-MA {
 		display: none;
 	}
+
+	html, body {
+		height: 100%;
+	}
+
+	div.pictureBook-page {
+		height: 100vh;
+	}
+	div.pictureBook-images {
+		width: 100%;
+		max-height: 50%;
+		position: relative;
+		display: inline-block;
+		overflow: hidden;
+		max-height: 50%;
+		top: 0
+	}
+	div.pictureBook-headerImage {
+		max-height: 25%;
+		position: relative;
+	}
+	div.pictureBook-headerImage img{
+		object-fit: contain;
+		max-height: 25vh;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    	width: 100%;
+	}
+	div.pictureBook-subImage img {
+		object-fit: contain;
+		max-height: 25vh;
+	}
+	div.pictureBook-images table {
+		margin: 0 auto;
+	}
+
+	div.pictureBook-subImage {
+		max-height: 12.5%;
+		position: relative;
+	}
+	tr.pictureBook-subImages td {
+		width: 50%;
+	}
+	table.pictureBook-table {
+    margin-left: auto;
+    margin-right: auto;
+	}
+
+
 </style>
 
 <div class="pictureBook-container">
@@ -162,7 +208,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	for (MarkedIndividual mark: rIndividuals) {
 
 		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true);
-		
+
 		boolean hasHeader = exemplarImages.size()>0;
 		boolean haspic2 = exemplarImages.size()>1;
 		boolean haspic3 = exemplarImages.size()>2;
@@ -176,46 +222,20 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		if (count>maxPages) break;
 
 		String id = mark.getIndividualID();
-		String altID = mark.getAlternateID();
-		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
-		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
-		System.out.println("PictureBook: proceeded past hasHeader check with "+exemplarImages.size()+" images");
-
+		String altID = mark.getDisplayName(request, myShepherd);
+		//if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
+		String altIDStr = (Util.stringExists(mark.getNickName())) ? ("<em>("+mark.getNickName()+")</em>") : "";
+		System.out.println("PictureBook: proceeded past hasHeader check");
 
 
 		%>
 		<style>
-		html, body {
-   		height: 100%;
-		}
-			div.pictureBook-page {
-			}
-			div.pictureBook-headerImage {
-				max-height: 25%;
-				position: relative;
-			}
-			div.pictureBook-headerImage img{
-		    display: block;
-		    margin-left: auto;
-		    margin-right: auto;
-			}
-			div.pictureBook-subImage {
-				max-height: 12.5%;
-				position: relative;
-			}
-			tr.pictureBook-subImages td {
-				width: 50%;
-			}
-			table.pictureBook-table {
-		    margin-left: auto;
-		    margin-right: auto;
-			}
 		</style>
 
 
 		<hr class="pictureBook-pagebreak">
 		<div class="pictureBook-page">
-			<h3>Individual ID: <a href=<%=mark.getWebUrl(request) %> ><%=id%></a> <%=altIDStr %></h3>
+			<h3>Individual ID: <a target="_blank" href=<%=mark.getWebUrl(request) %> ><%=altID %></a> <%=altIDStr %> </h3>
 
 			<div class="pictureBook-images">
 				<table>
@@ -255,7 +275,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			Encounter[] encs = mark.getDateSortedEncounters(encsPerTableLimit);
 			int numEncs = encs.length;
 			%>
-			<div class="pictureBook-content">
 			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em><%=numEncs %> on table</em>
 			<table class="pictureBook-table">
 				<tr class="pictureBook-hr">
@@ -301,7 +320,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 				%>
 			</table>
-			</div>
 		</div>
 		<%
 	}
@@ -314,11 +332,11 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
     	System.out.println("Exception on pictureBook.jsp!");
     	e.printStackTrace();
     %>
-    
+
     <p>Exception on page!</p>
     <p><%=e.getMessage() %></p>
-    
-    <%	
+
+    <%
     }
     finally{
       myShepherd.rollbackDBTransaction();
@@ -337,7 +355,8 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			var jsonString = $(this).text();
 			var maJson = JSON.parse(jsonString);
 			console.log("pictureBook is displaying images for ma"+maJson.id);
-			var imgDisplay = maLib.mkImg(maJson);
+			console.log("and majson = "+JSON.stringify(maJson));
+			var imgDisplay = maLib.mkImgPictureBook(maJson);
 			$(this).parent().append(imgDisplay);
 		});
 	}
@@ -353,4 +372,4 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	});
 </script>
 
-<jsp:include page="footer.jsp" flush="true"/> 
+<jsp:include page="footer.jsp" flush="true"/>
