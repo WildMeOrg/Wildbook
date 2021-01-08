@@ -84,7 +84,9 @@ myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
   // Part Two hackety hack to switch URLs for US users
   String linkURLBase = CommonConfiguration.getURLLocation(request);
-
+  if (usaUser) {
+    linkURLBase = "ncaquariums.wildbook.org";
+  }
 
 %>
 

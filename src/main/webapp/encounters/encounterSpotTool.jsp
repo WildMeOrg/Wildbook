@@ -25,7 +25,7 @@ org.ecocean.media.MediaAsset,
 org.ecocean.media.MediaAssetFactory,
 org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 
 
@@ -43,14 +43,28 @@ if (idInt.contains(":")) {
 int imageID = Integer.parseInt(idInt);
 String imgSrc="";
 String encNum="";
+
 boolean usaUser = false;
 String linkURLBase = CommonConfiguration.getURLLocation(request);
+		try {
+			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+			if (request.getUserPrincipal()!=null) {
+				String userName = request.getUserPrincipal().getName();
+				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+				for (Role role : roles) {
+					if (role.getRolename().equals("spotasharkusa")) {
+						usaUser = true;
+					}
+				}
+			}
+			if (usaUser) {
+				linkURLBase = "ncaquariums.wildbook.org";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 try{
-
-
-	// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-
-	
 	MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
 	if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
 	Encounter enc = null;
@@ -60,7 +74,7 @@ try{
 		encNum = enc.getCatalogNumber();
 	}
 	if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
-	
+
 	//let's set up references to our file system components
 	String rootWebappPath = getServletContext().getRealPath("/");
 	//String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
@@ -71,31 +85,31 @@ try{
 	File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	File encounterDir = new File(encountersDir, num);
 	*/
-	
-	imgSrc = ma.webURL().toString();
-	
 
-	
+	imgSrc = ma.webURL().toString();
+
+
+
 	//handle some cache-related security
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 	  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-	
-	
+
+
 	//handle translation
 	  //String langCode = "en";
 	String langCode=ServletUtilities.getLanguageCode(request);
-	    
-	
-	
-	
+
+
+
+
 	//let's load encounters.properties
 	  //Properties encprops = new Properties();
 	  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-	
+
 	  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-	
+
 		Properties collabProps = new Properties();
 	 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 }
@@ -623,7 +637,7 @@ function allGood(d) {
   xonload="initialize()" <%}%>>
 
 
- 
+
 <script src="../javascript/imageTools.js"></script>
 <script>
 $(document).ready(function() {
@@ -632,8 +646,8 @@ $(document).ready(function() {
 </script>
 
 		<div class="container maincontent">
-		
-		
+
+
 <div id="imageTools-wrapper">
 	<div id="imageTools-wl-wrapper">
 		<div class="instruction">Place spots here</div>
@@ -668,6 +682,3 @@ $(document).ready(function() {
 
 
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-

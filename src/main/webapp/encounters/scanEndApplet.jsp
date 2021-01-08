@@ -39,6 +39,29 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
+
+  boolean usaUser = false;
+ 	String linkURLBase = CommonConfiguration.getURLLocation(request);
+
+ 		try {
+ 			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+ 			if (request.getUserPrincipal()!=null) {
+ 				String userName = request.getUserPrincipal().getName();
+ 				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+ 				for (Role role : roles) {
+ 					if (role.getRolename().equals("spotasharkusa")) {
+ 						usaUser = true;
+ 					}
+ 				}
+ 			}
+ 			if (usaUser) {
+ 				linkURLBase = "ncaquariums.wildbook.org";
+ 			}
+ 		} catch (Exception e) {
+ 			e.printStackTrace();
+ 		}
+
+
 	myShepherd.beginDBTransaction();
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
@@ -330,7 +353,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -488,14 +511,14 @@ function fitRightImage() {
         <tr>
           <td>
             <a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -542,7 +565,7 @@ function fitRightImage() {
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
-            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a target="_new" title="open individual" href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
@@ -550,7 +573,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
           <td>N/A</td>
           <%} else {%>
           <td><a target="_new" title="open Encounter"
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
