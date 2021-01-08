@@ -57,8 +57,7 @@ public class EncounterVMData extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("EncounterVMData.class");
+
     boolean locked = false, isOwner = true;
 
 		HashMap rtn = new HashMap();
@@ -69,57 +68,66 @@ public class EncounterVMData extends HttpServlet {
 		if (request.getUserPrincipal() == null) {
 			rtn.put("error", "no access");
 
-		} 
+		}
 		else if (request.getParameter("number") != null) {
-  		 
+	      Shepherd myShepherd = new Shepherd(context);
+	      myShepherd.setAction("EncounterVMData.class");
   			myShepherd.beginDBTransaction();
   			try{
       			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-      
+
       			if (enc == null) {
       				rtn.put("error", "invalid Encounter number");
-      
-      			} 
+
+      			}
       			else if (request.getParameter("matchID") != null) {
       				wantJson = false;
-      
+
                                   //we may also be assigning the candidate encounter (if we are allowed)
                                   Encounter candEnc = null;
                                   if (request.getParameter("candidate_number") != null) {
       			        candEnc = myShepherd.getEncounter(request.getParameter("candidate_number"));
                                   }
-      
+
             	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
       					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
       					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
       					if (indiv == null) {  //must have sent a new one
       						indiv = new MarkedIndividual(matchID, enc);
+      						myShepherd.getPM().makePersistent(indiv);
+
       						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
       						indiv.setDateTimeCreated(ServletUtilities.getDate());
-      
-                                                      //candEnc should only ever get assigned for *new indiv* hence this code here
-            	                                        if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
+      						myShepherd.updateDBTransaction();
+                  //candEnc should only ever get assigned for *new indiv* hence this code here
+            	    if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
       					            candEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					            candEnc.setMatchedBy("Visual Matcher");
-                                                          indiv.addEncounter(candEnc, context);
-                                                      }
-      
-      						myShepherd.addMarkedIndividual(indiv);
-                } 
-      
-      					enc.assignToMarkedIndividual(matchID);
+                            indiv.addEncounter(candEnc);
+                  }
+
+      						//myShepherd.addMarkedIndividual(indiv);
+                }
+      					else {
+      					  enc.setIndividual(indiv);
+      					}
+
+
+
+      					//enc.assignToMarkedIndividual(matchID);
       					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					enc.setMatchedBy("Visual Matcher");
-      					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+      					//myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
       					myShepherd.commitDBTransaction();
       					//myShepherd.closeDBTransaction();
       					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
       				} else {
       					rtn.put("error", "unauthorized");
       				}
-      
-      			} else if (request.getParameter("candidates") != null) {
+
+      			}
+      			else if (request.getParameter("candidates") != null) {
       				rtn.put("_wantCandidates", true);
       				ArrayList candidates = new ArrayList();
       				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
@@ -139,7 +147,7 @@ public class EncounterVMData extends HttpServlet {
       					}
       				}
       //System.out.println("candidate filter => " + filter);
-      
+
       				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
       				while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
       					Encounter cand = all.next();
@@ -147,11 +155,18 @@ public class EncounterVMData extends HttpServlet {
       					e.put("id", cand.getCatalogNumber());
       					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
       					e.put("locationID", cand.getLocationID());
-      					e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividualID())));
+      					if(cand.getIndividual()!=null) {
+      					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getIndividualID())));
+      					  e.put("displayName", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getDisplayName(request, myShepherd))));
+      					}
+      					else {
+      					  e.put("individualID", null);
+      					  e.put("displayName",null);
+      					}
       					e.put("patterningCode", cand.getPatterningCode());
       					e.put("sex", cand.getSex());
       					e.put("mmaCompatible", cand.getMmaCompatible());
-      
+
       /*
       					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
       					ArrayList images = new ArrayList();
@@ -174,13 +189,13 @@ public class EncounterVMData extends HttpServlet {
       				}
                                       rtn.put("maximumCandidatesReached", all.hasNext());
       				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
-      
-      			} 
+
+      			}
       			else {
       /*
       				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
       				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
-      
+
       				ArrayList images = new ArrayList();
       				for (SinglePhotoVideo s : spvs) {
       					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
@@ -199,24 +214,34 @@ public class EncounterVMData extends HttpServlet {
       				rtn.put("patterningCode", enc.getPatterningCode());
       				rtn.put("sex", enc.getSex());
       				rtn.put("locationID", enc.getLocationID());
-      				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
+      				if(enc.getIndividual()!=null) {
+      				  rtn.put("displayName", ServletUtilities.handleNullString(enc.getIndividual().getDisplayName(request, myShepherd)));
+      				  rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
+
+      				}
+      				else {
+      				  rtn.put("displayName",null);
+      				  rtn.put("individualID", null);
+
+      				}
       				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
       				rtn.put("mmaCompatible", enc.getMmaCompatible());
       				//if (!images.isEmpty()) rtn.put("images", images);
       			}
-  
+
   		} //end try
   		catch(Exception e){
   		  e.printStackTrace();
   		}
-  		finally{myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();}
-		} 
+  		finally{
+  		  myShepherd.rollbackDBTransaction();
+  		  myShepherd.closeDBTransaction();
+  		 }
+		}
 		else {
 			rtn.put("error", "invalid Encounter number");
 		}
 
-		//myShepherd.commitDBTransaction();
-		//myShepherd.closeDBTransaction();
 
 		if (redirUrl != null) {
 			response.sendRedirect(redirUrl);

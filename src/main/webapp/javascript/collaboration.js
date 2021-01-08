@@ -37,7 +37,7 @@ function collaborateMultiClick(el) {
 	var jel = $(el);
 	var users = jel.data('multiuser').split(',');
 	var p = popup();
-	var h = _collaborateMultiHtml(users);
+	var h = _collaborateMultiHtml(users, true);
 	p.append(h);
 	p.show();
 return;
@@ -68,20 +68,22 @@ return;
 
 
 
-function _collaborateMultiHtml(users) {
+function _collaborateMultiHtml(users, isLoggedIn) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
 	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="blockerCancel()" />';
 	var num = users.length;
 
 	var h = '';
-	if (num == 1) {
+	if (isLoggedIn && num == 1) {
 		var u = users[0].split(':');
 		var uclick = '<span class="user-bio-button" title="info on ' + u[1] + '" onClick="openUserBio(\'' + u[0] + '\')">' + u[1] + '</span>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
 
-	} else {
+	} else if(isLoggedIn) {
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
 		for (var i = 0 ; i < num ; i++) {
 			var u = users[i].split(':');
@@ -90,6 +92,10 @@ function _collaborateMultiHtml(users) {
 		}
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
+	}
+	else{
+		h += '<div id="collab-response"><p><b>' +wildbookGlobals.properties.lang.collaboration.pleaseLogIn+ '</b></p>';
+		//h+='You don't have permission.';
 	}
 	return h;
 }
@@ -121,6 +127,8 @@ function _collaborateHtml(uid, name) {
 		var uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
 		//h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + uid + '\');" /> ' + cancelButton + '</p>';
 
@@ -206,55 +214,21 @@ function inBlockedPage() {
 	return document.location.href.match('encounter.jsp|occurrence.jsp|individuals.jsp');
 }
 
-function updateNotificationsWidget() {
-	var n = $('#notifications');
-	if (!n.length) return;
-	$.ajax({
-		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&getNotificationsWidget=1',
-		dataType: 'json',
-		success: function(d) {
-console.log(d);
-			if (d.success && d.content) n.html(d.content);
-		},
-		type: 'GET'
-	});
-}
-
-
-
-//TODO some day this should be general, i guess
-function showNotifications(el) {
-	var p = popup();
-	p.css({width: '50%', left: '25%', top: '200px'});
-	p.append('<div class="scroll throbbing" />');
-	p.show();
-	$.ajax({
-		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&getNotifications=1',
-		dataType: 'json',
-		success: function(d) {
-console.log(d);
-			p.find('.scroll').removeClass('throbbing').html(d.content);
-			$('.collaboration-invite-notification input').click(function(ev) { clickApproveDeny(ev); });
-		},
-		error: function(a,x,b) {
-			p.find('.scroll').removeClass('throbbing').html('error');
-		},
-		type: 'GET'
-	});
-}
-
-
 function clickApproveDeny(ev) {
 	var which = ev.target.getAttribute('class');
+	var collabId = ev.target.getAttribute('id');
+	var collabIdString="";
+	if(collabId!=null)collabIdString="&collabId="+collabId.replace("edit-","");
 	var jel = $(ev.target);
 	var p = jel.parent();
 	var uname = p.data('username');
 	p.html('&nbsp;').addClass('throbbing');
 	$.ajax({
-		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which+'&actionForExisting='+which+collabIdString,
 		dataType: 'json',
 		success: function(d) {
 			if (d.success) {
+				$("<span class=\"collab-button\"></span>").insertBefore(p);
 				p.remove();
 				updateNotificationsWidget();
 			} else {
@@ -267,23 +241,6 @@ function clickApproveDeny(ev) {
 		type: 'GET'
 	});
 }
-
-
-//TODO general usage???
-function popup() {
-	var p = $('<div class="popup" style="display: none;" />');
-	$('body').append(p);
-	return p;
-}
-
-
-//general purpose i18n
-function t(which, key) {
-	if (!key || !which) return '';
-	if (!wildbookGlobals.properties.lang[which]) return '';
-	return wildbookGlobals.properties.lang[which][key] || '';
-}
-
 
 //TODO put this somewhere else
 function openUserBio(uname) {

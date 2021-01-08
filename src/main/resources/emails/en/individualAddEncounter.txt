@@ -1,7 +1,7 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
-Just a quick email to let you know that the grey nurse shar encounter that you
+Just a quick email to let you know that the grey nurse shark encounter that you
 submitted has been matched to an identified manta in the MantaMatcher
 photo-identification library.
 Follow these links to find out more:

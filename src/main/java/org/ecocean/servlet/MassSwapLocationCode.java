@@ -53,8 +53,7 @@ public class MassSwapLocationCode extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("MassSwapLocationCode.class");
+
 
     //set up for response
     response.setContentType("text/html");
@@ -66,36 +65,44 @@ public class MassSwapLocationCode extends HttpServlet {
     String newLocCode = "", oldLocCode = "";
     oldLocCode = request.getParameter("oldLocCode");
     newLocCode = request.getParameter("newLocCode");
-    Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
-    Query query = myShepherd.getPM().newQuery(encClass);
+    
+    
 
-    if ((oldLocCode != null) && (oldLocCode != null) && (!newLocCode.equals("")) && (!newLocCode.equals(""))) {
+
+    if ((oldLocCode != null) && (!oldLocCode.trim().equals("")) && (newLocCode!=null) && (!newLocCode.equals(""))) {
+      oldLocCode=oldLocCode.trim();
+      newLocCode=newLocCode.trim();
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("MassSwapLocationCode.class");
       myShepherd.beginDBTransaction();
+      Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE ( locationID == \""+oldLocCode+"\" )");
       try {
+        
+
         Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
         while (it.hasNext()) {
           Encounter tempEnc = it.next();
           if (tempEnc.getLocationCode().equals(oldLocCode)) {
             tempEnc.setLocationCode(newLocCode);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
             madeChanges = true;
             count++;
           }
         } //end while
-      } catch (Exception le) {
+      } 
+      catch (Exception le) {
         locked = true;
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
       }
-      if (!madeChanges) {
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+      finally {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          query.closeAll();
       }
-      //success!!!!!!!!
 
-      else if (!locked) {
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+      if (!locked) {
+
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully changed the location code " + oldLocCode + " to " + newLocCode + " for " + count + " encounters."));
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
@@ -107,7 +114,7 @@ public class MassSwapLocationCode extends HttpServlet {
         out.println("<strong>Failure!</strong> An encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
         out.println(ServletUtilities.getFooter(context));
       }
-      query.closeAll();
+
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the location code as requested due to missing parameter values.");

@@ -91,7 +91,6 @@ console.info('complete? err=%o data=%o', err, data);
                             filenameToKey(files[i].name);
                         }
                         document.getElementById('upcontrols').style.display = 'none';
-                        pendingUpload = document.getElementById('file-chooser').length;
 			flow.upload();
 		}, false);
 

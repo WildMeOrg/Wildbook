@@ -26,6 +26,7 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
             var found = wildbook.IA.plugins[i].isMyTask(task);
             if (found) return wildbook.IA.plugins[i].code;
         }
+        if (wildbook.IA.hasChildren(task)) return '__NULL__';  //if there are children, lets recurse down into it
         return false;
     },
 
@@ -141,12 +142,12 @@ console.info('>>> IA._getDomResult() iterating on child %d of task %s: %s', i, t
         return items;
     },
 
-    // Wildbooks with a single species or single pipeline don't need to disable menu items if species/genus aint set.  
-    requireSpeciesForId: function() { 
-        var requireSpecies = wildbookGlobals.iaStatus.map.settings.map.requireSpeciesForId; 
-        if (requireSpecies) return requireSpecies; 
-        return false;   
-    }, 
+    // Wildbooks with a single species or single pipeline don't need to disable menu items if species/genus aint set.
+    requireSpeciesForId: function() {
+        var requireSpecies = wildbookGlobals.iaStatus.map.settings.map.requireSpeciesForId;
+        if (requireSpecies) return requireSpecies;
+        return false;
+    },
 
 
     //this is a debugging task plugin type which certain tasks get assigned (e.g. nodes in the tree with no content)

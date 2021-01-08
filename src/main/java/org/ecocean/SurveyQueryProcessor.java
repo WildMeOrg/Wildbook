@@ -25,7 +25,7 @@ public class SurveyQueryProcessor extends QueryProcessor {
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"surveyID","project","organization","type"};
 
-  
+
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
@@ -37,9 +37,6 @@ public class SurveyQueryProcessor extends QueryProcessor {
 
     Shepherd myShepherd=new Shepherd(context);
     //myShepherd.setAction("SurveyQueryProcessor.class");
-    
-    ArrayList<Survey> svys = myShepherd.getAllSurveys();
-
     //filter for id------------------------------------------
     filter = QueryProcessor.filterWithBasicStringField(filter, "id", request, prettyPrint);
     System.out.println("           beginning filter = "+filter);
@@ -50,23 +47,23 @@ public class SurveyQueryProcessor extends QueryProcessor {
       System.out.println("           current filter = "+filter);
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
-    
+
     // Date Parameters
     filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);
 
     // GPS box
     filter = QueryProcessor.filterWithGpsBox(filter, request, prettyPrint);
-    
-    
+
+
     //Observations
-    
+
     // Filter method takes a relative package argument as a means of making is adaptable for other classes.
     filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "movement.Survey");
     int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
     for (int i = 1;i<=numObs;i++) {
-      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
     }
-    
+
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -94,8 +91,8 @@ public class SurveyQueryProcessor extends QueryProcessor {
       System.out.println(" about to call myShepherd.getAllSurveys on query "+query);
       allSurveys=myShepherd.getAllSurveys(query, paramMap);
     } else {
-      System.out.println(" about to call myShepherd.getAllSurveysNoQuery() ");
-      allSurveys=myShepherd.getAllSurveysNoQuery();
+      System.out.println(" about to call myShepherd.getAllSurveys() ");
+      allSurveys=myShepherd.getAllSurveys();
     }
     System.out.println("               *still* has query "+query);
 
@@ -111,8 +108,5 @@ public class SurveyQueryProcessor extends QueryProcessor {
     System.out.println("about to return SurveyQueryResult with filter "+filter+" and nOccs="+rSurveys.size());
     return (new SurveyQueryResult(rSurveys,filter,prettyPrint.toString()));
   }
-  
+
 }
-
-
-

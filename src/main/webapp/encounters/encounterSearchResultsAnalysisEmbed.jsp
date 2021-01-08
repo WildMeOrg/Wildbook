@@ -1,8 +1,8 @@
 <%--
   ~ Wildbook - A Mark-Recapture Framework
   ~ Copyright (C) 2015 \
-  
-  
+
+
   Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
@@ -22,40 +22,40 @@
 
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
+         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration,org.ecocean.security.HiddenEncReporter" %>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    
+
 
   <%
   System.out.println("jdoQLstring is: "+request.getParameter("jdoqlString"));
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
   DecimalFormat df = new DecimalFormat("#.##");
 
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
     encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
-    
-    
+
+
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
 		Properties collabProps = new Properties();
  		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-    
+
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("encounterSearchResultsAnalysisEmbed.jsp");
 
 
-    
+
  	//prep for measurements summary
  	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
  	int numMeasurementTypes=measurementTypes.size();
@@ -69,7 +69,7 @@
 
  	}
 
- 	
+
  	//prep for biomeasurements summary
  	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
  	int numBioMeasurementTypes=bioMeasurementTypes.size();
@@ -102,40 +102,38 @@
     Collection c = (Collection) (acceptedEncounters.execute());
     rEncounters=new Vector(c);
 
-    // 
-    //HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
-    //rEncounters = hiddenData.securityScrubbedResults(rEncounters);
-
-
+    //
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
 
 
     acceptedEncounters.closeAll();
-    
+
 		Vector blocked = Encounter.blocked(rEncounters, request);
 		boolean accessible = (blocked.size() < 1);
 
     //let's prep the HashTable for the haplo pie chart
-    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes();
     int numHaplos2 = allHaplos2.size();
     Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
  	for(int gg=0;gg<numHaplos2;gg++){
  		String thisHaplo=allHaplos2.get(gg);
  		pieHashtable.put(thisHaplo, new Integer(0));
  	}
-    
+
  	//let's prep the HashTable for the sex pie chart
  	Hashtable<String,Integer> sexHashtable = new Hashtable<String,Integer>();
  	sexHashtable.put("male", new Integer(0));
  	sexHashtable.put("female", new Integer(0));
  	sexHashtable.put("unknown", new Integer(0));
- 	
+
  	//let's prep the HashTable for the species pie chart
- 	  List<String> allSpecies2=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
+ 	  List<String> allSpecies2=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
  	  int numSpecies2 = allSpecies2.size();
  	  Hashtable<String,Integer> speciesHashtable = new Hashtable<String,Integer>();
  		for(int gg=0;gg<numSpecies2;gg++){
  			String thisSpecies=allSpecies2.get(gg);
- 			
+
  			StringTokenizer tokenizer=new StringTokenizer(thisSpecies," ");
  	  		if(tokenizer.countTokens()>=2){
 
@@ -144,13 +142,13 @@
  	          	//enc.setSpecificEpithet();
 
  	  	    }
- 			
+
  			speciesHashtable.put(thisSpecies, new Integer(0));
  		}
- 		
- 		
+
+
  		//let's prep the HashTable for the country pie chart
- 		  List<String> allCountries=myShepherd.getAllCountries(); 
+ 		  List<String> allCountries=myShepherd.getAllCountries();
  		  int numCountries= allCountries.size();
  		  Hashtable<String,Integer> countriesHashtable = new Hashtable<String,Integer>();
  			for(int gg=0;gg<numCountries;gg++){
@@ -158,9 +156,9 @@
  				if(thisCountry!=null){
  					countriesHashtable.put(thisCountry, new Integer(0));
  				}
- 				
+
  			}
- 			
+
  	 		//let's prep the HashTable for the state pie chart
  	 		  List<String> states=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
  	 		  int numStates= states.size();
@@ -170,12 +168,12 @@
  	 				if(thisState!=null){
  	 					statesHashtable.put(thisState, new Integer(0));
  	 				}
- 	 				
+
  	 			}
- 			
- 			
+
+
  	 		//let's prep the HashTable for the assigned users pie chart
- 	 		  List<User> allUsers=myShepherd.getAllUsers(); 
+ 	 		  List<User> allUsers=myShepherd.getAllUsers();
  	 		  int numUsers= allUsers.size();
  	 		  Hashtable<String,Integer> usersHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numUsers;gg++){
@@ -183,10 +181,10 @@
  	 				if(thisUser!=null){
  	 					usersHashtable.put(thisUser, new Integer(0));
  	 				}
- 	 				
+
  	 			}
- 	 		
- 	 		
+
+
  	 		//let's prep the Top Taggers chart
  	 		Hashtable<String,List<String>> taggersHashtable = new Hashtable<String,List<String>>();
  	 			for(int gg=0;gg<numUsers;gg++){
@@ -196,43 +194,43 @@
  	 					taggersHashtable.put(thisUser, new ArrayList<String>());
  	 				}
  	 				}
- 	 				
+
  	 			}
- 	
- 			
+
+
  			//let's prep the data structures for the discovery curve
  			Hashtable<Integer,Integer> discoveryCurveInflectionPoints= new Hashtable<Integer,Integer>();
  			ArrayList<String> dailyDuplicates=new ArrayList<String>();
- 					
+
  			//let's prep the data structures for weekly frequency
  			Hashtable<Integer,Integer> frequencyWeeks = new Hashtable<Integer,Integer>();
  			//ArrayList<String> dailyDuplicates2=new ArrayList<String>();
  			for(int p=1;p<=53;p++){
  				frequencyWeeks.put(p, 0);
- 			}	
- 			
+ 			}
+
  			//let's prep the bar charts for encounters per year
  			Hashtable<Integer,Integer> encountersPerYear= new Hashtable<Integer,Integer>();
  			Hashtable<Integer,Integer> encountersPerYearAI= new Hashtable<Integer,Integer>();
- 					
- 		
+
+
  	int numPhotos=0;
  	//int numContributors=0;
  	int numIdentified=0;
- 	
+
  	//citsci vs research users
  	ArrayList<User> researchStaff=new ArrayList<User>();
  	ArrayList<User> publicContributors=new ArrayList<User>();
- 	
+
  	//StringBuffer contributors=new StringBuffer();
  	int resultSize=rEncounters.size();
  	ArrayList<String> markedIndividuals=new ArrayList<String>();
  	int numUniqueEncounters=0;
  	 for(int y=0;y<resultSize;y++){
- 		 
- 		 
+
+
  		 Encounter thisEnc=(Encounter)rEncounters.get(y);
- 		 
+
  		 //iterate up unique encounters number
  		 numUniqueEncounters++;
 
@@ -240,7 +238,7 @@
  		 if(thisEnc.getAdditionalImageNames()!=null){
  		 	numPhotos=numPhotos+thisEnc.getAnnotations().size();
  		 }
- 			
+
  		//calculate the number of submitter contributors
  		if(thisEnc.getSubmitters()!=null) {
  				List<User> users=thisEnc.getSubmitters();
@@ -248,8 +246,11 @@
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
  						//check public vs research staff
- 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
- 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
+ 						if (user.getUsername() != null) {
+                                                    if (!researchStaff.contains(user)) researchStaff.add(user);
+ 						} else if (!publicContributors.contains(user)) {
+                                                    publicContributors.add(user);
+                                                }
  				}
  		}
 
@@ -261,22 +262,25 @@
  				for(int q=0;q<numU;q++){
  						User user=users.get(q);
  						//check public vs research staff
- 						if((user.getUsername()!=null)&&(!researchStaff.contains(user))){researchStaff.add(user);}
- 						else if(!publicContributors.contains(user)){publicContributors.add(user);}
+ 						if (user.getUsername() != null) {
+                                                    if (!researchStaff.contains(user)) researchStaff.add(user);
+ 						} else if (!publicContributors.contains(user)) {
+                                                    publicContributors.add(user);
+                                                }
  				}
  		}
- 		 
+
  		//caluclate number encounters identified
  		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){numIdentified++;}
- 		 
- 		//calculate marked individuals	 
+
+ 		//calculate marked individuals
  		 if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))&&(!markedIndividuals.contains(thisEnc.getIndividualID().trim()))){
- 			 
- 			
- 			 
+
+
+
  			 //add this individual to the list
  			 markedIndividuals.add(thisEnc.getIndividualID().trim());
- 			
+
  			 //check for a daily duplicate
  			// String dailyDuplicateUniqueID=thisEnc.getIndividualID()+":"+thisEnc.getYear()+":"+thisEnc.getMonth()+":"+thisEnc.getDay();
  			// if(!dailyDuplicates.contains(dailyDuplicateUniqueID)){
@@ -287,45 +291,47 @@
  			 //else{numUniqueEncounters--;}
 
  		 }
- 		 
+
  		 //weekly frequency tabulation
  		 if((thisEnc.getYear()>-1)&&(thisEnc.getMonth()>-1)&&(thisEnc.getDay()>-1)){
  			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth()-1, thisEnc.getDay());
  			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
  			 %>
- 			 
+
 
  			 <%
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
  		 }
- 		 
+
  		 //year submitted tabulation
  		 if(thisEnc.getDWCDateAddedLong()!=null){
- 			
+
  			 org.joda.time.DateTime myDateAdded =new org.joda.time.DateTime(thisEnc.getDWCDateAddedLong());
  			 Integer year=new Integer(myDateAdded.getYear());
- 			 
+
  			 if(!encountersPerYear.containsKey(year)){
  				 encountersPerYear.put(year, new Integer(0));
- 				
+
  			 }
  			 if(!encountersPerYearAI.containsKey(year)){
  				 encountersPerYearAI.put(year, new Integer(0));
- 				
+
  			 }
- 			 
+
  			Integer valueForYear=encountersPerYear.get(year)+1;
  			if((thisEnc.getSubmitterID()!=null)&&(thisEnc.getSubmitterID().equals("wildbookai"))){
- 				encountersPerYearAI.put(year, valueForYear);
+ 				Integer thisInt = encountersPerYearAI.get(year)+1;
+ 				encountersPerYearAI.put(year, thisInt);
  			}
  			else{
- 				encountersPerYear.put(year, valueForYear);
+ 				Integer thisInt = encountersPerYear.get(year)+1;
+ 				encountersPerYear.put(year, thisInt);
  			}
- 			//System.out.println("    I just put: "+year+":"+valueForYear);	 
- 	        
+ 			//System.out.println("    I just put: "+year+":"+valueForYear);
+
  		 }
- 		 	
+
  		 
  		 //haplotype ie chart prep
  		 	if(thisEnc.getHaplotype()!=null){
@@ -334,7 +340,7 @@
       		   		pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
       	   		}
  	 		}
- 		 
+
  	 		 //state ie chart prep
  		 	if(thisEnc.getState()!=null){
       	   		if(statesHashtable.containsKey(thisEnc.getState().trim())){
@@ -342,8 +348,8 @@
       		   		statesHashtable.put(thisEnc.getState().trim(), thisInt);
       	   		}
  	 		}
- 		 
- 	    //sex pie chart 
+
+ 	    //sex pie chart
  	    if(thisEnc.getSex()!=null){
  			if(thisEnc.getSex().equals("male")){
  		   		Integer thisInt = sexHashtable.get("male")+1;
@@ -362,9 +368,9 @@
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);
  	    }
- 	    
+
  		//check the encounter species
-		 
+
 		 if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
 			 String encGenusSpecies=thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet();
 			 if(speciesHashtable.containsKey(encGenusSpecies)){
@@ -372,30 +378,30 @@
 	      		   speciesHashtable.put(encGenusSpecies, thisInt);
 	      		   //numSpeciesEntries++;
 	      	   }
-			 
+
 		 }
-		 
-		 
+
+
 		 //check the Encounter country
-		 
+
 		 if(thisEnc.getCountry()!=null){
 			 if(countriesHashtable.containsKey(thisEnc.getCountry())){
 	      		   Integer thisInt = countriesHashtable.get(thisEnc.getCountry())+1;
 	      		   countriesHashtable.put(thisEnc.getCountry(), thisInt);
-	      	 		//numCountryEntries++;  
+	      	 		//numCountryEntries++;
 			 }
 		 }
-		 
+
 		 //check the Encounter user
 		 if(thisEnc.getSubmitterID()!=null){
 			 if(usersHashtable.containsKey(thisEnc.getSubmitterID())){
 	      		   Integer thisInt = usersHashtable.get(thisEnc.getSubmitterID())+1;
 	      		   usersHashtable.put(thisEnc.getSubmitterID(), thisInt);
-	      	 		//numCountryEntries++;  
+	      	 		//numCountryEntries++;
 			 }
 		 }
-		 
-		 
+
+
 		 //top taggers check
 		 if((thisEnc.getSubmitterID()!=null)&&(thisEnc.getIndividualID()!=null)&&(myShepherd.getUser(thisEnc.getSubmitterID())!=null)){
 			 User user=myShepherd.getUser(thisEnc.getSubmitterID());
@@ -405,16 +411,16 @@
 				 if(!whatITagged.contains(thisEnc.getIndividualID())){
 					 whatITagged.add(thisEnc.getIndividualID());
 					 taggersHashtable.put(user.getFullName(), whatITagged);
-				 }  
+				 }
 			 }
 		 }
 		 }
-		 
- 	    
+
+
  		//measurement
 		for(int b=0;b<numMeasurementTypes;b++){
 			if(thisEnc.getMeasurement(measurementTypes.get(b).getType())!=null){
-				
+
 					measurementValues[b].addValue(thisEnc.getMeasurement(measurementTypes.get(b).getType()).getValue().doubleValue());
 
 					//males versus females analysis
@@ -427,14 +433,14 @@
 
 			}
 		}
-		
+
  		//biomeasurement tabulation
 		for(int b=0;b<numBioMeasurementTypes;b++){
 			if(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType())!=null){
-				
+
 					bioMeasurementValues[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
 
-					
+
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
 						bioMeasurementValuesMales[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
@@ -442,25 +448,25 @@
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
 						bioMeasurementValuesFemales[b].addValue(thisEnc.getBiologicalMeasurement(bioMeasurementTypes.get(b).getType()).getValue().doubleValue());
 					}
-					
 
-					
+
+
 			}
 		}
- 	    
- 	    
- 		 
- 	 }	
- 	 
- 	 
- 	 
- 	 
+
+
+
+ 	 }
+
+
+
+
   %>
 
-   
-  
 
-  
+
+
+
       <script>
         function getQueryParameter(name) {
           name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -473,17 +479,17 @@
             return results[1];
         }
   </script>
-  
+
 
 
 
 <% if (accessible) { %>
-    
+
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
-      
+
       google.setOnLoadCallback(drawHaploChart);
       function drawHaploChart() {
         var data = new google.visualization.DataTable();
@@ -491,11 +497,11 @@
         data.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         data.addRows([
           <%
-          List<String> allHaplos=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos=myShepherd.getAllHaplotypes();
           int numHaplos = allHaplos.size();
-          
 
-          
+
+
           for(int hh=0;hh<numHaplos;hh++){
           %>
           ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>]
@@ -507,7 +513,7 @@
 		  }
           }
 		  %>
-          
+
         ]);
 
         var options = {
@@ -518,9 +524,9 @@
                    String haploColor="CC0000";
                    if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
                 	   haploColor=encprops.getProperty("defaultMarkerColor");
-                   }   
+                   }
 
-                   
+
                    for(int yy=0;yy<numHaplos;yy++){
                        String haplo=allHaplos.get(yy);
                        if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
@@ -531,16 +537,16 @@
 					<%
                    }
                    %>
-                   
-                   
+
+
           ]
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
-      
-      
+
+
       //pubic contributors versus research staff chart
       google.setOnLoadCallback(drawCitSciChart);
       function drawCitSciChart() {
@@ -548,7 +554,7 @@
           citscidata.addColumn('string', '<%=encprops.getProperty("contributorType") %>');
           citscidata.addColumn('number', '<%=encprops.getProperty("number") %>');
           citscidata.addRows([
-            
+
             ['<%=encprops.getProperty("researchStaff")%>',    <%=researchStaff.size() %>],
             ['<%=encprops.getProperty("publicContributors")%>',    <%=publicContributors.size() %>],
 
@@ -563,7 +569,7 @@
           var citscichart = new google.visualization.PieChart(document.getElementById('citsci_div'));
           citscichart.draw(citscidata, citscioptions);
         }
-      
+
       //State chart
       google.setOnLoadCallback(drawStateChart);
       function drawStateChart() {
@@ -572,8 +578,8 @@
         statesdata.addColumn('number', '<%=encprops.getProperty("number") %>');
         statesdata.addRows([
           <%
-         
-          
+
+
           for(int hh=0;hh<numStates;hh++){
           %>
           ['<%=states.get(hh)%>',    <%=statesHashtable.get(states.get(hh))%>]
@@ -585,7 +591,7 @@
 		  }
           }
 		  %>
-          
+
         ]);
 
         var stateoptions = {
@@ -597,9 +603,9 @@
         var stateschart = new google.visualization.PieChart(document.getElementById('states_div'));
         stateschart.draw(statesdata, stateoptions);
       }
-      
-      
-      
+
+
+
       google.setOnLoadCallback(drawSexChart);
       function drawSexChart() {
         var data = new google.visualization.DataTable();
@@ -610,7 +616,7 @@
           ['<%=encprops.getProperty("male") %>',    <%=sexHashtable.get("male")%>],
            ['<%=encprops.getProperty("female") %>',    <%=sexHashtable.get("female")%>],
            ['<%=encprops.getProperty("unknown") %>',    <%=sexHashtable.get("unknown")%>]
-          
+
         ]);
 
         <%
@@ -618,7 +624,7 @@
         if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
      	   haploColor=encprops.getProperty("defaultMarkerColor");
         }
-        
+
         %>
         var options = {
           width: 450, height: 300,
@@ -629,11 +635,11 @@
         var chart = new google.visualization.PieChart(document.getElementById('sexchart_div'));
         chart.draw(data, options);
       }
-      
+
       <%
       if(CommonConfiguration.showProperty("showTaxonomy",context)){
       %>
-	      
+
 	      google.setOnLoadCallback(drawSpeciesChart);
 	      function drawSpeciesChart() {
 	        var speciesData = new google.visualization.DataTable();
@@ -641,10 +647,10 @@
 	        speciesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
 	        speciesData.addRows([
 	          <%
-	          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
+	          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
 	          int numSpecies = speciesHashtable.size();
 	          Enumeration<String> speciesKeys=speciesHashtable.keys();
-	
+
 	          while(speciesKeys.hasMoreElements()){
 	        	  String keyName=speciesKeys.nextElement();
 	        	  //System.out.println(keyName);
@@ -658,7 +664,7 @@
 			  }
 	         }
 			 %>
-	          
+
 	        ]);
 	     var speciesOptions = {
 	          width: 450, height: 300,
@@ -671,8 +677,8 @@
 	  <%
       }
       %>
-      
-      
+
+
       //countries chart
        google.setOnLoadCallback(drawCountriesChart);
       function drawCountriesChart() {
@@ -681,7 +687,7 @@
         countriesData.addColumn('number', '<%=encprops.getProperty("numberRecorded") %>');
         countriesData.addRows([
           <%
-          //List<String> allCountries=myShepherd.getAllCountries(); 
+          //List<String> allCountries=myShepherd.getAllCountries();
           //int numSpecies = speciesHashtable.size();
           Enumeration<String> countriesKeys=countriesHashtable.keys();
 
@@ -698,7 +704,7 @@
 		  }
          }
 		 %>
-          
+
         ]);
      var countriesOptions = {
           width: 450, height: 300,
@@ -708,7 +714,7 @@
       var countriesChart = new google.visualization.PieChart(document.getElementById('countrieschart_div'));
         countriesChart.draw(countriesData, countriesOptions);
       }
-      
+
       //users chart
       google.setOnLoadCallback(drawUsersChart);
      function drawUsersChart() {
@@ -731,18 +737,18 @@
 		  }
         }
 		 %>
-         
+
        ]);
     var usersOptions = {
          width: 450, height: 300,
          title: '<%=encprops.getProperty("userEncountersTitle") %>',
-         
+
        };
      var usersChart = new google.visualization.PieChart(document.getElementById('userschart_div'));
        usersChart.draw(usersData, usersOptions);
      }
-     
-     
+
+
      //top taggers chart
       google.setOnLoadCallback(drawTopTaggersChart);
      function drawTopTaggersChart() {
@@ -765,21 +771,21 @@
 		  }
         }
 		 %>
-         
+
        ]);
    taggersData.sort({column: 1, desc: true});
    if(taggersData.getNumberOfRows()>10){taggersData.removeRows(10,(taggersData.getNumberOfRows()-10));}
     var taggersOptions = {
          width: 450, height: 300,
          title: '<%=encprops.getProperty("topTaggers") %>',
-         
+
        };
-    
+
      var taggersChart = new google.visualization.ColumnChart(document.getElementById('topTaggers_div'));
        taggersChart.draw(taggersData, taggersOptions);
      }
-     // 
-      
+     //
+
       //discovery curve
       google.setOnLoadCallback(drawDiscoveryCurve);
      function drawDiscoveryCurve() {
@@ -803,7 +809,7 @@
 		  }
         }
 		 %>
-         
+
        ]);
     var discoveryCurveOptions = {
          width: 450, height: 300,
@@ -815,7 +821,7 @@
      var discoveryCurveChart = new google.visualization.ScatterChart(document.getElementById('discoveryCurve_div'));
      discoveryCurveChart.draw(discoveryCurveData, discoveryCurveOptions);
      }
-     
+
    //frequency chart
      google.setOnLoadCallback(drawFrequencyChart);
     function drawFrequencyChart() {
@@ -839,7 +845,7 @@
 		  }
        }
 		 %>
-        
+
       ]);
    var frequencyChartOptions = {
         width: 450, height: 300,
@@ -849,11 +855,11 @@
       };
     var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
     frequencyChart.draw(frequencyData, frequencyChartOptions);
-    
-    
+
+
    }
-   
-    
+
+
     //date added chart
     google.setOnLoadCallback(drawYearAddedChart);
    function drawYearAddedChart() {
@@ -861,16 +867,16 @@
      yearAddedData.addColumn('string', '<%=encprops.getProperty("weekNumber") %>');
      yearAddedData.addColumn('number', '<%=encprops.getProperty("human") %>');
      yearAddedData.addColumn('number', '<%=encprops.getProperty("ai") %>');
-     
+
      yearAddedData.addRows([
        <%
-       
-       
-       
+
+
+
        //let's do some quality control
        int numYears=encountersPerYear.size();
        int numYearsAI=encountersPerYearAI.size();
-       
+
        //first determine list range
        int minYearAddedValue=999999;
        int maxYearAddedValue=-1;
@@ -889,16 +895,16 @@
 
        }
        //end determine list range
-       
 
-       
+
+
        for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
      	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
      	 	if(!encountersPerYearAI.containsKey(new Integer(q))){encountersPerYearAI.put(new Integer(q), new Integer(0));}
-        	
+
        		%>
        		['<%=q%>',<%=encountersPerYear.get(new Integer(q)).toString() %>,<%=encountersPerYearAI.get(new Integer(q)).toString() %>]
-		  	
+
 		  	<%
 		  	if(q<maxYearAddedValue){
 		  	%>
@@ -907,7 +913,7 @@
 		  	}
       	}
 		 %>
-       
+
      ]);
 
     var yearAddedChartOptions = {
@@ -919,10 +925,10 @@
      };
    var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
    yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
-    
+
    }
-   
-   
+
+
    //total encounters by year chart
    google.setOnLoadCallback(drawYearTotalsChart);
   function drawYearTotalsChart() {
@@ -935,7 +941,7 @@
       int additionTotal=0;
       for(int q=minYearAddedValue;q<=maxYearAddedValue;q++){
     	  if(!encountersPerYear.containsKey(new Integer(q))){encountersPerYear.put(new Integer(q), new Integer(0));}
-	
+
       		%>
       		['<%=q%>',<%=(encountersPerYear.get(new Integer(q))+additionTotal) %>]
 		  	<%
@@ -947,7 +953,7 @@
       		additionTotal+=encountersPerYear.get(new Integer(q));
      	}
 		 %>
-      
+
     ]);
 
    var yearTotalsChartOptions = {
@@ -958,15 +964,15 @@
     };
   var yearTotalsChart = new google.visualization.ColumnChart(document.getElementById('yeartotals_div'));
   yearTotalsChart.draw(yearTotalsData, yearTotalsChartOptions);
-   
+
   }
-      
+
 </script>
 
 <% } %>
-    
 
- 
+
+
 <% if (accessible) { %>
 <br>
  <p><%=encprops.getProperty("numMatchingEncounters") %> <%=resultSize %></p>
@@ -980,13 +986,13 @@
 <p><strong><%=encprops.getProperty("measurements") %></strong></p>
 <%
  		//measurement
-		
+
 		if(measurementTypes.size()>0){
 			for(int b=0;b<numMeasurementTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%= measurementTypes.get(b).getType()%> 
-				<% 
-				
+				<p><%=encprops.getProperty("mean") %> <%= measurementTypes.get(b).getType()%>
+				<%
+
 				//now report averages
 				if(measurementValues[b].getN()>0){
 				%>
@@ -1002,7 +1008,7 @@
 					&nbsp;<%=encprops.getProperty("noMeasurement") %>
 					<%
 				}
-				
+
 				%>
 				</p>
 			<%
@@ -1011,19 +1017,19 @@
 		else{
 			%>
 			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
-			<% 
+			<%
 		}
 %>
 <p><strong><%=encprops.getProperty("biochemicalMeasurements") %></strong></p>
 <%
  		//measurement
-		
+
 		if(bioMeasurementTypes.size()>0){
 			for(int b=0;b<numBioMeasurementTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%> 
-				<% 
-				
+				<p><%=encprops.getProperty("mean") %> <%= bioMeasurementTypes.get(b).getType()%>
+				<%
+
 				//now report averages
 				if(bioMeasurementValues[b].getN()>0){
 				%>
@@ -1039,7 +1045,7 @@
 					&nbsp;<%=encprops.getProperty("noMeasurement") %>
 					<%
 				}
-				
+
 				%>
 				</p>
 			<%
@@ -1048,13 +1054,13 @@
 		else{
 			%>
 			<p><%=encprops.getProperty("noMeasurementTypes") %></p>
-			<% 
+			<%
 		}
 
 
      try {
  %>
- 
+
 <p><strong><%=encprops.getProperty("charts") %></strong></p>
 
  <div id="chart_div"></div>
@@ -1067,7 +1073,7 @@
 		<div id="specieschart_div"></div>
 		<%
         }
-		
+
         //if(CommonConfiguration.showProperty("showCountry",context)){
         %>
 		<div id="countrieschart_div"></div>
@@ -1083,21 +1089,21 @@
  	<div id="yeartotals_div"></div>
  	<div id="topTaggers_div"></div>
  <%
- 
-     } 
+
+     }
      catch (Exception e) {
        e.printStackTrace();
      }
- 
 
 
 
- 
- 
+
+
+
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    rEncounters = null;
- 
+
 %>
 
 
@@ -1106,7 +1112,3 @@
 	<p><%=collabProps.getProperty("functionalityBlockedMessage")%></p>
 
 <% } %>
-
-
-
-
