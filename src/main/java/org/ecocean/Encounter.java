@@ -2837,10 +2837,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
     public void addAnnotationAndRemoveTrivial(Annotation newAnn) {
-      MediaAsset newMA = newAnn.getMediaAsset();
+      int newMaId = newAnn.getMediaAsset().getId();
       Annotation trivialAnn = null;
       for (Annotation oldAnn: this.getAnnotations()) {
-        if (oldAnn.isTrivial() && oldAnn.getMediaAsset() == newMA) {
+        if (oldAnn.isTrivial() && newMaId == oldAnn.getMediaAsset().getId()) {
           trivialAnn = oldAnn;
           break;
         }
