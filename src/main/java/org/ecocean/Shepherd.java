@@ -5033,7 +5033,15 @@ public class Shepherd {
     query.closeAll();
     return usernames;
 }
-  
+
+    public List<String> getAllUsernamesWithRolename(String rolename) {
+        List<String> usernames = null;
+        Query query = getPM().newQuery("SELECT DISTINCT username FROM org.ecocean.Role WHERE rolename == rn PARAMETERS String rn");
+        Collection c = (Collection) query.execute(rolename);
+        usernames = new ArrayList<String>(c);
+        query.closeAll();
+        return usernames;
+    }
 
   public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
       ArrayList<Encounter> users=new ArrayList<Encounter>();
