@@ -48,6 +48,8 @@ import java.lang.reflect.Method;
 
 
 public class RestServletV2 extends ApiHttpServlet {
+    public static String USER_ROLENAME_ADMIN = "admin";
+
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
@@ -131,6 +133,10 @@ System.out.println("######>>>>>> payload=" + payload);
         }
         if (payload.optString("class", "__FAIL__").startsWith("configuration")) {
             handleConfiguration(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("class", "__FAIL__").startsWith("init")) {
+            handleInit(request, response, payload, instanceId, context);
             return;
         }
         if (payload.optJSONObject("query") != null) {
@@ -445,7 +451,7 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
         boolean definition = "configurationDefinition".equals(payload.optString("class"));
         payload.remove("class");
         payload.remove("_queryString");
-        boolean isAdmin = request.isUserInRole("admin");
+        boolean isAdmin = request.isUserInRole(USER_ROLENAME_ADMIN);
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         rtn.put("transactionId", instanceId);
@@ -671,6 +677,60 @@ rtn.put("_payload", payload);
         }
         if (kids.length() > 0) me.put("children", kids);
         return me;
+    }
+    private void handleInit(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleInit");
+        myShepherd.beginDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        JSONObject rtn = new JSONObject();
+        rtn.put("success", false);
+
+        JSONObject initAdmin = payload.optJSONObject("admin_user_initialized");
+        if (initAdmin != null) {
+            List<String> admins = myShepherd.getAllUsernamesWithRolename(USER_ROLENAME_ADMIN);
+            if (!Util.collectionIsEmptyOrNull(admins)) {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                rtn.put("message", _rtnMessage("init_admin_user_exists_error"));
+            } else {
+                User newAdmin = _init_create_admin(myShepherd, initAdmin);
+                if (newAdmin == null) {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    rtn.put("message", _rtnMessage("init_admin_error"));
+                } else {
+                    rtn.put("success", true);
+                    rtn.put("username", newAdmin.getUsername());
+                    myShepherd.commitDBTransaction();
+                    myShepherd.closeDBTransaction();
+                }
+            }
+        }
+
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.getBytes("UTF-8").length);
+        out.println(rtnS);
+        out.close();
+    }
+    private User _init_create_admin(Shepherd myShepherd, JSONObject data) {
+        if (data == null) return null;
+        String password = data.optString("password", null);
+        String username = data.optString("username", null);
+        String email = data.optString("email", null);
+        if ((password == null) || (username == null) || (email == null)) return null;
+        String salt = ServletUtilities.getSalt().toHex();
+        String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
+        User newUser = new User(username, hashedPassword, salt);
+        newUser.setEmailAddress(email);
+        myShepherd.getPM().makePersistent(newUser);
+        Role role = new Role(username, USER_ROLENAME_ADMIN);
+        role.setContext("context0");
+        myShepherd.getPM().makePersistent(role);
+        SystemLog.error("RestServletV2._init_create_admin() created admin user {}", newUser);
+        return newUser;
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
