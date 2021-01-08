@@ -2944,6 +2944,19 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
     }
 
+    public void addAnnotationAndRemoveTrivial(Annotation newAnn) {
+      MediaAsset newMA = newAnn.getMediaAsset();
+      Annotation trivialAnn = null;
+      for (Annotation oldAnn: this.getAnnotations()) {
+        if (oldAnn.isTrivial() && oldAnn.getMediaAsset() == newMA) {
+          trivialAnn = oldAnn;
+          break;
+        }
+      }
+      if (trivialAnn != null) replaceAnnotation(trivialAnn, newAnn);
+      else addAnnotation(newAnn);
+    }
+
 /*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
     public void addAnnotationReplacingUnityFeature(Annotation ann) {
         int unityAnnotIndex = -1;
