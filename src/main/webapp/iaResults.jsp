@@ -3,6 +3,7 @@
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 java.util.HashMap,
+org.ecocean.security.Collaboration,
 org.ecocean.identity.IdentityServiceLog,
 org.ecocean.servlet.IndividualAddEncounter,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
@@ -186,6 +187,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.closeDBTransaction();
 		return;
 	}
+	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
 
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
@@ -194,6 +202,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		if (enc2 == null) {
 			res.put("error", "no such encounter: " + request.getParameter("enc2"));
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
+			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
@@ -254,8 +269,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		try {
 
 
-			enc.setState("approved");
-			enc2.setState("approved");
+			//enc.setState("approved");
+			//enc2.setState("approved");
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
@@ -335,8 +350,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
-			enc.setState("unapproved");
-			enc2.setState("unapproved");
+			//enc.setState("unapproved");
+			//enc2.setState("unapproved");
 			e.printStackTrace();
 			res.put("error", "Please enter a different Individual ID.");
 		}
@@ -378,6 +393,13 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		Encounter enc = myShepherd.getEncounter(encId);
 		if (enc==null) {
 			rtn.put("error", "could not find Encounter "+encId+" in the database.");
+			out.println(rtn.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(rtn.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
@@ -1402,10 +1424,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
                     thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
                 }
-
+				<%
+				if(request.getUserPrincipal()!=null){
+				%>
                 if (encId || indivId) {
 					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
+                <%
+            	}
+                %>
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
