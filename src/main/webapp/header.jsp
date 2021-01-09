@@ -49,7 +49,28 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
 boolean usaUser = false;
-//String linkURLBase = CommonConfiguration.getURLLocation(request);
+String linkURLBase = CommonConfiguration.getURLLocation(request);
+
+
+try {
+	// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+	if (request.getUserPrincipal()!=null) {
+		String userName = request.getUserPrincipal().getName();
+		List<Role> roles = myShepherd.getAllRolesForUser(userName);
+		for (Role role : roles) {
+			if (role.getRolename().equals("spotasharkusa")) {
+				usaUser = true;
+			}
+		}
+	}
+	if (usaUser) {
+		linkURLBase = "ncaquariums.wildbook.org";
+	}
+} catch (Exception e) {
+	e.printStackTrace();
+}
+
+
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
@@ -646,13 +667,13 @@ finally{
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + linkURLBase+"/individuals.jsp?id=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "encounter") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + linkURLBase+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=("//" + linkURLBase+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later

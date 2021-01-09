@@ -3571,6 +3571,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
   public int getNumMarkedIndividualsWithEncMatching(String filter) {
+    System.out.println("filter in getNumMarkedIndividualsWithEncMatching method is: " + filter);
     int num = 0;
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);

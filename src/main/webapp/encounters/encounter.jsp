@@ -1373,7 +1373,12 @@ if(enc.getLocation()!=null){
               	}
               }
           });
+
+
         });
+
+
+
 
       </script>
 
@@ -1408,9 +1413,6 @@ if(enc.getLocation()!=null){
               </div>
             </div>
           </form>
-
-
-
 
 
 
@@ -1461,9 +1463,11 @@ if(enc.getLocation()!=null){
 				}
 				%>
 
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
-              resetIdButtons();
+                    resetIdButtons();
 	          });
 
 	          $("#closeEditIdentity").click(function() {
@@ -1471,6 +1475,8 @@ if(enc.getLocation()!=null){
 	          });
 	        });
 	        </script>
+
+
 	        <%
         }
         else {
@@ -1571,7 +1577,11 @@ if(enc.getLocation()!=null){
 
      		<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
-<script type="text/javascript">
+
+
+
+
+                    <script type="text/javascript">
 function switchIdMode(bid) {
     if (bid == '#Add') {
         $('#matchType').val('Pattern match');
@@ -1678,7 +1688,11 @@ function resetIdButtons() {
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
                          <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+
                     </div>
+
+
+
 
                     <form name="add2shark" class="add2shark">
                       <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
@@ -1785,7 +1799,6 @@ function checkIdDisplay() {
 
              <script type="text/javascript">
                     $(document).ready(function() {
-
 
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
@@ -2355,9 +2368,18 @@ function checkIdDisplay() {
 		    <%
 			}
 		    %>
+
+
+
+
+
+
+
 							<%
 		                    if(isOwner){
+
 		                    %>
+
 		                     	<p class="para"><h4><%=encprops.getProperty("inform_others") %></h4> <%
 	       						if(enc.getPhotographers()!=null){
 	    	   %>
@@ -2538,14 +2560,23 @@ function checkIdDisplay() {
 	                        			                            +'</td>'
 	                        			        +'</tr>'
 	                        		);
+
+
+
 		                     }, 'json'
 	                         ) //end post
 		                     .fail(function(response) {
 		                          alert("I could not remove this user. Please check the logs for errors.");
 		                        }); //end fail
+
+
+
+
+
                     	}); //end click function
                     });  //end document ready
                     </script>
+
 
         </div>
 <%-- END CONTACT INFORMATION --%>
@@ -2842,17 +2873,21 @@ else {
     </div>
   </form>
 </div>
-       		<%
-       }
-       else {
-       %>
-       &nbsp;
-       <%
-       }
-      %>
-      </td>
 
-  </tr></table>
+
+                   		<%
+
+                   }
+                   else {
+                   %>
+                   &nbsp;
+                   <%
+                   }
+                  %>
+                  </td>
+
+
+    </tr></table>
 
 <!-- END USER ATTRIBUTE -->
 
