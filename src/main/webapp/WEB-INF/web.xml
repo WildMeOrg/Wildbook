@@ -83,7 +83,7 @@
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/users.jsp = authc, roles[admin]
-				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
+				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
         /encounters/encounterSpotTool.jsp = authc, roles[researcher]
         /SubmitSpotsAndImage = authc, roles[researcher]
@@ -314,8 +314,13 @@
                		/IndividualSetYearOfDeath = authc, roles[researcher]
 			/KinalyzerExport = authc, roles[researcher]
 
-        /MyAccountAddProfileImage = authc
-        /MyAccountRemoveProfileImage = authc
+			/myAccount.jsp = authc
+					/UserSelfUpdate = authc
+					/UserConsolidate = authc
+					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
+					/myUsers.jsp = authc
 
         /UserGetNotifications = authc
 
@@ -445,7 +450,7 @@
 
         /ProjectIA = authc, roles[researcher]
 
-        /UserPreferences = authc, roles[researcher]
+        /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
 
@@ -926,9 +931,14 @@
     <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>UserDelete</servlet-name>
-    <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
+	<servlet>
+		<servlet-name>UserConsolidate</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserConsolidate</servlet-class>
+</servlet>
+
+      <servlet>
+        <servlet-name>UserDelete</servlet-name>
+        <servlet-class>org.ecocean.servlet.UserDelete</servlet-class>
   </servlet>
 
   <servlet>
@@ -1921,9 +1931,14 @@
     <url-pattern>/UserSelfUpdate</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>UserDelete</servlet-name>
-    <url-pattern>/UserDelete</url-pattern>
+	<servlet-mapping>
+		<servlet-name>UserConsolidate</servlet-name>
+		<url-pattern>/UserConsolidate</url-pattern>
+</servlet-mapping>
+
+     <servlet-mapping>
+            <servlet-name>UserDelete</servlet-name>
+            <url-pattern>/UserDelete</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

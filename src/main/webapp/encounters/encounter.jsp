@@ -413,9 +413,10 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+            
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                //if (taxString && (item.species != taxString)) return null;
+                if (item.species != taxString) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -1594,7 +1595,7 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-console.info('resetIdButtons()');
+//console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
@@ -3846,7 +3847,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>

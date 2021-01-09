@@ -9,6 +9,7 @@ import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.regexp.recompile;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +59,15 @@ public class Collaboration implements java.io.Serializable {
 
 	public String getUsername1() {
 		return this.username1;
+	}
+
+	public void swapUser(String user1Name, String user2Name){
+		setUsername1(user2Name);
+		setUsername2(user1Name);
+	}
+
+	public void swapUser(User user1, User user2){
+		swapUser(user1.getUsername(), user2.getUsername());
 	}
 
 	public void setUsername1(String name) {
@@ -310,10 +320,10 @@ public class Collaboration implements java.io.Serializable {
 					n++;
 				}
 			}
-		} 
+		}
 		catch (Exception e) {
 			//e.printStackTrace();
-		} 
+		}
 
 		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
 		return notif;
@@ -329,7 +339,7 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
-	// here "View" is a weaker action than "Access". 
+	// here "View" is a weaker action than "Access".
 	// "View" means "you can see that the data exists but may not necessarily access the data"
 	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
@@ -343,8 +353,8 @@ public class Collaboration implements java.io.Serializable {
 		// if they own it
 		if (viewer!=null && owner!=null && viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		// if viewer and owner have sharing turned on
-		if (((viewer!=null && 
-				viewer.hasSharing() && 
+		if (((viewer!=null &&
+				viewer.hasSharing() &&
 				(owner==null || owner.hasSharing())) )) return true; // just based on sharing
 		// if they have a collaboration
 		return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
@@ -383,12 +393,12 @@ public class Collaboration implements java.io.Serializable {
     }
     return false;
 	}
-	
+
 	 public static boolean canUserAccessImportTask(ImportTask occ, HttpServletRequest request) {
-	    
+
 	   //first check if the User on the ImportTask matches the current user
 	   if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
-	   
+
 	   //otherwise check the Encounters
 	    List<Encounter> all = occ.getEncounters();
 	    if ((all == null) || (all.size() < 1)) return true;
@@ -407,7 +417,7 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
-	
+
 	//Check if User (via request) has edit access to every Encounter in this Individual
 	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
 	    Vector<Encounter> all = mi.getEncounters();
@@ -417,7 +427,7 @@ public class Collaboration implements java.io.Serializable {
 	    }
 	    return true;
 	  }
-	
+
 	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
 	    List<MarkedIndividual> all = su.getMarkedIndividuals();
 	    if ((all == null) || (all.size() < 1)) return true;
@@ -427,22 +437,33 @@ public class Collaboration implements java.io.Serializable {
 	    return false;
 	  }
 
-  public String toString() {
-      return new ToStringBuilder(this)
-              .append("username1", getUsername1())
-              .append("username2", getUsername2())
-              .append("state", getState())
-              .append("dateTimeCreated", getDateStringCreated())
-              .toString();
-  }
-  
-  public String getEditInitiator() {return editInitiator;}
-  public void setEditInitiator(String username) {
-    if(username==null) {this.editInitiator=null;}
-    else {
-      this.editInitiator = username;
-    }
-  }
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("username1", getUsername1())
+				.append("username2", getUsername2())
+				.append("state", getState())
+				.append("dateTimeCreated", getDateStringCreated())
+				.toString();
+	}
+	
+	public String getEditInitiator() {
+		if (editInitiator!=null&&!"".equals(editInitiator)) {
+			return editInitiator;
+		} else if (this.getState().equals(STATE_REJECTED)) {
+			return null; 
+		} else {
+			this.editInitiator = this.username1; // probably old collaboration request where position 1 is always initiator
+			return editInitiator;
+		}
+	}
+
+
+	public void setEditInitiator(String username) {
+		if(username==null) {this.editInitiator=null;}
+		else {
+		this.editInitiator = username;
+		}
+	}
 
 
 

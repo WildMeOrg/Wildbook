@@ -19,7 +19,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
-props = ShepherdProperties.getProperties("header.properties", langCode, context);
+props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
@@ -28,7 +28,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->
-		
+
         <footer class="page-footer" >
 
 		<hr>
@@ -45,29 +45,22 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 					<a href="http://mnzoo.org" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo5.jpg" alt="MN Zoo"> </a>
 					<a href="https://www.georgiaaquarium.org/" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo6.jpg" alt="Georgia Aquarium"> </a>
 					<a href="https://www.coastalstudiesinstitute.org/" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/coastalStudiesInstitute.jpg" alt="Coastal Studies Institute"> </a>
-                    <a href="http://www.wildbook.org" target="_blank"> <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt="Wildbook logo" class="" style="height: 120px;"/></a>
+          <a href="http://www.wildbook.org" target="_blank"> <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt="Wildbook logo" class="" style="height: 120px;"/></a>
 					<!-- Copyright -->
 				</div>
 
 				<div class="row">
-					<p class="col-sm-8" style="margin-top:30px;">For more information contact <a href="mailto:spotasharkusa@gmail.com">Spot A Shark USA</a>.</p>      
-                </p>
-			  
-                <div class="row">
-					<p class="col-sm-8" style="margin-top:10px;"><a href="http://www.wildbook.org">Wildbook v.<%=ContextConfiguration.getVersion() %></a> is distributed under the GPL v2 license and is intended to support mark-recapture field studies. <a href="http://ncaquariums.wildbook.org/userAgreement.jsp" target="_blank">Use of this site is governed by our User Agreement.</a>      
-                </p>
-                           
-							
-         
+					<p class="col-sm-8" style="margin-top:30px;">For more information contact <a href="mailto:spotasharkusa@gmail.com">Spot A Shark USA</a>.</p>
+          </p>
+          <div class="row">
+						<p class="col-sm-8" style="margin-top:10px;"><a href="https://www.wildme.org/#/wildbook">Wildbook v.<%=ContextConfiguration.getVersion() %></a> is distributed under the GPL v2 license and is intended to support mark-recapture field studies. <a href="http://ncaquariums.wildbook.org/userAgreement.jsp" target="_blank">Use of this site is governed by our User Agreement.</a>
+            </p>
+        	</div>
+        </div>
+      </div>
+    </div>
 
-
-
-                </div>
-                </div>
-              </div>
-            </div>
-
-        </footer>
+  </footer>
         <!-- /footer -->
-    </body>
+</body>
 </html>

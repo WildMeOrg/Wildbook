@@ -1115,6 +1115,34 @@ public class Shepherd {
     return projectArr;
 }
 
+public ArrayList<Project> getProjectsOwnedByUser(User user) {
+  Query query = null;
+  Iterator<Project> projectIter = null;
+  ArrayList<Project> projectArr = null;
+  try {
+    String filter = "SELECT FROM org.ecocean.Project WHERE ownerId==\""+user.getId()+"\"";
+    System.out.println("query in getProjectsOwnedByUser is: " + filter);
+    query = getPM().newQuery(filter);
+    query.declareParameters("User user");
+    Collection c = (Collection)query.execute(user);
+    projectIter = c.iterator();
+    while (projectIter.hasNext()) {
+      if (projectArr==null) {
+        projectArr = new ArrayList<>();
+      }
+      projectArr.add(projectIter.next());
+    }
+  } catch (JDOException jdoe) {
+    jdoe.printStackTrace();
+  } finally {
+    query.closeAll();
+  }
+  if(projectArr!=null){
+    System.out.println("returning the following projects from getProjectsOwnedByUser:"+ projectArr.toString());
+  }
+  return projectArr;
+}
+
   public Project getProjectByProjectIdPrefix(String projectIdPrefix) {
     Project project = null;
     String filter="SELECT FROM org.ecocean.Project WHERE projectIdPrefix == \""+projectIdPrefix.trim()+"\"";
