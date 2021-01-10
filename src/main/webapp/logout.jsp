@@ -24,7 +24,9 @@ context=ServletUtilities.getContext(request);
 
 
 %>
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="header.jsp" flush="true">
+  <jsp:param name="loggedOut" value="true"/>
+</jsp:include>
 <div class="container maincontent">
           <p>
 

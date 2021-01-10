@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Wildbook QUnit</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.9.2.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <div id="test"></div>
+
+  <script type="test/javascript" >
+    window.wildbookGlobals = true;
+  </script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/qunit/qunit-2.9.2.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
+  <script src="../kdTree.js"></script>
+  <script src="../relationshipDiagrams/jsonParser.js"></script>
+  <script src="../relationshipDiagrams/graphAbstract.js"></script>
+  <script src="../relationshipDiagrams/forceLayoutAbstract.js"></script>
+  <script src="../relationshipDiagrams/socialGraph.js"></script>
+  <script src="../bubbleDiagram/coOccurrenceGraph.js"></script>
+  <script src="graphAbstract_test.js"></script>
+  <script src="forceLayoutAbstract_test.js"></script>
+  <script src="coOccurrenceGraph_test.js"></script>
+  <script src="jsonParser_test.js"></script>
+</body>
+</html>

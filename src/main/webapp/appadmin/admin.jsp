@@ -71,13 +71,18 @@ context=ServletUtilities.getContext(request);
               deliberation.</p>
 
             <form name="massSwapLocCode" method="post" action="../MassSwapLocationCode">
-              <p>Old location code: <input name="oldLocCode" type="text"
-                                           id="oldLocCode" size="10" >
+              <p>Old location code: 
+                                           
+        
 
-              <p>New location code: <input name="newLocCode" type="text"
-                                           id="newLocCode" size="10" > <br/>
-                <br> <input name="Update" type="submit" id="Update"
-                            value="Update"></p>
+<%=LocationID.getHTMLSelector(false,null,null,"oldLocCode","oldLocCode","class")%>
+
+
+
+              <p>New location code: <%=LocationID.getHTMLSelector(false,null,null,"newLocCode","newLocCode","class")%> <br/>
+                <br> 
+                <input name="Update" type="submit" id="Update" value="Update">
+               </p>
             </form>
           </td>
         </tr>

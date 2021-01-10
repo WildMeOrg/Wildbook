@@ -23,6 +23,10 @@ public abstract class QueryProcessor {
     else return (filter += " && ");
   }
 
+  protected static String filterWithCondition(String filter, String condition) {
+    return (prepForCondition(filter)+condition);
+  }
+
   protected static boolean endsWithAmpersands (String filter) {
     return (filter.trim().endsWith("&&"));
   }
@@ -40,13 +44,37 @@ public abstract class QueryProcessor {
     return Util.jdoStringContainsConstraint(fieldName, val, true);
   }
 
+  protected static String stringFieldExactSubFilter(HttpServletRequest request, String fieldName) {
+    String val = request.getParameter(fieldName);
+    if ( !Util.stringExists(val) ) return "";
+    val = Util.undoUrlEncoding(val);
+    return jdoStringEqualsConstraint(fieldName, val);
+  }
+
+  protected static String filterWithSubfilter(String filter, String subfilter) {
+    if (!Util.stringExists(subfilter)) return filter;
+    filter = prepForCondition(filter);
+    filter+= subfilter;
+    return filter;
+  }
+
   protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request) {
     String subFilter = stringFieldSubFilter(request, fieldName);
     System.out.println("filterWithBasicStringField: field "+fieldName+" made subFilter "+subFilter);
+    return filterWithSubfilter(filter, subFilter);
+  }
+  protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request) {
+    String subFilter = stringFieldExactSubFilter(request, fieldName);
+    System.out.println("filterWithExactStringField: field "+fieldName+" made subFilter "+subFilter);
     if (!Util.stringExists(subFilter)) return filter;
     filter = prepForCondition(filter);
     filter+= subFilter;
     return filter;
+  }
+  // same as above, but also does bad practice of modifying inpnut variable prettyPrint (this makes for nice 'n' readable code!)
+  protected static String filterWithExactStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
+    prettyPrint.append(prettyPrintUpdateForExactString(fieldName, request));
+    return filterWithExactStringField(filter, fieldName, request);
   }
   // same as above, but also does bad practice of modifying input variable prettyPrint (this makes for nice 'n' readable code!)
   protected static String filterWithBasicStringField(String filter, String fieldName, HttpServletRequest request, StringBuffer prettyPrint) {
@@ -54,8 +82,6 @@ public abstract class QueryProcessor {
     return filterWithBasicStringField(filter, fieldName, request);
   }
   
-  // This is probably not the ideal place for a method with this narrow of usage, but I've put it here in the interest
-  // of saving time because it can be applied to survey and eventually indy.
   protected static String filterObservations(String filter, HttpServletRequest request, StringBuffer prettyPrint, String objectType) {
     filter = prepForCondition(filter);
 
@@ -70,23 +96,21 @@ public abstract class QueryProcessor {
       while (allParams.hasMoreElements()) {
         String thisParam = allParams.nextElement();
         if (thisParam!=null&&thisParam.startsWith(keyID)) {
-          System.out.println("===================================================== Checking this Param: "+thisParam);
           String keyParam = request.getParameter(thisParam).trim();
           String keyNum = thisParam.replace(keyID,"");
           if (keyParam!=null&&!keyParam.equals("")) {
             numObsSearched++;
-            System.out.println("Searching Ob #"+numObsSearched);
-            obKeys.put(keyNum,keyParam);            
+            obKeys.put(keyNum,keyParam);
           }
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
           String valParam = request.getParameter(thisParam).trim();
           String valNum = thisParam.replace(valID,"");
           if (valParam!=null&&!valParam.equals("")) {
-            obVals.put(valNum,valParam);            
+            obVals.put(valNum,valParam);
           }
         }
-      }  
+      }
       for (int i=0;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
         if (Util.basicSanitize(obKeys.get(num))!=null) {
@@ -95,12 +119,12 @@ public abstract class QueryProcessor {
           prettyPrint.append(thisKey);
           prettyPrint.append("<br/>");
           obQuery.append("(observations.contains(observation"+num+") && ");
-          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
-            prettyPrint.append(thisVal);              
-            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+            prettyPrint.append(thisVal);
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim()));
           }
           obQuery.append(")");
           if (1<numObsSearched) {
@@ -113,7 +137,7 @@ public abstract class QueryProcessor {
       if (obQuery.length() > 0) {
         if (!filter.equals("SELECT FROM org.ecocean."+objectType+" WHERE 'ID' != null &&")) {
           if (!filter.trim().endsWith("&&")) {
-            filter += " && ";            
+            filter += " && ";
           }
         }
         filter += obQuery.toString();
@@ -121,54 +145,61 @@ public abstract class QueryProcessor {
     }
     return filter;
   }
-  
+
   protected static int getNumberOfObservationsInQuery(HttpServletRequest request) {
     int numObsSearched = 0;
     if (request.getParameter("numSearchedObs")!=null) {
       numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
       System.out.println("Num Obs Searched? "+numObsSearched);
       if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
-        return numObsSearched;     
+        return numObsSearched;
       }
     }
     return 0;
   }
+
 
   protected static String prettyPrintUpdateForBasicString(String fieldName, HttpServletRequest request) {
     if (!Util.stringExists(request.getParameter(fieldName))) return "";
     return (fieldName+" contains \""+request.getParameter(fieldName)+"\".<br />");
   }
 
+  protected static String prettyPrintUpdateForExactString(String fieldName, HttpServletRequest request) {
+    if (!Util.stringExists(request.getParameter(fieldName))) return "";
+    return (fieldName+" equals \""+request.getParameter(fieldName)+"\".<br />");
+  }
+
 
   // Assumes the params ne_lat...sw_long define a box where the
   // object's latitude and longitude should be within
   protected static String gpsBoxSubFilter(HttpServletRequest request) {
-    String ne_latStr = request.getParameter("ne_lat");
-    String ne_longStr = request.getParameter("ne_long");
-    String sw_latStr = request.getParameter("sw_lat");
-    String sw_longStr = request.getParameter("sw_long");
+    return gpsBoxSubFilter("latitude", "longitude", request);
+  }
 
+  protected static String gpsBoxSubFilter(String latQueryStr, String lonQueryStr, HttpServletRequest request) {
+    String ne_latStr  = request.getParameter("ne_lat" );
+    String ne_longStr = request.getParameter("ne_long");
+    String sw_latStr  = request.getParameter("sw_lat" );
+    String sw_longStr = request.getParameter("sw_long");
     if (!(Util.stringExists(ne_latStr) && Util.stringExists(ne_longStr) && Util.stringExists(sw_latStr) && Util.stringExists(sw_longStr))) return "";
 
     try {
-
       double ne_lat  = (new Double(ne_latStr ).doubleValue());
       double ne_long = (new Double(ne_longStr).doubleValue());
       double sw_lat  = (new Double(sw_latStr ).doubleValue());
       double sw_long = (new Double(sw_longStr).doubleValue());
 
       String subFilter="(";
-      // TBQF I'm not sure what the below logic does
       if ((sw_long>0)&&(ne_long<0)){
-        subFilter += "(latitude <= "+request.getParameter("ne_lat")+") && (latitude >= "+request.getParameter("sw_lat")+")";
-        subFilter += " && ((longitude <= "+request.getParameter("ne_long")+") || (longitude >= "+request.getParameter("sw_long")+"))";
+        subFilter += "("+latQueryStr+" <= "+ne_latStr+") && ("+latQueryStr+" >= "+sw_latStr+")";
+        subFilter += " && (("+lonQueryStr+" <= "+ne_longStr+") || ("+lonQueryStr+" >= "+sw_longStr+"))";
       }
       else {
-        subFilter += "(latitude <= "+request.getParameter("ne_lat")+") && (latitude >= "+request.getParameter("sw_lat")+")";
-        subFilter += " && (longitude <= "+request.getParameter("ne_long")+") && (longitude >= "+request.getParameter("sw_long")+")";
+        subFilter += "("+latQueryStr+" <= "+ne_latStr+") && ("+latQueryStr+" >= "+sw_latStr+")";
+        subFilter += " && ("+lonQueryStr+" <= "+ne_longStr+") && ("+lonQueryStr+" >= "+sw_longStr+")";
       }
-
-      subFilter+=" )";
+      subFilter+=")";
+      System.out.println("LatLonFilter! returning subfilter "+subFilter);
       return subFilter;
     }
 
@@ -179,22 +210,33 @@ public abstract class QueryProcessor {
     return "";
   }
 
-  protected static String filterWithGpsBox(String filter, HttpServletRequest request) {
-    String subFilter = gpsBoxSubFilter(request);
-    if (!Util.stringExists(subFilter)) return filter;
-    filter = prepForCondition(filter);
-    return (filter + subFilter);
-  }
   // like above but also prettyPrints
   protected static String filterWithGpsBox(String filter, HttpServletRequest request, StringBuffer prettyPrint) {
     prettyPrint.append(prettyPrintGpsBox(request));
     return (filterWithGpsBox(filter, request));
   }
+  protected static String filterWithGpsBox(String filter, HttpServletRequest request) {
+    // default query string names are the obvious strings "latitude"...
+    return filterWithGpsBox("latitude", "longitude", filter, request);
+  }
+
+  protected static String filterWithGpsBox(String latQueryStr, String lonQueryStr, String filter, HttpServletRequest request) {
+    String subFilter = gpsBoxSubFilter(latQueryStr, lonQueryStr, request);
+    if (!Util.stringExists(subFilter)) return filter;
+    filter = prepForCondition(filter);
+    return (filter + subFilter);
+  }
+  protected static String filterWithGpsBox(String latQueryStr, String lonQueryStr, String filter, HttpServletRequest request, StringBuffer prettyPrint) {
+    prettyPrint.append(prettyPrintGpsBox(request));
+    return (filterWithGpsBox(latQueryStr, lonQueryStr, filter, request));
+  }
+
+
 
   protected static String prettyPrintGpsBox(HttpServletRequest request) {
     String ne_latStr = request.getParameter("ne_lat");
     String ne_longStr = request.getParameter("ne_long");
-    String sw_latStr = request.getParameter("sw_lat");
+    String   sw_latStr = request.getParameter("sw_lat");
     String sw_longStr = request.getParameter("sw_long");
 
     if (!(Util.stringExists(ne_latStr) && Util.stringExists(ne_longStr) && Util.stringExists(sw_latStr) && Util.stringExists(sw_longStr))) return "";
@@ -242,13 +284,13 @@ public abstract class QueryProcessor {
     sb.append(typeAndVariable);
     return sb.toString();
   }
-  
+
   public static String filterDateRanges(HttpServletRequest request, String filter, StringBuffer prettyPrint) {
     String endTimeFrom = null;
     String endTimeTo = null;
     String startTimeFrom = null;
     String startTimeTo = null;
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("startTimeFrom")!=null&&request.getParameter("startTimeFrom").length()>8) {
@@ -257,11 +299,11 @@ public abstract class QueryProcessor {
         String addition = " (startTime >=  "+startTimeFrom+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("startTimeTo")!=null&&request.getParameter("startTimeTo").length()>8) {
@@ -270,11 +312,11 @@ public abstract class QueryProcessor {
         String addition = " (startTime <=  "+startTimeTo+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("endTimeFrom")!=null&&request.getParameter("endTimeFrom").length()>8) {
@@ -283,11 +325,11 @@ public abstract class QueryProcessor {
         String addition = " (endTime >=  "+endTimeFrom+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("endTimeTo")!=null&&request.getParameter("endTimeFrom").length()>8) {
@@ -296,23 +338,23 @@ public abstract class QueryProcessor {
         String addition = " (startTime <=  "+endTimeTo+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     filter = prepForNext(filter);
     System.out.println("This filter: "+filter);
     return filter;
   }
-  
+
  public static String prepForNext(String filter) {
    if (!QueryProcessor.endsWithAmpersands(filter)) {
      filter = QueryProcessor.prepForCondition(filter);
    }
    return filter;
  }
- 
+
  private static String monthDayYearToMilli(String newDate) {
    System.out.println("This is the input date: "+newDate);
    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
@@ -329,5 +371,13 @@ public abstract class QueryProcessor {
    }
    return String.valueOf(dt.getTime());
  }
+
+
+  public static String jdoStringEqualsConstraint(String fieldName, String equalsThis) {
+    return "("+fieldName+" == '"+equalsThis+"')";
+  }
+
+
+
 
 }

@@ -55,30 +55,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
-    boolean isAssigned = false;
 
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isAssigned=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     if((request.isUserInRole("admin"))||(isAssigned)){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
 
     String action = request.getParameter("action");
     //System.out.println("Action is: "+action);
@@ -111,6 +88,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
           if (!locked) {
             myShepherd.commitDBTransaction(action);
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> I have changed encounter " + request.getParameter("number") + " TapirLink exposure status.");
             out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -124,8 +102,10 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
 
             out.println(ServletUtilities.getFooter(context));
-          } else {
+          } 
+          else {
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Failure:</strong> I have NOT changed encounter " + request.getParameter("number") + " TapirLink status. This encounter is currently being modified by another user, or an unknown error occurred.");
             out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -142,15 +122,19 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
 
           }
 
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Error:</strong> I don't know which new encounter you're trying to approve.");
           out.println(ServletUtilities.getFooter(context));
 
         }
 
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
         out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
         out.println(ServletUtilities.getFooter(context));

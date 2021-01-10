@@ -278,6 +278,38 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
     }
 
 
+
+    //returns new parameters set on the MediaAsset
+    public static JSONObject convertToLocal(MediaAsset ma, LocalAssetStore las) throws IOException {
+        if (ma == null) throw new IOException("S3AssetStore.convertToLocal() passed null MediaAsset");
+        if ((ma.getStore() == null) || !(ma.getStore() instanceof S3AssetStore)) throw new IOException("S3AssetStore.convertToLocal() passed MediaAsset is not S3 type");
+        if ((las == null) || !(las instanceof LocalAssetStore)) throw new IOException("S3AssetStore.convertToLocal() passed AssetStore is not LocalAssetStore");
+        Path lpath = ma.localPath();
+        if (lpath == null) throw new IOException("S3AssetStore.convertToLocal() could not get localPath for " + ma);
+        JSONObject newParams = ma.getParameters();
+        //ma.localPath() would have failed if we didnt have "bucket" and "key", so we can assume (gulp) they exist
+        String newPathString = "s3/" + newParams.getString("bucket") + "/" + newParams.optString("key");
+        newParams.put("path", newPathString);
+        boolean got = false;
+        try {
+            got = ma.cacheLocal();
+        } catch (Exception ex) {
+            throw new IOException("S3AssetStore.convertToLocal() cacheLocal() for " + ma + " threw " + ex.toString());
+        }
+        if (!got || !Files.exists(lpath)) throw new IOException("S3AssetStore.convertToLocal() could not retrieve S3 source to " + lpath);
+        Path targetPath = las.pathFromParameters(newParams);  //this is still relative
+        targetPath = las.root().resolve(targetPath);  //this should make it absolute
+//System.out.println("S3AssetStore.convertToLocal() " + ma + " localizing " + lpath + " to " + targetPath); 
+        targetPath.getParent().toFile().mkdirs();
+        Files.copy(lpath, targetPath, REPLACE_EXISTING);  //replace, since bucket/key "should be" unique on S3!
+        ma.setParameters(newParams);
+        ma.store = las;
+        ma.setRevision();
+        ma.addDerivationMethod("S3.convertToLocal", System.currentTimeMillis());
+        ma.setHashCode();
+        return newParams;
+    }
+
 }
 
 

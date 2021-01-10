@@ -33,3 +33,11 @@ src/main/caribwhale_data_dir
 .classpath
 
 catalina.base_IS_UNDEFINED
+
+src/main/webapp/javascript/dev/MarkedIndividual.json
+src/main/webapp/javascript/dev/Relationship.json
+
+\.classpath
+.classpath
+
+catalina.base_IS_UNDEFINED

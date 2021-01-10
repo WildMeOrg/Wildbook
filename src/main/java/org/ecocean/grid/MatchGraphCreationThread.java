@@ -20,6 +20,7 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
+import org.ecocean.MarkedIndividual;
 //import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
@@ -29,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
@@ -73,6 +76,15 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("MatchGraphCreationThread.class");
     GridManager gm = GridManagerFactory.getGridManager();
+    
+    PersistenceManager pm=myShepherd.getPM();
+    PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+
+    javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
+    grp2.addMember("sex").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day").addMember("spots").addMember("rightSpots").addMember("leftReferenceSpots").addMember("rightReferenceSpots");
+
+
+    myShepherd.getPM().getFetchPlan().setGroup("encSearchResults");
 
 
     myShepherd.beginDBTransaction();
@@ -82,7 +94,8 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     System.out.println("MatchGraphCreationThread is exploring this many encounters: "+numEncs);
     myShepherd.rollbackDBTransaction();
     
-    gm.initializeNodes((int)(numEncs*2/3));
+    //gm.initializeNodes((int)(numEncs*2/3));
+    gm. resetMatchGraphWithInitialCapacity(numEncs);
     
     //Query query=null;
     try {

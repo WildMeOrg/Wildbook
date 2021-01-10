@@ -81,9 +81,7 @@ table {
 
 <jsp:include page="../header.jsp" flush="true" />
      <div class="container maincontent">
-<h1>Grid Administration
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>sharkgrid" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h1>
+<h1>Grid Administration</h1>
 
 <%
   myShepherd.beginDBTransaction();
@@ -308,19 +306,27 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
-      //if (st.getUniqueNumber().equals("TuningTask")) {
+      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+      if(scanEnc.getLocationID()!=null)  gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+    //if (st.getUniqueNumber().equals("TuningTask")) {
       //  gotoURL = "endTuningTask.jsp";
       //}
     %>
 
     <td>
       <form name="scanNumJoin<%=scanNum%>" method="get"
-            action="<%=gotoURL%>"><input name="rightSide" type="hidden"
-                                         id="rightSide" value="<%=sideAddition%>"><input
+            action="<%=gotoURL%>">
+            
+            
+            <input name="rightSide" type="hidden" id="rightSide" value="<%=sideAddition%>">
+                 
+                 <input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber() %>">                        
+                                         
+                                         <input
         name="writeThis" type="hidden" id="writeThis" value="true"><input
         name="number" type="hidden" id="number"
-        value="<%=st.getUniqueNumber().substring(5)%>"><input
+        value="<%=st.getUniqueNumber().substring(5)%>">
+        <input
         name="viewresult" type="submit" id="viewresult" value="View"></form>
     </td>
     <td>
@@ -349,9 +355,9 @@ else{
 						
 						<td>
 						<%
-						if((scanEnc.getIndividualID()!=null)&&(!scanEnc.getIndividualID().equals("Unassigned"))){
+						if(scanEnc.getIndividual()!=null){
 						%>
-						<a href="../individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID()%></a>
+						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName(request, myShepherd)%></a>
 						<%
       					}
       					else{

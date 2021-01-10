@@ -1,0 +1,719 @@
+{
+"syn": {
+"af:72 aquatics, tucson, az": 
+[
+   "af:72 aquatics, tucson, az"
+]
+,
+"af:australian national university": 
+[
+   "af:australian national university"
+]
+,
+"af:baldwin video pro.": 
+[
+   "af:baldwin video pro."
+]
+,
+"af:blue dolphin dive shop": 
+[
+   "af:blue dolphin dive shop"
+]
+,
+"af:cape ann charters,  inc": 
+[
+   "af:cape ann charters,  inc"
+]
+,
+"af:carolina beach scuba": 
+[
+   "af:carolina beach scuba"
+]
+,
+"af:choo choo diving and aquatic center": 
+[
+   "af:choo choo diving and aquatic center"
+]
+,
+"af:coastal studies institute": 
+[
+   "af:coastal studies institute"
+]
+,
+"af:crystal divers south africa": 
+[
+   "af:crystal divers south africa"
+]
+,
+"af:discover diving": 
+[
+   "af:discover diving"
+]
+,
+"af:discovery diving, inc": 
+[
+   "af:discovery diving, inc"
+]
+,
+"af:diver": 
+[
+   "af:diver"
+]
+,
+"af:down under divers raleigh": 
+[
+   "af:down under divers raleigh"
+]
+,
+"af:duke university": 
+[
+   "af:duke university"
+]
+,
+"af:ecu": 
+[
+   "af:ecu"
+]
+,
+"af:extended range diving services": 
+[
+   "af:extended range diving services"
+]
+,
+"up:fellowship": 
+[
+   "up:fellowship"
+]
+,
+"af:gai": 
+[
+   "af:gai"
+]
+,
+"up:grey nurse shark monitoring  and reporting": 
+[
+   "up:grey nurse shark monitoring  and reporting"
+]
+,
+"af:grey nurse sharks south coast": 
+[
+   "af:grey nurse sharks south coast"
+]
+,
+"up:n/a": 
+[
+   "up:n/a"
+]
+,
+"af:nc aquarium at pks": 
+[
+   "af:nc aquarium at pks"
+]
+,
+"af:nc aquarium on roanoke island": 
+[
+   "af:nc aquarium on roanoke island"
+]
+,
+"af:nc aquarium pine knoll shores": 
+[
+   "af:nc aquarium pine knoll shores"
+]
+,
+"af:nc aquarium": 
+[
+   "af:nc aquarium"
+]
+,
+"af:nc aquariums ri": 
+[
+   "af:nc aquariums ri"
+]
+,
+"af:nc aquariums": 
+[
+   "af:nc aquariums"
+]
+,
+"af:ncari": 
+[
+   "af:ncari"
+]
+,
+"af:ncsu/ncaquariums": 
+[
+   "af:ncsu/ncaquariums"
+]
+,
+"af:new york state department of environmental conservation": 
+[
+   "af:new york state department of environmental conservation"
+]
+,
+"af:no affiliation": 
+[
+   "af:no affiliation"
+]
+,
+"af:none - diving from personal boat": 
+[
+   "af:none - diving from personal boat"
+]
+,
+"af:none. recreational diver.": 
+[
+   "af:none. recreational diver."
+]
+,
+"af:none": 
+[
+   "af:none"
+]
+,
+"af:north carolina acquariums": 
+[
+   "af:north carolina acquariums"
+]
+,
+"af:north carolina aquarium on roanoke island": 
+[
+   "af:north carolina aquarium on roanoke island"
+]
+,
+"af:olympus dive center": 
+[
+   "af:olympus dive center"
+]
+,
+"af:pamlico divers": 
+[
+   "af:pamlico divers"
+]
+,
+"up:phd research project": 
+[
+   "up:phd research project"
+]
+,
+"af:reef": 
+[
+   "af:reef"
+]
+,
+"af:roanoke island dive shop": 
+[
+   "af:roanoke island dive shop"
+]
+,
+"af:roanoke island outfitters and dive center": 
+[
+   "af:roanoke island outfitters and dive center"
+]
+,
+"af:salty dog diving llc": 
+[
+   "af:salty dog diving llc"
+]
+,
+"up:sas usa": 
+[
+   "up:sas usa"
+]
+,
+"af:sezarc": 
+[
+   "af:sezarc"
+]
+,
+"up:shark guardians": 
+[
+   "up:shark guardians"
+]
+,
+"af:southern ohio diving academy (soda)": 
+[
+   "af:southern ohio diving academy (soda)"
+]
+,
+"af:spot a shark - photographer": 
+[
+   "af:spot a shark - photographer"
+]
+,
+"af:spot a shark - researcher": 
+[
+   "af:spot a shark - researcher"
+]
+,
+"af:spot a shark australia - researcher": 
+[
+   "af:spot a shark australia - researcher"
+]
+,
+"up:spot a shark usa": 
+[
+   "up:spot a shark usa"
+]
+,
+"af:spot a shark": 
+[
+   "af:spot a shark"
+]
+,
+"af:student": 
+[
+   "af:student"
+]
+,
+"af:tracks": 
+[
+   "af:tracks"
+]
+,
+"af:ucla": 
+[
+   "af:ucla"
+]
+,
+"af:underwater research group of nsw": 
+[
+   "af:underwater research group of nsw"
+]
+,
+"af:wild me": 
+[
+   "af:wild me"
+]
+,
+"up:wildbook - testing": 
+[
+   "up:wildbook - testing"
+]
+,
+"up:wildbook": 
+[
+   "up:wildbook"
+]
+,
+"af:wolf rock dive": 
+[
+   "af:wolf rock dive"
+]
+,
+"0":{}},
+
+"data": 
+{
+   "af:duke university" : {
+      "members" : {
+         "07833629-1624-4b86-a9c7-45e47f2164f9" : "Erica Blair"
+      },
+      "name" : "Duke University"
+   },
+   "af:spot a shark - photographer" : {
+      "name" : "Spot a Shark - Photographer",
+      "members" : {
+         "dbe86633-ecb1-4401-bb8a-475966116c2b" : "Peter Simpson"
+      }
+   },
+   "up:grey nurse shark monitoring  and reporting" : {
+      "name" : "Grey Nurse Shark Monitoring  and Reporting",
+      "members" : {
+         "f9fae627-8ee6-4e47-a2ec-1096f98ed224" : "Sean Barker",
+         "58ab79e6-5fa8-4447-93a4-03170b20704d" : "Courtney",
+         "af854313-66fc-42fd-ace7-680bb9720d33" : "Sean Barker",
+         "b014690c-d56d-47db-a02e-df3a7f13f71d" : "Courtney"
+      },
+      "url" : "www.spotashark.com"
+   },
+   "af:none - diving from personal boat" : {
+      "name" : "none - diving from personal boat",
+      "members" : {
+         "b0b59a5b-671f-44ee-a696-d0c5d148eb71" : "Michele"
+      }
+   },
+   "af:tracks" : {
+      "name" : "Tracks",
+      "members" : {
+         "54cf6294-c213-4d01-85eb-4701dcf7ffe7" : "Tony Niemann"
+      }
+   },
+   "af:gai" : {
+      "name" : "GAI",
+      "members" : {
+         "2832d621-68b7-4b92-9e4d-84446e562943" : "Langham"
+      }
+   },
+   "af:carolina beach scuba" : {
+      "name" : "Carolina Beach Scuba",
+      "members" : {
+         "812064be-5731-4239-8165-5ca079f18d40" : "Garrett McMillan"
+      }
+   },
+   "af:nc aquarium" : {
+      "name" : "NC Aquarium",
+      "members" : {
+         "223eafcc-c044-464b-af49-91ead011c0cf" : "SpotASharkUsaRest"
+      }
+   },
+   "af:ucla" : {
+      "name" : "UCLA",
+      "members" : {
+         "a25c1db6-27b3-4c8b-be5c-e22abc987067" : "Ken Bondy"
+      }
+   },
+   "af:none. recreational diver." : {
+      "name" : "None. Recreational Diver.",
+      "members" : {
+         "39c9ca93-1668-4379-ba72-bf2d331960ef" : "Mathew Kempton"
+      }
+   },
+   "af:spot a shark - researcher" : {
+      "name" : "Spot a Shark - Researcher",
+      "url" : "www.spotashark.com",
+      "members" : {
+         "af854313-66fc-42fd-ace7-680bb9720d33" : "Sean Barker",
+         "f9fae627-8ee6-4e47-a2ec-1096f98ed224" : "Sean Barker"
+      }
+   },
+   "af:olympus dive center" : {
+      "name" : "Olympus Dive Center",
+      "members" : {
+         "aaea986a-81e1-4b81-a848-a085be5b6e21" : "Aidan Streily",
+         "4632d90d-78a0-445f-84e1-183e931c709c" : "Dan Greenfield",
+         "49c30d25-8194-43b9-96f4-2cdebcabcd0b" : "duane gabor",
+         "506f17d0-d508-493d-b5d4-843422fd4edc" : "Lisa Rider"
+      }
+   },
+   "af:baldwin video pro." : {
+      "name" : "Baldwin Video Pro.",
+      "members" : {
+         "f6463a77-253d-423d-9aa0-01b945330cb9" : "Benjamin Baldwin"
+      }
+   },
+   "af:none" : {
+      "name" : "none",
+      "members" : {
+         "8921d916-c691-4578-83bc-464cd9d84bf0" : "Jim flammia",
+         "42aec9cf-b21f-41d0-81b1-eb1dab4a39c3" : "Martin Moler",
+         "ae10bf53-ffb9-429b-b25c-eb60ce38e9c4" : "Dave Wang"
+      }
+   },
+   "af:no affiliation" : {
+      "members" : {
+         "bf5dcdb7-2f06-482f-8a0e-cdda668f8092" : "Kevin Kranzler"
+      },
+      "name" : "No affiliation"
+   },
+   "af:nc aquarium on roanoke island" : {
+      "name" : "NC Aquarium on Roanoke Island",
+      "members" : {
+         "5ca2a62b-3c6d-4831-ada6-85caeead1c1e" : "Shawn Harper"
+      }
+   },
+   "af:wolf rock dive" : {
+      "name" : "Wolf Rock Dive",
+      "members" : {
+         "a10135c9-08c2-44df-8e79-7e1c9e9c704b" : "Victoria"
+      }
+   },
+   "af:blue dolphin dive shop" : {
+      "members" : {
+         "d92ee71f-a666-46db-b16e-8c475faaff19" : "Anthony Hartle"
+      },
+      "name" : "Blue Dolphin Dive Shop"
+   },
+   "af:north carolina aquarium on roanoke island" : {
+      "name" : "North Carolina Aquarium on Roanoke Island",
+      "members" : {
+         "e0fd67d5-731f-485b-a104-659cdf27ce68" : "Shawn Harper",
+         "6a97dc6a-0748-46f6-a150-b14646712fb0" : "Jordan Bridges",
+         "b9978a2a-ea3d-45a1-b91b-23eeee8579c5" : "Shawn",
+         "f0c6c2da-69c3-4628-aa05-04f3ebfa18dc" : "Shawn",
+         "a3a08b8c-f494-4ed5-8a87-6e4705608f82" : "Emily Caffrey"
+      }
+   },
+   "af:sezarc" : {
+      "name" : "SEZARC",
+      "members" : {
+         "0806b0d7-f0cd-4a04-bab9-7cf41586d46c" : "Jennifer Wyffels"
+      }
+   },
+   "up:phd research project" : {
+      "name" : "PhD research project",
+      "members" : {
+         "c8dc3cd3-7316-4838-9e6d-2c219836f2d6" : "Mae Noble"
+      }
+   },
+   "af:wild me" : {
+      "name" : "Wild Me",
+      "url" : "http://www.wildbook.org",
+      "members" : {
+         "508422f5-c905-4b0d-abd1-7cff9d5b4fd5" : "Colin Kingen",
+         "09e9d831-70da-4acf-a016-fcafa0b3cad2" : "Jason Holmberg",
+         "a4aae188-058a-4811-8c07-3bb6621cfbb4" : "Drew Blount",
+         "1226a13f-fd89-4082-aa42-8914f384babc" : "Colin Kingen"
+      }
+   },
+   "af:nc aquariums ri" : {
+      "name" : "NC Aquariums RI",
+      "members" : {
+         "f140e317-fe32-4d60-834e-1307de4487b3" : "Shawn Harper"
+      }
+   },
+   "af:discover diving" : {
+      "members" : {
+         "ac33d035-8371-4c51-8f1c-bc2c18dbf0cf" : "Brian Monkelban",
+         "e992e92e-159c-4474-9742-4b3a35a506ad" : "Brian Monkelban"
+      },
+      "name" : "Discover Diving"
+   },
+   "af:nc aquarium pine knoll shores" : {
+      "members" : {
+         "f8736b5e-f5d9-4b60-9856-689595f282e2" : "Ara McClanahan",
+         "01348c51-0927-4170-b2d3-33bde2bcbcc0" : "Ara McClanahan"
+      },
+      "name" : "NC Aquarium Pine Knoll Shores"
+   },
+   "af:new york state department of environmental conservation" : {
+      "name" : "New York State Department of Environmental Conservation",
+      "members" : {
+         "ca8ec4ea-3385-4c25-9903-dfd6a1f9a676" : "Jennifer R McNamara"
+      }
+   },
+   "af:cape ann charters,  inc" : {
+      "members" : {
+         "ad16b98f-847f-4d55-a9a8-95d19edea8a0" : "Matt Marcoux"
+      },
+      "name" : "Cape Ann Charters,  Inc"
+   },
+   "af:ncsu/ncaquariums" : {
+      "name" : "NCSU/NCAquariums",
+      "members" : {
+         "ade53eba-4788-4645-b03b-9e8dacace61b" : "Julie Thomas",
+         "5b2a34ea-b257-418b-8d4b-754cc32eca39" : "Kirsten Boleyn",
+         "61f59bfa-7564-42f5-a398-ec55fe4cda27" : "Kirsten Boleyn",
+         "e7aaaa0e-0fa2-452a-8999-759de8e6db30" : "Janina Millis"
+      }
+   },
+   "af:crystal divers south africa" : {
+      "name" : "Crystal Divers South Africa",
+      "members" : {
+         "29490aae-afbd-4a4b-8930-61e0d07de3db" : "Izabella Englund"
+      }
+   },
+   "af:salty dog diving llc" : {
+      "members" : {
+         "c71da54c-f029-4a4b-b63d-c272e493e7e4" : "Kevin Littleton"
+      },
+      "name" : "Salty Dog Diving LLC"
+   },
+   "af:ecu" : {
+      "members" : {
+         "6a7ca81f-0981-494e-b556-33ba74cd335a" : "Mike Campbell"
+      },
+      "name" : "ECU"
+   },
+   "af:roanoke island outfitters and dive center" : {
+      "members" : {
+         "c59b8aad-d032-4dc1-9f1b-e54a4f8231ca" : "Sara Winslow"
+      },
+      "name" : "Roanoke Island Outfitters and Dive Center"
+   },
+   "af:underwater research group of nsw" : {
+      "members" : {
+         "9ef614ef-3b57-43d8-85c6-82c15beeed55" : "denise lawler"
+      },
+      "name" : "UNDERWATER RESEARCH GROUP OF NSW"
+   },
+   "up:sas usa" : {
+      "members" : {
+         "54cf6294-c213-4d01-85eb-4701dcf7ffe7" : "Tony Niemann",
+         "f140e317-fe32-4d60-834e-1307de4487b3" : "Shawn Harper",
+         "a9524d4a-0ffc-4875-b855-0d18a4abe91f" : "Christine Martin"
+      },
+      "name" : "SAS USA"
+   },
+   "af:72 aquatics, tucson, az" : {
+      "name" : "72 Aquatics, Tucson, AZ",
+      "members" : {
+         "9eb7576a-6f04-48aa-b570-145b6a348a40" : "Tobi Reitmayr"
+      }
+   },
+   "af:down under divers raleigh" : {
+      "name" : "Down Under Divers Raleigh",
+      "members" : {
+         "57f4dd13-b7e5-4778-8778-167897cf0f47" : "Stepen L Campbell"
+      }
+   },
+   "up:n/a" : {
+      "name" : "N/A",
+      "members" : {
+         "9ef614ef-3b57-43d8-85c6-82c15beeed55" : "denise lawler"
+      }
+   },
+   "af:discovery diving, inc" : {
+      "members" : {
+         "6b3b1ef6-abaf-4ea3-8bbe-13bdd8369114" : "Bernie Williford"
+      },
+      "name" : "Discovery Diving, INC"
+   },
+   "af:nc aquarium at pks" : {
+      "members" : {
+         "a3c5ad41-ac6a-4800-942a-ad1afa8e6eaa" : "Ethan Simmons"
+      },
+      "name" : "NC Aquarium at PKS"
+   },
+   "af:ncari" : {
+      "name" : "NCARI",
+      "members" : {
+         "a5e0ade0-fbd0-4473-98fb-4d0fa354a472" : "Shawn"
+      }
+   },
+   "af:pamlico divers" : {
+      "name" : "Pamlico Divers",
+      "members" : {
+         "7488de94-5ed7-4482-9621-f3dbe6894cfc" : "EDWARD STAFFORD",
+         "83709808-7858-40e0-8aea-fdb34c35edd2" : "EDWARD STAFFORD",
+         "ebca0300-41f6-427d-b35f-5d2c7c18afe0" : "EDWARD STAFFORD",
+         "16609b75-cf78-49f2-8e7d-a2b25dc1a5a0" : "EDWARD STAFFORD",
+         "92dc2a7e-5c5b-4a9d-9027-17eb1e6fa6e3" : "EDWARD STAFFORD",
+         "bc424639-b9ff-4cfb-b515-e80ebc7da538" : "EDWARD STAFFORD",
+         "c8e921dd-4489-4194-83fb-1fa37563d4bf" : "EDWARD STAFFORD",
+         "620d9521-0e80-417a-8a9c-25a2cf5a5019" : "EDWARD STAFFORD",
+         "47e8f524-9889-474d-845f-db5f93f55ac0" : "EDWARD STAFFORD",
+         "ca1642bb-1b85-484d-adb9-4a6b31387f1c" : "Scotty Rose",
+         "37c83d6b-4dde-4cd4-917a-c50bb35019ea" : "EDWARD STAFFORD",
+         "c1639632-11fd-4552-a6f1-9fd0c7a0ab8c" : "EDWARD STAFFORD",
+         "db2219b9-3a89-4f8e-ae15-1576f71b6537" : "EDWARD STAFFORD",
+         "d37802a2-6109-4b9b-991f-1d1da04c8404" : "EDWARD STAFFORD"
+      }
+   },
+   "af:north carolina acquariums" : {
+      "name" : "North Carolina Acquariums",
+      "members" : {
+         "42aac455-931f-4d3e-80b5-2d72151fc069" : "Hap Fatzinger",
+         "bdddbab3-dfb5-4665-b4b0-a1d3977d9934" : "Hap Fatzinger"
+      }
+   },
+   "af:reef" : {
+      "name" : "REEF",
+      "members" : {
+         "2ccc38ca-3f94-4f61-906b-4c62a76e776e" : "Frank Krasovec"
+      }
+   },
+   "af:roanoke island dive shop" : {
+      "members" : {
+         "0df89f20-69ea-4d0d-ab58-e0b6c3943d36" : "Brooke Flexon"
+      },
+      "name" : "Roanoke Island Dive Shop"
+   },
+   "up:shark guardians" : {
+      "members" : {
+         "29490aae-afbd-4a4b-8930-61e0d07de3db" : "Izabella Englund"
+      },
+      "name" : "Shark Guardians"
+   },
+   "up:wildbook - testing" : {
+      "name" : "Wildbook - Testing",
+      "members" : {
+         "508422f5-c905-4b0d-abd1-7cff9d5b4fd5" : "Colin Kingen"
+      }
+   },
+   "af:spot a shark australia - researcher" : {
+      "name" : "Spot a Shark Australia - Researcher",
+      "members" : {
+         "b014690c-d56d-47db-a02e-df3a7f13f71d" : "Courtney",
+         "58ab79e6-5fa8-4447-93a4-03170b20704d" : "Courtney"
+      }
+   },
+   "up:fellowship" : {
+      "name" : "Fellowship",
+      "members" : {
+         "5b2a34ea-b257-418b-8d4b-754cc32eca39" : "Kirsten Boleyn",
+         "61f59bfa-7564-42f5-a398-ec55fe4cda27" : "Kirsten Boleyn"
+      }
+   },
+   "af:spot a shark" : {
+      "members" : {
+         "347e3bb8-11c5-4fc8-907c-150957859937" : "tomcat"
+      },
+      "name" : "Spot a Shark"
+   },
+   "up:wildbook" : {
+      "members" : {
+         "1226a13f-fd89-4082-aa42-8914f384babc" : "Colin Kingen",
+         "a4aae188-058a-4811-8c07-3bb6621cfbb4" : "Drew Blount",
+         "09e9d831-70da-4acf-a016-fcafa0b3cad2" : "Jason Holmberg"
+      },
+      "url" : "http://www.wildbook.org",
+      "name" : "Wildbook"
+   },
+   "af:choo choo diving and aquatic center" : {
+      "name" : "Choo Choo Diving and Aquatic Center",
+      "members" : {
+         "4ed01800-9d41-40fc-ad3b-998eaf7b1a08" : "Stan Schone"
+      }
+   },
+   "af:nc aquariums" : {
+      "members" : {
+         "dd27a4a9-402f-4725-b19c-f09fc0860c3a" : "Carol Price",
+         "2b91be5b-af0d-4fa4-a07f-8b28f3614619" : "Michael mann"
+      },
+      "name" : "NC Aquariums"
+   },
+   "af:coastal studies institute" : {
+      "name" : "Coastal Studies Institute",
+      "members" : {
+         "76f5affd-c27c-458d-95f5-46c401cfe726" : "John McCord"
+      }
+   },
+   "af:southern ohio diving academy (soda)" : {
+      "name" : "Southern Ohio Diving Academy (SODA)",
+      "members" : {
+         "f153d4e4-000b-41f8-8916-59f2a8c51559" : "Sam Gaglio"
+      }
+   },
+   "af:extended range diving services" : {
+      "name" : "Extended Range Diving Services",
+      "members" : {
+         "de72af73-ea63-4fe7-9818-3975bdc4e0a5" : "Kelsey Kelly"
+      }
+   },
+   "af:grey nurse sharks south coast" : {
+      "members" : {
+         "de534a18-6954-4b1e-b802-ca425816d1e0" : "Matt Tworkowski"
+      },
+      "name" : "Grey Nurse Sharks South Coast"
+   },
+   "up:spot a shark usa" : {
+      "name" : "Spot A Shark USA",
+      "members" : {
+         "01348c51-0927-4170-b2d3-33bde2bcbcc0" : "Ara McClanahan",
+         "5ca2a62b-3c6d-4831-ada6-85caeead1c1e" : "Shawn Harper",
+         "f8736b5e-f5d9-4b60-9856-689595f282e2" : "Ara McClanahan",
+         "ade53eba-4788-4645-b03b-9e8dacace61b" : "Julie Thomas",
+         "0806b0d7-f0cd-4a04-bab9-7cf41586d46c" : "Jennifer Wyffels",
+         "dd27a4a9-402f-4725-b19c-f09fc0860c3a" : "Carol Price"
+      }
+   },
+   "af:australian national university" : {
+      "members" : {
+         "c8dc3cd3-7316-4838-9e6d-2c219836f2d6" : "Mae Noble"
+      },
+      "name" : "Australian National University"
+   },
+   "af:student" : {
+      "name" : "Student",
+      "members" : {
+         "14cb2467-6674-44c7-b666-a7a0a24e657c" : "Bryan Gagnon"
+      }
+   },
+   "af:diver" : {
+      "name" : "Diver",
+      "members" : {
+         "fbf6f8f4-f2aa-4fdd-ae32-e1f9dd1220c6" : "Sandra"
+      }
+   }
+}
+}

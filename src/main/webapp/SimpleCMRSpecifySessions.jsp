@@ -16,6 +16,8 @@
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsExport.properties"));
     props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
 
+// this lets us reuse the page for individual and encounter exports
+boolean encounterExport = Util.stringExists(request.getParameter("encounterExport"));
 
 
 int numSessions=0;
@@ -118,7 +120,12 @@ if(request.getQueryString()!=null){
   
    <div class="container maincontent">
 
+    <% if (encounterExport) { %>
+      <h1>Encounter Mark Recapture Export</h1>
+    <% } else { %>
       <h1><%=props.getProperty("title")%></h1>
+    <% } %>
+
   
   
 <ul id="tabmenu">
@@ -142,6 +149,7 @@ if(request.getQueryString()!=null){
 	
 }
 
+if (!encounterExport) {
 %>
 
   <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("table")%>
@@ -156,7 +164,7 @@ if(request.getQueryString()!=null){
   </a></li>
 
 </ul>
-
+<%}%>
 
 <p>
 You specified:
@@ -195,8 +203,13 @@ if(request.getParameter("includeQueryComments")!=null){
 
 
 <p>
-<form name="simpleCMR" action="//<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="get">
-
+<%
+// as opposed to the default individualExport functionality
+String formTarget = (encounterExport)
+  ? "//"+CommonConfiguration.getURLLocation(request) + "/MarkRecaptureEncounters?"+additionalParameters
+  : "//"+CommonConfiguration.getURLLocation(request) + "/SimpleCMROutput?"+additionalParameters;
+%>
+<form name="simpleCMR" action="<%=formTarget%>" method="get">
 <%
 Enumeration params=request.getParameterNames();
 while(params.hasMoreElements()){

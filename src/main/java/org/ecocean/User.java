@@ -2,11 +2,20 @@ package org.ecocean;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <code>User</code> stores information about a contact/user.
@@ -14,8 +23,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * @author Ed Stastny
  */
 public class User implements Serializable {
-  
-  
+
+
   private static final long serialVersionUID = -1261710718629763048L;
   // The user's full name
   private String fullName;
@@ -28,12 +37,12 @@ public class User implements Serializable {
   private String phoneNumber;
   //Organization or project affiliation
   private String affiliation;
-  
+
   private String userProject;
   private String userStatement;
   private String userURL;
   private SinglePhotoVideo userImage;
-  
+
   //Misc. information about this user
   private String notes;
   //Date of last update of this record, in ms
@@ -41,24 +50,38 @@ public class User implements Serializable {
   private long userID;
 
   private long lastLogin=-1;
-  
-  	private String username;
-  	private String password ;
-  	private String salt;
-  	private String uuid;
-  	
-  	//String currentContext;
-  	
-  	
-  	private boolean acceptedUserAgreement=false;
-  
-  private boolean receiveEmails=true; 
+
+	private String username;
+	private String password ;
+	private String salt;
+	private String uuid;
+
+	//String currentContext;
+
+    //String currentContext;
+
+  //serialized JSON
+  private String preferences = "";
+  //standard preference keys
+  private static final String PROJECT_CONTEXT = "projectContext";
+
+
+
+
+  private List<Organization> organizations = null;
+
+  private boolean acceptedUserAgreement=false;
+
+  private boolean receiveEmails=true;
+
+  // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
+  private Boolean sharing=true;
 
 	private HashMap<String,String> social;
-  	
+
   	//JDOQL required empty instantiator
   	public User(){}
-  	
+
   	public User(String fullName, String emailAddress, String physicalAddress, String phoneNumber, String affiliation, String notes) {
   	  uuid=Util.generateUUID();
   	  setFullName(fullName);
@@ -70,7 +93,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
   	public User(String username,String password, String salt){
   	  uuid=Util.generateUUID();
   	  setUsername(username);
@@ -80,7 +103,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
     public User(String email,String uuid){
       this.uuid=uuid;
       setEmailAddress(email);
@@ -92,7 +115,7 @@ public class User implements Serializable {
       RefreshDate();
       this.lastLogin=-1;
     }
-    
+
     public User(String uuid){
       this.uuid=uuid;
       setReceiveEmails(false);
@@ -123,6 +146,46 @@ public class User implements Serializable {
     }
     RefreshDate();
   }
+
+    public String getDisplayName() {
+        if (fullName != null) return fullName;
+        if (username != null) return username;
+        return uuid;
+    }
+
+  // this is handy for UI: does this user (belong to an organization that) use a custom .properties file?
+  public boolean hasCustomProperties() {
+    return ShepherdProperties.userHasOverrideString(this);
+  }
+  public static boolean hasCustomProperties(HttpServletRequest request, Shepherd myShepherd) {
+    if (request == null) return false;
+    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "hasCustomProperties");
+    boolean ans = hasCustomProperties(readOnlyShep, request);
+    readOnlyShep.rollbackAndClose();
+    return ans;
+  }
+  public static boolean hasCustomProperties(Shepherd myShepherd, HttpServletRequest request) {
+    if (request == null) return false;
+    String manualOrg = request.getParameter("organization");
+    if (Util.stringExists(manualOrg)) {
+      if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
+    }
+    User user = myShepherd.getUser(request);
+    if (user == null) return false;
+    return user.hasCustomProperties();
+  }
+
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+     Shepherd myShepherd = new Shepherd(request);
+     myShepherd.setAction("User.hasCustomProperties");
+     myShepherd.beginDBTransaction();
+     boolean hasIt=hasCustomProperties(request, myShepherd);
+     myShepherd.rollbackDBTransaction();
+     myShepherd.closeDBTransaction();
+     return hasIt;
+  }
+
+
 
   public String getEmailAddress ()
   {
@@ -155,7 +218,7 @@ public class User implements Serializable {
   }
   public void setPhysicalAddress (String physicalAddress)
   {
-    
+
     if(physicalAddress!=null){this.physicalAddress = physicalAddress;}
     else{this.physicalAddress=null;}
     RefreshDate();
@@ -184,6 +247,9 @@ public class User implements Serializable {
     else{this.affiliation=null;}
     RefreshDate();
   }
+  public boolean hasAffiliation (String affiliation) {
+    return (this.affiliation!=null && affiliation!=null && this.affiliation.toLowerCase().indexOf(affiliation.toLowerCase())>=0);
+  }
 
   public String getNotes ()
   {
@@ -200,7 +266,14 @@ public class User implements Serializable {
     return this.dateInMilliseconds;
   }
 
-
+  public boolean hasSharing() {
+    // if you haven't specified a sharing policy YOU'RE SHARING
+    if (sharing==null) return true;
+    return sharing;
+  }
+  public void setSharing(boolean sharing) {
+    this.sharing = sharing;
+  }
 
 
   	public long getUserID() {
@@ -221,7 +294,7 @@ public class User implements Serializable {
   	public void setPassword(String password) {
   		this.password = password;
   	}
-  	
+
   	public void setSalt(String salt){this.salt=salt;}
   	public String getSalt(){return salt;}
 
@@ -231,46 +304,46 @@ public class User implements Serializable {
     else{userProject=null;}
     }
     public String getUserProject(){return userProject;}
-    
+
     public void setUserStatement(String newState) {
       if(newState!=null){userStatement = newState;}
     else{userStatement=null;}
     }
     public String getUserStatement(){return userStatement;}
-    
+
     public SinglePhotoVideo getUserImage(){return userImage;}
-    
+
 
     public void setUserImage(SinglePhotoVideo newImage) {
       if(newImage!=null){userImage = newImage;}
     else{userImage=null;}
     }
-    
+
     public void setUserURL(String newURL) {
       if(newURL!=null){userURL = newURL;}
     else{userURL=null;}
     }
     public String getUserURL(){return userURL;}
-  	
+
     public long getLastLogin(){
       return lastLogin;
     }
-    
+
     public String getLastLoginAsDateString(){
       if(lastLogin==-1) return null;
       return (new DateTime(this.lastLogin)).toString();
     }
-    
+
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
-    
+
 
     public boolean getReceiveEmails(){return receiveEmails;}
     public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
-    
-    
+
+
 
     public boolean getAcceptedUserAgreement(){return acceptedUserAgreement;}
-    
+
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
 
 
@@ -302,8 +375,97 @@ public class User implements Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
-		
-		public String getUUID() {return uuid;}
+
+    public String getUUID() {return uuid;}
+    public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
+
+    public boolean hasRoleByName(String name, Shepherd myShepherd) {
+        if (name == null) return false;
+        List<Role> roles = myShepherd.getAllRolesForUserInContext(this.username, myShepherd.getContext());
+        if (roles == null) return false;
+        for (Role r : roles) {
+            if (r.getRolename().equals(name)) return true;
+        }
+        return false;
+    }
+
+    //some glorious day this would be better to recurse thru some Organization Objects to get keys.  sigh, to dream.
+    public Set<String> getMultiValueKeys() {
+        Set<String> rtn = new HashSet<String>();
+        rtn.add("_userId_:" + uuid);  //kinda like "private" key?
+/*  these should migrate to Organizations!!
+        if (Util.stringExists(userProject)) rtn.add("_userProject_:" + userProject.toLowerCase());
+        if (Util.stringExists(affiliation)) rtn.add("_affiliation_:" + affiliation.toLowerCase());
+*/
+        //if the best context we have is a user, we add all the (toplevel) groups they are members of
+        if (organizations != null) {
+        }
+        return rtn;
+    }
+
+    public List<Organization> getOrganizations() {
+        return organizations;
+    }
+    // Use this method to find out what organization-wide nameKey a user would want, to use to generate new individual names.
+    public String getIndividualNameKey() {
+        for (Organization org: organizations) {
+          if (Util.stringExists(org.getIndividualNameKey())) return org.getIndividualNameKey();
+        }
+        return null;
+    }
+    public void setOrganizations(List<Organization> orgs) {
+        organizations = orgs;
+        this.organizationsReciprocate(orgs);
+    }
+    public void addOrganization(Organization org) {
+        if (org == null) return;
+        if (organizations == null) organizations = new ArrayList<Organization>();
+        if (!organizations.contains(org)) organizations.add(org);
+        this.organizationsReciprocate(org);
+    }
+    public void removeOrganization(Organization org) {
+        if ((org == null) || (organizations == null)) return;
+        if (org.getMembers() == null) return;
+        org.getMembers().remove(this);
+        org.updateModified();
+        organizations.remove(org);
+    }
+    //see also isMemberOfDeep()
+    public boolean isMemberOf(Organization org) {
+        if (org == null) return false;
+        return org.hasMember(this);
+    }
+    public boolean isMemberOfDeep(Organization org) {
+        if (org == null) return false;
+        return org.hasMemberDeep(this);
+    }
+    //this is to handle the bidirectional dn madness when *adding* orgs
+    //  (removing are handled internally above)
+    private void organizationsReciprocate(List<Organization> orgs) {
+        if (orgs == null) return;
+        for (Organization org : orgs) {
+            if ((org.getMembers() != null) && !org.getMembers().contains(this)) org.getMembers().add(this);
+        }
+    }
+    private void organizationsReciprocate(Organization org) {  //single version for convenience
+        if (org == null) return;
+        List<Organization> orgs = new ArrayList<Organization>();
+        orgs.add(org);
+        organizationsReciprocate(orgs);
+    }
+
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof User)) return false;
+        User two = (User)u2;
+        if ((this.uuid == null) || (two == null) || (two.getUUID() == null)) return false;
+        return this.uuid.equals(two.getUUID());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return uuid.hashCode();
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
@@ -311,6 +473,77 @@ public class User implements Serializable {
                 .append("username", username)
                 .append("fullName", fullName)
                 .toString();
+    }
+
+    // Returns a somewhat rest-like JSON object containing the metadata
+    public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
+      JSONObject jobj = new JSONObject();
+      jobj.put("uuid", this.getId());
+      jobj.put("emailAddress", this.getEmailAddress());
+      jobj.put("fullName", this.getFullName());
+      jobj.put("affiliation", this.getAffiliation());
+      jobj.put("lastLogin", Long.toString(this.getLastLogin()));
+      jobj.put("username", this.getUsername());
+
+      if(includeOrganizations) {
+        Vector<String> orgIDs = new Vector<String>();
+        for (Organization org : this.organizations) {
+          orgIDs.add(org.toJSONObject(false).toString());
+        }
+        jobj.put("organizations", orgIDs.toArray());
+      }
+      return jobj;
+    }
+
+    public org.json.JSONObject getPreferencesAsJSON() {
+      if (preferences == null || "".equals(preferences)) return new org.json.JSONObject();
+      return Util.stringToJSONObject(preferences);
+    }
+
+    public void setPreferencesJSON(org.json.JSONObject json) {
+      preferences = json.toString();
+    }
+
+    public void setPreference(String key, String value) { //really, this is an update -MF
+      org.json.JSONObject prefsJSON = getPreferencesAsJSON();
+      if (Util.stringExists(key)&&Util.stringExists(value)&&prefsJSON!=null) {
+        prefsJSON.put(key, value);
+        setPreferencesJSON(prefsJSON);
+      } else {
+        System.out.println("[WARN]: Error setting preference for user: key="+key+" value="+value);
+      }
+    }
+
+    public String getPreference(String key) {
+      org.json.JSONObject prefsJSON = getPreferencesAsJSON();
+      if (prefsJSON!=null) {
+        Object valueOb = null;
+        try{
+          valueOb = prefsJSON.get(key);
+        } catch(org.json.JSONException je){
+        } finally{
+          String value = null;
+          if (valueOb!=null) value = (String) valueOb;
+          return value; //return it even if null
+        }
+      }
+      return null;
+    }
+
+    public void setProjectIdForPreferredContext(String id) {
+      if (id!=null) {
+        setPreference(PROJECT_CONTEXT, id);
+      }
+    }
+
+    public void setProjectForPreferredContext(Project project) {
+      if (project!=null) {
+        setProjectIdForPreferredContext(project.getId());
+      }
+    }
+
+    public String getProjectIdForPreferredContext() {
+      return getPreference(PROJECT_CONTEXT);
     }
 
 }

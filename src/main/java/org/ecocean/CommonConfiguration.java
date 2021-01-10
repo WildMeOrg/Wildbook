@@ -18,6 +18,7 @@
  */
 
 package org.ecocean;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,31 +33,57 @@ import java.net.URISyntaxException;
 import javax.servlet.ServletContext;
 import org.json.JSONObject;
 
-
-
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
-  
+
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
-  
+  private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
+
   //class setup
   //private static Properties props = new Properties();
-  
+
   //private static volatile int propsSize = 0;
-  
+
   //private static String currentContext;
 
 
+  private static Map<String, Properties> contextToPropsCache = new HashMap<String,Properties>();
+
   private static Properties initialize(String context) {
-    //set up the file input stream
-    //if ((currentContext==null)||(!currentContext.equals(context))||(propsSize == 0)) {
-      return loadProps(context);
-    //}
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(context);
+    contextToPropsCache.put(context, props);
+    return props;
+  }
+
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  private static Properties initialize(HttpServletRequest request) {
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(request);
+    contextToPropsCache.put(ServletUtilities.getContext(request), props);
+    return props;
+  }
+
+  // this loads properties with an overwrite file for the user
+  public static synchronized Properties loadProps(HttpServletRequest request) {
+    InputStream resourceAsStream = null;
+    Properties props=new Properties();
+    try {
+      //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+      //props.load(resourceAsStream);
+      props=ShepherdProperties.getOrgProperties(COMMON_CONFIGURATION_PROPERTIES, "",request);
+
+    } catch (Exception ioe) {
+      ioe.printStackTrace();
+      //return null;
+    }
+
+  return props;
+
   }
 
 
-  
   public static synchronized Properties loadProps(String context) {
       InputStream resourceAsStream = null;
       Properties props=new Properties();
@@ -72,8 +99,8 @@ public class CommonConfiguration {
 
     return props;
   }
-  
-  
+
+
 
   private static Properties loadOverrideProps(String shepherdDataDir) {
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
@@ -86,7 +113,7 @@ public class CommonConfiguration {
       //System.out.println("Fixing the bin issue in CommonConfiguration.");
       //System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
     }
-    
+
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
@@ -172,9 +199,11 @@ public class CommonConfiguration {
     */
     public static URI getServerURI(String context) {
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("CommonCOnfiguration.getServerURI");
         myShepherd.beginDBTransaction();
         URI u = getServerURI(myShepherd);
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return u;
     }
     public static String getServerURL(String context) {
@@ -213,7 +242,7 @@ public class CommonConfiguration {
     }
 
     public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
-      
+
       myShepherd.beginDBTransaction();
       boolean updated = checkServerInfo(myShepherd, req);
       if (updated) {
@@ -303,6 +332,22 @@ public class CommonConfiguration {
     return getProperty("newSubmissionEmail",context).trim();
   }
 
+  public static String getDefaultSelectedProject(String context){
+    return getProperty("defaultProjName", context).trim();
+  }
+
+  public static String getDefaultProjectOrganizationParameter(String context){
+    return getProperty("defaultProjectOrganizationParameter", context).trim();
+  }
+
+  public static String getDefaultSelectedProjectId(String context){
+    return getProperty("defaultProjId", context).trim();
+  }
+
+  public static boolean getLoggedOutDefaultDesired(String context){
+    return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
+  }
+
   public static String getR(String context) {
     return getProperty("R", context).trim();
   }
@@ -315,12 +360,21 @@ public class CommonConfiguration {
     return getProperty("sizelim",context).trim();
   }
 
+
+    //you probably want to use getUploadTmpDirForUser() below....
     public static String getUploadTmpDir(String context) {
         String dir = getProperty("uploadTmpDir", context);
         if (dir == null) {
             dir = System.getProperty("java.io.tmpdir");
             System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
         }
+        return dir.trim();
+    }
+
+
+    public static String getImportDir(String context) {
+        String dir = getProperty("importDir", context);
+        if (dir == null) return null;
         return dir.trim();
     }
 
@@ -335,10 +389,10 @@ public class CommonConfiguration {
   public static String getHTMLDescription(String context) {
     return getProperty("htmlDescription",context).trim();
   }
-  
+
   public static int getMaxMediaSizeInMegabytes(String context){
     int maxSize=10;
-    
+
     try{
       String sMaxSize=getProperty("maxMediaSize", context);
       if(sMaxSize!=null){
@@ -397,12 +451,14 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleMapsKey");
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  /*
   public static String getGoogleSearchKey(String context) {
     return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
   }
+*/
 
   public static String getDefaultGoogleMapsCenter(String context) {
     if (getProperty("googleMapsCenter",context)!=null) {
@@ -415,7 +471,12 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-  
+
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  public static String getProperty(String name, HttpServletRequest request) {
+    return initialize(request).getProperty(name);
+  }
+
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
@@ -607,23 +668,23 @@ public class CommonConfiguration {
     }
     return useTapirLink;
   }
-  
+
   public static boolean showMeasurements(String context) {
     return showCategory("showMeasurements",context);
   }
-  
+
   public static boolean showMetalTags(String context) {
     return showCategory("showMetalTags",context);
   }
-  
+
   public static boolean showAcousticTag(String context) {
     return showCategory("showAcousticTag",context);
   }
-  
+
   public static boolean showSatelliteTag(String context) {
     return showCategory("showSatelliteTag",context);
   }
-  
+
   public static boolean showReleaseDate(String context) {
     return showCategory("showReleaseDate",context);
   }
@@ -661,9 +722,10 @@ public class CommonConfiguration {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;
+    Properties props = initialize(context);
     while (hasMore) {
       String key = baseKey + index++;
-      String value = CommonConfiguration.getProperty(key, context);
+      String value = props.getProperty(key);
       if (value != null) {
         value = value.trim();
         if (value.length() > 0) {
@@ -676,7 +738,42 @@ public class CommonConfiguration {
     }
     return list;
   }
-  
+
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  // Unlike standard getProperties, here we need to separate our overwrite .properties file from CommonConfiguration.properties
+  // (i.e. have separate Properties objects as opposed to a single Properties loaded from our custom file *with CommonConfig as the default/fallback*
+  // This is because, e.g. if custom.properties has 3 locationIDs and CommonConfig has 10 locIDs, naive getIndexedPropertyValues will be 10 items long with the first 3 from our custom file
+  public static List<String> getIndexedPropertyValues(String baseKey, HttpServletRequest request) {
+    List<String> list = new ArrayList<String>();
+    boolean hasMore = true;
+    int index = 0;
+
+    // if the customProps contain the indexedPropertyValues, we return those
+    Properties customProps = ShepherdProperties.getOverwriteProps(request);
+    if (customProps!=null) {
+      list = ShepherdProperties.getIndexedPropertyValues(customProps, baseKey);
+      if (list!=null && list.size()>0) return list;
+    }
+    Properties props = initialize(request);
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = props.getProperty(key);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          list.add(value.trim());
+        }
+      }
+      else {
+        hasMore = false;
+      }
+    }
+    return list;
+  }
+
+
+
+
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
@@ -697,28 +794,28 @@ public class CommonConfiguration {
     }
     return null;
   }
-  
-  
+
+
   private static boolean showCategory(final String category, String context) {
     String showMeasurements = getProperty(category,context);
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
 
-  
-  
+
+
   public static String getDataDirectoryName(String context) {
     initialize(context);
     String dataDirectoryName="shepherd_data_dir";
-    
+
     //new context code here
-    
+
     //if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
-    
+
     if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){dataDirectoryName=ContextConfiguration.getDataDirForContext(context);}
-    
+
     return dataDirectoryName;
   }
-  
+
   /**
    * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
    *
@@ -782,7 +879,7 @@ public class CommonConfiguration {
 
 
   public static boolean isIntegratedWithWildMe(String context){
-    
+
     initialize(context);
     boolean integrated = true;
     if ((getProperty("isIntegratedWithWildMe",context) != null) && (getProperty("isIntegratedWithWildMe",context).equals("false"))) {
@@ -797,7 +894,6 @@ public class CommonConfiguration {
   public static boolean isWildbookInitialized(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
     if (users.size() == 0) return false;
-
     return true;
   }
 

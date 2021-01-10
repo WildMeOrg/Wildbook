@@ -27,11 +27,15 @@
                 <collection element-type="org.ecocean.grid.ScanWorkItem"/>
                 <join/>
             </field>
-                        <field name="workResults" persistence-modifier="transactional">
+             <field name="workResults" persistence-modifier="transactional">
 	                    <collection element-type="org.ecocean.grid.ScanWorkItemResult"/>
 	                    <join/>
             </field>
-		<fetch-group name="count"/>
+			<field name="locationIDFilters" persistence-modifier="persistent">
+				<collection element-type="java.lang.String"/>
+			</field>
+
+			<fetch-group name="count"/>
             
             
         </class>

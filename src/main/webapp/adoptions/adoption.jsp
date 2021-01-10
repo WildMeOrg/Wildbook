@@ -49,16 +49,6 @@ context=ServletUtilities.getContext(request);
 	
 	  boolean isOwner = true;
 	
-	  /**
-	  if (request.isUserInRole("admin")) {
-	    isOwner = true;
-	  } else if (request.getParameter("number") != null) {
-	
-	    if (tempAD.getAdoptionManager().trim().equals(request.getRemoteUser())) {
-	      isOwner = true;
-	    }
-	  }
-	  */
 	
 
 	%>
@@ -83,25 +73,7 @@ context=ServletUtilities.getContext(request);
 	<script language="javascript" src="../prototype.js"></script>
 	<script type="text/javascript" src="../calendarview.js"></script>
 	<script type="text/javascript" src="../calendarview2.js"></script>
-	
-	<!--
-	<script type="text/javascript">
-	      window.onload = function() {
-	
-	        Calendar.setup({
-	          dateField     : 'adoptionStartDate',
-	          parentElement : 'calendar'
-	
-	        })
-	        Calendar2.setup({
-	          dateField     : 'adoptionEndDate',
-	          parentElement : 'calendar2'
-	
-	        })
-	
-		  }
-	</script>
-	-->
+
 	
 	
 	
@@ -133,32 +105,12 @@ context=ServletUtilities.getContext(request);
 	    if(tempAD.getStripeCustomerId()!=null){
 	    	stripeID=tempAD.getStripeCustomerId();
 	    }
-
+	}
 	%>
 	
 	
-	<h1 class="intro"> Adoption Administration</h1>
+	<h1 class="intro"> Adoption Editing</h1>
 	
-	<p>There are currently <%=count%> adoptions stored in the database.</p>
-	
-	<p>&nbsp;</p>
-	<table class="adoption">
-	  <tr>
-	    <td>
-	      <h3><a name="goto" id="goto"></a>View/edit adoption</h3>
-	    </td>
-	  </tr>
-	  <tr>
-	    <td>
-	      <form action="adoption.jsp#create" method="get">&nbsp;Adoption
-	        number: <input name="number" type="text"/><br/>
-	        <input name="View/edit adoption" type="submit"
-	               value="View/edit adoption"/></form>
-	      <br/>
-	    </td>
-	  </tr>
-	</table>
-	<br/>
 	
 	<%
 	  String shark = "";
@@ -401,7 +353,7 @@ context=ServletUtilities.getContext(request);
 	</table>
 	<br/>
 	<%
-	  if (isOwner) {
+	  if (isOwner && request.getParameter("number")!=null) {
 	%>
 	<p>&nbsp;</p>
 	<table class="adoption" width="720px">
@@ -427,14 +379,7 @@ context=ServletUtilities.getContext(request);
 	<br/>
 	<%
 	  }
-  	} //end if is adoption
-  	else{
-  		%>
-  		
-  		<p>I could not find the adoption <%=request.getParameter("number") %>.</p>
-  		
-  	<%
-  	}
+
 	  
   }
   catch(Exception e){e.printStackTrace();}

@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
@@ -23,6 +22,9 @@
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
+<!-- https://github.com/exif-js/exif-js -->
+<script src="javascript/exif.js"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -67,13 +69,14 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     String submitterEmail="";
     String affiliation="";
     String project="";
+    User user = null;
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
         Shepherd myShepherd=new Shepherd(context);
         myShepherd.setAction("submit.jsp1");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
+            user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
             if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
             if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
@@ -137,6 +140,119 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
 %>
 
+<script>
+$(document).ready( function() {
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
+	let useCustomStyle = false;
+	if(!useCustomStyle){
+		defaultSelectItem = null;
+		defaultSelectItemId = null;
+		loggedOutDefaultDesired = false;
+	}
+	// if(options.length<1){
+	// 	isVisible=false;
+	// }
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
+		}
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}else{
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+		if(defaultSelectItem){
+			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
+			options = options.remove(defaultSelectItem);
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
+	return defaultProject;
+}
+
+function getDefaultProjectOrganizationParameter(){
+	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
+	return defaultProjectOrganizationParameter;
+}
+
+function getDefaultSelectedProjectId(){
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
+	return defaultProjectId;
+}
+
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
+	return loggedOutDefaultDesired;
+}
+
+function doAjaxForProject(requestJSON,userId){
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+</script>
+
+
 <style type="text/css">
     .full_screen_map {
     position: absolute !important;
@@ -147,7 +263,12 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+    }
 
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -261,7 +382,8 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-console.log('iframeUrl %o', iframeUrl);
+console.log('iframeUrl %o (setting action to EncounterForm)', iframeUrl);
+    	$("#encounterForm").attr("action", "EncounterForm");
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
@@ -324,6 +446,26 @@ var center = new google.maps.LatLng(34.38, -76.64);
 var map;
 
 var marker;
+
+function updateMap() {
+    var latVal = $('#lat').val();
+    var lonVal = $('#longitude').val();
+    var pt = placeMarkerLatLon(latVal, lonVal);
+    if (pt) {
+        map.setCenter(pt);
+        map.setZoom(5);
+    }
+}
+
+function placeMarkerLatLon(lat, lon) {  //convenience
+    var latFloat = parseFloat(lat);
+    var lonFloat = parseFloat(lon);
+    if (isNaN(latFloat) || isNaN(lonFloat)) return;
+    var pt = new google.maps.LatLng(latFloat, lonFloat);
+    if (!pt) return;
+    placeMarker(pt);
+    return pt;
+}
 
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
@@ -456,6 +598,7 @@ function updateList(inp) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
                 all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
@@ -463,6 +606,110 @@ function updateList(inp) {
         f = inp.value;
     }
     document.getElementById('input-file-list').innerHTML = f;
+}
+
+
+var dtList = [];
+var llList = [];
+var commentJson = {};
+//TODO Bearing, Altitude
+function gotExif(file) {
+    exifFindDateTimes(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div class="exif-derived" id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+    exifFindLatLon(file.exifdata);
+console.log('llList => %o', llList);
+    var llDiv = $('#ll-div');
+    if (!llDiv.length) {
+        llDiv = $('<div class="exif-derived" id="ll-div" />');
+        $('#longitude').parent().parent().append(llDiv);
+    }
+    if (llList.length > 0) {
+        llList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        for (var i = 0 ; i < llList.length ; i ++) {
+            h += '<option>' + llList[i] + '</option>';
+        }
+        h += '</select>';
+        llDiv.html(h);
+    }
+
+    var fj = {};
+    if (file.exifdata) for (var key in file.exifdata) {
+        if (!key.toLowerCase().match('^(artist|copyright|imagedescription)$')) continue;
+        fj[key] = file.exifdata[key];
+    }
+    if (Object.keys(fj).length) commentJson[file.name] = fj;
+    var h = '';
+    for (var fname in commentJson) {
+        h += '<p class="exif-comment" id="exif-' + fname + '">';
+        for (var k in commentJson[fname]) {
+            h += k + ': <b>' + commentJson[fname][k] + '</b><br />';
+        }
+        h += '</p>';
+    }
+    //$('#comments').val(h);
+}
+
+
+function exifFindDateTimes(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+}
+
+function exifFindLatLon(exif) {
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
+}
+
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+    updateMap();
 }
 
 function showUploadBox() {
@@ -492,8 +739,8 @@ function showUploadBox() {
             <div><%=props.getProperty("dragInstructionsIE")%></div>
             <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
             <% } else { %>
-            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <div><%=props.getProperty("dragInstructions")%></div>
+            <input class="nonIE" name="theFiles" id="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><span><%=props.getProperty("dragInstructions")%></span></div>
             <% } %>
             <div id="input-file-list"></div>
         </div>
@@ -687,11 +934,10 @@ if(CommonConfiguration.showReleaseDate(context)){
     </div>
 
 
-<%
+    <%
+
 //add locationID to fields selectable
 
-
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <br>
     <div class="form-group required">
@@ -837,7 +1083,7 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 		</div>
   </div>
 <%
-}
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -1013,10 +1259,10 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 %>
       <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
+            <label class="control-label text-danger"><%=props.getProperty("species") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
              	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
 <%
   					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
@@ -1026,11 +1272,25 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
+
+
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
                                <%
                         }
                    }
@@ -1402,7 +1662,58 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	console.log('sendButtonClicked()');
+	// $('.required-missing').removeClass('required-missing')
+	// if an mediaAsset is ever required
+	// if(!$('#theFiles').val()){
+	// 	console.log("No file submitted!");
+	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
+	// 	return false;
+	// }
+	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+		$('#location').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		return false;
+	}
+
+	if ($('#submitterEmail').val()) {
+			var email = $('#submitterEmail').val();
+	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	    if(!re.test(email.toLowerCase())){
+				$('#submitterEmail').closest('.form-group').addClass('required-missing');
+				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				return false;
+			}
+	}
+
+	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
+	// 	// console.log("email address not present");
+	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
+	// 	return false;
+	// }else{
+	// 	var email = $('#submitterEmail').val();
+  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  //   if(!re.test(email.toLowerCase())){
+	// 		console.log("not a valid email address");
+	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
+	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
+	// 		return false;
+	// 	}
+  // }
+
+	if (!$('#datepicker').val()) {
+		$('#datepicker').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+		return false;
+	}
+
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
+
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 
