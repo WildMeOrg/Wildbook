@@ -41,7 +41,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 					<a href="http://www.ncaquariums.com" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo1.jpg" alt="NC Aquarium"> </a>
 					<a href="http://www.sezarc.org" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo2.jpg" target="_blank" alt="SEZARK"> </a>
 					<a href="https://www.blueelementsimaging.com" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo3.jpg" alt="Blue Elements Imaging"> </a>
-					<a href="http://www.wildme.org" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo4.jpg" alt="Wild Me"> </a>
+					<a href="https://www.wildme.org" target="_blank"> <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt="Wild Me" style="height: 120px;"> </a>
 					<a href="http://mnzoo.org" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo5.jpg" alt="MN Zoo"> </a>
 					<a href="https://www.georgiaaquarium.org/" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/footerlogo6.jpg" alt="Georgia Aquarium"> </a>
 					<a href="https://www.coastalstudiesinstitute.org/" target="_blank"> <img src="<%=urlLoc %>/images/ncaquariums/coastalStudiesInstitute.jpg" alt="Coastal Studies Institute"> </a>
