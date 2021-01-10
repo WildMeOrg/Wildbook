@@ -119,7 +119,7 @@
 
 <script type="text/javascript">
 
-var txt = getText("project.properties");
+var projTxt = getText("project.properties");
 
 let projIdPrefix = '';
 let countOfIncrementalIdRowPopulated = 0;
@@ -299,22 +299,22 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   //upper row action
   projectHTML +=  '<div class="row">';
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-              // add JS check for ia availability onload            
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+txt.startMatch+'</button>';
-  projectHTML +=  '     </br>';                
+              // add JS check for ia availability onload
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+projTxt.startMatch+'</button>';
+  projectHTML +=  '     </br>';
   projectHTML +=  '   </div>';
               // add JS check for exisitng results onload (add .disabled-btn if appropriate)
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.matchResults+'</button>';
-  projectHTML +=  '     </br>';                
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+projTxt.matchResults+'</button>';
+  projectHTML +=  '     </br>';
   projectHTML +=  '   </div>';
   projectHTML +=  '</div>';
   //end upper action row
 
   //lower row action
-  projectHTML += '<div class="row">';  
+  projectHTML += '<div class="row">';
   projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
-      
+
   let disabledMarkNew = '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
   if(!hasNameKeyMatchingProject){
     if (individualDisplayName!=null&&individualDisplayName!="") {
@@ -332,11 +332,11 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML += '   </div>';
 
   projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+txt.remove+'</button>'; 
+  projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+projTxt.remove+'</button>';
   projectHTML += '    <span class="deleteMessage text-danger"></span>';
   projectHTML += '   </div>';
-  projectHTML += '</div>'; 
-  //end lower action row  
+  projectHTML += '</div>';
+  //end lower action row
 
   projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;"><%= projectProps.getProperty("AssingingIndividualToProjWait")%></div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
@@ -427,7 +427,7 @@ function startMatchForEncounter(el) {
 }
 
 function removeEncounterFromProject(el) {
-  let confirmed = confirm(txt.youSure);
+  let confirmed = confirm(projTxt.youSure);
   if (confirmed) {
     removeEncounterFromProjectAjax(el);
   }
@@ -456,12 +456,12 @@ function removeEncounterFromProjectAjax(el) {
         if (d.success==true&&d.modified==true) {
           encRow.remove();
         } else {
-          encRow.find(".deleteMessage").text(txt.unauthorized);
+          encRow.find(".deleteMessage").text(projTxt.unauthorized);
         }
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
-          encRow.find(".deleteMessage").text(txt.error);
+          encRow.find(".deleteMessage").text(projTxt.error);
       }
   });
 }
@@ -474,30 +474,30 @@ function goToIAResults(taskId) {
 function generateIALinkingMenu(json, encId) {
   let menuRow = $("#iaResultsMenu-"+encId);
   let menuContentDiv = menuRow.find('.iaResultsMenuContent');
-  let content = '';  
+  let content = '';
   if (json) {
     for (i=0;i<json.length;i++) {
       let annData = json[i];
 
-      // lets flag some bad detection states 
+      // lets flag some bad detection states
 
       let needsIaClass = true;
-      let iaClassEl = '<p>'+txt.iaClass+': <span style="color:white;background-color:darkred;"> '+txt.none+' </span></p>';
+      let iaClassEl = '<p>'+projTxt.iaClass+': <span style="color:white;background-color:darkred;"> '+projTxt.none+' </span></p>';
       if (annData.iaClass!=''||annData.iaClass!='undefined'||annData!=undefined) {
         needsIaClass = false;
-        iaClassEl = '<p>'+txt.iaClass+': '+annData.iaClass+'</p>';
+        iaClassEl = '<p>'+projTxt.iaClass+': '+annData.iaClass+'</p>';
       }
 
       let needsDetection = false;
-      let detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
+      let detectionStatusEl = '<p>'+projTxt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
       if (annData.assetDetectionStatus=='initiated'||annData.assetDetectionStatus=='error') {
         needsDetection = true;
-        detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+txt.needDetection+'</span></p>'
+        detectionStatusEl = '<p>'+projTxt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+projTxt.needDetection+'</span></p>'
       }
 
-      let resultsLink = '<p>'+txt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annData.lastTaskId+'\')">'+txt.view+'</button></p>';
+      let resultsLink = '<p>'+projTxt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annData.lastTaskId+'\')">'+projTxt.view+'</button></p>';
       if (needsIaClass||needsDetection) {
-        resultsLink = '<p>'+txt.latestResults+':<button class="disabled-btn btn-sm visitIaBtn">'+txt.noneAvailable+'</button></p>';
+        resultsLink = '<p>'+projTxt.latestResults+':<button class="disabled-btn btn-sm visitIaBtn">'+projTxt.noneAvailable+'</button></p>';
       }
 
       content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
@@ -505,8 +505,8 @@ function generateIALinkingMenu(json, encId) {
       content += '    <p>ID: '+annData.id+'</p>';
       content += iaClassEl;
       content += detectionStatusEl;
-      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
-      content += resultsLink;  
+      content += "    <p>"+projTxt.identificationStatus+": "+annData.identificationStatus+"</p>";
+      content += resultsLink;
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p class="projIaAnnot"><img src="'+annData.assetWebURL+'" width="275px" height="*"/></p>';
@@ -515,7 +515,7 @@ function generateIALinkingMenu(json, encId) {
     }
   } else {
     content += '<div>';
-      content += '  <p>'+txt.noResults+'</p>';
+      content += '  <p>'+projTxt.noResults+'</p>';
     content += '</div>';
   }
   menuContentDiv.empty();
@@ -530,11 +530,11 @@ function openIaResultsOptions(el) {
 
 
   if (isHidden(menuRow)) {
-    $(el).html(txt.close);
+    $(el).html(projTxt.close);
     getIAInfoForEncounterData(el);
     menuRow.show();
   } else {
-    $(el).html(txt.iaResults);
+    $(el).html(projTxt.iaResults);
     menuRow.hide();
   }
 }

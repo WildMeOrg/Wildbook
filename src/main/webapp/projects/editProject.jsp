@@ -53,7 +53,7 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script>
-let txt = getText("editProject.properties");
+let editProjTxt = getText("editProject.properties");
 let updateStatus = false;
 let globalProj = null;
 
@@ -208,7 +208,7 @@ function deleteProject(el) {
 function returnToProject() {
   if(globalProj){
     if(updateStatus==false && ($('#researchProjectName').val()!==globalProj.researchProjectName || $('#projectIdPrefix').val()!== globalProj.projectIdPrefix || userIdsToRemove.length>0 || userIdsToAdd.length>0)){
-      let confirmed = confirm(txt.notUpdatedYet);
+      let confirmed = confirm(editProjTxt.notUpdatedYet);
       updateStatus = false;
       if (confirmed) {
         window.location.replace('/projects/project.jsp?id='+'<%=projId%>');

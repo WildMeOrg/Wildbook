@@ -27,7 +27,7 @@ int numFixes=0;
 
 <jsp:include page="../header.jsp" flush="true"/>
     <script>
-      let txt = getText("myUsers.properties");
+      let consolidateDuplicatUsersTxt = getText("myUsers.properties");
     </script>
     <%
     myShepherd.beginDBTransaction();

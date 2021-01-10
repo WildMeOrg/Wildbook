@@ -125,7 +125,7 @@
     <script>
 
     //json ob with translations
-    var txt = getText('createProject.properties');
+    var createProjTxt = getText('createProject.properties');
 
     let myName = '<%=request.getUserPrincipal().getName()%>';
     let userNamesOnAccessList = [];
@@ -165,7 +165,7 @@
       $('#projectUserIdsList').empty();
       $('#access-list-title-container').empty();
       if(userNamesOnAccessList.length >0){
-        $('#access-list-title-container').append("<strong>"+txt.usersForAccess+"</strong>");
+        $('#access-list-title-container').append("<strong>"+createProjTxt.usersForAccess+"</strong>");
       }
       for(i=0; i<userNamesOnAccessList.length; i++){
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
@@ -188,61 +188,61 @@
     	if(!$('#projectIdPrefix').val()){
     		console.log("no projectIdPrefix entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.needPrefix); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.needPrefix); }, 100);
     		return false;
       }
       if(!$('#researchProjectName').val()){
     		console.log("no researchProjectName entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.needProjName); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.needProjName); }, 100);
     		return false;
       }
       if($('#projectIdPrefix').val().includes(";")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noSemicolonsId); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noSemicolonsId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes(";")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noSemicolonsName); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noSemicolonsName); }, 100);
     		return false;
     	}
       if($('#projectIdPrefix').val().includes("_")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noSemicolonsId); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noSemicolonsId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes("_")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noUnderscoresName); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noUnderscoresName); }, 100);
     		return false;
     	}
       // if($('#projectIdPrefix').val().includes(" ")){
     	// 	console.log("projectIdPrefix contains ; entered");
     	// 	$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    	// 	window.setTimeout(function() { alert(txt.noSpacesId); }, 100);
+    	// 	window.setTimeout(function() { alert(createProjTxt.noSpacesId); }, 100);
     	// 	return false;
     	// }
       // if($('#researchProjectName').val().includes(" ")){
     	// 	console.log("researchProjectName contains ; entered");
     	// 	$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    	// 	window.setTimeout(function() { alert(txt.noSpacesName); }, 100);
+    	// 	window.setTimeout(function() { alert(createProjTxt.noSpacesName); }, 100);
     	// 	return false;
     	// }
       if($('#projectIdPrefix').val().includes("\'")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noApostrophesId); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noApostrophesId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes("\'")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noApostrophesName); }, 100);
+    		window.setTimeout(function() { alert(createProjTxt.noApostrophesName); }, 100);
     		return false;
     	}
       submitForm();

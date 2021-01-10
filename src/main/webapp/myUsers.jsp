@@ -82,7 +82,7 @@ try{
       <!-- js-generated html goes here -->
     </div>
     <script>
-    let txt = getText("myUsers.properties");
+    let myUsersTxt = getText("myUsers.properties");
     let headerTxt = getText("header.properties");
     $(document).ready(function() {
       let userEmail = '<%= currentUser.getEmailAddress()%>';
@@ -136,18 +136,18 @@ try{
 
     function promptUserToUpdateTheirEmailAddress(currentEmailAddress){
       let updateYourEmailAddressHtml = '';
-      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt1 + ': ' + '</h4>' + currentEmailAddress;
+      updateYourEmailAddressHtml += '<h4>' + myUsersTxt.updateYourEmailMessagePt1 + ': ' + '</h4>' + currentEmailAddress;
       updateYourEmailAddressHtml += '<br>';
-      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt2 + ' <a href=' + '<%=urlLoc %>' + '/myAccount.jsp>' + headerTxt.myAccount + '</a></h4>';
-      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt3 + '</h4>';
+      updateYourEmailAddressHtml += '<h4>' + myUsersTxt.updateYourEmailMessagePt2 + ' <a href=' + '<%=urlLoc %>' + '/myAccount.jsp>' + headerTxt.myAccount + '</a></h4>';
+      updateYourEmailAddressHtml += '<h4>' + myUsersTxt.updateYourEmailMessagePt3 + '</h4>';
       $('#content-container').empty();
       $('#content-container').append(updateYourEmailAddressHtml);
     }
 
     function displayAlreadyMadeChoices(){
       let displayAlreadyMadeHtml = '';
-      displayAlreadyMadeHtml += '<h3>' + txt.alreadyBeenHere + '</h3>';
-      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + txt.tryAgain + '</button>';
+      displayAlreadyMadeHtml += '<h3>' + myUsersTxt.alreadyBeenHere + '</h3>';
+      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + myUsersTxt.tryAgain + '</button>';
       $('#content-container').empty();
       $('#content-container').append(displayAlreadyMadeHtml);
     }
@@ -180,7 +180,7 @@ try{
       candidateHtml += '<div class="flex-container">';
       candidateHtml += '<div class="candidate-block">';
       candidateHtml += '<p><strong>';
-      candidateHtml += txt.username;
+      candidateHtml += myUsersTxt.username;
       candidateHtml += '</strong> ';
       if(username){
         candidateHtml += username;
@@ -189,7 +189,7 @@ try{
       }
       candidateHtml += '</p>';
       candidateHtml += '<p><strong>';
-      candidateHtml += txt.email;
+      candidateHtml += myUsersTxt.email;
       candidateHtml += '</strong> ';
       if(email){
         candidateHtml += email;
@@ -198,7 +198,7 @@ try{
       }
       candidateHtml += '</p>';
       candidateHtml += '<p><strong>';
-      candidateHtml += txt.name;
+      candidateHtml += myUsersTxt.name;
       candidateHtml += '</strong> ';
       if(fullname){
         candidateHtml += fullname;
@@ -210,10 +210,10 @@ try{
       candidateHtml +=  '<div class="radio-container">';
       candidateHtml +=  '<div class="radio-button-pair-container">';
       candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'" value="merge" data-id="radio__' + uuid + '__' + username + '__' + email + '__' + fullname +'" onclick="radioClicked()">';
-      candidateHtml +=  '<label for="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'">' + txt.merge + '</label>';
+      candidateHtml +=  '<label for="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'">' + myUsersTxt.merge + '</label>';
       candidateHtml +=  '<br>';
       candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'" value="noClaim" data-id="radio__' + uuid + '__' + username + '__' + email +'__'+fullname +'" onclick="radioClicked()">';
-      candidateHtml +=  '<label for="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'">' + txt.doNotClaim + '</label>';
+      candidateHtml +=  '<label for="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'">' + myUsersTxt.doNotClaim + '</label>';
       candidateHtml +=  '</div>';
       candidateHtml +=  '</div>';
       candidateHtml += '</div>';
@@ -222,20 +222,20 @@ try{
 
     function populateNoDuplicates(){
       let noDuplicatesHtml = '';
-      noDuplicatesHtml += '<h3>' + txt.noDuplicates + '</h3>';
+      noDuplicatesHtml += '<h3>' + myUsersTxt.noDuplicates + '</h3>';
       $('#content-container').empty();
       $('#content-container').append(noDuplicatesHtml);
     }
 
     function populatePage(){
-      $('#title').html(txt.title);
+      $('#title').html(myUsersTxt.title);
       let pageHtml = '';
       pageHtml += '<div id="candidate-users-container">';
       pageHtml += '</div>';
       pageHtml += '<div class="submission-section">';
-      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button" onclick="alertUserThatTheyAreNotDone();">' + txt.applyChanges + '<span class="button-icon" aria-hidden="true"></span></button>';
+      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button" onclick="alertUserThatTheyAreNotDone();">' + myUsersTxt.applyChanges + '<span class="button-icon" aria-hidden="true"></span></button>';
       pageHtml += '<button type="button" id="apply-user-consolidation-button" onclick="applyButtonClicked();" class="sleeker-button" style="display: none;">';
-      pageHtml += '<span>' + txt.applyChanges + '</span><span class="button-icon" aria-hidden="true"></span>';
+      pageHtml += '<span>' + myUsersTxt.applyChanges + '</span><span class="button-icon" aria-hidden="true"></span>';
       pageHtml += '</button>';
       pageHtml += '</div>';
       $('#content-container').empty();
@@ -243,7 +243,7 @@ try{
     }
 
     function applyButtonClicked(){
-      if (confirm(txt.confirm)) {
+      if (confirm(myUsersTxt.confirm)) {
         let radioElements = $('[data-id^=radio_]');
         if(radioElements){
           let ajaxJson = {};
@@ -287,13 +287,13 @@ try{
             let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
             if(data[keyForDataInResponseChecking]){
               if(data[keyForDataInResponseChecking] === "SingleMatchFoundForUserAndConsdolidated"){
-                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.singleMatchFoundForUserAndConsdolidated);
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + myUsersTxt.singleMatchFoundForUserAndConsdolidated);
               }
               if(data[keyForDataInResponseChecking] === "FoundMoreThanOneMatchOrNoMatchesForUser"){
-                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.foundMoreThanOneMatchOrNoMatchesForUser);
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + myUsersTxt.foundMoreThanOneMatchOrNoMatchesForUser);
               }
               if(data[keyForDataInResponseChecking] === "ErrorConsolidatingReportToStaff"){
-                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.errorConsolidatingReportToStaff);
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + myUsersTxt.errorConsolidatingReportToStaff);
               }
             }
           });
@@ -312,10 +312,10 @@ try{
     function displayProgressBar(){
       let progressHtml = '';
       progressHtml += '<div id="progress-wrapper">';
-      progressHtml += '<h4>'+ txt.LoadingStatus + '</h4>';
+      progressHtml += '<h4>'+ myUsersTxt.LoadingStatus + '</h4>';
       progressHtml += '<div class="progress">';
       progressHtml += '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">';
-      progressHtml += '<span class="sr-only">'+txt.PercentComplete+'</span>';
+      progressHtml += '<span class="sr-only">'+myUsersTxt.PercentComplete+'</span>';
       progressHtml += '</div>';
       progressHtml += '</div>';
       progressHtml += '</div>';
@@ -325,7 +325,7 @@ try{
 
     function displayConfirmations(arrayOfResponses){
       let confirmationHtml = '';
-      confirmationHtml += '<h3>'+txt.completed+'</h3>'
+      confirmationHtml += '<h3>'+myUsersTxt.completed+'</h3>'
       arrayOfResponses.forEach(response =>{
         confirmationHtml += '<p>' + response + '</p>';
       });

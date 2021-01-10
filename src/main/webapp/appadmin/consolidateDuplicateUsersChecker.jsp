@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+consolidateDuplicatUsersTxt<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
@@ -26,7 +26,7 @@ int numFixes=0;
 
 <jsp:include page="../header.jsp" flush="true"/>
     <script>
-      let txt = getText("myUsers.properties");
+      let consolidateDuplicatUsersTxt = getText("myUsers.properties");
     </script>
     <ol>
     <%
@@ -91,13 +91,13 @@ int numFixes=0;
                             let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
                             if(data[keyForDataInResponseChecking]){
                               if(data[keyForDataInResponseChecking] === "SingleMatchFoundForUserAndConsdolidated"){
-                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.singleMatchFoundForUserAndConsdolidated);
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + consolidateDuplicatUsersTxt.singleMatchFoundForUserAndConsdolidated);
                               }
                               if(data[keyForDataInResponseChecking] === "FoundMoreThanOneMatchOrNoMatchesForUser"){
-                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.foundMoreThanOneMatchOrNoMatchesForUser);
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + consolidateDuplicatUsersTxt.foundMoreThanOneMatchOrNoMatchesForUser);
                               }
                               if(data[keyForDataInResponseChecking] === "ErrorConsolidatingReportToStaff"){
-                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.errorConsolidatingReportToStaff);
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + consolidateDuplicatUsersTxt.errorConsolidatingReportToStaff);
                               }
                             }
                           });
@@ -112,7 +112,7 @@ int numFixes=0;
 
                     function displayConfirmations(arrayOfResponses){
                       let confirmationHtml = '';
-                      confirmationHtml += '<h3>'+txt.completed+'</h3>'
+                      confirmationHtml += '<h3>'+consolidateDuplicatUsersTxt.completed+'</h3>'
                       arrayOfResponses.forEach(response =>{
                         confirmationHtml += '<p>' + response + '</p>';
                       });
