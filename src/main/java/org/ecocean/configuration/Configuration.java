@@ -252,6 +252,7 @@ return null; ///FIXME
                 overrideDisplayType = fs.optString("displayType", null);
                 j.put("schema", fs);
             }
+            j.put("suggestedValues", m.optJSONArray("suggestedValues"));  //primarily for site.species (taxonomy hints) now
         }
         if (!this.isValid(m)) {
             j.put("settable", false);

@@ -50,6 +50,39 @@
 			"type" : "taxonomy",
 			"multiple": true,
 			"required" : true,
+			"suggestedValues": [
+				{
+					"itisTsn": 159857,
+					"scientificName": "Rhincodon typus",
+					"commonNames": {
+						"en": [ "whale shark" ],
+						"es": [ "tiburón ballena", "dámero" ],
+						"jp": [ "ジンベイザメ" ]
+					}
+				},
+				{
+					"itisTsn": 180426,
+					"scientificName": "Tursiops truncatus",
+					"commonNames": {
+						"en": [ "common bottlenose dolphin" ]
+					}
+				},
+				{
+					"itisTsn": 180488,
+					"scientificName": "Physeter macrocephalus",
+					"commonNames": {
+						"en": [ "sperm whale" ]
+					}
+				},
+				{
+					"itisTsn": 180530,
+					"scientificName": "Megaptera novaeangliae",
+					"commonNames": {
+						"en": [ "humpback whale" ],
+						"fr": [ "rorqual à bosse" ]
+					}
+				}
+			],
 			"formSchema": { "displayOrder": 0.5 }
 		}
 	},
