@@ -650,7 +650,8 @@ rtn.put("_payload", payload);
             rtn.put("usingDefault", true);
             rtn.put("value", meta.get("defaultValue"));
         } else {
-            rtn.put("value", JSONObject.NULL);
+            //rtn.put("value", JSONObject.NULL);
+            rtn.put("value", new JSONArray());  //ben wants this an empty array for easy of js
             rtn.put("valueNotSet", true);
             rtn.put("message", _rtnMessage("configuration_no_value"));
         }
