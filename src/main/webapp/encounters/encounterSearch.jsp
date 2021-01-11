@@ -970,7 +970,6 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
               </option>
               <%
             }
-            System.out.println("got here to end of keyword section....");
             System.out.println("prior to closing kw query line... ");
             //kwQuery.closeAll();
 

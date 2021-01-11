@@ -488,6 +488,7 @@ finally{
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
                               <li class="divider"></li>
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
@@ -516,9 +517,7 @@ finally{
                                 <% } %>
                                 <li><a target="_blank" href="https://docs.wildme.org/docs/researchers/overview"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-
-
-                             <%
+                                <%
 
                             } //end if admin
                             if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {

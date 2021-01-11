@@ -308,6 +308,11 @@
 
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
+					/UserConsolidate = authc
+					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
+					/myUsers.jsp = authc
 
         /UserGetNotifications = authc
 
@@ -437,7 +442,7 @@
 
         /ProjectIA = authc, roles[researcher]
 
-        /UserPreferences = authc, roles[researcher]
+        /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
@@ -911,6 +916,11 @@
       <servlet-name>UserSelfUpdate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
+
+	<servlet>
+		<servlet-name>UserConsolidate</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserConsolidate</servlet-class>
+</servlet>
 
       <servlet>
         <servlet-name>UserDelete</servlet-name>
@@ -1884,6 +1894,11 @@
           <servlet-name>UserSelfUpdate</servlet-name>
           <url-pattern>/UserSelfUpdate</url-pattern>
   </servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>UserConsolidate</servlet-name>
+		<url-pattern>/UserConsolidate</url-pattern>
+</servlet-mapping>
 
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
