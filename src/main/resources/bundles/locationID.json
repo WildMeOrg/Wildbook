@@ -12,11 +12,14 @@
 
 { "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[] },
 
+{ "name":"NSW- Henry’s Head", "id":"NSW- Henry’s Head", "locationID":[] },
+
+{ "name":"NSW- Magic Point", "id":"NSW- Magic Point", "locationID":[] },
+
 { "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[] },
 
-
-
 { "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[] },
+
 
 { "name":"SA-Encounter Bay", "id":"SA-Encounter Bay", "locationID":[] },
 
@@ -122,4 +125,3 @@
 
   ]
 }
-
