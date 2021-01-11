@@ -3,7 +3,7 @@
 		"__meta" : {
 			"type" : "string",
 			"required" : true,
-			"defaultValue": "",
+			"defaultValue": "<your site name>",
 			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
