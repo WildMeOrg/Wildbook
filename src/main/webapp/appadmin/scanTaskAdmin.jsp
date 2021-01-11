@@ -12,8 +12,26 @@ String context=ServletUtilities.getContext(request);
   myShepherd.setAction("scanTaskAdmin.jsp");
 
   boolean usaUser = false;
-  String linkURLBase = CommonConfiguration.getURLLocation(request);
+		String linkURLBase = CommonConfiguration.getURLLocation(request);
 
+
+		try {
+			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+			if (request.getUserPrincipal()!=null) {
+				String userName = request.getUserPrincipal().getName();
+				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+				for (Role role : roles) {
+					if (role.getRolename().equals("spotasharkusa")) {
+						usaUser = true;
+					}
+				}
+			}
+			if (usaUser) {
+				linkURLBase = "ncaquariums.wildbook.org";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
@@ -361,7 +379,7 @@ else{
 						<%
 						if(scanEnc.getIndividual()!=null){
 						%>
-						<a href="//<%=linkURLBase%>/individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID().getDisplayName(request, myShepherd)%></a>
+						<a href="//<%=linkURLBase%>/individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName(request, myShepherd)%></a>
 						<%
       					}
       					else{

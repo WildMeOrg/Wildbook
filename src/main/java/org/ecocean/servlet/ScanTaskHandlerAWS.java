@@ -47,11 +47,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-		
+
 	  String context="context0";
     context=ServletUtilities.getContext(request);
-    
-	  
+
+
 		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.setAction("ScanTaskHandlerAWS.class");
 		GridManager gm=GridManagerFactory.getGridManager();
@@ -64,8 +64,27 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 		boolean usaUser = false;
 		String linkURLBase = CommonConfiguration.getURLLocation(request);
 
+		try {
+			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+			if (request.getUserPrincipal()!=null) {
+				String userName = request.getUserPrincipal().getName();
+				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+				for (Role role : roles) {
+					if (role.getRolename().equals("spotasharkusa")) {
+						usaUser = true;
+					}
+				}
+			}
+			if (usaUser) {
+				linkURLBase = "ncaquariums.wildbook.org";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-	
+
+
+
 
 		if(action!=null){
 
@@ -211,9 +230,9 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-							
+
 							//st.setNumComparisons(numComparisons-1);
-							
+
 							//check for locationID filters
 							if(request.getParameterValues("locationID")!=null) {
 							  String[] locIDs=request.getParameterValues("locationID");
@@ -230,7 +249,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							    }
 							  }
 							}
-							
+
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
 							successfulStore=myShepherd.storeNewScanTask(st);
@@ -248,11 +267,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 								myShepherd.commitDBTransaction();
 								myShepherd.closeDBTransaction();
 								myShepherd=new Shepherd(context);
-								
+
 								//let the GridManager know the size
 								System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
 								//gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
-								
+
 							}
 						}
 						else {
@@ -267,7 +286,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					                //check if this is a restart
 					                //if it is, delete the old work items
-					          
+
 					                if(request.getParameter("restart")!=null){
 					                  ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 					                  ScanTask restartTask=myShepherd.getScanTask(taskIdentifier);
@@ -290,8 +309,8 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                //let the GridManager know the size
 					                  System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
 					                  //gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
-					                  
-					                  
+
+
 					                }
 					                else{
 					                  locked = true;
@@ -322,22 +341,22 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				if(!locked&&successfulStore) {
 
 					try{
-					  
+
 					  String jdoql="";
 					  if(request.getParameter("jdoql")!=null){jdoql=request.getParameter("jdoql");}
-					  
+
 					  System.out.println("jdoql is: "+jdoql);
 
 						//kick off the building thread
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						
+
 						//launch EC2 instances
             //es.execute(new EC2RequestThread());
-						
+
             //now build our jobs for the task
 						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
 
-						
+
 
 
 					}
@@ -391,7 +410,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				}
 			}
 
-			
+
 			 /*
 			else if (action.equals("addTuningTask")) {
 
@@ -523,7 +542,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						}
 
 
-					} 
+					}
 					else if(myShepherd.isScanTask(taskIdentifier)) {
 
 						System.out.println("scanTaskHandler: This is an existing scanTask...");

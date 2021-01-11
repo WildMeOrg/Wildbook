@@ -20,6 +20,9 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("users.jsp");
 
 List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+if(roles!=null && roles.size()>0){
+  System.out.println("roles are: " + roles.toString());
+}
 List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 int numRoles=roles.size();
 int numRoleDefinitions=roleDefinitions.size();

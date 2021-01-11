@@ -1,15 +1,17 @@
 package org.ecocean;
+
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContext;
 import java.net.URL;
-import org.joda.time.*;
+
 import org.ecocean.*;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
@@ -21,13 +23,20 @@ import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
 import java.util.concurrent.ThreadPoolExecutor;
+
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 import java.io.IOException;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
 // global variables are initialized, and do so if necessary.
@@ -42,6 +51,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+
 
   }
 
@@ -115,6 +125,9 @@ public class StartupWildbook implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
+
+        createMatchGraph();
+
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
         if (skipInit(sce, null)) {
             System.out.println("- SKIPPED initialization due to skipInit()");
@@ -127,9 +140,9 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
-        }
+        //if (CommonConfiguration.useSpotPatternRecognition(context)) {
+        //    createMatchGraph();
+        //}
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!

@@ -85,9 +85,9 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[researcher]
-				/InterconnectSubmitSpots = authc, roles[researcher]
-				/interconnectSubmitSpots = authc, roles[researcher]
+                /SubmitSpots = authc, roles[imageProcessor]
+				/InterconnectSubmitSpots = authc, roles[imageProcessor]
+				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
 				/import/** = authc, roles[researcher]
 
@@ -106,6 +106,8 @@
     	/match.jsp = authc
 
 
+		/individualSearch.jsp = roles[researcher]
+		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
 		/individualSearchResults.jsp = authc
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
@@ -114,6 +116,7 @@
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
+		 /encounters/encounterSearch.jsp = roles[researcher]
 		 /encounters/searchResults.jsp = authc, roles[researcher]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
@@ -175,52 +178,134 @@
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
 		         /UserCreate = authc, roles[admin]
-		         /UserDelete = authc, roles[admin]
-		         /UserAddProfileImage = authc, roles[researcher]
+				 /UserDelete = authc, roles[admin]
+				/ResetCommonConfiguration = authc, roles[admin]
+				/ResurrectDeletedEncounter = authc, roles[admin]
+               	/UserResetAcceptedUserAgreement = authc, roles[admin]
+				  /InterconnectSubmitSpots = authc, roles[researcher]
+				  /interconnectSubmitSpots= authc, roles[researcher]
+				   /ImportSRGD = authc, roles[admin]
+          /ImportAccess = authc, roles[admin]
           /StandardImport = authc, roles[admin]
           /FixStandardImport = authc, roles[admin]
-		         /EncounterSearchExportExcelFile = authc, roles[researcher]
-		         /EncounterSearchExportShapefile = authc, roles[researcher]
-		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
-		         /EncounterAddComment = authc, roles[researcher]
-		         /OccurrenceAddComment = authc, roles[researcher]
-		          /OccurrenceSetIndividualCount = authc, roles[researcher]
-		         /IndividualAddComment = authc, roles[researcher]
-		         /SimpleCMROutput = authc, roles[researcher]
-		             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
-		             /SOCPROGExport = authc, roles[researcher]
-		             /OccurrenceSetGroupBehavior = authc, roles[researcher]
-		             /EncounterSetBehavior = authc, roles[researcher]
-		      /CJS = authc, roles[researcher]
-		      /software.jsp = authc, roles[researcher]
-      			/encounters/searchExport = authc, roles[researcher]
-      			/welcome.jsp = authc
-      			/EncounterSetSubmitterID = authc, roles[researcher]
-               		/UserResetAcceptedUserAgreement = authc, roles[admin]
-               		/IndividualSetYearOfBirth = authc, roles[researcher]
-									/ResetCommonConfiguration = authc, roles[admin]
-									/ImportAccess = authc, roles[admin]
-									/interconnect/mac/Interconnect.jar = authc, roles[researcher]
-									#/UpdateEmailAddress = authc, roles[admin]
-									/BatchUpload/** = authc, roles[admin]
-									/appadmin/batch* = authc, roles[admin]
-									/encounters/searchComparison.jsp = authc, roles[researcher]
-									/encounters/searchComparisonResults.jsp = authc, roles[researcher]
-									/EncounterSearchExportMetadataExcel = authc, roles[researcher]
-									/MarkRecaptureEncounters = authc, roles[researcher]
-									/EncounterAddImage = authc, roles[researcher]
-									/AdoptionAction = authc, roles[admin]
-									/AdoptionForm = authc, roles[admin]
-									/ResurrectDeletedAdoption = authc, roles[admin]
-									/encounters/encounterSearch.jsp = authc, roles[researcher]
-									/googleSearch.jsp = authc, roles[researcher]
-									/googleSearchResults.jsp = authc, roles[researcher]
-									/CalendarXMLServer2 = authc, roles[researcher]
-									#/EncounterSetInformOthers = authc, roles[researcher]
-									/AddLabeledKeyword = authc, roles[researcher]
-									/UserRemoveProfileImage = authc
+
+
+				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
+				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
+				   #/UpdateEmailAddress = authc, roles[admin]
+
+
+				/BatchUpload/** = authc, roles[admin]
+				/appadmin/batch* = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[admin]
+
+				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
+		        /GenePopExport = authc, roles[researcher]
+				/individualSearchResultsExport.jsp = authc, roles[researcher]
+				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
+				/encounters/searchComparison.jsp = authc, roles[researcher]
+				/encounters/searchComparisonResults.jsp = authc, roles[researcher]
+		        /IndividualSetAlternateID = authc, roles[researcher]
+				/EncounterSetScarring = authc, roles[researcher]
+				  /EncounterSetVerbatimEventDate = authc, roles[researcher]
+				  /EncounterSetLifeStage = authc, roles[researcher]
+				  /EncounterSetCountry = authc, roles[researcher]
+				  /EncounterSetTissueSample = authc, roles[researcher]
+				   /TissueSampleSetHaplotype = authc, roles[researcher]
+				   /TissueSampleSetMeasurement = authc, roles[researcher]
+				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
+				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
+
+				        /OccurrenceCreate = authc, roles[researcher]
+				        /OccurrenceRemoveEncounter = authc, roles[researcher]
+				        /IndividualRemoveEncounter = authc, roles[researcher]
+				        /OccurrenceAddEncounter = authc, roles[researcher]
+				        /IndividualAddEncounter = authc, roles[researcher]
+				         /TissueSampleSetSexAnalysis = authc, roles[researcher]
+				        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
+				         /EncounterRemoveTissueSample = authc, roles[researcher]
+				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
+				         /EncounterSearchExportKML = authc, roles[researcher]
+				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+                 /EncounterSearchExportMetadataExcel = authc, roles[researcher]
+				         /EncounterSearchExportShapefile = authc, roles[researcher]
+				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
+						/OccurrenceSetIndividualCount = authc, roles[researcher]
+				         /IndividualAddComment = authc, roles[researcher]
+				         /SimpleCMROutput = authc, roles[researcher]
+				         /MarkRecaptureEncounters = authc, roles[researcher]
+				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
+				             /SOCPROGExport = authc, roles[researcher]
+				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
+				             /EncounterSetBehavior = authc, roles[researcher]
+				      /CJS = authc, roles[researcher]
+				      /software.jsp = authc, roles[researcher]
+
+
+						 /EncounterRemoveImage = authc, roles[researcher]
+						/EncounterAddImage = authc, roles[researcher]
+						/KeywordHandler = authc, roles[researcher]
+
+						/AdoptionAction = authc, roles[admin]
+						/AdoptionForm = authc, roles[admin]
+						/DeleteAdoption = authc, roles[admin]
+						/ResurrectDeletedAdoption = authc, roles[admin]
+
+						 /EncounterSetState = authc, roles[researcher]
+						 /EncounterDelete = authc, roles[researcher]
+
+					       /xcalendar/** = authc, roles[researcher]
+						   /individualSearch.jsp = authc, roles[researcher]
+						   /individualSearchResultsAnalysis.jsp = authc, roles[researcher]
+						   /individualMappedSearchResults.jsp = authc, roles[researcher]
+				/individualThumbnailSearchResults.jsp = authc, roles[researcher]
+				 /encounters/encounterSearch.jsp = authc, roles[researcher]
+				 /encounters/searchResults.jsp = authc, roles[researcher]
+				 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
+				 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
+				 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
+				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[researcher]
+				 /googleSearch.jsp = authc, roles[researcher]
+				 /googleSearchResults.jsp = authc, roles[researcher]
+				 /EncounterAddComment = authc, roles[researcher]
+				 /OccurrenceAddComment = authc, roles[researcher]
+				 /CalendarXMLServer = authc, roles[researcher]
+				 /CalendarXMLServer2 = authc, roles[researcher]
+
+				 /EncounterSetGenusSpecies = authc, roles[researcher]
+				 #/EncounterSetInformOthers = authc, roles[researcher]
+				 /RestKeyword = authc, roles[researcher]
+				 /AddLabeledKeyword = authc, roles[researcher]
+				 /IndividualAddFile = authc, roles[researcher]
+				 /EncounterResetDate = authc, roles[researcher]
+				 /IndividualSearchExportCapture = authc, roles[researcher]
+				 /EncounterSetLocation = authc, roles[researcher]
+				 /EncounterSetLocationID = authc, roles[researcher]
+				 /CRCExportReport = authc, roles[researcher]
+				 /IndividualSetSex = authc, roles[researcher]
+				 /EncounterSetSex = authc, roles[researcher]
+				 /EncounterSetMaximumDepth = authc, roles[researcher]
+				 /EncounterSetMaximumElevation = authc, roles[researcher]
+				 /EncounterSetOccurrenceRemarks = authc, roles[researcher]
+				 /EncounterRemoveSpots = authc, roles[researcher]
+				 /EncounterSetPatterningCode = authc, roles[researcher]
+				 /EncounterSetReleaseDate = authc, roles[researcher]
+				 /EncounterSetMeasurements = authc, roles[researcher]
+				 /GetIndividualSearchGoogleMapsPoints = authc, roles[researcher]
+				 /EncounterSetTags = authc, roles[researcher]
+				 /EncounterSetDynamicProperty = authc, roles[researcher]
+				 /IndividualRemoveDataFile = authc, roles[researcher]
+				 /EncounterSetMatchedBy = authc, roles[researcher]
+				 /EncounterSetLivingStatus = authc, roles[researcher]
+
+
+						   /welcome.jsp = authc
+						   /UserAddProfileImage = authc
+						   /UserRemoveProfileImage = authc
+						    		/IndividualSetYearOfBirth = authc, roles[researcher]
                		/IndividualSetYearOfDeath = authc, roles[researcher]
 			/KinalyzerExport = authc, roles[researcher]
+
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 					/UserConsolidate = authc
@@ -234,6 +319,7 @@
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
+					/IndividualSetNickName = authc, roles[researcher]
           /IndividualCreateForProject = authc, roles[researcher]
           /IndividualAddIncrementalProjectId = authc, roles[researcher]
 
@@ -250,16 +336,11 @@
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
 
-				/IndividualSearchExportCapture = authc, roles[researcher]
-				/EncounterSetLocation = authc, roles[researcher]
-				/EncounterSetLocationID = authc, roles[researcher]
-				/CRCExportReport = authc, roles[researcher]
-			    /IndividualSetSex = authc, roles[researcher]
-
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
-
+				/pictureBook.jsp = authc, roles[researcher]
 
 				/ExportWekaPredictorARFF = authc, roles[admin]
+
 				/pictureBook.jsp = authc, roles[researcher]
 				/projects/projectList.jsp = authc, roles[researcher]
 				/projects/project.jsp = authc, roles[researcher]
@@ -272,16 +353,22 @@
 				/IndividualAddFile = authc, roles[researcher]
 				/Collaborate = authc
 				#/RemoveEmailAddress = authc, roles[admin]
+				/IndividualAddFile = authc, roles[researcher]
 				/EncounterAddSpotFile = authc, roles[identifier]
 
 				/AddOccToTrack = authc, roles[researcher]
 				/MediaAssetCreate = authc, roles[researcher]
 				/EncounterCreate = authc, roles[researcher]
 				/MediaAssetsForUser = authc
-				/MediaAssetAttach = authc, roles[researcher]
+				/MediaAssetAttach= authc, roles[researcher]
 				/EncounterResetDate = authc, roles[researcher]
+				/IndividualSearchExportCapture = authc, roles[researcher]
 				/EncounterSetTapirLinkExposure = authc, roles[researcher]
+				/EncounterSetLocation = authc, roles[researcher]
+				/EncounterSetLocationID = authc, roles[researcher]
+				/CRCExportReport = authc, roles[researcher]
 				/DeleteAdoption = authc, roles[adoption]
+			    /IndividualSetSex = authc, roles[researcher]
 
 				/EncounterSetSex = authc, roles[researcher]
 
@@ -387,12 +474,6 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
-
-  <servlet>
-    <description>SubmitSurvey</description>
-    <servlet-name>SubmitSurvey</servlet-name>
-    <servlet-class>org.ecocean.servlet.SubmitSurvey</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>ProjectCreate</servlet-name>
@@ -548,16 +629,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>EncounterSetSurveyAndTrack</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterSetSurveyAndTrack</servlet-class>
-  </servlet>
-
-  <servlet>
-    <servlet-name>OccurrenceSetSurveyAndTrack</servlet-name>
-    <servlet-class>org.ecocean.servlet.OccurrenceSetSurveyAndTrack</servlet-class>
-  </servlet>
-
-  <servlet>
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
   </servlet>
@@ -608,7 +679,6 @@
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
-
 
   <!--
    <servlet>
@@ -672,12 +742,14 @@
     <servlet-name>StandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
   </servlet>
-
+  <servlet>
+    <servlet-name>UpdateStandard</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
+  </servlet>
   <servlet>
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>WebImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
@@ -740,13 +812,17 @@
   </servlet>
 -->
 
+
+
+
+
+
 <!--
   <servlet>
     <servlet-name>RemoveEmailAddress</servlet-name>
     <servlet-class>org.ecocean.servlet.RemoveEmailAddress</servlet-class>
   </servlet>
   -->
-
   <!--
   <servlet>
     <servlet-name>TrackIt</servlet-name>
@@ -900,11 +976,6 @@
         <servlet-class>org.ecocean.servlet.TissueSampleRemoveBiologicalMeasurement</servlet-class>
     </servlet>
 
-	    <servlet>
-      <servlet-name>CRCExportReport</servlet-name>
-      <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
-  </servlet>
-
   <!--  Start Shiro filters -->
 
 
@@ -996,7 +1067,8 @@
         <servlet-name>ningalooPradel</servlet-name>
         <servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
   </servlet>
--->
+  -->
+
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -1058,7 +1130,10 @@
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
   </servlet>
 
-
+          <servlet>
+        <servlet-name>CRCExportReport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
+  </servlet>
 
 
 
@@ -1234,12 +1309,14 @@
       <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
-<!--
+  <!--
+
   <servlet>
        <servlet-name>ningalooRobustByMonths</servlet-name>
 	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
   </servlet>
--->
+  -->
+
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
@@ -1256,7 +1333,6 @@
   </servlet>
 
 <!--
-
       <servlet>
            <servlet-name>MozPradel</servlet-name>
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
@@ -1284,6 +1360,7 @@
       <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
   </servlet>
 -->
+
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddComment</servlet-class>
@@ -1756,7 +1833,6 @@
 
 
 
-
       <servlet-mapping>
         <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
         <url-pattern>/TissueSampleSetMicrosatelliteMarkers</url-pattern>
@@ -1900,16 +1976,6 @@
       <url-pattern>/OccurrenceSetSurveyAndTrack</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-      <servlet-name>EncounterSetSurveyAndTrack</servlet-name>
-      <url-pattern>/EncounterSetSurveyAndTrack</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-      <servlet-name>OccurrenceSetSurveyAndTrack</servlet-name>
-      <url-pattern>/OccurrenceSetSurveyAndTrack</url-pattern>
-  </servlet-mapping>
-
     <servlet-mapping>
       <servlet-name>EncounterSetTissueSample</servlet-name>
       <url-pattern>/EncounterSetTissueSample</url-pattern>
@@ -2031,10 +2097,16 @@
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
-<servlet-mapping>
-		<servlet-name>UpdateStandard</servlet-name>
-		<url-pattern>/UpdateStandard</url-pattern>
-</servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+      <servlet-name>UpdateStandard</servlet-name>
+      <url-pattern>/UpdateStandard</url-pattern>
+  </servlet-mapping>
   <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/WebImport</url-pattern>
@@ -2267,13 +2339,6 @@
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
 
-<!--
-    <servlet-mapping>
-      <servlet-name>GenerateQRCodeImage</servlet-name>
-      <url-pattern>/GenerateQRCodeImage</url-pattern>
-  </servlet-mapping>
--->
-
 
     <servlet-mapping>
       <servlet-name>OccurrenceAddEncounter</servlet-name>
@@ -2342,12 +2407,8 @@
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
 
-  <!--
-      <servlet-mapping>
-           <servlet-name>MozPradel</servlet-name>
-           <url-pattern>/MozPradel</url-pattern>
-  </servlet-mapping>
--->
+
+
   <servlet-mapping>
     <servlet-name>EncounterSetLocation</servlet-name>
     <url-pattern>/EncounterSetLocation</url-pattern>
@@ -2380,12 +2441,9 @@
     <servlet-name>EncounterSetOccurrenceRemarks</servlet-name>
     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
-<!--
-   <servlet-mapping>
-         <servlet-name>MozRobustByMonths</servlet-name>
-         <url-pattern>/MozRobustByMonths</url-pattern>
-  </servlet-mapping>
--->
+
+
+
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
     <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
@@ -2396,12 +2454,8 @@
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
 
-  <!--
-    <servlet-mapping>
-      <servlet-name>NingalooByMonthsSonification</servlet-name>
-      <url-pattern>/NingalooByMonthsSonification</url-pattern>
-  </servlet-mapping>
--->
+
+
   <servlet-mapping>
     <servlet-name>MassExposeGBIF</servlet-name>
     <url-pattern>/MassExposeGBIF</url-pattern>
@@ -2413,7 +2467,6 @@
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
   -->
-
   <servlet-mapping>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
@@ -2564,12 +2617,8 @@
     <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
 
- <!--
-    <servlet-mapping>
-      <servlet-name>mitFeed</servlet-name>
-      <url-pattern>/MITFeed</url-pattern>
-  </servlet-mapping>
--->
+
+
   <!--
   <servlet-mapping>
     <servlet-name>EncounterAddImage</servlet-name>
@@ -2607,8 +2656,6 @@
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
 
-
-
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
@@ -2617,6 +2664,8 @@
     <servlet-name>EncounterSetObservation</servlet-name>
     <url-pattern>/EncounterSetObservation</url-pattern>
   </servlet-mapping>
+
+
 
   <servlet-mapping>
     <servlet-name>OccurrenceSetObservation</servlet-name>
@@ -2696,16 +2745,6 @@
   <servlet-mapping>
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>SurveyCreate</servlet-name>
-    <url-pattern>/SurveyCreate</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>AddOccToTrack</servlet-name>
-    <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
 
 </web-app>
