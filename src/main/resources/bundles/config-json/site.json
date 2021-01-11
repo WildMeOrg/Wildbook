@@ -19,7 +19,7 @@
 			"type" : "boolean",
 			"defaultValue": true,
 			"formSchema": { "hidden": true },
-			"readOnly": true
+			"readOnly": false
 		}
 	},
 	"adminUserCreated" : {
@@ -33,7 +33,7 @@
 	"private" : {
 		"__meta" : {
 			"type" : "boolean",
-			"required" : true,
+			"required" : false,
 			"defaultValue": false,
 			"formSchema": { "displayOrder": 0.05, "panel": true }
 		}
@@ -66,7 +66,7 @@
 		"description": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "Researchers use <your site name> to identify and organize sightings of <your species here>.",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
@@ -87,14 +87,14 @@
 		"tagline": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "Welcome to <your site name>",
 				"formSchema": { "displayOrder": 1.0 }
 			}
 		},
 		"taglineSubtitle": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "AI for the conservation of <your species here>.",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
@@ -215,7 +215,7 @@
 			"__meta": {
 				"formSchema": { "displayOrder": 0.2 },
 				"type": "color",
-				"defaultValue": "#222222"
+				"defaultValue": "#68F6E5"
 			}
 		},
 		"secondaryColor": {
