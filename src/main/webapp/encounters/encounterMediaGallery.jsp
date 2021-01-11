@@ -192,7 +192,9 @@ function forceLink(el) {
                 
                 capos[0]+=individualID;
                 
-                capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber().substring(0,14)+"</a></span><br>";
+                int catalogNumberLength=enc.getCatalogNumber().length();
+                if(catalogNumberLength>15)catalogNumberLength=15;
+                capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber().substring(0,catalogNumberLength-1)+"</a></span><br>";
                 
                 capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
                 
@@ -204,7 +206,8 @@ function forceLink(el) {
 
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
                     
-                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></span></p>";
+                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+" ("+encprops.getProperty("detectionStatus")+" "+ma.getDetectionStatus()+")</a></span></p>";
+                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("annotationID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></span></p>";
                 
 
               captionLinks.add(capos);
