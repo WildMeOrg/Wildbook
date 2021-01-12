@@ -21,6 +21,7 @@ if (user == null) {
     rtn.put("error", "user not logged in");
     out.println(rtn.toString());
     myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -55,9 +56,9 @@ myShepherd.commitDBTransaction();
 rtn.put("success", true);
 rtn.put("content", content);
 out.println(rtn);
+myShepherd.closeDBTransaction();
 
 
 
 
 %>
-
