@@ -614,7 +614,7 @@ var encounterNumber = '<%=num%>';
       			}
 
 String setState = Util.basicSanitize(request.getParameter("setState"));
-if (isAdmin && (setState != null) && (setState.equals("processing") || setState.equals("finished") || setState.equals("pending"))) {
+if (isAdmin && (setState != null) && (setState.equals("processing") || setState.equals("finished") || setState.equals("pending") ||setState.equals("mergereview")||setState.equals("disputed"))) {
     enc.setState(setState);
     commitTransaction = true;
 }
