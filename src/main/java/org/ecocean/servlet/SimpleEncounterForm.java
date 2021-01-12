@@ -226,6 +226,7 @@ System.out.println("SimpleEncounterForm: " + new DateTime() + " => " + user);
 
     JSONObject rtn = new JSONObject();
 
+        Encounter enc = null;
         if (fileSuccess) {
 
 
@@ -241,7 +242,7 @@ System.out.println("SimpleEncounterForm: " + new DateTime() + " => " + user);
 System.out.println("about to do enc()");
 
             //Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"));
-            Encounter enc = new Encounter();
+            enc = new Encounter();
             String encID = enc.generateEncounterNumber();
             enc.setEncounterNumber(encID);
             
@@ -308,6 +309,7 @@ System.out.println("about to do enc()");
 
                 String newnum = myShepherd.storeNewEncounter(enc, encID);
 
+/*  handled by backgroundAssets() now
                 //need to find blur features before we refresh assets
                 ArrayList<MediaAsset> mas = enc.getMedia();
                 if (!Util.collectionIsEmptyOrNull(mas)) for (MediaAsset ma : mas) {
@@ -316,6 +318,7 @@ System.out.println("about to do enc()");
                 }
 
                 enc.refreshAssetFormats(myShepherd);
+*/
                 rtn.put("success", true);
                 rtn.put("encounterId", newnum);
 
@@ -352,7 +355,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
     }  //end "if (fileSuccess)
 
     myShepherd.closeDBTransaction();
-    //return null;
+    if (enc != null) backgroundAssets(context, enc.getCatalogNumber());
     out.println(rtn.toString());
   }
 
@@ -429,6 +432,36 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         System.out.println("failed to write file " + tmpFile);
     }
   }
+
+
+    private void backgroundAssets(final String context, final String encId) {
+        System.out.println("backgroundAssets() [" + encId + "] forking");
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("backgroundAssets::" + encId);
+                myShepherd.beginDBTransaction();
+                Encounter enc = myShepherd.getEncounter(encId);
+System.out.println("backgroundAssets(): enc=" + enc);
+                if (enc == null) return;
+                ArrayList<MediaAsset> mas = enc.getMedia();
+System.out.println("backgroundAssets(): mas=" + mas);
+                if (Util.collectionIsEmptyOrNull(mas)) return;
+
+                //need to find blur features before we refresh assets
+                FeatureType.initAll(myShepherd);
+                for (MediaAsset ma : mas) {
+                    ma.makeBlurFeatures();
+                }
+                enc.refreshAssetFormats(myShepherd);
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+System.out.println("backgroundAssets(): FINISHED");
+            }
+        };
+        new Thread(rn).start();
+        System.out.println("backgroundAssets() [" + encId + "] out of fork");
+    }
 
 
 }
