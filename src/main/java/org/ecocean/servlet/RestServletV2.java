@@ -592,6 +592,15 @@ rtn.put("_payload", payload);
                             tx = new Taxonomy(txSN, jtx.optString("commonName", null));
                             int itis = jtx.optInt("itisTsn", -1);
                             if (itis > 0) tx.setItisTsn(itis);
+                            List<String> cnames = new ArrayList<String>();
+                            JSONArray cnjarr = jtx.optJSONArray("commonNames");
+                            if (cnjarr != null) {
+                                for (int cni = 0 ; cni < cnjarr.length() ; cni++) {
+                                    String cn = cnjarr.optString(cni, null);
+                                    if (cn != null) cnames.add(cn);
+                                }
+                            }
+                            if (cnames.size() > 0) tx.setCommonNames(cnames);
                             myShepherd.getPM().makePersistent(tx);
                         }
                         setTaxs.put(tx.asApiJSONObject());
