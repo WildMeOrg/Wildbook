@@ -33,7 +33,30 @@ context=ServletUtilities.getContext(request);
   //session.setMaxInactiveInterval(6000);
   Shepherd myShepherd=new Shepherd(context);
   String num="";
-    ArrayList<String> locationIDs = new ArrayList<String>();
+  ArrayList<String> locationIDs = new ArrayList<String>();
+  // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+  boolean usaUser = false;
+	String linkURLBase = CommonConfiguration.getURLLocation(request);
+
+
+		try {
+			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+			if (request.getUserPrincipal()!=null) {
+				String userName = request.getUserPrincipal().getName();
+				List<Role> roles = myShepherd.getAllRolesForUser(userName);
+				for (Role role : roles) {
+					if (role.getRolename().equals("spotasharkusa")) {
+						usaUser = true;
+					}
+				}
+			}
+			if (usaUser) {
+				linkURLBase = "ncaquariums.wildbook.org";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
   if(request.getParameter("number")!=null){
     myShepherd.setAction("scanEndApplet.jsp");
     myShepherd.beginDBTransaction();
@@ -65,28 +88,11 @@ context=ServletUtilities.getContext(request);
 	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
 
-    // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-  boolean usaUser = false;
-  String userName = "";
-  myShepherd.setAction("13sScanEndApplet.jsp");
-  if (request.getUserPrincipal()!=null) {
-    userName = request.getUserPrincipal().getName();
-    myShepherd.beginDBTransaction();
-    List<Role> roles = myShepherd.getAllRolesForUser(userName);
-    for (Role role : roles) {
-      if (role.getRolename().equals("spotasharkusa")) {
-        usaUser = true;
-      }
-    }
-  }
+
+
 
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
-  // Part Two hackety hack to switch URLs for US users
-  String linkURLBase = CommonConfiguration.getURLLocation(request);
-  if (usaUser) {
-    linkURLBase = "ncaquariums.wildbook.org";
-  }
 
 %>
 

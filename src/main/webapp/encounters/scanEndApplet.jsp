@@ -36,30 +36,30 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //session.setMaxInactiveInterval(6000);
   String num="";
     ArrayList<String> locationIDs = new ArrayList<String>();
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("scanEndApplet.jsp");
+
+    boolean usaUser = false;
+    String linkURLBase = CommonConfiguration.getURLLocation(request);
+
+    try {
+      // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
+      if (request.getUserPrincipal()!=null) {
+        String userName = request.getUserPrincipal().getName();
+        List<Role> roles = myShepherd.getAllRolesForUser(userName);
+        for (Role role : roles) {
+          if (role.getRolename().equals("spotasharkusa")) {
+            usaUser = true;
+          }
+        }
+      }
+      if (usaUser) {
+        linkURLBase = "ncaquariums.wildbook.org";
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   if(request.getParameter("number")!=null){
-	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("scanEndApplet.jsp");
-
-  boolean usaUser = false;
- 	String linkURLBase = CommonConfiguration.getURLLocation(request);
-
- 		try {
- 			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
- 			if (request.getUserPrincipal()!=null) {
- 				String userName = request.getUserPrincipal().getName();
- 				List<Role> roles = myShepherd.getAllRolesForUser(userName);
- 				for (Role role : roles) {
- 					if (role.getRolename().equals("spotasharkusa")) {
- 						usaUser = true;
- 					}
- 				}
- 			}
- 			if (usaUser) {
- 				linkURLBase = "ncaquariums.wildbook.org";
- 			}
- 		} catch (Exception e) {
- 			e.printStackTrace();
- 		}
 
 
 	myShepherd.beginDBTransaction();
