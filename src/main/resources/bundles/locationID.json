@@ -2,7 +2,7 @@
   "description": "Hierarchical Encounter.locationIDs in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-  
+
 	{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
 
 	{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[] },
@@ -31,24 +31,50 @@
 		{ "name":"French Polynesia", "id":"French Polynesia", "locationID":[] },
 
 		{ "name":"Indonesia", "id":"Indonesia", "locationID":[
-		
 			{ "name":"Komodo", "id":"Indonesia-Komodo", "locationID":[] },
 			{ "name":"Nusa Penida", "id":"Indonesia-Nusa Penida", "locationID":[] },
-		    { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
-            { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] }
-			
+		  { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
+      { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] }
 		] },
 
 		{ "name":"Japan", "id":"Japan", "locationID":[] },
 
 		{ "name":"Maldives", "id":"Maldives", "locationID":[] },
-		
-		{ "name":"Malta", "id":"Malta", "locationID":[] },
+
+		{ "name":"Malta", "id":"Malta", "locationID":[
+			{"name": "Coral Beach", "id": "Coral Beach", "locationID": []},
+			{"name": "Cirkewwa", "id": "Cirkewwa", "locationID": []},
+			{"name": "Paradise Bay", "id": "Paradise Bay", "locationID": []},
+			{"name": "Mellieha Bay", "id": "Mellieha Bay", "locationID": []},
+			{"name": "Anchor bay", "id": "Anchor bay", "locationID": []},
+			{"name": "Ghadira Bay", "id": "Ghadira Bay", "locationID": []},
+			{"name": "Imgiebah Bay", "id": "Imgiebah Bay", "locationID": []},
+			{"name": "Mistra Bay", "id": "Mistra Bay", "locationID": []},
+			{"name": "Golden Bay", "id": "Golden Bay", "locationID": []},
+			{"name": "Riviera", "id": "Riviera", "locationID": []},
+			{"name": "Gnejna Bay", "id": "Gnejna Bay", "locationID": []},
+			{"name": "Qwara Point", "id": "Qwara Point", "locationID": []},
+			{"name": "Is-Salini Bay", "id": "Is-Salini Bay", "locationID": []},
+			{"name": "Qalet Marku", "id": "Qalet Marku", "locationID": []},
+			{"name": "Mediterraneo", "id": "Mediterraneo", "locationID": []},
+			{"name": "Pembroke pool", "id": "Pembroke pool", "locationID": []},
+			{"name": "Spinola bay", "id": "Spinola bay", "locationID": []},
+			{"name": "Maori", "id": "Maori", "locationID": []},
+			{"name": "St Thomas Bay", "id": "St Thomas Bay", "locationID": []},
+			{"name": "Xrobb I-Ghagin", "id": "Xrobb I-Ghagin", "locationID": []},
+			{"name": "St Peter Pool", "id": "St Peter Pool", "locationID": []},
+			{"name": "Ballut reserve", "id": "Ballut reserve", "locationID": []},
+			{"name": "Il Kalankana Bay", "id": "Il Kalankana Bay", "locationID": []},
+			{"name": "Il Kalanka tal GIden", "id": "Il Kalanka tal GIden", "locationID": []},
+			{"name": "It-Taqtiegna tad-Delmara", "id": "It-Taqtiegna tad-Delmara", "locationID": []},
+			{"name": "Blue Grotto", "id": "Blue Grotto", "locationID": []},
+			{"name": "Ghar Lapsi", "id": "Ghar Lapsi", "locationID": []}
+		] },
 
 		{ "name":"Mexico (Revillagigedos)", "id":"Mexico (Revillagigedos)", "locationID":[] },
 
 		{ "name":"Mexico (Yucatan)", "id":"Mexico (Yucatan)", "locationID":[] },
-		
+
 		{ "name":"Micronesia", "id":"Micronesia", "locationID":[] },
 
 		{ "name":"Myanmar", "id":"Myanmar", "locationID":[] },
@@ -70,8 +96,14 @@
 		{ "name":"Saudi Arabia", "id":"Saudi Arabia", "locationID":[] },
 
 		{ "name":"Seychelles", "id":"Seychelles", "locationID":[] },
-		
-		{ "name":"Teneriffe", "id":"Teneriffe", "locationID":[] },
+
+		{ "name":"Teneriffe", "id":"Teneriffe", "locationID":[
+			{"name": "Los Cristianos", "id": "Los Cristianos", "locationID": []},
+			{"name": "Las Teresitas", "id": "Las Teresitas", "locationID": []},
+			{"name": "Abades", "id": "Abades", "locationID": []},
+			{"name": "Los Gigantes", "id": "Los Gigantes", "locationID": []},
+			{"name": "El Palmar", "id": "El Palmar", "locationID": []}
+		] },
 
 		{ "name":"Thailand", "id":"Thailand", "locationID":[] },
 
