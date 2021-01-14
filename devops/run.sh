@@ -21,7 +21,7 @@ docker container run \
     --network=main \
     --network-alias wildbook \
     --link wildbook_db_postgresql \
-    -v "$(pwd)"/wildbook_tomcat_data_dir:/data/wildbook_data_dir/ \
+    -v "$(pwd)"/wildbook_tomcat_data_dir:/data/ncaquariums_data_dir/ \
     wildme/wildbook:latest
 
 docker container run \

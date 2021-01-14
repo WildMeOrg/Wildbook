@@ -59,9 +59,9 @@
   </appender>
   
     <appender name="EMAILS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/data/wildbook_data_dir/logs/email.htm</file>
+    <file>/data/ncaquariums_data_dir/logs/email.htm</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}email.htm</fileNamePattern>
+        <fileNamePattern>/data/ncaquariums_data_dir/logs/%d{yyyy-MM-}email.htm</fileNamePattern>
       </rollingPolicy>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <!-- Assigned PatternLayoutEncoder by default -->

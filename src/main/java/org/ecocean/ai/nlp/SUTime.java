@@ -54,7 +54,7 @@ public class SUTime {
     }
     catch(Exception npe) {
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
-      rulesDir="/data/wildbook_data_dir/WEB-INF/data/sutime/rules";
+      rulesDir="/data/ncaquariums_data_dir/WEB-INF/data/sutime/rules";
       
     }
     
@@ -113,7 +113,7 @@ public class SUTime {
         props.setProperty("sutime.binder.1.xml", (rootDir+"/WEB-INF/data/holidays/Holidays_sutime.xml"));
       }
       catch(Exception npe) {
-        props.setProperty("sutime.binder.1.xml", "/data/wildbook_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
+        props.setProperty("sutime.binder.1.xml", "/data/ncaquariums_data_dir/WEB-INF/data/holidays/Holidays_sutime.xml");
         npe.printStackTrace();
       }
       
@@ -221,8 +221,8 @@ public class SUTime {
     catch(Exception npe) {
       
       //OK, we couldn't find a servlet context, so let's try to get the files from a hardcoded override directory
-      dataDir="/data/wildbook_data_dir/WEB-INF/data";
-      System.setProperty("de.jollyday.config", ("/data/wildbook_data_dir/WEB-INF/classes/holidays/jollyday.properties"));
+      dataDir="/data/ncaquariums_data_dir/WEB-INF/data";
+      System.setProperty("de.jollyday.config", ("/data/ncaquariums_data_dir/WEB-INF/classes/holidays/jollyday.properties"));
       npe.printStackTrace();
     }
     String taggerFilename = dataDir + "/english-left3words-distsim.tagger";

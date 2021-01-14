@@ -156,10 +156,10 @@ public class ImportAccess extends HttpServlet {
     //return AssetStore.getDefault(myShepherd);
     return AssetStore.get(myShepherd, 1);
 
-    // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
+    // String assetStorePath="/var/lib/tomcat7/webapps/ncaquariums_data_dir";
     // // TODO: fix this for flukebook
-    // // String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-    // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
+    // // String assetStoreURL="http://flukebook.wildbook.org/ncaquariums_data_dir";
+    // String assetStoreURL="http://54.71.122.188/ncaquariums_data_dir";
 
     // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
 
@@ -1265,10 +1265,10 @@ public class ImportAccess extends HttpServlet {
     FeatureType.initAll(myShepherd);
     String rootDir = getServletContext().getRealPath("/");
     String baseDir = ServletUtilities.dataDir(myShepherd.getContext(), rootDir);
-    String assetStorePath="/data/wildbook_data_dir/encounters";
+    String assetStorePath="/data/ncaquariums_data_dir/encounters";
     //String rootURL="http://localhost:8080";
     String rootURL="flukebook.org";
-    String assetStoreURL=rootURL+"/wildbook_data_dir/encounters";
+    String assetStoreURL=rootURL+"/ncaquariums_data_dir/encounters";
     //////////////// begin local //////////////
     LocalAssetStore as = new LocalAssetStore("Oman-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
     myShepherd.getPM().makePersistent(as);

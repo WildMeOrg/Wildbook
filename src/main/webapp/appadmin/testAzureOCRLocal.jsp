@@ -39,14 +39,14 @@ ArrayList<MediaAsset> results = new ArrayList<>();
 String resultString = "";
 try {        
     String hasTextUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png";
-    String noTextURL = "https://www.whaleshark.org/wildbook_data_dir/5/a/5a1e8ee7-8e30-4913-8998-2b89368d1b2d/e38c2895-fecc-46e3-9e94-c4a3cf29da63-mid.jpg";
+    String noTextURL = "https://www.whaleshark.org/ncaquariums_data_dir/5/a/5a1e8ee7-8e30-4913-8998-2b89368d1b2d/e38c2895-fecc-46e3-9e94-c4a3cf29da63-mid.jpg";
     String another = "https://imgs.mongabay.com/wp-content/uploads/sites/22/2016/02/03165949/Splash-tag-on-shark.jpg";
     String lotsaWords = "https://static.seattletimes.com/wp-content/uploads/2017/07/WEB-largest-smallest-shark-1020x680.jpg";
 
         resultString = "<img src=\"https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png\">";
         resultString += "<p>Pic with words: "+AzureOcr.postSingleAsset(hasTextUrl, "en")+"</p><br>";
 
-        resultString += "<img src=\"https://www.whaleshark.org/wildbook_data_dir/5/a/5a1e8ee7-8e30-4913-8998-2b89368d1b2d/e38c2895-fecc-46e3-9e94-c4a3cf29da63-mid.jpg\">";
+        resultString += "<img src=\"https://www.whaleshark.org/ncaquariums_data_dir/5/a/5a1e8ee7-8e30-4913-8998-2b89368d1b2d/e38c2895-fecc-46e3-9e94-c4a3cf29da63-mid.jpg\">";
         resultString += "<p>Pic with nothing: "+AzureOcr.postSingleAsset(noTextURL, "en")+"</p><br>"; 
 
         resultString += "<img src=\"https://imgs.mongabay.com/wp-content/uploads/sites/22/2016/02/03165949/Splash-tag-on-shark.jpg\">";

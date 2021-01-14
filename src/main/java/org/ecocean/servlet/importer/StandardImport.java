@@ -2327,10 +2327,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return AssetStore.getDefault(myShepherd);
     //return AssetStore.get(myShepherd, 1);
 
-    // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
+    // String assetStorePath="/var/lib/tomcat7/webapps/ncaquariums_data_dir";
     // // TODO: fix this for flukebook
-    // // String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-    // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
+    // // String assetStoreURL="http://flukebook.wildbook.org/ncaquariums_data_dir";
+    // String assetStoreURL="http://54.71.122.188/ncaquariums_data_dir";
 
     // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
 
