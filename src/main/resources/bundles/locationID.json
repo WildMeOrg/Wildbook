@@ -3,31 +3,32 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-{ "name":"EastAustralia.CapeByron", "id":"EastAustralia.CapeByron", "locationID":[] },
+{ "name":"Australia", "id":"Australia", "locationID":[
+	{ "name":"East Australia", "id":"East Australia", "locationID":[
+		{ "name":"Cape Byron", "id":"Cape Byron", "locationID":[] }
+	] }
+] },
 
 { "name":"Mozambique", "id":"Mozambique", "locationID":[
 
-	{ "name":"Mozambique.Amazon", "id":"Mozambique.Amazon", "locationID":[] },
+	{ "name":"Bazaruto", "id":"Bazaruto", "locationID":[] },
 
-	{ "name":"Mozambique.Bazaruto", "id":"Mozambique.Bazaruto", "locationID":[] },
+	{ "name":"Morrungulo", "id":"Morrungulo", "locationID":[] },
 
-	{ "name":"Mozambique.Giants Castle", "id":"Mozambique.Giants Castle", "locationID":[] },
+	{ "name":"Pomene", "id":"Pomene", "locationID":[] },
 
-	{ "name":"Mozambique.Hospital", "id":"Mozambique.Hospital", "locationID":[] },
+	{ "name":"San Sebastian", "id":"San Sebastian", "locationID":[] },
 
-	{ "name":"Mozambique.Manta Reef", "id":"Mozambique.Manta Reef", "locationID":[] },
+	{ "name":"Tofo", "id":"Tofo", "locationID":[
+		{ "name":"Amazon", "id":"Amazon", "locationID":[] },
+		{ "name":"Giants Castle", "id":"Giants Castle", "locationID":[] },
+		{ "name":"Hospital", "id":"Hospital", "locationID":[] },
+		{ "name":"Manta Reef", "id":"Manta Reef", "locationID":[] },
+		{ "name":"Office", "id":"Office", "locationID":[] },
+		{ "name":"Reggies", "id":"Reggies", "locationID":[] }
+	] },
 
-	{ "name":"Mozambique.Morrungulo", "id":"Mozambique.Morrungulo", "locationID":[] },
-
-	{ "name":"Mozambique.Office", "id":"Mozambique.Office", "locationID":[] },
-
-	{ "name":"Mozambique.Reggies", "id":"Mozambique.Reggies", "locationID":[] },
-
-	{ "name":"Mozambique.SanSebastian", "id":"Mozambique.SanSebastian", "locationID":[] },
-
-	{ "name":"Mozambique.Tofo", "id":"Mozambique.Tofo", "locationID":[] },
-
-	{ "name":"Mozambique.Zavora", "id":"Mozambique.Zavora", "locationID":[] }
+	{ "name":"Zavora", "id":"Zavora", "locationID":[] }
 
 ] },
 
