@@ -413,7 +413,7 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
-            
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
                 if (item.species != taxString) return null;
@@ -745,7 +745,10 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
+              System.out.println("got here 1");
           		String dispName = enc.getIndividual().getDisplayName(request, myShepherd);
+              System.out.println("got here 2");
+              System.out.println("dispName is: " + dispName);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -1498,7 +1501,7 @@ if(enc.getLocation()!=null){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
