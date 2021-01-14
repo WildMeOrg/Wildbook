@@ -123,7 +123,6 @@ finally{
 
 %>
 
-
 <jsp:include page="../header.jsp" flush="true"/>
 
   <style type="text/css">
@@ -515,24 +514,31 @@ function spotsCancel() {
 
 
 function spotsSave() {
+  console.log("spotsSave entered");
 	var sp = itool.spotsVisible();
 	console.log('sp = %o', sp);
 	if (sp.length < 1) return;
 //TODO verify we really have all we need (like when we updateSaveButton())
+console.log("got here 2");
 
 	$('#imageTools-spot-type-picker').hide();
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');
+  console.log("got here 3");
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
 	var sdata = { encId: encounterNumber, mediaAssetId: mediaAssetId, rightSide: (side == 'right'), spots: [], refSpots: [] };
+  console.log("got here 4");
 	sdata.imageToolValues = {
 		scale: itool.scale,
 		rotation: itool.rotation,
 		rect: itool.rect,
+    /* crossorigin: anonymous, */
 		_finalScale: scale
 	};
+  console.log("got here 5");
 	sdata.imageData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+  console.log("got here 6");
 
 /*
 	var pdata = 'number=' + encounterNumber;

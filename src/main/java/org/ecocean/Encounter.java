@@ -182,8 +182,8 @@ public class Encounter implements java.io.Serializable {
 
   // for searchability
   private String imageNames;
-  
-  
+
+
   private List<User> submitters;
   private List<User> photographers;
   private List<User> informOthers;
@@ -231,6 +231,7 @@ public class Encounter implements java.io.Serializable {
   private String hashedSubmitterEmail;
   private String hashedPhotographerEmail;
   private String hashedInformOthers;
+  private String informothers;
 
   //name, email, phone, address of the encounter photographer
   private String photographerName, photographerEmail, photographerPhone, photographerAddress;
@@ -331,16 +332,16 @@ public class Encounter implements java.io.Serializable {
   private DigitalArchiveTag digitalArchiveTag;
 
   private Boolean mmaCompatible = false;
-  
+
   // Variables used in the Survey, SurveyTrack, Path, Location model
-  
+
   private String correspondingSurveyTrackID = null;
   private String correspondingSurveyID = null;
-  
-  
+
+
   // This is the eventual replacement for the old decimal lat lon and other location data.
   private PointLocation pointLocation;
-  
+
   // This is the number used to cross reference with dates to find occurances. (Read Lab)
   private String sightNo = "";
 
@@ -754,7 +755,7 @@ public class Encounter implements java.io.Serializable {
   public Double getSizeAsDouble() {
     return size;
   }
-  
+
 
 
   /**
@@ -1212,8 +1213,8 @@ public class Encounter implements java.io.Serializable {
 	public static String dir(File baseDir, String id) {
 		return baseDir.getAbsolutePath() + File.separator + "encounters" + File.separator + subdir(id);
 	}
-	
-	
+
+
 
 
 	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
@@ -1227,7 +1228,7 @@ public class Encounter implements java.io.Serializable {
 	public static String subdir(String id) {
 	  return subdir(id, false);
 	}
-	
+
 	public static String subdir(String id, boolean forceUID) {
 	   String d = id;  //old-world
 	    // I THINK THIS LINE IS THE ISSUEE!!!! i was assuming that file names are unique id's, but they do not return true on Util.isUUID!!!!
@@ -1712,7 +1713,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
-  
+
 
 
  /*
@@ -2018,9 +2019,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setReleaseDate(Long releaseDate) {
     this.releaseDateLong = releaseDate;
   }
-  
+
   // Survey ect associations...
-  
+
   public void setSurveyTrackID(String id) {
     if (id != null && !id.equals("")) {
       this.correspondingSurveyTrackID = id;
@@ -2596,7 +2597,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
     return null;
   }
-  
+
   public String getEndDecimalLongitude(){
     if(endDecimalLongitude!=null){return Double.toString(endDecimalLongitude);}
     return null;
@@ -2805,7 +2806,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void setSatelliteTag(SatelliteTag satelliteTag) {
       this.satelliteTag = satelliteTag;
     }
-    
+
     public DigitalArchiveTag getDTag() {
       return digitalArchiveTag;
     }
@@ -4016,7 +4017,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         return this.getCatalogNumber().hashCode();
     }
 
-
+    public String getOLDInformOthersFORLEGACYCONVERSION() {
+      if (informothers == null) {
+        return "";
+      }
+      return informothers;
+    }
 
 
 }

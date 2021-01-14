@@ -156,7 +156,7 @@ public class Shepherd {
    * @ see encounter
    */
 
-  
+
   public String storeNewEncounter(Encounter enc, String uniqueID) {
     enc.setEncounterNumber(uniqueID);
     beginDBTransaction();
@@ -236,7 +236,7 @@ public class Shepherd {
       e.printStackTrace();
     }
   }
-  
+
   public void storeNewSurveyTrack(SurveyTrack stk) {
     beginDBTransaction();
     try {
@@ -248,7 +248,7 @@ public class Shepherd {
       e.printStackTrace();
     }
   }
-  
+
   public void storeNewPath(Path pth) {
     beginDBTransaction();
     try {
@@ -260,7 +260,7 @@ public class Shepherd {
       e.printStackTrace();
     }
   }
-  
+
   public void storeNewPointLocation(PointLocation plc ) {
     beginDBTransaction();
     try {
@@ -372,8 +372,8 @@ public class Shepherd {
       return false;
     }
   }
-  
-  
+
+
 
   public boolean storeNewSocialUnit(SocialUnit su) {
     beginDBTransaction();
@@ -592,7 +592,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
-  
+
   public Annotation getAnnotation(String uuid) {
     Annotation annot = null;
     try {
@@ -2316,7 +2316,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       return null;
     }
   }
-  
+
 
   public Iterator<Survey> getAllSurveys(Query acceptedSurveys, Map<String, Object> paramMap) {
     Collection c;
@@ -2689,8 +2689,8 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     query.closeAll();
     return null;
   }
-  
-  
+
+
 
 
 
@@ -2994,25 +2994,25 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       samples.closeAll();
       return myArray;
     }
-  
+
   public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
-    
+
     String up = milliString.substring(0, milliString.length() - 6) + 999999;
     String down = milliString.substring(0, milliString.length() - 6) + 000000;
-    
-    
+
+
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+down+" && dateInMilliseconds <= "+up+" ";
     Query encQuery = pm.newQuery(keywordQueryString);
     Collection col = null;
     try {
       encQuery = pm.newQuery(keywordQueryString);
       if (encQuery.execute() != null) {
-        col = (Collection) encQuery.execute();              
+        col = (Collection) encQuery.execute();
       }
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("Exception on query : "+keywordQueryString);    
+      System.out.println("Exception on query : "+keywordQueryString);
       return null;
     }
     ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
@@ -3596,10 +3596,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
   public int getNumMarkedIndividualsWithEncMatching(String filter) {
+    System.out.println("filter in getNumMarkedIndividualsWithEncMatching is: " + filter);
     int num = 0;
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query q = pm.newQuery("SELECT DISTINCT individualID FROM org.ecocean.Encounter WHERE "+filter);
+    Query q = pm.newQuery("SELECT DISTINCT individual.individualID FROM org.ecocean.Encounter WHERE "+filter);
     try {
       Collection results = (Collection) q.execute();
       num = results.size();
@@ -4723,7 +4724,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       //Extent indyClass = pm.getExtent(MarkedIndividual.class, true);
       Query acceptedIndividuals = pm.newQuery(filter);
       Collection<MarkedIndividual> c = (Collection<MarkedIndividual>) (acceptedIndividuals.execute());
-      indys = new ArrayList<>(c);      
+      indys = new ArrayList<>(c);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -5074,7 +5075,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 	    q.closeAll();
     return al;
   }
-  
+
   public Iterator<Survey> getAllSurveys() {
     Extent svyClass = pm.getExtent(Survey.class, true);
     Iterator svsIt = svyClass.iterator();
@@ -5314,7 +5315,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       q.closeAll();
     } catch (Exception e) {
       e.printStackTrace();
-    } 
+    }
     return null;
   }
 
@@ -5408,7 +5409,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
@@ -5425,10 +5426,10 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-        
+
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-        
+
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5450,7 +5451,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
@@ -5470,7 +5471,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-      
+
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
