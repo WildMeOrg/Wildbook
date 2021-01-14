@@ -181,7 +181,7 @@ File webappsDir = new File(rootWebappPath).getParentFile();
 System.out.println("\twebapps dir:\t"+webappsDir.getAbsolutePath());
 String dataDirName = CommonConfiguration.getDataDirectoryName(context);
 System.out.println("\tdata dir name:\t"+dataDirName);
-//File shepherdDataDir = new File("/data/wildbook_data_dir");
+//File shepherdDataDir = new File("/data/ncaquariums_data_dir");
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
 System.out.println("\tdata dir absolute:\t"+shepherdDataDir.getAbsolutePath());

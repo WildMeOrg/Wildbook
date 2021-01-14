@@ -66,10 +66,10 @@ ADD ./_config/${branch}/server.xml /usr/local/tomcat/conf/server.xml
 COPY --from=org.wildme.wildbook.build /wildbook/wildbook.war /usr/local/tomcat/webapps/wildbook.war
 
 RUN mkdir -p /data/ \
- && mkdir -p /data/wildbook_data_dir \
- && ln -s /data/wildbook_data_dir /usr/local/tomcat/webapps/wildbook_data_dir
+ && mkdir -p /data/ncaquariums_data_dir \
+ && ln -s /data/ncaquariums_data_dir /usr/local/tomcat/webapps/ncaquariums_data_dir
 
-VOLUME /data/wildbook_data_dir
+VOLUME /data/ncaquariums_data_dir
 
 ##########################################################################################
 FROM org.wildme.wildbook.install as org.wildme.wildbook.deploy

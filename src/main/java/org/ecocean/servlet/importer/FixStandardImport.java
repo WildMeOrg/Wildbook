@@ -128,7 +128,7 @@ FixStandardImport extends HttpServlet {
     initColIndexVariables(firstRow);
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
+
 		out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
@@ -175,7 +175,7 @@ FixStandardImport extends HttpServlet {
           +"<li> longitude "+enc.getDecimalLongitude()+"</li>"
           +"</ul></li>");
         }
-        
+
       }
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
@@ -189,7 +189,7 @@ FixStandardImport extends HttpServlet {
     out.println("<h2><em>Num Fixed Years: <strong>"+numFixedYears+"</strong></em></h2>");
 
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
     //fs.close();
   }
 
@@ -198,7 +198,7 @@ FixStandardImport extends HttpServlet {
 
 
   public Occurrence fixOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
+
     return null;
 
   	// Occurrence occ = getCurrentOccurrence(oldOcc, row);
@@ -311,7 +311,7 @@ FixStandardImport extends HttpServlet {
   		for (String columnHeader: colIndexMap.keySet()) {
   			if (columnHeader.contains(className+".")) {
   				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}	
+  			}
   		}
   	} catch (Exception e) {}
   	return fieldNames;
@@ -523,7 +523,7 @@ FixStandardImport extends HttpServlet {
     	newIndividual = true;
     }
     if (mark==null) return mark;
-		
+
 		if (!newIndividual) mark.addEncounterNoCommit(enc);
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
@@ -827,10 +827,10 @@ FixStandardImport extends HttpServlet {
 
     return AssetStore.getDefault(myShepherd);
 
-    // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
+    // String assetStorePath="/var/lib/tomcat7/webapps/ncaquariums_data_dir";
     // // TODO: fix this for flukebook
-    // // String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-    // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
+    // // String assetStoreURL="http://flukebook.wildbook.org/ncaquariums_data_dir";
+    // String assetStoreURL="http://54.71.122.188/ncaquariums_data_dir";
 
     // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
 
@@ -843,7 +843,7 @@ FixStandardImport extends HttpServlet {
     // }
 
     // return as;
-    
+
   }
 
 

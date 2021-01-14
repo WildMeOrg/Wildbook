@@ -18,7 +18,7 @@ services:
       - "8080:8080"
       - "8009:8009"
     volumes:
-      - ./wildbook_tomcat_data_dir:/data/wildbook_data_dir/
+      - ./wildbook_tomcat_data_dir:/data/ncaquariums_data_dir/
     environment:
       - DB_CONNECTION_URL=jdbc:postgresql://postgres:5432/wildbook
     restart: always

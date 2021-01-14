@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.Properties; 
+import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ public class ShepherdProperties {
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
-  
+
   public static Properties getProperties(String fileName, String langCode){
     return getProperties(fileName, langCode, "context0");
   }
@@ -38,15 +38,15 @@ public class ShepherdProperties {
   // This method works just like getProperties, except it gives priority to your organization-specific .properties overwrite file
   //   + It checks the logged-in user to see if they are in an organization with an overwrite .properties file
   //   + If they are, this overwrite .properties file gets priority over the default file.
-  //   + overwrite files are in wildbook_data_dir/classes/bundles/<organization>.properties
+  //   + overwrite files are in ncaquariums_data_dir/classes/bundles/<organization>.properties
   public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
   }
-  
+
   public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request, Shepherd myShepherd) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request, myShepherd));
   }
-  
+
   public static Properties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
     return getOrgProperties(fileName, langCode, ServletUtilities.getContext(request), request);
   }
@@ -55,7 +55,7 @@ public class ShepherdProperties {
   public static Properties getOverwriteProps(HttpServletRequest request) {
     String filename = getOverwriteStringForUser(request);
     if (filename==null) return null;
-    String fullPath = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+filename;
+    String fullPath = "webapps/ncaquariums_data_dir/WEB-INF/classes/bundles/"+filename;
     return (Properties)loadProperties(fullPath);
   }
 
@@ -72,7 +72,7 @@ public class ShepherdProperties {
     if (user==null) return null;
     return getOverwriteStringForUser(user);
   }
-  
+
   public static String getOverwriteStringForUser(HttpServletRequest request) {
     Shepherd myShepherd = new Shepherd(request);
     myShepherd.setAction("getOverwriteStringForUser");
@@ -82,10 +82,10 @@ public class ShepherdProperties {
     myShepherd.closeDBTransaction();
     return myString;
   }
-  
-  
-  
-  
+
+
+
+
   public static String getOverwriteStringForUser(User user) {
     if (user == null || user.getOrganizations()==null) return null;
     for (Organization org: user.getOrganizations()) {
@@ -119,10 +119,10 @@ public class ShepherdProperties {
     // initializing
     boolean verbose = (Util.stringExists(overridePrefix));
 
-    String shepherdDataDir="wildbook_data_dir";
+    String shepherdDataDir="ncaquariums_data_dir";
     Properties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null) {
-      shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
+      shepherdDataDir=contextsProps.getProperty(context+"DataDir");
     }
 
     if (Util.stringExists(langCode) && !langCode.endsWith("/")) langCode += "/";
