@@ -133,11 +133,17 @@ else{
 	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
 }
-finally{
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-	myShepherd=null;
+
+// security
+if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
+  rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
 }
+
+if (rIndividuals.size() < listNum) {
+  listNum = rIndividuals.size();
+}
+
 %>
 
 
@@ -337,6 +343,7 @@ int numDataContributors=0;
         <div class="row gunit-row">
         <%
         MarkedIndividual[] pair = new MarkedIndividual[2];
+        ArrayList<JSONObject>[] exemps = new ArrayList[2];
         if(rIndividuals.get(i*2)!=null){
         	pair[0]=rIndividuals.get(i*2);
         }
@@ -358,7 +365,8 @@ int numDataContributors=0;
               if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
             }
           }
-          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd, request);
+          exemps[j]=al;
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -416,7 +424,8 @@ int numDataContributors=0;
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              // ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
+              ArrayList<JSONObject> al =exemps[j];
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
@@ -494,7 +503,7 @@ int numDataContributors=0;
                     <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
                   <%
                   }
-                  %>  
+                  %>
                     <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
                   </div>
                 </td>

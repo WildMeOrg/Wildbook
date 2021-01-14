@@ -1358,10 +1358,7 @@ else {
       	Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
         int numUsers = users.size();
 
-      if (loggedIn) {
-    %>
-      <div class="col-md-6">
-        <strong><%=props.getProperty("username")%></strong><br />
+      %>
 
       <select multiple size="5" name="username" id="username">
         <option value="None"></option>
