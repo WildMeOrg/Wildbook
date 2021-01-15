@@ -2922,6 +2922,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
+    // all an enc's annotations on a given asset (might be multiple if parts are involved)
+    public List<Annotation> getAnnotations(MediaAsset ma) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (Annotation ann: getAnnotations()) {
+          if (ann.getMediaAsset() == ma) anns.add(ann);
+        }
+        return anns;
+    }
+
     public void setAnnotations(ArrayList<Annotation> anns) {
         annotations = anns;
     }
@@ -2955,6 +2964,47 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
       if (trivialAnn != null) replaceAnnotation(trivialAnn, newAnn);
       else addAnnotation(newAnn);
+    }
+
+    public void resetAllAnnotations(Shepherd myShepherd) throws IOException {
+      resetAllAnnotations(myShepherd, true);
+    }
+
+    // this is tricky because we might have multiple annots on one image if there are parts involved
+    public void resetAllAnnotations(Shepherd myShepherd, boolean commit) throws IOException {
+      ArrayList<MediaAsset> allAssets = getMedia();
+      for (MediaAsset ma: allAssets) {
+        List<Annotation> thisMaAnns = getAnnotations(ma);
+        Annotation ann = thisMaAnns.get(0); // if we hit an index OOR exception here there's a bug in getAnnotations(ma) or getMedia()
+        Annotation trivialAnn = ann.revertToTrivial(myShepherd, true);
+        if (commit) {
+          myShepherd.throwAwayAnnotation(ann, true);
+          myShepherd.storeNewAnnotation(trivialAnn);
+        }
+        if (thisMaAnns.size() > 1) {
+          for (int i=1; i<thisMaAnns.size(); i++) {
+            Annotation oldAnn = thisMaAnns.get(i);
+            this.removeAnnotation(oldAnn);
+            if (commit) myShepherd.throwAwayAnnotation(oldAnn, true);
+          }
+        }
+        ma.setDetectionStatus(null); // we certainly haven't detected the image with all these annots killed
+      }
+    }
+
+    public int nPredetectionMas() {
+      int nPredetection = 0;
+      for (MediaAsset ma: getMedia()) {
+        // to be "predetection" an MA must have null detection status and exactly 1, trivial, annot.
+        boolean isPredetection = (ma.getDetectionStatus() == null);
+        List<Annotation> thisMaAnns = getAnnotations(ma);
+        isPredetection = isPredetection && thisMaAnns.size() == 1;
+        for (Annotation ann: getAnnotations(ma)) {
+          isPredetection = isPredetection && ann.isTrivial();
+        }
+        if (isPredetection) nPredetection++;
+      }
+      return nPredetection;
     }
 
 /*  officially deprecating this (until needed?) ... work now being done with replaceAnnotation() basically   -jon
@@ -3107,16 +3157,17 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
     }
 
 
-    //convenience method
     public ArrayList<MediaAsset> getMedia() {
-        ArrayList<MediaAsset> m = new ArrayList<MediaAsset>();
-        if ((annotations == null) || (annotations.size() < 1)) return m;
+        // we want a set bc part annots mean we might have multiple annots on one mediaasset
+        Set<MediaAsset> assets = new HashSet<MediaAsset>();
+        if ((annotations == null) || (annotations.size() < 1)) return new ArrayList<MediaAsset>();
         for (Annotation ann : annotations) {
             if (ann==null) continue; // really weird that this happens sometimes
             MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) m.add(ma);
+            if (ma != null) assets.add(ma);
         }
-        return m;
+        // list from the set
+        return new ArrayList<MediaAsset>(assets);
     }
 
     public MediaAsset getMediaAssetByFilename(String filename) {
@@ -3751,6 +3802,14 @@ throw new Exception();
     public ImportTask getImportTask(Shepherd myShepherd) {
         return myShepherd.getImportTaskForEncounter(this);
     }
+    // for even more convenience
+    public String getImportTaskId(Shepherd myShepherd) {
+        ImportTask impy = getImportTask(myShepherd);
+        String taskId = (impy != null) ? impy.getId() : null;
+        return taskId;
+    }
+
+
 
     //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
     //  TODO figure out what this really means
