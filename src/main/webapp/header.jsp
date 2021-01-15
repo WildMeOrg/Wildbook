@@ -64,7 +64,7 @@ if (pageTitle == null) {
 
 String username = null;
 User user = null;
-String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+String profilePhotoURL=urlLoc+"images/image-not-found.jpg";
 boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
 String notifications="";
@@ -78,6 +78,7 @@ try {
     username = (user!=null) ? user.getUsername() : null;
   	if(user.getUserImage()!=null){
   	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+      System.out.println("new profilePhotoURL is: " + profilePhotoURL);
   	}
   }
 }
@@ -122,9 +123,6 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
-      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
-      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
-
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
@@ -196,6 +194,9 @@ finally{
     <style>
       ul.nav.navbar-nav {
         width: 100%;
+      }
+      .el-search{
+        color: black;
       }
 
     </style>
@@ -378,7 +379,7 @@ finally{
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
                               <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                               <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <span class="el el-lg el-search"></span>
+                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
                           </form>
                       </label>
                     </div>
