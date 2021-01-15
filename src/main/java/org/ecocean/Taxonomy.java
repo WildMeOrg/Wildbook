@@ -138,6 +138,7 @@ public class Taxonomy implements java.io.Serializable {
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("scientificName", scientificName);
+        j.put("itisTsn", itisTsn);
         j.put("commonNames", commonNames);
         return j;
     }
@@ -145,6 +146,7 @@ public class Taxonomy implements java.io.Serializable {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
+                .append("itisTsn", itisTsn)
                 .append("scientificName", scientificName)
                 .toString();
     }
