@@ -530,8 +530,18 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
-  public void throwAwayAnnotation(Annotation ad) {
-    pm.deletePersistent(ad);
+  public void throwAwayAnnotation(Annotation ann) {
+    throwAwayAnnotation(ann, false);
+  }
+
+  public void throwAwayAnnotation(Annotation ann, boolean removeFromTasks) {
+    if (removeFromTasks) {
+      List<Task> tasks = getTasks(ann);
+      for (Task task: tasks) {
+        task.removeObject(ann);
+      }
+    }
+    pm.deletePersistent(ann);
   }
 
   public void throwAwayKeyword(Keyword word) {
@@ -3304,6 +3314,14 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return theTask;
   }
 
+  public List<Task> getTasks(Annotation ann) {
+    Query tq = pm.newQuery("SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(ann) && ann.id=='" + ann.getId() + "'");
+    Collection c = (Collection) tq.execute();
+    List tasks = new ArrayList<Task>(c);
+    tq.closeAll();
+    return tasks;
+  }
+
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
     try {
@@ -5277,7 +5295,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
@@ -5294,10 +5312,10 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-        
+
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-        
+
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5319,7 +5337,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
@@ -5339,7 +5357,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-      
+
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
