@@ -378,7 +378,10 @@ int numDataContributors=0;
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
-          if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
+          if (indie.getNickName()!=null && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")){
+            System.out.println("got in here");
+            pairNickname[j] = indie.getNickName();
+          }
           %>
           <div class="col-xs-6">
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
