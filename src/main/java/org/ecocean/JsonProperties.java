@@ -39,7 +39,7 @@ public class JsonProperties extends Properties {
 		}
 		catch (Exception e) {
 			System.out.println("Hit an exception on new JsonProperties:");
-			e.printStackTrace();
+			// e.printStackTrace(); //TODO comment back in once IA.json is set up for seabass
 		}
 
 	}
@@ -151,4 +151,3 @@ public class JsonProperties extends Properties {
 
 
 }
-
