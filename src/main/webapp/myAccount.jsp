@@ -434,7 +434,7 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					}
 					
 				}
-				else if (state.equals(Collaboration.STATE_APPROVED)) {
+				else if (state.equals(Collaboration.STATE_APPROVED) && !c.getUsername1().equals("public") && !c.getUsername2().equals("public")) {
 					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
 					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
 				} 

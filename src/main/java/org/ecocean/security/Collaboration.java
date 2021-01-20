@@ -361,21 +361,46 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
-		String context = ServletUtilities.getContext(request);
+		
+	  //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject1");    
+	  
+	  String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
+		
+    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject2");    
+		
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
-		if (request.getUserPrincipal() == null) return false;
-		String username = request.getUserPrincipal().getName();
-//System.out.println("username->"+username);
+		
+    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject3");    
+		
 		if (User.isUsernameAnonymous(ownerName)) return true;  //anon-owned is "fair game" to anyone
-//System.out.println("owner->" + owner);
-//System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+
+    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject4");    
+		
+		if (request.getUserPrincipal() == null) {  
+		  return canCollaborate(context, ownerName, "public");
+		};
+		
+    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject5");    
+		
+		String username = request.getUserPrincipal().getName();
+		//System.out.println("username->"+username);
+		//System.out.println("owner->" + owner);
+		//System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject6");    
+		
 		return canCollaborate(context, ownerName, username);
 
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
-		return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+	  System.out.println("!!!!!In Collaboration.canUserAccessEncounter1");
+    
+	  if(enc!=null && enc.getSubmitterID()==null) return true;
+	  
+	  System.out.println("!!!!!In Collaboration.canUserAccessEncounter2");    
+	  
+	  return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
