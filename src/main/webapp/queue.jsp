@@ -240,7 +240,7 @@ System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")"
             } else {
                 all[36] = "???";
             }
-            
+
             rows.add(all);
         }
     }
@@ -262,6 +262,7 @@ User user = AccessControl.getUser(request, myShepherd);
 if (user == null) {
     myShepherd.rollbackDBTransaction();
     response.sendRedirect("login.jsp");
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -283,6 +284,7 @@ if (!"admin".equals(maxRole)) {
     System.out.println("INFO: queue.jsp non-admin, so bailing cuz second trial has ended");
     session.invalidate();
     response.sendRedirect("secondTrialEnd.jsp");
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -291,6 +293,7 @@ if (maxRole == null) {
     //response.sendError(401, "access denied - no valid role");
     myShepherd.rollbackDBTransaction();
     response.sendRedirect("register.jsp");
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -298,6 +301,7 @@ if (maxRole.equals("cat_walk_volunteer")) {
     System.out.println("queue.jsp: sending " + user + " to appUser.jsp");
     myShepherd.rollbackDBTransaction();
     response.sendRedirect("appUser.jsp");
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -323,6 +327,7 @@ if (isAdmin && (request.getParameter("MatchPhoto") != null)) {
     }
 
     myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -404,6 +409,7 @@ if (!forceList && (encs.size() > 0)) {
     String redir = "encounters/encounterDecide.jsp?id=" + foundId;
     myShepherd.rollbackDBTransaction();
     response.sendRedirect(redir);
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -697,4 +703,5 @@ function filter(state) {
 
 <%
 myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 %>

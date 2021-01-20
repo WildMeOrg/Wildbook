@@ -302,4 +302,5 @@ if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : i
 
 <%
 myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 %>
