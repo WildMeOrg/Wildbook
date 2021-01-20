@@ -99,7 +99,7 @@
     }
   }
 
-
+	/*
 	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
 		if ((request == null) || (enc == null)) return false;
 		JSONObject jobj = new JSONObject();
@@ -112,6 +112,7 @@
 		}
 		return true;
 	}
+	*/
 
 	private String escapeSpecialRegexChars(String str) {
 		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
@@ -569,50 +570,50 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
-            	System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
+            	//System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             	String encNum = enc.getCatalogNumber();
-						boolean visible = enc.canUserAccess(request);
-						if (!visible) visible = checkAccessKey(request, enc);
-						if (!visible) {
+				boolean visible = enc.canUserAccess(request);
+				System.out.println("visible: "+visible);
+				//if (!visible) visible = checkAccessKey(request, enc);
+				if (!visible) {
 
 
-              // remove any potentially-sensitive data, labeled with the secure-field class
-              %>
-              <script type="text/javascript">
-                $(document).ready(function() {
-                  $('.secure-field').remove();
-                });
-              </script>
-              <%
+	              // remove any potentially-sensitive data, labeled with the secure-field class
+	              %>
+	              <script type="text/javascript">
+	                $(document).ready(function() {
+	                  $('.secure-field').remove();
+	                });
+	              </script>
+	              <%
 
+					String blocker = "";
+					List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+					Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+					String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+					String uid = null;
+					String name = null;
+            				String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
+					if (request.getUserPrincipal() == null) {
+						cmsg = "<p>Access limited.</p>";
+					} if ((c == null) || (c.getState() == null)) {
+						uid = enc.getAssignedUsername();
+						name = enc.getSubmitterName();
+						if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+					} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
+					} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
+					}
 
-							String blocker = "";
-							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
-							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-							String uid = null;
-							String name = null;
-              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
-							if (request.getUserPrincipal() == null) {
-								cmsg = "<p>Access limited.</p>";
-							} if ((c == null) || (c.getState() == null)) {
-								uid = enc.getAssignedUsername();
-								name = enc.getSubmitterName();
-								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
-							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
-							} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
-							}
-
-							cmsg = cmsg.replace("'", "\\'");
-							if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
-							} else {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
-							}
-							out.println(blocker);
-						}
+					cmsg = cmsg.replace("'", "\\'");
+					if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+					} else {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+					}
+					out.println(blocker);
+				} //end if !visible
 
 
       			pageContext.setAttribute("enc", enc);
@@ -621,12 +622,12 @@ var encounterNumber = '<%=num%>';
         			livingStatus = " (deceased)";
       			}
 
-if (request.getParameter("refreshImages") != null) {
-	System.out.println("refreshing images!!! ==========");
-	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
-	enc.refreshAssetFormats(myShepherd);
-	System.out.println("============ out ==============");
-}
+				if (request.getParameter("refreshImages") != null) {
+					System.out.println("refreshing images!!! ==========");
+					//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+					enc.refreshAssetFormats(myShepherd);
+					System.out.println("============ out ==============");
+				}
 
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
