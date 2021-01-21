@@ -91,7 +91,7 @@
 
 				/import/** = authc, roles[researcher]
 
-				/gallery.jsp = authc
+				#/gallery.jsp = authc
 				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
