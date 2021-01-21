@@ -4897,11 +4897,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   public ArrayList<String> getAllSocialUnitNames() {
     ArrayList<String> comNames=new ArrayList<String>();
-    Query q = pm.newQuery(Relationship.class);
+    Query q = pm.newQuery(SocialUnit.class);
     try{
 
-      q.setResult("distinct relatedSocialUnitName");
-      q.setOrdering("relatedSocialUnitName ascending");
+      q.setResult("distinct socialUnitName");
+      q.setOrdering("socialUnitName ascending");
       Collection results = (Collection) q.execute();
       comNames=new ArrayList<String>(results);
 
