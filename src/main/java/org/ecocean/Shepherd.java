@@ -476,6 +476,15 @@ public class Shepherd {
     String number = enc.getEncounterNumber();
     pm.deletePersistent(enc);
   }
+  public void throwAwayEncounterAndAnnots(Encounter enc) {
+    for (Annotation ann: enc.getAnnotations()) {
+      enc.removeAnnotation(ann);
+      ann.setMatchAgainst(false);
+      throwAwayAnnotation(ann, true);
+    }
+    throwAwayEncounter(enc);
+  }
+
 
   public void throwAwayWorkspace(Workspace wSpace) {
     pm.deletePersistent(wSpace);

@@ -1286,4 +1286,41 @@ System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         return null;
     }
 
+    // checks a bunch of class values and if any of them differ, return false
+    public boolean equals(Annotation ann) {
+        if (ann == null) return false;
+        int thisMaId = (this.getMediaAsset() != null) ? this.getMediaAsset().getId() : -1;
+        int thatMaId = (ann.getMediaAsset() != null) ? ann.getMediaAsset().getId() : -1;
+        return (
+            thisMaId == thatMaId &&
+            Util.nullSafeEquals(ann.getAcmId(), this.getAcmId()) &&
+            Util.nullSafeEquals(ann.getIAClass(), this.getIAClass()) &&
+            Util.nullSafeEquals(ann.getQuality(), this.getQuality()) &&
+            Util.nullSafeEquals(ann.getViewpoint(), this.getViewpoint()) &&
+            Util.nullSafeEquals(ann.getAcmId(), this.getAcmId()) &&
+            Arrays.equals(ann.getBbox(), this.getBbox())
+        );
+    }
+
+    // doesn't care about the order of the lists
+    public static boolean listsEqual(List<Annotation> anns1, List<Annotation> anns2) {
+        // this check might save some time
+        if (anns1.size() != anns2.size()) return false;
+
+        // so we can remove from the list while iterating
+        List<Annotation> unequalAnns1 = new ArrayList<Annotation>(anns1);
+        List<Annotation> unequalAnns2 = new ArrayList<Annotation>(anns2);
+        // check that every ann in anns1 equals some ann in anns2, and that each annot fits this criteria exactly once
+        for (Annotation ann1: anns1) {
+            for (Annotation ann2: anns2) {
+                if (ann1.equals(ann2)) {
+                    unequalAnns1.remove(ann1);
+                    unequalAnns2.remove(ann2);
+                    break;  // don't keep checking for equality after finding a match
+                }
+            }
+        }
+        return (unequalAnns1.size() == 0 && unequalAnns2.size() == 0);
+    }
+
 }

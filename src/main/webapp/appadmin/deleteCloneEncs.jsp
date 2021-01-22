@@ -13,9 +13,12 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
   boolean needsToBeFixed(Encounter enc) {
     String genus = enc.getGenus();
     if (!"Lycaon".equals(genus)) return false;
+    //return ("BPC_OvrvwWtd_Fldr161_2020_3_24".equals(enc.getOccurrenceID()));
+
     long cutoff = 1610006400000l; // 1/8/2021, PST
     long submitted = enc.getDWCDateAddedLong();
     return (submitted < cutoff);
+
   }
 %>
 
@@ -55,12 +58,15 @@ int errors=0;
 int totalEncs=0;
 int badRows=0;
 
+int stopAfter = 100;
+int count=0;
+
 List<String> orphanAnnots = new ArrayList<String>();
 
 try {
 
-  boolean committing=true;
-  boolean committingEncs=true; // so we can double-check we've deleted the other objects without deleting the link to all of them, ie the encounter
+  boolean committing=false;
+  boolean committingEncs=false; // so we can double-check we've deleted the other objects without deleting the link to all of them, ie the encounter
   %>
     <p>Starting! committing = <%=committing%> and committingEncs = <%=committingEncs%> </p>
     <hr></hr>
@@ -71,12 +77,12 @@ try {
   System.out.println("we have "+allEncs.size()+" encounters.");
 
 
-  int printPeriod = 100;
-  int count=0;
+  int printPeriod = 50;
   totalEncs=allEncs.size();
 
 
-  for (Encounter enc: allEncs) {
+  for (int i=0; i<totalEncs && count<stopAfter; i++) {
+    Encounter enc = allEncs.get(i);
 
     if (!needsToBeFixed(enc)) continue;
     count++;
@@ -95,7 +101,7 @@ try {
 
     if (verbose) {
       %><li>Row <%=count %><ul>
-        <li>Encounter <%=enc %></li>
+        <li>Encounter <a href="<%=enc.getWebUrl(request)%>"><%=enc %> </a></li>
         <li>Occurrence <%=occ %></li>
         <li>Individual <%=mark %></li>
       </ul></li><%
@@ -177,7 +183,7 @@ finally{
 
 </ul>
 <p>Done successfully: <%=totalEncs %> encounters returned by myShepherd</p>
-<p>Done successfully: <%=numFixes %> of which passed shouldBeFixed</p>
+<p>Done successfully: <%=count %> of which passed shouldBeFixed</p>
 <p>Done successfully: <%=numEncs %> deleted encounters</p>
 <p><strong>Errors: <%=errors %></strong></p>
 <hr></hr>

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
@@ -14,7 +14,8 @@ java.util.Vector,
 java.util.ArrayList,
 org.json.JSONObject,
 org.json.JSONArray,
-java.util.Properties" %>
+java.util.Properties,
+java.util.List" %>
 
 <%!
 	//public Shepherd myShepherd = null;
@@ -102,7 +103,7 @@ java.util.Properties" %>
 				if (enc!=null) {
 					h += "<li><a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a>";
 					h+= showEncounter(enc, req);
-					h+= "</li>";	
+					h+= "</li>";
 				} else {
 					h += "<li>NULL Emcpimter!</li>";
 				}
@@ -139,6 +140,16 @@ java.util.Properties" %>
 		String vp = ann.getViewpoint();
                 if (!Annotation.isValidViewpoint(vp)) vp = "<span title=\"INVALID viewpoint value\" style=\"background-color: #F88; font-size: 0.8em; padding: 0 8px;\">" + vp + "</span>";
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
+
+        List<Task> tasks = myShepherd.getTasks(ann);
+        h += "<li>IA Tasks:<ul>";
+        for (Task task: tasks) {
+            String taskLink = "obrowse.jsp?type=Task&id=" + task.getId();
+            h += "<li><a href=\""+taskLink+"\">Task " + task.getId() + "</a></li>";
+        }
+        if (Util.collectionIsEmptyOrNull(tasks)) h += "(no IA tasks)";
+        h += "</ul></li>";
+
 		h += "<li>" + format("iaClass", ann.getIAClass()) + "</li>";
 		h += "<li>" + format("viewpoint", vp) + "</li>";
 		h += "<li>" + format("acmId", ann.getAcmId()) + "</li>";
@@ -281,7 +292,7 @@ java.util.Properties" %>
 			h += "<a target=\"_new\" href=\"" + scrubUrl(ma.webURL()) + "\"><div class=\"img-margin\"><div id=\"img-wrapper\"><img onLoad=\"drawFeatures();\" title=\".webURL() " + ma.webURL() + "\" src=\"" + scrubUrl(ma.webURL()) + "\" /></div></div></a>";
 
 		}
-                h += "<ul style=\"width: 65%\">";
+        h += "<ul style=\"width: 65%\">";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures(), req, myShepherd) + "</li>";
@@ -290,6 +301,18 @@ java.util.Properties" %>
 		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
         h += "<li>hasMetadata(): " + ma.hasMetadata() + "</li>";
+
+        List<Task> tasks = Task.getTasksFor(ma, myShepherd);
+        h += "<li>IA Tasks:<ul>";
+        for (Task task: tasks) {
+            String taskLink = "obrowse.jsp?type=Task&id=" + task.getId();
+            h += "<li><a href=\""+taskLink+"\">Task " + task.getId() + "</a></li>";
+        }
+        if (Util.collectionIsEmptyOrNull(tasks)) h += "(no IA tasks)";
+        h += "</ul></li>";
+
+
+
         //Shepherd maShepherd = Shepherd.newActiveShepherd(req, "showMediaAsset");
         //h += "<li>hasFamily(): " + ma.hasFamily(new Shepherd(req)) + "</li>";
         h += "<li>hasFamily(): " + ma.hasFamily(myShepherd) + "</li>";
@@ -369,7 +392,7 @@ java.util.Properties" %>
 String id = request.getParameter("id");
 String type = request.getParameter("type");
 
-// IA debuggin use.. Can retrieve Annotations 
+// IA debuggin use.. Can retrieve Annotations
 String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
@@ -531,7 +554,7 @@ context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
 //set up the file input stream
@@ -610,12 +633,8 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;
 		}
-		
-	}
-	
 
-	
-	
+	}
 
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmid==null) {
@@ -709,7 +728,18 @@ if (type.equals("Encounter")) {
 	}
 
 
-} else {
+} else if (type.equals("Occurrence")) {
+    try {
+        Occurrence oc = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, id), true)));
+        out.println(showOccurrence(oc, request));
+    } catch (Exception ex) {
+        out.println("<p>ERROR: " + ex.toString() + "</p>");
+        ex.printStackTrace();
+        needForm = true;
+    }
+
+
+}else {
 	out.println("<p>unknown type</p>>");
 	needForm = true;
 }
