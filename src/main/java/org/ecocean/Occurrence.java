@@ -68,9 +68,9 @@ public class Occurrence implements java.io.Serializable {
   private Double seaSurfaceTemp;
   private Double swellHeight;
   private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
-  
+
   // Variables used in the Survey, SurveyTrack, Path, Location model
-  
+
   private String correspondingSurveyTrackID;
   private String correspondingSurveyID;
   //social media registration fields for AI-created occurrences
@@ -178,10 +178,10 @@ public class Occurrence implements java.io.Serializable {
     return isNew;
 
   }
-  
+
   //private void updateNumberOfEncounters() {
   //  if (individualCount!=null) {
-  //    individualCount = encounters.size();      
+  //    individualCount = encounters.size();
   //  }
   //}
 
@@ -194,6 +194,13 @@ public class Occurrence implements java.io.Serializable {
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
+  }
+  public Encounter getEncounter(int i) {
+    return getEncounters().get(i);
+  }
+  public int numEncounters() {
+    if (encounters == null) return 0;
+    return getEncounters().size();
   }
   public List<String> getEncounterIDs(){
     List<String> res = new ArrayList<String>();
@@ -281,7 +288,7 @@ public class Occurrence implements java.io.Serializable {
     public void setInformOthers(List<User> users) {
         this.informOthers=users;
     }
-    
+
     public String getSource() {
         return source;
     }
@@ -381,7 +388,7 @@ public class Occurrence implements java.io.Serializable {
   public String getWebUrl(HttpServletRequest req) {
     return getWebUrl(getOccurrenceID(), req);
   }
-  
+
   public String getOccurrenceID(){
     return occurrenceID;
   }
@@ -389,7 +396,7 @@ public class Occurrence implements java.io.Serializable {
   public void setOccurrenceID(String id){
     occurrenceID = id;
   }
-  
+
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}
@@ -643,7 +650,7 @@ public class Occurrence implements java.io.Serializable {
     }
     return null;
   }
-  
+
   public void setCorrespondingSurveyTrackID(String id) {
     if (id != null && !id.equals("")) {
       correspondingSurveyTrackID = id;
@@ -656,20 +663,20 @@ public class Occurrence implements java.io.Serializable {
     }
     return null;
   }
-  
+
   public void setCorrespondingSurveyID(String id) {
     if (id != null && !id.equals("")) {
       correspondingSurveyID = id;
     }
   }
-  
+
   public String getCorrespondingSurveyID() {
     if (correspondingSurveyID != null) {
       return correspondingSurveyID;
     }
     return null;
   }
-  
+
   public Survey getSurvey(Shepherd myShepherd) {
     Survey sv = null;
     if (correspondingSurveyID!=null) {
@@ -1088,16 +1095,46 @@ public class Occurrence implements java.io.Serializable {
       if (dt == null) dateTimeLong = null;
       else dateTimeLong = dt.getMillis();
     }
-    
+    public Long getEarliestDateAddedLong() {
+      Long earliest = null; // year 2100
+      for (Encounter enc: getEncounters()) {
+        Long added = enc.getDWCDateAddedLong();
+        if (added != null && earliest == null) earliest = added;
+        else if (added != null && earliest != null && added < earliest) earliest = added;
+      }
+      return earliest;
+    }
+
+    public Long getLatestDateAddedLong() {
+      Long latest = null; // year 2100
+      for (Encounter enc: getEncounters()) {
+        Long added = enc.getDWCDateAddedLong();
+        if (added != null && latest == null) latest = added;
+        else if (added != null && latest != null && added > latest) latest = added;
+      }
+      return latest;
+    }
+
+    public boolean hasCloneEncounters() {
+      String cloneComment = "NOTE: cloneWithoutAnnotations";
+      for (Encounter enc: getEncounters()) {
+        String rComments = enc.getRComments();
+        if (rComments != null && rComments.indexOf(cloneComment) != -1) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     //social media registration fields for AI-created occurrences
     public String getSocialMediaSourceID(){return socialMediaSourceID;};
     public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
-    
-    
+
+
     public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
     public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
     //each night we look for one occurrence that has commentid but not commentresponseid.
-    
+
     public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
@@ -1106,13 +1143,13 @@ public class Occurrence implements java.io.Serializable {
       if(getMediaAssetsOfType(aType).size()>0){return true;}
       return false;
     }
-    
+
     public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
-      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();
       try{
         int numEncs=encounters.size();
         for(int k=0;k<numEncs;k++){
-          
+
           ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
           int numAssets=assets.size();
           for(int i=0;i<numAssets;i++){
@@ -1124,12 +1161,12 @@ public class Occurrence implements java.io.Serializable {
       catch(Exception e){e.printStackTrace();}
       return results;
     }
-    
+
     public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
       try{
         int numEncs=encounters.size();
         for(int k=0;k<numEncs;k++){
-          
+
           ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
           int numAssets=assets.size();
           for(int i=0;i<numAssets;i++){
@@ -1147,9 +1184,9 @@ public class Occurrence implements java.io.Serializable {
     }
     public void addObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
-        observations=arr;      
+        observations=arr;
       } else {
-       observations.addAll(arr); 
+       observations.addAll(arr);
       }
     }
     public void addObservation(Observation obs) {
@@ -1164,9 +1201,9 @@ public class Occurrence implements java.io.Serializable {
                break;
             }
           }
-        } 
+        }
         if (!found) {
-          observations.add(obs);        
+          observations.add(obs);
         }
       } else {
         observations.add(obs);
@@ -1177,7 +1214,7 @@ public class Occurrence implements java.io.Serializable {
         for (Observation ob : observations) {
           if (ob.getName() != null) {
             if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
-              return ob;            
+              return ob;
             }
           }
         }
@@ -1208,9 +1245,9 @@ public class Occurrence implements java.io.Serializable {
           }
           counter++;
         }
-      }  
-    } 
-    
+      }
+    }
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
 
@@ -1218,7 +1255,7 @@ public class Occurrence implements java.io.Serializable {
 
       return jobj;
   }
-    
+
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
       if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
@@ -1267,6 +1304,17 @@ public class Occurrence implements java.io.Serializable {
         e.printStackTrace();
       }
       return json;
+  }
+
+  public boolean hasDuplicateEncounters() {
+    for (int i=0; i<numEncounters(); i++) {
+      Encounter enc1 = getEncounter(i);
+      for (int j=i+1; j<numEncounters(); j++) {
+        Encounter enc2 = getEncounter(j);
+        if (enc1.equalish(enc2)) return true;
+      }
+    }
+    return false;
   }
 
 

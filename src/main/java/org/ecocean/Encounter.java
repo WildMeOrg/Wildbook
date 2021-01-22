@@ -1104,6 +1104,13 @@ public class Encounter implements java.io.Serializable {
   public static String getWebUrl(String encId, String serverUrl) {
     return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
+  public String getShortLink(HttpServletRequest req) {
+    return String.format("<a href=\"%s\">%s</a>", getWebUrl(req), getID());
+  }
+  public String getLongLink(HttpServletRequest req) {
+    return String.format("<a href=\"%s\">%s</a>", getWebUrl(req), toString());
+  }
+
 
   // public String getHyperlink(HttpServletRequest req, int labelLength) {
   //   String label="";
@@ -2975,12 +2982,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       ArrayList<MediaAsset> allAssets = getMedia();
       for (MediaAsset ma: allAssets) {
         List<Annotation> thisMaAnns = getAnnotations(ma);
+        // make sure the first annot on this MA is trivial
         Annotation ann = thisMaAnns.get(0); // if we hit an index OOR exception here there's a bug in getAnnotations(ma) or getMedia()
-        Annotation trivialAnn = ann.revertToTrivial(myShepherd, true);
-        if (commit) {
-          myShepherd.throwAwayAnnotation(ann, true);
-          myShepherd.storeNewAnnotation(trivialAnn);
+        if (!ann.isTrivial()) {
+          Annotation trivialAnn = ann.revertToTrivial(myShepherd, true);
+          if (commit) {
+            myShepherd.throwAwayAnnotation(ann, true);
+            myShepherd.storeNewAnnotation(trivialAnn);
+          }
         }
+        // delete the rest of the annots on this MA
         if (thisMaAnns.size() > 1) {
           for (int i=1; i<thisMaAnns.size(); i++) {
             Annotation oldAnn = thisMaAnns.get(i);
@@ -4099,6 +4110,20 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         if ((this.getCatalogNumber() == null) || (two == null) || (two.getCatalogNumber() == null)) return false;
         return this.getCatalogNumber().equals(two.getCatalogNumber());
     }
+
+    public boolean equalish(Encounter that) {
+      if (that == null) return false;
+      // we could add more checks but probably should not check enc.getID(), enc.getIndividual(), or enc.getRComments() if this func is gonna be used to dedupe detection-created duplicates.
+      return (
+        Util.nullSafeEquals(this.getGenus(), that.getGenus()) &&
+        Util.nullSafeEquals(this.getSpecificEpithet(), that.getSpecificEpithet()) &&
+        Util.nullSafeEquals(this.getIndividualID(), that.getIndividualID()) &&
+        Util.nullSafeEquals(this.getOccurrenceID(), that.getOccurrenceID()) &&
+        Annotation.listsEqual(this.getAnnotations(), that.getAnnotations())
+      );
+    }
+
+
     public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
