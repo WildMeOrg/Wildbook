@@ -789,11 +789,13 @@ function enableMatch() {
                         h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
 
                         if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
+                          console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
                         } else {
+                            console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
@@ -808,49 +810,47 @@ function enableMatch() {
                         h += '</div></div>';
                         if (!sort[score]) sort[score] = '';
                         sort[score] += h;
-                    } //end for xhr.responseJSON.similar //TODO confirm this
+                    } //end for xhr.responseJSON.similar
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
 
-                    //pagination
-                    let items = $('.match-item');
-                    let numItems = keys.length;
-                    let perPage = 3; //TODO maybe change later?
-                    items.slice(perPage).hide();
-
-                    $('.match-results').pagination({
-                      items: numItems,
-                      itemsOnPage: perPage,
-                      cssStyle: "light-theme",
-                      onPageClick: function(pageNumber) {
-                         // We need to show and hide `tr`s appropriately.
-                         var showFrom = perPage * (pageNumber - 1);
-                         var showTo = showFrom + perPage;
-                         items.hide()
-                              // ... and then only show the appropriate rows.
-                              .slice(showFrom, showTo).show();
-                      }
-                    });
-                    //end pagination
-
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                     $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                     $('.match-chosen-cat').on('click', function(ev) {
                         var id = ev.target.id;
-console.log(id);
+                        console.log(id);
                         $('.match-chosen-cat').prop('checked', false);
                         $('#' + id).prop('checked', true);
                         $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
                     });
+                    populatePaginator(keys);
                 }
             }
         },
         dataType: 'json',
         type: 'GET'
     });
+}
+
+function populatePaginator(keyArray){
+  let items = $('.match-item');
+  let numItems = keyArray.length;
+  let perPage = 3;
+  items.slice(perPage).hide();
+
+  $('#pagination-section').pagination({
+    items: numItems,
+    itemsOnPage: perPage,
+    cssStyle: "light-theme",
+    onPageClick: function(pageNumber) {
+      var showFrom = perPage * (pageNumber - 1);
+      var showTo = showFrom + perPage;
+      items.hide().slice(showFrom, showTo).show();
+    }
+  });
 }
 
 function saveMatchChoice() {
@@ -1269,6 +1269,7 @@ All required selections are made.  You may now save your answers. <br />
         <div class="column-scroll">
             <p id="match-summary"></p>
             <div id="match-results"><i>searching....</i></div>
+            <div id="pagination-section"></div>
         </div>
         <div id="match-controls-after">
         </div>
