@@ -40,6 +40,14 @@ System.out.println("setImportTaskComplete() setting true for annot " + ann.getId
     myShepherd.commitDBTransaction();
 }
 
+private static String nextNameFromLocation(Encounter enc) {
+    if (enc == null) return null;
+    String prefix = enc.getLocationID();
+    if (prefix == null) return null;
+    if (prefix.length() > 3) prefix = prefix.substring(0,3);
+    return MarkedIndividual.nextNameByPrefix(prefix.toLowerCase());
+}
+
 String rotationInfo(MediaAsset ma) {
     if ((ma == null) || (ma.getMetadata() == null)) return null;
     HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
@@ -142,6 +150,11 @@ if (request.getParameter("acmId") != null) {
 				JSONObject jann = new JSONObject();
 				jann.put("id", ann.getId());
 				jann.put("acmId", ann.getAcmId());
+				Encounter enc = ann.findEncounter(myShepherd);
+	 			if (enc != null) {
+	 				jann.put("encounterId", enc.getCatalogNumber());
+	 				jann.put("encounterLocationId", enc.getLocationID());
+	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
@@ -151,7 +164,6 @@ if (request.getParameter("acmId") != null) {
 				}
 				if (project!=null) {
 					try {
-						Encounter enc = ann.findEncounter(myShepherd);
 
 						if (enc!=null) {;
 							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
@@ -675,6 +687,9 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.location-based-checkbox {
+	margin: 0 15px 0 5px !important;
+}
 .annot-summary-phantom {
 	display: none;
 }
@@ -744,6 +759,8 @@ var researchProjectName = '<%=researchProjectName%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
+var queryAnnotId;
+var annotData = {};
 
 function toggleScoreType() {
 	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
@@ -1047,6 +1064,7 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		//console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
+		queryAnnotId = qannotId;  //global context
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
@@ -1259,6 +1277,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
+		annotData[acmId] = res.responseJSON.annotations;
             console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
                 //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
@@ -1465,7 +1484,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
-                    if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
                     var qdata = {
                         annotId: mainAnnId,
                         encId: encId,
@@ -1474,8 +1493,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
-                } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
+	        } else {
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1511,7 +1530,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '</ul></div>';
     }
 
-    if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
+    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
 function getSelectedProjectIdPrefix() {
@@ -1585,7 +1604,9 @@ function annotCheckbox(el) {
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
-		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+		h = '';
+		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
+		h += '<input id="new-name-input" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
@@ -1598,6 +1619,17 @@ function annotCheckbox(el) {
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 		return true;
 	}
+}
+
+function locationBasedCheckbox(el, qann) {
+	if (!el.checked) {  //reset
+		$('#new-name-input').attr('placeholder', $('#new-name-input').data('placeholder-orig')).removeAttr('disabled');
+		return true;
+	}
+	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
+	if (!loc) return;
+	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
+	$('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
@@ -1692,7 +1724,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 }
 
 function findMyFeature(annotAcmId, asset) {
-//console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
     if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
     for (var i = 0 ; i < asset.features.length ; i++) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
@@ -1853,7 +1885,12 @@ console.warn(inds);
 
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
-function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
+function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLocation) {
+console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
+	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
+	useLocation == useLocation && loc;
+console.info('loc = %o  ;  useLocation = %o', loc, useLocation);
+return;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
@@ -1868,6 +1905,7 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+        if (useLocation) url += '&useLocation=true';
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
@@ -1911,7 +1949,7 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
