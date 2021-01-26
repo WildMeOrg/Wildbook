@@ -6,6 +6,7 @@ java.util.Collection,
 java.util.HashMap,
 javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+
 <%!
 
 private static String rotationInfo(MediaAsset ma) {
@@ -48,7 +49,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
         System.out.println("WARNING: findSimilar() has no props sql from userData " + userData.toString());
         return null;
     }
-    
+
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
     String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND \"STATE\" = 'processing' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
 System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
@@ -69,6 +70,10 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if (dist > 3000) continue;  //sanity perimeter
         Encounter menc = myShepherd.getEncounter(encId);
         if (menc == null) continue;
+        if(menc.getLocationID()!= null && enc.getLocationID() != null && !menc.getLocationID().equals(enc.getLocationID())){ //further filter by location ID: if both locationIDs exist but are different, don't include this match encounter in the match list
+          System.out.println("the following encounter is too far away: " + menc.getCatalogNumber());
+          continue;
+        }
         JSONObject propMatches = new JSONObject();
         el.put("encounterId", encId);
         if (menc.getIndividual() != null) {
@@ -239,12 +244,16 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             jd.put("value", d.getValue());
             jdecs.put(jd);
         }
+
+        String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
 <script>
 var userDecisions = <%=jdecs.toString(4)%>;
 </script>
+<script src="<%=urlLoc %>/tools/simplePagination/jquery.simplePagination.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=urlLoc %>/tools/simplePagination/simplePagination.css"/>
 
 <script src="../tools/panzoom/jquery.panzoom.min.js"></script>
 
@@ -638,6 +647,8 @@ $(document).ready(function() {
     });
 */
 
+
+
 });
 
 function zoomOut(el, imgWrapperClass) {
@@ -736,7 +747,7 @@ function enableMatch() {
     }
     $('#match-summary').html(h);
     var url = 'encounterDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
-console.log(url);
+    console.log(url);
     $.ajax({
         url: url,
         complete: function(xhr) {
@@ -788,6 +799,7 @@ console.log(url);
                                 h = "";
                                 continue;
                             }
+                          console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
@@ -797,6 +809,7 @@ console.log(url);
                                 h = "";
                                 continue;
                             }
+                            console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
@@ -811,27 +824,47 @@ console.log(url);
                         h += '</div></div>';
                         if (!sort[score]) sort[score] = '';
                         sort[score] += h;
-                    }
+                    } //end for xhr.responseJSON.similar
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
+
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                     $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                     $('.match-chosen-cat').on('click', function(ev) {
                         var id = ev.target.id;
-console.log(id);
+                        console.log(id);
                         $('.match-chosen-cat').prop('checked', false);
                         $('#' + id).prop('checked', true);
                         $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
                     });
+                    populatePaginator(keys);
                 }
             }
         },
         dataType: 'json',
         type: 'GET'
     });
+}
+
+function populatePaginator(keyArray){
+  let items = $('.match-item');
+  let numItems = keyArray.length;
+  let perPage = 3;
+  items.slice(perPage).hide();
+
+  $('#pagination-section').pagination({
+    items: numItems,
+    itemsOnPage: perPage,
+    cssStyle: "light-theme",
+    onPageClick: function(pageNumber) {
+      var showFrom = perPage * (pageNumber - 1);
+      var showTo = showFrom + perPage;
+      items.hide().slice(showFrom, showTo).show();
+    }
+  });
 }
 
 function saveMatchChoice() {
@@ -1251,6 +1284,7 @@ All required selections are made.  You may now save your answers. <br />
         <div class="column-scroll">
             <p id="match-summary"></p>
             <div id="match-results"><i>searching....</i></div>
+            <div id="pagination-section"></div>
         </div>
         <div id="match-controls-after">
         </div>
@@ -1262,4 +1296,3 @@ All required selections are made.  You may now save your answers. <br />
 </div>
 
 <jsp:include page="../footer.jsp" flush="true" />
-

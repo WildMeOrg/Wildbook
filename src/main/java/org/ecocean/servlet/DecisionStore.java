@@ -35,6 +35,7 @@ public class DecisionStore extends HttpServlet {
 
     @Override
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("doPost in DecisionStore.java entered");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
@@ -69,6 +70,7 @@ public class DecisionStore extends HttpServlet {
                 Decision dec = new Decision(user, enc, key, val);
                 myShepherd.getPM().makePersistent(dec);
                 ids.put(dec.getId());
+                Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
             }
             if (ids.length() > 0) {
                 rtn.put("success", true);
@@ -86,6 +88,7 @@ public class DecisionStore extends HttpServlet {
             myShepherd.getPM().makePersistent(dec);
             rtn.put("success", true);
             rtn.put("decisionId", dec.getId());
+            Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
         }
 
         if (rtn.optBoolean("success", false)) {
@@ -97,4 +100,5 @@ public class DecisionStore extends HttpServlet {
         out.println(rtn);
         out.close();
     }
+
 }
