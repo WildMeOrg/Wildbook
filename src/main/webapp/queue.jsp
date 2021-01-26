@@ -398,8 +398,9 @@ if (!forceList && (encs.size() > 0)) {
         if (eid == null) continue;  //snh
         Long ct = (Long)row[1];
         System.out.println("queue.jsp: ? can give " + eid + " (ct " + ct + ") to " + user);
+        int MIN_DECISIONS_TO_CHANGE_ENC_STATE = (new Integer(CommonConfiguration.getProperty("MIN_DECISIONS_TO_CHANGE_ENC_STATE",context))).intValue();
         for (Encounter enc : encs) {
-            if (eid.equals(enc.getCatalogNumber())) {
+            if (eid.equals(enc.getCatalogNumber()) && ct <= MIN_DECISIONS_TO_CHANGE_ENC_STATE) {
                 foundId = eid;
                 break IDFOUND;
             }
@@ -414,7 +415,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Flags"};
+if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -469,6 +470,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 .row-state-rejected,
 .row-state-disputed,
 .row-state-processing,
+.row-state-mergereview,
 .row-state-finished,
 .row-state-practice,
 .row-state-unapproved,
@@ -505,10 +507,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
     <button id="filter-button-incoming" onClick="return filter('incoming');">incoming<span class="fct"></span></button>
     <button id="filter-button-pending" onClick="return filter('pending');">pending<span class="fct"></span></button>
     <button id="filter-button-processing" onClick="return filter('processing');">processing<span class="fct"></span></button>
+    <button id="filter-button-mergereview" onClick="return filter('mergereview');">merge review<span class="fct"></span></button>
     <button id="filter-button-finished" onClick="return filter('finished');">finished<span class="fct"></span></button>
     <button id="filter-button-flagged" onClick="return filter('flagged');">flagged<span class="fct"></span></button>
     <button id="filter-button-disputed" onClick="return filter('disputed');">disputed<span class="fct"></span></button>
     <button id="filter-button-rejected" onClick="return filter('rejected');">rejected<span class="fct"></span></button>
+    <br>
     <span id="filter-info"></span>
 </div>
 <% } %>
@@ -534,6 +538,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
     for (Encounter enc : encs) {
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
         String ename = enc.getEventID();
+
+        // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
+        // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
+        // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
+        // System.out.println("got here 2 Encounter " + enc.getCatalogNumber()+"'s state is now: " + enc.getState());
+
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         out.println("<td class=\"col-id\">");
         if (isAdmin) {
@@ -612,6 +622,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             }
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
+            out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "</td>");
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
 
@@ -672,13 +683,19 @@ function setActiveTab(state) {
     $('#filter-tabs .tab-active').removeClass('tab-active');
     $('#filter-button-' + state).addClass('tab-active');
     var ct = $('.enc-row:visible').length;
-    $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's'));
+    $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in current day');
 }
 
 function filter(state) {
     currentActiveState = state;
     $('.enc-row').hide();
-    $('.row-state-' + state).show();
+    let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState(state);
+    if(oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
+      $('.col-date:contains('+oldestDateThatNeedsAttention+')').parents('.row-state-' + state).show();
+    }else{
+      //if, for some reason, the oldest date fetch fails, at least show them the encounters in the state they want  -Mark F.
+      $('.row-state-' + state).show();
+    }
 
     if (state == 'flagged') {  //special case to find also *any* with flags
         $('.is-flagged').each(function(i, el) {
@@ -694,6 +711,22 @@ function filter(state) {
     }
 
     setActiveTab(state);
+}
+
+function getOldestDateThatNeedsAttentionInState(state){ //weird to use jQuery here and in the filter method to accomplish something similar, but I wanted clear division of task in this method -Mark F.
+  let allDatesInState = $('.row-state-' + state).children('.col-date').map(function(){
+    return $(this).text();
+  }).get();
+  let allDatesSorted = allDatesInState.sort(function(a,b) {
+    a = a.split('-').join(''); //a little hacky. Depends on the text date display format. But easy to change using .reverse() and changing the split character, say, to "/", as needed. Also, be mindful of month/date order if we ever add support for other languages here -Mark F.
+    b = b.split('-').join('');
+    return a > b ? 1 : a < b ? -1 : 0;
+  });
+  if(allDatesSorted && allDatesSorted.length>0){
+    return allDatesSorted[0];
+  }else{
+    return null;
+  }
 }
 
 </script>

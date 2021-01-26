@@ -48,7 +48,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
         System.out.println("WARNING: findSimilar() has no props sql from userData " + userData.toString());
         return null;
     }
-    
+
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
     String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND \"STATE\" = 'processing' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
 System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
@@ -69,6 +69,10 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if (dist > 3000) continue;  //sanity perimeter
         Encounter menc = myShepherd.getEncounter(encId);
         if (menc == null) continue;
+        if(menc.getLocationID()!= null && enc.getLocationID() != null && !menc.getLocationID().equals(enc.getLocationID())){ //further filter by location ID: if both locationIDs exist but are different, don't include this match encounter in the match list
+          System.out.println("the following encounter is too far away: " + menc.getCatalogNumber());
+          continue;
+        }
         JSONObject propMatches = new JSONObject();
         el.put("encounterId", encId);
         if (menc.getIndividual() != null) {
@@ -736,7 +740,7 @@ function enableMatch() {
     }
     $('#match-summary').html(h);
     var url = 'encounterDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
-console.log(url);
+    console.log(url);
     $.ajax({
         url: url,
         complete: function(xhr) {
@@ -1247,4 +1251,3 @@ All required selections are made.  You may now save your answers. <br />
 </div>
 
 <jsp:include page="../footer.jsp" flush="true" />
-
