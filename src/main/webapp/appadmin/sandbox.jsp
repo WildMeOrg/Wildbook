@@ -23,17 +23,71 @@ java.lang.NumberFormatException"%>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
-    <script>
-      let txt = getText("encounter.properties");
-    </script>
+    <script src="<%=urlLoc %>/tools/simplePagination/jquery.simplePagination.js"></script>
+    <link type="text/css" rel="stylesheet" href="<%=urlLoc %>/tools/simplePagination/simplePagination.css"/>
+    <div id="match-results"><i>searching....</i></div>
+    <div id="pagination-section"></div>
+
+    </div>
+
     <%
     myShepherd.beginDBTransaction();
     try{
+      %>
 
-        Encounter targetEncounter = myShepherd.getEncounter("c8d1aae2-a6f8-4c18-a96e-a090c97988e1");
+      <script type="text/javascript">
+        $(document).ready(function() {
+          console.log("got here hi hi hi");
+          let paginationHtml = '';
+          let iterray = [];
+          for(let i =0; i<30; i++){
+            paginationHtml += '<div class="match-item">' + i + '</div>';
+            iterray.push(i);
+          }
+          $('#match-results').empty();
+          $('#match-results').append(paginationHtml);
+
+          // populatePaginator(iterray);
+        });
+
+        function populatePaginator(iterator){
+          console.log("entered populatePaginator");
+          //pagination
+          let items = $('.match-item');
+          console.log("items are: ");
+          console.log(items);
+          let numItems = iterator.length;
+          console.log("numItems is: " + numItems);
+          let perPage = 3; //TODO maybe change later?
+          items.slice(perPage).hide();
+
+          $('#pagination-section').pagination({
+            items: numItems,
+            itemsOnPage: perPage,
+            cssStyle: "light-theme",
+            onPageClick: function(pageNumber) {
+              console.log("onPageClick entered. pageNumber is: " + pageNumber);
+              var showFrom = perPage * (pageNumber - 1);
+              console.log("showFrom is: " + showFrom);
+              var showTo = showFrom + perPage;
+              console.log("showTo is: " + showTo);
+              items.hide().slice(showFrom, showTo).show();
+            }
+          });
+          console.log("got here 2");
+          //end pagination
+        }
+      </script>
+      <%
+
+
+        Encounter targetEncounter = myShepherd.getEncounter("5e2ade7e-3821-4c25-bac9-9e33dce6a961"); //c8d1aae2-a6f8-4c18-a96e-a090c97988e1
+        targetEncounter.setState("processing");
+        myShepherd.updateDBTransaction();
 
         //reset decisions on encounters
         System.out.println("got here 1");
@@ -55,7 +109,7 @@ Shepherd myShepherd=new Shepherd(context);
           String property = "match";
 
           JSONObject value = new JSONObject();
-          String matchCandidateCatalogNumber1 = "79b5cb31-77a5-497e-9a7a-cee0779b5a13";
+          String matchCandidateCatalogNumber1 = "c8bc29c8-7dba-412e-a4f1-3aed0a5c19c5";
           String matchCandidateCatalogNumber2 = "56950464-9348-493f-a8a7-cbf019af583a";
           value.put("id", matchCandidateCatalogNumber1);
           User user1 = myShepherd.getUserByUUID("f37d7426-27e7-4133-a205-dac746824436");
@@ -65,6 +119,7 @@ Shepherd myShepherd=new Shepherd(context);
           User user5 = myShepherd.getUserByUUID("6c887eab-3928-47d2-8d47-011e8d589caf");
           User user6 = myShepherd.getUserByUUID("0b616fdd-ccf9-40e6-bbd9-b93724b12014");
           User user7 = myShepherd.getUserByUUID("0c205984-0105-469a-8efc-4829cc774914");
+
           System.out.println("decision got here 1");
           Decision dec = new Decision(user1, targetEncounter, property, value);
           myShepherd.getPM().makePersistent(dec);
@@ -101,10 +156,10 @@ Shepherd myShepherd=new Shepherd(context);
           myShepherd.updateDBTransaction();
           Decision.updateEncounterStateBasedOnDecision(myShepherd, targetEncounter);
 
-          dec = new Decision(user7, targetEncounter, property, value);
-          myShepherd.getPM().makePersistent(dec);
-          myShepherd.updateDBTransaction();
-          Decision.updateEncounterStateBasedOnDecision(myShepherd, targetEncounter);
+          // dec = new Decision(user7, targetEncounter, property, value);
+          // myShepherd.getPM().makePersistent(dec);
+          // myShepherd.updateDBTransaction();
+          // Decision.updateEncounterStateBasedOnDecision(myShepherd, targetEncounter);
 
           checkDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
           if(checkDecisions!=null){
@@ -115,13 +170,14 @@ Shepherd myShepherd=new Shepherd(context);
         }
 
 
-        String newState = "finished";
-        targetEncounter.setState(newState);
-        myShepherd.updateDBTransaction();
-
-        Encounter targetEncounter2 = myShepherd.getEncounter("ed3d828e-baf1-43f1-8130-4b24b0441463");
-        targetEncounter2.setState(newState);
-        myShepherd.updateDBTransaction();
+        //To force a finished state
+        // String newState = "finished";
+        // targetEncounter.setState(newState);
+        // myShepherd.updateDBTransaction();
+        //
+        // Encounter targetEncounter2 = myShepherd.getEncounter("ed3d828e-baf1-43f1-8130-4b24b0441463");
+        // targetEncounter2.setState(newState);
+        // myShepherd.updateDBTransaction();
 
 
         myShepherd.commitDBTransaction();
