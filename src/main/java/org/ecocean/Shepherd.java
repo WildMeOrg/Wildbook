@@ -4859,8 +4859,8 @@ public class Shepherd {
       Query query = pm.newQuery(queryString);
       query.setClass(Decision.class);
       List<Decision> decisions = (List<Decision>) query.execute();
-      if (decisions!=null && decisions.size()>0) return decisions;
       query.closeAll();
+      if (decisions!=null && decisions.size()>0) return decisions;
     }
     catch (Exception e) {
       System.out.println("Exception on getDecisionsForEncounter in encounter: " + enc.toString());
