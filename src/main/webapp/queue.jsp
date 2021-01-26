@@ -565,7 +565,11 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
         // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
         // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
-        if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
+        if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID()) && Util.stringExists(enc.getState()) && !enc.getState().equals("flagged")){
+          String newState = "flagged";
+          enc.setState(newState);
+          System.out.println("setting state to flagged");
+          myShepherd.updateDBTransaction();
           %>
           <script type="text/javascript">
             currentEncNum = '<%= enc.getCatalogNumber() %>';
