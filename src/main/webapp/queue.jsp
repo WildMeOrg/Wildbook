@@ -534,6 +534,29 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 </tr>
 </thead>
 <tbody>
+<script type="text/javascript">
+  function flag(type, encounterNumber) {
+    console.log("flag entered. Adding " + type + " to encounter: " + encounterNumber);
+    $.ajax({
+      url: '../DecisionStore',
+      data: JSON.stringify({ property: 'flag', value: { value: ['flag-' + type], via: 'queue.jsp' }, encounterId: encounterNumber }),
+      dataType: 'json',
+      complete: function(xhr) {
+        console.log(xhr);
+        if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
+          console.warn("responseJSON => %o", xhr.responseJSON);
+          alert('ERROR setting: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
+        } else {
+          // window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=pending';
+        }
+      },
+      contentType: 'application/javascript',
+      type: 'POST'
+    });
+    let currentEncNum = '';
+  }
+</script>
+
 <%
     for (Encounter enc : encs) {
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
@@ -542,6 +565,15 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
         // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
         // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
+        if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
+          %>
+          <script type="text/javascript">
+            currentEncNum = '<%= enc.getCatalogNumber() %>';
+            flag('locationid-missing', currentEncNum);
+          </script>
+
+          <%
+        }
         // System.out.println("got here 2 Encounter " + enc.getCatalogNumber()+"'s state is now: " + enc.getState());
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
