@@ -40,7 +40,7 @@ java.util.*" %>
     if (ma == null) return false;
     // detectionstatus null means we haven't done any IA
     if (ma!=null && ma.getDetectionStatus() == null) return false;
-    System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
+    //System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
     return true;
   }
 
@@ -142,14 +142,14 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+		  //System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
       }
 
       if (!enc.canUserAccess(request)) {
-        System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
+        //System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
         continue;
       }
 
@@ -160,10 +160,10 @@ function forceLink(el) {
 		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
-        System.out.println("EMG: got "+anns.size()+" anns");
+        //System.out.println("EMG: got "+anns.size()+" anns");
 
 		  	for (Annotation ann: anns) {
-		  		System.out.println("    EMG: starting for ann "+ann);
+		  		//System.out.println("    EMG: starting for ann "+ann);
 
 		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
@@ -672,18 +672,14 @@ if(request.getParameter("encounterNumber")!=null){
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
-    <% System.out.println("    EMG: asset is forEach'd"); %>
     if (<%=isGrid%>) {
     	    console.log("   EMG : isGrid true!");
-
-    	<% System.out.println("    EMG: calling grid version"); %>
 
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
     	    	    console.log("   EMG : isGrid false!");
 
-    	    	<% System.out.println("    EMG: calling nongrid version"); %>
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+    maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
 
       //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
