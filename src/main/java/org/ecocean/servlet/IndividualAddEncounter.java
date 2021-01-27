@@ -159,7 +159,7 @@ public class IndividualAddEncounter extends HttpServlet {
               throw new RuntimeException(failureMessage.toString());
   
             }
-            myShepherd.commitDBTransaction();
+            myShepherd.updateDBTransaction();
             response.setStatus(HttpServletResponse.SC_OK);
             out.println(responseJSON);
 
@@ -240,12 +240,12 @@ public class IndividualAddEncounter extends HttpServlet {
     }
   }
   
-  private void executeEmails(Shepherd myShepherd, HttpServletRequest request,MarkedIndividual addToMe,boolean newIndy, Encounter enc2add, String context, String langCode) {
+  public static void executeEmails(Shepherd myShepherd, HttpServletRequest request,MarkedIndividual addToMe,boolean newIndy, Encounter enc2add, String context, String langCode) {
     // Retrieve background service for processing emails
 
     ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
 
     List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
 
@@ -310,7 +310,7 @@ public class IndividualAddEncounter extends HttpServlet {
     //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
 
     //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
+    String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
@@ -322,7 +322,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
     
     ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
-    myShepherd.rollbackDBTransaction();
+    //myShepherd.rollbackDBTransaction();
     es.shutdown();
   }
   

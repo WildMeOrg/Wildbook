@@ -3,6 +3,8 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -412,9 +414,10 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+            
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                //if (taxString && (item.species != taxString)) return null;
+                if (item.species != taxString) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -1299,18 +1302,52 @@ if(enc.getLocation()!=null){
  	<%
  	}
  	%>
- 	<!-- adding ne submit GPS-->
 
+  <!-- Display GPS to researchers if configured in commonConfiguration.properties-->
 
+<%
+  String longy="";
+  String laty="";
+  if(enc.getLatitudeAsDouble()!=null){
+    laty=enc.getLatitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal latBD = new BigDecimal(laty);
+      latBD = latBD.setScale(1, RoundingMode.HALF_UP);
+      laty = latBD.toString();
+      laty += " ("+encprops.getProperty("truncated")+")";
+    } 
+  }
+  if(enc.getLongitudeAsDouble()!=null){
+    longy=enc.getLongitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal lonBD = new BigDecimal(longy);
+      lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
+      longy = lonBD.toString();
+      longy += " ("+encprops.getProperty("truncated")+")";
+    } 
+  }
 
- 	<%
+  String uName = null;
+  User gpsUser = null;
+  if (request.getUserPrincipal()!=null) {
+    uName = request.getUserPrincipal().getName();
+    gpsUser = myShepherd.getUser(uName);
+  }
+  if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
+    if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
+      longy = encprops.getProperty("noGPS");  
+      laty = encprops.getProperty("noGPS");
+    }
+%>
+    <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
+<%
+  } 
+%>
+    
+
+<%
  	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
-     	%>
+%>
 
       <script type="text/javascript">
         $(document).ready(function() {
@@ -1326,6 +1363,9 @@ if(enc.getLocation()!=null){
             $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
             function() {
               $("#latCheck, #longCheck").show();
+              console.log('tryyna set GPS!');
+              $("#latitudeSpan").text($('#lat').val());
+              $("#longitudeSpan").text($('#longitude').val());
             })
             .fail(function(response) {
               $("#gpsErrorDiv").show();
@@ -1345,12 +1385,10 @@ if(enc.getLocation()!=null){
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
                   $("#setGPSbutton").removeAttr("disabled");
-                  //alert("here 1!");
                   emptyMarkers();
               }
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
-                  //alert("here 2!");
               }
               else{
               	//alert("Trying to validate!");
@@ -1593,7 +1631,7 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-console.info('resetIdButtons()');
+//console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
@@ -3844,7 +3882,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>

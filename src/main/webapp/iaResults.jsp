@@ -3,7 +3,9 @@
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 java.util.HashMap,
+org.ecocean.security.Collaboration,
 org.ecocean.identity.IdentityServiceLog,
+org.ecocean.servlet.IndividualAddEncounter,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
@@ -23,6 +25,8 @@ String rotationInfo(MediaAsset ma) {
 <%
 
 String context = ServletUtilities.getContext(request);
+String langCode = ServletUtilities.getLanguageCode(request);
+
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 String scoreType = request.getParameter("scoreType");
@@ -183,6 +187,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.closeDBTransaction();
 		return;
 	}
+	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
 
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
@@ -191,6 +202,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		if (enc2 == null) {
 			res.put("error", "no such encounter: " + request.getParameter("enc2"));
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
+			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
@@ -250,8 +268,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		try {
 
-			enc.setState("approved");
-			enc2.setState("approved");
+
+			//enc.setState("approved");
+			//enc2.setState("approved");
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
@@ -263,6 +282,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
 					}
+					
+					
 
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
@@ -283,8 +304,14 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
+					
 					myShepherd.updateDBTransaction();
                     indiv.refreshNamesCache();
+                    
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    
+                    
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -297,8 +324,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-			} 	
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
 
+			} 	
+			
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
@@ -306,6 +335,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
+				
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
+				
 			} 
 
 
@@ -318,8 +350,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
-			enc.setState("unapproved");
-			enc2.setState("unapproved");
+			//enc.setState("unapproved");
+			//enc2.setState("unapproved");
 			e.printStackTrace();
 			res.put("error", "Please enter a different Individual ID.");
 		}
@@ -366,6 +398,13 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			myShepherd.closeDBTransaction();
 			return;
 		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+			out.println(rtn.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
 
 		String useNextProjectId = request.getParameter("useNextProjectId");
 		boolean validToName = false;
@@ -390,6 +429,8 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
+			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
+             
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -1375,22 +1416,27 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					}
 				}
 				
-				if (indivId&&(incrementalProjectId!=displayName)) {
+				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
                 }
-
+				<%
+				if(request.getUserPrincipal()!=null){
+				%>
                 if (encId || indivId) {
 					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
+                <%
+            	}
+                %>
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
-                    if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
                     var qdata = {
                         annotId: mainAnnId,
                         encId: encId,
@@ -1399,8 +1445,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
-                } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
+                } 
+                else {
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1436,7 +1483,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '</ul></div>';
     }
 
-    if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
+    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
 function getSelectedProjectIdPrefix() {
