@@ -2,6 +2,11 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
+		{"name": "Brazil", "id": "Brazil", "locationID":[
+		
+			{"name": "Pará", "id": "Para" }
+		
+		] } ,
 		{"name": "Peru", "id": "Peru" },
 		{"name": "Costa Rica", "id": "Costa Rica", "locationID":[
 		
