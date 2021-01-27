@@ -415,7 +415,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
+if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Percent in Agreement", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -564,20 +564,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
         // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
         // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
-        // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
-        if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID()) && Util.stringExists(enc.getState()) && !enc.getState().equals("flagged")){
-          String newState = "flagged";
-          enc.setState(newState);
-          System.out.println("setting state to flagged");
-          myShepherd.updateDBTransaction();
-          %>
-          <script type="text/javascript">
-            currentEncNum = '<%= enc.getCatalogNumber() %>';
-            flag('locationid-missing', currentEncNum);
-          </script>
+        Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
 
-          <%
-        }
+
         // System.out.println("got here 2 Encounter " + enc.getCatalogNumber()+"'s state is now: " + enc.getState());
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
@@ -658,7 +647,11 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             }
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "</td>");
+            if(Decision.getNumberOfMatchDecisionsMadeForEncounter(decs)>0){
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + (Double) Math.max(0,Math.floor(100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " %</td>");
+            }else{
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + "No Decisions Yet</td>");
+            }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
 
