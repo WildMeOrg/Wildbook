@@ -1,7 +1,7 @@
 SUBJECT: Sighting update: @INDIVIDUAL_ID@
 Hello!
 
-Just a quick email to let you know that a seadragon that you adopted has been
+Just a quick email to let you know that a seadragon that you named has been
 seen again and positively identified in the SeadragonSearch photo-identification
 library.
 Follow the link below to learn more.

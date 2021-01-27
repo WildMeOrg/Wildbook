@@ -2,7 +2,7 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick email to let you know that the seadragon encounter that you
-submitted has been matched to an identified seadragon in the SeadragonSearch 
+submitted has been matched to an identified seadragon in the SeadragonSearch
 photo-identification library.
 Follow these links to find out more:
 
@@ -13,5 +13,4 @@ New encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
 Thanks again for your critical help! If you're interested in supporting our
-research to understand and protect animals like yours, please adopt and
-nickname your animal
+research to understand and protect animals like yours, please name your animal
