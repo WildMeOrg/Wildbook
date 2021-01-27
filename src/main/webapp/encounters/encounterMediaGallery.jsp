@@ -40,7 +40,7 @@ java.util.*" %>
     if (ma == null) return false;
     // detectionstatus null means we haven't done any IA
     if (ma!=null && ma.getDetectionStatus() == null) return false;
-    System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
+    //System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
     return true;
   }
 
@@ -142,14 +142,14 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+		  //System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
       }
 
       if (!enc.canUserAccess(request)) {
-        System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
+        //System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
         continue;
       }
 
@@ -160,10 +160,10 @@ function forceLink(el) {
 		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
-        System.out.println("EMG: got "+anns.size()+" anns");
+        //System.out.println("EMG: got "+anns.size()+" anns");
 
 		  	for (Annotation ann: anns) {
-		  		System.out.println("    EMG: starting for ann "+ann);
+		  		//System.out.println("    EMG: starting for ann "+ann);
 
 		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
@@ -181,7 +181,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<span class=\"capos-individual-id\"><a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a></1></span>><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<span class=\"capos-individual-id\"><a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a></span><br>";
 		      }
 		      	//System.out.println("    EMG: got indID element "+individualID);
 
@@ -192,20 +192,23 @@ function forceLink(el) {
                 
                 capos[0]+=individualID;
                 
-                capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber().substring(0,14)+"</a></span><br>";
+ 
+                capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a></span><br>";
                 
                 capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
                 
                 if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
                     capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
                 }
-              // place to retreive current mid from photoswipe to refresh keyword UI
-              capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\"></div>";
-
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
-                    
-                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></span></p>";
                 
+              // place to retreive current mid from photoswipe to refresh keyword UI
+              capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\">";
+
+               
+                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a><br>"+encprops.getProperty("detectionStatus")+" "+ma.getDetectionStatus()+"</span><br>";
+                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("annotationID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></span></p>";
+                capos[0] += "</div>";
 
               captionLinks.add(capos);
 		      //System.out.println("    EMG: got capos "+capos[0]);
@@ -669,18 +672,14 @@ if(request.getParameter("encounterNumber")!=null){
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
-    <% System.out.println("    EMG: asset is forEach'd"); %>
     if (<%=isGrid%>) {
     	    console.log("   EMG : isGrid true!");
-
-    	<% System.out.println("    EMG: calling grid version"); %>
 
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
     	    	    console.log("   EMG : isGrid false!");
 
-    	    	<% System.out.println("    EMG: calling nongrid version"); %>
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+    maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
 
       //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
@@ -1741,7 +1740,9 @@ var isUserLoggedIn = "<%=isUserLoggedIn%>";
 console.log("isUserLoggedIn = "+isUserLoggedIn);
 $(document).ready(function() {
     if ("false"==isUserLoggedIn) {
-        $(".video-element").bind("contextmenu",function(e){
+        let vidEl = $(".video-element");
+        vidEl.attr("controlsList", "nodownload"); 
+        vidEl.bind("contextmenu",function(e){
             return false;
         });
     }
