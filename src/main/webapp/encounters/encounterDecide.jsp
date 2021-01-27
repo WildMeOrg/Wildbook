@@ -838,7 +838,7 @@ function enableMatch() {
 function populatePaginator(keyArray){
   let items = $('.match-item');
   let numItems = keyArray.length;
-  let perPage = 3;
+  let perPage = 5;
   items.slice(perPage).hide();
 
   $('#pagination-section').pagination({
