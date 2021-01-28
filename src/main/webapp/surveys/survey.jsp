@@ -99,7 +99,9 @@ if (sv!=null) {
                 String label = effortMeasurement.getType();
                 if (label == null) label = "Effort";
 		effortData += "<p>" + label + ": " + value + " " + units + "</p>";
-	}
+	} else {
+                effortData += "<p>No surveyLength effort data reported.</p>";
+        }
 	if (sv.getComments()!=null) {
 		comments = sv.getComments();
 	}
