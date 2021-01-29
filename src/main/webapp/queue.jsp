@@ -675,7 +675,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
               nf.setMaximumFractionDigits(2);
               nf.setMinimumFractionDigits(2);
               // nf.setRoundingMode(RoundingMode.HALF_UP);
-              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " %</td>"); //Math.floor
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\"><span class=\"add-link-if-merge-review\" data-current-enc-num=\"" + enc.getCatalogNumber() + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " % </span></td>");
             }else{
               out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + "No Decisions Yet</td>");
             }
@@ -717,9 +717,19 @@ $(document).ready(function() {
     });
 
     $('.filter-button').on('click', function(){
+      $('.remove-upon-filter-button-click').remove();
       $('#viewAllDesired').prop( "checked", false );
       let state = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
       setActiveTab(state);
+      if(state === "mergereview" || state === "disputed"){
+        let linkSpanElems = $('.add-link-if-merge-review');
+        $(linkSpanElems).each(function(index,spanElem){
+          let currentEncNum = $(spanElem).attr("data-current-enc-num");
+          let anchorHtml = '<a class=\"remove-upon-filter-button-click\" href=\"encounters/mergeReviewDecide.jsp?id=' + currentEncNum + '\" target=\"new\">Resolve</a>';
+          $(spanElem).append(anchorHtml);
+        });
+
+      }
     });
 
     $('#viewAllDesired').change(
