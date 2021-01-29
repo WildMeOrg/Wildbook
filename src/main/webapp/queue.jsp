@@ -10,6 +10,7 @@ org.ecocean.servlet.export.ExportExcelFile,
 java.util.Collection,
 org.joda.time.DateTime,
 org.apache.commons.io.FileUtils,
+java.text.NumberFormat,
 org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
@@ -670,7 +671,11 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
             if(Decision.getNumberOfMatchDecisionsMadeForEncounter(decs)>0){
-              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + (Double) Math.max(0,Math.floor(100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " %</td>");
+              NumberFormat nf= NumberFormat.getInstance();
+              nf.setMaximumFractionDigits(2);
+              nf.setMinimumFractionDigits(2);
+              // nf.setRoundingMode(RoundingMode.HALF_UP);
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " %</td>"); //Math.floor
             }else{
               out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + "No Decisions Yet</td>");
             }
