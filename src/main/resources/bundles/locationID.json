@@ -125,7 +125,16 @@
 					"name": "Sea of Cortés", "id":"sea of cortes",
 					"locationID":[
 						{
-						"name": "Baja California", "id":"Baja California" }
+						"name": "Baja California", "id":"Baja California", "locationID":[
+						
+							{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
+							{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[
+							
+								{ "name":"Bahía Almejas", "id":"Bahia Almejas", "locationID":[] }
+							
+							] }
+						
+						] }
 
 					]
 					},
@@ -140,7 +149,7 @@
 			] },
 			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
 
-				{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
+				
 
 				{ "name":"Northern British Columbia", "id":"Northern British Columbia", "locationID":[] },
 
@@ -158,9 +167,7 @@
 				  "name": "Salish Sea", "id": "Salish Sea" },
 				{ "name":"Santa Barbara Channel", "id":"Santa Barbara Channel", "locationID":[] },
 
-				{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[] },
-
-				{ "name":"Southern Britidh Columbia", "id":"Southern Britidh Columbia", "locationID":[] },
+			
 
 				{ "name":"Southern British Columbia", "id":"Southern British Columbia", "locationID":[] },
 
