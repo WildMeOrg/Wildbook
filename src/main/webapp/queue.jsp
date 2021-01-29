@@ -582,7 +582,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
           <%
         }
 
-        if(Util.stringExists(enc.getState()) && enc.getState().equals("processing")){
+        if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
           Decision.updateEncounterStateBasedOnDecision(myShepherd, enc); // will assign those in processing queue to either "mergereview" or "disputed" as needed
           processingCounter++;
           System.out.println("processingCounter is: " + processingCounter);
