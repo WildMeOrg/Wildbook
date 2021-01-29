@@ -74,6 +74,9 @@ System.out.println("######>>>>>> payload=" + payload);
     public void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doPost(request, response);  //handled via request.getMethod()
     }
+    public void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        handleDelete(request, response);
+    }
 
     //this will get /class/id from the url and massage it into json (which will take overwrite values from inJson if they exist)
     private JSONObject _parseUrl(final HttpServletRequest request, JSONObject inJson) {
@@ -1018,6 +1021,90 @@ rtn.put("_payload", payload);
         if (!bfile.exists()) bfile = new File(ConfigurationUtil.dir() + fname);
         if (!bfile.exists()) return null;
         return ConfigurationUtil.readJson(bfile);
+    }
+
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setCharacterEncoding("UTF-8");
+        String context = ServletUtilities.getContext(request);
+        String instanceId = Util.generateUUID();
+        JSONObject rtn = new JSONObject();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+
+        String cls = null;
+        String id = null;
+        if (request.getPathInfo() != null) {
+            String[] parts = request.getPathInfo().split("/");  //dont forget has leading / like:  "/class/id"
+            if (parts.length > 1) cls = parts[1];
+            if (parts.length > 2) id = parts[2];
+        }
+        if ((cls == null) || (id == null)) {
+            rtn.put("message", _rtnMessage("invalid_class_or_id"));
+            String rtnS = rtn.toString();
+            response.setStatus(406);
+            response.setContentLength(rtnS.getBytes("UTF-8").length);
+            out.println(rtnS);
+            out.close();
+            return;
+        }
+
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleDelete");
+        myShepherd.beginDBTransaction();
+
+        org.ecocean.api.ApiCustomFields obj = null;  //takes care of *most* cases
+        switch (cls) {
+            case "org.ecocean.Encounter":
+                obj = myShepherd.getEncounter(id);
+                break;
+            case "org.ecocean.Occurrence":
+                obj = myShepherd.getOccurrence(id);
+                break;
+            case "org.ecocean.MarkedIndividual":
+                obj = myShepherd.getMarkedIndividual(id);
+                break;
+            default:
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                JSONObject jerr = new JSONObject();
+                jerr.put("id", id);
+                jerr.put("class", cls);
+                rtn.put("message", _rtnMessage("invalid_class", jerr));
+                String rtnS = rtn.toString();
+                response.setStatus(406);
+                response.setContentLength(rtnS.getBytes("UTF-8").length);
+                out.println(rtnS);
+                out.close();
+                return;
+        }
+
+        if (obj == null) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            JSONObject jerr = new JSONObject();
+            jerr.put("id", id);
+            jerr.put("class", cls);
+            rtn.put("message", _rtnMessage("not_found", jerr));
+            String rtnS = rtn.toString();
+            response.setStatus(404);
+            response.setContentLength(rtnS.getBytes("UTF-8").length);
+            out.println(rtnS);
+            out.close();
+            return;
+        }
+
+        obj.delete(myShepherd);
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        rtn.put("success", true);
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.getBytes("UTF-8").length);
+        out.println(rtnS);
+        out.close();
     }
 
 }
