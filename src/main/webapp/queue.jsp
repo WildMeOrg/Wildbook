@@ -766,12 +766,13 @@ function setActiveTab(state) {
 }
 
 function filter(state, filterByOldestDateThatNeedsAttention) {
+
     if(state === "flagged"){
       console.log("a flagged state has entered filter!");
     }
     currentActiveState = state;
     $('.enc-row').hide();
-    let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState(state);
+    let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState("mergereview"); // could be state, but client wants to block upstream states if states downstream have older incompletes
     if(filterByOldestDateThatNeedsAttention && oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
       $('.col-date:contains('+oldestDateThatNeedsAttention+')').parents('.row-state-' + state).show();
     }else{
