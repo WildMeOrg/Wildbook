@@ -275,7 +275,7 @@ return null; ///FIXME
 
         JSONObject c = this.getContent();
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
-        j.put("settable", true);
+        j.put("settable", m.optBoolean("settable", true));
         j.put("isPrivate", this.isPrivate(m));
         j.put("defaultValue", m.opt("defaultValue"));
         j.put("fieldType", type);

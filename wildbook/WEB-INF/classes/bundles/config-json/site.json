@@ -36,7 +36,7 @@
 			"required" : false,
 			"defaultValue": true,
 			"formSchema": { "displayOrder": 0.05, "panel": true },
-			"readOnly": true
+			"settable": false
 		}
 	},
 	"url" : {
@@ -107,14 +107,14 @@
 		"helpDescription": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "Every sighting counts! Citizen scientist reports make a big difference. We also accept donations to support the continued development of <your site name>.",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
 		"customCardLine1": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "Set up your custom card in the site configuration menu.",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
@@ -135,7 +135,7 @@
 		"customCardButtonText": {
 			"__meta": {
 				"type": "string",
-				"defaultValue": "",
+				"defaultValue": "Take action",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
@@ -165,13 +165,6 @@
 				"type": "string",
 				"defaultValue": "",
 				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
-			}
-		},
-		"siteDescription": {
-			"__meta": {
-				"type": "string",
-				"defaultValue": "",
-				"formSchema": { "displayOrder": 2.0 }
 			}
 		},
 		"metaKeywords": {
