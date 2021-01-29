@@ -40,6 +40,9 @@ public class DecisionStore extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
+        if(jsonIn!=null){
+          System.out.println("jsonIn is: " + jsonIn.toString());
+        }
         PrintWriter out = response.getWriter();
 
         User user = AccessControl.getUser(request, myShepherd);

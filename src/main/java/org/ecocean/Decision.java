@@ -70,9 +70,11 @@ public class Decision {
     }
 
     public static void updateEncounterStateBasedOnDecision(Shepherd myShepherd, Encounter enc){
+      System.out.println("updateEncounterStateBasedOnDecision entered");
       String context="context0";
       List<Decision> decisionsForEncounter = myShepherd.getDecisionsForEncounter(enc);
       if(decisionsForEncounter != null && decisionsForEncounter.size() > 0){
+        System.out.println("updateEncounterStateBasedOnDecision decisions nonzero");
         int MIN_DECISIONS_TO_CHANGE_ENC_STATE = (new Integer(CommonConfiguration.getProperty("MIN_DECISIONS_TO_CHANGE_ENC_STATE",context))).intValue();
         int numberOfMatchDecisionsMadeForEncounter = Decision.getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter);
         System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
@@ -113,7 +115,7 @@ public class Decision {
           return;
         }
       }else{
-        System.out.println("Decision no decisions have been made!");
+        // System.out.println("Decision no decisions have been made!");
         return;
       }
     }
