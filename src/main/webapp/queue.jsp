@@ -504,15 +504,17 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
     </a>
 </p>
 <div id="filter-tabs">
-    <button id="filter-button-incoming" onClick="return filter('incoming');">incoming<span class="fct"></span></button>
-    <button id="filter-button-pending" onClick="return filter('pending');">pending<span class="fct"></span></button>
-    <button id="filter-button-processing" onClick="return filter('processing');">processing<span class="fct"></span></button>
-    <button id="filter-button-mergereview" onClick="return filter('mergereview');">merge review<span class="fct"></span></button>
-    <button id="filter-button-finished" onClick="return filter('finished');">finished<span class="fct"></span></button>
-    <button id="filter-button-flagged" onClick="return filter('flagged');">flagged<span class="fct"></span></button>
-    <button id="filter-button-disputed" onClick="return filter('disputed');">disputed<span class="fct"></span></button>
-    <button id="filter-button-rejected" onClick="return filter('rejected');">rejected<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-incoming" onClick="return filter('incoming',true);">incoming<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-pending" onClick="return filter('pending',true);">pending<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-processing" onClick="return filter('processing',true);">processing<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-mergereview" onClick="return filter('mergereview',true);">merge review<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-finished" onClick="return filter('finished',true);">finished<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-flagged" onClick="return filter('flagged',true);">flagged<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-disputed" onClick="return filter('disputed',true);">disputed<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-rejected" onClick="return filter('rejected',true);">rejected<span class="fct"></span></button>
     <br>
+    <input type="checkbox" id="viewAllDesired" name="viewAllDesired" value="true">
+    <label for="viewAllDesired"> View All</label><br>
     <span id="filter-info"></span>
 </div>
 <% } %>
@@ -709,9 +711,32 @@ $(document).ready(function() {
         }, 100);
     });
 
+    $('.filter-button').on('click', function(){
+      $('#viewAllDesired').prop( "checked", false );
+      let state = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+      setActiveTab(state);
+    });
+
+    $('#viewAllDesired').change(
+    function(){
+      let filterByOldestDateThatNeedsAttention = null;
+        if ($(this).is(':checked')) {
+            let stateToFilter = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+            filterByOldestDateThatNeedsAttention = false; //more lines, but easier comprehension
+            filter(stateToFilter, filterByOldestDateThatNeedsAttention);
+            setActiveTab(stateToFilter);
+        }else{
+          let stateToFilter = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+          filterByOldestDateThatNeedsAttention = true; //more lines, but easier comprehension
+          filter(stateToFilter, filterByOldestDateThatNeedsAttention);
+          setActiveTab(stateToFilter);
+        }
+    });
+
     setActiveTab(currentActiveState);
     $('#queue-table').on('post-body.bs.table', function() {
-        filter(currentActiveState);
+      filterByOldestDateThatNeedsAttention = true;
+      filter(currentActiveState, filterByOldestDateThatNeedsAttention);
     });
 /*
     $('.col-flag').each(function(i, el) {
@@ -733,17 +758,21 @@ function setActiveTab(state) {
     $('#filter-tabs .tab-active').removeClass('tab-active');
     $('#filter-button-' + state).addClass('tab-active');
     var ct = $('.enc-row:visible').length;
-    $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in current day');
+    if ($('#viewAllDesired').is(':checked')) {
+      $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in total');
+    }else{
+      $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in current day');
+    }
 }
 
-function filter(state) {
+function filter(state, filterByOldestDateThatNeedsAttention) {
     if(state === "flagged"){
       console.log("a flagged state has entered filter!");
     }
     currentActiveState = state;
     $('.enc-row').hide();
     let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState(state);
-    if(oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
+    if(filterByOldestDateThatNeedsAttention && oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
       $('.col-date:contains('+oldestDateThatNeedsAttention+')').parents('.row-state-' + state).show();
     }else{
       //if, for some reason, the oldest date fetch fails, at least show them the encounters in the state they want  -Mark F.
