@@ -559,6 +559,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
 <%
     myShepherd.beginDBTransaction();
+    int processingCounter = 0;
     for (Encounter enc : encs) {
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
         String ename = enc.getEventID();
@@ -566,10 +567,10 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
         // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
         if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
-          String newState = "flagged";
-          enc.setState(newState);
-          System.out.println("setting state to flagged");
-          myShepherd.updateDBTransaction();
+          // String newState = "flagged";
+          // enc.setState(newState);
+          // System.out.println("setting state to flagged");
+          // myShepherd.updateDBTransaction();
           %>
             <script type="text/javascript">
               currentEncNum = '<%= enc.getCatalogNumber() %>';
@@ -580,6 +581,8 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
         if(Util.stringExists(enc.getState()) && enc.getState().equals("processing")){
           Decision.updateEncounterStateBasedOnDecision(myShepherd, enc); // will assign those in processing queue to either "mergereview" or "disputed" as needed
+          processingCounter++;
+          System.out.println("processingCounter is: " + processingCounter);
         }
 
 
