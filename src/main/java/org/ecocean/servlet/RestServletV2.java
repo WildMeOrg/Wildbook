@@ -1096,7 +1096,15 @@ rtn.put("_payload", payload);
             return;
         }
 
-        obj.delete(myShepherd);
+        try {
+            obj.delete(myShepherd);
+        } catch (IOException ex) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            SystemLog.error("RestServlet.handleDelete() failed on {}", obj, ex);
+            throw ex;
+        }
+        SystemLog.info("RestServlet.handleDelete() deleted {} id={}, instance={}", cls, id, instanceId);
 
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
