@@ -645,17 +645,26 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             }
 
             Map<String,Integer> fmap = new HashMap<String,Integer>();
+            int locationMissingCounter = 0;
             for (Decision dec : decs) {
               if ("flag".equals(dec.getProperty())) {
-                fct++;
                 if (dec.getValue() != null) {
                   JSONArray vals = dec.getValue().optJSONArray("value");
                   if (vals != null) {
                     for (int i = 0 ; i < vals.length() ; i++) {
                       String fval = vals.optString(i, null);
                       if (fval != null) {
-                        if (fmap.get(fval) == null) fmap.put(fval, 0);
-                        fmap.put(fval, fmap.get(fval) + 1);
+                        if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
+                          fct++;
+                          locationMissingCounter ++;
+                          if (fmap.get(fval) == null) fmap.put(fval, 0);
+                          fmap.put(fval, 1); //don't increment. If you've gotten here, it's always one -Mark F.
+                        }
+                        if(!fval.equals("flag-locationid-missing")){
+                          fct++; //felt safe incrementing fct++ this deep in the logic by assuming it's impossible to get a flag without said flag having a value. Even possible, suggestive of something wrong anyway, so seems justified not to count it -Mark F.
+                          if (fmap.get(fval) == null) fmap.put(fval, 0);
+                          fmap.put(fval, fmap.get(fval) + 1);
+                        }
                       }
                     }
                   }
