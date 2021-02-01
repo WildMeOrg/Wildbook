@@ -205,11 +205,13 @@ if (request.getParameter("acmId") != null) {
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
-if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+boolean useLocation = Util.requestParameterSet(request.getParameter("useLocation"));
+if ((request.getParameter("number") != null) && ((request.getParameter("individualID") != null) || useLocation)) {
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
+        res.put("useLocation", useLocation);
 	res.put("taskId", taskId);
 	String projectId = null; 
 	if (Util.stringExists(request.getParameter("projectId"))) {
@@ -235,7 +237,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
+	} else if (useLocation && !Util.stringExists(enc.getLocationID())) {
+		res.put("error", "Empty locationID with useLocation=true for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+        }
 
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
@@ -261,6 +269,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
 	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
 	   use an *existing* indiv in those cases (but allow a new one in the other)
+
+            addendum via WB-1216: the NEW INDIVIDUAL case can now allow for useLocation=true option.
 	*/
 
 	// once you assign an id to one, it will still ask for input on another.
@@ -316,6 +326,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
+                                //note that useLocation flavor has slight race condition possible here...
+                                // might be better to have way to *create* indiv with new loc-based name
+                                if (useLocation) {
+                                    String locPrefix = enc.getLocationID().toLowerCase();
+                                    if (locPrefix.length() > 3) locPrefix = locPrefix.substring(0,3);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, 3);
+                                }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
 					if (Util.isUUID(individualID)) {
@@ -1889,8 +1906,6 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLoc
 console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
 	useLocation == useLocation && loc;
-console.info('loc = %o  ;  useLocation = %o', loc, useLocation);
-return;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
@@ -1899,7 +1914,7 @@ return;
 	}
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
-	if (!indivID || !encID) {
+	if ((!indivID || !encID) && !useLocation) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
 	}
