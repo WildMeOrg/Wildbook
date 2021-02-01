@@ -568,7 +568,6 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         String ename = enc.getEventID();
 
         // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
-        // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
         if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
           // String newState = "flagged";
           // enc.setState(newState);
@@ -576,21 +575,18 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
           // myShepherd.updateDBTransaction();
           %>
             <script type="text/javascript">
-              currentEncNum = '<%= enc.getCatalogNumber() %>';
+              currentEncNum = '<%= enc.getCatalogNumber() %>'; //TODO comment this back in for flagging
               flag('locationid-missing', currentEncNum);
             </script>
           <%
         }
 
+        //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
         if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
-          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc); // will assign those in processing queue to either "mergereview" or "disputed" as needed
+          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
           processingCounter++;
           System.out.println("processingCounter is: " + processingCounter);
         }
-
-
-
-        // System.out.println("got here 2 Encounter " + enc.getCatalogNumber()+"'s state is now: " + enc.getState());
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         out.println("<td class=\"col-id\">");
@@ -650,23 +646,23 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
             Map<String,Integer> fmap = new HashMap<String,Integer>();
             for (Decision dec : decs) {
+              if ("flag".equals(dec.getProperty())) {
+                fct++;
+                if (dec.getValue() != null) {
+                  JSONArray vals = dec.getValue().optJSONArray("value");
+                  if (vals != null) {
+                    for (int i = 0 ; i < vals.length() ; i++) {
+                      String fval = vals.optString(i, null);
+                      if (fval != null) {
+                        if (fmap.get(fval) == null) fmap.put(fval, 0);
+                        fmap.put(fval, fmap.get(fval) + 1);
+                      }
+                    }
+                  }
+                }
+              }
                 if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
                 if ("match".equals(dec.getProperty())) dct++;
-                if ("flag".equals(dec.getProperty())) {
-                    fct++;
-                    if (dec.getValue() != null) {
-                        JSONArray vals = dec.getValue().optJSONArray("value");
-                        if (vals != null) {
-                            for (int i = 0 ; i < vals.length() ; i++) {
-                                String fval = vals.optString(i, null);
-                                if (fval != null) {
-                                    if (fmap.get(fval) == null) fmap.put(fval, 0);
-                                    fmap.put(fval, fmap.get(fval) + 1);
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
