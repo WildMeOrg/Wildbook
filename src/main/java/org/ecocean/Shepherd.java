@@ -4862,7 +4862,6 @@ public class Shepherd {
       query.setClass(Decision.class);
       List<Decision> decisions = (List<Decision>) query.execute();
       if (decisions!=null && decisions.size()>0){
-        System.out.println("decisions is not null and size is: " + decisions.size());
         returnVals.addAll(decisions);
       }
       query.closeAll();
@@ -4871,7 +4870,7 @@ public class Shepherd {
       System.out.println("Exception on getDecisionsForEncounter in encounter: " + enc.toString());
       e.printStackTrace();
     } finally{
-      System.out.println("exiting getDecisionsForEncounter and returnVals is: " + returnVals.toString());
+      // System.out.println("exiting getDecisionsForEncounter and returnVals is: " + returnVals.toString());
       return returnVals;
     }
   }

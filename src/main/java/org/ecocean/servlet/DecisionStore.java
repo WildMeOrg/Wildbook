@@ -35,14 +35,10 @@ public class DecisionStore extends HttpServlet {
 
     @Override
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("doPost in DecisionStore.java entered");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
-        if(jsonIn!=null){
-          System.out.println("jsonIn is: " + jsonIn.toString());
-        }
         PrintWriter out = response.getWriter();
 
         User user = AccessControl.getUser(request, myShepherd);

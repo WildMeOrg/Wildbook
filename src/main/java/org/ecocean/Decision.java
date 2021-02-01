@@ -74,13 +74,13 @@ public class Decision {
       String context="context0";
       List<Decision> decisionsForEncounter = myShepherd.getDecisionsForEncounter(enc);
       if(decisionsForEncounter != null && decisionsForEncounter.size() > 0){
-        System.out.println("updateEncounterStateBasedOnDecision decisions nonzero");
+        // System.out.println("updateEncounterStateBasedOnDecision decisions nonzero");
         Double MIN_DECISIONS_TO_CHANGE_ENC_STATE = (new Double(CommonConfiguration.getProperty("MIN_DECISIONS_TO_CHANGE_ENC_STATE",context))).doubleValue();
         Double numberOfMatchDecisionsMadeForEncounter = Decision.getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter);
         if(numberOfMatchDecisionsMadeForEncounter == 0) return; //avoid divide by zero errors
-        System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
+        // System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
         if(getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) >= MIN_DECISIONS_TO_CHANGE_ENC_STATE){
-          System.out.println("Decision " + getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) + " decisions have been made about the ecounter, which is at or above the " + MIN_DECISIONS_TO_CHANGE_ENC_STATE + " count threshold.");
+          // System.out.println("Decision " + getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) + " decisions have been made about the ecounter, which is at or above the " + MIN_DECISIONS_TO_CHANGE_ENC_STATE + " count threshold.");
           Double numberOfAgreementsForMostAgreedUponMatch = Decision.getNumberOfAgreementsForMostAgreedUponMatch(decisionsForEncounter);
           Double agreementRatio = numberOfAgreementsForMostAgreedUponMatch/numberOfMatchDecisionsMadeForEncounter;
           // System.out.println("agreementRatio is: " + agreementRatio);
@@ -90,7 +90,7 @@ public class Decision {
             // System.out.println("MIN_AGREEMENTS_TO_CHANGE_ENC_STATE is: " + MIN_AGREEMENTS_TO_CHANGE_ENC_STATE);
             // System.out.println("MIN_DECISIONS_TO_CHANGE_ENC_STATE is: " + MIN_DECISIONS_TO_CHANGE_ENC_STATE);
             // System.out.println("ratioThreshold is: " + ratioThreshold);
-            System.out.println("Decision agreementRatio is: " + agreementRatio + ", which is at or above the "+ ratioThreshold + " percentage threshold");
+            System.out.println("Decision for encounter " + enc.getCatalogNumber() + ": agreementRatio is: " + agreementRatio + ", which is at or above the "+ ratioThreshold + " percentage threshold. Setting to mergereview...");
             try{
               String newState = "mergereview";
               enc.setState(newState);
@@ -104,7 +104,7 @@ public class Decision {
             }
           }else{
             if(agreementRatio < ratioThreshold){
-              System.out.println("Decision agreementRatio is: " + agreementRatio + ", which is below the "+ ratioThreshold + " percentage threshold. This means that the encounter decisions are disputed");
+              System.out.println("Decision for encounter " + enc.getCatalogNumber() + ": agreementRatio is: " + agreementRatio + ", which is below the "+ ratioThreshold + " percentage threshold. This means that the encounter decisions are disputed. Setting to disputed...");
               try{
                 String newState = "disputed";
                 enc.setState(newState);
