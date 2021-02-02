@@ -4,6 +4,8 @@
   "locationID": [
 
 
+{ "name":"NSW- Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[] },
+
 { "name":"NSW-Eden", "id":"NSW-Eden", "locationID":[] },
 
 { "name":"NSW-Jervis Bay-Bowen Island", "id":"NSW-Jervis Bay-Bowen Island", "locationID":[] },
@@ -16,10 +18,14 @@
 
 { "name":"NSW-Magic Point", "id":"NSW- Magic Point", "locationID":[] },
 
+{ "name":"NSW- Shellharbour- Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[] },
+
 { "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[] },
 
 { "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[] },
 
+
+{ "name":"SA- Adelaide- Second Valley", "id":"SA- Adelaide- Second Valley", "locationID":[] },
 
 { "name":"SA-Encounter Bay", "id":"SA-Encounter Bay", "locationID":[] },
 
@@ -102,6 +108,8 @@
 { "name":"WA-Perth-Cottesloe", "id":"WA-Perth-Cottesloe", "locationID":[] },
 
 { "name":"WA-Perth-Hillarys Boat Harbour", "id":"WA-Perth-Hillarys Boat Harbour", "locationID":[] },
+
+{ "name":"WA- Perth- Marmion Angling and Aquatic Club", "id":"WA- Perth- Marmion Angling and Aquatic Club", "locationID":[] },
 
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[] },
 
