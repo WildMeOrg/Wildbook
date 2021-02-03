@@ -538,54 +538,43 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 </thead>
 <tbody>
 <script type="text/javascript">
-  function flag(type, encounterNumber) {
-    console.log("flag entered. Adding " + type + " to encounter: " + encounterNumber);
-    $.ajax({
-      url: '../DecisionStore',
-      data: JSON.stringify({ property: 'flag', value: { value: ['flag-' + type], via: 'queue.jsp' }, encounterId: encounterNumber }),
-      dataType: 'json',
-      complete: function(xhr) {
-        console.log(xhr);
-        if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
-          console.warn("responseJSON => %o", xhr.responseJSON);
-          alert('ERROR setting: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
-        } else {
-          // window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=pending';
-        }
-      },
-      contentType: 'application/javascript',
-      type: 'POST'
-    });
-    let currentEncNum = '';
-  }
+  let currentEncNum = '';
 </script>
 
 <%
     myShepherd.beginDBTransaction();
-    int processingCounter = 0;
+    int locIdMissingCounter = 0;
     for (Encounter enc : encs) {
+        locIdMissingCounter = 0;
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
         String ename = enc.getEventID();
 
-        // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
+        //assign locationid-missing flag to encounters missing locationIDs
         if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
-          // String newState = "flagged";
-          // enc.setState(newState);
-          // System.out.println("setting state to flagged");
-          // myShepherd.updateDBTransaction();
-          %>
-            <script type="text/javascript">
-              currentEncNum = '<%= enc.getCatalogNumber() %>'; //TODO comment this back in for flagging
-              flag('locationid-missing', currentEncNum);
-            </script>
-          <%
+          List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
+          if(currentDecisions != null && currentDecisions.size()>0){
+            for(Decision currentDec: currentDecisions){
+              if(currentDec.getValueAsString().contains("flag-locationid-missing")){
+                locIdMissingCounter ++;
+              }
+            }
+          }
+          if(locIdMissingCounter<1){ //locationId is missing, and no decision has flagged it yet
+            System.out.println("adding flag-locationid-missing to encounter " + enc.getCatalogNumber());
+            JSONObject val = new JSONObject();
+            List valueArr = new ArrayList<String>();
+            valueArr.add("flag-locationid-missing");
+            val.put("value", valueArr); //following the convention to add this as an array. Not clear to me yet why this is being done for other flags -Mark F.
+            val.put("via", "queue.jsp");
+            String flagProp = "flag";
+            Decision dec = new Decision(user, enc, flagProp, val);
+            myShepherd.getPM().makePersistent(dec);
+          }
         }
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
         if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
           Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
-          processingCounter++;
-          System.out.println("processingCounter is: " + processingCounter);
         }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);

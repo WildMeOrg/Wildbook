@@ -4854,7 +4854,6 @@ public class Shepherd {
   }
 
   public List<Decision> getDecisionsForEncounter(Encounter enc){
-    System.out.println("getDecisionsForEncounter entered");
     List<Decision> returnVals = new ArrayList<Decision>();
     try {
       String queryString = "SELECT FROM org.ecocean.Decision WHERE this.encounter.catalogNumber == '"+enc.getCatalogNumber()+"'";
@@ -4870,7 +4869,6 @@ public class Shepherd {
       System.out.println("Exception on getDecisionsForEncounter in encounter: " + enc.toString());
       e.printStackTrace();
     } finally{
-      // System.out.println("exiting getDecisionsForEncounter and returnVals is: " + returnVals.toString());
       return returnVals;
     }
   }
