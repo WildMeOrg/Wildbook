@@ -112,9 +112,10 @@ public class MediaAssetModify extends HttpServlet {
           String rotationDesired = jsonIn.optString("rotate", null);
           if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired)){
             MediaAsset mediaAsset = myShepherd.getMediaAsset(mediaAssetId);
-            System.out.println("deleteMe mediaAssetId is: " + mediaAssetId);
+            System.out.println("deleteMe mediaAssetId is " + mediaAssetId);
+            System.out.println("deleteMe mediaAssetId from actual mediaAsset object is: " + mediaAsset.getId());
 
-            //since the 90 degree rotations don't accumulate automcatically, here's logic to handle that
+            //since the 90 degree rotations don't accumulate automatically, here's logic to handle that
             ArrayList<String> labels = mediaAsset.getLabels();
             int rotationLableCounter = 0;
             if(rotationDesired.equals("rotate90")){
@@ -135,6 +136,7 @@ public class MediaAssetModify extends HttpServlet {
                     System.out.println("deleteMe got here 3");
                   }
                   if(currentLabel.equals("rotate180")){
+                    System.out.println("deleteMe got here 4");
                     System.out.println("deleteMe got here currentLabel is rotate180!");
                     mediaAsset.removeLabel("rotate180");
                     // myShepherd.updateDBTransaction();
@@ -143,23 +145,35 @@ public class MediaAssetModify extends HttpServlet {
                     rotationLableCounter++;
                   }
                   if(currentLabel.equals("rotate270")){
+                    System.out.println("deleteMe got here 5");
                     System.out.println("deleteMe got here currentLabel is rotate270!");
                     mediaAsset.removeLabel("rotate270");
                     // myShepherd.updateDBTransaction();
                     rotationLableCounter++;
                   }
+                  System.out.println("deleteMe got here 6");
                 }//end for labels
+                System.out.println("deleteMe got here 7");
               } //end if labels exist
+              System.out.println("deleteMe got here 8");
               if(rotationLableCounter<1){
+                System.out.println("deleteMe got here 9");
                 System.out.println("deleteMe rotationCounter never incremented. rotating plain old 90 degrees...");
                 mediaAsset.addLabel(rotationDesired);
                 // myShepherd.updateDBTransaction();
               }
             }
             System.out.println("deleteMe about to update transaction");
+            System.out.println("deleteMe got here 10");
             myShepherd.updateDBTransaction(); //update before that redoAllChildren knows which labels to actually apply
+            System.out.println("deleteMe got here 11");
             mediaAsset.redoAllChildren(myShepherd);
+            System.out.println("deleteMe got here 12");
             myShepherd.updateDBTransaction();
+            ArrayList<String> labelsAfterUpdate = mediaAsset.getLabels();
+            if(labelsAfterUpdate!=null && labelsAfterUpdate.size()>0) System.out.println("deleteMe labelsAfterUpdate are: " + labelsAfterUpdate.toString());
+
+            System.out.println("deleteMe got here 13");
             res.put("success","true");
           }
         } else{
