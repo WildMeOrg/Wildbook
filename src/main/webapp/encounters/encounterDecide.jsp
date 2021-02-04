@@ -181,18 +181,19 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
 	Properties props=new Properties();
 	String langCode=ServletUtilities.getLanguageCode(request);
 	String context = ServletUtilities.getContext(request);
-        request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("encounterDecide.jsp");
-        myShepherd.beginDBTransaction();
-        String encId = request.getParameter("id");
-        Encounter enc = myShepherd.getEncounter(encId);
-        if (enc == null) {
-            response.setStatus(404);
-            out.println("404 not found");
-            return;
-        }
-        User user = AccessControl.getUser(request, myShepherd);
+  props = ShepherdProperties.getProperties("encounterDecide.properties", langCode, context);
+  request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterDecide.jsp");
+  myShepherd.beginDBTransaction();
+  String encId = request.getParameter("id");
+  Encounter enc = myShepherd.getEncounter(encId);
+  if (enc == null) {
+      response.setStatus(404);
+      out.println("404 not found");
+      return;
+  }
+  User user = AccessControl.getUser(request, myShepherd);
 /*
         if (!"new".equals(enc.getState())) {   //TODO other privilege checks here
             response.setStatus(401);
@@ -1197,24 +1198,29 @@ There are two steps to processing each submission: selecting cat attributes, and
 
         <div class="attribute">
             <h3>Ear Tip</h3>
-            <p class="attribute-info">Zoom all the way in to check.  Ear tipping can be difficult to see, and it depends on the angle of the photo and the amount of ear tip removed.<br />When in doubt, select unknown.</p>
+            <p class="attribute-info">
+              <%=props.getProperty("zoomEarTipPt1")%>
+              <br/>
+              <%=props.getProperty("zoomEarTipPt2")%>
+            </p>
             <div id="earTip" class="attribute-select">
                 <div id="yes_left" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
-                    <div class="attribute-title">Yes - Cat's Left</div>
+                    <div class="attribute-title"><%=props.getProperty("catLeft")%></div>
                 </div>
                 <div id="yes_right" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipright.jpg" />
-                    <div class="attribute-title">Yes - Cat's Right</div>
+                    <div class="attribute-title"><%=props.getProperty("catRight")%></div>
                 </div>
                 <div id="no" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_untipped.jpg" />
-                    <div class="attribute-title">No</div>
+                    <div class="attribute-title"><%=props.getProperty("no")%></div>
                 </div>
                 <div id="unknown" class="attribute-option">
                     <img class="attribute-image" src="../images/unknown.png" />
-                    <div class="attribute-title">Unknown</div>
+                    <div class="attribute-title"><%=props.getProperty("unknown")%></div>
                 </div>
+
             </div>
         </div>
 
