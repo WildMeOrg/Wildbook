@@ -337,7 +337,10 @@ h1 { background: none !important; }
     width: 22%;
     margin-bottom: 13px;
 }
-#earTip .attribute-option, #lifeStage .attribute-option {
+#earTip .attribute-option {
+    width: 22%;
+}
+#lifeStage .attribute-option {
     width: 47%;
 }
 #collar .attribute-option, #sex .attribute-option {
@@ -1197,13 +1200,14 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h3>Ear Tip</h3>
+            <h3><%=props.getProperty("earTip")%></h3>
             <p class="attribute-info">
               <%=props.getProperty("zoomEarTipPt1")%>
               <br/>
               <%=props.getProperty("zoomEarTipPt2")%>
             </p>
             <div id="earTip" class="attribute-select">
+
                 <div id="yes_left" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
                     <div class="attribute-title"><%=props.getProperty("catLeft")%></div>
