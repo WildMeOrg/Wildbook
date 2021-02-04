@@ -661,6 +661,30 @@ $(window).on('resizeEnd', function(ev) {
 	checkImageEnhancerResize();
 });
 
+function mediaAssetModifyAjax(data){
+  $('.popup-content').html('<div class="throbbing">updating</div>');
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '/MediaAssetModify',
+      data: JSON.stringify(data),
+      type: 'POST',
+      dataType: 'json',
+      contentType: 'application/javascript',
+      complete: function(data) {
+          console.info('return => %o', data);
+          debugger;
+          if (!data || !data.responseJSON) {
+              $('.popup-content').html('<div class="error">unknown error</div>');
+              return;
+          }
+          if (data.responseJSON.success) {
+            // window.location.reload(); //TODO comment back in
+            return;
+          }
+          $('.popup-content').html('<div class="error">' + (data.responseJSON.error || data.responseJSON.message) + '</div>');
+      }
+  });
+  return false;
+}
 
 function annotEditAjax(data) {
     $('.popup-content').html('<div class="throbbing">updating</div>');
@@ -843,8 +867,29 @@ function doImageEnhancer(sel) {
             ['replace this image', function(enh) {
             }],
 */
+            ['rotate 90 degrees clockwise', function(enh) {
+              let mediaAssetId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+              console.log("mediaAssetId is: " + mediaAssetId);
+              let mediaAsset = assetById(mediaAssetId);
+              console.log("mediaAsset before is: ");
+              console.log(mediaAsset);
+              let rotateImageAjaxData = {};
+              rotateImageAjaxData["maId"] = mediaAssetId;
+              rotateImageAjaxData["rotate"]="rotate90";
+              console.log("rotateImageAjaxData is: ");
+              console.log(rotateImageAjaxData);
+              debugger;
+
+              mediaAssetModifyAjax(rotateImageAjaxData);
+
+              mediaAsset = assetById(mediaAssetId);
+              console.log("mediaAsset after is: ");
+              console.log(mediaAsset);
+              debugger;
+            }],
+
             ['make MatchPhoto', function(enh) {
-		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
                 var indivId = false;
                 for (var i = 0 ; i < ma.features.length ; i++) {
@@ -1351,7 +1396,7 @@ console.info("############## mid=%s -> %o", mid, ma);
       h += valueSelectors;
     }
   } else {
-    console.log("your labels are empty dumbass");
+    // console.log("your labels are empty dumbass");
   }
   h += '</div></div>';
 

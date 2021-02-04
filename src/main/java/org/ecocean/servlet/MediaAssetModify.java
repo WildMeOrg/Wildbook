@@ -103,10 +103,75 @@ public class MediaAssetModify extends HttpServlet {
 
       res.put("success","true");
     } catch (Exception edel) {
-      locked = true;
-      log.warn("Failed to modify MediaAsset: " + request.getParameter("id"), edel);
-      edel.printStackTrace();
-      myShepherd.rollbackDBTransaction();
+      try{
+        //now try getting info. from json data instead of params
+        System.out.println("deleteMe now try getting info. from json data instead of params");
+        JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
+        if(jsonIn!=null){
+          String mediaAssetId = jsonIn.optString("maId", null);
+          String rotationDesired = jsonIn.optString("rotate", null);
+          if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired)){
+            MediaAsset mediaAsset = myShepherd.getMediaAsset(mediaAssetId);
+            System.out.println("deleteMe mediaAssetId is: " + mediaAssetId);
+
+            //since the 90 degree rotations don't accumulate automcatically, here's logic to handle that
+            ArrayList<String> labels = mediaAsset.getLabels();
+            int rotationLableCounter = 0;
+            if(rotationDesired.equals("rotate90")){
+              if(labels!=null && labels.size()>0){
+                System.out.println("deleteMe labels.size() is: " + labels.size());
+                System.out.println("deleteMe labels are: " + labels.toString());
+                for(String currentLabel: labels){
+                  System.out.println("deleteMe currentLabel is: " + currentLabel);
+                  if(currentLabel.equals("rotate90")){
+                    System.out.println("deleteMe got here currentLabel is rotate90!");
+                    mediaAsset.removeLabel("rotate90");
+                    // myShepherd.updateDBTransaction();
+                    System.out.println("deleteMe got here 1");
+                    mediaAsset.addLabel("rotate180");
+                    // myShepherd.updateDBTransaction();
+                    System.out.println("deleteMe got here 2");
+                    rotationLableCounter++;
+                    System.out.println("deleteMe got here 3");
+                  }
+                  if(currentLabel.equals("rotate180")){
+                    System.out.println("deleteMe got here currentLabel is rotate180!");
+                    mediaAsset.removeLabel("rotate180");
+                    // myShepherd.updateDBTransaction();
+                    mediaAsset.addLabel("rotate270");
+                    // myShepherd.updateDBTransaction();
+                    rotationLableCounter++;
+                  }
+                  if(currentLabel.equals("rotate270")){
+                    System.out.println("deleteMe got here currentLabel is rotate270!");
+                    mediaAsset.removeLabel("rotate270");
+                    // myShepherd.updateDBTransaction();
+                    rotationLableCounter++;
+                  }
+                }//end for labels
+              } //end if labels exist
+              if(rotationLableCounter<1){
+                System.out.println("deleteMe rotationCounter never incremented. rotating plain old 90 degrees...");
+                mediaAsset.addLabel(rotationDesired);
+                // myShepherd.updateDBTransaction();
+              }
+            }
+            System.out.println("deleteMe about to update transaction");
+            myShepherd.updateDBTransaction(); //update before that redoAllChildren knows which labels to actually apply
+            mediaAsset.redoAllChildren(myShepherd);
+            myShepherd.updateDBTransaction();
+            res.put("success","true");
+          }
+        } else{
+          throw new IOException("MediaAssetModify servlet requires an 'id' argument or json data. Both are missing.");
+        }
+      } catch(Exception except2){
+        locked = true;
+        log.warn("Failed to modify MediaAsset: " + request.getParameter("id"), edel);
+        edel.printStackTrace();
+        myShepherd.rollbackDBTransaction();
+      }
+
     }
 
 
