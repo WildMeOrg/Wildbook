@@ -4854,19 +4854,23 @@ public class Shepherd {
   }
 
   public List<Decision> getDecisionsForEncounter(Encounter enc){
+    List<Decision> returnVals = new ArrayList<Decision>();
     try {
       String queryString = "SELECT FROM org.ecocean.Decision WHERE this.encounter.catalogNumber == '"+enc.getCatalogNumber()+"'";
       Query query = pm.newQuery(queryString);
       query.setClass(Decision.class);
       List<Decision> decisions = (List<Decision>) query.execute();
+      if (decisions!=null && decisions.size()>0){
+        returnVals.addAll(decisions);
+      }
       query.closeAll();
-      if (decisions!=null && decisions.size()>0) return decisions;
     }
     catch (Exception e) {
       System.out.println("Exception on getDecisionsForEncounter in encounter: " + enc.toString());
       e.printStackTrace();
+    } finally{
+      return returnVals;
     }
-    return null;
   }
 
   public void throwAwayDecision(Decision regrettableDecision) {

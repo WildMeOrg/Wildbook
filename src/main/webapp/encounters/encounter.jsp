@@ -838,6 +838,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
 */
     int countDec = 0;
     int countFlag = 0;
+    int locationMissingCounter = 0;
     Map<String,Map<String,Integer>> decMap = new HashMap<String,Map<String,Integer>>();
     Map<String,Integer> flagMap = new HashMap<String,Integer>();
     for (Decision dec : decs) {
@@ -850,9 +851,17 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
             for (int fi = 0 ; fi < farr.length() ; fi++) {
                 String fval = farr.optString(fi, null);
                 if (fval == null) continue;
-                countFlag++;
-                if (flagMap.get(fval) == null) flagMap.put(fval, 0);
-                flagMap.put(fval, flagMap.get(fval) + 1);
+                if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
+                  locationMissingCounter ++;
+                  countFlag++;
+                  if (flagMap.get(fval) == null) flagMap.put(fval, 0);
+                  flagMap.put(fval, 1);
+                }
+                if(!fval.equals("flag-locationid-missing")){
+                  countFlag++;
+                  if (flagMap.get(fval) == null) flagMap.put(fval, 0);
+                  flagMap.put(fval, flagMap.get(fval) + 1);
+                }
             }
             continue;
         }
@@ -903,6 +912,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
             out.println("<h3>Flags</h3>");
             for (String val : flagMap.keySet()) {
                 int ct = flagMap.get(val);
+                if(val.equals("flag-locationid-missing")) ct = 1; //because a new one gets added each time queue.jsp is run, let's not inflate the count beyond one -Mark F.
                 String pct = "";
                 double p = new Double(ct) / new Double(countFlag);
                 if (ct < countFlag) pct = Math.round(p * 100d) + "%";
@@ -937,13 +947,14 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
 
     <div class="kitsci-actions">
         <h2>Current state: <b><%=enc.getState()%></b></h2>
-        <button class="button-smaller" onclick="return flag('detection-multicat-fail');">Flag Multi-cat Detection Fail</button>
-        <button class="button-smaller" onclick="return flag('detection-multicat-false');">Flag False Multi-cat</button>
-        <button class="button-smaller" onclick="return flag('detection-fail');">Flag Detection Fail</button>
-        <button class="button-smaller" onclick="return flag('detection-box-redraw');">Flag Box Re-draw</button>
-        <button class="button-smaller" onclick="return flag('detection-privacy');">Private info needs blurring (face, signs, etc)</button>
+        <button class="button-smaller" onclick="return flag('detection-multicat-fail');"><%= encprops.getProperty("multiCatDetFailFlag") %></button>
+        <button class="button-smaller" onclick="return flag('detection-multicat-false');"><%= encprops.getProperty("multiCatFalseFlag") %></button>
+        <button class="button-smaller" onclick="return flag('detection-fail');"><%= encprops.getProperty("flagDetFail") %></button>
+        <button class="button-smaller" onclick="return flag('detection-box-redraw');"><%= encprops.getProperty("flagBoxRedraw") %></button>
+        <button class="button-smaller" onclick="return flag('detection-privacy');"><%= encprops.getProperty("flagPrivateInfoNeedsBlurring") %></button>
+        <button class="button-smaller" onclick="return flag('locationid-missing');"><%= encprops.getProperty("flagLocationMissing") %></button>
         <br />
-        <button onclick="return setState('processing');">Advance to Processing</button>
+        <button onclick="return setState('processing');"><%= encprops.getProperty("advanceToProcessing") %></button>
     </div>
 </div>
 <% }  //end isAdmin %>

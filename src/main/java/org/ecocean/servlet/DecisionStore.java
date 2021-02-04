@@ -35,7 +35,6 @@ public class DecisionStore extends HttpServlet {
 
     @Override
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("doPost in DecisionStore.java entered");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();

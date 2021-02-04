@@ -70,18 +70,27 @@ public class Decision {
     }
 
     public static void updateEncounterStateBasedOnDecision(Shepherd myShepherd, Encounter enc){
+      // System.out.println("updateEncounterStateBasedOnDecision entered");
       String context="context0";
       List<Decision> decisionsForEncounter = myShepherd.getDecisionsForEncounter(enc);
       if(decisionsForEncounter != null && decisionsForEncounter.size() > 0){
-        int MIN_DECISIONS_TO_CHANGE_ENC_STATE = (new Integer(CommonConfiguration.getProperty("MIN_DECISIONS_TO_CHANGE_ENC_STATE",context))).intValue();
-        int numberOfMatchDecisionsMadeForEncounter = Decision.getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter);
-        System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
+        // System.out.println("updateEncounterStateBasedOnDecision decisions nonzero");
+        Double MIN_DECISIONS_TO_CHANGE_ENC_STATE = (new Double(CommonConfiguration.getProperty("MIN_DECISIONS_TO_CHANGE_ENC_STATE",context))).doubleValue();
+        Double numberOfMatchDecisionsMadeForEncounter = Decision.getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter);
+        if(numberOfMatchDecisionsMadeForEncounter == 0) return; //avoid divide by zero errors
+        // System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
         if(getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) >= MIN_DECISIONS_TO_CHANGE_ENC_STATE){
-          System.out.println("Decision " + getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) + " decisions have been made about the ecounter, which is at or above the " + MIN_DECISIONS_TO_CHANGE_ENC_STATE + " count threshold.");
-          int numberOfAgreementsForMostAgreedUponMatch = Decision.getNumberOfAgreementsForMostAgreedUponMatch(decisionsForEncounter);
-          int MIN_AGREEMENTS_TO_CHANGE_ENC_STATE = (new Integer(CommonConfiguration.getProperty("MIN_AGREEMENTS_TO_CHANGE_ENC_STATE",context))).intValue();
-          if(numberOfAgreementsForMostAgreedUponMatch >= MIN_AGREEMENTS_TO_CHANGE_ENC_STATE){
-            System.out.println("Decision numberOfAgreementsForMostAgreedUponMatch is: " + numberOfAgreementsForMostAgreedUponMatch + ", which is at or above the "+ MIN_AGREEMENTS_TO_CHANGE_ENC_STATE + " count threshold");
+          // System.out.println("Decision " + getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) + " decisions have been made about the ecounter, which is at or above the " + MIN_DECISIONS_TO_CHANGE_ENC_STATE + " count threshold.");
+          Double numberOfAgreementsForMostAgreedUponMatch = Decision.getNumberOfAgreementsForMostAgreedUponMatch(decisionsForEncounter);
+          Double agreementRatio = numberOfAgreementsForMostAgreedUponMatch/numberOfMatchDecisionsMadeForEncounter;
+          // System.out.println("agreementRatio is: " + agreementRatio);
+          Double MIN_AGREEMENTS_TO_CHANGE_ENC_STATE = (new Double(CommonConfiguration.getProperty("MIN_AGREEMENTS_TO_CHANGE_ENC_STATE",context))).doubleValue();
+          Double ratioThreshold = MIN_AGREEMENTS_TO_CHANGE_ENC_STATE/MIN_DECISIONS_TO_CHANGE_ENC_STATE;
+          if(agreementRatio >= ratioThreshold){
+            // System.out.println("MIN_AGREEMENTS_TO_CHANGE_ENC_STATE is: " + MIN_AGREEMENTS_TO_CHANGE_ENC_STATE);
+            // System.out.println("MIN_DECISIONS_TO_CHANGE_ENC_STATE is: " + MIN_DECISIONS_TO_CHANGE_ENC_STATE);
+            // System.out.println("ratioThreshold is: " + ratioThreshold);
+            System.out.println("Decision for encounter " + enc.getCatalogNumber() + ": agreementRatio is: " + agreementRatio + ", which is at or above the "+ ratioThreshold + " percentage threshold. Setting to mergereview...");
             try{
               String newState = "mergereview";
               enc.setState(newState);
@@ -94,8 +103,8 @@ public class Decision {
               myShepherd.rollbackDBTransaction();
             }
           }else{
-            if(numberOfAgreementsForMostAgreedUponMatch < MIN_AGREEMENTS_TO_CHANGE_ENC_STATE){
-              System.out.println("Decision numberOfAgreementsForMostAgreedUponMatch is: " + numberOfAgreementsForMostAgreedUponMatch + ", which is below the "+ MIN_AGREEMENTS_TO_CHANGE_ENC_STATE + " count threshold. This means that the encounter decisions are disputed");
+            if(agreementRatio < ratioThreshold){
+              System.out.println("Decision for encounter " + enc.getCatalogNumber() + ": agreementRatio is: " + agreementRatio + ", which is below the "+ ratioThreshold + " percentage threshold. This means that the encounter decisions are disputed. Setting to disputed...");
               try{
                 String newState = "disputed";
                 enc.setState(newState);
@@ -113,15 +122,15 @@ public class Decision {
           return;
         }
       }else{
-        System.out.println("Decision no decisions have been made!");
+        // System.out.println("Decision no decisions have been made!");
         return;
       }
     }
 
-    public static int getNumberOfAgreementsForMostAgreedUponMatch(List<Decision> decisionsForEncounter){
-      int numAgreements = 0;
+    public static Double getNumberOfAgreementsForMostAgreedUponMatch(List<Decision> decisionsForEncounter){
+      Double numAgreements = 0.0;
       String currentMatchedMarkedIndividualId = null;
-      int currentMatchedMarkedIndividualCounter = 0;
+      Double currentMatchedMarkedIndividualCounter = 0.0;
       JSONObject winningIndividualTracker = new JSONObject();
       JSONObject currentDecisionValue = new JSONObject();
       if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
@@ -129,13 +138,13 @@ public class Decision {
           if(currentDecision.getProperty().equals("match")){
             currentDecisionValue = currentDecision.getValue();
             currentMatchedMarkedIndividualId = currentDecisionValue.optString("id", null);
-            currentMatchedMarkedIndividualCounter = winningIndividualTracker.optInt(currentMatchedMarkedIndividualId, 0);
+            currentMatchedMarkedIndividualCounter = winningIndividualTracker.optDouble(currentMatchedMarkedIndividualId, 0.0);
             winningIndividualTracker.put(currentMatchedMarkedIndividualId, currentMatchedMarkedIndividualCounter+1);
           }
         }
         String winningMarkedIndividualId = findWinner(winningIndividualTracker);
         if(winningMarkedIndividualId!=null){
-          numAgreements = winningIndividualTracker.optInt(winningMarkedIndividualId, 0);
+          numAgreements = winningIndividualTracker.optDouble(winningMarkedIndividualId, 0.0);
         }
       }
       return numAgreements;
@@ -156,8 +165,8 @@ public class Decision {
       return currentWinner;
     }
 
-    public static int getNumberOfMatchDecisionsMadeForEncounter(List<Decision> decisionsForEncounter){
-      int numAgreements = 0;
+    public static Double getNumberOfMatchDecisionsMadeForEncounter(List<Decision> decisionsForEncounter){
+      Double numAgreements = 0.0;
       if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
         for(Decision currentDecision: decisionsForEncounter){
           if(currentDecision.getProperty().equals("match")){

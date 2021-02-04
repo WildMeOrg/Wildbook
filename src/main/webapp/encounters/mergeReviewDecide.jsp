@@ -183,7 +183,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
 	String context = ServletUtilities.getContext(request);
         request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
         Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("encounterDecide.jsp");
+        myShepherd.setAction("mergeReviewDecide.jsp");
         myShepherd.beginDBTransaction();
         String encId = request.getParameter("id");
         Encounter enc = myShepherd.getEncounter(encId);
@@ -223,7 +223,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
 
         //phase 2 over
         if ((user == null) || !request.isUserInRole("admin")) {
-            System.out.println("encounterDecide id=" + encId + " disabled for non-admin user=" + user);
+            System.out.println("mergeReviewDecide id=" + encId + " disabled for non-admin user=" + user);
             myShepherd.rollbackDBTransaction();
             session.invalidate();
             response.sendRedirect("../secondTrialEnd.jsp");
@@ -746,7 +746,7 @@ function enableMatch() {
         h += '<span class="match-summary-detail">' + (attributeReadable[i] || i) + ': <b>' + userData[i] + '</b></span>';
     }
     $('#match-summary').html(h);
-    var url = 'encounterDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
+    var url = 'mergeReviewDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
     console.log(url);
     $.ajax({
         url: url,
@@ -788,27 +788,13 @@ function enableMatch() {
                         h += '<div class="match-asset-wrapper">';
                         h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
 
-                        let queryAssetEls = document.getElementsByClassName("query-annotation");
-                        let allQueryAssetIds = [];
-                        for (var j=0;j<queryAssetEls.length;j++) {
-                            allQueryAssetIds.push(queryAssetEls[j].id.replace("wrapper-",""));
-                        }
-
                         if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
-                            if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
-                                h = "";
-                                continue;
-                            }
                           console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
                         } else {
-                            if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
-                                h = "";
-                                continue;
-                            }
                             console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
@@ -972,11 +958,11 @@ console.log('asset id=%o', id);
     var wh = wrapper.height();
     var ratio = ww / (matchData.assetData[id].bbox[2] + padding);
     if ((wh / (matchData.assetData[id].bbox[3] + padding)) < ratio) ratio = wh / (matchData.assetData[id].bbox[3] + padding);
-//console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d', iw, ih, ww, wh, matchData.assetData[id].bbox[2], matchData.assetData[id].bbox[3]);
-//console.log('%.f', ratio);
+console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d', iw, ih, ww, wh, matchData.assetData[id].bbox[2], matchData.assetData[id].bbox[3]);
+console.log('%.f', ratio);
 	var dx = (ww / 2) - ((matchData.assetData[id].bbox[2] + padding) * ratio / 2);
 	var dy = (wh / 2) - ((matchData.assetData[id].bbox[3] + padding) * ratio / 2);
-//console.log('dx, dy %f, %f', dx, dy);
+console.log('dx, dy %f, %f', dx, dy);
 	var css = {
                 transformOrigin: '0 0',
 		transform: 'scale(' + ratio + ')',
@@ -1136,9 +1122,8 @@ There are two steps to processing each submission: selecting cat attributes, and
         j.put("rotation", rotationInfo(ma));
         if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
         if (!ann.isTrivial()) j.put("bbox", ann.getBbox());
-
 %>
-        <div id="wrapper-<%=ma.getId()%>" class="enc-asset-wrapper query-annotation"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img id="img-<%=ma.getId()%>" onload="assetLoaded(this, <%=j.toString().replaceAll("\"", "'")%>);" class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
+        <div id="wrapper-<%=ma.getId()%>" class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img id="img-<%=ma.getId()%>" onload="assetLoaded(this, <%=j.toString().replaceAll("\"", "'")%>);" class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
 <%
     }
             myShepherd.rollbackDBTransaction();

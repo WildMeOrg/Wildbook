@@ -10,6 +10,7 @@ org.ecocean.servlet.export.ExportExcelFile,
 java.util.Collection,
 org.joda.time.DateTime,
 org.apache.commons.io.FileUtils,
+java.text.NumberFormat,
 org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
@@ -504,15 +505,17 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
     </a>
 </p>
 <div id="filter-tabs">
-    <button id="filter-button-incoming" onClick="return filter('incoming');">incoming<span class="fct"></span></button>
-    <button id="filter-button-pending" onClick="return filter('pending');">pending<span class="fct"></span></button>
-    <button id="filter-button-processing" onClick="return filter('processing');">processing<span class="fct"></span></button>
-    <button id="filter-button-mergereview" onClick="return filter('mergereview');">merge review<span class="fct"></span></button>
-    <button id="filter-button-finished" onClick="return filter('finished');">finished<span class="fct"></span></button>
-    <button id="filter-button-flagged" onClick="return filter('flagged');">flagged<span class="fct"></span></button>
-    <button id="filter-button-disputed" onClick="return filter('disputed');">disputed<span class="fct"></span></button>
-    <button id="filter-button-rejected" onClick="return filter('rejected');">rejected<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-incoming" onClick="return filter('incoming',true);">incoming<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-pending" onClick="return filter('pending',true);">pending<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-processing" onClick="return filter('processing',true);">processing<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-mergereview" onClick="return filter('mergereview',true);">merge review<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-finished" onClick="return filter('finished',true);">finished<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-flagged" onClick="return filter('flagged',true);">flagged<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-disputed" onClick="return filter('disputed',true);">disputed<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-rejected" onClick="return filter('rejected',true);">rejected<span class="fct"></span></button>
     <br>
+    <input type="checkbox" id="viewAllDesired" name="viewAllDesired" value="true">
+    <label for="viewAllDesired"> View All</label><br>
     <span id="filter-info"></span>
 </div>
 <% } %>
@@ -534,15 +537,45 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 </tr>
 </thead>
 <tbody>
+<script type="text/javascript">
+  let currentEncNum = '';
+</script>
+
 <%
+    myShepherd.beginDBTransaction();
+    int locIdMissingCounter = 0;
     for (Encounter enc : encs) {
+        locIdMissingCounter = 0;
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
         String ename = enc.getEventID();
 
-        // TODO IF THAT STUFF DIDN'T END UP JUST BEING TEST DATA, comment this back in and run once on production....This will only need to be run once to update all of the already-existing encounters and the decisions that have been made based on them. Feel free to remove these lines if this has already happened and I forgot to delete. Should speed things up just a little bit... -Mark F.
-        // System.out.println("got here 1. Encounter " + enc.getCatalogNumber()+"'s state is: " + enc.getState());
-        // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
-        // System.out.println("got here 2 Encounter " + enc.getCatalogNumber()+"'s state is now: " + enc.getState());
+        //assign locationid-missing flag to encounters missing locationIDs
+        if(Util.stringExists(enc.getCatalogNumber()) && !Util.stringExists(enc.getLocationID())){
+          List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
+          if(currentDecisions != null && currentDecisions.size()>0){
+            for(Decision currentDec: currentDecisions){
+              if(currentDec.getValueAsString().contains("flag-locationid-missing")){
+                locIdMissingCounter ++;
+              }
+            }
+          }
+          if(locIdMissingCounter<1){ //locationId is missing, and no decision has flagged it yet
+            System.out.println("adding flag-locationid-missing to encounter " + enc.getCatalogNumber());
+            JSONObject val = new JSONObject();
+            List valueArr = new ArrayList<String>();
+            valueArr.add("flag-locationid-missing");
+            val.put("value", valueArr); //following the convention to add this as an array. Not clear to me yet why this is being done for other flags -Mark F.
+            val.put("via", "queue.jsp");
+            String flagProp = "flag";
+            Decision dec = new Decision(user, enc, flagProp, val);
+            myShepherd.getPM().makePersistent(dec);
+          }
+        }
+
+        //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
+        if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
+          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
+        }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         out.println("<td class=\"col-id\">");
@@ -601,33 +634,51 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             }
 
             Map<String,Integer> fmap = new HashMap<String,Integer>();
+            int locationMissingCounter = 0;
             for (Decision dec : decs) {
+              if ("flag".equals(dec.getProperty())) {
+                if (dec.getValue() != null) {
+                  JSONArray vals = dec.getValue().optJSONArray("value");
+                  if (vals != null) {
+                    for (int i = 0 ; i < vals.length() ; i++) {
+                      String fval = vals.optString(i, null);
+                      if (fval != null) {
+                        if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
+                          fct++;
+                          locationMissingCounter ++;
+                          if (fmap.get(fval) == null) fmap.put(fval, 0);
+                          fmap.put(fval, 1); //don't increment. If you've gotten here, it's always one -Mark F.
+                        }
+                        if(!fval.equals("flag-locationid-missing")){
+                          fct++; //felt safe incrementing fct++ this deep in the logic by assuming it's impossible to get a flag without said flag having a value. Even possible, suggestive of something wrong anyway, so seems justified not to count it -Mark F.
+                          if (fmap.get(fval) == null) fmap.put(fval, 0);
+                          fmap.put(fval, fmap.get(fval) + 1);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
                 if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
                 if ("match".equals(dec.getProperty())) dct++;
-                if ("flag".equals(dec.getProperty())) {
-                    fct++;
-                    if (dec.getValue() != null) {
-                        JSONArray vals = dec.getValue().optJSONArray("value");
-                        if (vals != null) {
-                            for (int i = 0 ; i < vals.length() ; i++) {
-                                String fval = vals.optString(i, null);
-                                if (fval != null) {
-                                    if (fmap.get(fval) == null) fmap.put(fval, 0);
-                                    fmap.put(fval, fmap.get(fval) + 1);
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "</td>");
+            if(Decision.getNumberOfMatchDecisionsMadeForEncounter(decs)>0){
+              NumberFormat nf= NumberFormat.getInstance();
+              nf.setMaximumFractionDigits(2);
+              nf.setMinimumFractionDigits(2);
+              // nf.setRoundingMode(RoundingMode.HALF_UP);
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\"><span class=\"add-link-if-merge-review\" data-current-enc-num=\"" + enc.getCatalogNumber() + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " % </span></td>");
+            }else{
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + "No Decisions Yet</td>");
+            }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
 
         out.println("</tr>");
     }
+    myShepherd.rollbackAndClose();
 %>
 </tbody>
 </table>
@@ -659,9 +710,42 @@ $(document).ready(function() {
         }, 100);
     });
 
+    $('.filter-button').on('click', function(){
+      $('.remove-upon-filter-button-click').remove();
+      $('#viewAllDesired').prop( "checked", false );
+      let state = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+      setActiveTab(state);
+      if(state === "mergereview" || state === "disputed"){
+        let linkSpanElems = $('.add-link-if-merge-review');
+        $(linkSpanElems).each(function(index,spanElem){
+          let currentEncNum = $(spanElem).attr("data-current-enc-num");
+          let anchorHtml = '<a class=\"remove-upon-filter-button-click\" href=\"encounters/mergeReviewDecide.jsp?id=' + currentEncNum + '\" target=\"new\">Resolve</a>';
+          $(spanElem).append(anchorHtml);
+        });
+
+      }
+    });
+
+    $('#viewAllDesired').change(
+    function(){
+      let filterByOldestDateThatNeedsAttention = null;
+        if ($(this).is(':checked')) {
+            let stateToFilter = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+            filterByOldestDateThatNeedsAttention = false; //more lines, but easier comprehension
+            filter(stateToFilter, filterByOldestDateThatNeedsAttention);
+            setActiveTab(stateToFilter);
+        }else{
+          let stateToFilter = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+          filterByOldestDateThatNeedsAttention = true; //more lines, but easier comprehension
+          filter(stateToFilter, filterByOldestDateThatNeedsAttention);
+          setActiveTab(stateToFilter);
+        }
+    });
+
     setActiveTab(currentActiveState);
     $('#queue-table').on('post-body.bs.table', function() {
-        filter(currentActiveState);
+      filterByOldestDateThatNeedsAttention = true;
+      filter(currentActiveState, filterByOldestDateThatNeedsAttention);
     });
 /*
     $('.col-flag').each(function(i, el) {
@@ -683,14 +767,22 @@ function setActiveTab(state) {
     $('#filter-tabs .tab-active').removeClass('tab-active');
     $('#filter-button-' + state).addClass('tab-active');
     var ct = $('.enc-row:visible').length;
-    $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in current day');
+    if ($('#viewAllDesired').is(':checked')) {
+      $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in total');
+    }else{
+      $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's') + ' in current day');
+    }
 }
 
-function filter(state) {
+function filter(state, filterByOldestDateThatNeedsAttention) {
+
+    if(state === "flagged"){
+      console.log("a flagged state has entered filter!");
+    }
     currentActiveState = state;
     $('.enc-row').hide();
-    let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState(state);
-    if(oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
+    let oldestDateThatNeedsAttention = getOldestDateThatNeedsAttentionInState("mergereview"); // could be state, but client wants to block upstream states if states downstream have older incompletes
+    if(filterByOldestDateThatNeedsAttention && oldestDateThatNeedsAttention && state!=="finished"){ //finished should not filter by date; it should capture _all_ encounters that are in the finished state
       $('.col-date:contains('+oldestDateThatNeedsAttention+')').parents('.row-state-' + state).show();
     }else{
       //if, for some reason, the oldest date fetch fails, at least show them the encounters in the state they want  -Mark F.

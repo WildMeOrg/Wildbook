@@ -70,6 +70,7 @@
 		/compare.jsp = authc, roles[subject]
 		#/queue.jsp = authc, roles[cat_mouse_volunteer]
 		/encounters/encounterDecide.jsp = authc, roles[cat_mouse_volunteer]
+		/encounters/mergeReviewDecide.jsp = authc, roles[admin]
 
                 #/rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
