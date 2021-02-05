@@ -3,6 +3,7 @@
 		"site.name",
 		"site.needsSetup",
 		"site.private",
+		"site.species",
 		"google.googleMapsKey",
 		"site.look.themeColor",
 		"site.look.lightBackgroundLogo",
