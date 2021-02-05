@@ -415,7 +415,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 
     public void delete(Shepherd myShepherd) throws IOException {
-        if (myShepherd != null) throw new IOException("currently not supported");
+        myShepherd.getPM().deletePersistent(this);
     }
 }
 
