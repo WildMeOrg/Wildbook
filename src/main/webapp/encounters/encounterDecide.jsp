@@ -803,31 +803,31 @@ function enableMatch() {
                                 h = "";
                                 continue;
                             }
-                          console.log("getting near matchAssetLoaded call");
+                            console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
-                        } else {
-                            if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
-                                h = "";
-                                continue;
-                            }
+                            } else {
+                              if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
+                                  h = "";
+                                  continue;
+                              }
                             console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
-                        }
+                            }
 
-                        h += '<div class="match-item-info">';
-                        h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
-                        h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
-                        h += '<div>score: <b>' + score + '</b></div>';
-                        if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
-                        if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
-                        h += '</div></div>';
-                        if (!sort[score]) sort[score] = '';
-                        sort[score] += h;
+                            h += '<div class="match-item-info">';
+                            h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+                            h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
+                            h += '<div>score: <b>' + score + '</b></div>';
+                            if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
+                            if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
+                            h += '</div></div>';
+                            if (!sort[score]) sort[score] = '';
+                            sort[score] += h;
                     } //end for xhr.responseJSON.similar
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
@@ -836,16 +836,16 @@ function enableMatch() {
                     }
 
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
-                    $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
-                    $('.match-chosen-cat').on('click', function(ev) {
-                        var id = ev.target.id;
-                        console.log(id);
-                        $('.match-chosen-cat').prop('checked', false);
-                        $('#' + id).prop('checked', true);
-                        $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
-                    });
-                    populatePaginator(keys);
                 }
+                $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
+                $('.match-chosen-cat').on('click', function(ev) {
+                  var id = ev.target.id;
+                  console.log(id);
+                  $('.match-chosen-cat').prop('checked', false);
+                  $('#' + id).prop('checked', true);
+                  $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
+                });
+                populatePaginator(keys);
             }
         },
         dataType: 'json',
@@ -854,21 +854,23 @@ function enableMatch() {
 }
 
 function populatePaginator(keyArray){
-  let items = $('.match-item');
-  let numItems = keyArray.length;
-  let perPage = 5;
-  items.slice(perPage).hide();
+  if(keyArray){
+    let items = $('.match-item');
+    let numItems = keyArray.length;
+    let perPage = 5;
+    items.slice(perPage).hide();
 
-  $('#pagination-section').pagination({
-    items: numItems,
-    itemsOnPage: perPage,
-    cssStyle: "light-theme",
-    onPageClick: function(pageNumber) {
-      var showFrom = perPage * (pageNumber - 1);
-      var showTo = showFrom + perPage;
-      items.hide().slice(showFrom, showTo).show();
-    }
-  });
+    $('#pagination-section').pagination({
+      items: numItems,
+      itemsOnPage: perPage,
+      cssStyle: "light-theme",
+      onPageClick: function(pageNumber) {
+        var showFrom = perPage * (pageNumber - 1);
+        var showTo = showFrom + perPage;
+        items.hide().slice(showFrom, showTo).show();
+      }
+    });
+  }
 }
 
 function saveMatchChoice() {
@@ -879,7 +881,7 @@ function saveMatchChoice() {
     utickState.encounterDecide.matchSaveTime = new Date().getTime();
     $.ajax({
         url: '../DecisionStore',
-        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
+        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: (matchData && matchData.userPresented)? matchData.userPresented: {}, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
         dataType: 'json',
         complete: function(xhr) {
             console.log(xhr);

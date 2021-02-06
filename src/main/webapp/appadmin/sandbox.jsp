@@ -84,25 +84,37 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       </script>
       <%
 
-      Encounter targetEncounter = myShepherd.getEncounter("666f6626-24ae-4bf4-b480-1209881449b6");
-      targetEncounter.setState("processing");
-      myShepherd.updateDBTransaction();
+      // Encounter targetEncounter = myShepherd.getEncounter("d8a3bcbb-ec03-4d30-86a4-090615075cf9"); // a cat with lots of potential matches
+      Encounter targetEncounter = myShepherd.getEncounter("bb999ed5-07a3-4e95-8ceb-5abee63a5639"); // our lonely first porland cat
+      System.out.println("got here 1");
+      List<Decision> oldDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
+      if(oldDecisions!=null && oldDecisions.size()>0){
+        System.out.println("oldDecisions.size() is: " + oldDecisions.size() + " for encounter: " +targetEncounter.getCatalogNumber());
+        for(Decision currentDecision: oldDecisions){
+          System.out.println("got here 2");
+          System.out.println("currentDecision value is: " + currentDecision.getValue());
+        }
+      }
 
-      targetEncounter = myShepherd.getEncounter("f5cc05e5-54e4-4cdf-9162-f45e7b361cbb");
-      targetEncounter.setState("processing");
-      myShepherd.updateDBTransaction();
-
-      targetEncounter = myShepherd.getEncounter("5e2ade7e-3821-4c25-bac9-9e33dce6a961");
-      targetEncounter.setState("processing");
-      myShepherd.updateDBTransaction();
-
-      targetEncounter = myShepherd.getEncounter("336824d1-0759-4c0d-b376-def3a584cdb2");
-      targetEncounter.setState("processing");
-      myShepherd.updateDBTransaction();
-
-      targetEncounter = myShepherd.getEncounter("ed3d828e-baf1-43f1-8130-4b24b0441463");
-      targetEncounter.setState("processing");
-      myShepherd.updateDBTransaction();
+      // Encounter targetEncounter = myShepherd.getEncounter("666f6626-24ae-4bf4-b480-1209881449b6");
+      // targetEncounter.setState("processing");
+      // myShepherd.updateDBTransaction();
+      //
+      // targetEncounter = myShepherd.getEncounter("f5cc05e5-54e4-4cdf-9162-f45e7b361cbb");
+      // targetEncounter.setState("processing");
+      // myShepherd.updateDBTransaction();
+      //
+      // targetEncounter = myShepherd.getEncounter("5e2ade7e-3821-4c25-bac9-9e33dce6a961");
+      // targetEncounter.setState("processing");
+      // myShepherd.updateDBTransaction();
+      //
+      // targetEncounter = myShepherd.getEncounter("336824d1-0759-4c0d-b376-def3a584cdb2");
+      // targetEncounter.setState("processing");
+      // myShepherd.updateDBTransaction();
+      //
+      // targetEncounter = myShepherd.getEncounter("ed3d828e-baf1-43f1-8130-4b24b0441463");
+      // targetEncounter.setState("processing");
+      // myShepherd.updateDBTransaction();
 
         // Encounter targetEncounter = myShepherd.getEncounter("5e2ade7e-3821-4c25-bac9-9e33dce6a961"); //c8d1aae2-a6f8-4c18-a96e-a090c97988e1
         // targetEncounter.setState("processing");
