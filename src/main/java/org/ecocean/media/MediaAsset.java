@@ -433,10 +433,13 @@ public class MediaAsset implements java.io.Serializable {
           System.out.println("deleteMe adding label: " + s + " to mediaAsset " + this.getId());
           labels.add(s);
         }
+        labels = new ArrayList<String>(labels);
     }
 
     public void removeLabel(String s){
-      if (labels.contains(s)) labels.remove(s);
+        if (labels == null) return;
+        labels.remove(s);
+        labels = new ArrayList<String>(labels);
     }
     public boolean hasLabel(String s) {
         if (labels == null) return false;
