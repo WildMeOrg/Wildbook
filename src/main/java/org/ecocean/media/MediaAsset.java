@@ -430,16 +430,16 @@ public class MediaAsset implements java.io.Serializable {
     public void addLabel(String s) {
         if (labels == null) labels = new ArrayList<String>();
         if (!labels.contains(s)){
-          System.out.println("deleteMe adding label: " + s + " to mediaAsset " + this.getId());
-          labels.add(s);
+            ArrayList<String> dup = new ArrayList<String>(labels);
+            dup.add(s);
+            labels = dup;
         }
-        labels = new ArrayList<String>(labels);
     }
-
     public void removeLabel(String s){
         if (labels == null) return;
-        labels.remove(s);
-        labels = new ArrayList<String>(labels);
+        ArrayList<String> dup = new ArrayList<String>(labels);
+        dup.remove(s);
+        labels = dup;
     }
     public boolean hasLabel(String s) {
         if (labels == null) return false;
