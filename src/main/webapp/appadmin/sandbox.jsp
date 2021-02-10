@@ -85,16 +85,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <%
 
       // Encounter targetEncounter = myShepherd.getEncounter("d8a3bcbb-ec03-4d30-86a4-090615075cf9"); // a cat with lots of potential matches
-      Encounter targetEncounter = myShepherd.getEncounter("bb999ed5-07a3-4e95-8ceb-5abee63a5639"); // our lonely first porland cat
+      Encounter targetEncounter = myShepherd.getEncounter("b3fa06e2-d167-4dae-8312-216db66e1ec6"); // our lonely first porland cat
       System.out.println("got here 1");
-      List<Decision> oldDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
-      if(oldDecisions!=null && oldDecisions.size()>0){
-        System.out.println("oldDecisions.size() is: " + oldDecisions.size() + " for encounter: " +targetEncounter.getCatalogNumber());
-        for(Decision currentDecision: oldDecisions){
-          System.out.println("got here 2");
-          System.out.println("currentDecision value is: " + currentDecision.getValue());
-        }
-      }
+      MarkedIndividual newIndivid = new MarkedIndividual("testy the test cat", targetEncounter);
+      System.out.println("got here 2");
+      boolean success = myShepherd.storeNewMarkedIndividual(newIndivid);
+      System.out.println("got here 3");
+      System.out.println("successful?: " + success);
+      // List<Decision> oldDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
+      // if(oldDecisions!=null && oldDecisions.size()>0){
+      //   System.out.println("oldDecisions.size() is: " + oldDecisions.size() + " for encounter: " +targetEncounter.getCatalogNumber());
+      //   for(Decision currentDecision: oldDecisions){
+      //     System.out.println("got here 2");
+      //     System.out.println("currentDecision value is: " + currentDecision.getValue());
+      //   }
+      // }
 
       // Encounter targetEncounter = myShepherd.getEncounter("666f6626-24ae-4bf4-b480-1209881449b6");
       // targetEncounter.setState("processing");
