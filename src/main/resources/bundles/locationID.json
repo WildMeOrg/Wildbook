@@ -124,6 +124,8 @@
 									{
 					"name": "Sea of Cortés", "id":"sea of cortes",
 					"locationID":[
+						{ "name":"Bahía de la Paz", "id":"Bahia de la paz", "locationID":[] },
+						
 						{
 						"name": "Baja California", "id":"Baja California", "locationID":[
 						
@@ -400,6 +402,10 @@
 
 			 {
 			  "name": "Norwegian Sea", "id": "Norwegian Sea" },
+			  
+			  {
+			  "name": "SW Portugal", "id": "SW Portugal" },
+			  
 			 {
 			  "name": "Sargasso Sea", "id": "Sargasso Sea" },
 			 {
