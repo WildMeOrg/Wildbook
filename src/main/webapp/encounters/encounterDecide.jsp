@@ -768,12 +768,23 @@ function enableMatch() {
                     matchData.userPresented = {};
                     var sort = {};
                     var seen = {};
+                    let similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
+                    let shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                        if (!xhr.responseJSON.similar[i].individualId) continue;
-                        if (seen[xhr.responseJSON.similar[i].individualId]) continue;
+                        if (!xhr.responseJSON.similar[i].individualId){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
+                        if (seen[xhr.responseJSON.similar[i].individualId]){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
                         var score = matchScore(xhr.responseJSON.similar[i], userData);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
-                        if (score < 0) continue;
+                        if (score < 0){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
                         seen[xhr.responseJSON.similar[i].individualId] = true;
                         var h = '<div class="match-item">';
                         h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">See more photos of ' + xhr.responseJSON.similar[i].name + '</a></div>';
@@ -801,6 +812,7 @@ function enableMatch() {
                         if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
                             if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
                                 h = "";
+                                similarShortCircuitTracker ++;
                                 continue;
                             }
                             console.log("getting near matchAssetLoaded call");
@@ -811,6 +823,7 @@ function enableMatch() {
                             } else {
                               if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
                                   h = "";
+                                  similarShortCircuitTracker ++;
                                   continue;
                               }
                             console.log("getting near matchAssetLoaded call");
@@ -834,6 +847,10 @@ function enableMatch() {
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length){
+                      $('#match-results').html('<b>No matches found</b>');
+                      shouldPopulatePaginator = false;
+                    }
 
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                 }
@@ -845,7 +862,9 @@ function enableMatch() {
                   $('#' + id).prop('checked', true);
                   $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
                 });
-                populatePaginator(keys);
+                if(shouldPopulatePaginator){
+                  populatePaginator(keys);
+                }
             }
         },
         dataType: 'json',
