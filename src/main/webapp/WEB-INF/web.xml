@@ -47,7 +47,6 @@
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
-                roles.unauthorizedUrl = /accessDenied.jsp
 				        authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
 
