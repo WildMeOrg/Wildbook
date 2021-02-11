@@ -92,6 +92,16 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       boolean success = myShepherd.storeNewMarkedIndividual(newIndivid);
       System.out.println("got here 3");
       System.out.println("successful?: " + success);
+      myShepherd.updateDBTransaction();
+      targetEncounter.setIndividual(newIndivid);
+      myShepherd.updateDBTransaction();
+
+      JSONObject testObj = new JSONObject();
+      testObj.put("a", 9);
+      testObj.put("b", 12);
+      testObj.put("c", 10);
+      List<String> testResults = Decision.sortIdsByPopularity(testObj);
+      System.out.println("testResults are: " + testResults.toString());
       // List<Decision> oldDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
       // if(oldDecisions!=null && oldDecisions.size()>0){
       //   System.out.println("oldDecisions.size() is: " + oldDecisions.size() + " for encounter: " +targetEncounter.getCatalogNumber());

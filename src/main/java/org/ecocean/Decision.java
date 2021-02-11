@@ -165,6 +165,63 @@ public class Decision {
       return currentWinner;
     }
 
+    public static List<String> getIndividualIdsOfMostAgreedUponMatches(List<Decision> decisionsForEncounter){
+      // Double numAgreements = 0.0;
+      System.out.println("deleteMe getIndividualIdsOfMostAgreedUponMatches entered");
+      List<String> matchedIds = new ArrayList<String>();
+      String currentMatchedMarkedIndividualId = null;
+      Double currentMatchedMarkedIndividualCounter = 0.0;
+      JSONObject winningIndividualTracker = new JSONObject();
+      JSONObject currentDecisionValue = new JSONObject();
+      if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
+        for(Decision currentDecision: decisionsForEncounter){
+          if(currentDecision.getProperty().equals("match")){
+            currentDecisionValue = currentDecision.getValue();
+            currentMatchedMarkedIndividualId = currentDecisionValue.optString("id", null);
+            currentMatchedMarkedIndividualCounter = winningIndividualTracker.optDouble(currentMatchedMarkedIndividualId, 0.0);
+            winningIndividualTracker.put(currentMatchedMarkedIndividualId, currentMatchedMarkedIndividualCounter+1);
+          }
+        }
+        matchedIds = sortIdsByPopularity(winningIndividualTracker);
+      }
+      return matchedIds;
+    }
+
+    public static List<String> sortIdsByPopularity(JSONObject winningIndividualTracker){
+      List<String> resultsArr = new ArrayList<String>();
+      List<Integer> votes = new ArrayList<Integer>();
+      List<String> idsInParallelWitVotes = new ArrayList<String>();
+      int minVotesToBeIncluded = 1;
+      Iterator<String> keys = winningIndividualTracker.keys();
+      String key = null;
+      while(keys.hasNext()) {
+          key = keys.next();
+          if(winningIndividualTracker.optInt(key,0)>minVotesToBeIncluded){
+            votes.add(winningIndividualTracker.optInt(key,0));
+            idsInParallelWitVotes.add(key);
+          }
+      }
+      final List<String> stringListCopy = new ArrayList(idsInParallelWitVotes);
+      ArrayList<String> sortedList = new ArrayList(stringListCopy);
+      int[] votesPrimitive = convertIntegers(votes);
+      Collections.sort(sortedList, Comparator.comparing(s -> votesPrimitive[stringListCopy.indexOf(s)])); //ugh votesPrimitive array needs to be primitive gross.
+      Collections.reverse(sortedList); // want it in descending order
+      if(sortedList!=null && sortedList.size()>0) resultsArr = sortedList;
+      return resultsArr;
+    }
+
+    public static int[] convertIntegers(List<Integer> integers){
+      int[] ret = null;
+      if(integers!=null && integers.size()>0){
+        ret = new int[integers.size()];
+        for (int i=0; i < ret.length; i++)
+        {
+          ret[i] = integers.get(i).intValue();
+        }
+      }
+      return ret;
+    }
+
     public static Double getNumberOfMatchDecisionsMadeForEncounter(List<Decision> decisionsForEncounter){
       Double numAgreements = 0.0;
       if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
