@@ -11,6 +11,47 @@
       {"name":"Fiji", "id":"Fiji", "locationID":[]},
       {"name":"French Polynesia", "id":"French Polynesia", "locationID":[]},
       {"name":"Guam", "id":"Guam", "locationID":[]},
+	  
+	  {
+				"name": "Hawaiʻi Island", "id": "Hawaii", "locationID":[
+				
+					{
+					"name": "Kealakekua Bay", "id": "Kealakekua Bay"
+					},
+				
+					{
+					"name": "Hoʻokena Bay", "id": "Hookena Bay"
+					},
+					
+					{
+					"name": "Honaunau Bay", "id": "Honaunau Bay"
+					}
+				]},
+				{
+				"name": "Maui", "id": "Maui"
+				},
+				{
+				"name": "Oʻahu", "id": "Oahu", "locationID":[
+				
+					{
+					"name": "West Oʻahu", "id": "West Oahu"
+					},
+				
+					{
+					"name": "North Oʻahu", "id": "North Oahu"
+					},
+					
+					{
+					"name": "East Oʻahu", "id": "East Oahu"
+					},
+					{
+					"name": "South Oʻahu", "id": "South Oahu"
+					}
+				]},
+				{
+				"name": "Kauai", "id": "Kauai"
+		},
+	  
       {"name":"Kiribati", "id":"Kiribati", "locationID":[]},
       {"name":"Marshall Islands", "id":"Marshall Islands", "locationID":[]},
       {"name":"Nauru", "id":"Nauru", "locationID":[]},
@@ -215,9 +256,8 @@
 				{
 				"name": "E Aleut.", "id": "E Aleut."
 				},
-				{
-				"name": "Hawaii", "id": "Hawaii"
-				},
+
+				
 				{
 				"name": "MX-AR", "id": "MX-AR"
 				},
