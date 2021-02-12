@@ -56,16 +56,16 @@ FROM org.wildme.wildbook.install as org.wildme.wildbook.deploy
 
 #Allow DB args from startup script
 ARG DB_USER=wildbook
-ENV echo "DB_USER=${DB_USER}"
+ENV DB_USER="${DB_USER}"
 
 ARG DB_PASSWORD=wildbook
-ENV echo "DB_PASSWORD=${DB_PASSWORD}"
+ENV DB_PASSWORD="${DB_PASSWORD}"
 
 ARG DB_DRIVER_NAME=org.postgresql.Driver
-ENV echo "DB_DRIVER_NAME=${DB_DRIVER_NAME}"
+ENV DB_DRIVER_NAME="${DB_DRIVER_NAME}"
 
 ARG DB_CONNECTION_URL=jdbc:postgresql://localhost:5432/wildbook
-ENV echo "DB_CONNECTION_URL=${DB_CONNECTION_URL}"
+ENV DB_CONNECTION_URL="${DB_CONNECTION_URL}"
 
 COPY ./.dockerfiles/config/jdoconfig.properties /usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/jdoconfig.properties
 
