@@ -100,7 +100,8 @@ console.log('%d %o', i, files[i]);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-    			console.log('added %o %o', file, event);
+          file.name = file.name.replace(/[^a-zA-Z\. ]/g, "");
+          console.log('added %o %o', file, event);
 		});
 		flow.on('fileProgress', function(file, chunk){
 			var el = findElement(file.name, file.size);
@@ -244,7 +245,7 @@ function filesChanged(f) {
 function filesChangedSetFilename(f) {
     console.log("filesChangedSetFilename")
     filesChanged(f);
-    document.getElementById("hiddenFilename").innerHTML = f.files[0].name;    
+    document.getElementById("hiddenFilename").innerHTML = f.files[0].name;
 }
 
 
@@ -266,5 +267,3 @@ function niceSize(s) {
 	if (s < 1024*1024) return Math.floor(s/1024) + 'k';
 	return Math.floor(s/(1024*1024) * 10) / 10 + 'M';
 }
-
-
