@@ -212,6 +212,38 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             if(currentDecisions != null && currentDecisions.size()>0){
               List<String> individualIdsOfMostAgreedUponMatches = Decision.getIndividualIdsOfMostAgreedUponMatches(currentDecisions);
               System.out.println("individualIdsOfMostAgreedUponMatches are: " + individualIdsOfMostAgreedUponMatches.toString());
+              //$('#match-results').append(sort[keys[i]]);
+              // if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
+              //     h = "";
+              //     similarShortCircuitTracker ++;
+              //     continue;
+              // }
+              // console.log("getting near matchAssetLoaded call");
+              // var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
+              // console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
+              // h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
+              // matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
+              // } else {
+              //   if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
+              //       h = "";
+              //       similarShortCircuitTracker ++;
+              //       continue;
+              //   }
+              // console.log("getting near matchAssetLoaded call");
+              // var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
+              // h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
+              // matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+              // }
+              //
+              // h += '<div class="match-item-info">';
+              // h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+              // h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
+              // h += '<div>score: <b>' + score + '</b></div>';
+              // if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
+              // if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
+              // h += '</div></div>';
+              // if (!sort[score]) sort[score] = '';
+              // sort[score] += h;
             }
             JSONArray sim = found;
             if (found == null) {
@@ -765,95 +797,50 @@ function enableMatch() {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
+              let individualIdsAlreadyHandled = [];
+              // let individualIdsAlreadyHandled = convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat();
+              // for(let i=0; i<individualIdsAlreadyHandled.length; i++){
+              //   let currentMatchCandidate = individualIdsAlreadyHandled[i];
+              //   handleMatchCandidate(currentMatchCandidate);
+              // }
                 if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
                     $('#match-results').html('<b>No matches found</b>');
                 } else {
                     matchData = xhr.responseJSON;
                     matchData.assetData = {};
                     matchData.userPresented = {};
-                    var sort = {};
                     var seen = {};
-                    let similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
+                    var sort = {};
+                    var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
                     console.log("got here 1");
                     var shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                        if (!xhr.responseJSON.similar[i].individualId){
-                          similarShortCircuitTracker ++;
-                          continue;
-                        }
-                        if (seen[xhr.responseJSON.similar[i].individualId]){
-                          similarShortCircuitTracker ++;
-                          continue;
-                        }
-                        var score = matchScore(xhr.responseJSON.similar[i], userData);
-                        matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
-                        if (score < 0){
-                          similarShortCircuitTracker ++;
-                          continue;
-                        }
-                        seen[xhr.responseJSON.similar[i].individualId] = true;
-                        var h = '<div class="match-item">';
-                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">See more photos of ' + xhr.responseJSON.similar[i].name + '</a></div>';
-                        //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
-                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">Matches this cat</label></div>';
-/*
-                        var numImages = xhr.responseJSON.similar[i].assets.length;
-                        if (numImages > 2) numImages = 2;
-                        for (var j = 0 ; j < numImages ; j++) {
-                            h += '<div class="match-asset-wrapper">';
-                            h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
-                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div></div>';
-                            matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
-                        }
-*/
-                        h += '<div class="match-asset-wrapper">';
-                        h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
-
-                        let queryAssetEls = document.getElementsByClassName("query-annotation");
-                        let allQueryAssetIds = [];
-                        for (var j=0;j<queryAssetEls.length;j++) {
-                            allQueryAssetIds.push(queryAssetEls[j].id.replace("wrapper-",""));
+                        let currentSimilarMatch = xhr.responseJSON.similar[i];
+                        //TODO check that it's not in individualIdsAlreadyHandled list before the below
+                        console.log("i is: " +i);
+                        console.log("currentSimilarMatch is: ");
+                        console.log(currentSimilarMatch);
+                        console.log("seen before is: ");
+                        console.log(seen);
+                        console.log("sort before is: ");
+                        console.log(sort);
+                        let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
+                        if(results){
+                          console.log("got here 2");
+                          console.log("results are: ");
+                          console.log(results);
+                          seen = results.seen;
+                          sort = results.sort;
+                          similarShortCircuitTracker = results.similarShortCircuitTracker;
                         }
 
-                        if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
-                            if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
-                                h = "";
-                                similarShortCircuitTracker ++;
-                                continue;
-                            }
-                            console.log("getting near matchAssetLoaded call");
-                            var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
-                            console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
-                            h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
-                            matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
-                            } else {
-                              if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
-                                  h = "";
-                                  similarShortCircuitTracker ++;
-                                  continue;
-                              }
-                            console.log("getting near matchAssetLoaded call");
-                            var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
-                            h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
-                            matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
-                            }
-
-                            h += '<div class="match-item-info">';
-                            h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
-                            h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
-                            h += '<div>score: <b>' + score + '</b></div>';
-                            if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
-                            if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
-                            h += '</div></div>';
-                            if (!sort[score]) sort[score] = '';
-                            sort[score] += h;
                     } //end for xhr.responseJSON.similar
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length){
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length + individualIdsAlreadyHandled.length){ //TODO if no match is already a top-voted result, don't display it again here
                       console.log("got here and shouldn't");
                       $('#match-results').html('<b>No matches found</b>');
                       shouldPopulatePaginator = false;
@@ -878,6 +865,94 @@ function enableMatch() {
         dataType: 'json',
         type: 'GET'
     });
+}
+
+function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker){
+  console.log("got here a");
+  let returnObj = {}
+  if (!matchCandidate.individualId){
+    similarShortCircuitTracker ++;
+    return;
+  }
+  if (seen[matchCandidate.individualId]){
+    similarShortCircuitTracker ++;
+    return;
+  }
+  var score = matchScore(matchCandidate, userData);
+  matchData.userPresented[matchCandidate.encounterId] = score;
+  if (score < 0){
+    similarShortCircuitTracker ++;
+    return;
+  }
+  seen[matchCandidate.individualId] = true;
+  var h = '<div class="match-item">';
+  h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + matchCandidate.individualId + '&subject=' + encounterId + '" title="Enc ' + matchCandidate.encounterId + '">See more photos of ' + matchCandidate.name + '</a></div>';
+  h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + matchCandidate.encounterId + '" /> <label for="mc-' + i + '">Matches this cat</label></div>';
+  h += '<div class="match-asset-wrapper">';
+  h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
+  let queryAssetEls = document.getElementsByClassName("query-annotation");
+  let allQueryAssetIds = [];
+  for (var j=0;j<queryAssetEls.length;j++) {
+      allQueryAssetIds.push(queryAssetEls[j].id.replace("wrapper-",""));
+  }
+  if ((matchCandidate.matchPhoto.encounterId == encounterId) && matchCandidate.matchPhoto.secondary) {
+      if (allQueryAssetIds.includes(matchCandidate.matchPhoto.secondary.id.toString())) {
+          h = "";
+          similarShortCircuitTracker ++;
+          return;
+      }
+      console.log("getting near matchAssetLoaded call");
+      var passj = JSON.stringify(matchCandidate.matchPhoto.secondary).replace(/"/g, "'");
+      console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, matchCandidate.individualId, matchCandidate.matchPhoto);
+      h += '<div class="match-asset-img-wrapper" id="wrapper-' + matchCandidate.matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + matchCandidate.matchPhoto.secondary.id + '" src="' + matchCandidate.matchPhoto.secondary.url + '" /></div></div>';
+      matchData.assetData[matchCandidate.matchPhoto.secondary.id] = matchCandidate.matchPhoto.secondary;
+      } else {
+        if (allQueryAssetIds.includes(matchCandidate.matchPhoto.id.toString())) {
+            h = "";
+            similarShortCircuitTracker ++;
+            return;
+        }
+      console.log("getting near matchAssetLoaded call");
+      var passj = JSON.stringify(matchCandidate.matchPhoto).replace(/"/g, "'");
+      h += '<div class="match-asset-img-wrapper" id="wrapper-' + matchCandidate.matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + matchCandidate.matchPhoto.id + '" src="' + matchCandidate.matchPhoto.url + '" /></div></div>';
+      matchData.assetData[matchCandidate.matchPhoto.id] = matchCandidate.matchPhoto;
+      }
+
+      h += '<div class="match-item-info">';
+      h += '<div>' + matchCandidate.encounterId.substr(0,8) + '</div>';
+      h += '<div><b>' + (Math.round(matchCandidate.distance / 100) * 100) + 'm</b></div>';
+      h += '<div>score: <b>' + score + '</b></div>';
+      if (matchCandidate.sex) h += '<div>sex: <b>' + matchCandidate.sex + '</b></div>';
+      if (matchCandidate.colorPattern) h += '<div>color: <b>' + matchCandidate.colorPattern + '</b></div>';
+      h += '</div></div>';
+      if (!sort[score]) sort[score] = '';
+      sort[score] += h;
+      console.log("got here 1");
+      returnObj["seen"] = seen;
+      returnObj["sort"] = sort;
+      returnObj["similarShortCircuitTracker"] = similarShortCircuitTracker;
+      console.log("got here 1.5");
+      console.log("returnObj is: ");
+      console.log(returnObj);
+      return returnObj;
+}
+
+function convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat(){ //TODO
+  let returnArr = []
+  let currentCandidateObj = {}; //TODO need
+  <%
+  List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
+            if(currentDecisions != null && currentDecisions.size()>0){
+              List<String> individualIdsOfMostAgreedUponMatches = Decision.getIndividualIdsOfMostAgreedUponMatches(currentDecisions);
+              for(int i =0; i< individualIdsOfMostAgreedUponMatches.size(); i++){
+                String currentIndividualId = individualIdsOfMostAgreedUponMatches.get(i);
+                %>
+                currentCandidateObj['individualId'] = '<%= currentIndividualId%>';
+                <%
+              }
+            }
+  %>
+  return returnArr;
 }
 
 function populatePaginator(keyArray){

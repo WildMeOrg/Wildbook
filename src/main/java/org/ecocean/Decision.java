@@ -166,8 +166,6 @@ public class Decision {
     }
 
     public static List<String> getIndividualIdsOfMostAgreedUponMatches(List<Decision> decisionsForEncounter){
-      // Double numAgreements = 0.0;
-      System.out.println("deleteMe getIndividualIdsOfMostAgreedUponMatches entered");
       List<String> matchedIds = new ArrayList<String>();
       String currentMatchedMarkedIndividualId = null;
       Double currentMatchedMarkedIndividualCounter = 0.0;
