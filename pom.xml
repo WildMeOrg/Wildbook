@@ -65,6 +65,24 @@
     <version>5.1.2</version>
 </dependency>
 
+<!--
+	 Dependencies related to prometheus.
+	 -->
+<dependency>
+  <groupId>io.prometheus</groupId>
+  <artifactId>simpleclient</artifactId>
+  <version>0.0.11</version>
+</dependency>
+<dependency>
+  <groupId>io.prometheus</groupId>
+  <artifactId>simpleclient_hotspot</artifactId>
+  <version>0.0.11</version>
+</dependency>
+<dependency>
+  <groupId>io.prometheus</groupId>
+  <artifactId>simpleclient_servlet</artifactId>
+  <version>0.0.11</version>
+</dependency>
 
 
 <dependency>
