@@ -33,6 +33,10 @@ public class SystemValue implements java.io.Serializable {
         return Util.stringToJSONObject(value);
     }
 
+    public String getKey() {
+        return key;
+    }
+
     public void setValue(JSONObject v) {
         if (v == null) {
             value = null;
