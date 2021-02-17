@@ -14,29 +14,32 @@ org.ecocean.media.*
 %>
 
 
-
-
 <%
 
 Shepherd myShepherd = new Shepherd("context0");
-
 myShepherd.beginDBTransaction();
 
-
 String salt = ServletUtilities.getSalt().toHex();
-String hashedPassword = ServletUtilities.hashAndSaltPassword("test1234", salt);
-User newUser = new User("admin", hashedPassword, salt);
-newUser.setEmailAddress("admin@example.com");
-myShepherd.getPM().makePersistent(newUser);
 
-//Encounter enc = myShepherd.getEncounter(Util.generateUUID());
+User adminUser = myShepherd.getUser("admin");
+
+if (adminUser == null) {
+   // Make user
+   String passwd = request.getParameter("adminPassword");
+   if (passwd == null) {
+      throw new ServletException("failed to set adminPassword");
+   }
+   String hashedPassword = ServletUtilities.hashAndSaltPassword(passwd, salt);
+   adminUser = new User("admin", hashedPassword, salt);
+   adminUser.setEmailAddress("admin@example.com");
+   myShepherd.getPM().makePersistent(adminUser);
+}
 
 myShepherd.commitDBTransaction();
-
 %>
 
-<h1>initialized</h1>
 
-<p><%=newUser%></p>
-
+<p>
+admin: <%= adminUser %>
+<p>
 
