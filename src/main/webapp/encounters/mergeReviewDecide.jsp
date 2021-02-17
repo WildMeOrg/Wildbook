@@ -4,7 +4,9 @@ org.ecocean.media.Feature,
 org.json.JSONObject, org.json.JSONArray,
 java.util.Collection,
 java.util.HashMap,
+java.util.List,
 javax.jdo.Query,
+java.sql.*,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 
 <%!
@@ -57,6 +59,63 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     JSONArray found = new JSONArray();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
+    System.out.println("deleteMe finished query 1 run");
+    System.out.println("deleteMe results are: ");
+    System.out.println(results.toString());
+
+    //add volunteer-suggested matches to the list of results
+    List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
+    List<String> encounterIdsOfMostAgreedUponMatches = new ArrayList<String>();
+    boolean isNoMatchInConsensusMatches = false;
+    // List<String> encounterIdsFromVolunteerConsensus = new ArrayList<String>();
+    if(currentDecisions != null && currentDecisions.size()>0){
+      encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
+
+      if(encounterIdsOfMostAgreedUponMatches != null && encounterIdsOfMostAgreedUponMatches.size()>0){
+        if(encounterIdsOfMostAgreedUponMatches.contains("no-match")){
+          isNoMatchInConsensusMatches = true; //track this
+          encounterIdsOfMostAgreedUponMatches.remove("no-match");
+        }
+      //   for(String currentIndividualIdOfMostAgreedUponMatches: encounterIdsOfMostAgreedUponMatches){
+      //     System.out.println("deleteMe currentIndividualIdOfMostAgreedUponMatches is: " + currentIndividualIdOfMostAgreedUponMatches);
+      //     //TODO we may have a "no match here with currentIndividualIdOfMostAgreedUponMatches. Handle this case."
+      //     MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentIndividualIdOfMostAgreedUponMatches);
+      //     if(currentIndividual!= null){
+      //       List<Encounter> currentIndividualEncounters = currentIndividual.getEncounters();
+      //       if (currentIndividualEncounters!=null && currentIndividualEncounters.size()>0){
+      //         for(Encounter currentEnc: currentIndividualEncounters){
+      //           //TODO how to address the fact that this will give us more than one media asset per individual?
+      //           if(Util.stringExists(currentEnc.getCatalogNumber())){
+      //             encounterIdsFromVolunteerConsensus.add(currentEnc.getCatalogNumber());
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      }
+    }
+    System.out.println("deleteMe encounterIdsOfMostAgreedUponMatches is: " + encounterIdsOfMostAgreedUponMatches.toString());
+    try{
+      String sql2 = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE \"CATALOGNUMBER\" IN (?) ORDER BY dist";
+      System.out.println("deleteMe got here s1");
+      Connection connection = ServletUtilities.getConnection();
+      System.out.println("deleteMe got here s2");
+      PreparedStatement statement = connection.prepareStatement(sql2);
+      System.out.println("deleteMe got here s3");
+      String[] encounterIdVolunteerArr = encounterIdsOfMostAgreedUponMatches.toArray(new String[encounterIdsOfMostAgreedUponMatches.size()]);
+      System.out.println("deleteMe got here s4");
+      // System.out.println("encounterIdVolunteerArr is: " encounterIdVolunteerArr.toString());
+      statement.setArray(1, connection.createArrayOf("VARCHAR", encounterIdVolunteerArr)); //list.toArray(new String[list.size()])
+      System.out.println("deleteMe got here s5");
+      ResultSet rs = statement.executeQuery();
+      System.out.println("deleteMe got here s6");
+      System.out.println("deleteMe new result set is: " + rs.toString());
+    }catch(Exception e){
+      System.out.println("error getting the volunteer results");
+      e.printStackTrace();
+    }
+    // Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql2);
+    // List volunteerResults = (List)q2.execute();
     Iterator it = results.iterator();
     String[] propMap = new String[]{"colorPattern", "earTip", "sex", "collar", "lifeStage"};
     boolean putQuery = false;
@@ -202,49 +261,22 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
         }
 */
         JSONObject similarUserData = Util.stringToJSONObject(request.getParameter("getSimilar"));
+        System.out.println("similarUserData just finished");
+        System.out.println("got here a");
         if (similarUserData != null) {
+          System.out.println("got here b");
             JSONObject rtn = new JSONObject();
+            System.out.println("got here c");
             rtn.put("encounterId", enc.getCatalogNumber());
             rtn.put("userData", similarUserData);
             if (user != null) rtn.put("userId", user.getUUID());
+            System.out.println("got here d");
             JSONArray found = findSimilar(request, myShepherd, enc, user, similarUserData);
+            System.out.println("got here e");
+            System.out.println("got here found");
+            System.out.println(found.toString());
             List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
-            if(currentDecisions != null && currentDecisions.size()>0){
-              List<String> individualIdsOfMostAgreedUponMatches = Decision.getIndividualIdsOfMostAgreedUponMatches(currentDecisions);
-              System.out.println("individualIdsOfMostAgreedUponMatches are: " + individualIdsOfMostAgreedUponMatches.toString());
-              //$('#match-results').append(sort[keys[i]]);
-              // if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
-              //     h = "";
-              //     similarShortCircuitTracker ++;
-              //     continue;
-              // }
-              // console.log("getting near matchAssetLoaded call");
-              // var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
-              // console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
-              // h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
-              // matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
-              // } else {
-              //   if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
-              //       h = "";
-              //       similarShortCircuitTracker ++;
-              //       continue;
-              //   }
-              // console.log("getting near matchAssetLoaded call");
-              // var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
-              // h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
-              // matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
-              // }
-              //
-              // h += '<div class="match-item-info">';
-              // h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
-              // h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
-              // h += '<div>score: <b>' + score + '</b></div>';
-              // if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
-              // if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
-              // h += '</div></div>';
-              // if (!sort[score]) sort[score] = '';
-              // sort[score] += h;
-            }
+            //TODO there was handleStuff here...
             JSONArray sim = found;
             if (found == null) {
                 rtn.put("success", false);
@@ -792,16 +824,29 @@ function enableMatch() {
     $.ajax({
         url: url,
         complete: function(xhr) {
+          var seen = {};
+          var sort = {};
+          var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
             console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
-              let individualIdsAlreadyHandled = [];
-              // let individualIdsAlreadyHandled = convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat();
-              // for(let i=0; i<individualIdsAlreadyHandled.length; i++){
-              //   let currentMatchCandidate = individualIdsAlreadyHandled[i];
+              let volunteerGeneratedMatchCandidates = [];
+              // let volunteerGeneratedMatchCandidates = convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat();
+              //TODO uncomment below once above is working
+              // for(let i=0; i<volunteerGeneratedMatchCandidates.length; i++){
+              //   let currentMatchCandidate = volunteerGeneratedMatchCandidates[i];
               //   handleMatchCandidate(currentMatchCandidate);
+                    // let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
+                    // if(results){
+                    //   console.log("got here 2");
+                    //   console.log("results are: ");
+                    //   console.log(results);
+                    //   seen = results.seen;
+                    //   sort = results.sort;
+                    //   similarShortCircuitTracker = results.similarShortCircuitTracker;
+                    // }
               // }
                 if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
                     $('#match-results').html('<b>No matches found</b>');
@@ -809,21 +854,10 @@ function enableMatch() {
                     matchData = xhr.responseJSON;
                     matchData.assetData = {};
                     matchData.userPresented = {};
-                    var seen = {};
-                    var sort = {};
-                    var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
-                    console.log("got here 1");
                     var shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                         let currentSimilarMatch = xhr.responseJSON.similar[i];
-                        //TODO check that it's not in individualIdsAlreadyHandled list before the below
-                        console.log("i is: " +i);
-                        console.log("currentSimilarMatch is: ");
-                        console.log(currentSimilarMatch);
-                        console.log("seen before is: ");
-                        console.log(seen);
-                        console.log("sort before is: ");
-                        console.log(sort);
+                        //TODO check that it's not in volunteerGeneratedMatchCandidates list before the below
                         let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
                         if(results){
                           console.log("got here 2");
@@ -840,7 +874,7 @@ function enableMatch() {
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length + individualIdsAlreadyHandled.length){ //TODO if no match is already a top-voted result, don't display it again here
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length + volunteerGeneratedMatchCandidates.length){ //TODO if no match is already a top-voted result, don't display it again here
                       console.log("got here and shouldn't");
                       $('#match-results').html('<b>No matches found</b>');
                       shouldPopulatePaginator = false;
@@ -868,7 +902,6 @@ function enableMatch() {
 }
 
 function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker){
-  console.log("got here a");
   let returnObj = {}
   if (!matchCandidate.individualId){
     similarShortCircuitTracker ++;
@@ -938,14 +971,27 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
 }
 
 function convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat(){ //TODO
+  // assets: [{…}]
+  // collar: "no"
+  // colorPattern: "orange"
+  // distance: 1843.7041662185038
+  // earTip: "no"
+  // encounterEventId: "sub164"
+  // encounterId: "43287354-541a-4b6a-9167-432161d15e4f"
+  // individualId: "5f52a2e0-71df-44d4-9728-bc7614a0d6a4"
+  // lifeStage: "kitten"
+  // matchPhoto: {secondary: {…}, origHeight: 3024, bbox: Array(4), annotationId: "47558026-2d00-4053-b112-8183fbf0db01", id: 2435, …}
+  // matches: {earTip: false, collar: false, lifeStage: false, colorPattern: false, sex: false}
+  // name: "Test_029"
+  // sex: "unknown"
   let returnArr = []
   let currentCandidateObj = {}; //TODO need
   <%
   List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
             if(currentDecisions != null && currentDecisions.size()>0){
-              List<String> individualIdsOfMostAgreedUponMatches = Decision.getIndividualIdsOfMostAgreedUponMatches(currentDecisions);
-              for(int i =0; i< individualIdsOfMostAgreedUponMatches.size(); i++){
-                String currentIndividualId = individualIdsOfMostAgreedUponMatches.get(i);
+              List<String> encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
+              for(int i =0; i< encounterIdsOfMostAgreedUponMatches.size(); i++){
+                String currentIndividualId = encounterIdsOfMostAgreedUponMatches.get(i);
                 %>
                 currentCandidateObj['individualId'] = '<%= currentIndividualId%>';
                 <%

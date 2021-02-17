@@ -165,7 +165,7 @@ public class Decision {
       return currentWinner;
     }
 
-    public static List<String> getIndividualIdsOfMostAgreedUponMatches(List<Decision> decisionsForEncounter){
+    public static List<String> getEncounterIdsOfMostAgreedUponMatches(List<Decision> decisionsForEncounter){
       List<String> matchedIds = new ArrayList<String>();
       String currentMatchedMarkedIndividualId = null;
       Double currentMatchedMarkedIndividualCounter = 0.0;

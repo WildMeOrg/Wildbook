@@ -534,11 +534,13 @@ public static String getDate() {
 public static Connection getConnection() throws SQLException {
 
   Connection conn = null;
+  System.out.println("deleteMe datanucleus.ConnectionUserName is: " + CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
+  System.out.println("deleteMe datanucleus.ConnectionPassword is: " + CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
   Properties connectionProps = new Properties();
   connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
   connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
-
+  System.out.println("deleteMe datanucleus.ConnectionURL is: " + CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"));
   conn = DriverManager.getConnection(
   CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
   connectionProps);
@@ -888,7 +890,7 @@ public static boolean useCustomStyle(HttpServletRequest request, String orgName)
 
   if (cookieOrg!=null && orgName.toLowerCase().equals(cookieOrg.toLowerCase())) {
     return true;
-  } 
+  }
 
   // The checks further below will also return true _right after logging out_ so we need this step
   if (Util.requestHasVal(request, "logout")) return false;
