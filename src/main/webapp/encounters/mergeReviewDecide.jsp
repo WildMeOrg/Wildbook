@@ -7,6 +7,9 @@ java.util.HashMap,
 java.util.List,
 javax.jdo.Query,
 java.sql.*,
+java.util.stream.*,
+com.google.common.collect.Lists,
+com.google.common.collect.Sets,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 
 <%!
@@ -59,64 +62,63 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     JSONArray found = new JSONArray();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
-    System.out.println("deleteMe finished query 1 run");
-    System.out.println("deleteMe results are: ");
-    System.out.println(results.toString());
 
     //add volunteer-suggested matches to the list of results
     List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
     List<String> encounterIdsOfMostAgreedUponMatches = new ArrayList<String>();
+    List<String> encounterIdsOfMostAgreedUponMatchesSurroundedBySingleQuotes = new ArrayList<String>();
+    List volunteerResults = null;
+    List allResults = null;
+    List deDupedAllResults = null;
     boolean isNoMatchInConsensusMatches = false;
-    // List<String> encounterIdsFromVolunteerConsensus = new ArrayList<String>();
+
+    //remove no match but track it for later
     if(currentDecisions != null && currentDecisions.size()>0){
       encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
-
       if(encounterIdsOfMostAgreedUponMatches != null && encounterIdsOfMostAgreedUponMatches.size()>0){
         if(encounterIdsOfMostAgreedUponMatches.contains("no-match")){
           isNoMatchInConsensusMatches = true; //track this
           encounterIdsOfMostAgreedUponMatches.remove("no-match");
         }
-      //   for(String currentIndividualIdOfMostAgreedUponMatches: encounterIdsOfMostAgreedUponMatches){
-      //     System.out.println("deleteMe currentIndividualIdOfMostAgreedUponMatches is: " + currentIndividualIdOfMostAgreedUponMatches);
-      //     //TODO we may have a "no match here with currentIndividualIdOfMostAgreedUponMatches. Handle this case."
-      //     MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentIndividualIdOfMostAgreedUponMatches);
-      //     if(currentIndividual!= null){
-      //       List<Encounter> currentIndividualEncounters = currentIndividual.getEncounters();
-      //       if (currentIndividualEncounters!=null && currentIndividualEncounters.size()>0){
-      //         for(Encounter currentEnc: currentIndividualEncounters){
-      //           //TODO how to address the fact that this will give us more than one media asset per individual?
-      //           if(Util.stringExists(currentEnc.getCatalogNumber())){
-      //             encounterIdsFromVolunteerConsensus.add(currentEnc.getCatalogNumber());
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
       }
     }
-    System.out.println("deleteMe encounterIdsOfMostAgreedUponMatches is: " + encounterIdsOfMostAgreedUponMatches.toString());
-    try{
-      String sql2 = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE \"CATALOGNUMBER\" IN (?) ORDER BY dist";
-      System.out.println("deleteMe got here s1");
-      Connection connection = ServletUtilities.getConnection();
-      System.out.println("deleteMe got here s2");
-      PreparedStatement statement = connection.prepareStatement(sql2);
-      System.out.println("deleteMe got here s3");
-      String[] encounterIdVolunteerArr = encounterIdsOfMostAgreedUponMatches.toArray(new String[encounterIdsOfMostAgreedUponMatches.size()]);
-      System.out.println("deleteMe got here s4");
-      // System.out.println("encounterIdVolunteerArr is: " encounterIdVolunteerArr.toString());
-      statement.setArray(1, connection.createArrayOf("VARCHAR", encounterIdVolunteerArr)); //list.toArray(new String[list.size()])
-      System.out.println("deleteMe got here s5");
-      ResultSet rs = statement.executeQuery();
-      System.out.println("deleteMe got here s6");
-      System.out.println("deleteMe new result set is: " + rs.toString());
-    }catch(Exception e){
-      System.out.println("error getting the volunteer results");
-      e.printStackTrace();
+
+    // surround by single quotes for sql query
+    if(encounterIdsOfMostAgreedUponMatches != null && encounterIdsOfMostAgreedUponMatches.size()>0){
+        for(String currentEncounterId: encounterIdsOfMostAgreedUponMatches){
+            encounterIdsOfMostAgreedUponMatchesSurroundedBySingleQuotes.add("'" + currentEncounterId + "'");
+        }
     }
-    // Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql2);
-    // List volunteerResults = (List)q2.execute();
+    String joinedArray = String.join(", ", encounterIdsOfMostAgreedUponMatchesSurroundedBySingleQuotes);
+    System.out.println("deleteMe joinedArray is: " + joinedArray);
+    if(Util.stringExists(joinedArray)){
+        try{
+          String sql2 = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE \"CATALOGNUMBER\" IN (" + joinedArray + ") ORDER BY dist";
+          Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql2);
+          volunteerResults = (List)q2.execute();
+          //System.out.println("deleteMe volunteerResults is size:" + volunteerResults.size() + " and is: " + volunteerResults.toString());
+          allResults = new ArrayList(volunteerResults);
+          List oldResults = new ArrayList(results); //because I apparently cannot modify query results
+          //System.out.println("deleteMe results is size:" + results.size() + " and is: " + results.toString());
+          allResults.addAll(oldResults);
+          //System.out.println("deleteMe allResults is size:" + allResults.size() + " and is: " + allResults.toString());
+          deDupedAllResults = Lists.newArrayList(Sets.newHashSet(allResults));
+          //System.out.println("deleteMe deDupedAllResults is size: " + deDupedAllResults.size() + " and is: " + deDupedAllResults.toString());
+        }catch(Exception e){
+          System.out.println("error getting the volunteer results");
+          e.printStackTrace();
+        }
+    }
     Iterator it = results.iterator();
+    if(volunteerResults!=null && deDupedAllResults!=null){
+        if(volunteerResults.size() + results.size() == allResults.size()){ //if dedupe does nothing, at least keep volunteerResults up top
+            System.out.println("deleteMe got here s1");
+            it = allResults.iterator();
+        }else{
+            System.out.println("deleteMe got here s2");
+            it = deDupedAllResults.iterator();
+        }
+    }
     String[] propMap = new String[]{"colorPattern", "earTip", "sex", "collar", "lifeStage"};
     boolean putQuery = false;
     while (it.hasNext()) {
@@ -142,7 +144,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         }
         el.put("encounterEventId", menc.getEventID());
         el.put("distance", dist);
-System.out.println("findSimilar() -> " + el.toString());
+        System.out.println("findSimilar() -> " + el.toString());
         for (int i = 0 ; i < propMap.length ; i++) {
             String val = (String)row[i + 2];
             String ud = userData.optString(propMap[i], null);
@@ -272,10 +274,9 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             if (user != null) rtn.put("userId", user.getUUID());
             System.out.println("got here d");
             JSONArray found = findSimilar(request, myShepherd, enc, user, similarUserData);
-            System.out.println("got here e");
-            System.out.println("got here found");
-            System.out.println(found.toString());
-            List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
+            System.out.println("deleteMe got here found");
+            //System.out.println(found.toString());
+            //List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
             //TODO there was handleStuff here...
             JSONArray sim = found;
             if (found == null) {
@@ -827,27 +828,12 @@ function enableMatch() {
           var seen = {};
           var sort = {};
           var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
-            console.log(xhr);
+            // console.log("got here 0 ajax response is:");
+            //console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
-              let volunteerGeneratedMatchCandidates = [];
-              // let volunteerGeneratedMatchCandidates = convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat();
-              //TODO uncomment below once above is working
-              // for(let i=0; i<volunteerGeneratedMatchCandidates.length; i++){
-              //   let currentMatchCandidate = volunteerGeneratedMatchCandidates[i];
-              //   handleMatchCandidate(currentMatchCandidate);
-                    // let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
-                    // if(results){
-                    //   console.log("got here 2");
-                    //   console.log("results are: ");
-                    //   console.log(results);
-                    //   seen = results.seen;
-                    //   sort = results.sort;
-                    //   similarShortCircuitTracker = results.similarShortCircuitTracker;
-                    // }
-              // }
                 if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
                     $('#match-results').html('<b>No matches found</b>');
                 } else {
@@ -857,12 +843,11 @@ function enableMatch() {
                     var shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                         let currentSimilarMatch = xhr.responseJSON.similar[i];
-                        //TODO check that it's not in volunteerGeneratedMatchCandidates list before the below
                         let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
                         if(results){
-                          console.log("got here 2");
-                          console.log("results are: ");
-                          console.log(results);
+                        //   console.log("got here 2");
+                        //   console.log("results are: ");
+                        //   console.log(results);
                           seen = results.seen;
                           sort = results.sort;
                           similarShortCircuitTracker = results.similarShortCircuitTracker;
@@ -874,7 +859,7 @@ function enableMatch() {
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length + volunteerGeneratedMatchCandidates.length){ //TODO if no match is already a top-voted result, don't display it again here
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){ //TODO if no match is already a top-voted result, don't display it again here
                       console.log("got here and shouldn't");
                       $('#match-results').html('<b>No matches found</b>');
                       shouldPopulatePaginator = false;
@@ -968,37 +953,6 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
       console.log("returnObj is: ");
       console.log(returnObj);
       return returnObj;
-}
-
-function convertMatchCandidatesTheVolunteersVotedOnIntoTractableFormat(){ //TODO
-  // assets: [{…}]
-  // collar: "no"
-  // colorPattern: "orange"
-  // distance: 1843.7041662185038
-  // earTip: "no"
-  // encounterEventId: "sub164"
-  // encounterId: "43287354-541a-4b6a-9167-432161d15e4f"
-  // individualId: "5f52a2e0-71df-44d4-9728-bc7614a0d6a4"
-  // lifeStage: "kitten"
-  // matchPhoto: {secondary: {…}, origHeight: 3024, bbox: Array(4), annotationId: "47558026-2d00-4053-b112-8183fbf0db01", id: 2435, …}
-  // matches: {earTip: false, collar: false, lifeStage: false, colorPattern: false, sex: false}
-  // name: "Test_029"
-  // sex: "unknown"
-  let returnArr = []
-  let currentCandidateObj = {}; //TODO need
-  <%
-  List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
-            if(currentDecisions != null && currentDecisions.size()>0){
-              List<String> encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
-              for(int i =0; i< encounterIdsOfMostAgreedUponMatches.size(); i++){
-                String currentIndividualId = encounterIdsOfMostAgreedUponMatches.get(i);
-                %>
-                currentCandidateObj['individualId'] = '<%= currentIndividualId%>';
-                <%
-              }
-            }
-  %>
-  return returnArr;
 }
 
 function populatePaginator(keyArray){
