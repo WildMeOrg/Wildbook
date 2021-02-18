@@ -7,7 +7,6 @@ java.util.HashMap,
 java.util.List,
 javax.jdo.Query,
 java.sql.*,
-java.util.stream.*,
 com.google.common.collect.Lists,
 com.google.common.collect.Sets,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
@@ -127,6 +126,17 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         putQuery = true;
         Object[] row = (Object[]) it.next();
         String encId = (String)row[0];
+        if(Util.stringExists(encId) && encounterIdsOfMostAgreedUponMatches != null){
+            System.out.println("deleteMe encId is: " + encId);
+            if(encounterIdsOfMostAgreedUponMatches.contains(encId)){
+                System.out.println("deleteMe got here encounterId is in encounterIdsOfMostAgreedUponMatches");
+                el.put("hasVolunteerSupport", true);
+            }else{
+                el.put("hasVolunteerSupport", false);
+            }
+
+
+        }
         Double dist = (Double)row[1];
         if (dist > 3000) continue;  //sanity perimeter
         Encounter menc = myShepherd.getEncounter(encId);
@@ -277,7 +287,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             System.out.println("deleteMe got here found");
             //System.out.println(found.toString());
             //List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
-            //TODO there was handleStuff here...
+            //TODO there was handleStuff here?...
             JSONArray sim = found;
             if (found == null) {
                 rtn.put("success", false);
@@ -593,6 +603,22 @@ h1 { background: none !important; }
 .match-asset {
     position: absolute;
 }
+.match-volunteer-support {
+    position: absolute;
+    top: 54px;
+    z-index: 10;
+    left: 10px;
+    padding: 2px 8px;
+    background-color: #9dc327;
+    border-radius: 5px;
+}
+.match-volunteer-support:hover {
+    background-color: #8db317;
+}
+.match-volunteer-support label {
+    font-weight: bold;
+    cursor: pointer;
+}
 .match-choose {
     position: absolute;
     top: 10px;
@@ -828,8 +854,8 @@ function enableMatch() {
           var seen = {};
           var sort = {};
           var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
-            // console.log("got here 0 ajax response is:");
-            //console.log(xhr);
+            console.log("got here 0 ajax response is:");
+            console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
@@ -851,12 +877,19 @@ function enableMatch() {
                           seen = results.seen;
                           sort = results.sort;
                           similarShortCircuitTracker = results.similarShortCircuitTracker;
+                          //TODO 
                         }
 
                     } //end for xhr.responseJSON.similar
+                    console.log("deleteMe got here 1 and sort is:");
+                    console.log(sort);
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
+                    //TODO
+                    console.log("deleteMe got here 1.5 and keys are: ");
+                    console.log(keys);
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
+                        console.log("deleteMe got here 2 might repeat");
                         $('#match-results').append(sort[keys[i]]);
                     }
                     if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){ //TODO if no match is already a top-voted result, don't display it again here
@@ -867,6 +900,7 @@ function enableMatch() {
 
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                 }
+                console.log("deleteMe got here 3");
                 $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                 $('.match-chosen-cat').on('click', function(ev) {
                   var id = ev.target.id;
@@ -906,6 +940,13 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
   var h = '<div class="match-item">';
   h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + matchCandidate.individualId + '&subject=' + encounterId + '" title="Enc ' + matchCandidate.encounterId + '">See more photos of ' + matchCandidate.name + '</a></div>';
   h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + matchCandidate.encounterId + '" /> <label for="mc-' + i + '">Matches this cat</label></div>';
+  if(matchCandidate.hasVolunteerSupport){
+      console.log("deleteMe heyoo");
+      h += '<div class="match-volunteer-support">*Some volunteers designated this as a match</div>';
+  }else{
+      //TODO delete this else
+    //   h += '<div class="match-volunteer-support">*No volunteers designated this as a match</div>';
+  }
   h += '<div class="match-asset-wrapper">';
   h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
   let queryAssetEls = document.getElementsByClassName("query-annotation");
@@ -945,13 +986,13 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
       h += '</div></div>';
       if (!sort[score]) sort[score] = '';
       sort[score] += h;
-      console.log("got here 1");
+    //   console.log("got here 1");
       returnObj["seen"] = seen;
       returnObj["sort"] = sort;
       returnObj["similarShortCircuitTracker"] = similarShortCircuitTracker;
-      console.log("got here 1.5");
-      console.log("returnObj is: ");
-      console.log(returnObj);
+    //   console.log("got here 1.5");
+    //   console.log("returnObj is: ");
+    //   console.log(returnObj);
       return returnObj;
 }
 
