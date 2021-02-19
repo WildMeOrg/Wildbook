@@ -572,11 +572,6 @@
 		return o.nickname;
 	}
 	
-	function _colMatchPhoto(o) {
-		if (o.individualID == undefined) return '-';
-		return '<a target="_new" "href=\"individualGallery.jsp?id="' + o.individualID + '">1</a>';
-	}
-	
 	function _colNumberEncounters(o) {
 		if (o.numberEncounters == undefined) return '';
 		return o.numberEncounters;
