@@ -254,7 +254,7 @@
 						/EncounterAddImage = authc, roles[researcher]
 						/KeywordHandler = authc, roles[researcher]
 
-						/AdoptionAction = authc, roles[admin]
+						#/AdoptionAction = authc, roles[admin]
 						/AdoptionForm = authc, roles[admin]
 						/DeleteAdoption = authc, roles[admin]
 						/ResurrectDeletedAdoption = authc, roles[admin]
