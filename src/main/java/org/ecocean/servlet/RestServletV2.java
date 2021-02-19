@@ -492,6 +492,7 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
                 JSONObject bundle = readConfigBundle(id.substring(9));
                 if (bundle == null) {
                     rtn.put("message", _rtnMessage("invalid_bundle_id"));
+                    response.setStatus(400);
                 } else {
                     long bversion = 0l;
                     JSONObject res = new JSONObject();
@@ -520,6 +521,7 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
                 JSONObject jerr = new JSONObject();
                 jerr.put("id", id);
                 rtn.put("message", _rtnMessage("invalid_configuration_id", jerr));
+                response.setStatus(400);
             } else if (conf.isPrivate(meta) && !isAdmin) {
                 JSONObject jerr = new JSONObject();
                 jerr.put("id", id);
@@ -918,11 +920,13 @@ rtn.put("_payload", payload);
                 SystemLog.error("RestServlet.handlePost() passed invalid class {}, instance={}", cls, instanceId);
                 rtn.put("message", _rtnMessage("invalid_class", payload));
                 myShepherd.rollbackDBTransaction();
+                response.setStatus(400);
             }
         } catch (Exception ex) {
             SystemLog.error("RestServlet.handlePost() threw exception {}", ex.toString(), ex);
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));
             myShepherd.rollbackDBTransaction();
+            response.setStatus(400);
         }
 
         myShepherd.closeDBTransaction();
