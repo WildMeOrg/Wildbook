@@ -416,7 +416,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
+if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -603,7 +603,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
             }
 %><td class="col-state-<%=enc.getState()%>"><%=enc.getState()%></td>
 <td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td>
-<%
+<td class="col-matchphoto-<%=ct%>"><a target="_new" <%=((ct < 0) ? "" : "href=\"individualGallery.jsp?id=" + indivId + "\"")%>><%=((ct < 0) ? "-" : ct)%></a></td><%
         }
 
         if (enc.getDWCDateAddedLong()!=null) {
