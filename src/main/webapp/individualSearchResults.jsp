@@ -579,8 +579,8 @@
 	}
 	
 	function _colMatchPhoto(o) {
-		if (o.individualID == undefined) return '';
-		return o.individualID;
+		if (o.individualID == undefined) return '-';
+		return '<a target="_new" "href=\"individualGallery.jsp?id="' + individualID + '">1</a>';
 	}
 	
 	function _colNumberEncounters(o) {
