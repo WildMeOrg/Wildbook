@@ -250,6 +250,12 @@
 				else{return "";}
 			},
 		},
+		{
+			key: 'individualID',
+			label: '<%=props.getProperty("matchPhotoCol")%>',
+			value: _colMatchPhoto,
+			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); },
+		},
 	
 		{
 			key: 'numberEncounters',
