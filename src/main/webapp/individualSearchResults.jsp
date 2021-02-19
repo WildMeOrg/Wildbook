@@ -578,6 +578,10 @@
 		return o.nickname;
 	}
 	
+	function _colMatchPhoto(o) {
+		if (o.individualID == undefined) return '';
+		return o.individualID;
+	}
 	
 	function _colNumberEncounters(o) {
 		if (o.numberEncounters == undefined) return '';
