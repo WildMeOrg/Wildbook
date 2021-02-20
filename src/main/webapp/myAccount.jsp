@@ -248,14 +248,15 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				    	    	<%
 
 					    		List<Organization> orgs=myShepherd.getAllOrganizationsForUser(thisUser);
-
-					    		int numOrgs=orgs.size();
-								for(Organization org:orgs){
-									String selected="";
-
-									%>
-									<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
-									<%
+								if(orgs!=null){
+						    		int numOrgs=orgs.size();
+									for(Organization org:orgs){
+										String selected="";
+	
+										%>
+										<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
+										<%
+									}
 								}
 								%>
 				    		</select>
@@ -267,7 +268,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 													</td>
 												</tr>
 													<%
-													if(userProjects.size()>0){
+													if(userProjects!=null && userProjects.size()>0){
 														for(int j=0; j<userProjects.size(); j++){
 													%>
 													<tr>
@@ -348,36 +349,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	</script>
 
 <%
-if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && CommonConfiguration.getProperty("allowSocialMediaLogin", request).equals("true")){
-%>
-	<h2><%=props.getProperty("socialMediaConnections") %></h2>
 
-	<div style="padding-bottom: 10px;">
-	<%
-		String types[] = new String[] {"facebook", "flickr"};
-
-	if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
-
-		String socialType="facebook";
-		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
-		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
-		}
-	}
-	if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
-
-		String socialType="flickr";
-		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
-		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
-		}
-	}
-	%>
-	</div>
-<%
-}
 	Properties collabProps = new Properties();
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -392,6 +364,9 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 			String cls = "state-" + c.getState();
 			String msg = "state_" + c.getState();
 			String click = "";
+			
+			String otherUsername=c.getUsername1();
+			if(localUsername.equals(otherUsername))otherUsername=c.getUsername2();
 
 			if (state!=null) {
 
@@ -402,7 +377,7 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 				else if (state.equals(Collaboration.STATE_INITIALIZED)) {
 					click += "<span class=\"collab-button\"></span>"; // empty placeholder
 				} 
-				else {
+				else if(state.equals(Collaboration.STATE_APPROVED)) {
 					click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
 				}
 
@@ -416,9 +391,13 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					msg = "state_initialized_me";
 					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
 						msg = "state_initialized";
-						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + otherUsername + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					}
+					else{
+						click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
+						
 					}
 				}
 				else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
@@ -426,22 +405,22 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					cls="state-initialized";
 					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
 						msg = "state_edit_pend";
-						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + otherUsername + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					}
 					else{
-						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					}
 					
 				}
 				else if (state.equals(Collaboration.STATE_APPROVED) && !c.getUsername1().equals("public") && !c.getUsername2().equals("public")) {
-					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
 					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
 				} 
 				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					System.out.println("EDITABLE State msg = "+msg);
 				} 
@@ -450,29 +429,7 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 				}
 				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
-				/*
-				else {
-				if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
-					msg = "state_initialized_me";
-					if(!me.equals(c.getEditInitiator()))click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
-					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
-					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 
-				}
-				else if (state.equals(Collaboration.STATE_APPROVED)) {
-					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
-					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-				} 
-				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
-					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
-					System.out.println("EDITABLE State msg = "+msg);
-				}
-				h += "<div id=\""+c.getId()+"\" class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
-			}
-			}
-				
-				*/
 				
 			} //end if state!=null
 	
@@ -506,7 +463,11 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					}
 					line = br.readLine();
 				}
-			} finally {
+			} 
+			catch(Exception e){
+				e.printStackTrace();
+			}
+			finally {
 				br.close();
 			}
 			out.println("<div class=\"collab-log\"><h1>Queries by collaborators</h1><div class=\"scrollbox\">" + h + "</div></div>");
