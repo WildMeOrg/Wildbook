@@ -359,7 +359,7 @@
 	
 	function rowClick(el) {
 		console.log(el);
-		var w = window.open('individuals.jsp?number=' + el.getAttribute('data-id'), '_blank');
+		var w = window.open('individuals.jsp?number=' + el.closest("tr").getAttribute('data-id'), '_blank');
 		w.focus();
 		return false;
 	}
@@ -568,7 +568,7 @@
 		var i = '<b>' + o.displayName + '</b>';
 		var fi = o.dateFirstIdentified;
 		if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
-		return '<a onClick="return rowClick(this);" href="#">' + i + '</a>"';
+		return '<a onClick="return rowClick(this);" href="#">' + i + '</a>';
 	}
 
 	function _colNickname(o) {
