@@ -185,6 +185,7 @@ public class Collaborate extends HttpServlet {
   					}
   					rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, false);
   					collab.setState(Collaboration.STATE_INITIALIZED);
+  					if(username!=null && username.equals("public"))collab.setState(Collaboration.STATE_APPROVED);
   					collab.setEditInitiator(currentUsername);
   					
   					myShepherd.updateDBTransaction();
@@ -335,13 +336,14 @@ public class Collaborate extends HttpServlet {
 		if (collab==null) {
 			collab = Collaboration.create(currentUsername, username);
 			if(isEdit)collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV );
+			if(username!=null && username.equals("public"))collab.setState(Collaboration.STATE_APPROVED);
 			collab.setEditInitiator(currentUsername);
 			myShepherd.storeNewCollaboration(collab);
 			myShepherd.updateDBTransaction();
 			rtn.put("collabId",collab.getId());
 		} 
 		User recip = myShepherd.getUser(username);
-		if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("")) {
+		if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("") && !recip.getUsername().equals("public")) {
 			String mailTo = recip.getEmailAddress();
 			Map<String, String> tagMap = new HashMap<>();
 			tagMap.put("@CONTEXT_NAME@", ContextConfiguration.getNameForContext(context));
