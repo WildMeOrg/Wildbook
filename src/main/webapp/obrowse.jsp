@@ -493,6 +493,7 @@ console.log('feature=%o', features[featId]);
     zoomedId = featId;
 }
 function addFeature(id, bbox, type) {
+    if (!bbox) return;
     features[id] = bbox;
     features[id].type = type;
 }
@@ -505,6 +506,7 @@ function drawFeatures() {
 function drawFeature(id) {
     if (!(id in features)) return;
     var bbox = features[id];
+    if (!bbox) return;
     var el = $('#img-wrapper');
     var img = $('img')[0];
     var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox featurebox-type-' + (bbox.type || 'unknown').replaceAll('.', '') + '" />');
