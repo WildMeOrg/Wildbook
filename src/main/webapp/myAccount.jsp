@@ -377,7 +377,6 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 <%
 }
 	Properties collabProps = new Properties();
-	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -477,7 +476,6 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
 		out.println("<div class=\"collab-list\"><a name=\"collaborations\"><h2>" + collabProps.getProperty("collaborationTitle") + "</h2></a>" + h + "</div>");
-
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();
 		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
@@ -543,10 +541,6 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 
 
 	</div>
-
-	<%
-	}// end if collaborationSecurityEnabled
-	%>
 
     </p> <!-- end content p -->
 

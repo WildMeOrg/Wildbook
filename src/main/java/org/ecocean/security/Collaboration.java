@@ -463,7 +463,12 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
-
+	public void setEditInitiator(String username) {
+		if(username==null) {this.editInitiator=null;}
+		else {
+		this.editInitiator = username;
+		}
+	}
 
 /*   CURRENTLY NOT USED
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {
