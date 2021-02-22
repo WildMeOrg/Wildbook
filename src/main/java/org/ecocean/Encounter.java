@@ -3396,7 +3396,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	//convenience function to Collaboration permissions
 	public boolean canUserAccess(HttpServletRequest request) {
-		System.out.println("!!!!!In Encounter.canUserAccess");
 	  return Collaboration.canUserAccessEncounter(this, request);
 	}
         public boolean canUserEdit(User user) {

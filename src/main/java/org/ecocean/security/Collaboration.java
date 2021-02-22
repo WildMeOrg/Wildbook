@@ -38,7 +38,7 @@ public class Collaboration implements java.io.Serializable {
 	// one step higher than approved is having edit privileges
 	public static final String STATE_EDIT_PRIV = "edit";
 	 public static final String STATE_EDIT_PENDING_PRIV = "edit_pending";
-	 
+
 	 private String editInitiator;
 
 	//JDOQL required empty instantiator
@@ -360,45 +360,27 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
-		
-	  //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject1");    
-	  
+
 	  String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
-		
-    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject2");    
-		
+
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
-		
-    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject3");    
-		
+
 		if (User.isUsernameAnonymous(ownerName)) return true;  //anon-owned is "fair game" to anyone
 
-    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject4");    
-		
-		if (request.getUserPrincipal() == null) {  
+		if (request.getUserPrincipal() == null) {
 		  return canCollaborate(context, ownerName, "public");
 		};
-		
-    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject5");    
-		
+
 		String username = request.getUserPrincipal().getName();
-		//System.out.println("username->"+username);
-		//System.out.println("owner->" + owner);
-		//System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
-    //System.out.println("!!!!!In Collaboration.canUserAccessOwnedObject6");    
-		
+
 		return canCollaborate(context, ownerName, username);
 
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
-	  System.out.println("!!!!!In Collaboration.canUserAccessEncounter1");
-    
 	  if(enc!=null && enc.getSubmitterID()==null) return true;
-	  
-	  System.out.println("!!!!!In Collaboration.canUserAccessEncounter2");    
-	  
+
 	  return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
 	}
 
@@ -461,22 +443,25 @@ public class Collaboration implements java.io.Serializable {
 	    return false;
 	  }
 
-  public String toString() {
-      return new ToStringBuilder(this)
-              .append("username1", getUsername1())
-              .append("username2", getUsername2())
-              .append("state", getState())
-              .append("dateTimeCreated", getDateStringCreated())
-              .toString();
-  }
-  
-  public String getEditInitiator() {return editInitiator;}
-  public void setEditInitiator(String username) {
-    if(username==null) {this.editInitiator=null;}
-    else {
-      this.editInitiator = username;
-    }
-  }
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("username1", getUsername1())
+				.append("username2", getUsername2())
+				.append("state", getState())
+				.append("dateTimeCreated", getDateStringCreated())
+				.toString();
+	}
+
+	public String getEditInitiator() {
+		if (editInitiator!=null&&!"".equals(editInitiator)) {
+			return editInitiator;
+		} else if (this.getState().equals(STATE_REJECTED)) {
+			return null;
+		} else {
+			this.editInitiator = this.username1; // probably old collaboration request where position 1 is always initiator
+			return editInitiator;
+		}
+	}
 
 
 
