@@ -671,7 +671,7 @@ function mediaAssetModifyAjax(data){
       contentType: 'application/javascript',
       complete: function(data) {
           console.info('return => %o', data);
-          debugger;
+        //   debugger;
           if (!data || !data.responseJSON) {
               $('.popup-content').html('<div class="error">unknown error</div>');
               return;
@@ -878,14 +878,14 @@ function doImageEnhancer(sel) {
               rotateImageAjaxData["rotate"]="rotate90";
               console.log("rotateImageAjaxData is: ");
               console.log(rotateImageAjaxData);
-              debugger;
+            //   debugger;
 
               mediaAssetModifyAjax(rotateImageAjaxData);
 
               mediaAsset = assetById(mediaAssetId);
               console.log("mediaAsset after is: ");
               console.log(mediaAsset);
-              debugger;
+            //   debugger;
             }],
 
             ['make MatchPhoto', function(enh) {

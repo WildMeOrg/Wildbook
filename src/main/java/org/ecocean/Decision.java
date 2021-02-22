@@ -70,7 +70,6 @@ public class Decision {
     }
 
     public static void updateEncounterStateBasedOnDecision(Shepherd myShepherd, Encounter enc){
-      // System.out.println("updateEncounterStateBasedOnDecision entered");
       String context="context0";
       List<Decision> decisionsForEncounter = myShepherd.getDecisionsForEncounter(enc);
       if(decisionsForEncounter != null && decisionsForEncounter.size() > 0){
@@ -185,6 +184,47 @@ public class Decision {
       return matchedIds;
     }
 
+    public static List<Integer> getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(List<Decision> decisionsForEncounter) { //TODO DRY this tf up
+      System.out.println("deleteMe getNumberOfVotesForMostAgreedUponMatchesInParallelOrder called");
+      List<Integer> numberOfVotes = new ArrayList<Integer>();
+      String currentMatchedMarkedIndividualId = null;
+      Double currentMatchedMarkedIndividualCounter = 0.0;
+      JSONObject winningIndividualTracker = new JSONObject();
+      JSONObject currentDecisionValue = new JSONObject();
+      if (decisionsForEncounter != null && decisionsForEncounter.size() > 0) {
+        for (Decision currentDecision : decisionsForEncounter) {
+          if (currentDecision.getProperty().equals("match")) {
+            currentDecisionValue = currentDecision.getValue();
+            currentMatchedMarkedIndividualId = currentDecisionValue
+                .optString("id", null);
+            currentMatchedMarkedIndividualCounter = winningIndividualTracker
+                .optDouble(currentMatchedMarkedIndividualId, 0.0);
+            winningIndividualTracker.put(currentMatchedMarkedIndividualId,
+                currentMatchedMarkedIndividualCounter + 1);
+          }
+        }
+        numberOfVotes = sortVotesByPopularity(winningIndividualTracker);
+      }
+      System.out.println("deleteMe returning numberOfVotes as : " + numberOfVotes.toString());
+      return numberOfVotes;
+    }
+
+    public static List<Integer> sortVotesByPopularity(JSONObject winningIndividualTracker) { //TODO DRY up
+      List<Integer> votes = new ArrayList<Integer>();
+      int minVotesToBeIncluded = 1;
+      Iterator<String> keys = winningIndividualTracker.keys();
+      String key = null;
+      while (keys.hasNext()) {
+        key = keys.next();
+        if (winningIndividualTracker.optInt(key, 0) >= minVotesToBeIncluded) {
+          votes.add(winningIndividualTracker.optInt(key, 0));
+        }
+      }
+      Collections.sort(votes);
+      Collections.reverse(votes);
+      return votes;
+    }
+
     public static List<String> sortIdsByPopularity(JSONObject winningIndividualTracker){
       List<String> resultsArr = new ArrayList<String>();
       List<Integer> votes = new ArrayList<Integer>();
@@ -194,7 +234,7 @@ public class Decision {
       String key = null;
       while(keys.hasNext()) {
           key = keys.next();
-          if(winningIndividualTracker.optInt(key,0)>minVotesToBeIncluded){
+          if(winningIndividualTracker.optInt(key,0) >= minVotesToBeIncluded){
             votes.add(winningIndividualTracker.optInt(key,0));
             idsInParallelWitVotes.add(key);
           }
@@ -207,6 +247,7 @@ public class Decision {
       if(sortedList!=null && sortedList.size()>0) resultsArr = sortedList;
       return resultsArr;
     }
+
 
     public static int[] convertIntegers(List<Integer> integers){
       int[] ret = null;

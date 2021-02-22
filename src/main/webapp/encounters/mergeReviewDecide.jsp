@@ -65,19 +65,27 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     //add volunteer-suggested matches to the list of results
     List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
     List<String> encounterIdsOfMostAgreedUponMatches = new ArrayList<String>();
+    List<Integer> votesOfMostAgreedUponMatches = new ArrayList<Integer>();
     List<String> encounterIdsOfMostAgreedUponMatchesSurroundedBySingleQuotes = new ArrayList<String>();
     List volunteerResults = null;
     List allResults = null;
     List deDupedAllResults = null;
     boolean isNoMatchInConsensusMatches = false;
+    int numNoMatchVotes = 0;
 
     //remove no match but track it for later
     if(currentDecisions != null && currentDecisions.size()>0){
       encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
+      votesOfMostAgreedUponMatches = Decision.getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(currentDecisions);
       if(encounterIdsOfMostAgreedUponMatches != null && encounterIdsOfMostAgreedUponMatches.size()>0){
-        if(encounterIdsOfMostAgreedUponMatches.contains("no-match")){
+        int noMatchIndex = encounterIdsOfMostAgreedUponMatches.indexOf("no-match");
+        if(noMatchIndex>-1){
           isNoMatchInConsensusMatches = true; //track this
           encounterIdsOfMostAgreedUponMatches.remove("no-match");
+          //TODO check that below works
+          numNoMatchVotes = votesOfMostAgreedUponMatches.get(noMatchIndex);
+          votesOfMostAgreedUponMatches.remove(noMatchIndex);
+          //TOOD go ahead and populate that div (numNoMatchVotes)
         }
       }
     }
@@ -89,20 +97,15 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         }
     }
     String joinedArray = String.join(", ", encounterIdsOfMostAgreedUponMatchesSurroundedBySingleQuotes);
-    System.out.println("deleteMe joinedArray is: " + joinedArray);
     if(Util.stringExists(joinedArray)){
         try{
           String sql2 = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE \"CATALOGNUMBER\" IN (" + joinedArray + ") ORDER BY dist";
           Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql2);
           volunteerResults = (List)q2.execute();
-          //System.out.println("deleteMe volunteerResults is size:" + volunteerResults.size() + " and is: " + volunteerResults.toString());
           allResults = new ArrayList(volunteerResults);
           List oldResults = new ArrayList(results); //because I apparently cannot modify query results
-          //System.out.println("deleteMe results is size:" + results.size() + " and is: " + results.toString());
           allResults.addAll(oldResults);
-          //System.out.println("deleteMe allResults is size:" + allResults.size() + " and is: " + allResults.toString());
           deDupedAllResults = Lists.newArrayList(Sets.newHashSet(allResults));
-          //System.out.println("deleteMe deDupedAllResults is size: " + deDupedAllResults.size() + " and is: " + deDupedAllResults.toString());
         }catch(Exception e){
           System.out.println("error getting the volunteer results");
           e.printStackTrace();
@@ -111,10 +114,8 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     Iterator it = results.iterator();
     if(volunteerResults!=null && deDupedAllResults!=null){
         if(volunteerResults.size() + results.size() == allResults.size()){ //if dedupe does nothing, at least keep volunteerResults up top
-            System.out.println("deleteMe got here s1");
             it = allResults.iterator();
         }else{
-            System.out.println("deleteMe got here s2");
             it = deDupedAllResults.iterator();
         }
     }
@@ -127,10 +128,10 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         Object[] row = (Object[]) it.next();
         String encId = (String)row[0];
         if(Util.stringExists(encId) && encounterIdsOfMostAgreedUponMatches != null){
-            System.out.println("deleteMe encId is: " + encId);
-            if(encounterIdsOfMostAgreedUponMatches.contains(encId)){
-                System.out.println("deleteMe got here encounterId is in encounterIdsOfMostAgreedUponMatches");
+            int indexOfMatchInAgreedUponMatches = encounterIdsOfMostAgreedUponMatches.indexOf(encId);
+            if(indexOfMatchInAgreedUponMatches > -1){
                 el.put("hasVolunteerSupport", true);
+                el.put("volunteerSupportCount", votesOfMostAgreedUponMatches.get(indexOfMatchInAgreedUponMatches));
             }else{
                 el.put("hasVolunteerSupport", false);
             }
@@ -273,21 +274,12 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
         }
 */
         JSONObject similarUserData = Util.stringToJSONObject(request.getParameter("getSimilar"));
-        System.out.println("similarUserData just finished");
-        System.out.println("got here a");
         if (similarUserData != null) {
-          System.out.println("got here b");
             JSONObject rtn = new JSONObject();
-            System.out.println("got here c");
             rtn.put("encounterId", enc.getCatalogNumber());
             rtn.put("userData", similarUserData);
             if (user != null) rtn.put("userId", user.getUUID());
-            System.out.println("got here d");
             JSONArray found = findSimilar(request, myShepherd, enc, user, similarUserData);
-            System.out.println("deleteMe got here found");
-            //System.out.println(found.toString());
-            //List<Decision> currentDecisions = myShepherd.getDecisionsForEncounter(enc);
-            //TODO there was handleStuff here?...
             JSONArray sim = found;
             if (found == null) {
                 rtn.put("success", false);
@@ -789,7 +781,6 @@ function updateData() {
 }
 
 function checkSaveStatus() {
-    console.log(userData);
     var complete = true;
     for (var attr in userData) {
         complete = complete && userData[attr];
@@ -813,7 +804,6 @@ function doSave() {
         data: JSON.stringify({ encounterId: encounterId, multiple: mdata }),
         dataType: 'json',
         complete: function(xhr) {
-            console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
@@ -847,7 +837,6 @@ function enableMatch() {
     }
     $('#match-summary').html(h);
     var url = 'mergeReviewDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
-    console.log(url);
     $.ajax({
         url: url,
         complete: function(xhr) {
@@ -867,29 +856,25 @@ function enableMatch() {
                     matchData.assetData = {};
                     matchData.userPresented = {};
                     var shouldPopulatePaginator = true;
+                    var allScores = [];
+                    for(let i=0; i< xhr.responseJSON.similar.length; i++) {
+                        //TODO just get all scores
+                        allScores.push(matchScore(xhr.responseJSON.similar[i], userData));
+                    }
+                    var maxScore = Math.max(...allScores);
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                         let currentSimilarMatch = xhr.responseJSON.similar[i];
-                        let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker);
+                        let results = handleMatchCandidate(currentSimilarMatch, seen, sort, i, similarShortCircuitTracker, maxScore);
                         if(results){
-                        //   console.log("got here 2");
-                        //   console.log("results are: ");
-                        //   console.log(results);
                           seen = results.seen;
                           sort = results.sort;
                           similarShortCircuitTracker = results.similarShortCircuitTracker;
-                          //TODO 
                         }
 
                     } //end for xhr.responseJSON.similar
-                    console.log("deleteMe got here 1 and sort is:");
-                    console.log(sort);
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
-                    //TODO
-                    console.log("deleteMe got here 1.5 and keys are: ");
-                    console.log(keys);
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
-                        console.log("deleteMe got here 2 might repeat");
                         $('#match-results').append(sort[keys[i]]);
                     }
                     if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){ //TODO if no match is already a top-voted result, don't display it again here
@@ -900,7 +885,6 @@ function enableMatch() {
 
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                 }
-                console.log("deleteMe got here 3");
                 $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                 $('.match-chosen-cat').on('click', function(ev) {
                   var id = ev.target.id;
@@ -920,7 +904,7 @@ function enableMatch() {
     });
 }
 
-function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker){
+function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker, maxScore){
   let returnObj = {}
   if (!matchCandidate.individualId){
     similarShortCircuitTracker ++;
@@ -941,11 +925,17 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
   h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + matchCandidate.individualId + '&subject=' + encounterId + '" title="Enc ' + matchCandidate.encounterId + '">See more photos of ' + matchCandidate.name + '</a></div>';
   h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + matchCandidate.encounterId + '" /> <label for="mc-' + i + '">Matches this cat</label></div>';
   if(matchCandidate.hasVolunteerSupport){
-      console.log("deleteMe heyoo");
-      h += '<div class="match-volunteer-support">*Some volunteers designated this as a match</div>';
+      h += '<div class="match-volunteer-support">*' + matchCandidate.volunteerSupportCount + ' volunteer(s) designated this as a match</div>';
+      let currentMaxScore = Math.max(...Object.keys(sort).map(element=>{
+          let modifiedElem = parseFloat(element);
+          if(modifiedElem){
+              return modifiedElem;
+          }
+        }), maxScore);
+      score = currentMaxScore + 1;
   }else{
       //TODO delete this else
-    //   h += '<div class="match-volunteer-support">*No volunteers designated this as a match</div>';
+    //   h += '<div class="match-volunteer-support">*No volunteer(s) designated this as a match</div>';
   }
   h += '<div class="match-asset-wrapper">';
   h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
@@ -1027,7 +1017,6 @@ function saveMatchChoice() {
         data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: (matchData && matchData.userPresented)? matchData.userPresented: {}, initTime: utickState.mergeReviewDecide.initTime, attrSaveTime: utickState.mergeReviewDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
         dataType: 'json',
         complete: function(xhr) {
-            console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
