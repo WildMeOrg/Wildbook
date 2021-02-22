@@ -128,6 +128,7 @@ public class UpdateStandard extends HttpServlet {
     
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
+    System.out.println("deleteMe filename in UpdateStandard.java is: " + filename);
     
     
     File dataFile = new File(filename);

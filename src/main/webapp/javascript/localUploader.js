@@ -100,7 +100,7 @@ console.log('%d %o', i, files[i]);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-          file.name = file.name.replace(/[^a-zA-Z\. ]/g, "");
+          file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
           console.log('added %o %o', file, event);
 		});
 		flow.on('fileProgress', function(file, chunk){

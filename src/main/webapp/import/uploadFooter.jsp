@@ -25,6 +25,7 @@ async function sendAndRedirect(link, uuid){
         url: link,
         success: function(data) {
             console.log("finished task");
+				}
     });
     $("body").css("cursor", "progress");
     await new Promise(r => setTimeout(r, 3000));
@@ -41,6 +42,7 @@ String commitStr = request.getParameter("commit");
 boolean committing = (commitStr!=null);
 
 String filename = request.getParameter("filename");
+System.out.println("deleteMe filename in uploadFooter is: " + filename);
 String uuid=Util.generateUUID();
 String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true&taskID="+uuid;
 
