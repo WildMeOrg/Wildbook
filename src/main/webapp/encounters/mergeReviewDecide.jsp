@@ -82,10 +82,9 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if(noMatchIndex>-1){
           isNoMatchInConsensusMatches = true; //track this
           encounterIdsOfMostAgreedUponMatches.remove("no-match");
-          //TODO check that below works
           numNoMatchVotes = votesOfMostAgreedUponMatches.get(noMatchIndex);
           votesOfMostAgreedUponMatches.remove(noMatchIndex);
-          //TOOD go ahead and populate that div (numNoMatchVotes)
+          
         }
       }
     }
@@ -132,6 +131,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
             if(indexOfMatchInAgreedUponMatches > -1){
                 el.put("hasVolunteerSupport", true);
                 el.put("volunteerSupportCount", votesOfMostAgreedUponMatches.get(indexOfMatchInAgreedUponMatches));
+                el.put("numNoMatchVotes", numNoMatchVotes);
             }else{
                 el.put("hasVolunteerSupport", false);
             }
@@ -825,7 +825,7 @@ var attributeReadable = {
     lifeStage: 'life stage'
 };
 function enableMatch() {
-    $('#secondary-instructions').html('Does the cat in this submission (left) match a cat already in our database (right)? Scroll through our list and select "Matches this cat" or "None of these cats match".');
+    $('#secondary-instructions').html('Does the cat in this submission (left) match a cat already in our database (right)? Scroll through our list and select "Matches this cat" if you are certain of a desired merge. Click merge when you are done.');
     $('#secondary-instructions').addClass('part-2-instructions');
     $('.column-attributes').hide();
     $('.column-match').show();
@@ -858,7 +858,6 @@ function enableMatch() {
                     var shouldPopulatePaginator = true;
                     var allScores = [];
                     for(let i=0; i< xhr.responseJSON.similar.length; i++) {
-                        //TODO just get all scores
                         allScores.push(matchScore(xhr.responseJSON.similar[i], userData));
                     }
                     var maxScore = Math.max(...allScores);
@@ -872,6 +871,15 @@ function enableMatch() {
                         }
 
                     } //end for xhr.responseJSON.similar
+
+                    //populate no match details
+                    if(xhr.responseJSON.similar[0]){
+                        let numNoMatchVotes = xhr.responseJSON.similar[0].numNoMatchVotes; //every match candidate will have the same value for .numNoMatchVotes, so just use the first match candidate if it exists
+                        let noMatchHtml = '<div class="no-match-volunteer-support">*' + numNoMatchVotes + ' volunteer(s) said that there was no match. Remember that you do not have to designate a match for this individual.</div>';
+                        noMatchHtml += '<br/>'
+                        $('#no-match-volunteer-support-section').append(noMatchHtml);
+                    }
+
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
@@ -883,15 +891,14 @@ function enableMatch() {
                       shouldPopulatePaginator = false;
                     }
 
-                    //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                 }
-                $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
+                $('#match-controls-after').html('<input type="button" id="merge-button" value="Merge these two individuals" disabled class="button-disabled" onClick="nagivateToMergePage();" />');
                 $('.match-chosen-cat').on('click', function(ev) {
                   var id = ev.target.id;
                   console.log(id);
                   $('.match-chosen-cat').prop('checked', false);
                   $('#' + id).prop('checked', true);
-                  $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
+                  $('#merge-button').removeClass('button-disabled').removeAttr('disabled');
                 });
                 if(shouldPopulatePaginator){
                   console.log("got here and should");
@@ -933,9 +940,6 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
           }
         }), maxScore);
       score = currentMaxScore + 1;
-  }else{
-      //TODO delete this else
-    //   h += '<div class="match-volunteer-support">*No volunteer(s) designated this as a match</div>';
   }
   h += '<div class="match-asset-wrapper">';
   h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
@@ -1006,11 +1010,8 @@ function populatePaginator(keyArray){
   }
 }
 
-function saveMatchChoice() {
-    var ch = $('.match-chosen-cat:checked').val();
-    if (!ch) return;
-    console.log('saving %s', ch);
-    $('#match-chosen-button').hide();
+function nagivateToMergePage() {
+    $('#merge-button').hide();
     utickState.mergeReviewDecide.matchSaveTime = new Date().getTime();
     $.ajax({
         url: '../DecisionStore',
@@ -1427,6 +1428,7 @@ All required selections are made.  You may now save your answers. <br />
     <div class="column-match">
         <div class="column-scroll">
             <p id="match-summary"></p>
+            <div id="no-match-volunteer-support-section"></div>
             <div id="match-results"><i>searching....</i></div>
             <div id="pagination-section"></div>
         </div>
