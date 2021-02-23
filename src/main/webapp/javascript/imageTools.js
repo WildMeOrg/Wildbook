@@ -451,9 +451,16 @@ console.log('spot clicked is (%d,%d) type=%s', xy[0], xy[1], this.activeSpotType
 
 		var spot = this.isNearSpot(xy[0], xy[1]);
 		if (spot < 0) {
-			rtn = {xy: xy, type: this.activeSpotType, label: this.activeSpotLabel};
-			this.spots.push(rtn);
-			this.triggerEvent('imageTools:spot:added', rtn);
+
+			if (this.spots.length >= 50) {
+				//disallow adding more than fifty spots
+				console.log("Maximum of fifty spots exceeded, rejecting new spot.");
+			} else {
+				rtn = {xy: xy, type: this.activeSpotType, label: this.activeSpotLabel};
+				this.spots.push(rtn);
+				this.triggerEvent('imageTools:spot:added', rtn);
+			}
+
 		} else { //remove
 			rtn = this.spots[spot];
 			rtn._removed = true;
