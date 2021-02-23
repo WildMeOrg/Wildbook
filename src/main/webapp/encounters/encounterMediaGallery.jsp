@@ -71,13 +71,22 @@ imageShepherd.setAction("encounterMediaGallery.jsp");
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 String encNum="";
-if(request.getParameter("encounterNumber")!=null){
-	encNum=request.getParameter("encounterNumber");
-}
+boolean isOwner=false;
+
+
+
 
 boolean isGrid = (request.getParameter("grid")!=null);
 
 imageShepherd.beginDBTransaction();
+
+if(request.getParameter("encounterNumber")!=null){
+	encNum=request.getParameter("encounterNumber");
+	if(imageShepherd.isEncounter(encNum)){
+		Encounter enc=imageShepherd.getEncounter(encNum);
+		isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+	}
+}
 
 //String encNum = request.getParameter("encounterNumber");
 String queryString=request.getParameter("queryString");
@@ -1406,12 +1415,34 @@ console.info("############## mid=%s -> %o", mid, ma);
 
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
-    } else {
-      //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
-      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span>';
+      
+      <%
+      if(isOwner){
+      %>
+      h+='<span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span>';
+      <%
+    	}
+      %>
+      
+      h+='</div>';
+    } 
+    else {
+      
+    	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName; 
+    	<%
+    	if(isOwner){
+    	%>
+    	h+=' <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span>';
+    	<%
+    	}
+    	%>
+    	h+='</div>';
 
     }
+    
+    
+    
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
@@ -1419,6 +1450,9 @@ console.info("############## mid=%s -> %o", mid, ma);
   console.log("Labeled keywords %o", labelsToValues);
   let labeledAvailable = (labelsToValues.length>0);
 
+  <%
+  if(isOwner){
+  %>
   h +='<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
 
   if (!$.isEmptyObject(labelsToValues)) {
@@ -1448,6 +1482,12 @@ console.info("############## mid=%s -> %o", mid, ma);
     console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
+  
+  <%
+	}
+  
+  if(isOwner){
+  %>
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
@@ -1463,6 +1503,9 @@ console.info("############## mid=%s -> %o", mid, ma);
 	}
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addOrRemoveNewKeyword(this);" />';
 	h += '</div></div>';
+	<%
+	}
+	%>
 
     // we need to attach this to the outer container now
     if (!hasWrapper) {
