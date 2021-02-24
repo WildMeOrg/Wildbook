@@ -6,10 +6,40 @@ java.util.HashMap,
 org.ecocean.security.Collaboration,
 org.ecocean.identity.IdentityServiceLog,
 org.ecocean.servlet.IndividualAddEncounter,
+org.ecocean.servlet.importer.ImportTask,
+org.ecocean.SystemValue,
+org.ecocean.ia.Task,
+java.util.HashMap,
+javax.jdo.Query,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
 <%!
+//try to see if encounter was part of ImportTask so we can mark complete
+//  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
+private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
+    if ((enc == null) || (enc.numAnnotations() < 1)) return;
+    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering("created desc");
+    List results = (List)query.execute();
+    ImportTask itask = null;
+    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
+    query.closeAll();
+System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+    if (itask == null) return;
+    String svKey = "rapid_completed_" + itask.getId();
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    for (Annotation ann : enc.getAnnotations()) {
+        m.put(ann.getId(), true);
+System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+    }
+    SystemValue.set(myShepherd, svKey, m);
+    myShepherd.commitDBTransaction();
+}
+
 String rotationInfo(MediaAsset ma) {
     if ((ma == null) || (ma.getMetadata() == null)) return null;
     HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
@@ -112,6 +142,11 @@ if (request.getParameter("acmId") != null) {
 				JSONObject jann = new JSONObject();
 				jann.put("id", ann.getId());
 				jann.put("acmId", ann.getAcmId());
+				Encounter enc = ann.findEncounter(myShepherd);
+	 			if (enc != null) {
+	 				jann.put("encounterId", enc.getCatalogNumber());
+	 				jann.put("encounterLocationId", enc.getLocationID());
+	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
@@ -121,7 +156,6 @@ if (request.getParameter("acmId") != null) {
 				}
 				if (project!=null) {
 					try {
-						Encounter enc = ann.findEncounter(myShepherd);
 
 						if (enc!=null) {;
 							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
@@ -163,11 +197,13 @@ if (request.getParameter("acmId") != null) {
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
-if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+boolean useLocation = Util.requestParameterSet(request.getParameter("useLocation"));
+if ((request.getParameter("number") != null) && ((request.getParameter("individualID") != null) || useLocation)) {
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
+        res.put("useLocation", useLocation);
 	res.put("taskId", taskId);
 	String projectId = null; 
 	if (Util.stringExists(request.getParameter("projectId"))) {
@@ -189,6 +225,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	}
 	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
 		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	} else if (useLocation && !Util.stringExists(enc.getLocationID())) {
+		res.put("error", "Empty locationID with useLocation=true for encounter: " + request.getParameter("number"));
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -219,6 +261,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
 	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
 	   use an *existing* indiv in those cases (but allow a new one in the other)
+
+            addendum via WB-1216: the NEW INDIVIDUAL case can now allow for useLocation=true option.
 	*/
 
 	// once you assign an id to one, it will still ask for input on another.
@@ -274,6 +318,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
+                                //note that useLocation flavor has slight race condition possible here...
+                                // might be better to have way to *create* indiv with new loc-based name
+                                if (useLocation) {
+                                    String locPrefix = enc.getLocationID().toLowerCase();
+                                    if (locPrefix.length() > 3) locPrefix = locPrefix.substring(0,3);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, 3);
+                                }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
 					if (Util.isUUID(individualID)) {
@@ -306,6 +357,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					indiv.addEncounter(enc2);
 					
 					myShepherd.updateDBTransaction();
+                                        setImportTaskComplete(myShepherd, enc);
+                                        setImportTaskComplete(myShepherd, enc2);
                     indiv.refreshNamesCache();
                     
                     IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
@@ -325,7 +378,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
-
+                                setImportTaskComplete(myShepherd, enc2);
 			} 	
 			
 			// target enc has indy
@@ -337,7 +390,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				myShepherd.updateDBTransaction();
 				
 				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
-				
+                                setImportTaskComplete(myShepherd, enc);
 			} 
 
 
@@ -646,6 +699,9 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.location-based-checkbox {
+	margin: 0 15px 0 5px !important;
+}
 .annot-summary-phantom {
 	display: none;
 }
@@ -715,6 +771,8 @@ var researchProjectName = '<%=researchProjectName%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
+var queryAnnotId;
+var annotData = {};
 
 function toggleScoreType() {
 	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
@@ -1018,22 +1076,33 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		//console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
+		queryAnnotId = qannotId;  //global context
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-								var algoDesc = 'match results'; // default display description if no algo info given
-                if (algoInfo == 'CurvRankFluke') {
-                    algoDesc = 'trailing edge (CurvRank)';
-                } else if (algoInfo == 'OC_WDTW') {
+				var algoDesc = 'texture (HotSpotter match results)'; // default display description if no algo info given
+                if (algoInfo == 'CurvRankTwoFluke') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'CurvRankTwoDorsal') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
-                } else if (algoInfo == 'Deepsense') {
+                } 
+                else if (algoInfo == 'Deepsense') {
                     algoDesc = 'Deepsense AI\'s Right Whale Matcher';
-                } else if (algoInfo == 'CurvRankDorsal') {
+                } 
+                else if (algoInfo == 'CurvRankDorsal') {
                     algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
-                } else if (algoInfo == 'Finfindr') {
+                } 
+                else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
+                }
+                else if (algoInfo == 'Pie') {
+                    algoDesc = 'PIE (Pose Invariant Embeddings)';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
@@ -1230,6 +1299,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
+		annotData[acmId] = res.responseJSON.annotations;
             console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
                 //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
@@ -1557,7 +1627,9 @@ function annotCheckbox(el) {
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
-		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+		h = '';
+		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
+		h += '<input id="new-name-input" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
@@ -1570,6 +1642,17 @@ function annotCheckbox(el) {
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 		return true;
 	}
+}
+
+function locationBasedCheckbox(el, qann) {
+	if (!el.checked) {  //reset
+		$('#new-name-input').attr('placeholder', $('#new-name-input').data('placeholder-orig')).removeAttr('disabled');
+		return true;
+	}
+	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
+	if (!loc) return;
+	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
+	$('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
@@ -1825,7 +1908,10 @@ console.warn(inds);
 
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
-function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
+function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLocation) {
+console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
+	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
+	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
@@ -1834,12 +1920,13 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	}
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
-	if (!indivID || !encID) {
+	if ((!indivID || !encID) && !useLocation) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+        if (useLocation) url += '&useLocation=true';
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
@@ -1883,7 +1970,7 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
