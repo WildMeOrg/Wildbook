@@ -71,6 +71,8 @@
 		#/queue.jsp = authc, roles[cat_mouse_volunteer]
 		/encounters/encounterDecide.jsp = authc, roles[cat_mouse_volunteer]
 		/encounters/mergeReviewDecide.jsp = authc, roles[admin]
+    
+    /MergeIndividual = authc, roles[researcher]
 
                 #/rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
@@ -145,6 +147,8 @@
 
 		   /RelationshipCreate  = authc, roles[researcher]
 		   /RelationshipDelete  = authc, roles[researcher]
+
+       /ScheduledIndividualMergeUpdate = authc, roles[researcher]
 
        /surveys/survey.jsp = authc, roles[researcher]
        /surveys/createSurvey.jsp = authc, roles[researcher]
@@ -318,6 +322,16 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+  <servlet>
+    <servlet-name>MergeIndividual</servlet-name>
+    <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ScheduledIndividualMergeUpdate</servlet-class>
+  </servlet>
 
   <servlet>
     <description>SubmitSurvey</description>
@@ -608,6 +622,16 @@
 		<servlet-name>AddOccToTrack</servlet-name>
 		<servlet-class>org.ecocean.servlet.AddOccToTrack</servlet-class>
 	</servlet>
+
+  <servlet-mapping>
+    <servlet-name>MergeIndividual</servlet-name>
+    <url-pattern>/MergeIndividual</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <url-pattern>/ScheduledIndividualMergeUpdate</url-pattern>
+  </servlet-mapping>
 
 	<servlet-mapping>
  		<servlet-name>ResumableUpload</servlet-name>
