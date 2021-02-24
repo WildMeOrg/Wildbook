@@ -47,6 +47,7 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 
 
 /**
@@ -362,6 +363,21 @@ public class Shepherd {
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new collaboration in shepherd.storeNewCollaboration().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewScheduledIndividualMerge(ScheduledIndividualMerge wsim) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wsim);
+      commitDBTransaction();
+      return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println(
+          "I failed to create a new ScheduledIndividualMerge in shepherd.storeNewScheduledIndividualMerge().");
       e.printStackTrace();
       return false;
     }
