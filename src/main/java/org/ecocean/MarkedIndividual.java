@@ -2698,7 +2698,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       
       //check for a ScheduledIndividualMerge that may have other
       String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
-      System.out.println("deleteMe filter in merge call is: " + filter);
       Query q=myShepherd.getPM().newQuery(filter);
       try{
         Collection c=(Collection)q.execute();

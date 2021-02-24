@@ -275,7 +275,6 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
 */
         String secondEncounter = request.getParameter("secondEncId");
         if (Util.stringExists(secondEncounter)) {
-            System.out.println("deleteMe got here secondEncounter is: " + secondEncounter);
 
             JSONObject rtn = new JSONObject();
             String indId1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getId();
@@ -1010,13 +1009,9 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
       h += '</div></div>';
       if (!sort[score]) sort[score] = '';
       sort[score] += h;
-    //   console.log("got here 1");
       returnObj["seen"] = seen;
       returnObj["sort"] = sort;
       returnObj["similarShortCircuitTracker"] = similarShortCircuitTracker;
-    //   console.log("got here 1.5");
-    //   console.log("returnObj is: ");
-    //   console.log(returnObj);
       return returnObj;
 }
 
