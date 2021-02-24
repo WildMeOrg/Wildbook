@@ -273,6 +273,40 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             return;
         }
 */
+        String secondEncounter = request.getParameter("secondEncId");
+        if (Util.stringExists(secondEncounter)) {
+            System.out.println("deleteMe got here secondEncounter is: " + secondEncounter);
+
+            JSONObject rtn = new JSONObject();
+            String indId1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getId();
+            String indDisplayName1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getDisplayName();
+            if(Util.stringExists(indId1)){
+                rtn.put("indId1", indId1);
+            }
+            if(Util.stringExists(indDisplayName1)){
+                rtn.put("indDisplayName1", indDisplayName1);
+            }
+            String indId2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getId();
+            String indDisplayName2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getDisplayName();
+            if(Util.stringExists(indId2)){
+                rtn.put("indId2", indId2);
+            }
+            if(Util.stringExists(indDisplayName2)){
+                rtn.put("indDisplayName2", indDisplayName2);
+            }
+
+            if (Util.stringExists(indId1) && Util.stringExists(indId2)) {
+                rtn.put("success", true);
+            } else {
+                rtn.put("success", false);
+            }
+            response.setHeader("Content-type", "application/javascript");
+            out.println(rtn.toString());
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            return;
+        }
+
         JSONObject similarUserData = Util.stringToJSONObject(request.getParameter("getSimilar"));
         if (similarUserData != null) {
             JSONObject rtn = new JSONObject();
@@ -707,7 +741,7 @@ $(document).ready(function() {
     var switchToMatch = false;
     for (var i = 0 ; i < userDecisions.length ; i++) {
         switchToMatch = true;  //will get overridden below if we already matched too
-        if (userDecisions[i].property == 'match') {
+        if (userDecisions[i].property == 'match') { //TODO remove this or change it?
             $('.maincontent').html('');
             alert('You have already processed this submission.\n\nMatched ' + new Date(userDecisions[i].timestamp).toLocaleString() + '; ID#' + userDecisions[i].id);
             window.location.href = '../queue.jsp';
@@ -843,8 +877,6 @@ function enableMatch() {
           var seen = {};
           var sort = {};
           var similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
-            console.log("got here 0 ajax response is:");
-            console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
@@ -886,13 +918,12 @@ function enableMatch() {
                         $('#match-results').append(sort[keys[i]]);
                     }
                     if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){ //TODO if no match is already a top-voted result, don't display it again here
-                      console.log("got here and shouldn't");
                       $('#match-results').html('<b>No matches found</b>');
                       shouldPopulatePaginator = false;
                     }
 
                 }
-                $('#match-controls-after').html('<input type="button" id="merge-button" value="Merge these two individuals" disabled class="button-disabled" onClick="nagivateToMergePage();" />');
+                $('#match-controls-after').html('<input type="button" id="merge-button" value="Merge these two individuals" disabled class="button-disabled" onClick="navigateToMergePage();" />');
                 $('.match-chosen-cat').on('click', function(ev) {
                   var id = ev.target.id;
                   console.log(id);
@@ -901,7 +932,6 @@ function enableMatch() {
                   $('#merge-button').removeClass('button-disabled').removeAttr('disabled');
                 });
                 if(shouldPopulatePaginator){
-                  console.log("got here and should");
                   populatePaginator(keys);
                 }
             }
@@ -1010,23 +1040,32 @@ function populatePaginator(keyArray){
   }
 }
 
-function nagivateToMergePage() {
-    $('#merge-button').hide();
-    utickState.mergeReviewDecide.matchSaveTime = new Date().getTime();
+function navigateToMergePage() {
+    let checkedEncounter = $('.match-chosen-cat:checked').val();
+    if (!checkedEncounter) return;
+    let focalEncounter = encounterId;
+    var url = 'mergeReviewDecide.jsp?id=' + encounterId + '&secondEncId=' + checkedEncounter;
     $.ajax({
-        url: '../DecisionStore',
-        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: (matchData && matchData.userPresented)? matchData.userPresented: {}, initTime: utickState.mergeReviewDecide.initTime, attrSaveTime: utickState.mergeReviewDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
-        dataType: 'json',
-        complete: function(xhr) {
-            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
-                console.warn("responseJSON => %o", xhr.responseJSON);
-                alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
-            } else {
-                window.location.href = '../queue.jsp';
+        url: url,
+        complete: function (data) {
+            if(data && data.responseJSON){
+                let indId1 = data.responseJSON.indId1;
+                let indId2 = data.responseJSON.indId2;
+                let indDisplayName1 = data.responseJSON.indDisplayName1;
+                let indDisplayName2 = data.responseJSON.indDisplayName2;
+                if(indId1 && indId2){
+                    let ind1Confirm = indDisplayName1 ? indDisplayName1 : indId1;
+                    let ind2Confirm = indDisplayName2 ? indDisplayName2 : indId2;
+                    let confirmMsg = "Are you sure you want to go to the merge page for " + ind1Confirm + " and " + ind2Confirm + "?";
+                    if (confirm(confirmMsg)){
+                        $('#merge-button').hide();
+                        window.location.href = '../merge.jsp?individualA='+ indId1 + '&individualB=' + indId2;
+                    }
+                }
             }
         },
-        contentType: 'application/javascript',
-        type: 'POST'
+        dataType: 'json',
+        type: 'GET'
     });
 }
 
@@ -1152,7 +1191,7 @@ function assetLoaded(el, imgInfo) {
         });
         return;
     }
-console.log('imgInfo ==> %o', imgInfo);
+// console.log('imgInfo ==> %o', imgInfo);
     var wrapper = imgEl.parent();
     var ow = imgInfo.origWidth;
     var oh = imgInfo.origHeight;
