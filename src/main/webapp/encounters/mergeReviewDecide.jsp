@@ -274,31 +274,52 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
         }
 */
         String secondEncounter = request.getParameter("secondEncId");
+        String noMatchTxt = "no-match";
         if (Util.stringExists(secondEncounter)) {
-
             JSONObject rtn = new JSONObject();
-            String indId1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getId();
-            String indDisplayName1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getDisplayName();
-            if(Util.stringExists(indId1)){
-                rtn.put("indId1", indId1);
-            }
-            if(Util.stringExists(indDisplayName1)){
-                rtn.put("indDisplayName1", indDisplayName1);
-            }
-            String indId2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getId();
-            String indDisplayName2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getDisplayName();
-            if(Util.stringExists(indId2)){
-                rtn.put("indId2", indId2);
-            }
-            if(Util.stringExists(indDisplayName2)){
-                rtn.put("indDisplayName2", indDisplayName2);
+            if(secondEncounter.equals(noMatchTxt)){
+                //just advance the encounter to finished
+                System.out.println("deleteMe got here n1");
+                Encounter focalEncounter = myShepherd.getEncounter(request.getParameter("id"));
+                if(focalEncounter!=null){
+                    System.out.println("deteleMe got here encounter " + focalEncounter.getCatalogNumber() + " is non null");
+                    focalEncounter.setState("finished");
+                    myShepherd.updateDBTransaction();
+                    rtn.put("msg", "Encounter state changed with no match designated for merge");
+                    rtn.put("success", true);
+                }
+            } else{
+                String indId1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getId();
+                String indDisplayName1 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).getDisplayName();
+                if(Util.stringExists(indId1)){
+                    rtn.put("indId1", indId1);
+                }
+                if(Util.stringExists(indDisplayName1)){
+                    rtn.put("indDisplayName1", indDisplayName1);
+                }
+                String indId2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getId();
+                String indDisplayName2 = myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).getDisplayName();
+                if(Util.stringExists(indId2)){
+                    rtn.put("indId2", indId2);
+                }
+                if(Util.stringExists(indDisplayName2)){
+                    rtn.put("indDisplayName2", indDisplayName2);
+                }
+    
+                if (Util.stringExists(indId1) && Util.stringExists(indId2)) {
+                    rtn.put("success", true);
+                    //set state of encounter to finsihed
+                    Encounter focalEncounter = myShepherd.getEncounter(request.getParameter("id"));
+                    if(focalEncounter!=null){
+                        System.out.println("deteleMe got here encounter " + focalEncounter.getCatalogNumber() + " is non null");
+                        focalEncounter.setState("finished");
+                        myShepherd.updateDBTransaction();
+                    }
+                } else {
+                    rtn.put("success", false);
+                }
             }
 
-            if (Util.stringExists(indId1) && Util.stringExists(indId2)) {
-                rtn.put("success", true);
-            } else {
-                rtn.put("success", false);
-            }
             response.setHeader("Content-type", "application/javascript");
             out.println(rtn.toString());
             myShepherd.rollbackDBTransaction();
@@ -740,12 +761,12 @@ $(document).ready(function() {
     var switchToMatch = false;
     for (var i = 0 ; i < userDecisions.length ; i++) {
         switchToMatch = true;  //will get overridden below if we already matched too
-        if (userDecisions[i].property == 'match') { //TODO remove this or change it?
-            $('.maincontent').html('');
-            alert('You have already processed this submission.\n\nMatched ' + new Date(userDecisions[i].timestamp).toLocaleString() + '; ID#' + userDecisions[i].id);
-            window.location.href = '../queue.jsp';
-            return;
-        }
+        // if (userDecisions[i].property == 'match') {
+        //     $('.maincontent').html('');
+        //     alert('You have already processed this submission.\n\nMatched ' + new Date(userDecisions[i].timestamp).toLocaleString() + '; ID#' + userDecisions[i].id);
+        //     window.location.href = '../queue.jsp';
+        //     return;
+        // }
         userData[userDecisions[i].property] = userDecisions[i].value.value;
     }
 
@@ -858,7 +879,7 @@ var attributeReadable = {
     lifeStage: 'life stage'
 };
 function enableMatch() {
-    $('#secondary-instructions').html('Does the cat in this submission (left) match a cat already in our database (right)? Scroll through our list and select "Matches this cat" if you are certain of a desired merge. Click merge when you are done.');
+    $('#secondary-instructions').html('Look to see if the cat in this submission (left) has a match in our database (right). Note that if both the cat on the left and the cat on the right are the same individual, no merge is required. In that case, click "Confirm No Match and Finish Encounter". Otherwise, scroll through our list and select "Matches this cat" if you are certain of a desired merge. In this case, click "Merge Individuals and Finish Encounter" when you are done.');
     $('#secondary-instructions').addClass('part-2-instructions');
     $('.column-attributes').hide();
     $('.column-match').show();
@@ -907,7 +928,9 @@ function enableMatch() {
                     if(xhr.responseJSON.similar[0]){
                         let numNoMatchVotes = xhr.responseJSON.similar[0].numNoMatchVotes; //every match candidate will have the same value for .numNoMatchVotes, so just use the first match candidate if it exists
                         let noMatchHtml = '<div class="no-match-volunteer-support">*' + numNoMatchVotes + ' volunteer(s) said that there was no match. Remember that you do not have to designate a match for this individual.</div>';
-                        noMatchHtml += '<br/>'
+                        noMatchHtml += '<input type="button" id="no-match-merge-button" value="Confirm No Match and Finish Encounter" onClick="markFinishedAndNavigateToMergePage();" />';
+                        noMatchHtml += '<br/>';
+                        noMatchHtml += '<br/>';
                         $('#no-match-volunteer-support-section').append(noMatchHtml);
                     }
 
@@ -916,13 +939,13 @@ function enableMatch() {
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){ //TODO if no match is already a top-voted result, don't display it again here
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length ){
                       $('#match-results').html('<b>No matches found</b>');
                       shouldPopulatePaginator = false;
                     }
 
                 }
-                $('#match-controls-after').html('<input type="button" id="merge-button" value="Merge these two individuals" disabled class="button-disabled" onClick="navigateToMergePage();" />');
+                $('#match-controls-after').html('<input type="button" id="merge-button" value="Merge Individuals and Finish Encounter" disabled class="button-disabled" onClick="markFinishedAndNavigateToMergePage();" />');
                 $('.match-chosen-cat').on('click', function(ev) {
                   var id = ev.target.id;
                   console.log(id);
@@ -1035,26 +1058,40 @@ function populatePaginator(keyArray){
   }
 }
 
-function navigateToMergePage() {
+function markFinishedAndNavigateToMergePage() {
     let checkedEncounter = $('.match-chosen-cat:checked').val();
-    if (!checkedEncounter) return;
+    let noMatchTxt = "no-match";
+    if (!checkedEncounter){
+        console.log("deleteMe got here no checked encounter");
+        checkedEncounter = noMatchTxt; //the ajax call is looking for a match to this exact string to advance the encounter state without doing the merge stuff
+    }
     let focalEncounter = encounterId;
     var url = 'mergeReviewDecide.jsp?id=' + encounterId + '&secondEncId=' + checkedEncounter;
     $.ajax({
         url: url,
         complete: function (data) {
+            console.log("data coming back is: ");
+            console.log(data);
             if(data && data.responseJSON){
                 let indId1 = data.responseJSON.indId1;
                 let indId2 = data.responseJSON.indId2;
                 let indDisplayName1 = data.responseJSON.indDisplayName1;
                 let indDisplayName2 = data.responseJSON.indDisplayName2;
+                let confirmMsg = '';
                 if(indId1 && indId2){
                     let ind1Confirm = indDisplayName1 ? indDisplayName1 : indId1;
                     let ind2Confirm = indDisplayName2 ? indDisplayName2 : indId2;
-                    let confirmMsg = "Are you sure you want to go to the merge page for " + ind1Confirm + " and " + ind2Confirm + "?";
+                    confirmMsg = "Are you sure you want to go to the merge page for " + ind1Confirm + " and " + ind2Confirm + "?";
                     if (confirm(confirmMsg)){
                         $('#merge-button').hide();
                         window.location.href = '../merge.jsp?individualA='+ indId1 + '&individualB=' + indId2;
+                    }
+                }else{
+                    if(checkedEncounter === noMatchTxt){
+                        confirmMsg = "Are you sure you want to advance this encounter to finished with no matches?";
+                        if(confirm(confirmMsg)){
+                            window.location.href = '../queue.jsp';
+                        }
                     }
                 }
             }
@@ -1284,13 +1321,10 @@ function adjustBox(id) {
 <body>
 
 <div class="container maincontent">
-<h2>Submission <%=((enc.getEventID() == null) ? enc.getCatalogNumber().substring(0,8) : enc.getEventID())%>: <span id="subtitle">Step 1</span></h2>
+<h2><span id="subtitle"></span>: Cat <%=((myShepherd.getMarkedIndividual(enc).getDisplayName()) != null ? myShepherd.getMarkedIndividual(enc).getDisplayName().substring(0,8) : myShepherd.getMarkedIndividual(enc).getId().substring(0,8))%></h2>
 
 <%= NoteField.buildHtmlDiv("59b4eb8f-b77f-4259-b939-5b7c38d4504c", request, myShepherd) %>
 <div class="org-ecocean-notefield-default" id="default-59b4eb8f-b77f-4259-b939-5b7c38d4504c">
-<p>
-There are two steps to processing each submission: selecting cat attributes, and then looking to see if the cat has a match in the database.
-</p>
 <h3 id="secondary-instructions"></h3>
 </div>
 
