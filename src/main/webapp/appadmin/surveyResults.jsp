@@ -78,7 +78,12 @@ out.println("</tr></thead><tbody>");
 for (Object o : all) {
     SystemValue sv = (SystemValue)o;
     JSONObject surv = sv.getValue().getJSONObject("value");
-    User user = myShepherd.getUserByUUID(surv.optString("user_uuid", "_NO_"));
+    String uid = surv.optString("user_uuid", null);
+    if (uid == null) {
+        uid = sv.getKey().substring(23);  //hack for registration with no user_uuid field
+        surv.put("user_uuid", uid);
+    }
+    User user = myShepherd.getUserByUUID(uid);
     surv.put("username", (user == null) ? "???" : user.getUsername());
     String mode = "pub";
     if ((user != null) && "U-W".equals(user.getAffiliation())) mode = "uw";
