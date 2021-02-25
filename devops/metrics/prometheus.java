@@ -43,3 +43,42 @@ public class flukebook
 
 //how do we connect this to the wildbook?
 //Adding comment
+//Added by Sarah
+public class MediaAssets
+{
+    static final Gauge mediaAssets = Gauge.build();
+        .name("numMediaAssests").help("Number of Media Assets in Total.").reigster();
+    //Seperate media assets for each wildbook possibly??
+    static final Gauge assetsByWildbook = Gauge.build();
+        .name("numMediaAssestsWB").help("Number of Media Assets by WildBook.").reigster();
+    static final Gauge assetsBySpecies = Gauge.build();
+        .name("numMediaAssestsSpecies").help("Number of Media Assets by species.").reigster();
+}
+
+public class BulkImports
+{
+    static final Gauge averageImportSize = Gauge.build();
+        .name("avgImportSize").help("Average Size of all imports.").reigster();
+    static final Gauge sizeImport = Gauge.build();
+        .name("sizeOfImport").help("Size of Import").reigster();
+    static final Gauge timeToBringIn = Gauge.build();
+        .name("timeToBringInImports").help("Total Time to Bring in a set of imports.").reigster();
+    static final Gauge numAnnotationsImport = Gauge.build();
+        .name("numAnnotations").help("Number of Annotations from import.").reigster();
+}
+
+public class NumOfExceptions
+{
+    static final Gauge numofExceptions = Gauge.build();
+        .name("numExceptions").help("Number of Exceptions from each book.").register();
+}
+
+public class InstanceOfMatching
+{
+    static final Counter newIndividuals = Gauge.build();
+        .name("numIndiv").help("New Individual.").reigster();
+    static final Counter existingIndividual = Gauge.build();
+        .name("exisitingIndiv").help("Existing Individual.").reigster();
+    static final Counter mergeIndividual = Gauge.build();
+        .name("mergeIndivs").help("Merge Individuals.").reigster();
+}
