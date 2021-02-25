@@ -31,7 +31,7 @@ async function sendAndRedirect(link, uuid){
     await new Promise(r => setTimeout(r, 3000));
     $("body").css("cursor", "default");
     window.location.href = "../imports.jsp?taskId="+uuid;
-
+	
 }
 
 

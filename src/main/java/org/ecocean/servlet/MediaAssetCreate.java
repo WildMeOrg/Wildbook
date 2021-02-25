@@ -6,17 +6,22 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 package org.ecocean.servlet;
+
 import org.ecocean.*;
 import org.ecocean.ia.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,10 +31,12 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
 import org.ecocean.resumableupload.UploadServlet;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.net.URL;
+
 import java.io.*;
 
 public class MediaAssetCreate extends HttpServlet {
@@ -109,7 +116,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-
+        
         JSONObject res=new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class_nonum");
@@ -148,7 +155,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
               }
               if (allMAs.size() > 0) {
                   System.out.println("Starting IA.intakeMediaAssets");
-
+                  
                   final Task parentTask = new Task();
                   Task task = null;
                   Taxonomy taxy=null;
@@ -156,7 +163,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                     taxy=new Taxonomy(j.getString("taxonomy"));
                   }
                   if(taxy!=null) {
-                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask); 
                   }
                   else {
                     task = IA.intakeMediaAssets(myShepherd, allMAs);
@@ -271,7 +278,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                         targetMA = urlStore.create(params);
                     }
 
-                }
+                } 
 
                 if (success) {
 /*
@@ -398,3 +405,5 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
+  
+  

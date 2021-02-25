@@ -58,20 +58,20 @@ public class Collaborate extends HttpServlet {
 
     //other user affected by the collaboration state change
   	String username = request.getParameter("username");
-
+  	
   	//is this an approval of a previously isues Collaboration?
   	String approve = request.getParameter("approve");
-
+  	
   	String optionalMessage = request.getParameter("message");
-
+  	
   	//user requesting collaboration change
   	String currentUsername = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
-
+  	
   	boolean useJson = !(request.getParameter("json") == null);
-
+	
   	//used to toggle approval- effectively two way viewing privileges.
   	String collabId = request.getParameter("collabId");
-
+  	
   	String actionForExisting = request.getParameter("actionForExisting");
 
   	System.out.println("in Collaborate.java!!! collabId="+collabId+"  actionForExisting="+actionForExisting);
@@ -82,35 +82,35 @@ public class Collaborate extends HttpServlet {
   	System.out.println("/Collaborate: beginning servlet doPost with username "+username+" and currentUsernam "+currentUsername);
   	PrintWriter out = response.getWriter();
   	myShepherd.beginDBTransaction();
-
+  	
   	try {
-
+  	  
   	  //if nobody is logged in, we can safely exit
     	if (request.getUserPrincipal() == null) {
     	  rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
-
-    	}
+  
+    	} 
     	//this is a widget-only response, no change made
     	else if (request.getParameter("getNotificationsWidget") != null) {
     	  rtn.put("content", Collaboration.getNotificationsWidgetHtml(request, myShepherd));
     	  rtn.put("success", "true");
     	}
-
+    	
     	//get Notifications for User (e.g., after login)
     	else if (request.getParameter("getNotifications") != null) {
-
+    	  
     	  //get new collab invites
     	  List<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
-
+    	  
     	  //get edit collab invites
     	  List<Collaboration> collabs_edits = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_EDIT_PENDING_PRIV);
-
+        
     	  collabs.addAll(collabs_edits);
-
+    	  
     	  System.out.println("/Collaborate: inside getNotifications: #collabs = "+collabs.size()+"collabs = "+collabs);
     	  String html = "";
     	  for (Collaboration c : collabs) {
-
+  
     	    System.out.println("/Collaborate: inside collabs list");
     	    String type="";
     	    String cclass="";
@@ -124,9 +124,9 @@ public class Collaborate extends HttpServlet {
     	      cclass="edit";
     	      //id="id=\""+c.getId()+"\"";
     	    }
-
+    	    
     	    if (!c.getEditInitiator().equals(currentUsername)) {  //this user did not initiate
-
+  
     	      String requesterName = c.getEditInitiator();
     	      User requester = myShepherd.getUser(requesterName);
     	      String reqEmail = (requester!=null) ? requester.getEmailAddress() : null;
@@ -140,15 +140,15 @@ public class Collaborate extends HttpServlet {
     	  } //end for loop
     	  if (html.equals("")) {
     	    rtn.put("content", "<label id='no-notifications-label'>"+props.getProperty("notificationsNone")+"</label>");
-    	  }
+    	  } 
     	  else {
     	    // we need to find somehow the email of the requester here
     	    System.out.println("COLLABORATE.java: username="+username+", currentUsername="+currentUsername);
     	    rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html);
     	  }
 
-  	}
-   // Change of state on existing collaboration
+  	} 
+   // Change of state on existing collaboration	
     else if (collabId!=null&&!"".equals(collabId)&&actionForExisting!=null&&!"".equals(actionForExisting)) {
   		System.out.println("Changing state of existing collaboration...");
   		useJson = true;
@@ -174,7 +174,7 @@ public class Collaborate extends HttpServlet {
   					currentUsername = request.getUserPrincipal().getName();
   					if (currentUsername.equals(collab.getUsername1())) {
   						username = collab.getUsername2();
-  					}
+  					} 
   					else {
   						username = collab.getUsername1();
   						// if this is reached, the user was the recipient of the original collab invite but is initiator of this one.
@@ -185,16 +185,17 @@ public class Collaborate extends HttpServlet {
   					}
   					rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, false);
   					collab.setState(Collaboration.STATE_INITIALIZED);
+  					if(username!=null && username.equals("public"))collab.setState(Collaboration.STATE_APPROVED);
   					collab.setEditInitiator(currentUsername);
-
+  					
   					myShepherd.updateDBTransaction();
   				}
-
+  				
           if ("invite_edit".equals(actionForExisting)) {
             currentUsername = request.getUserPrincipal().getName();
             if (currentUsername.equals(collab.getUsername1())) {
               username = collab.getUsername2();
-            }
+            } 
             else {
               username = collab.getUsername1();
               // if this is reached, the user was the recipient of the original collab invite but is initiator of this one.
@@ -206,92 +207,92 @@ public class Collaborate extends HttpServlet {
             rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, true);
             collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV);
             collab.setEditInitiator(currentUsername);
-
-
+            
+            
             myShepherd.updateDBTransaction();
           }
-
+  				
   				rtn.put("newState", collab.getState());
   				rtn.put("collabId", collab.getId());
   				rtn.put("action", actionForExisting);
-  			}
+  			} 
   			catch (Exception e) {
   				e.printStackTrace();
   				System.out.println("Error setting completing action on collaboration "+collabId+" to "+actionForExisting);
   				rtn.put("success", false);
   			}
-  		}
-
-  	}
-
-    //respond with a message if we can't figure out who the heck they're trying to collaborate with
+  		} 
+  		
+  	} 
+    	
+    //respond with a message if we can't figure out who the heck they're trying to collaborate with	
     else if ((username == null) || username.equals("")) {
   		rtn.put("message", props.getProperty("inviteResponseMessageNoUsername"));
-  	}
-
+  	} 
+    
     // this block contains all the approve/unapprove logic
-    else if ((approve != null) && !approve.equals("")) {
-
+    else if ((approve != null) && !approve.equals("")) { 
+  		
   		Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, currentUsername, username);
   		System.out.println("/Collaborate: inside approve: approve = "+approve+" and collab = "+collab);
   		if (collab == null) {
   			rtn.put("message", props.getProperty("approvalResponseMessageBad"));
-  		}
+  		} 
   		else {
   			if (approve.equals("yes")) {
   			  System.out.println("Approve? Yes");
-
+  	      
   				collab.setState(Collaboration.STATE_APPROVED);
-  			}
+  			}	
         else if (approve.equals("edit") && collab.getState()!=null && collab.getState().equals(Collaboration.STATE_APPROVED)){
           System.out.println("Approve? Yes Edit? Yes");
           collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV);
           collab.setEditInitiator(currentUsername);
-        }
+        } 
   			else if (approve.equals("edit") && collab.getState()!=null && collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV) && !currentUsername.equals(collab.getEditInitiator())){
   			  System.out.println("Approve? Yes Edit? Yes");
   			  collab.setState(Collaboration.STATE_EDIT_PRIV);
-  			}
+  			} 
   			else {
-
+  			  
           if(collab.getState()!=null && (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) || collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV))) {
             collab.setState(Collaboration.STATE_APPROVED);
           }
           //otherwise, kick them down to truly rejected
           else {collab.setState(Collaboration.STATE_REJECTED);}
           collab.setEditInitiator(null);
-
+  			  
   			  System.out.println("Rejected");
-
-
+  				
+  				
   			}
   			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
   			rtn.put("success", true);
   			myShepherd.updateDBTransaction();
   			//myShepherd.commitDBTransaction();
   		}
-  	}
-
-    //NEW INVITE - default to sending a NEW invite if no other logic accepts the request
+  	} 
+    	
+    //NEW INVITE - default to sending a NEW invite if no other logic accepts the request	
     else {
       System.out.println("NEW INVITE from "+currentUsername+ " to " +username);
   		rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, false);
   	}
-
+  
   	System.out.println("/Collab: before printwriter stuff, about to return "+rtn);
-
+      
     if (useJson) {
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       String json = new Gson().toJson(rtn);
       out.println(json);
-    }
+    } 
     else {
       response.setContentType("text/html");
       out.println(ServletUtilities.getHeader(request));
       if (Boolean.TRUE.equals(rtn.get("success"))) {
         out.println("<p class=\"collaboration-invite-success\">" + props.getProperty("inviteSuccess") + "</p>");
-      }
+      } 
       else {
         out.println("<p class=\"collaboration-invite-failure\">" + props.getProperty("inviteFailure") + "</p>");
       }
@@ -310,38 +311,39 @@ public class Collaborate extends HttpServlet {
 	out.close();
   } //end doPost
 
-
-
+  
+  
   /*
-   *
+   * 
    * Issues a collaboration invite.
-   *
+   * 
    */
   private HashMap sendCollaborationInvite(Shepherd myShepherd, String username, String currentUsername, Properties props, HashMap rtn, HttpServletRequest request, String context, boolean isEdit) {
 	String optionalMessage = request.getParameter("message");
-
+	
 	 System.out.println("Entering sendCollaborationInvite");
-
-
+	  
+	
 	Collaboration collab = Collaboration.collaborationBetweenUsers(currentUsername, username, context);
 
 	//RESET INVITE FOR EXISTINF COLLAB
 	if (collab != null && (Collaboration.STATE_INITIALIZED.equals(collab.getState()) || Collaboration.STATE_EDIT_PENDING_PRIV.equals(collab.getState()))) {
 		rtn.put("message", props.getProperty("inviteResponseMessageAlready"));
 		System.out.println("collab is already initialized, bailing on action. state=" + collab.getState());
-	}
+	} 
 	else {
 	  //CREATE NEW COLLAB INVITE
 		if (collab==null) {
 			collab = Collaboration.create(currentUsername, username);
 			if(isEdit)collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV );
+			if(username!=null && username.equals("public"))collab.setState(Collaboration.STATE_APPROVED);
 			collab.setEditInitiator(currentUsername);
 			myShepherd.storeNewCollaboration(collab);
 			myShepherd.updateDBTransaction();
 			rtn.put("collabId",collab.getId());
-		}
+		} 
 		User recip = myShepherd.getUser(username);
-		if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("")) {
+		if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("") && !recip.getUsername().equals("public")) {
 			String mailTo = recip.getEmailAddress();
 			Map<String, String> tagMap = new HashMap<>();
 			tagMap.put("@CONTEXT_NAME@", ContextConfiguration.getNameForContext(context));
@@ -381,3 +383,5 @@ public class Collaborate extends HttpServlet {
   }
 
 }
+  
+  

@@ -37,3 +37,4 @@ CREATE INDEX IF NOT EXISTS "ACCESSCONTROL_USERNAME_idx" ON "ACCESSCONTROL" ("USE
 
 -- this one gets autocreated (in all caps!) so lets do this... sigh?
 CREATE INDEX IF NOT EXISTS "TASK_CREATED_IDX" ON "TASK" ("CREATED");
+

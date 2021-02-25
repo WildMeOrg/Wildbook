@@ -5,15 +5,19 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
 package org.ecocean;
+
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
@@ -23,18 +27,22 @@ import org.ecocean.social.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
+
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.*;
 import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -43,6 +51,7 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
@@ -362,8 +371,6 @@ public class Shepherd {
     }
   }
 
-
-
   public boolean storeNewSocialUnit(SocialUnit su) {
     beginDBTransaction();
     try {
@@ -582,16 +589,6 @@ public class Shepherd {
     return tempEnc;
   }
 
-  public Annotation getAnnotation(String uuid) {
-    Annotation annot = null;
-    try {
-      annot = ((Annotation) (pm.getObjectById(pm.newObjectIdInstance(Annotation.class, uuid.trim()), true)));
-    } catch (Exception nsoe) {
-      return null;
-    }
-    return annot;
-  }
-
   public ImportTask getImportTask(String num) {
     ImportTask tempEnc = null;
     try {
@@ -600,6 +597,16 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+
+  public Annotation getAnnotation(String uuid) {
+    Annotation annot = null;
+    try {
+      annot = ((Annotation) (pm.getObjectById(pm.newObjectIdInstance(Annotation.class, uuid.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return annot;
   }
 
   public MediaAsset getMediaAsset(String num) {
@@ -1214,9 +1221,6 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     if (username == null) return null;
     return getUser(username);
   }
-
-
-
 
 
 
@@ -2079,6 +2083,20 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return (configNames);
   }
 
+
+
+  public Iterator<Survey> getAllSurveysNoQuery() {
+    try {
+      Extent svyClass = pm.getExtent(Survey.class, true);
+      Iterator it = svyClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllSurveysNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
   public Iterator getAllAnnotationsNoQuery() {
     try {
       Extent annClass = pm.getExtent(Annotation.class, true);
@@ -2121,6 +2139,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       return null;
     }
   }
+
 
   public Iterator getAllSinglePhotoVideosNoQuery() {
     try {
@@ -2623,6 +2642,10 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
 
 
+
+
+
+
   public User getUserByEmailAddress(String email){
     String hashedEmailAddress=User.generateEmailHash(email);
     return getUserByHashedEmailAddress(hashedEmailAddress);
@@ -2664,8 +2687,6 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     query.closeAll();
     return null;
   }
-
-
 
 
 
@@ -2935,6 +2956,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return null;
   }
 
+
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
     ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
     String keywordQueryString="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ( enc.locationID == \""+locationID+"\" ) VARIABLES org.ecocean.Encounter enc";
@@ -2972,6 +2994,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
 
+    // uhhhhhhhh
     String up = milliString.substring(0, milliString.length() - 6) + 999999;
     String down = milliString.substring(0, milliString.length() - 6) + 000000;
 
@@ -2979,45 +3002,6 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+down+" && dateInMilliseconds <= "+up+" ";
     Query encQuery = pm.newQuery(keywordQueryString);
     Collection col = null;
-    try {
-      encQuery = pm.newQuery(keywordQueryString);
-      if (encQuery.execute() != null) {
-        col = (Collection) encQuery.execute();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.out.println("Exception on query : "+keywordQueryString);
-      return null;
-    }
-    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
-    encQuery.closeAll();
-    if (encs != null) {
-      return encs;
-    } else {
-      return null;
-    }
-  }
-
-  public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
-    sd = sd.replace("/", "-");
-    sd = sd.replace(".", "-");
-    sd = sd.trim();
-    DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-    Date d = null;
-    try {
-      d = (Date)fm.parse(sd);
-    } catch (ParseException pe) {
-      pe.printStackTrace();
-    }
-    DateTime dt = new DateTime(d);
-    DateTime nextDay = dt.plusDays(1).toDateTime();
-    // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that occurred in between.
-    String milliString = String.valueOf(dt.getMillis());
-    String millisNext = String.valueOf(nextDay.getMillis());
-    System.out.println("Trying to get encounter with date in Millis : "+milliString);
-    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+"";
-    Collection col = null;
-    Query encQuery = null;
     try {
       encQuery = pm.newQuery(keywordQueryString);
       if (encQuery.execute() != null) {
@@ -3060,6 +3044,45 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     encQuery.closeAll();
     System.out.println("getEncountersSubmittedDuring used query string "+keywordQueryString+"; returning "+encs.size()+ " (collection size "+colSize+")");
     return encs;
+  }
+
+  public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
+    sd = sd.replace("/", "-");
+    sd = sd.replace(".", "-");
+    sd = sd.trim();
+    DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+    Date d = null;
+    try {
+      d = (Date)fm.parse(sd);
+    } catch (ParseException pe) {
+      pe.printStackTrace();
+    }
+    DateTime dt = new DateTime(d);
+    DateTime nextDay = dt.plusDays(1).toDateTime();
+    // Since the query involves a date but no time, we need to get the millis of the next day at 12:00AM as well and find all encounters that occurred in between.
+    String milliString = String.valueOf(dt.getMillis());
+    String millisNext = String.valueOf(nextDay.getMillis());
+    System.out.println("Trying to get encounter with date in Millis : "+milliString);
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE dateInMilliseconds >= "+milliString+" && dateInMilliseconds <= "+millisNext+"";
+    Collection col = null;
+    Query encQuery = null;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);
+      return null;
+    }
+    ArrayList<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    if (encs != null) {
+      return encs;
+    } else {
+      return null;
+    }
   }
 
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
@@ -3569,28 +3592,6 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return num;
   }
 
-  // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
-  public int getNumMarkedIndividualsWithEncMatching(String filter) {
-    System.out.println("filter in getNumMarkedIndividualsWithEncMatching method is: " + filter);
-    int num = 0;
-    pm.getFetchPlan().setGroup("count");
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query q = pm.newQuery("SELECT DISTINCT individualID FROM org.ecocean.Encounter WHERE "+filter);
-    try {
-      Collection results = (Collection) q.execute();
-      num = results.size();
-    } catch (javax.jdo.JDOException x) {
-      x.printStackTrace();
-      return num;
-    }
-    q.closeAll();
-    return num;
-  }
-  public int getNumMarkedIndividualsLeftFlank() {
-    String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
-    return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
-  }
-
   public int getNumUsers() {
     int num = 0;
     Query q = pm.newQuery(User.class); // no filter, so all instances match
@@ -3834,30 +3835,6 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       acceptedEncounters.closeAll();
       return 0;
     }
-  }
-
-  public int getNumEncountersMatching(String filter) {
-    pm.getFetchPlan().setGroup("count");
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    int num = 0;
-    try {
-      Collection c = (Collection) (acceptedEncounters.execute());
-      Iterator it = c.iterator();
-
-      num = c.size();
-      acceptedEncounters.closeAll();
-      return num;
-    } catch (javax.jdo.JDOException x) {
-      System.out.println("JDOException on Shepherd.getNumEncountersMatching(String filter=\""+filter+"\");");
-      x.printStackTrace();
-      acceptedEncounters.closeAll();
-      return 0;
-    }
-  }
-  public int getNumEncountersLeftFlank() {
-    String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
-    return getNumEncountersMatching(lFlankFilter);
   }
 
 
@@ -4920,11 +4897,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   public ArrayList<String> getAllSocialUnitNames() {
     ArrayList<String> comNames=new ArrayList<String>();
-    Query q = pm.newQuery(Relationship.class);
+    Query q = pm.newQuery(SocialUnit.class);
     try{
 
-      q.setResult("distinct relatedSocialUnitName");
-      q.setOrdering("relatedSocialUnitName ascending");
+      q.setResult("distinct socialUnitName");
+      q.setOrdering("socialUnitName ascending");
       Collection results = (Collection) q.execute();
       comNames=new ArrayList<String>(results);
 
@@ -5175,6 +5152,8 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   }
 
+
+
   public Measurement getMeasurementOfTypeForEncounter(String type, String encNum) {
     String filter = "type == \""+type+"\" && correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(Measurement.class, true);
@@ -5241,7 +5220,17 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
-    matchingEncounters = new ArrayList<Encounter>(c);
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
+      int numAdded=0;
+      while(numAdded<max){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+
+    }
+
     q.closeAll();
     return matchingEncounters;
   }
@@ -5288,7 +5277,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
     return sortByValues(matchingUsers);
   }
-
+  
   public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
@@ -5305,10 +5294,10 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-
+        
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-
+        
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5330,7 +5319,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
-
+  
   public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
@@ -5350,7 +5339,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-
+      
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5560,6 +5549,56 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
         if (u != null) return u;
         return getUserByEmailAddress(value);  //see note below about uniqueness, alas
     }
+    
+    
+    public int getNumEncountersMatching(String filter) {
+      pm.getFetchPlan().setGroup("count");
+      Extent encClass = pm.getExtent(Encounter.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      int num = 0;
+      try {
+        Collection c = (Collection) (acceptedEncounters.execute());
+        Iterator it = c.iterator();
+
+        num = c.size();
+        acceptedEncounters.closeAll();
+        return num;
+      } catch (javax.jdo.JDOException x) {
+        System.out.println("JDOException on Shepherd.getNumEncountersMatching(String filter=\""+filter+"\");");
+        x.printStackTrace();
+        acceptedEncounters.closeAll();
+        return 0;
+      }
+    }
+    
+    //Start Spotashark customizations
+    public int getNumEncountersLeftFlank() {
+      String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
+      return getNumEncountersMatching(lFlankFilter);
+    }
+    
+    // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
+    public int getNumMarkedIndividualsWithEncMatching(String filter) {
+      System.out.println("filter in getNumMarkedIndividualsWithEncMatching method is: " + filter);
+      int num = 0;
+      pm.getFetchPlan().setGroup("count");
+      Extent encClass = pm.getExtent(Encounter.class, true);
+      Query q = pm.newQuery("SELECT DISTINCT individualID FROM org.ecocean.Encounter WHERE "+filter);
+      try {
+        Collection results = (Collection) q.execute();
+        num = results.size();
+      } catch (javax.jdo.JDOException x) {
+        x.printStackTrace();
+        return num;
+      }
+      q.closeAll();
+      return num;
+    }
+    public int getNumMarkedIndividualsLeftFlank() {
+      String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
+      return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
+    }
+  //End Spotashark customizations
 
 
 } //end Shepherd class

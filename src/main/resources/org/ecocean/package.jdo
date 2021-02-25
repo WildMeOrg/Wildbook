@@ -3,6 +3,7 @@
 <jdo>
   <package name="org.ecocean">
 
+
     <class name="Survey" identity-type="application" table="SURVEY">
       <field name="surveyID" primary-key="true">
         <column length="100" allows-null="true"/>
@@ -280,7 +281,7 @@
         <join/>
       </field>
 
-	    <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
+	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
@@ -362,10 +363,6 @@
 
       <field name="state" persistence-modifier="persistent">
         <column length="128"/>
-      </field>
-
-      <field name="charterOperator" persistence-modifier="persistent">
-        <column length="256"/>
       </field>
 
       <field name="photographerEmail" persistence-modifier="persistent">
@@ -484,6 +481,7 @@
       <field name="satelliteTag" persistence-modifier="persistent"></field>
 
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
+
 
 	  <fetch-group name="searchResults">
 
@@ -697,31 +695,6 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-    </class>
-
-    <class name="Observation" identity-type="data-store">
-      <inheritance strategy="new-table"/>
-      <field name="observationID" primary-key="true">
-        <column length="100"/>
-      </field>
-      <field name="value">
-        <column name="VALUE" jdbc-type="VARCHAR" length="2048"/>
-      </field>
-      <field name="name">
-        <column name="NAME"/>
-      <field name="dateAddedMilli">
-      </field>
-        <column jdbc-type="BIGINT" allows-null="true"/>
-      </field>
-      <field name="dateModifiedMilli">
-        <column jdbc-type="BIGINT" allows-null="true"/>
-      <field name="parentObjectClass">
-      </field>
-        <column name="PARENTOBJECTCLASS"/>
-      </field>
-      <field name="parentObjectID">
-        <column name="PARENTOBJECTID"/>
-      </field>
     </class>
 
     <class name="Observation" identity-type="data-store">

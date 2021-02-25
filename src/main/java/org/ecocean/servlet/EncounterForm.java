@@ -129,45 +129,7 @@ private List<Project> projects = new ArrayList<Project>();
         return formValues.get(key).toString();
     }
 
-    private boolean isBadDateString(String dateString) {
-      if (dateString.length() < 7) {return true;}
-      String[] months = new String[] {"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"};
-      String oldMonth = dateString.substring(4,7).toLowerCase();
-      boolean result = false;
-      for (String mon : months) {
-        if (oldMonth.equals(mon)) {
-          result = true;
-          break;
-        }
-      }
-      return result;
-    }
-
-    private String cleanSpotasharkDate(String oldDate) {
-      if (oldDate.length() < 7) {return oldDate;}
-
-      String[] months = new String[] {"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"};
-      String oldMonth = oldDate.substring(4,7).toLowerCase();
-      int monthNo = -1;
-      for (int i=0; i<12; i++) {
-        if (oldMonth.equals(months[i])) {
-          monthNo=i+1;
-        }
-      }
-
-      String newMonth = monthNo+"";
-      if (newMonth.length()==1) {
-        newMonth = "0"+newMonth;
-      }
-
-      String newDate = oldDate.substring(0,4)+"-"+newMonth;
-      if (oldDate.length()>7) {
-        newDate += "-"+oldDate.substring(7,oldDate.length());
-      }
-      return newDate;
-    }
-
-  private SatelliteTag getSatelliteTag(HashMap formValues) {
+  private SatelliteTag getSatelliteTag(Map formValues) {
     String argosPttNumber =  getVal(formValues, "satelliteTagArgosPttNumber");
     String satelliteTagName = getVal(formValues, "satelliteTagName");
     String tagSerial = getVal(formValues, "satelliteTagSerial");
@@ -556,15 +518,10 @@ System.out.println("*** trying redirect?");
               //boolean badDate=false;
               try{
                 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-                String dateString = getVal(formValues, "datepicker").replaceAll(" ", "T");
-                LocalDateTime reportedDateTime;
 
-                if (isBadDateString(dateString)) {
-                  dateString = cleanSpotasharkDate(dateString);
-                }
+                LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(formValues, "datepicker").replaceAll(" ", "T")));
+                StringTokenizer str=new StringTokenizer(getVal(formValues, "datepicker").replaceAll(" ", "T"),"-");
 
-                reportedDateTime = new LocalDateTime(parser1.parseMillis(dateString));
-                StringTokenizer str=new StringTokenizer(dateString,"-");
           int numTokens=str.countTokens();
 
 
@@ -856,18 +813,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (formValues.get("lifeStage") != null && formValues.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(formValues.get("lifeStage").toString());
           }
-      if (formValues.get("hookmark") != null && formValues.get("hookmark").toString().length() > 0) {
-        enc.setDynamicProperty("Hookmark", formValues.get("hookmark").toString());
-    }
-      if (formValues.get("flank") != null && formValues.get("flank").toString().length() > 0) {
-        enc.setDynamicProperty("flank", formValues.get("flank").toString());
-    }
-      if (formValues.get("nsharks") != null && formValues.get("nsharks").toString().length() > 0) {
-        enc.setDynamicProperty("# sharks in cave", formValues.get("nsharks").toString());
-    }
-    if (formValues.get("charterOperatorName") != null && formValues.get("charterOperatorName").toString().length() > 0) {
-      enc.setCharterOperator(formValues.get("charterOperatorName").toString());
-    }
+
 
       if (formValues.get("flukeType") != null && formValues.get("flukeType").toString().length() > 0) {
         System.out.println("        ENCOUNTERFORM:");
@@ -926,7 +872,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
         enc.setMeasurement(measurement, myShepherd);
       }
       enc.setAcousticTag(getAcousticTag(formValues));
-      enc.setSatelliteTag(getSatelliteTag(new HashMap<>(formValues)));
+      enc.setSatelliteTag(getSatelliteTag(formValues));
       enc.setSex(getVal(formValues, "sex"));
       enc.setLivingStatus(getVal(formValues, "livingStatus"));
 
@@ -1209,7 +1155,7 @@ System.out.println("depth --> " + formValues.get("depth").toString());
                 for (MediaAsset ma: enc.getMedia()) {
                   ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
                 }
-
+  
                 Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
                 if (locCode != null) {
                     parentTask = new Task();
@@ -1224,7 +1170,7 @@ System.out.println("depth --> " + formValues.get("depth").toString());
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
                 System.out.println("EncounterForm saved task "+task);
-              }
+              } 
               else {
                 System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
               }
@@ -1251,8 +1197,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
         //WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(("/confirmSubmit.jsp?number=" + encID));
-        dispatcher.forward(request, response);
-
+        dispatcher.forward(request, response);   
+        
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
           myShepherd.beginDBTransaction();

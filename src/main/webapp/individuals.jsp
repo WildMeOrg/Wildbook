@@ -421,8 +421,7 @@ $(document).ready(function() {
 
           // replace this with canUserViewIndividual?
           // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
+          boolean isOwner = Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {

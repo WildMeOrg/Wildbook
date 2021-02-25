@@ -124,7 +124,7 @@ function setPageOffsetFromCurrentPair() {
 var attrOrder = ['number', 'date', 'sex', 'assignedToShark', 'size', 'location', 'locationID'];
 var attrLabel = {
     number: 'Enc ID',
-    date: 'Date',
+    date: 'Date', 
     sex: 'Sex',
     assignedToShark: 'Assigned to',
     size: 'Size',

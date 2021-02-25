@@ -31,7 +31,7 @@ wildbook.IA.plugins.push({
         }
         // items is an array of two-element arrays. In each tuple is 1. what to display, 2. the click action
         // first elem: executes function if function, or just displays if string
-        var items = new Array();
+        var items = new Array(); 
 
         //this is the "start (new) job"
         items.push([
@@ -63,7 +63,7 @@ wildbook.IA.plugins.push({
                 wildbook.openInTab('encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid);
             }
         ]);
-
+        
         //manual annotation.jsp
         items.push([
             function(enh) {  //the menu text
@@ -89,7 +89,7 @@ wildbook.IA.plugins.push({
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
-
+        
         let detectionComplete = false;
         if (ma.detectionStatus && ma.detectionStatus == 'complete') {
             detectionComplete = true;
@@ -234,3 +234,4 @@ function registerTaskId(taskId) {
     $('#activeTaskId').remove();
     $('body').append('<p id="activeTaskId" style="display: none;">' + taskId + '</p>');
 }
+

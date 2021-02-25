@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.List, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
 //String context="context0";
@@ -10,28 +10,6 @@ String context=ServletUtilities.getContext(request);
 //get a shepherd
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("scanTaskAdmin.jsp");
-
-  boolean usaUser = false;
-		String linkURLBase = CommonConfiguration.getURLLocation(request);
-
-
-		try {
-			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-			if (request.getUserPrincipal()!=null) {
-				String userName = request.getUserPrincipal().getName();
-				List<Role> roles = myShepherd.getAllRolesForUser(userName);
-				for (Role role : roles) {
-					if (role.getRolename().equals("spotasharkusa")) {
-						usaUser = true;
-					}
-				}
-			}
-			if (usaUser) {
-				linkURLBase = "ncaquariums.wildbook.org";
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
@@ -82,7 +60,7 @@ String context=ServletUtilities.getContext(request);
   //String langCode = "en";
 
 String langCode=ServletUtilities.getLanguageCode(request);
-
+    
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props=ShepherdProperties.getProperties("submit.properties", langCode, context);
@@ -141,7 +119,7 @@ else{
 	})<%
 	    if(request.getParameter("showAll")==null){
 	    %>
-	    (30);
+	    (30);	
 	    <%
 	    }
 	    else {
@@ -169,10 +147,10 @@ else{
   Iterator<ScanTask> it = null;
   if(request.getParameter("showAll")!=null){it=myShepherd.getAllScanTasksNoQuery();}
   else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}
-
-
-
-
+  	
+    
+    
+    
     int scanNum = 0;
     while ((it!=null)&&(it.hasNext())) {
       ScanTask st = it.next();
@@ -187,11 +165,11 @@ else{
         //int numTaskTot = st.getNumComparisons();
 		//String numTaskTot=numComplete+"/"+st.getNumComparisons();
 		//if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
-
-
+        
+        
    String styleString="";
    if((request.getParameter("task")!=null)&&(st.getUniqueNumber().equals(request.getParameter("task")))){styleString="background-color: #66CCFF;border-collapse:collapse;";}
-
+        
   %>
   <tr id="<%=st.getUniqueNumber()%>" >
     <td style="<%=styleString %>">
@@ -224,7 +202,7 @@ else{
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
       else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
     	Encounter scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
-    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}
+    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}  	
       }
       if (hasPermissionForThisEncounter) {%>
       <form name="scanNum<%=scanNum%>" method="post"
@@ -244,7 +222,7 @@ else{
               	<input name="restart" type="hidden" id="restart" value="true" />
               	<input name="encounterNumber" type="hidden" id="encounterNumber" value="<%=st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", "") %>" />
               	<input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber()%>" />
-
+              	
               	<%
               	if(st.getUniqueNumber().startsWith("scanR")){
               	%>
@@ -252,13 +230,13 @@ else{
               	<%
               	}
               	%>
-
+              	
               		<input name="restart" type="submit" id="restart" value="Restart" />
               </form>
         <%
         }
         %>
-
+        
       <%
         }
       %>
@@ -290,20 +268,20 @@ else{
   <%
     Iterator it2 = null;
   if(request.getParameter("showAll")!=null){it2=myShepherd.getAllScanTasksNoQuery();}
-  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}
-
+  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}	
+  
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {
       ScanTask st = (ScanTask) it2.next();
+      
 
-
-
+      
       Encounter scanEnc=new Encounter();
       if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
       	scanEnc=myShepherd.getEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""));
       }
       if (st.hasFinished()) {
-
+    	  
           //clean up after the task if needed
           gm.removeCompletedWorkItemsForTask(st.getUniqueNumber());
 
@@ -316,10 +294,10 @@ else{
         }
 
         scanNum++;
-
+        
         String styleString="";
         if((request.getParameter("task")!=null)&&(st.getUniqueNumber().equals(request.getParameter("task")))){styleString="background-color: #66CCFF;border-collapse:collapse;";}
-
+             
        %>
        <tr id="<%=st.getUniqueNumber()%>" >
 
@@ -338,12 +316,12 @@ else{
     <td>
       <form name="scanNumJoin<%=scanNum%>" method="get"
             action="<%=gotoURL%>">
-
-
+            
+            
             <input name="rightSide" type="hidden" id="rightSide" value="<%=sideAddition%>">
-
-                 <input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber() %>">
-
+                 
+                 <input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber() %>">                        
+                                         
                                          <input
         name="writeThis" type="hidden" id="writeThis" value="true"><input
         name="number" type="hidden" id="number"
@@ -352,11 +330,11 @@ else{
         name="viewresult" type="submit" id="viewresult" value="View"></form>
     </td>
     <td>
-      <%
+      <%      
       boolean hasPermissionForThisEncounter=false;
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
       else if(myShepherd.isEncounter(st.getUniqueNumber().replaceAll("scanL", "").replaceAll("scanR", ""))){
-    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}
+    	if((scanEnc.getLocationID()!=null)&&(request.isUserInRole(scanEnc.getLocationID()))){hasPermissionForThisEncounter=true;}  	
       }
       if (hasPermissionForThisEncounter) {%>
       <form name="scanNum<%=scanNum%>" method="post"
@@ -374,12 +352,12 @@ else{
 
 
 
-
+						
 						<td>
 						<%
 						if(scanEnc.getIndividual()!=null){
 						%>
-						<a href="//<%=linkURLBase%>/individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID().getDisplayName(request, myShepherd)%></a>
+						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName(request, myShepherd)%></a>
 						<%
       					}
       					else{
@@ -388,7 +366,7 @@ else{
 						<%
       					}
 						%>
-
+				
 						</td>
 						<td><%=scanEnc.getState() %></td>
 
@@ -413,14 +391,16 @@ single scan are allowed to exceed the total.</span>
   if (gm.getNumNodes() > 0) {
 %>
 <table class="table">
-  <thead>
-    <tr>
-      <th width="25"><span>IP</span></th>
-      <th width="25"><span>NodeID</span></th>
-      <th width="25"  ><span>#CPUs</span></th>
-      <th width="25"  ><span>Items Completed</span></th>
-      <th width="25"  ><span>Last Checkin (ms)</span></th>
-    </tr>
+<thead>
+  <tr>
+    <th width="25"><span>IP</span></th>
+    <th width="25"><span>NodeID</span></th>
+    <th width="25"  ><span>#CPUs</span></th>
+    <th width="25"  ><span>Items Completed</span></th>
+    <th width="25"  ><span>Last Checkin (ms)</span></th>
+
+
+  </tr>
   </thead>
   <tbody>
   <%
@@ -429,7 +409,7 @@ single scan are allowed to exceed the total.</span>
     long currenTime = System.currentTimeMillis();
     for (int y = 0; y < numNodes; y++) {
       GridNode nd = (GridNode) nodes.get(y);
-
+      
       //long nodeTimeout = gm.getNodeTimeout();
       if ((currenTime - nd.getLastHeartbeat()) < 180000) {
   %>
@@ -461,9 +441,9 @@ single scan are allowed to exceed the total.</span>
   int toDo=gm.getToDoSize();
   int numDone=gm.getDoneSize();
   int numDoing=gm.getNumUnderway();
-
+ 
   %>
-
+  
   (To-Do: <%=toDo%> Underway: <%=numDoing %> Done: <%=numDone%>)</p>
 
 <%
@@ -535,7 +515,7 @@ single scan are allowed to exceed the total.</span>
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
-
+  
 
 %>
 
@@ -544,3 +524,4 @@ single scan are allowed to exceed the total.</span>
 
 
 <jsp:include page="../footer.jsp" flush="true" />
+

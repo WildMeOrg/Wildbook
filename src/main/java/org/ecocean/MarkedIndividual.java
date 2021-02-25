@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Membership;
@@ -171,7 +173,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getId() {
         return individualID;
     }
-
+    
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
@@ -198,7 +200,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getDisplayName(Object keyHint, HttpServletRequest request, Shepherd myShepherd) {
         if (names == null) return null;
 
-        //if you have a specific preferred context and have a request/shepherd, we look for that first
+        //if you have a specific preferred context and have a request/shepherd, we look for that first 
         if (request!=null&&request.getUserPrincipal()!=null) {
           String context = ServletUtilities.getContext(request);
           // hopefully the call was able to provide an existing shepherd, but we have to make one if not
@@ -222,10 +224,10 @@ public class MarkedIndividual implements java.io.Serializable {
                   return getDisplayName(project.getProjectIdPrefix());
                 }
               }
-            }
+            } 
           } catch (Exception e) {
             if (nameShepherd!=null) {
-              nameShepherd.rollbackAndClose();
+              nameShepherd.rollbackAndClose();            
             }
           } finally {
             if (newShepherd) nameShepherd.rollbackAndClose();
@@ -1015,6 +1017,8 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   //   return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
   // }
 
+
+
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
 
@@ -1174,6 +1178,15 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
     return lastSize;
   }
+
+    public String getLastLifeStage() {
+        Encounter[] encs = this.getDateSortedEncounters();
+        if ((encs == null) || (encs.length < 1)) return null;
+        for (int i = 0 ; i < encs.length ; i++) {
+            if (encs[i].getLifeStage() != null) return encs[i].getLifeStage();
+        }
+        return null;
+    }
 
   public boolean wasSightedInLocationCode(String locationCode) {
 
@@ -2602,6 +2615,29 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return nameIds;
     }
 
+    //returns next integer-based value that follows pattern PREnnn (where 'nnn' is one-or-more digits!)
+    // cache-key is lowercase, but we return respecting case of original prefix
+    // in a perfect world, this would use a sequence in db to prevent race-conditions.   :/
+    public static String nextNameByPrefix(String prefix) {
+        return nextNameByPrefix(prefix, 0);  //0 means guess at length of zeroes
+    }
+    public static String nextNameByPrefix(String prefix, int zeroPadding) {
+        if (NAMES_CACHE == null) return null;  //snh
+        if (NAMES_CACHE.size() < 1) return null;  //on the off chance has not been init'ed  (snh?)
+        if (prefix == null) return null;
+        Pattern pat = Pattern.compile("(^|.*;)" + prefix.toLowerCase() + "(\\d+)(;.*|$)");
+        int val = 0;  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
+        for (String c : NAMES_CACHE.values()) {
+            Matcher mat = pat.matcher(c);
+            if (!mat.find()) continue;
+            if (zeroPadding < 1) zeroPadding = mat.group(2).length();
+            int num = Integer.parseInt(mat.group(2));  //snh!? blame regex if exception thrown here.  :)
+            if (num > val) val = num;
+        }
+        if (zeroPadding < 1) zeroPadding = 4;  //if we had no guess (e.g. new?) lets be optimistic!
+        return String.format("%s%0" + zeroPadding + "d", prefix, val + 1);
+      }
+
     public static List<String> findNames(String regex) {
         List<String> names = new ArrayList<String>();
         if (NAMES_CACHE == null) return names;  //snh
@@ -2663,7 +2699,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       }
       this.names.merge(other.getNames());
       this.setComments(getMergedComments(other, username));
-
+      
       //WB-951: merge relationships
       ArrayList<Relationship> rels=myShepherd.getAllRelationshipsForMarkedIndividual(other.getIndividualID());
       if(rels!=null && rels.size()>0) {
@@ -2680,7 +2716,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           }
         }
       }
-
+      
       //WB-951: merge social units
       List<SocialUnit> units=myShepherd.getAllSocialUnitsForMarkedIndividual(other);
       if(units!=null && units.size()>0) {
@@ -2691,7 +2727,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           myShepherd.updateDBTransaction();
         }
       }
-
+      
       //check for a ScheduledIndividualMerge that may have other
       String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
       Query q=myShepherd.getPM().newQuery(filter);
@@ -2702,8 +2738,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         myShepherd.getPM().deletePersistent(merge);
         myShepherd.updateDBTransaction();
       }
-
-
+      
+      
       refreshDependentProperties();
     }
 
@@ -2724,7 +2760,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       mergedComments += "</ul>]";
 
       mergedComments += "Merged on "+Util.prettyTimeStamp();
-
+      
       if (username!=null) mergedComments += " by "+ username;
       else mergedComments += " No user was logged in.";
 

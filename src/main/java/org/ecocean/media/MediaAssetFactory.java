@@ -47,9 +47,9 @@ public class MediaAssetFactory {
         Query query = myShepherd.getPM().newQuery(MediaAsset.class);
         query.setFilter("uuid=='" + uuid + "'");
         List results = (List)query.execute();
-
+        
         //uuid column is constrained unique, so should always get 0 or 1
-        if (results.size() < 1) {
+        if (results.size() < 1) { 
           query.closeAll();
           return null;
         }
@@ -104,7 +104,7 @@ public class MediaAssetFactory {
      */
     public static void save(MediaAsset ma, Shepherd myShepherd) {
         if ((ma.getParentId() != null) && (ma.getParentId() == NOT_SAVED)) {
-            throw new RuntimeException(ma + " has a parentId == " + NOT_SAVED + "; parent MediaAsset object likely not yet persisted; aborting save");
+            throw new RuntimeException(ma + " has a parentId == " + NOT_SAVED + "; parent MediaAsset object likely not yet persisted; aborting save"); 
         }
         //ma.setRevision();
         //for some reason (!?) parameters are getting lost when saving... sigh.  HACK for now... lookout.  TODO

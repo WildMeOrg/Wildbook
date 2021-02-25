@@ -293,7 +293,7 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                 log(itask, "created new " + ind);
 
                 ind.refreshNamesCache();
-
+                
             }
 
             for (Annotation ann: annotGroups.get(name)) {

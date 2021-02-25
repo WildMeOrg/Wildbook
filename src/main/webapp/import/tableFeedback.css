@@ -9,7 +9,6 @@ table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
 }
 table.tableFeedback {
   background-color: #fff; /* so transparent colors on the table look good */
-  font-size: 0.8em;
   max-height: 70%;
   min-height: 69%;
 }
@@ -19,7 +18,7 @@ tr.header-row th:last-child {
 }
 
 div.tableFeedbackWrapper td {
-  border: 1px solid #ccc;
+  border: 1px solid #ccc;  
   padding: 0.25em;
   text-align: right;
 }
@@ -43,7 +42,7 @@ th.rotate {
 }
 
 th.rotate > div {
-  transform:
+  transform: 
   /* Magic Numbers */
   translate(20px, 90px)
   rotate(-45deg);
@@ -63,7 +62,7 @@ td.cellFeedback:hover {
   border: 1px solid black;
   cursor: cell;
 }
-
+  
 td.cellFeedback.success, .importFieldSuccess {
   background-color: rgba(0, 255, 0, 0.4); /* found green for cells with values and success retrieving them */
 }

@@ -26,42 +26,24 @@ org.json.JSONArray,
 java.util.Vector" %>
 
 <%
+
 String context="context0";
 context=ServletUtilities.getContext(request);
+
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+
+
+
   //session.setMaxInactiveInterval(6000);
   String num="";
     ArrayList<String> locationIDs = new ArrayList<String>();
-    Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction("scanEndApplet.jsp");
-
-    boolean usaUser = false;
-    String linkURLBase = CommonConfiguration.getURLLocation(request);
-
-    try {
-      // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-      if (request.getUserPrincipal()!=null) {
-        String userName = request.getUserPrincipal().getName();
-        List<Role> roles = myShepherd.getAllRolesForUser(userName);
-        for (Role role : roles) {
-          if (role.getRolename().equals("spotasharkusa")) {
-            usaUser = true;
-          }
-        }
-      }
-      if (usaUser) {
-        linkURLBase = "ncaquariums.wildbook.org";
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   if(request.getParameter("number")!=null){
-
-
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
@@ -78,8 +60,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-  }
+  }	
   String encSubdir = Encounter.subdir(num);
+
 	/*
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("scanEndApplet.jsp");
@@ -103,7 +86,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
-
+ 
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -112,37 +95,44 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     z-index: 1;
     padding-left: 10px
   }
+
   #tabmenu li {
     display: inline;
     overflow: hidden;
     list-style-type: none;
   }
+
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
     text-decoration: none;
     border-bottom: 0px solid #FFFFFF;
   }
+
   #tabmenu a.active {
     background: #8DBDD8;
     color: #000000;
     border-bottom: 1px solid #8DBDD8;
   }
+
   #tabmenu a:hover {
     color: #000;
     background: #8DBDD8;
   }
-  #tabmenu a:visited {
 
+  #tabmenu a:visited {
+    
   }
+
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-
+  
   td, th {
     border: 1px solid black;
     padding: 5px;
@@ -246,7 +236,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-
+  
 
   <%
     String fileSider = "";
@@ -265,18 +255,18 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
     }
-
-
+    
+    
     if (locationIDXMLFile.exists()) {
   %>
 
   <%
     }
     %>
-
+    
     <li><a class="active">Modified Groth (Full)</a></li>
     <%
-
+    
     if (finalXMLFile.exists()) {
   %>
 
@@ -285,6 +275,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </li>
   <%
     }
+    
+
 
   %>
 
@@ -296,6 +288,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   Document doc;
   Element root;
   String side = "left";
+
   /*
   if (request.getParameter("writeThis") == null) {
     initresults = myShepherd.matches;
@@ -305,15 +298,19 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
   */
   //else {
+
 //read from the written XML here if flagged
     try {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
+
+
         side = "right";
       } else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
+
       }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
@@ -330,6 +327,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //initresults = myShepherd.matches;
       xmlOK = false;
     }
+
   //}
   MatchObject[] matches = new MatchObject[0];
   if (!xmlOK) {
@@ -353,7 +351,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -374,6 +372,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <%
     String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+
     //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
@@ -386,6 +385,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       rightSA = "&filePrefix=extractRight";
     }
+
 java.util.Random rnd = new java.util.Random();
 %>
 <style>
@@ -398,16 +398,20 @@ for (int i = 3 ; i < 50 ; i++) {
 }
 out.println("</style>");
   %>
+
 <script src="../javascript/spotCompare.js"></script>
+
 <script>
 //these (must) override spotCompare.js values
 localLocationIds = <%=new JSONArray(locationIDs)%>;
 subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
 rightSide = <%=side2.equals("right")%>;
+
 $(document).ready(function() {
     spotInit(subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>');
 });
 </script>
+
 <div id="spot-display">
     <div class="match-side" id="match-side-0">
         <div class="match-side-img-wrapper">
@@ -429,23 +433,27 @@ $(document).ready(function() {
         </div>
     </div>
 </div>
+
 <script>
 // get image and image container widths, compare them and transform to fit
+
 let leftImage = document.getElementById('match-image-left');
 $(leftImage).load(function() {
   fitLeftImage();
 });
+
 function fitLeftImage() {
   let leftImgContainer = document.getElementById('match-side-0');
   let lRect = leftImage.getBoundingClientRect();
   console.log("current left image width: "+lRect.width);
-  console.log("current left container width: "+leftImgContainer.clientWidth);
+  console.log("current left container width: "+leftImgContainer.clientWidth); 
   if (lRect.width>leftImgContainer.clientWidth) {
     console.log("image WIDTH is out of bounds!");
     let newWidthScale = (leftImgContainer.clientWidth/lRect.width);
     console.log("new scale: "+newWidthScale);
     $(leftImgContainer).find('.match-side-img-wrapper').css("transform-origin", "left bottom");
     $(leftImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newWidthScale+")");
+
   }
   if (lRect.height>leftImgContainer.clientHeight) {
     console.log("image HEIGHT is out of bounds!");
@@ -454,10 +462,12 @@ function fitLeftImage() {
     console.log("new scale: "+newHeightScale);
   }
 };
+
 let rightImage = document.getElementById('match-image-right');
 $(rightImage).load(function() {
   fitRightImage();
 });
+
 function fitRightImage() {
   let rRect = rightImage.getBoundingClientRect();
   let rightImgContainer = document.getElementById('match-side-1');
@@ -469,6 +479,7 @@ function fitRightImage() {
     console.log("new scale: "+newWidthScale);
     $(rightImgContainer).find('.match-side-img-wrapper').css("transform-origin", "left bottom");
     $(rightImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newWidthScale+")");
+
   }
   if (rRect.height>rightImgContainer.clientHeight) {
     console.log("image HEIGHT is out of bounds!");
@@ -477,16 +488,18 @@ function fitRightImage() {
     console.log("new scale: "+newHeightScale);
   }
 };
+
 </script>
+
 <div>
     <div id="mode-message"></div>
     <input type="button" id="mode-button-local" value="Show only nearby matches" onClick="return toggleLocalMode(true);"/>
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-
+  
       <a name="resultstable"></a>
-
+      
       <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
@@ -494,15 +507,17 @@ function fitRightImage() {
           <th><strong> Encounter</strong></th>
           <th><strong>Fraction Matched Triangles </strong></th>
           <th><strong>Match Score </strong></th>
-
+    
           <th><strong>logM std. dev.</strong></th>
           <th><strong>Confidence</strong></th>
           <th><strong>Matched Keywords</strong></th>
+
         </tr>
         </thead>
         <tbody>
         <%
           if (!xmlOK) {
+
             MatchObject[] results = new MatchObject[1];
             results = matches;
             Arrays.sort(results, new MatchComparator());
@@ -511,14 +526,14 @@ function fitRightImage() {
         <tr>
           <td>
             <a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -531,6 +546,7 @@ function fitRightImage() {
           </td>
           <%
             String finalscore2 = (new Double(results[p].matchValue * results[p].adjustedMatchValue)).toString();
+
             //trim the length of finalscore
             if (finalscore2.length() > 7) {
               finalscore2 = finalscore2.substring(0, 6);
@@ -538,20 +554,25 @@ function fitRightImage() {
           %>
           <td><%=finalscore2%>
           </td>
+
           <td><font size="-2"><%=results[p].getLogMStdDev()%>
           </font></td>
           <td><font size="-2"><%=results[p].getEvaluation()%>
           </font></td>
+
         </tr>
+
         <%
               //end if matchValue!=0 loop
             }
             //end for loop
           }
-//or use XML output here
+
+//or use XML output here	
         } else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
+
           Iterator matchsets = root.elementIterator("match");
             int ct = 0;
           while (matchsets.hasNext()) {
@@ -560,12 +581,12 @@ function fitRightImage() {
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
         %>
-
+        
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
-            <a target="_new" title="open individual" href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
@@ -573,7 +594,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
           <td>N/A</td>
           <%} else {%>
           <td><a target="_new" title="open Encounter"
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
@@ -598,13 +619,17 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
               }
             } catch (NullPointerException npe) {
             }
+
             //trim the length of finalscore
             if (finalscore.length() > 7) {
               finalscore = finalscore.substring(0, 6);
             }
+
           %>
           <td><%=finalscore%>
           </td>
+
+
           <td><font size="-2"><%=match.attributeValue("logMStdDev")%>
           </font></td>
           <%
@@ -613,6 +638,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
             if (evaluation == null) {
               evaluation = "&nbsp;";
             }
+
           %>
           <td><font size="-2"><%=evaluation%>
           </font></td>
@@ -635,14 +661,24 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
             </ul>
           </font></td>
         </tr>
+
         <%
+
+
         ct++;
             }
           }
+
         %>
 </tbody>
       </table>
+
+
+
   <%
+
+
+
 	//myShepherd.closeDBTransaction();
     //myShepherd = null;
     doc = null;
@@ -650,7 +686,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-
+    
 if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
       <p><font size="+1">Custom Scan</font></p>
       <%} else {%>
@@ -658,12 +694,16 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
       <%}%>
       <p>For this scan, the following variables were used:</p>
       <ul>
+
+
         <li>epsilon (<%=epsilon%>)</li>
         <li>R (<%=R%>)</li>
         <li>Sizelim (<%=Sizelim%>)</li>
         <li>C (<%=C%>)</li>
         <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
+
       </ul>
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
+

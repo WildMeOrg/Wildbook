@@ -27,10 +27,10 @@ String center = CommonConfiguration.getDefaultGoogleMapsCenter(context);
 String number = null;
 Survey sv = null;
 JSONObject data = new JSONObject();
-try {
+try {	
 	if (request.getParameter("surveyID")!=null) {
-		number = request.getParameter("surveyID");
-	}
+		number = request.getParameter("surveyID");		
+	} 
 	sv = myShepherd.getSurvey(number);
 	System.out.println("Retreived this survey: "+sv.getID());
 } catch (Exception e) {
@@ -45,7 +45,7 @@ for (SurveyTrack trk : sv.getSurveyTracks()) {
     if (path != null) {
         int np = path.getPointLocations().size();
         if (np > 100) np = Math.round(np / 10);
-        jt.put("pathPoints", Path.toJSONArray(path.getPointLocationsSubsampled(Math.round(np))));
+        jt.put("pathPoints", Path.toJSONArray(path.getPointLocationsSubsampled(Math.round(np)))); 
     }
     JSONArray joccs = new JSONArray();
     if (!Util.collectionIsEmptyOrNull(trk.getOccurrences())) for (Occurrence occ : trk.getOccurrences()) {
@@ -142,7 +142,7 @@ function drawOccurrence(occ, occI) {
     }
 }
 
-
+ 
  function generateColor() {
 	 //console.log("Generating...");
 	 var randomColor = "#";
@@ -161,3 +161,5 @@ function drawOccurrence(occ, occI) {
 
 myShepherd.closeDBTransaction();
 %>
+
+

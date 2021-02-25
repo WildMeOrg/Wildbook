@@ -29,14 +29,14 @@ context=ServletUtilities.getContext(request);
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
 
-  String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   // Properties occProps = new Properties();
   // occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
   Properties occProps = ShepherdProperties.getOrgProperties("occurrence.properties", langCode, request);
 
-  props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
+  props = ShepherdProperties.getOrgProperties("individualSearch.properties", langCode, request);
+
+
 %>
 
 
@@ -48,7 +48,10 @@ context=ServletUtilities.getContext(request);
   <script type="text/javascript">
     //animatedcollapse.addDiv('location', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
-    animatedcollapse.addDiv('observations', 'fade=1')
+    animatedcollapse.addDiv('date', 'fade=1')
+    animatedcollapse.addDiv('observation', 'fade=1')
+    animatedcollapse.addDiv('tags', 'fade=1')
+    animatedcollapse.addDiv('identity', 'fade=1')
     animatedcollapse.addDiv('metadata', 'fade=1')
     animatedcollapse.addDiv('export', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
@@ -64,12 +67,17 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
+<%
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+%>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
+
+
 
 
 <style type="text/css">v\:* {
@@ -250,7 +258,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
           visualPosition: google.maps.ControlPosition.LEFT,
           visualPositionOffset: new google.maps.Size(35, 0),
           visualPositionIndex: null,
-          visualSprite: "https://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+          visualSprite: "//maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
             off: "Turn on",
@@ -432,8 +440,6 @@ function FSControl(controlDiv, map) {
 
 
   <tr id="FieldsTitleRow">
-  </tr>
-  <tr>
     <td>
       <h4 class="intro search-collapse-header"><a
         href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
@@ -521,7 +527,7 @@ function FSControl(controlDiv, map) {
 <tr>
 <td>
   <div id="metadata" style="display:none; ">
-    <p><%=props.getProperty("metadataInstructions") %></p>
+  <p><%=props.getProperty("metadataInstructions") %></p>
 
   <strong><%=props.getProperty("username")%></strong><br />
       <%
@@ -530,15 +536,7 @@ function FSControl(controlDiv, map) {
         List<User> users = inShepherd.getNativeUsers();
         int numUsers = users.size();
 
-        <select multiple size="5" name="username" id="username">
-          <option value="None"></option>
-          <%
-            for (int n = 0; n < numUsers; n++) {
-              String username = users.get(n).getUsername();
-              String userFullName=username;
-              if(users.get(n).getFullName()!=null){
-                userFullName=users.get(n).getFullName();
-              }
+      %>
 
       <select multiple size="5" name="submitterID" id="submitterID">
         <option value="None"></option>
@@ -549,11 +547,6 @@ function FSControl(controlDiv, map) {
             if(users.get(n).getFullName()!=null){
               userFullName=users.get(n).getFullName();
             }
-          %>
-        </select>
-    <%
-    inShepherd.rollbackDBTransaction();
-    inShepherd.closeDBTransaction();
 
           %>
           <option value="<%=username%>"><%=userFullName%></option>

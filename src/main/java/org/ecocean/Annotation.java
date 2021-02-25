@@ -737,7 +737,7 @@ System.out.println("[1] getMatchingSet params=" + params);
             + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
-
+        
         if (filter.matches(".*\\bproject\\b.*")) filter += "; org.ecocean.Project project";
 
         return getMatchingSetForFilter(myShepherd, filter);

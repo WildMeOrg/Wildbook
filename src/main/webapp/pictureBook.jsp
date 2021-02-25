@@ -16,6 +16,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   String context="context0";
   context=ServletUtilities.getContext(request);
+
   Properties props = new Properties();
   String langCode=ServletUtilities.getLanguageCode(request);
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
@@ -46,6 +47,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   if (numResults < maxPages) maxPages = numResults;
   %>
+
 	<jsp:include page="header.jsp" flush="true"/>
 
 	<!-- not sure why we need backbone or underscore but we get errors without 'em -->
@@ -61,7 +63,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
 	</ul></em></p>
 
-	<p class="instructions"> Your Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
+	<p class="instructions"> Your Flukebook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
 
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -201,13 +203,13 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		//desiredKeywords.add("Melanistic manta");
-		//desiredKeywords.add("Leucistic manta");
-		//desiredKeywords.add("Left Dorsal Fin");
+		desiredKeywords.add("Tail Fluke");
+		desiredKeywords.add("Right Dorsal Fin");
+		desiredKeywords.add("Left Dorsal Fin");
 
 	for (MarkedIndividual mark: rIndividuals) {
 
-		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true);
+		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true, myShepherd);
 
 		boolean hasHeader = exemplarImages.size()>0;
 		boolean haspic2 = exemplarImages.size()>1;

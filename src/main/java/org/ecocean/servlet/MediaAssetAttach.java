@@ -118,14 +118,14 @@ public class MediaAssetAttach extends HttpServlet {
         boolean success = false;
         for (MediaAsset ma : alreadyAttached) {
 System.out.println("DETACH: " + ma);
-            // Set match against to false on the annotation(s) from this asset that were associated with the encounter.
+            // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
             for (Annotation ann : enc.getAnnotations()) {
                 if (ann.getMediaAsset().getId() != ma.getId()) continue;
 System.out.println("setting matchAgainst=F on " + ann);
                 ann.setMatchAgainst(false);
             }
             enc.removeMediaAsset(ma);
-
+ 
             String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
             String comments = "Detached MediaAsset " + ma.getId() + ". To undo this action, visit " + undoLink;
             enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");

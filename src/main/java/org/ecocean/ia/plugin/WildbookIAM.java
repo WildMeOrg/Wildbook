@@ -78,7 +78,12 @@ public class WildbookIAM extends IAPlugin {
         return IBEISIA.isIAPrimed();
     }
 
+
     public void prime() {
+        IA.log("INFO: WildbookIAM.prime(" + this.context + ") called - NOTE this is deprecated and does nothing now.");
+        IBEISIA.setIAPrimed(true);
+    }
+    public void _OLD_prime() {
         IA.log("INFO: WildbookIAM.prime(" + this.context + ") called");
         IBEISIA.setIAPrimed(false);
         if (!isEnabled()) return;
@@ -385,10 +390,10 @@ System.out.println("fromResponse ---> " + ids);
         //if (curl == null) curl = ma.webURL();
 
         URL curl = ma.webURL();
-
+        
         String urlStr = curl.toString();
-        // THIS WILL BREAK if you need to append a query to the filename...
-        // we are double encoding the '?' in order to allow filenames that contain it to go to IA
+        // THIS WILL BREAK if you need to append a query to the filename... 
+        // we are double encoding the '?' in order to allow filenames that contain it to go to IA   
         if (urlStr!=null) {
             urlStr = urlStr.replaceAll("\\?", "%3F");
             if (ma.getStore() instanceof LocalAssetStore) {
@@ -400,7 +405,7 @@ System.out.println("fromResponse ---> " + ids);
             }
         }
         return null;
-
+        
     }
 
     //basically "should we send to IA?"

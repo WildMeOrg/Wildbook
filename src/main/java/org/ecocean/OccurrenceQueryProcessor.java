@@ -45,39 +45,39 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     //filter for id------------------------------------------
     filter = QueryProcessor.filterWithBasicStringField(filter, "id", request, prettyPrint);
     System.out.println("           beginning filter = "+filter);
-
+    
     // filter for simple string fields
     for (String fieldName : SIMPLE_STRING_FIELDS) {
       System.out.println("   parsing occurrence query for field "+fieldName);
       System.out.println("           current filter = "+filter);
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
-
+    
     // filter for exact string fields
     for (String fieldName : CATEGORICAL_STRING_FIELDS) {
       System.out.println("   parsing occurrence query for field "+fieldName);
       System.out.println("           current filter = "+filter);
       filter = QueryProcessor.filterWithExactStringField(filter, fieldName, request, prettyPrint);
     }
-
+    
     // GPS box
     filter = QueryProcessor.filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request, prettyPrint);
-
+    
     //Observations
     filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
     int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
     for (int i = 1;i<=numObs;i++) {
       jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
     }
-
+    
     jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc");
 
     //filter for date range
     if(Util.stringExists(request.getParameter("eventDateFrom"))&&Util.stringExists(request.getParameter("eventDateTo"))) {
       filter = filterDateRanges(request, filter, prettyPrint);
     }
-
-
+    
+    
     // filter for submitterOrganization------------------------------------------
     if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
       String orgId=request.getParameter("organizationId");

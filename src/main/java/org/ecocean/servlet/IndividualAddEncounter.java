@@ -76,14 +76,14 @@ public class IndividualAddEncounter extends HttpServlet {
 
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
-      try {
-
+      try {  
+      
         if (enc2add == null) {
             failureMessage=new StringBuilder("<p>Invalid encounter id=" + request.getParameter("number")+"</p>");
             throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
         }
         setDateLastModified(enc2add);
-
+       
         boolean newIndy = false;
         if (enc2add.getIndividual() == null) {
           MarkedIndividual addToMe = null;
@@ -93,15 +93,15 @@ public class IndividualAddEncounter extends HttpServlet {
               try {
                   newIndy = true;
                   addToMe = new MarkedIndividual(indivID, enc2add);
-
+                  
                   //check for duplicate individual IDs represented by another annotation with the same acmId
                   checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
-
+                  
                   myShepherd.storeNewMarkedIndividual(addToMe);
                   myShepherd.updateDBTransaction();
                   addToMe.refreshNamesCache();
                   addToMe.refreshDependentProperties();
-
+                  
               } catch (Exception ex) {
                   ex.printStackTrace();
                   myShepherd.rollbackDBTransaction();
@@ -133,21 +133,21 @@ public class IndividualAddEncounter extends HttpServlet {
               enc2add.setMatchedBy(request.getParameter("matchType"));
               enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
               addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
-
+              
               if ((addToMe.getSex()!=null)&&(enc2add.getSex()!=null)&&(!addToMe.getSex().equals(enc2add.getSex()))) {
-
+                 
                   sexMismatch = true;
-
+              
               } else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
                 addToMe.setSex(enc2add.getSex());
               }
-              //responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();
-              responseJSON=addToMe.uiJson(request,false).toString();
-
+              //responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
+              responseJSON=addToMe.uiJson(request,false).toString();  
+              
               //youTube postback check
               youTubePostback(enc2add, myShepherd, context);
 
-            }
+            } 
             catch (RuntimeException e) {
               e.printStackTrace();
               myShepherd.rollbackDBTransaction();
@@ -157,13 +157,13 @@ public class IndividualAddEncounter extends HttpServlet {
               le.printStackTrace();
               myShepherd.rollbackDBTransaction();
               throw new RuntimeException(failureMessage.toString());
-
+  
             }
-            myShepherd.commitDBTransaction();
+            myShepherd.updateDBTransaction();
             response.setStatus(HttpServletResponse.SC_OK);
             out.println(responseJSON);
 
-
+      			
             //send emails if appropriate
             if ("false".equals(request.getParameter("noemail"))) {
               try {
@@ -176,10 +176,10 @@ public class IndividualAddEncounter extends HttpServlet {
               }
             }
 
-
-          }
-
-
+  
+          } 
+  
+  
         else {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
@@ -188,8 +188,8 @@ public class IndividualAddEncounter extends HttpServlet {
           myShepherd.rollbackDBTransaction();
 
         }
-
-      }
+      
+      } 
       catch (RuntimeException e) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(e.getMessage());
@@ -204,7 +204,7 @@ public class IndividualAddEncounter extends HttpServlet {
       }
 
 
-    }
+    } 
     else {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I didn't receive enough data to add this encounter to a marked individual.");
@@ -214,12 +214,12 @@ public class IndividualAddEncounter extends HttpServlet {
     out.close();
     myShepherd.closeDBTransaction();
   }
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
   private void checkForDuplicateAnnotations(Encounter enc2add, StringBuilder failureMessage, MarkedIndividual addToMe, Shepherd myShepherd) {
     //check for duplicate individual IDs represented by another annotation with the same acmId
     ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
@@ -233,19 +233,19 @@ public class IndividualAddEncounter extends HttpServlet {
       for(Encounter enc:conflictingEncs) {
         //failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
         failureMessage.append("<li><a target=\"_blank\" href=\"encounter.jsp?number="+enc.getEncounterNumber()+"\">"+enc.getEncounterNumber()+"</a></li>");
-
+        
       }
       failureMessage.append("</ul></p>");
       throw new RuntimeException(failureMessage.toString());
     }
   }
-
-  private void executeEmails(Shepherd myShepherd, HttpServletRequest request,MarkedIndividual addToMe,boolean newIndy, Encounter enc2add, String context, String langCode) {
+  
+  public static void executeEmails(Shepherd myShepherd, HttpServletRequest request,MarkedIndividual addToMe,boolean newIndy, Encounter enc2add, String context, String langCode) {
     // Retrieve background service for processing emails
 
     ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
 
     List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
 
@@ -256,7 +256,7 @@ public class IndividualAddEncounter extends HttpServlet {
     }
     String emailTemplate2 = "individualUpdate";
 
-
+    
     // Notify administrator address
     Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
     String mailTo = CommonConfiguration.getAutoEmailAddress(context);
@@ -271,7 +271,7 @@ public class IndividualAddEncounter extends HttpServlet {
     if (enc2add.getInformOthersEmails() != null)cSubmitters.addAll(enc2add.getInformOthersEmails());
     //if (enc2add.getInformOthers() != null)
       //cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthersEmails()));
-
+    
     for (String emailTo : cSubmitters) {
       if (!"".equals(emailTo)) {
         tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
@@ -310,7 +310,7 @@ public class IndividualAddEncounter extends HttpServlet {
     //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
 
     //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
+    String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
@@ -320,26 +320,26 @@ public class IndividualAddEncounter extends HttpServlet {
     //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
     File atomFile = new File(shepherdDataDir,"atom.xml");
 
-
+    
     ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
-    myShepherd.rollbackDBTransaction();
+    //myShepherd.rollbackDBTransaction();
     es.shutdown();
   }
-
+  
   private void youTubePostback(Encounter enc2add, Shepherd myShepherd, String context) {
     /*
      * START YouTube PostBack check
-     *
+     * 
      */
     try{
-
+      
       System.out.println("In IndividualAddEncounter trying to fire YouTube..");
       if(enc2add.getOccurrenceID()!=null){
         if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
           System.out.println("...In IndividualAddEncounter found an occurrence..");
           Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
           //TBD-support more than just en language
-
+          
           //determine language for response
           String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
           int commentEnd=ytRemarks.indexOf("from youtube video:");
@@ -362,21 +362,21 @@ public class IndividualAddEncounter extends HttpServlet {
           }
           //end determine language for response
 
-
-
+          
+          
           Properties ytProps=null;
           try {
             ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
           }
           catch(NullPointerException npe) {System.out.println("Exception: Could not find quest.properties for langCode="+detectedLanguage+". Falling back to en.");}
-
+          
           if(ytProps==null) {
             try {
               ytProps=ShepherdProperties.getProperties("quest.properties", "en");
             }
             catch(NullPointerException npe2) {System.out.println("Exception: Could not find quest.properties for en.");}
           }
-
+          
           if(ytProps!=null) {
             String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
             System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
@@ -388,16 +388,16 @@ public class IndividualAddEncounter extends HttpServlet {
     catch(Exception e){e.printStackTrace();}
     /*
      * END YouTube PostBack check
-     *
+     * 
      */
   }
-
+  
   private void setDateLastModified(Encounter enc) {
 
     String strOutputDateTime = ServletUtilities.getDate();
     enc.setDWCDateLastModified(strOutputDateTime);
   }
-
-
+  
+  
 
 }

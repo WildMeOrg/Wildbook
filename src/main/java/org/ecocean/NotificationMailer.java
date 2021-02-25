@@ -186,9 +186,9 @@ public final class NotificationMailer implements Runnable {
   public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map, boolean overrideReceiveEmails) {
     Objects.requireNonNull(context);
     Objects.requireNonNull(to);
-
+    
     this.types=types;
-
+    
     //Start checking if we should throw out some of these emails
     ArrayList<String> recips=new ArrayList<String>(to);
     for (int i=0;i<recips.size();i++) {
@@ -674,7 +674,7 @@ public final class NotificationMailer implements Runnable {
     addTags(map, req, enc, scheme);
     return map;
   }
-
+  
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Encounter enc) {
     return createBasicTagMap(req, ind, enc,req.getScheme());
   }
@@ -685,7 +685,7 @@ public final class NotificationMailer implements Runnable {
     addTags(map, req, adp,scheme);
     return map;
   }
-
+  
   public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp) {
     return createBasicTagMap(req, ind, adp, req.getScheme());
   }
@@ -846,7 +846,7 @@ public final class NotificationMailer implements Runnable {
     String subj = mailer.getSubject();
     mailer.setSubject(subj == null ? text : subj + text);
   }
-
+  
   public void setUrlScheme(String scheme){this.urlScheme=scheme;}
-
+  
 }

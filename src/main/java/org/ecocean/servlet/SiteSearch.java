@@ -66,12 +66,12 @@ public class SiteSearch extends HttpServlet {
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         String context="context0";
         context=ServletUtilities.getContext(request);
-
+        
         // this stores the hashmaps for each individual/encounter so we can sort by label later
         Map<String,Map<String,String>> labelToHm = new HashMap<String,Map<String,String>>();
-
+        
         ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
-
+        
         //set up for response
         response.setContentType("text/json");
         PrintWriter out = response.getWriter();
@@ -81,13 +81,13 @@ public class SiteSearch extends HttpServlet {
             out.println("[]");
             return;
         }
-
+        
         //if it's a UUID, let's try to just return that object
         if(Util.isUUID(term)) {
           Shepherd myShepherd = new Shepherd(request);
           myShepherd.setAction("SiteSearch.class");
           myShepherd.beginDBTransaction();
-
+          
           if(myShepherd.isMarkedIndividual(term.trim())) {
             MarkedIndividual ind=myShepherd.getMarkedIndividual(term.trim());
             HashMap<String, String> hm = new HashMap<String, String>();
@@ -115,14 +115,14 @@ public class SiteSearch extends HttpServlet {
             hm.put("label", label);
             hm.put("value", enc.getCatalogNumber());
             hm.put("type", "encounter");
-            labelToHm.put(label, hm);
+            labelToHm.put(label, hm);            
           }
-
+          
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
-
+          
           // now we sort the labels and add them in order
-          // this is a runtime hit and we should consider figuring out how to sort on labels
+          // this is a runtime hit and we should consider figuring out how to sort on labels 
           List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
           for (String label: sortedLabels) {
             Map<String, String> hm = labelToHm.get(label);
@@ -130,13 +130,13 @@ public class SiteSearch extends HttpServlet {
           }
           out.println(new Gson().toJson(list));
           return;
-
+          
         }
 
         String regex = ".*" + term.toLowerCase() + ".*";
 
 
-
+        
 
         //
         // Query on Individuals
@@ -145,11 +145,11 @@ public class SiteSearch extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
-
+        
         try {
 
           List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
-
+    
           for (MarkedIndividual ind : individuals) {
                 try {
                   HashMap<String, String> hm = new HashMap<String, String>();
@@ -157,7 +157,7 @@ public class SiteSearch extends HttpServlet {
                   hm.put("label", label);
                   hm.put("value", ind.getIndividualID());
                   hm.put("type", "individual");
-
+      
                   //
                   // TODO: Read species from db. See SimpleIndividual
                   //
@@ -173,9 +173,10 @@ public class SiteSearch extends HttpServlet {
                 }
                 catch(Exception f) {f.printStackTrace();}
             }
-
+  
+  
             // now we sort the labels and add them in order
-            // this is a runtime hit and we should consider figuring out how to sort on labels
+            // this is a runtime hit and we should consider figuring out how to sort on labels 
             List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
             for (String label: sortedLabels) {
               Map<String, String> hm = labelToHm.get(label);
@@ -216,21 +217,21 @@ public class SiteSearch extends HttpServlet {
             hm.put("type", "user");
             list.add(hm);
         }
-
+        
         query.closeAll();
         */
-
+        
         //query locationIDs
         boolean moreLocationIDs=true;
         int siteNum=0;
         while(moreLocationIDs) {
           String currentLocationID = "locationID"+siteNum;
-
+          
           if (CommonConfiguration.getProperty(currentLocationID,context)!=null) {
             HashMap<String, String> hm = new HashMap<String, String>();
             String locID=CommonConfiguration.getProperty(currentLocationID,context);
             if(locID.toLowerCase().indexOf(term.toLowerCase())!=-1){
-              hm.put("label", locID);
+              hm.put("label", locID);            
               hm.put("value", locID);
               hm.put("type", "locationID");
               list.add(hm);
@@ -240,7 +241,7 @@ public class SiteSearch extends HttpServlet {
           else{
             moreLocationIDs=false;
           }
-
+          
         }
         //end query locationIDs
 

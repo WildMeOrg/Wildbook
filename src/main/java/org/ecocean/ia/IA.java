@@ -1,16 +1,23 @@
 /*
     idea here is "simple": a gateway to all IA calls, mostly (now) cleaned up from identity/IBEISIA.java (guessing)
+
     THIS IS A WORK-IN-PROGRESS
+
     proposed key concepts:
     * can handle multiple IA frameworks (not just historic-IBEIS)
       - likely a base abstract class with a "isEnabled() / init()" concept
       - classes would allow for instances of each IA framework?
+
     * no idea how to handle crazy (and configurable!?) workflow!
+
     * probably should "leverage" Queue stuff where applicable?
       - possibly there is a NEED for both variations (as suggested by drew): an asynchronous (queued) and synchronous (not)
+
     * simply entry point for: MediaAsset and Annotation???
 */
+
 package org.ecocean.ia;
+
 import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
@@ -233,7 +240,7 @@ public class IA {
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
-                    if (!itr.next().optBoolean("default", true)) itr.remove();
+                    if (!itr.next().optBoolean("default", true)) itr.remove(); 
                 }
             }
 
@@ -261,7 +268,7 @@ public class IA {
               }
             }
             if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
-
+            
             // just one IA class, one algorithm case
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
@@ -338,9 +345,9 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
           if (topTask == null) topTask = new Task(taskId);
           myShepherd.storeNewTask(topTask);
           JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
-
+  
           //for now (TODO) we just send MAs off to detection and annots off to identification
-
+  
           JSONArray mlist = jin.optJSONArray("mediaAssetIds");
           if ((mlist != null) && (mlist.length() > 0)) {
               System.out.println("MLIST: " + mlist);
@@ -367,7 +374,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                   if (ann == null) continue;
                   anns.add(ann);
               }
-
+  
               // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task,
               // or else you will link to the original root task
               List<MediaAsset> masForNewRoot = new ArrayList<>();
@@ -383,7 +390,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                       topTask.addObject(ma);
                   }
               }
-
+  
               Task atask = intakeAnnotations(myShepherd, anns, topTask);
               System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
               topTask.addChild(atask);

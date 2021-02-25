@@ -1,4 +1,5 @@
 package org.ecocean.identity;
+
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.AnnotationLite;
@@ -28,6 +29,7 @@ import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.servlet.importer.ImportTask;
+
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
@@ -35,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -44,29 +47,50 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import javax.jdo.Query;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import java.net.URL;
+import java.net.URLEncoder;
+
+import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import org.ecocean.JsonProperties;
+
 import java.io.IOException;
+
 import javax.servlet.ServletException;
+
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
+
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.concurrent.atomic.AtomicBoolean;
+
+
+
+
+
+
+
 //date time
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+
+
 
 public class IBEISIA {
 
@@ -1071,12 +1095,6 @@ Util.mark("identify process start", tt);
                 }
             }
 
-            if (tanns==null||tanns.isEmpty()) {
-                String iaClass = qanns.get(0).getIAClass();
-System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
-                tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
-            }
-
             //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
             javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
             grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
@@ -1687,8 +1705,12 @@ System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
             if ((enc == null) || (ann.getAcmId() == null)) continue;
             String taxonomyString = enc.getTaxonomyString();
             if (!shouldUpdateSpeciesFromIa(taxonomyString, myShepherd.getContext())) continue;
+            
+            //WB-1251, switch species to iaClass
+            if(ann.getIAClass()==null)continue;
             uuids.add(ann.getAcmId());
-            species.add(taxonomyString);
+            //species.add(taxonomyString);
+            species.add(ann.getIAClass().replaceAll("\\+","%2B"));
         }
 System.out.println("updateSpeciesOnIA(): " + uuids);
 System.out.println("updateSpeciesOnIA(): " + species);
@@ -1967,7 +1989,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
 */
 /*
     update due to WB-945 work:  we now must _first_ build all the Annotations, and then after that decide how they get distributed
-    to Encounters...
+    to Encounters... 
 */
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 FeatureType.initAll(myShepherd);
@@ -2406,6 +2428,10 @@ System.out.println("identification most recent action found is " + action);
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
+        
+        System.out.println("!!!ustr: "+iaBaseURL);
+        System.out.println("!!!urlSuffix: "+urlSuffix);
+        
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1);  //get rid of leading /
             ustr += urlSuffix;
@@ -3198,10 +3224,12 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         }
         JSONArray idList = new JSONArray();
         JSONArray speciesList = new JSONArray();
+        System.out.println("!!!IGOTS: "+species.toString());
         for (int i = 0 ; i < uuids.size() ; i++) {
             idList.put(toFancyUUID(uuids.get(i)));
-            speciesList.put(species.get(i).replaceAll(" ", "_").toLowerCase());
+            speciesList.put(species.get(i));
         }
+        System.out.println("!!!IPUTS: "+speciesList.toString());
         JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
     }
 
@@ -3735,6 +3763,9 @@ return Util.generateUUID();
 
           System.out.println("Final detectedLanguage: "+detectedLanguage);
 
+
+
+
           //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
@@ -3823,6 +3854,8 @@ return Util.generateUUID();
 
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
+
+
 
               //next use natural language processing for date
               if(setDate){
@@ -4407,4 +4440,5 @@ System.out.println("iaList.size = " + iaList.size());
         return diff;
     }
 
+    
 }

@@ -110,7 +110,7 @@ if (sv!=null) {
 }
 %>
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
-<script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
+<script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="../javascript/oms.min.js"></script>
 
 <link rel="stylesheet" href="../css/ecocean.css" type="text/css" media="all"/>
@@ -126,7 +126,7 @@ if (sv!=null) {
 			<p>The survey contains collections of occurrences, survey tracks and points. It allows you to look at total effort and distance.</p>
 			<hr/>
 			<div id="errorSpan"></div>
-		</div>
+		</div>	
 		<%
 		if (sv!=null) {
 		%>
@@ -134,12 +134,12 @@ if (sv!=null) {
 			<h4>Survey Attributes</h4>
 			<!-- Collected Above -->
 			<%=surveyAttributes%>
-
+			
 			<%
 			if (trks!= null) {
 			%>
 				<p>Num survey tracks: <%=trks.size()%></p>
-			<%
+			<% 
 			}
 			%>
 		</div>
@@ -149,13 +149,13 @@ if (sv!=null) {
 			if (trks!= null) {
 			%>
 				<%=effortData%>
-			<%
+			<% 
 			}
-			%>
+			%>			
 		</div>
 		<%
-		}
-		%>
+		} 
+		%>	
 		<hr/>
 		<div class="col-md-12">
 			<p><strong><%=props.getProperty("allTracks") %></strong></p>
@@ -169,9 +169,9 @@ if (sv!=null) {
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numOccs") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("numPoints") %></strong></td>
 					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("start") %></strong></td>
-					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("end") %></strong></td>
-					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("duration") %></strong></td>
-				</tr>
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("end") %></strong></td>				
+					<td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("duration") %></strong></td>				
+				</tr>	
 			<%
                         int occKey = 0;
 			for (SurveyTrack trk : trks) {
@@ -221,11 +221,11 @@ if (sv!=null) {
                                                                             occKey++;
 									}
 								} else {
-								%>
+								%>	
 									<p>
-										<small>No occurrences.</small>
+										<small>No occurrences.</small>	
 									</p>
-								<%
+								<% 	
 								}
 								%>
 								<!-- Add another occ to the selected track here... -->
@@ -234,7 +234,7 @@ if (sv!=null) {
 									<input name="surveyID" value="<%=surveyID%>" type="hidden"  id="addOccInput2" />
 									<div class="input-group">
 									</div>
-										<div class="row">
+										<div class="row"> 
 											<div class="input-group">
 												<div class="col-sm-8">
 													<input name="occID" title="addOccID" type="text" class="form-control" id="addOccInput3" />
@@ -249,14 +249,14 @@ if (sv!=null) {
 										<span><small>Enter an existing Occurrence ID to add it to the selected survey track.</small></span>
 								</form>
 						</div>
-					</td>
-					<td class="lineitem"><%=trkVessel%></td>
-					<td class="lineitem"><%=trkLocationID%></td>
+					</td>	
+					<td class="lineitem"><%=trkVessel%></td>	
+					<td class="lineitem"><%=trkLocationID%></td>	
 					<td class="lineitem"><%=trkType%></td>
-					<td class="lineitem"><%=numOccs%></td>
+					<td class="lineitem"><%=numOccs%></td>	
 					<td class="lineitem">
-						<%
-            Long trkDur = trk.getComputedDuration();
+						<% 
+                                                Long trkDur = trk.getComputedDuration();
 						int numPoints = 0;
 						if (pth!=null&&pth.getAllPointLocations()!=null) {
 							numPoints = pth.getAllPointLocations().size();
@@ -265,11 +265,11 @@ if (sv!=null) {
 							// Lets get a time range from the occs instead. Because it's better.
 							try {
 								if (pth.getStartTime()!=null) {
-									trkStart = pth.getStartTime();
+									trkStart = pth.getStartTime();					
 								}
 								if (pth.getEndTime()!=null) {
-									trkEnd = pth.getEndTime();
-								}
+									trkEnd = pth.getEndTime();								
+								}								
 							} catch (NullPointerException npe) {
 								npe.printStackTrace();
 							}
@@ -278,10 +278,10 @@ if (sv!=null) {
 						<%=numPoints%>
 					</td>
 					<td class="lineitem"><%=trkStart%></td>
-					<td class="lineitem"><%=trkEnd%></td>
-					<td class="lineitem"><%=((trkDur == null) ? "-" : niceDuration(trkDur))%></td>
+					<td class="lineitem"><%=trkEnd%></td>	
+					<td class="lineitem"><%=((trkDur == null) ? "-" : niceDuration(trkDur))%></td>	
 				</tr>
-			<%
+			<%	
 			}
 			%>
 		</table>
@@ -296,13 +296,13 @@ if (sv!=null) {
 		</div>
 		<label class="response"></label>
 	</div>
-
+	
 <div id="surveyObservations">
 
 <!-- Observations Column -->
 
 <script type="text/javascript">
-	$(document).ready(function(){
+	$(document).ready(function(){	
 	  $(".editFormObservation").hide();
 	  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
 	    buttons.toggle();
@@ -330,24 +330,24 @@ if (sv!=null) {
 					<br/>
 				<%
 						// Let's make a list of editable Observations... Dynamically!
-
+						
 				if (sv!=null&&sv.getObservationArrayList()!=null) {
 					ArrayList<Observation> obs = sv.getObservationArrayList();
 					//System.out.println("Observations ... "+obs);
 					int numObservations = sv.getObservationArrayList().size();
 					for (Observation ob : obs) {
-
+						
 						String nm = ob.getName();
 						String vl = ob.getValue();
-				%>
-
+				%>		
+				
 					<p><em><%=nm%></em>:&nbsp<%=vl%></p>
 					<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
 						<p class="editFormObservation">
 							<strong><%=props.getProperty("set")%> <%=nm%></strong>
 						</p>
 						<form name="editFormObservation" action="../SurveySetObservation" method="post" class="editFormDynamic">
-							<input name="name" type="hidden" value="<%=nm%>" />
+							<input name="name" type="hidden" value="<%=nm%>" /> 
 							<input name="number" type="hidden" value="<%=surveyID%>" />
 							<input name="type" type="hidden" value="Occurrence" />
 							<div class="form-group row">
@@ -364,15 +364,15 @@ if (sv!=null) {
 						</form>
 					</div>
 
-			<%}
+			<%} 
 				if (numObservations==0) {%>
-
+				
 					<br/>
-					<p style="margin-top:1em;"><%=props.getProperty("none")%></p>
+					<p style="margin-top:1em;"><%=props.getProperty("none")%></p>	
 					<br/>
 			<%
 				}
-			}
+			} 
 			%>
 			<div style="display: none;" id="addObservationForm"
 				title="<%=props.getProperty("addDynamicProperty")%>"
@@ -392,7 +392,7 @@ if (sv!=null) {
 						</div>
 					</div>
 					<div class="form-group row">
-						<div class="col-sm-3">
+						<div class="col-sm-3">		
 							<label><%=props.getProperty("propertyValue")%></label>
 						</div>
 						<div class="col-sm-5">
@@ -403,7 +403,7 @@ if (sv!=null) {
 						</div>
 					</div>
 				</form>
-			</div>
+			</div>		
 		<%
 		}
 		%>
@@ -415,7 +415,7 @@ if (sv!=null) {
 </p>
 </div>
 
-	</div>
+	</div>			
 	<br/>
 	<hr/>
 </div>
@@ -446,3 +446,6 @@ myShepherd.closeDBTransaction();
 %>
 
 <jsp:include page="../footer.jsp" flush="true" />
+
+
+

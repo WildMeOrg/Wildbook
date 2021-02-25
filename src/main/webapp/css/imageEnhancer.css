@@ -114,7 +114,7 @@ div iek-new-labeled-wrapper {
     width: 150%;
     margin-left: -18%;
     overflow: hidden;
-    padding-bottom: 10px;
+    padding-bottom: 10px; 
 }
 .image-enhancer-keyword-wrapper-hover:hover {
     z-index: 999;
@@ -165,7 +165,7 @@ div iek-new-labeled-wrapper {
 }
 
 .iek-new-form, .iek-new-wrapper.iek-autohide, iek-new-labeled-form {
-    transition: .5s all;
+    transition: .5s all;   
     transition-delay: 1.5s;
     display: none;
 }
@@ -203,7 +203,7 @@ div iek-new-labeled-wrapper {
         outline-width: 5px;
         }
 .seadragon-highlight{
-
+        
         /*
             opacity:    0.5;
             filter:     alpha(opacity=50);
@@ -212,10 +212,11 @@ div iek-new-labeled-wrapper {
         outline-style: dashed;
         outline-color: green;
         outline-width: 5px;
-
+            
         }
  .seadragon-highlight:hover, .seadragon-highlight:focus{
             filter:     alpha(opacity=10);
             opacity:    0.1;
             background-color: transparent;
         }
+

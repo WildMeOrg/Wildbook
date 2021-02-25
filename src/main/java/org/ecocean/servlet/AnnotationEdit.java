@@ -195,7 +195,7 @@ public class AnnotationEdit extends HttpServlet {
                 } catch (Exception ex) {
                     rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
                 }
-
+                
             } else if (Util.stringExists(assignIndivId)) {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {

@@ -6,19 +6,24 @@
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
+*
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU General Public License for more details.
+*
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+
 package org.ecocean.servlet;
+
 import com.sun.syndication.feed.synd.*;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.SyndFeedOutput;
 import com.sun.syndication.io.XmlReader;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -29,12 +34,16 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
+
 import javax.jdo.Query;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
+import org.json.JSONObject;
+
+
 import java.io.*;
 import java.net.URL;
 import java.text.CharacterIterator;
@@ -52,14 +61,20 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
+
+
 import org.ecocean.*;
 import org.ecocean.security.Collaboration;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
+
 import java.util.Properties;
+
 import javax.servlet.http.Cookie;
+
 import org.apache.commons.lang3.StringEscapeUtils;
+
 
 public class ServletUtilities {
 
@@ -873,7 +888,7 @@ public static boolean useCustomStyle(HttpServletRequest request, String orgName)
 
   if (cookieOrg!=null && orgName.toLowerCase().equals(cookieOrg.toLowerCase())) {
     return true;
-  }
+  } 
 
   // The checks further below will also return true _right after logging out_ so we need this step
   if (Util.requestHasVal(request, "logout")) return false;
@@ -908,6 +923,8 @@ public static String getOrganizationCookie(HttpServletRequest request){
   }
   return "";
 }
+
+
 
 
 }

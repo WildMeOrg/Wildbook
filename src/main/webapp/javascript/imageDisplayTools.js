@@ -136,9 +136,10 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
       maLib.mkImg(maJson)
     )
   );
-  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+  if (!wildbook.user.isAnonymous()) {
 
-
+  	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+  }
   intoElem.append(fig);
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
@@ -545,7 +546,7 @@ maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
     if (!maJson.url) return false;
 
     caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
-
+    
     var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
 
     var filename = maJson.url;
@@ -594,6 +595,8 @@ maLib.mkImgPictureBook = function(maJson) {
 // execute above function
 
 $(document).ready(function() {
-  //maLib.initPhotoSwipeFromDOM('.my-gallery');
-  maLib.initPhotoSwipeFromDOM('#enc-gallery');
+  	//maLib.initPhotoSwipeFromDOM('.my-gallery');
+	if (!wildbook.user.isAnonymous()) {
+  		maLib.initPhotoSwipeFromDOM('#enc-gallery');
+	}
 });

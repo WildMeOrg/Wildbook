@@ -54,7 +54,7 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     this.context=ServletUtilities.getContext(request);
 
   }
-
+  
   public MatchGraphCreationThread() {
 
     gm = GridManagerFactory.getGridManager();
@@ -76,7 +76,7 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("MatchGraphCreationThread.class");
     GridManager gm = GridManagerFactory.getGridManager();
-
+    
     PersistenceManager pm=myShepherd.getPM();
     PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
 
@@ -88,23 +88,23 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
 
 
     myShepherd.beginDBTransaction();
-
+    
     List<String> encNumbers=myShepherd.getAllEncounterNumbers();
     int numEncs=encNumbers.size();
     System.out.println("MatchGraphCreationThread is exploring this many encounters: "+numEncs);
     myShepherd.rollbackDBTransaction();
-
+    
     //gm.initializeNodes((int)(numEncs*2/3));
     gm. resetMatchGraphWithInitialCapacity(numEncs);
-
+    
     //Query query=null;
     try {
-
+      
       //query=myShepherd.getPM().newQuery(jdoql);
       //Collection c = (Collection) (query.execute());
       //System.out.println("Num scans to do: "+c.size());
       //Iterator encounters = c.iterator();
-
+      
       int count = 0;
 
       for (int i=0;i<numEncs;i++) {
@@ -114,29 +114,29 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
             EncounterLite el=new EncounterLite(enc);
             gm.addMatchGraphEntry(enc.getCatalogNumber(), el);
             count++;
-          }
+          } 
 
         myShepherd.rollbackDBTransaction();
       }
       //myShepherd.rollbackDBTransaction();
       finished=true;
 
-    }
+    } 
     catch (Exception e) {
       System.out.println("I failed while constructing the EncounterLites in MatchGraphCreationThread.");
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
-
+      
     }
     finally{
       //if(query!=null){query.closeAll();}
       myShepherd.closeDBTransaction();
     }
-
+    
     System.out.println("Ending MatchGraphCreationThread!");
 
   }
-
+  
   public boolean isFinished() {
     return finished;
   }

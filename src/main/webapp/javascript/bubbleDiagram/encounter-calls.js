@@ -1,6 +1,6 @@
 // lang  dictionary contains all language specific text. It is loaded in individuals jsp and contains
 // all the necessary keys from individuals.properties with the same syntax.
-var dict = {};
+var dict = {}; 
 var languageTable = function(words) {
     dict = words;
 }
@@ -37,7 +37,7 @@ var getData = function(individualID, displayName) {
 		//console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
 		var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
 		//console.log("thisEncIndID="+thisEncIndID);
-
+		
 		//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 		//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
 		if (!thisEncIndID || (thisEncIndID==displayName)) continue;  //unknown indiv -> false
@@ -70,7 +70,7 @@ var getData = function(individualID, displayName) {
 	for (var prop in dataObject) {
             var whale = new Object();
             whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
-            items.push(whale);
+            items.push(whale);	
 	}
 	if (items.length > 0) {
             getSexHaploData(individualID, items);
@@ -107,7 +107,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 
     function refreshTable(sortOn) {
 	console.log("Refreshing table")
-
+	
 	var keys=d3.keys(items[0]);
 	if(tableHeadLocation == "#encountHead"){
 	    keys.shift();
@@ -179,22 +179,22 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 	    	    smaller.shift();
 	    	    return smaller;
 		}
-
+		
 		return d3.values(d);
     	    })
 	    .enter().append("td")
 	    .html(function(d) {
 		console.log("D", d);
-
+		
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
-		}
+		} 
 		if(d == 'image') {
 		    return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-		}
+		} 
 		if(d == 'youtube-image') {
 		    return "<img class='encounterImg' src='images/youtube.png'/>"
-		}
+		} 
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
 		}
@@ -214,9 +214,9 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 		if(d == "GOS") {
 		    return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
 		}
-		return d;
+		return d; 
 	    });
-
+	
 	if(sortOn !== null) {
 	    console.log("sorting on: "+sortOn);
 	    if(sortOn != previousSort){
@@ -229,13 +229,13 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 	    td.html(function(d) {
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
-		}
+		} 
 		if(d == 'image') {
 		    return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-		}
+		} 
 		if(d == 'youtube-image') {
 		    return "<img class='encounterImg' src='images/youtube.png'/>"
-		}
+		} 
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
 		}
@@ -264,12 +264,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 	    return b ? 1 : a ? -1 : 0;
 	}
     }
-
+    
     function unixCrunch(date) {
 	date = date.replace("-","/");
 	return new Date(date).getTime()/1000;
     }
-
+    
 };
 
 var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
@@ -278,7 +278,7 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 
     function refreshTable(sortOn) {
 	console.log("Refreshing rel table")
-
+	
 	var keys=d3.keys(items[0]);
 	if(tableHeadLocation == "#encountHead"){
 	    keys.shift();
@@ -350,21 +350,21 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 		    	    smaller.shift();
 		    	    return smaller;
 			}
-
+			
 			return d3.values(d);
     	    }
 		)
 	    .enter().append("td")
 	    .html(function(d) {
 			console.log("RELx", d);
-
+			
 			if(whatIsIt(d)==="Array") {
 				console.log("AN ARRAY!!!:", d)
 			    //if(d.length <= 2) {
 				if(d[0] == "edit"){
 					console.log("yo edit!");
 				    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
-				}
+				} 
 				if(d[0] == 'remove') {
 				    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 				}
@@ -373,16 +373,16 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 			    }
 				return d[0].italics() + "-" + d[1];
 			    //}
-
+			    
 			}
 			if(d == "socialUnit") {
 			    return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
 			}
-
+			
 			//couldn't find it so dump it as text
-			return d;
+			return d; 
 	    });
-
+	
 	if(sortOn !== null) {
 	    console.log("sorting on: "+sortOn);
 	    if(sortOn != previousSort){
@@ -416,12 +416,12 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 	    return b ? 1 : a ? -1 : 0;
 	}
     }
-
+    
     function unixCrunch(date) {
 	date = date.replace("-","/");
 	return new Date(date).getTime()/1000;
     }
-
+    
 };
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
@@ -453,8 +453,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		//console.log("Tryin plaintext...");
 		date = jsonData.encounters[i].year;
 		if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
-		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;}
-            } else {
+		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
+            } else {  
 		date = dict['unknown'];
             }
 
@@ -468,12 +468,12 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
 		if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
                     var dataTypes = "both"
-		}
+		} 
 		else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
 		    var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-		}
+		} 
 		else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-
+		    
         	    if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
         		var dataTypes = "youtube-image";
         	    }
@@ -481,7 +481,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         	    else{
         		var dataTypes = "image";
         	    }
-
+        	    
 		}
 		else {
 		    var dataTypes = "";
@@ -531,7 +531,7 @@ var getRelationshipData = function(relationshipID) {
 
 	var startTime;
 	var endTime;
-
+	
 	if (jsonData.startTime == "-1") {
     	    startTime = null;;
 	} else {
@@ -595,11 +595,11 @@ var getRelationshipTableData = function(individualID) {
 	    var endTime = jsonData[i].endTime;
 	    if (startTime == "-1") {
 		startTime = "Start Time";
-	    }
+	    } 
 	    if (endTime == "-1") {
 		endTime = "End Time";
 	    }
-
+	    
 	    if(jsonData[i].markedIndividualName1 != individualID) {
 		var whaleID = jsonData[i].markedIndividualName1;
 		var markedIndividual = jsonData[i].markedIndividualName2;

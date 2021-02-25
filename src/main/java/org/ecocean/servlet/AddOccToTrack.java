@@ -17,16 +17,16 @@ public class AddOccToTrack extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private String message = "";
   PrintWriter out = null;
-
+  
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     try {
-      doPost(request, response);
+      doPost(request, response);      
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
-
+  
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context = ServletUtilities.getContext(request);
@@ -55,7 +55,7 @@ public class AddOccToTrack extends HttpServlet {
       surveyID = request.getParameter("surveyID");
     }
 
-    myShepherd.beginDBTransaction();
+    myShepherd.beginDBTransaction(); 
 
     SurveyTrack st = null;
     if (trackID!=null) {
@@ -64,11 +64,11 @@ public class AddOccToTrack extends HttpServlet {
         } catch (Exception e) {
             message += "<p style=\"color:red;\"><strong>Error: </strong> There was not a survey track available for the ID submitted.</p>";
             e.printStackTrace();
-        }
+        }      
     } else {
         message += "<p style=\"color:red;\"><strong>Error: </strong>A valid survey track ID must be submitted.</p>";
     }
-
+    
     Occurrence occ = null;
     if (occID!=null&&st!=null) {
         try {
@@ -88,13 +88,13 @@ public class AddOccToTrack extends HttpServlet {
             myShepherd.rollbackDBTransaction();
             message += "<p style=\"color:red;\"><strong>Error: </strong> There was not a occurrence with that ID to retrieve.</p>";
             e.printStackTrace();
-        }
+        }      
     } else {
         message += "<p style=\"color:red;\"><strong>Error: </strong>A valid occurrence ID must be submitted.</p>";
     }
     printResultMessage(request, context, surveyID);
   }
-
+  
   private void printResultMessage(HttpServletRequest request, String context, String surveyID) {
     try {
         out.println(ServletUtilities.getHeader(request));
@@ -107,5 +107,5 @@ public class AddOccToTrack extends HttpServlet {
     }
     out.close();
   }
-}
+} 
  

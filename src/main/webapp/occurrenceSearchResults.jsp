@@ -33,16 +33,16 @@
     String occsJson="";
     String prettyPrint="";
     String jdoqlRep="";
-
+    
     myShepherd.beginDBTransaction();
     try{
-
+    
     	numOccurrences=myShepherd.getNumOccurrences();
-
+    
     	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-
+    
     	jdoqlRep=result.getJDOQLRepresentation();
-
+    	
     	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
     	rOccurrences = result.getResult();
 
@@ -50,7 +50,7 @@
 		HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request, true,myShepherd);
 		rOccurrences = hiddenData.viewableResults(rOccurrences, true,myShepherd);
 
-
+	
 	   Vector histories = new Vector();
 	    int rOccurrencesSize=rOccurrences.size();
 
@@ -80,7 +80,7 @@
 		myShepherd.closeDBTransaction();
 	}
 
-
+		
 
   %>
 
@@ -160,7 +160,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("permitExport")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
          </a></li>
 
       </ul>
@@ -225,6 +225,7 @@ $(document).keydown(function(k) {
 // functor!
 function _notUndefined(fieldName) {
   function _helperFunc(o) {
+	console.log("the fucking 'o' variable: "+JSON.stringify(o));  	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
@@ -256,77 +257,44 @@ function _date(o) {
 
 var colDefn = [
 
-  {
-    key: 'imageSet',
-    label: '<%=occProps.getProperty("imageSet")%>',
-    value: _notUndefined('imageSet'),
-  },
-
-*/
-
+ 
   {
     key: 'ID',
     label: '<%=occProps.getProperty("ID")%>',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'dateTimeCreated',
-    label: 'Date Created',
-    value: _notUndefined('dateTimeCreated'),
+    key: 'dateTimeLong',
+    label: '<%=occProps.getProperty("date")%>',
+    value: _date,
   },
   {
-	    key: 'correspondingSurveyID',
-	    label: 'Corresponding Survey',
-	    value: _notUndefined('correspondingSurveyID'),
+    key: 'groupBehavior',
+    label: '<%=occProps.getProperty("groupBehavior")%>',
+    value: _notUndefined('groupBehavior'),
   },
   {
-	key: 'numberEncounters',
-	label: '<%=props.getProperty("numEncounters")%>',
-	value: _colNumberEncounters,
-	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    key: 'taxonomies',
+    label: '<%=occProps.getProperty("species")%>',
+    value: _species,
   },
   {
-		key: 'decimalLatitude',
-		label: 'latitude',
-    value: _notUndefined('decimalLatitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
+    key: 'locationIds',
+    label: '<%=occProps.getProperty("locationIds")%>',
+    value: _notUndefined('locationIds'),
+  },
   {
-		key: 'decimalLongitude',
-		label: 'longitude',
-    value: _notUndefined('decimalLongitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  /*
+    key: 'encounterCount',
+    label: '<%=occProps.getProperty("encounterCount")%>',
+    value: _notUndefined('encounterCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
   {
     key: 'individualCount',
-    label: 'Encounters',
+    label: '<%=occProps.getProperty("individualCount")%>',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
-	{
-		key: 'individual',
-		label: '<%=props.getProperty("markedIndividual")%>',
-		value: _colIndividual,
-		sortValue: function(o) { return o.individualID.toLowerCase(); },
-		//sortFunction: function(a,b) {},
-	},
-
-	{
-		key: 'maxYearsBetweenResightings',
-		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-	{
-		key: 'sex',
-		label: '<%=props.getProperty("sex")%>',//'Sex',
-	},
-	{
-		key: 'numberLocations',
-		label: '<%=props.getProperty("numLocationsSighted")%>',
-		value: _colNumberLocations,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	}*/
 
 ];
 
@@ -488,7 +456,7 @@ function show() {
 
 function computeCounts() {
 	counts.total = sTable.matchesFilter.length;
-	return;
+	return;  
 }
 
 

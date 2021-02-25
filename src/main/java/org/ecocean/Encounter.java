@@ -107,9 +107,8 @@ public class Encounter implements java.io.Serializable {
    * <p/>
    * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
    */
- private String charterOperator;
- private String sex = "unknown";
- private String locationID = "None";
+  private String sex = null;
+  private String locationID = null;
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
   private String catalogNumber = "";
@@ -187,7 +186,10 @@ public class Encounter implements java.io.Serializable {
   private List<User> submitters;
   private List<User> photographers;
   private List<User> informOthers;
-  private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
+
+    private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
+
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -745,7 +747,6 @@ public class Encounter implements java.io.Serializable {
   }
 
 
-
   /**
    * Sets the units of the recorded size and depth of the shark for this encounter.
    * Acceptable entries are either "Feet" or "Meters"
@@ -796,16 +797,6 @@ public class Encounter implements java.io.Serializable {
    */
   public String getSex() {
     return sex;
-  }
-
-  public void setCharterOperator(String ca) {
-    if (ca!=null&&!"".equals(ca)) {
-      charterOperator = ca;
-    }
-  }
-
-  public String getCharterOperator() {
-    return charterOperator;
   }
 
   /**
@@ -1184,10 +1175,6 @@ public class Encounter implements java.io.Serializable {
 	public String dir(String baseDir) {
 		return baseDir + File.separator + "encounters" + File.separator + this.subdir();
 	}
-	public String dir(String baseDir, boolean forceUID) {
-	  return baseDir + File.separator + "encounters" + File.separator + this.subdir(forceUID);
-	}
-
 
 
 	//like above, but class method so you pass the encID
@@ -1202,27 +1189,17 @@ public class Encounter implements java.io.Serializable {
 	}
 
 
-
-
 	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
 	public String subdir() {
 		return subdir(this.getEncounterNumber());
 	}
-	public String subdir(boolean forceUID) {
-	  return subdir(this.getEncounterNumber(), forceUID);
-	}
 
 	public static String subdir(String id) {
-	  return subdir(id, false);
-	}
-
-	public static String subdir(String id, boolean forceUID) {
-	   String d = id;  //old-world
-	    // I THINK THIS LINE IS THE ISSUEE!!!! i was assuming that file names are unique id's, but they do not return true on Util.isUUID!!!!
-	    if (Util.isUUID(id) || forceUID) {  //new-world
-	      d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
-	    }
-	    return d;
+		String d = id;  //old-world
+		if (Util.isUUID(id)) {  //new-world
+			d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
+		}
+		return d;
 	}
 
 
@@ -1556,7 +1533,6 @@ public class Encounter implements java.io.Serializable {
 
         //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
         MediaAsset sma = spotImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
-        MediaAsset srma = spotRightImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
         return annotations;
     }
 
@@ -1597,7 +1573,8 @@ System.out.println("creating new MediaAsset for key=" + key);
     }
 
 
-    //same for spotRight below...
+    //this makes assumption (for flukes) that both right and left image files are identical
+    //  TODO handle that they are different
     //  TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
     public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
@@ -1626,49 +1603,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 //System.out.println("params? " + ma.getParameters());
                 ma.addLabel("_spot");
                 ma.addLabel("_annotation");
-                ma.setParentId(parent.getId());
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
             } catch (java.io.IOException ex) {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
-            }
-        }
-        ma.setParentId(parent.getId());
-        return ma;
-    }
-
-    public MediaAsset spotRightImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
-        if ((rightSpotImageFileName == null) || rightSpotImageFileName.equals("")) return null;
-        File fullPath = new File(this.dir(baseDir) + "/" + rightSpotImageFileName);
-//System.out.println("**** * ***** looking for spot file " + fullPath.toString());
-        if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
-        if (parent == null) {
-            System.out.println("seems like we do not have a parent MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add (right) spot MediaAsset for " + fullPath.toString());
-            return null;
-        }
-        AssetStore astore = AssetStore.getDefault(myShepherd);
-        if (astore == null) {
-            System.out.println("No AssetStore in Encounter.spotRightImageAsMediaAsset()");
-            return null;
-        }
-System.out.println("trying spotRightImageAsMediaAsset with file=" + fullPath.toString());
-        org.json.JSONObject sp = astore.createParameters(fullPath);
-        sp.put("key", this.subdir() + "/spotRightImage-" + rightSpotImageFileName);  //note: this really only applies to S3 AssetStores, but shouldnt hurt others?
-        MediaAsset ma = astore.find(sp, myShepherd);
-        if (ma == null) {
-System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
-            try {
-                ma = astore.copyIn(fullPath, sp);
-                ma.addDerivationMethod("historicRightSpotImageConversion", true);
-                ma.updateMinimalMetadata();
-//System.out.println("params? " + ma.getParameters());
-                ma.addLabel("_spotRight");
-                ma.addLabel("_annotation");
-                ma.setParentId(parent.getId());
-                MediaAssetFactory.save(ma, myShepherd);
-//System.out.println("params? " + ma.getParameters());
-            } catch (java.io.IOException ex) {
-                System.out.println("spotRightImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
         ma.setParentId(parent.getId());
@@ -1700,7 +1638,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
-
 
 
  /*
@@ -2045,8 +1982,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   // TODO Get all this lat lon over to Locations
-
-  // Survey ect associations...
 
   public void setDWCDecimalLatitude(double lat) {
     if (lat == -9999.0) {
@@ -2594,6 +2529,8 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     if(endDecimalLatitude!=null){return Double.toString(endDecimalLatitude);}
     return null;
   }
+
+
 
   public String getSubmitterProject() {
       return submitterProject;
@@ -3276,7 +3213,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	//convenience function to Collaboration permissions
 	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessEncounter(this, request);
+	  return Collaboration.canUserAccessEncounter(this, request);
 	}
         public boolean canUserEdit(User user) {
             return isUserOwner(user);
@@ -3471,21 +3408,6 @@ thus, we have to treat it as a special case.
 			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
-	//as above, but forces UID check
-    public boolean refreshAssetFormats(String context, String baseDir, SinglePhotoVideo spv, boolean doThumb, boolean forceUID) {
-      if (spv == null) return false;
-      String encDir = this.dir(baseDir, forceUID);
-
-      boolean ok = true;
-      if (doThumb) ok &= spv.scaleTo(context, 100, 75, encDir + File.separator + "thumb.jpg");
-      //TODO some day this will be a structure/definition that lives in a config file or on MediaAsset, etc.  for now, ya get hard-coded
-
-      //this will first try watermark version, then regular
-      ok &= (spv.scaleToWatermark(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg", "") || spv.scaleTo(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg"));
-
-      ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
-      return ok;
-    }
 
 
 */
@@ -3802,7 +3724,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         observations.add(obs);
       }
     }
-
     public Observation getObservationByName(String obName) {
       if (observations != null && observations.size() > 0) {
         for (Observation ob : observations) {
@@ -4002,5 +3923,8 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
+
+
+
 
 }

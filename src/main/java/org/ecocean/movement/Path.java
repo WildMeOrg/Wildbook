@@ -12,46 +12,46 @@ import org.json.JSONArray;
 
 /**
 * @author Colin Kingen
-*
+* 
 * A path is a collection of pointLocation objects. Each of these pointLocations contains
-* GPS coordinent data, and a group of them for a particular survey
-* gives you the path or paths that a team or individual followed during
-* a specific pointLocation in time.
+* GPS coordinent data, and a group of them for a particular survey 
+* gives you the path or paths that a team or individual followed during 
+* a specific pointLocation in time. 
 *
 *This is a very simple object that keeps track of those points, the SurveyTrack
-*being the object above it.
+*being the object above it. 
 */
 
 public class Path implements java.io.Serializable {
 
   /**
-   *
+   * 
    */
   private static final long serialVersionUID = -8130232817853279715L;
-
+  
   private String pathID;
-
-  private ArrayList<PointLocation> pointLocations;
-
+  
+  private ArrayList<PointLocation> pointLocations; 
+  
   public Path(){};
-
+  
   public Path(PointLocation pnt) {
     this.pointLocations = new ArrayList<PointLocation>();
     generateUUID();
     if (pnt != null) {
-      this.pointLocations.add(pnt);
+      this.pointLocations.add(pnt);      
     }
   }
-
+  
   public Path(ArrayList<PointLocation> pts) {
     generateUUID();
     pointLocations = pts;
-  }
-
+  }  
+  
   public String getID() {
     return pathID;
   }
-
+  
   public PointLocation getPointLocation(String id) {
     String foundId = null;
     if (id !=null && pointLocations.size() > 0) {
@@ -68,7 +68,7 @@ public class Path implements java.io.Serializable {
     }
     return null;
   }
-
+  
     public ArrayList<PointLocation> getPointLocations() {  //just for consistency with other classes
         return pointLocations;
     }
@@ -80,7 +80,7 @@ public class Path implements java.io.Serializable {
     public int getNumPointLocations() {
         return (pointLocations == null) ? 0 : pointLocations.size();
     }
-
+  
 
 /*
     //returns a "representative" -- but much more manageable -- subset of points (i.e. not thousands of points)
@@ -138,14 +138,14 @@ public class Path implements java.io.Serializable {
           Long tempLong = Long.valueOf(pl.getDateTimeInMilli());
           if (startLong==null||tempLong<startLong) {
             startLong = tempLong;
-          }
+          }          
         }
       }
       return startLong;
     }
     return null;
   }
-
+  
   public String getStartTime() {
     if (this.getStartTimeMillis()!=null) {
       DateTime dt = new DateTime(this.getStartTimeMillis());
@@ -164,7 +164,7 @@ public class Path implements java.io.Serializable {
       return endTime;
     }
     return null;
-  }
+  } 
 
   public Long getEndTimeMillis() {
     if (pointLocations!=null&&!pointLocations.isEmpty()) {
@@ -193,19 +193,19 @@ public class Path implements java.io.Serializable {
         return e - s;
     }
 
-
+  
   public void addPointLocation(PointLocation p) {
     if (this.getPointLocation(p.getID()) == null) {
       this.pointLocations.add(p);
     }
   }
-
+  
   public void addPointLocationsArray(ArrayList<PointLocation> pts) {
     if (pts.size() >= 1) {
       for (int i=0; i<pts.size(); i++ ) {
         if (getPointLocation(pts.get(i).getID()) == null) {
           try {
-            pointLocations.add(pts.get(i));
+            pointLocations.add(pts.get(i));            
           } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Could not add PointLocation with index "+i);
@@ -214,11 +214,11 @@ public class Path implements java.io.Serializable {
       }
     }
   }
-
+  
   private void generateUUID() {
     this.pathID = Util.generateUUID();
   }
-
+  
 
     public JSONObject toJSONObject() {
         JSONObject rtn = new JSONObject();
@@ -245,3 +245,4 @@ public class Path implements java.io.Serializable {
     }
 
 }
+

@@ -62,14 +62,14 @@ public class UserDelete extends HttpServlet {
           && myShepherd.getUsername(request)!=null
           && myShepherd.getUser(myShepherd.getUsername(request))!=null
           //to delete a user either be admin or orgAdmin in at least one of the same orgs
-          && (
-              request.isUserInRole("admin")
+          && ( 
+              request.isUserInRole("admin") 
               || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
-             ))
+             )) 
     ){
       try {
         User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
-
+        
         //first delete the roles
         if(ad.getUsername()!=null) {
           List<Role> roles=myShepherd.getAllRolesForUser(ad.getUsername());
@@ -83,10 +83,10 @@ public class UserDelete extends HttpServlet {
             //}
           }
       }
-
+        
         //remove the User from Encounters
         List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad, myShepherd);
-
+        
         for(int l=0;l<encs.size();l++){
           Encounter enc=encs.get(l);
 
@@ -106,12 +106,12 @@ public class UserDelete extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();
         }
-
+        
         //now delete the user
         myShepherd.getPM().deletePersistent(ad);
         myShepherd.commitDBTransaction();
 
-      }
+      } 
       catch (Exception le) {
         locked = true;
         le.printStackTrace();
@@ -130,7 +130,7 @@ public class UserDelete extends HttpServlet {
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-      }
+      } 
       else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -155,3 +155,5 @@ public class UserDelete extends HttpServlet {
 
 
 }
+  
+  

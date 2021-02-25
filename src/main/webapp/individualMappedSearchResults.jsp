@@ -8,25 +8,25 @@
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-
+    
     String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-
+    
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
     map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
+	  
 
-
-
+    
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
 	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
-
+		
 
     Properties localeprops = new Properties();
     localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-
-
+	
+    
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("individualMappedSearchResults.jsp");
@@ -51,14 +51,14 @@
 
 
 
-    List<String> allHaplos2=new ArrayList<String>();
+    List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
-    allHaplos2=myShepherd.getAllHaplotypes();
+    allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();
-
+    
     List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
     int numSpecies=allSpecies.size();
-
+   
     List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
 %>
@@ -85,7 +85,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -105,18 +105,18 @@
   }
 
   #tabmenu a:visited {
-
+    
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-
-
-
+  
+  
+  
 </style>
-
+  
       <script type="text/javascript">
         function getQueryParameter(name) {
           name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -128,13 +128,13 @@
           else
             return results[1];
         }
-
+        
         //test comment
   </script>
-
-
+  
+  
   <jsp:include page="header.jsp" flush="true"/>
-
+  
 
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
@@ -144,9 +144,9 @@
 
 
     <script type="text/javascript">
-
+    
     var center = new google.maps.LatLng(0,0);
-    var mapZoom = 2;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     var bounds = new google.maps.LatLngBounds();
 
@@ -154,36 +154,36 @@
 		content:'Loading and rendering map data...',
 		position:center
 	});
-
+     
     var map;
     var bounds = new google.maps.LatLngBounds();
     var currentFeature_or_Features;
     var geoJSONResults;
     //aspect options: sex, haplotype, none
     var aspect="none";
-
+    
     var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetIndividualSearchGoogleMapsPoints?<%=request.getQueryString()%>";
     var overlays = [];
     var overlaysSet=false;
+    
 
-
-
+    
       function initialize() {
-
+    	  
     	  map = new google.maps.Map(document.getElementById('map_canvas'), {
     	      zoom: mapZoom,
     	      center: center,
     	      mapTypeId: google.maps.MapTypeId.TERRAIN,
     	      fullscreenControl: true
     	    });
-
+    	  
 
     	  iw.open(map);
-
+    	  
         var markers = [];
 	var movePathCoordinates = [];
 
-
+  
  	var maxZoomService = new google.maps.MaxZoomService();
  	maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
  		    if (response.status == google.maps.MaxZoomStatus.OK) {
@@ -191,34 +191,34 @@
  		    		map.setZoom(response.zoom);
  		    	}
  		    }
-
+ 		    
 	});
 
+ 	
 
-
-
+ 	
       }
+      
+      
 
-
-
-
-
+      
+      
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
-
+    
     <script type="text/javascript">
 
 
 
 function loadIndividualMapData(localResults,aspect){
-
+	
 	//alert("Entering function loadIndividualMapData");
-
+	
 	  //for (var i = 0; i < results.length; i++) {
 		//    var geoJsonObject = results.features[i];
 		//    var geometry = geoJsonObject.geometry;
 	  //}
-
+	  
 	  //alert("Done iterating...");
 	  var googleOptions = {
 			  strokeColor: '#CCC',
@@ -244,14 +244,14 @@ function loadIndividualMapData(localResults,aspect){
 					}
 				}
 				else{
-
+					
 					currentFeature_or_Features[i].setMap(map);
 				}
 				if (currentFeature_or_Features[i].geojsonProperties) {
 					setInfoWindow(currentFeature_or_Features[i]);
 				}
 			}
-
+			
 			//currentFeature_or_Features.setMap(map);
 		}else{
 			//alert("In the else statement...");
@@ -327,11 +327,11 @@ function useSexAspect(){
 	%>
 	if(aspect != "sex"){
 		aspect="sex";
-
-
+		
+		
 		clearMap();
 		loadIndividualMapData(geoJSONResults,aspect);
-
+	
 	}
 }
 function useHaplotypeAspect(){
@@ -349,8 +349,8 @@ function useHaplotypeAspect(){
 
 		clearMap();
 		loadIndividualMapData(geoJSONResults,aspect);
-
-
+		
+		
 	}
 }
 
@@ -395,13 +395,13 @@ function setInfoWindow (feature) {
 }
 
 function setOverlays() {
-
+	  
 	  if(!overlaysSet){
 
     	if(!geoJSONResults){
-			//read in the GeoJSON
+			//read in the GeoJSON 
 			//alert("Reading GeoJSON...");
-
+			
 			//old way
 			//var xhr = new XMLHttpRequest();
 			//xhr.open('GET', filename, true);
@@ -417,7 +417,7 @@ function setOverlays() {
 				}
 			}
 			);
-
+			
 			//OLD way
 			//xhr.onload = function() {
 			//	iw.close();
@@ -425,22 +425,22 @@ function setOverlays() {
 			//	loadIndividualMapData(geoJSONResults,aspect);
 			//};
 			//xhr.send();
-
-
+			
+			
 	  	}
     	else{
     		loadIndividualMapData(geoJSONResults,aspect);
     	}
-
-
+    	
+		
 		//alert("done loading!!!");
-
+    	
     	//google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
-
-
+         
+         
 		  overlaysSet=true;
       }
-
+	    
    }
 
 
@@ -450,11 +450,11 @@ function setOverlays() {
 
 
 <div class="container maincontent">
-
+ 
 
        <h1 class="intro"><%=map_props.getProperty("title")%></h1>
-
-
+     
+ 
 <ul id="tabmenu">
 <%
 String queryString = "";
@@ -469,7 +469,7 @@ if (request.getQueryString() != null) {
   </a></li>
   <li><a class="active"><%=map_props.getProperty("mappedResults")%>
   </a></li>
-
+     
   <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
   </a></li>
     <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
@@ -479,15 +479,15 @@ if (request.getQueryString() != null) {
 
 
 
-
-
+ 
+ 
  <%
    //if (rIndividuals.size() > 0) {
      //myShepherd.beginDBTransaction();
      try {
  %>
  <p><%=map_props.getProperty("resultsNote")%></p>
-
+ 
  <p>
  <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
   <%
@@ -498,18 +498,18 @@ if (request.getQueryString() != null) {
  }
  %>
  </p>
-
+ 
 <p><%=map_props.getProperty("mapNote")%></p>
-
+ 
  <div id="map-container">
-
-
+ 
+ 
 <table cellpadding="3" width="100%">
  <tr>
  <td valign="top" width="90%">
 <div id="map_canvas" style="width: 100%; height: 500px; "> </div>
  </td>
-
+ 
 
  <td valign="top" width="10%">
  <table id="haplotable" style="display:none">
@@ -518,7 +518,7 @@ if (request.getQueryString() != null) {
                     String haploColor="CC0000";
                    if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
                 	   haploColor=map_props.getProperty("defaultMarkerColor");
-                   }
+                   }   
                    for(int yy=0;yy<numHaplos2;yy++){
                        String haplo=allHaplos2.get(yy);
                        if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
@@ -533,8 +533,8 @@ if (request.getQueryString() != null) {
                 	   %>
                 	   <tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
                 	   <%
-                   }
-
+                   }  
+                   
                    %>
  </table>
  </td>
@@ -548,7 +548,7 @@ if (request.getQueryString() != null) {
                     String speciesColor="CC0000";
                    if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
                 	  speciesColor=map_props.getProperty("defaultMarkerColor");
-                   }
+                   }   
                    for(int yy=0;yy<numSpecies;yy++){
                        String specie=allSpecies.get(yy);
                        if(numSpeciesColors>yy){
@@ -563,40 +563,40 @@ if (request.getQueryString() != null) {
                 	   %>
                 	   <tr bgcolor="#<%=speciesColor%>"><td><strong>Unknown</strong></td></tr>
                 	   <%
-                   }
-
+                   }  
+                   
                    %>
  </table>
  </td>
 <%
  }
 %>
-
-
+ 
+ 
  </tr>
  </table>
-
+ 
 
  </div>
+ 
 
-
-
+ 
  <%
-
-     }
+ 
+     } 
      catch (Exception e) {
        e.printStackTrace();
      }
+ 
 
 
-
-
-
+ 
+ 
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    //rIndividuals = null;
    //haveGPSData = null;
-
+ 
 %>
 
 </div>
@@ -610,8 +610,9 @@ if (request.getQueryString() != null) {
 
 $( window ).load(function() {
 	setTimeout(function () {
-        setOverlays();
+        setOverlays();  
     }, 1000);
 });
 
 </script>
+

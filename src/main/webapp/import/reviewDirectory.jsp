@@ -55,7 +55,7 @@ nImages = imageFiles.size();
 
 %>
 <jsp:include page="../header.jsp" flush="true"/>
-<style>
+<style> 
 .import-explanation {
 }
 .import-header {
@@ -103,7 +103,7 @@ ol.filelist li {
 
 	<div id="filename-boxed-list">
     	<ol class="filelist">
-  		<%
+  		<% 
   		for (File photo: imageFiles) {
   			%>
   			<li><%=photo.getName()%></li>
@@ -118,7 +118,8 @@ ol.filelist li {
 		<input onClick="document.location.href='spreadsheet.jsp';" type="submit" value="Accept and move on">
   </div>
 
-
+          
 </div> <!-- container maincontent -->
 
 <jsp:include page="../footer.jsp" flush="true"/>
+

@@ -57,7 +57,7 @@
       </layout>
     </encoder>
   </appender>
-
+  
     <appender name="EMAILS" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>/data/wildbook_data_dir/logs/email.htm</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -97,11 +97,11 @@
   <logger name="org.apache.jsp.logout_jsp" level="INFO">
     <appender-ref ref="USERFILE"/>
   </logger>
-
+  
 <logger name="org.ecocean.NotificationMailer" level="INFO">
     <appender-ref ref="EMAILS"/>
   </logger>
-
-
+  
+  
 
 </configuration>

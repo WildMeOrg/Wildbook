@@ -39,7 +39,7 @@ public class JsonProperties extends Properties {
 		}
 		catch (Exception e) {
 			System.out.println("Hit an exception on new JsonProperties:");
-			// e.printStackTrace(); //TODO comment back in once you add IA to spotashark
+			e.printStackTrace();
 		}
 
 	}
@@ -151,3 +151,4 @@ public class JsonProperties extends Properties {
 
 
 }
+

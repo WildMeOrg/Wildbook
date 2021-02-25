@@ -376,8 +376,12 @@ public abstract class QueryProcessor {
    return String.valueOf(dt.getTime());
  }
 
+
   public static String jdoStringEqualsConstraint(String fieldName, String equalsThis) {
     return "("+fieldName+" == '"+equalsThis+"')";
   }
+
+
+
 
 }

@@ -11,7 +11,7 @@ public class LinkedProperties extends Properties {
 
     public LinkedProperties() {
     }
-
+    
     public LinkedProperties(Properties props) {
       super(props);
     }

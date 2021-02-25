@@ -284,7 +284,7 @@ console.log('is %o', ajax);
                 var label = item.label;
                 if (item.type == 'user') {
                     label = 'User: ' + label;
-                }
+                } 
                 return { label: label, type: item.type, value: item.value };
             });
             return res;

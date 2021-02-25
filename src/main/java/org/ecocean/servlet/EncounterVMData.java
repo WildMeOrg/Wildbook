@@ -68,35 +68,35 @@ public class EncounterVMData extends HttpServlet {
 		if (request.getUserPrincipal() == null) {
 			rtn.put("error", "no access");
 
-		}
+		} 
 		else if (request.getParameter("number") != null) {
 	      Shepherd myShepherd = new Shepherd(context);
 	      myShepherd.setAction("EncounterVMData.class");
   			myShepherd.beginDBTransaction();
   			try{
       			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-
+      
       			if (enc == null) {
       				rtn.put("error", "invalid Encounter number");
-
-      			}
+      
+      			} 
       			else if (request.getParameter("matchID") != null) {
       				wantJson = false;
-
+      
                                   //we may also be assigning the candidate encounter (if we are allowed)
                                   Encounter candEnc = null;
                                   if (request.getParameter("candidate_number") != null) {
       			        candEnc = myShepherd.getEncounter(request.getParameter("candidate_number"));
                                   }
-
+      
             	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
       					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
       					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
       					if (indiv == null) {  //must have sent a new one
       						indiv = new MarkedIndividual(matchID, enc);
-      						myShepherd.getPM().makePersistent(indiv);
-
+      						myShepherd.getPM().makePersistent(indiv);  
+      						
       						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
       						indiv.setDateTimeCreated(ServletUtilities.getDate());
       						myShepherd.updateDBTransaction();
@@ -106,15 +106,15 @@ public class EncounterVMData extends HttpServlet {
       					            candEnc.setMatchedBy("Visual Matcher");
                             indiv.addEncounter(candEnc);
                   }
-
+            	                                      
       						//myShepherd.addMarkedIndividual(indiv);
                 }
       					else {
       					  enc.setIndividual(indiv);
       					}
-
-
-
+      					
+      					
+      
       					//enc.assignToMarkedIndividual(matchID);
       					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					enc.setMatchedBy("Visual Matcher");
@@ -125,8 +125,8 @@ public class EncounterVMData extends HttpServlet {
       				} else {
       					rtn.put("error", "unauthorized");
       				}
-
-      			}
+      
+      			} 
       			else if (request.getParameter("candidates") != null) {
       				rtn.put("_wantCandidates", true);
       				ArrayList candidates = new ArrayList();
@@ -147,7 +147,7 @@ public class EncounterVMData extends HttpServlet {
       					}
       				}
       //System.out.println("candidate filter => " + filter);
-
+      
       				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
       				while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
       					Encounter cand = all.next();
@@ -166,7 +166,7 @@ public class EncounterVMData extends HttpServlet {
       					e.put("patterningCode", cand.getPatterningCode());
       					e.put("sex", cand.getSex());
       					e.put("mmaCompatible", cand.getMmaCompatible());
-
+      
       /*
       					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
       					ArrayList images = new ArrayList();
@@ -189,13 +189,13 @@ public class EncounterVMData extends HttpServlet {
       				}
                                       rtn.put("maximumCandidatesReached", all.hasNext());
       				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
-
-      			}
+      
+      			} 
       			else {
       /*
       				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
       				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
-
+      
       				ArrayList images = new ArrayList();
       				for (SinglePhotoVideo s : spvs) {
       					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
@@ -217,18 +217,18 @@ public class EncounterVMData extends HttpServlet {
       				if(enc.getIndividual()!=null) {
       				  rtn.put("displayName", ServletUtilities.handleNullString(enc.getIndividual().getDisplayName(request, myShepherd)));
       				  rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
-
+                
       				}
       				else {
       				  rtn.put("displayName",null);
       				  rtn.put("individualID", null);
-
+                
       				}
       				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
       				rtn.put("mmaCompatible", enc.getMmaCompatible());
       				//if (!images.isEmpty()) rtn.put("images", images);
       			}
-
+  
   		} //end try
   		catch(Exception e){
   		  e.printStackTrace();
@@ -237,7 +237,7 @@ public class EncounterVMData extends HttpServlet {
   		  myShepherd.rollbackDBTransaction();
   		  myShepherd.closeDBTransaction();
   		 }
-		}
+		} 
 		else {
 			rtn.put("error", "invalid Encounter number");
 		}

@@ -13,22 +13,22 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.movement.*;
 /**
 * This is an object that contains occurrences and survey tracks, with specific
-* geographic points that were traversed. It is intended to be a measure of the work
-* spent to collect data, and a way of relating media assets to a specific period of
-* collection.
+* geographic points that were traversed. It is intended to be a measure of the work 
+* spent to collect data, and a way of relating media assets to a specific period of 
+* collection. 
 *
 * 2017
 * @author Colin Kingen
 */
 
 public class Survey implements java.io.Serializable{
-
+  
   /**
-   *
+   * 
    */
   private static final long serialVersionUID = -5028529439301775287L;
   private ArrayList<SurveyTrack> surveyTracks;
-
+  
   private String surveyID;
   private String project;
   private String organization;
@@ -36,16 +36,16 @@ public class Survey implements java.io.Serializable{
   private String type;
   private Long startTime = null;
   private Long endTime = null;
-  // This is the actual amount of effort spent to gather date.
+  // This is the actual amount of effort spent to gather date. 
   private Measurement effort;
-
+  
   private String dateTimeCreated;
   private String dateTimeModified;
-
+  
   private String date;
-
+  
   private ArrayList<Observation> observations = new ArrayList<Observation>();
-
+  
 
     public Survey() {
         generateID();
@@ -69,18 +69,18 @@ public class Survey implements java.io.Serializable{
     setDateTimeCreated();
     setDWCDateLastModified();
   }
-
+  
   public void setDate(String newDate) {
     date = newDate;
   }
-
+  
   public String getDate() {
     if (date != null) {
-      return date;
+      return date;      
     }
     return null;
   }
-
+  
   public String getDateTimeCreated() {
     if (dateTimeCreated != null) {
       return dateTimeCreated;
@@ -95,7 +95,7 @@ public class Survey implements java.io.Serializable{
   public void setDateTimeCreated() {
         dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
-
+  
   public String getDWCDateLastModified() {
     return dateTimeModified;
   }
@@ -107,7 +107,7 @@ public class Survey implements java.io.Serializable{
   public void setDWCDateLastModified() {
     dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
   }
-
+    
   public String getComments() {
     if (comments != null) {
       return comments;
@@ -115,7 +115,7 @@ public class Survey implements java.io.Serializable{
       return "None";
     }
   }
-
+  
   public void addComments(String newComments) {
     try {
       if (comments != null && !comments.equals("None")) {
@@ -123,12 +123,12 @@ public class Survey implements java.io.Serializable{
       } else {
         comments = newComments;
       }
-      setDWCDateLastModified();
+      setDWCDateLastModified();      
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
-
+  
   public String getID() {
     if (surveyID != null) {
       return surveyID;
@@ -136,17 +136,17 @@ public class Survey implements java.io.Serializable{
       return null;
     }
   }
-
+  
   public void setID(String newID) {
     surveyID = newID;
     setDWCDateLastModified();
   }
-
+  
   public void generateID() {
-    String id = Util.generateUUID().toString();
+    String id = Util.generateUUID().toString();  
     surveyID = id;
   }
-
+  
     public ArrayList<SurveyTrack> getSurveyTracks() {
         return surveyTracks;
     }
@@ -160,12 +160,12 @@ public class Survey implements java.io.Serializable{
   public ArrayList<SurveyTrack> getAllSurveyTracks() {
     if (surveyTracks == null) return null;
     if (!surveyTracks.isEmpty()) {
-     return surveyTracks;
+     return surveyTracks; 
     } else {
       return null;
     }
   }
-
+  
   public SurveyTrack getSurveyTrackByID(String id) {
     if (surveyTracks == null) return null;
     for (int i=0; i<surveyTracks.size(); i++) {
@@ -176,7 +176,7 @@ public class Survey implements java.io.Serializable{
     }
     return null;
   }
-
+  
   public void addSurveyTrack(SurveyTrack thisTrack) {
     if (surveyTracks == null) surveyTracks = new ArrayList<SurveyTrack>();
     if (thisTrack != null) {
@@ -190,7 +190,7 @@ public class Survey implements java.io.Serializable{
       setDWCDateLastModified();
     }
   }
-
+  
   public void addMultipleSurveyTrack(ArrayList<SurveyTrack> trackArray) {
     if (surveyTracks == null) surveyTracks = new ArrayList<SurveyTrack>();
     if (trackArray.size() >= 1) {
@@ -200,14 +200,14 @@ public class Survey implements java.io.Serializable{
     setDWCDateLastModified();
     }
   }
-
+    
   public void setProjectName(String proj) {
     if (proj != null && !proj.equals("")) {
       project = proj;
       setDWCDateLastModified();
     }
   }
-
+  
   public String getProjectName() {
     if (project != null && !project.equals("")) {
       return project;
@@ -215,14 +215,14 @@ public class Survey implements java.io.Serializable{
       return null;
     }
   }
-
+  
   public void setOrganization(String org) {
     if (org != null && !org.equals("")) {
       organization = org;
       setDWCDateLastModified();
     }
   }
-
+  
   public String getOrganization() {
     if (organization != null && !organization.equals("")) {
       return organization;
@@ -230,14 +230,14 @@ public class Survey implements java.io.Serializable{
       return null;
     }
   }
-
+  
   public void setProjectType(String typ) {
     if (typ != null && !typ.equals("")) {
       type = typ;
       setDWCDateLastModified();
     }
   }
-
+  
   public String getProjectType() {
     if (type != null && !type.equals("")) {
       return type;
@@ -245,69 +245,69 @@ public class Survey implements java.io.Serializable{
       return null;
     }
   }
-
+  
   public Measurement getEffort() {
     if (effort != null) {
       return effort;
     }
     return null;
   }
-
+  
   public void setEffort(Measurement eff) {
     if (eff.getUnits() != null) {
       effort = eff;
       setDWCDateLastModified();
     }
   }
-
+  
   public void setStartTimeMilli(Long i) {
     if (i > 0) {
       startTime = i;
     }
   }
-
+  
   public String getStartTimeMilli() {
     if (startTime != null && startTime > 0) {
       return startTime.toString();
     }
     return null;
   }
-
+  
   public void setEndTimeMilli(Long et) {
     if (et > 0) {
       startTime = et;
     }
   }
-
+  
   public void setEndTimeWithDate(String date) {
     String milli =  monthDayYearToMilli(date);
     try {
-      Long m = Long.valueOf(milli);
-      endTime = Math.abs(m);
+      Long m = Long.valueOf(milli); 
+      endTime = Math.abs(m);      
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Failed to Set endTime from dateString.");
     }
-  }
-
+  } 
+  
   public void setStartTimeWithDate(String date) {
     String milli =  monthDayYearToMilli(date);
     try {
-      Long m = Long.valueOf(milli);
-      startTime = Math.abs(m);
+      Long m = Long.valueOf(milli);  
+      startTime = Math.abs(m);  
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Failed to Set startTime from dateString.");
     }
-  }
-
+  } 
+  
   public String getEndTimeMilli() {
     if (endTime != null && endTime > 0) {
       return endTime.toString();
     }
     return null;
   }
-
+  
   private String monthDayYearToMilli(String newDate) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
     String month = newDate.substring(0,2);
@@ -323,30 +323,30 @@ public class Survey implements java.io.Serializable{
     }
     return String.valueOf(dt.getTime());
   }
-
+  
   private String milliToMonthDayYear(Long millis) {
     if (millis!=null) {
       try {
         DateTime dt = new DateTime(millis);
         DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-        return dtf.print(dt);
+        return dtf.print(dt);       
       } catch (Exception e) {
         e.printStackTrace();
-      }
+      }      
     }
     return null;
   }
-
+  
   public String getStartDateTime() {
     if (startTime!=null) {
       return milliToMonthDayYear(startTime);
     }
     return null;
   }
-
+  
   public String getEndDateTime() {
     if (endTime!=null) {
-      return milliToMonthDayYear(endTime);
+      return milliToMonthDayYear(endTime);      
     }
     return null;
   }
@@ -413,9 +413,9 @@ public class Survey implements java.io.Serializable{
 
   public void addObservationArrayList(ArrayList<Observation> arr) {
     if (observations.isEmpty()) {
-      observations=arr;
+      observations=arr;      
     } else {
-     observations.addAll(arr);
+     observations.addAll(arr); 
     }
   }
   public void addObservation(Observation obs) {
@@ -426,7 +426,7 @@ public class Survey implements java.io.Serializable{
       for (Observation ob : observations) {
         if (ob.getName() != null) {
           if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
-            return ob;
+            return ob;            
           }
         }
       }
@@ -456,8 +456,8 @@ public class Survey implements java.io.Serializable{
         }
         counter++;
       }
-    }
-  }
+    }  
+  } 
 
     public String toString() {
         return new ToStringBuilder(this)
@@ -471,3 +471,8 @@ public class Survey implements java.io.Serializable{
 
 
 }
+
+
+
+
+

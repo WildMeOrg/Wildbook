@@ -115,7 +115,7 @@ div.file-item div {
 <div id="updone"></div>
 
 <div id="upcontrols" style="padding: 20px;">
-	<input type="file" id="file-chooser" accept=".xlsx" onChange="return filesChangedSetFilename(this)" />
+	<input type="file" id="file-chooser" accept=".xlsx" onChange="return filesChangedSetFilename(this)" /> 
 	<button id="upload-button">begin upload</button>
 <% System.out.println("Done with import/spreadsheet.jsp. About to print footer."); %>
 
@@ -123,3 +123,6 @@ div.file-item div {
 <jsp:include page="../footer.jsp" flush="true"/>
 </body>
 </html>
+
+
+

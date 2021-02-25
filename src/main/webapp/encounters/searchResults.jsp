@@ -137,7 +137,6 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 	var needIAStatus = false;
 
-
 <%
 	String encsJson = "false";
 
@@ -531,7 +530,7 @@ function tableUp() {
 ////////
 var encs;
 $(document).ready( function() {
-
+	
 	wildbook.init(function() {
 		let useProjectContext = "<%=useProjectContext%>";
 		encs = new wildbook.Collection.Encounters();

@@ -155,6 +155,12 @@ span.illustrationLink a {
 	border-radius: 2px;
 }
 
+.annot-info-num::before {
+	
+
+	
+}
+
 .annot-wrapper .img-info-type {
 	background-color: #4F8;
 	color: #222;
@@ -167,10 +173,10 @@ span.illustrationLink a {
 }
 
 .annot-info-num::before {
-
+	
   counter-increment: rankcounter;
   content: counter(rankcounter);
-
+	
 }
 
 .annot-info-num {
@@ -392,3 +398,7 @@ span.algoTimestamp {
 	margin: 0 11px;
 	font-size: 1em;
 }
+
+
+
+

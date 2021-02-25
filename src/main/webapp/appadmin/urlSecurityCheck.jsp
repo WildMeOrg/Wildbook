@@ -3,9 +3,9 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*,
+java.io.*,java.util.*, 
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,
-org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator,
+org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, 
 java.lang.NumberFormatException,
 javax.xml.parsers.DocumentBuilder,javax.xml.parsers.DocumentBuilderFactory,
 org.w3c.dom.*,
@@ -16,11 +16,11 @@ org.apache.commons.io.filefilter.*
 
 <%!
 public String getSecurityMappings(String servletName,String paramValues){
-
+	
 	String servletSecurity="";
-
+	
 	Matcher m = Pattern.compile("\\/("+servletName+").*(\n|\r)").matcher(paramValues);
-
+	
 	int numMatches=0;
 	while(m.find()){
 		if(numMatches>0){servletSecurity=servletSecurity+"<br>"+m.group();}
@@ -29,7 +29,7 @@ public String getSecurityMappings(String servletName,String paramValues){
 		}
 		numMatches++;
 	}
-
+	
 	return servletSecurity;
 }
 %>
@@ -76,7 +76,7 @@ $(document).ready(function() {
         else{
         	showMapped();
         }
-        $('#hideMapped').val(this.checked);
+        $('#hideMapped').val(this.checked);        
     });
 });
 
@@ -94,7 +94,7 @@ $(document).ready(function() {
   	<li>Multiple entries in "Security Rules" may indicate duplicated and potentially conflicting entries.</li>
   	<li>authc = "authentication" and means that login is required.</li>
     <li>roles[...] = the authenticated user roles needed to access the URL. Any listed role (logical OR) will allow access.</li>
-
+  
   </ul>
 
 </p>
@@ -118,12 +118,12 @@ $(document).ready(function() {
 
 
 try{
-
+	
 	//START SERVLETS
-
+	
 	//first, load web.xml
 	InputStream input = getServletContext().getResourceAsStream("/WEB-INF/web.xml");
-
+	
 	//read XML to get servlets
 	DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 
@@ -132,9 +132,9 @@ try{
 
 	//XPathExpression expr = xpath.compile("/web-app/servlet/servlet-name[text()='MyServlet']");
 	XPathExpression expr = xpath.compile("/web-app/servlet");
-
+	
 	String paramValues="";
-
+	
 	NodeList nl = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
 	if(nl!=null){
 		int numNodes=nl.getLength();
@@ -146,15 +146,15 @@ try{
 				String servletClass="";
 				String servletMapping="";
 				String servletSecurity="";
-
+				
 				String mappedElementName="mapped";
-
+				
 				int numChildren=children.getLength();
 				for(int j=0;j<numChildren;j++){
 					Node child=children.item(j);
 					if(child.getNodeName().equals("servlet-name")){
 							servletName=child.getTextContent();
-
+							
 							//and let's get its mapping
 							XPathExpression mapExpr = xpath.compile("/web-app/servlet-mapping[servlet-name/text()='"+servletName+"']");
 							NodeList mappingNames = (NodeList) mapExpr.evaluate(doc, XPathConstants.NODESET);
@@ -170,7 +170,7 @@ try{
 									}
 								}
 							}
-
+							
 							//let's get its security rules
 							XPathExpression secExpr = xpath.compile("/web-app/filter[filter-name/text()='ShiroFilter']/init-param[param-name/text()='config']/param-value");
 							NodeList secNodes = (NodeList) secExpr.evaluate(doc, XPathConstants.NODESET);
@@ -179,41 +179,41 @@ try{
 								//get the first node
 								Node paramValue=secNodes.item(0);
 								paramValues=paramValue.getTextContent();
-
+								
 								//now regex for servletName
 								//String[] tokens=paramValues.split("\\/("+servletName+").*]");
 								servletSecurity = getSecurityMappings(servletName,paramValues);
-
+								
 							}
-
-
-
-
+							
+							
+							
+							
 					}
 					if(child.getNodeName().equals("servlet-class")){servletClass=child.getTextContent();}
 				}
-
+				
 				if(servletSecurity.equals("")){mappedElementName="unmapped";}
-
+			
 			%>
 			<tr name="<%=mappedElementName %>">
 				<td><%=servletName %></td><td><%=servletClass %></td><td><%=servletMapping %></td><td><%=servletSecurity %></td>
 			</tr>
-
-
-
-
+			
+			
+			
+			
 			<%
 				} //end if
 			}
 	} //end if not null
 	%>
 	</table>
-
+	
 	<%
-
+	
 	//END SERVLETS
-
+	
 	//START JSP FILES
 	//first, load web.xml
 	File rootDir = new File(getServletContext().getRealPath("/"));
@@ -222,10 +222,10 @@ try{
 						new SuffixFileFilter("jsp"),
 						FileFilterUtils.directoryFileFilter()
 	));
-
+	
 	%>
-
-
+	
+	
 	<h2>JSP Files</h2>
 	<table>
 	 <thead>
@@ -241,10 +241,10 @@ try{
 		File jFile=jspFiles.get(n);
 		if(!jFile.isDirectory()){
 			String servletSecurity=getSecurityMappings(jFile.getName(),paramValues);
-
+			
 			//see if it's parent is mapped
 			if(servletSecurity.equals(""))servletSecurity=getSecurityMappings((jFile.getParentFile().getName()+"/\\*\\*"),paramValues);
-
+			
 			//if it's still unmapped,it's unmapped totally!
 			if(servletSecurity.equals("")){mappedElementName="unmapped";}
 			//ignore WEB-INF diretory, otherwise print
@@ -255,15 +255,15 @@ try{
 			}
 		}
 	}
-
-
+	
+	
 	%>
-
+	
 	</table>
-
+	
 	<%
-
-
+	
+	
 }
 catch(Exception e){
 	//myShepherd.rollbackDBTransaction();

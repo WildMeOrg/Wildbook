@@ -456,15 +456,7 @@ public class CommonConfiguration {
 
   /*
   public static String getGoogleSearchKey(String context) {
-    return ShepherdProperties.getProperties("googleKeys.properties","").getProperty("googleSearchKey");
-  }
-
-  public static String getDefaultGoogleMapsCenter(String context) {
-    if (getProperty("googleMapsCenter",context)!=null) {
-      return getProperty("googleMapsCenter",context);
-    } else {
-      return "{lat: 35.2195, lng: -75.6903}";
-    }
+    return getProperty("googleSearchKey",context);
   }
 */
 

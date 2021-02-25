@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
 /**
  * Each pointLocation is a specific spot on Earth defined by latitude, longitude
  * elevation above (or below) sea level and a time.
- *
+ * 
  * The Path object is made up of an array of these, and a group over time create
  * a useful way of tracking a survey and survey track.
  *
@@ -24,7 +24,7 @@ import org.joda.time.DateTime;
 public class PointLocation implements java.io.Serializable {
 
   /**
-   *
+   * 
    */
   private static final long serialVersionUID = -3758129925666366058L;
 
@@ -78,26 +78,26 @@ public class PointLocation implements java.io.Serializable {
 
   public Long getDateTimeInMilli() {
     if (dateTime!=null){
-      return dateTime.longValue();
+      return dateTime.longValue();      
     }
     return null;
   }
-
+  
   public String getDateTimeAsString() {
-    if (dateTime!=null){
+    if (dateTime!=null){    
       DateTime dt = new DateTime(dateTime);
       return dt.toString();
     }
     return null;
   }
-
-  public String getTimeAsString() {
-    if (dateTime!=null){
+  
+  public String getTimeAsString() { 
+    if (dateTime!=null){      
       DateTime dt = new DateTime(dateTime);
       String time = String.valueOf(dt.getHourOfDay()) + ":" + String.valueOf(dt.getMinuteOfHour());
       return time;
     }
-    return null;
+    return null; 
   }
 
   public void setDateTimeInMilli(Long dt) {

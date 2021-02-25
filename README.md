@@ -15,11 +15,11 @@ Wildbook&reg; is an open source software framework to support mark-recapture, mo
 
 <h2>Wildbook IA - Formerly IBEIS</h2>
 
-<img width="125px" height="*" align="left" src="http://www.wildbook.org/lib/exe/fetch.php?w=200&tok=c557df&media=logo_400x4001.png" /> Wildbook is the data management layer for the <a href="https://github.com/WildbookOrg/wildbook-ia">Wildbook IA (WBIA)</a>. The WBIA project is the successor to the Image-Based Ecological Information System (IBEIS) computer vision research platform, which pulls data from Wildbook servers to detect features in images and identify individual animals. WBIA brings massive-scale computer vision to wildlife research for the first time.
+<img width="125px" height="*" align="left" src="http://www.wildbook.org/lib/exe/fetch.php?w=200&tok=c557df&media=logo_400x4001.png" /> Wildbook is the data management layer for the <a href="https://github.com/WildbookOrg/wildbook-ia">Wildbook IA (WBIA)</a>. The WBIA project is the successor to the Image-Based Ecological Information System (IBEIS) computer vision research platform, which pulls data from Wildbook servers to detect features in images and identify individual animals. WBIA brings massive-scale computer vision to wildlife research for the first time. 
 <br />
 <h2>Support</h2>
 
-Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation.
+Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation. 
 
 Need direct help?
 

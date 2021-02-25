@@ -29,7 +29,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
 
 %>
 <jsp:include page="../header.jsp" flush="true"/>
-<style>
+<style> 
 .import-explanation {
 }
 .import-header {
@@ -53,9 +53,9 @@ String wbName = ContextConfiguration.getNameForContext(context);
   </p>
 
   <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
-
+  
   <p>To ensure data integrity, this process is split into several steps with review in-between.</p>
-
+  
   <ol>
   	<li><h5>Photo Upload</h5></li>
   	<li><h5>Spreadsheet Upload</h5></li>
@@ -105,7 +105,8 @@ Descriptions of each class field are included. You can use this file for your up
 		<input type="submit" value="Upload photos">
 	</form>
   </div>
-
+          
 </div>
 
 <jsp:include page="../footer.jsp" flush="true"/>
+

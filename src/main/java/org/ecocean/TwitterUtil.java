@@ -14,9 +14,6 @@ import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-import java.util.HashMap;
-
-import com.google.gson.Gson;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -219,7 +216,7 @@ public class TwitterUtil {
       String text = tweet.getText();
       return text;
   }
-
+   
     public static Date getPostingDate(Status tweet) {
       if (tweet == null) return null;
       java.util.Date date = tweet.getCreatedAt();

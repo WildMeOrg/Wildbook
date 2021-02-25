@@ -17,7 +17,7 @@ public class Taxonomy implements java.io.Serializable {
   // There should be only one record per scientificName value in the Taxonomy table, though they sometimes change e.g. when giraffes were reclassified.
   // usually "Genus species" or "Genus species subspecies"
   private String scientificName;
-  private List<String> commonNames;
+  private List<String> commonNames; 
   private Integer itisTsn;
     private boolean nonSpecific=false;
 

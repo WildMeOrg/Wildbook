@@ -14,6 +14,7 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -369,22 +370,13 @@ public class User implements Serializable {
 
 		//TODO this needs to be dealt with better.  see: rant about saving usernames from forms
 		public static boolean isUsernameAnonymous(String uname) {
-			return ((uname == null) || uname.equals("") || uname.equals("N/A"));
+			return ((uname == null) || uname.trim().equals("") || uname.equals("N/A"));
 		}
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
 
-		public String getUUID() {return uuid;}
-
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("uuid", uuid)
-                .append("username", username)
-                .append("fullName", fullName)
-                .toString();
-    }
-
+    public String getUUID() {return uuid;}
     public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
 
     public boolean hasRoleByName(String name, Shepherd myShepherd) {
@@ -473,6 +465,14 @@ public class User implements Serializable {
     public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
         if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
         return uuid.hashCode();
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("uuid", uuid)
+                .append("username", username)
+                .append("fullName", fullName)
+                .toString();
     }
 
     // Returns a somewhat rest-like JSON object containing the metadata

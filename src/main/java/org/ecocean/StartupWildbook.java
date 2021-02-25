@@ -1,15 +1,17 @@
 package org.ecocean;
+
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContext;
 import java.net.URL;
-import org.joda.time.*;
+
 import org.ecocean.*;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
@@ -21,13 +23,20 @@ import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
 import java.util.concurrent.ThreadPoolExecutor;
+
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 import java.io.IOException;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
 // global variables are initialized, and do so if necessary.
@@ -37,7 +46,6 @@ public class StartupWildbook implements ServletContextListener {
   // this function is automatically run on webapp init
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
-
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
@@ -142,7 +150,7 @@ public class StartupWildbook implements ServletContextListener {
             startWildbookScheduledTaskThread(context);
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        } 
     }
 
 
@@ -230,7 +238,7 @@ public class StartupWildbook implements ServletContextListener {
                 }
                 myShepherd.closeDBTransaction();
             }
-            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
             }, 0, 1, TimeUnit.HOURS);
     }
 
@@ -268,11 +276,11 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
     //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
     private static boolean properStartupResource(ServletContextEvent sce) {
         if (sce == null) return false;
-        ServletContext context = sce.getServletContext();
+        ServletContext context = sce.getServletContext(); 
         if (context == null) return false;
         URL res = null;
         try {
@@ -299,3 +307,4 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 
 }
+
