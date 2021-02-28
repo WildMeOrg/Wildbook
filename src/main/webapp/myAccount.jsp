@@ -51,7 +51,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-
+	<a name="top" id="top"></a>
 	<h1 class="intro"><%=(props.getProperty("userAccount") + " " + dispUsername) %></h1>
 
 	<p>
@@ -147,7 +147,9 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 							if (d.success) {
 								p.remove();
 								updateNotificationsWidget();
-							} else {
+								refreshCollaborations();
+							} 
+							else {
 								p.removeClass('throbbing').html(d.message);
 							}
 						},
@@ -433,7 +435,12 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
-		out.println("<div class=\"collab-list\"><a name=\"collaborations\"><h2>" + collabProps.getProperty("collaborationTitle") + "</h2></a>" + h + "</div>");
+		%>
+		<a name="collaborations" id="collaborations" style="padding-top: 200px;"></a>
+		<h2><%=collabProps.getProperty("collaborationTitle") %></h2>
+		<%
+		
+		out.println("<div class=\"collab-list\">" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();
@@ -507,6 +514,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
     </p> <!-- end content p -->
 
+	<a name="mydata" id="mydata">
     <h2><%=props.getProperty("myData") %></h2>
 
 
@@ -596,8 +604,9 @@ function initiateCollab() {
 					success: function(d) {
 						console.info('Success! Got back '+JSON.stringify(d));
 						$("#collabResp").text("The collaboration request has been sent.");
-						appendCollabRequest(collabTarget);
-						clearCollabInitFields()
+						//appendCollabRequest(collabTarget);
+						//clearCollabInitFields();
+						refreshCollaborations();
 					},
 					error: function(x,y,z) {
 						$("#collabResp").text("There was an error sending this collaboration request.");
@@ -620,7 +629,8 @@ function clearCollabInitFields() {
 function appendCollabRequest(name) {
 	if ($("#none-line").length > 0) $("#none-line").val('');
 	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b>" +name+ "</b></span><span class=\"state collab-info\"><%=collabProps.getProperty("state_initialized")%></span></div>";
-	$(".collab-list").append(newCollab);
+	//$(".collab-list").append(newCollab);
+	refreshCollaborations();
 }
 
 // end collab type ahead
@@ -633,6 +643,7 @@ $('.collabRow .add-view-permissions').click(function() {
 $('.collabRow .revoke-view-permissions').click(function() {
 	let collabId = $(this).closest('.collabRow').find('.collabId').val();
 	changeViewPermissions(collabId, "revoke");
+	refreshCollaborations();
 });
 
 function changeViewPermissions(collabId, action) {
@@ -647,7 +658,8 @@ $.ajax({
 		console.info('Success toggling view permission! Got back '+JSON.stringify(d));
 		if (d.success==true) {
 			console.log("changing collaboration "+d.collabId+" state in UI");
-			changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+			//changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+			refreshCollaborations();
 		}
 	},
 	error: function(x,y,z) {
@@ -685,6 +697,7 @@ function changeVisibleCollaborationState(newState, collabId, action) {
 		revokeEditBtn.remove();
 
 		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_rejected")%>');
+		refreshCollaborations();
 	}
 
 	if (action=="invite") {
@@ -695,6 +708,7 @@ function changeVisibleCollaborationState(newState, collabId, action) {
 		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_initialized")%>');
 		console.log("trying to update UI to invite again...");
 		updateNotificationsWidget();
+		refreshCollaborations();
 	}
 	
 
