@@ -107,6 +107,7 @@ System.out.println("RemoteRegister: survey response: " + resp.toString());
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
             } else {
+                resp.put("user_uuid", thisUser.getUUID());
                 rtn.put("success", true);
                 String surv_key = "survey_response_phase3_" + thisUser.getUUID();
                 SystemValue.set(myShepherd, surv_key, resp);

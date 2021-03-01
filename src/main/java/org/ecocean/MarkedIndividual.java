@@ -2699,12 +2699,19 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       //check for a ScheduledIndividualMerge that may have other
       String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
       Query q=myShepherd.getPM().newQuery(filter);
-      Collection c=(Collection)q.execute();
-      ArrayList<ScheduledIndividualMerge> merges=new ArrayList<ScheduledIndividualMerge>(c);
-      //throw out any scheduled merge related to this individual as it is now being merged.
-      for(ScheduledIndividualMerge merge:merges) {
-        myShepherd.getPM().deletePersistent(merge);
-        myShepherd.updateDBTransaction();
+      try{
+        Collection c=(Collection)q.execute();
+        ArrayList<ScheduledIndividualMerge> merges=new ArrayList<ScheduledIndividualMerge>(c);
+        //throw out any scheduled merge related to this individual as it is now being merged.
+        if(merges!=null && merges.size()>0){
+          for(ScheduledIndividualMerge merge:merges) {
+            myShepherd.getPM().deletePersistent(merge);
+            myShepherd.updateDBTransaction();
+          }
+        }
+      } catch (Exception e){
+        System.out.println("error looking for ScheduledIndividualMerges: ");
+        e.printStackTrace();
       }
       
       
