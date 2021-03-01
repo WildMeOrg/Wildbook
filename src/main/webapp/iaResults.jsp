@@ -1962,11 +1962,12 @@ $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
+	// replace reserved pound sign in incremental ID's
+	selectedProject = selectedProject.replaceAll("#", "%23");
 	if (selectedProject&&selectedProject.length) {
 		reloadURL += "&projectIdPrefix="+selectedProject;
 	}
 	window.location.href = reloadURL;
-	//applyResearchProjectLinks()
 });
 
 // this is messy, but i'm avoiding another database hit
