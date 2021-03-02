@@ -1,13 +1,18 @@
 package org.ecocean.servlet;
-
+import java.io.File;
+import java.util.List;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import org.ecocean.*;
 import org.ecocean.media.*;
-
+import java.nio.file.Path;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.ecocean.ia.Task;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -165,6 +170,7 @@ public class MediaAssetModify extends HttpServlet {
             }
             System.out.println("deleteMe about to update transaction");
             System.out.println("deleteMe got here 10");
+            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd);
             myShepherd.updateDBTransaction(); //update before that redoAllChildren knows which labels to actually apply
             System.out.println("deleteMe got here 11");
             mediaAsset.redoAllChildren(myShepherd);
@@ -196,5 +202,58 @@ public class MediaAssetModify extends HttpServlet {
     out.println(res.toString());
     out.close();
     myShepherd.closeDBTransaction();
+  }
+
+  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd){
+    List<MediaAsset> masterChildren = mediaAsset.findChildrenByLabel(myShepherd, "_master");
+    if(masterChildren != null && masterChildren.size()>0){
+      if(masterChildren.size()>1){
+        //TODO ack!?
+        System.out.println("deleteMe should not be here. More than one master child!");
+      } else{
+        MediaAsset masterChild = masterChildren.get(0);
+        if(masterChild != null){
+          AssetStore astore = AssetStore.getDefault(myShepherd);
+          Path currentPath = masterChild.localPath();
+          String currentPathFilename = currentPath.getFileName().toString();
+          String newFilename = "backup_" + currentPathFilename;
+          int pathDepth = currentPath.getNameCount();
+          String subPathStr = currentPath.subpath(0, pathDepth-1).toString();
+          File newFile = new File('/' + subPathStr + '/' + newFilename);
+          try{
+            Files.createFile(newFile.toPath());
+          } catch(Exception e){
+            System.out.println("Error creating file in cloneRotatedMediaAssetForDetection");
+            e.printStackTrace();
+          }
+          try{
+            Files.copy(currentPath, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            JSONObject sp = astore.createParameters(newFile);
+            MediaAsset newParent = null;
+            try {
+              newParent = astore.copyIn(newFile, sp);
+            } catch (Exception e) {
+              System.out.println("Error copying in the new asset in cloneRotatedMediaAssetForDetection");
+              e.printStackTrace();
+            }
+            newParent.updateMetadata();
+            newParent.addLabel("_original");
+            MediaAssetFactory.save(newParent, myShepherd);
+            newParent.updateStandardChildren(myShepherd);
+            Encounter enc = myShepherd.getEncounter(mediaAsset);
+            if(enc != null){
+              enc.addMediaAsset(newParent);
+              Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), new Task());
+              myShepherd.storeNewTask(task);
+            }
+
+          } catch (Exception e){
+            System.out.println("Error copying file in cloneRotatedMediaAssetForDetection method of MediaAssetModify.java");
+            e.printStackTrace();
+          }
+
+        }
+      }
+    }
   }
 }
