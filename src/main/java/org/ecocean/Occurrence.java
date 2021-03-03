@@ -1438,6 +1438,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
 
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
+        // we *may* want to allow this superpower for the edm, but for now lets be strict
+        if ((jencs == null) || (jencs.length() < 1)) throw new IOException("cannot have zero encounters");
         if (jencs != null) {
             for (int i = 0 ; i < jencs.length() ; i++) {
                 org.json.JSONObject jenc = jencs.optJSONObject(i);
