@@ -110,7 +110,7 @@ System.out.println("######>>>>>> payload=" + payload);
         payload.put("_queryString", request.getQueryString());
         boolean debug = (payload.optBoolean("_debug", false) || ((request.getQueryString() != null) && request.getQueryString().matches(".*_debug.*")));
 
-        if (debug) SystemLog.debug("RestServlet.handleRequest() instance={} method={} payload={}", instanceId, httpMethod, payload.toString());
+        SystemLog.debug("RestServlet.handleRequest() instance={} method={} payload={}", instanceId, httpMethod, payload.toString());
 
         if ("PATCH".equals(httpMethod)) {
             handlePatch(request, response, payload, instanceId, context);
