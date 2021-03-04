@@ -340,7 +340,6 @@ public abstract class AssetStore implements java.io.Serializable {
 
     //a helper/utility app for the above (if applicable) that works on localfiles (since many flavors will want that)
     protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile, boolean skipCropping) throws IOException {
-        System.out.println("deleteMe entered _updateChildLocalWork with parentMA being: " + parentMA.getId());
         if (!this.writable) return false; //should we silently fail or throw exception??
         if (!sourceFile.exists()) throw new IOException("updateChild() " + sourceFile.toString() + " does not exist");
 
