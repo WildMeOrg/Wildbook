@@ -602,7 +602,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
                 ct = Util.collectionSize(getMatchPhotoAnnotations(myShepherd, enc.getIndividual()));
             }
 %><td class="col-state-<%=enc.getState()%>"><%=enc.getState()%></td>
-<td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td>
+<td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td><%
 
         }
 
