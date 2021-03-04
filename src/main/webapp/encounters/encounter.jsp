@@ -5034,6 +5034,10 @@ button#upload-button {
 
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5046,7 +5050,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
