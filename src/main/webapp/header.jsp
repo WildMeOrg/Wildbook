@@ -16,8 +16,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-<!DOCTYPE html>
-<html>
+
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
@@ -100,14 +99,14 @@ finally{
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-17"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'UA-30944767-12');
+        gtag('config', 'UA-30944767-17');
       </script>
 
       <title><%=pageTitle%></title>
