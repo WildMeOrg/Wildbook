@@ -41,7 +41,7 @@ import java.io.PrintWriter;
 
 import javax.xml.bind.DatatypeConverter;
 
-import io.prometheus.*;
+
 import io.prometheus.client.Counter;
 
 /**
@@ -94,6 +94,7 @@ public class TestPrometheusClient extends HttpServlet {
         //put the data into the database as a double 
         encs.inc((double)numEncounters);
         
+        out.println("<p> Number of encounters is: "+encs.get()+"</p>");
 
       } 
       catch (Exception lEx) {
