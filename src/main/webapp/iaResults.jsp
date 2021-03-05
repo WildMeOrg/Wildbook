@@ -1082,17 +1082,27 @@ function showTaskResult(res, taskId) {
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-								var algoDesc = 'match results'; // default display description if no algo info given
-                if (algoInfo == 'CurvRankFluke') {
-                    algoDesc = 'trailing edge (CurvRank)';
-                } else if (algoInfo == 'OC_WDTW') {
+				var algoDesc = 'texture (HotSpotter match results)'; // default display description if no algo info given
+                if (algoInfo == 'CurvRankTwoFluke') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'CurvRankTwoDorsal') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
-                } else if (algoInfo == 'Deepsense') {
+                } 
+                else if (algoInfo == 'Deepsense') {
                     algoDesc = 'Deepsense AI\'s Right Whale Matcher';
-                } else if (algoInfo == 'CurvRankDorsal') {
+                } 
+                else if (algoInfo == 'CurvRankDorsal') {
                     algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
-                } else if (algoInfo == 'Finfindr') {
+                } 
+                else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
+                }
+                else if (algoInfo == 'Pie') {
+                    algoDesc = 'PIE (Pose Invariant Embeddings)';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
@@ -2086,11 +2096,12 @@ $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
+	// replace reserved pound sign in incremental ID's
+	selectedProject = selectedProject.replaceAll("#", "%23");
 	if (selectedProject&&selectedProject.length) {
 		reloadURL += "&projectIdPrefix="+selectedProject;
 	}
 	window.location.href = reloadURL;
-	//applyResearchProjectLinks()
 });
 
 // this is messy, but i'm avoiding another database hit
