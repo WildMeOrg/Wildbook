@@ -214,6 +214,11 @@ function inBlockedPage() {
 	return document.location.href.match('encounter.jsp|occurrence.jsp|individuals.jsp');
 }
 
+function refreshCollaborations(){
+	window.location.hash = '#collaborations';
+	window.location.reload(true);
+}
+
 function clickApproveDeny(ev) {
 	var which = ev.target.getAttribute('class');
 	var collabId = ev.target.getAttribute('id');
@@ -231,6 +236,7 @@ function clickApproveDeny(ev) {
 				$("<span class=\"collab-button\"></span>").insertBefore(p);
 				p.remove();
 				updateNotificationsWidget();
+				refreshCollaborations();
 			} else {
 				p.removeClass('throbbing').html(d.message);
 			}
