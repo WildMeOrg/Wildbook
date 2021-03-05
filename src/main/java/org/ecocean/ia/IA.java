@@ -188,13 +188,12 @@ public class IA {
         int count = 0;
         int stopAfter = 200000;
         int batchThreshold = 50;
-        int batchShortCircuitThreshold = 60;
         int batchesSoFar = 0;
         ArrayList<MediaAsset> assetsWithMissingAcmids = new ArrayList<MediaAsset>();
         try{
             for (MediaAsset ma: mediaAssets) {
                 count ++;
-                if(count > stopAfter || batchesSoFar >= batchShortCircuitThreshold){
+                if(count > stopAfter){
                   break;
                 }
                 if (ma != null && !ma.hasAcmId()) {
