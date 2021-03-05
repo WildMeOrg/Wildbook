@@ -55,8 +55,13 @@ import io.prometheus.client.Counter;
 public class TestPrometheusClient extends HttpServlet {
 
 
+	//create counter with name and description  
+    Counter encs=null;
+	
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
+    encs = Counter.build()
+            .name("number_encounters").help("Number encounters").register();
   }
 
 
@@ -84,9 +89,7 @@ public class TestPrometheusClient extends HttpServlet {
       myShepherd.beginDBTransaction();
       try {
         
-    	//create counter with name and description  
-        final Counter encs = Counter.build()
-            .name("number_encounters").help("Number encounters").register();
+    	
         
         //get the data from the database
         int numEncounters=myShepherd.getNumEncounters();
