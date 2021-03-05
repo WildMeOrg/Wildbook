@@ -42,7 +42,6 @@ String commitStr = request.getParameter("commit");
 boolean committing = (commitStr!=null);
 
 String filename = request.getParameter("filename");
-System.out.println("deleteMe filename in uploadFooter is: " + filename);
 String uuid=Util.generateUUID();
 String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true&taskID="+uuid;
 
