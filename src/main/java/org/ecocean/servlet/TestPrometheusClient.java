@@ -43,6 +43,7 @@ import javax.xml.bind.DatatypeConverter;
 
 
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 
 /**
  *
@@ -56,6 +57,7 @@ public class TestPrometheusClient extends HttpServlet {
 
 
 	//create counter with name and description  
+  Sheperd myShepherd; 
   boolean pageVisited = false; 	
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
@@ -79,7 +81,7 @@ public class TestPrometheusClient extends HttpServlet {
     //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    myShepherd = new Shepherd(context);
     myShepherd.setAction("TestPrometheusSevlet.class");
 
 
