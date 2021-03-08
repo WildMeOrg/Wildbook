@@ -56,8 +56,11 @@ public class TestPrometheusClient extends HttpServlet {
 
 
 	//create counter with name and description  
-    Counter encs=null;
-    boolean pageVisited = false; 	
+  boolean pageVisited = false; 	
+  Counter encs=null;
+  Gauge numUsersInWildbook = null; 
+
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     encs = Counter.build()
@@ -87,23 +90,15 @@ public class TestPrometheusClient extends HttpServlet {
 
     //begin db connection
       myShepherd.beginDBTransaction();
-      try {
-        
-    	
-        
-        //get the data from the database
-        int numEncounters=myShepherd.getNumEncounters();
-        
-        //put the data into the database as a double
-	if(!pageVisited)
-	{
-		encs.inc((double)numEncounters);
-		pageVisited = true; 
-	}	
-       
-        
-        out.println("<p> Number of encounters is: "+encs.get()+"</p>");
-
+      try 
+      { 
+       //put the data into the database as a double
+        if(!pageVisited)
+        {
+          this.setNumberOfUsers(myShepherd);
+          this.setNumberOfEncounters(myShepherd);
+          pageVisited = true; 
+        }	
       } 
       catch (Exception lEx) {
     	
@@ -125,6 +120,28 @@ public class TestPrometheusClient extends HttpServlet {
     out.close();
   }
 
+  public void setNumberOfUsers(Sheperd ms)
+  {
+    int numUsers = ms.getNumUsers();
+    this.updateGauge(this.numUsersInWildbook, (double)value);
+    out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
+  }
+
+  public void setNumberOfEncounters(Sheperd ms)
+  {
+    //get the data from the database
+    /*Number of encounters */
+    int numEncounters=ms.getNumEncounters(); //in aggregate
+    this.encs.inc((double)numEncounters);
+    out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+
+  }
+
+  //method used to update the gauge.
+  public void updateGauge(Gauge myGauge, double value)
+  {
+    myGauge.set(value);
+  }
 
 }
 
