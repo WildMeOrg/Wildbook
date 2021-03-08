@@ -752,27 +752,23 @@ How did you hear about Kitizen Science?
 %>
 <div id="instructions">
 
-<h3>Instructions for the Online Workflow Study</h3>
+<h1>Instructions</h1>
 
-<p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p class="style2">This study is open from March 9 to July 31, 2020.</p>
-<h3><a name="requirements" id="requirements"></a>Computer requirements</h3></a>
-<p>
-Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.
-</p>
-<h3>Rules</h3>
-<p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
-<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
-<h3>General instructions</h3>
-<p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system  or if they are a new cat to the system. These test photos were obtained in the same way that our project will gather data in the real world.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
-<p class="style2">There are 168 submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of 24 submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
-<h3>Step 1: assigning cat attributes</h3>
-<p>For each submission, you start out by assigning attributes to a cat. You may have one, two, or three photos of the cat, and you may or may not be able to see the cat's whole body. Base your attribute assignments only on what you are sure you can see.</p>
-<p>Some photos will have more than one cat. The  cat whose attributes you are assigning and  matching  will be highlighted  in a green box.</p>
-<p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
+<p>Kitizen Science's online cat photo processing system is set up as a collection of &quot;microtasks,&quot; where volunteers are presented with a cat submission consisting of one or more photos.  You will select attributes about the cat such as its primary color and whether it is a kitten or adult, and then compare it to suggested matches in our cat database to decide if the cat is new to our system or if it has a match. By building a record of when and where individual cats are sighted during cat surveys, you are helping us take a large number of photos and distill them into data in a format we can analyze.</p>
+<p>Some cats are harder to see than others, and you won't always get to see good details. All that we ask is that you do your best with each  submission. Similar to other photo classification citizen science programs, Kitizen Science  records and compares the opinions of multiple volunteers so that occasional mistakes are outvoted by a majority.</p>
+<p>There is no time limit or minimum commitment required, so this is a great way to participate in animal welfare research in a way that works with your own busy schedule.  We estimate each submission will  take a few minutes to process once you become familiar with our workflow.  You can process a maximum of 24 submissions per day.  (People tend to become less successful at these tasks when they have been staring at photos for long periods of time.)</p>
+<h2 class="style2">Key rules</h2>
+<p>We ask that you create only one login for Kitizen Science, and each login  has only one person using it.  We will be noting volunteer demographics summaries in reporting facts  about our program, so we want to have one set of demographic information  tied to one user account.  We also ask that you work by yourself and don't ask friends for help in identifying cats.</p>
+<p>Because of the small screen size of smartphones and many tablets, we do not want you to process submissions on these smaller devices. Please use a standard desktop or laptop computer.</p>
+<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you.</p>
+<h2>Step 1: Assigning cat attributes</h2>
+<p>For each submission, you start out by assigning attributes to a cat.  You will have one or more photos of a cat, and you may or may not be able to see the cat's whole body.  Base your attribute assignments only on what you are certain that you can see.</p>
+<p align="center"><img src="images/instructions_focalcat.jpg" width="600" height="250" /></p>
+<p>Some photos will have more than one cat. The   cat whose attributes you are assigning and  matching  will be emphasized  by a  green box with thicker lines, whereas background cats in the same photo will be in  a box with  thinner lines. </p>
+<p>First, select a cat's primary color or pattern group.  These are our 8 color categories:</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="550" valign="top"><div align="center"><strong>Black</strong>:  or with a  very small patch of white</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Black</strong>:  solid or with a   small patch of white</div></td>
     <td width="50" valign="top">&nbsp;</td>
     <td width="550" valign="top"><div align="center"><strong>Black &amp; White</strong></div></td>
   </tr>
@@ -831,7 +827,7 @@ Because of the small screen size of web browsers on smart phones and small table
 <p>Second, select the cat's life stage (kitten or adult).</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="551" valign="top"><div align="center"><strong>Kitten</strong>: Under about 6 months</div></td>
+    <td width="551" valign="top"><div align="center"><strong>Kitten</strong>: under about 6 months</div></td>
     <td width="50" valign="top">&nbsp;</td>
     <td width="498" valign="top"><div align="center"><strong>Adult</strong></div></td>
   </tr>
@@ -842,7 +838,7 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side, or select unknown. Depending on how much eartip was removed at surgery time, these can be very hard to see.</p>
+<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side, or select unknown. Depending on how much eartip was removed at surgery time, these can be very hard to see. If you are not certain, select &quot;unknown.&quot;</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Yes - Cat's Left</strong></div></td>
@@ -850,9 +846,9 @@ Because of the small screen size of web browsers on smart phones and small table
     <td width="498" valign="top"><div align="center"><strong>Yes - Cat's Right</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_tipleft.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/attributes_ear_left.jpg" xsrc="images/instructions_tipleft.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/instructions_tipright.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/attributes_ear_right.jpg" xsrc="images/instructions_tipright.jpg" width="402" height="300" /></div></td>
   </tr>
   <tr>
     <td height="50">&nbsp;</td>
@@ -865,13 +861,13 @@ Because of the small screen size of web browsers on smart phones and small table
     <td valign="top"><div align="center"></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_untipped.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/attributes_ear_untip.jpg" xsrc="images/instructions_untipped.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
     <td><div align="center"></div></td>
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Fourth, select whether the cat is wearing a collar (yes, no, or unknown).</p>
+<p>Fourth, select whether the cat is wearing a collar. If you are not certain, select &quot;unknown.&quot;</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Yes</strong></div></td>
@@ -885,12 +881,12 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Lastly, select the cat's sex if it is obvious what the cat's sex is (male, female, or unknown).  A photo could contain an unsterilized male cat's rear end where you can see testicles, or a photo of an unsterilized female could show visible mammary gland development or depict a mother with her kittens.  Most cats will be labeled as unknown sex.</p>
+<p>Lastly, select the cat's sex.  A photo could contain an unsterilized male cat's rear end where you can see testicles, or a photo of an unsterilized female could show visible mammary gland development or depict a mother with her kittens.  Most cats will be labeled as unknown  because sex generally isn't visible.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="551" valign="top"><div align="center"><strong>Male - Testicles visible</strong></div></td>
+    <td width="551" valign="top"><div align="center"><strong>Male:</strong> testicles visible</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td width="498" valign="top"><div align="center"><strong> Female - Nursing or with small kittens</strong></div></td>
+    <td width="498" valign="top"><div align="center"><strong> Female: </strong> nursing kittens</div></td>
   </tr>
   <tr>
     <td><div align="center"><img src="images/instructions_male.jpg" width="402" height="300" /></div></td>
@@ -899,10 +895,10 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h3>Step 2: cat matching</h3>
-<p>After saving a cat's attributes, our system will look for likely potential matches based on those attributes, showing you cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
+<h2>Step 2: Cat matching</h2>
+<p>After saving a cat's attributes, our  program  looks for  potential matches based on a cat's attributes and its physical proximity to other cats in our system, showing you a list of cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
 <p>&nbsp;</p>
-<h3>How to compare similar cats</h3><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
+<h2>How to compare similar cats</h2><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center">Is the cat's ear tip removed (a marker  of sterilization)?  These can be hard to see at a distance or in cats with a small amount of  ear tip removed. Either ear may be tipped.</div></td>
@@ -952,7 +948,7 @@ Because of the small screen size of web browsers on smart phones and small table
   <tr>
     <td valign="top"><div align="center">How long is the cat's fur? Long, medium, or short fur?  (Sometimes  cats have tangled mats of fur shaved during the spay/neuter process, but bald spots don't stay long.)</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have the best view.  Try to do your best with the angle you have. </div></td>
+    <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have a good view.  Try to do your best with the angle you have. </div></td>
   </tr>
   <tr>
     <td><div align="center"><img src="images/whattolookfor_longfur.jpg" width="307" height="250" /></div></td>
@@ -961,7 +957,8 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h3>That's everything!</h3><p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
+<h2>That's everything!</h2>
+<p>If you have any questions, please email kitizenscience@gmail.com.</p>
 <p>&nbsp;</p>
 
 <div id="register-quiz">
