@@ -3600,7 +3600,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     int num = 0;
     pm.getFetchPlan().setGroup("count");
     Extent encClass = pm.getExtent(Encounter.class, true);
-    Query q = pm.newQuery("SELECT DISTINCT individual.individualID FROM org.ecocean.Encounter WHERE "+filter);
+    Query q = pm.newQuery("SELECT DISTINCT individual FROM org.ecocean.Encounter WHERE "+filter);
     try {
       Collection results = (Collection) q.execute();
       num = results.size();

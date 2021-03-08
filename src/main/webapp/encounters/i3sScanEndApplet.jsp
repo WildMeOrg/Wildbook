@@ -445,7 +445,7 @@ $(document).ready(function() {
         <tr align="left" valign="top">
          
                 <td width="60" align="left"><a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getDisplayName()%>
                 </a></td>
              
           <%if (results[p].encounterNumber.equals("N/A")) {%>
