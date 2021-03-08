@@ -567,8 +567,12 @@ if(request.getParameter("encounterNumber")!=null){
 <%
 }
 %>
+<div id="please-wait">
+    <h3>Processing. This may take several minutes. Please wait...</h3>
+</div>
+<div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> 
 
-<div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
+</div>
 <script src='//<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
 
 
@@ -667,6 +671,7 @@ $(window).on('resizeEnd', function(ev) {
 
 function mediaAssetModifyAjax(data){
   $('.popup-content').html('<div class="throbbing">updating</div>');
+  $('#please-wait').show();
   $.ajax({
       url: wildbookGlobals.baseUrl + '/MediaAssetModify',
       data: JSON.stringify(data),
@@ -680,7 +685,7 @@ function mediaAssetModifyAjax(data){
               return;
           }
           if (data.responseJSON.success) {
-            alert("You are about to rotate a media asset. Please note that this will actually create a new media asset, which will appear as the last media asset in your gallery. Also note that you may have to add an annotation manually on this new media asset.");
+            alert("You are about to rotate a media asset. Please note that this will actually create a new media asset, which will appear as the last media asset in your gallery.");
             window.location.reload();
             return;
           }
@@ -807,6 +812,7 @@ function niceId(id) {
 
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
+    $('#please-wait').hide();
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
     // $('.image-enhancer-wrapper').each(function (i, el) {

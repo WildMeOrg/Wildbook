@@ -79,6 +79,7 @@ public class IA {
     }
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
+        handleMissingAcmids(mas, myShepherd);
         Task task = new Task();
         if (parentTask != null) task.setParameters(parentTask.getParameters());
         task.setObjectMediaAssets(mas);
@@ -107,6 +108,51 @@ public class IA {
 System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + task);
         return task;
     }
+
+    public static void handleMissingAcmids(List<MediaAsset> mediaAssets,
+            Shepherd myShepherd) {
+        int count = 0;
+        int stopAfter = 200000;
+        int batchThreshold = 50;
+        ArrayList<MediaAsset> assetsWithMissingAcmids = new ArrayList<MediaAsset>();
+        try {
+            for (MediaAsset ma : mediaAssets) {
+                count++;
+                if (count > stopAfter) {
+                    break;
+                }
+                if (ma != null && !ma.hasAcmId()) {
+                    assetsWithMissingAcmids.add(ma);
+                }
+                if ((assetsWithMissingAcmids.size() >= batchThreshold)
+                        || count == mediaAssets.size()) {
+                    if (assetsWithMissingAcmids.size() > 0) { // if count gets to the end and assetsWithMissingAcmids is still empty, no need to do any of this
+                        try {
+                            IBEISIA.sendMediaAssetsNew(assetsWithMissingAcmids,
+                                    myShepherd.getContext());
+                        } catch (Exception e) {
+                            System.out.println(
+                                    "Error sending media asset to IA in handleMissingAcmids method in IA.java");
+                            e.printStackTrace();
+                        }
+                        try {
+                            Thread.sleep(30000);
+                        } catch (java.lang.InterruptedException ex) {
+                            System.out.println(
+                                    "You’re not the only one who didn’t sleep well. Neither did the thread in handleMissingAcmids in IA.java");
+                            ex.printStackTrace();
+                        }
+                    }
+                    assetsWithMissingAcmids = new ArrayList<MediaAsset>();
+                    myShepherd.updateDBTransaction();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error in handleMissingAcmids in IA.java");
+            e.printStackTrace();
+            myShepherd.rollbackDBTransaction();
+        }
+    } 
 
     //similar behavior to above: basically fake /ia api call, but via queue
     //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
