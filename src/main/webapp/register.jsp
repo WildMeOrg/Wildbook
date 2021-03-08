@@ -261,7 +261,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h2 class="intro">Participate in Online Data Processing Tasks</h2>
+              <h2 class="intro">Cat &amp; Mouse: Do Online Microtasks</h2>
 
               <p align="left">
 		
@@ -300,29 +300,23 @@ Our second validation study, open to everyone, will begin in January 2020!
 
 <img src="images/participate_manatdesk.jpg" width="324" height="300" hspace="10" vspace="10" align="right" />
 
-<p>
-The second of our three validation studies is about testing the online workflow for Kitizen Science. This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match. Now, we are doing a trial of how the online side of Kitizen Science works. We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
-</p>
+<p>Kitizen Science is now open for online &quot;Cat &amp; Mouse&quot; volunteers! You can participate from anywhere so long as you have a laptop/desktop computer, a reliable internet connection, and the ability to read and understand English.</p>
+<p>Kitizen Science's online cat photo processing system is set up as a collection of &quot;microtasks,&quot; where volunteers are presented with a cat submission consisting of one or more photos. You will select attributes about the cat such as its primary color and whether it is a kitten or adult, and then compare it to suggested matches in our cat database to decide if the cat is new to our system or if it has a match. By building a record of when and where individual cats are sighted during cat surveys, you are helping us take a large number of photos and distill them into data in a format we can analyze.</p>
+<p>Some cats are harder to see than others, and you won't always get to see good details. All that we ask is that you do your best with each submission. Similar to other photo classification citizen science programs, Kitizen Science records and compares the opinions of multiple volunteers so that occasional mistakes are outvoted by a majority.</p>
+<p>There is no time limit or minimum commitment required, so this is a great way to participate in animal welfare research in a way that works with your own busy schedule. We estimate each submission will take a few minutes to process once you become familiar with our workflow. You can process a maximum of 24 submissions per day.  (People tend to become less successful at these tasks when they have been staring at photos for long periods of time.)</p>
+<p><a href="register.jsp?instructions">You can read the instructions</a> for more information before deciding whether you want to sign up as a volunteer - these instructions will also provided as part of the volunteer registration process.</p>
 
-<p xstyle="display: none;">
-You can <a href="register.jsp?instructions">read the online study instructions</a>
-before deciding whether you want to volunteer.
-</p>
-
-<p>
-This study is open from March 9 to July 31, 2020.
-</p>
 
 </div>
 
-<!--
+
 <p>
     <form method="post">
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
 </p>
--->
+
 
 
 <%
