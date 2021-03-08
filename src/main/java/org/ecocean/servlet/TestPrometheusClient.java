@@ -57,7 +57,7 @@ public class TestPrometheusClient extends HttpServlet {
 
 	//create counter with name and description  
     Counter encs=null;
-	
+    boolean pageVisited = false; 	
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     encs = Counter.build()
@@ -94,8 +94,13 @@ public class TestPrometheusClient extends HttpServlet {
         //get the data from the database
         int numEncounters=myShepherd.getNumEncounters();
         
-        //put the data into the database as a double 
-        encs.inc((double)numEncounters);
+        //put the data into the database as a double
+	if(!pageVisited)
+	{
+		encs.inc((double)numEncounters);
+		pageVisited = true; 
+	}	
+       
         
         out.println("<p> Number of encounters is: "+encs.get()+"</p>");
 
