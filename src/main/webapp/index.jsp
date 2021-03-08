@@ -804,7 +804,6 @@ finally{
 <%
 //}
 
-System.out.println("Waht??");
 %>
 
 <jsp:include page="footer.jsp" flush="true"/>

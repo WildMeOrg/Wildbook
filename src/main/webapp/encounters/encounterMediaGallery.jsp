@@ -936,7 +936,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 				return;
 			}
 			var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-      wildbook.openInTab('https://spotashark.com/encounters/encounterSpotTool.jsp?imageID=' + mid);
+      wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
             ],
             [

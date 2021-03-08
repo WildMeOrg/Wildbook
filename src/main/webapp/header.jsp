@@ -506,7 +506,7 @@ finally{
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                 <li><a href="https://spotashark.com/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
+                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
                                 <% } %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
@@ -561,7 +561,7 @@ finally{
                             %>
                             	<li class="divider"></li>
                             	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            	<li><a href="https://spotashark.com/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
                             	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                             <%
                             }
