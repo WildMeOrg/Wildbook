@@ -421,8 +421,7 @@ $(document).ready(function() {
 
           // replace this with canUserViewIndividual?
           // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
+          boolean isOwner = Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
@@ -516,7 +515,7 @@ if (sharky.getNames() != null) {
       <span class="nameError">X</span>
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div>
-    
+
     <div class="namesection nickname">
       <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Nickname" data-oldvalue="<%=nickyName%>" value="Nickname" placeholder="Nickname" >
       <span id="NicknameColon">:</span>
@@ -534,9 +533,9 @@ if (sharky.getNames() != null) {
       <span class="nameError">X</span>
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div>
-    
-    
-    
+
+
+
     <%
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
@@ -634,7 +633,7 @@ if (sharky.getNames() != null) {
 
     // "add new name" Edit section
     %>
-    
+
         <div class="newnameButton">
       <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
     </div>
@@ -652,7 +651,7 @@ if (sharky.getNames() != null) {
       <span class="nameError">X</span>
 
     </div>
-    
+
     </div>
     <div class="row">
       <div class="col-sm-6">
@@ -1696,7 +1695,7 @@ if (sharky.getNames() != null) {
               if ((relationshipID != null) && (relationshipID != "")) {
                   //persistenceID = relationshipID;
             	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                  
+
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -2054,7 +2053,7 @@ if (sharky.getNames() != null) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
                 var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                
+
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
