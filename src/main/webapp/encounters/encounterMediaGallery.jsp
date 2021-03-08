@@ -617,6 +617,34 @@ if(request.getParameter("encounterNumber")!=null){
   }
 
 
+  
+  var removeAnnotation = function(maId, aid) {
+	    if (confirm("Are you sure you want to remove this Annotation from the encounter?")) {
+	      $.ajax({
+	        url: '../EncounterRemoveAnnotation',
+	        type: 'POST',
+	        dataType: 'json',
+	        contentType: "application/json",
+	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
+	        success: function(d) {
+	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
+	          //var res=JSON.parse(d);
+	          if(d.revertToTrivial){
+	        	  $('#image-enhancer-wrapper-' + maId + '-'+aid).remove();
+	          }
+	          else{
+	          	$('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove();
+	          }
+	        },
+	        error: function(x,y,z) {
+	          console.warn("failed to remove Annotation: "+aid);
+	          console.warn('%o %o %o', x, y, z);
+	        }
+	      });
+	    }
+	  }
+  
+
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
@@ -930,6 +958,41 @@ function doImageEnhancer(sel) {
                 if (indivId && ma) $.get('../individualGallery.jsp?secondary&id=' + indivId + '&matchPhotoAssetId=' + mid);
             }],
 	];
+
+			//remove annotation option for non-trivial annots
+        	opt.menu.push(
+	        	[
+	        		function(obj){
+	        				if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
+	        				var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
+	        				var ma = assetById(mid);
+	        				if (!ma) return false;
+	        				if(ma.features && ma.features[0] && ma.features[0].type){
+	        					return 'remove annotation';
+	        				}
+	        				return false;
+	        		}
+	        		, 
+	        		function(enh) {
+					var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		           	        var aid = imageEnhancer.annotationIdFromElement(enh.imgEl.context);
+		           	        removeAnnotation(maId,aid);
+	            	        }
+	        	]
+        	);
+
+                //manual annotation.jsp
+                opt.menu.push([
+                    function(enh) {  //the menu text
+            	        return 'add annotation';
+                    },
+                    function(enh) {  //the menu action
+            	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                        var ma = assetById(mid);
+                        wildbook.openInTab('manualAnnotation.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
+                    }
+                ]);
+
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%

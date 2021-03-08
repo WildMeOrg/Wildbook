@@ -293,6 +293,7 @@
 
 				/StandardImport = authc, roles[admin]
 
+		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -2396,6 +2397,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+
+ <servlet>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveAnnotation</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
 
     <servlet>
