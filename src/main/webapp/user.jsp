@@ -80,7 +80,7 @@ if (user.getUserImage() == null) { %>
     <div class="user-profile-image user-profile-image-blank"></div>
 <%
 } else {
-    String profileUrl = "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/" + user.getUsername() + "/" + user.getUserImage().getFilename();
+    String profileUrl = "/wildbook_data_dir/users/" + user.getUsername() + "/" + user.getUserImage().getFilename();
 %>
     <div class="user-profile-image">
         <img src="<%=profileUrl%>" />

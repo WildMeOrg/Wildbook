@@ -64,7 +64,7 @@ if (pageTitle == null) {
 
 String username = null;
 User user = null;
-String profilePhotoURL=urlLoc+"images/image-not-found.jpg";
+String profilePhotoURL=urlLoc+"/images/image-not-found.jpg";
 boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
 String notifications="";
@@ -77,7 +77,7 @@ try {
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
   	if(user.getUserImage()!=null){
-  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+  	  profilePhotoURL="/wildbook_data_dir/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
       System.out.println("new profilePhotoURL is: " + profilePhotoURL);
   	}
   }
