@@ -846,9 +846,9 @@ How did you hear about Kitizen Science?
     <td width="498" valign="top"><div align="center"><strong>Yes - Cat's Right</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/attributes_ear_left.jpg" xsrc="images/instructions_tipleft.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/instructions_tipleft.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/attributes_ear_right.jpg" xsrc="images/instructions_tipright.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/instructions_tipright.jpg" width="402" height="300" /></div></td>
   </tr>
   <tr>
     <td height="50">&nbsp;</td>
@@ -861,7 +861,7 @@ How did you hear about Kitizen Science?
     <td valign="top"><div align="center"></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/attributes_ear_untip.jpg" xsrc="images/instructions_untipped.jpg" width="402" height="300" /></div></td>
+    <td><div align="center"><img src="images/instructions_untipped.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
     <td><div align="center"></div></td>
   </tr>
