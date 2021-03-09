@@ -67,6 +67,7 @@ public class TestPrometheusClient extends HttpServlet {
     super.init(config);
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
+    numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
   }
 
 
