@@ -125,7 +125,7 @@ public class TestPrometheusClient extends HttpServlet {
   public void setNumberOfUsers(PrintWriter out)
   {
     int numUsers = this.myShepherd.getNumUsers();
-    this.updateGauge(this.numUsersInWildbook, (double)numUsers);
+    this.numUsersInWildbook.set((double)numUsers);
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
   }
 
@@ -137,12 +137,6 @@ public class TestPrometheusClient extends HttpServlet {
     this.encs.inc((double)numEncounters);
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
-  }
-
-  //method used to update the gauge.
-  public void updateGauge(Gauge myGauge, double value)
-  {
-    myGauge.set(value);
   }
 
 }
