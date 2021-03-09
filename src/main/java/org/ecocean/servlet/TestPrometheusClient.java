@@ -57,7 +57,7 @@ public class TestPrometheusClient extends HttpServlet {
 
 
 	//create counter with name and description  
-  Sheperd myShepherd; 
+  Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
@@ -81,8 +81,8 @@ public class TestPrometheusClient extends HttpServlet {
     //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
-    myShepherd = new Shepherd(context);
-    myShepherd.setAction("TestPrometheusSevlet.class");
+    this.myShepherd = new Shepherd(context);
+    this.myShepherd.setAction("TestPrometheusSevlet.class");
 
 
 
@@ -97,8 +97,8 @@ public class TestPrometheusClient extends HttpServlet {
        //put the data into the database as a double
         if(!pageVisited)
         {
-          this.setNumberOfUsers(myShepherd);
-          this.setNumberOfEncounters(myShepherd);
+          this.setNumberOfUsers(out);
+          this.setNumberOfEncounters(out);
           pageVisited = true; 
         }	
       } 
@@ -115,25 +115,25 @@ public class TestPrometheusClient extends HttpServlet {
       finally {
     	  
     	//always close DB connections  
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        this.myShepherd.rollbackDBTransaction();
+        this.myShepherd.closeDBTransaction();
       }
 
     out.close();
   }
 
-  public void setNumberOfUsers(Sheperd ms)
+  public void setNumberOfUsers(PrintWriter out)
   {
-    int numUsers = ms.getNumUsers();
-    this.updateGauge(this.numUsersInWildbook, (double)value);
+    int numUsers = this.myShepherd.getNumUsers();
+    this.updateGauge(this.numUsersInWildbook, (double)numUsers);
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
   }
 
-  public void setNumberOfEncounters(Sheperd ms)
+  public void setNumberOfEncounters(PrintWriter out)
   {
     //get the data from the database
     /*Number of encounters */
-    int numEncounters=ms.getNumEncounters(); //in aggregate
+    int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
     this.encs.inc((double)numEncounters);
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
