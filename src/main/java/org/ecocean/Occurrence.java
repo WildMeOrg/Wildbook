@@ -1669,6 +1669,16 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         }
     }
 
+    // rule is, we die, we take our encounters with us!
+    public void delete(Shepherd myShepherd) throws IOException {
+        //in new-world, we should never have zero!
+        if (!Util.collectionIsEmptyOrNull(this.encounters)) for (Encounter enc : this.encounters) {
+            SystemLog.debug("deletion of Occurrence {} triggering deletion of {}", this.getId(), enc);
+            enc.delete(myShepherd);
+        }
+        myShepherd.getPM().deletePersistent(this);
+    }
+
     //TODO should probably be in Util or base class?
     public static Double tryDouble(Object obj) {  //this will throw exceptions if conversion problems
         if (obj == null) return null;

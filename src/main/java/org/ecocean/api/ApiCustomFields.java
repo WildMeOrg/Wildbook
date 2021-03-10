@@ -414,6 +414,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
 
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 
+    // this works fine for encounters presently but we override for occurrencesightings
     public void delete(Shepherd myShepherd) throws IOException {
         myShepherd.getPM().deletePersistent(this);
     }
