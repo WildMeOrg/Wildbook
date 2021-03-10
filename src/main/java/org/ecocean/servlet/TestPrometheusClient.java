@@ -43,7 +43,8 @@ import javax.xml.bind.DatatypeConverter;
 
 
 import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
+
+
 
 /**
  *
@@ -134,9 +135,9 @@ public class TestPrometheusClient extends HttpServlet {
     //out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
 
     //get number of users w/ login privileges
-    int numUsersUsername = this.myShepherd.getWithUsername();
-    int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
-    this.numUsersWithLogin.set((double)numUsersUsername);
+   // int numUsersUsername = this.myShepherd.getWithUsername();
+   // int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
+    //this.numUsersWithLogin.set((double)numUsersUsername);
     //out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>");
   }
 
@@ -153,7 +154,7 @@ public class TestPrometheusClient extends HttpServlet {
   public void printMetrics(PrintWriter out)
   {
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
-    out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>");
+   
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
   }
 
