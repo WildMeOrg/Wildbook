@@ -356,7 +356,7 @@ input.nameKey, input.nameValue {
     // edit button click area!!
     $("#edit").click(function() {
       $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
-      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
+      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #NicknameColon, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
@@ -365,7 +365,7 @@ input.nameKey, input.nameValue {
     //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
       //$(".namebutton").css("visibility", "hidden");
-      $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
+      $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, #NicknameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
     });
@@ -421,8 +421,7 @@ $(document).ready(function() {
 
           // replace this with canUserViewIndividual?
           // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
+          boolean isOwner = Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
@@ -491,7 +490,7 @@ if (sharky.getNames() != null) {
     List<String> names = sharky.getNamesList();
     if ((names != null) && (names.size() > 0)) allNames = String.join(", ", names);
     String defaultName = sharky.getDefaultName();
-
+    String nickyName = sharky.getNickName();
 
 
 
@@ -501,30 +500,51 @@ if (sharky.getNames() != null) {
 
     %>
     <div class="namesection default">
-      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" value="Default" placeholder="Default" >
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" data-oldvalue="<%=defaultName%>" value="Default" placeholder="Default" >
       <span id="defaultNameColon">:</span>
       <%
       if(defaultName!=null){
       %>
-      	<span class="nameValue default"><%=defaultName%></span>
+      	<span class="nameValue default" data-oldvalue="<%=defaultName%>"><%=defaultName%></span>
       <%
       }
       else{defaultName="";}
       %>
-      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" data-oldkey="Default" data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
       <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-    </div><%
+    </div>
+
+    <div class="namesection nickname">
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Nickname" data-oldvalue="<%=nickyName%>" value="Nickname" placeholder="Nickname" >
+      <span id="NicknameColon">:</span>
+      <%
+      if(nickyName!=null){
+      %>
+      	<span class="nameValue" data-oldvalue="<%=nickyName%>"><%=nickyName %></span>
+      <%
+      }
+      else{nickyName="";}
+      %>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" data-oldkey="Nickname" data-oldvalue="<%=nickyName%>" value="<%=nickyName%>" placeholder="<%=nickyName %>" >
+      <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+      <span class="nameCheck">&check;</span>
+      <span class="nameError">X</span>
+      <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+    </div>
 
 
+
+    <%
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
     	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
       boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
+	      if (nameKey.equals("Nickname")) continue;
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
         MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
         List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
@@ -589,7 +609,8 @@ if (sharky.getNames() != null) {
 	      </div>
 
         <%
-      }else{
+      }
+      else{
         String noIdTxt = props.getProperty("noIdIn");
         %>
         <div class="namesection <%=researchProjId%>">
@@ -613,11 +634,8 @@ if (sharky.getNames() != null) {
 
     // "add new name" Edit section
     %>
-    </div>
-    <div class="row">
-      <div class="col-sm-6">
 
-    <div class="newnameButton">
+        <div class="newnameButton">
       <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
     </div>
 
@@ -635,8 +653,14 @@ if (sharky.getNames() != null) {
 
     </div>
 
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+
+
+
     <style>
-      #defaultNameColon, .nameCheck, .nameError, .nameErrorDiv, div.newname, input.namebutton, input.btn.deletename {
+      #defaultNameColon, #NicknameColon, .nameCheck, .nameError, .nameErrorDiv, div.newname, input.namebutton, input.btn.deletename {
         display: none;
       }
       span.nameKey {
@@ -1672,7 +1696,7 @@ if (sharky.getNames() != null) {
               if ((relationshipID != null) && (relationshipID != "")) {
                   //persistenceID = relationshipID;
             	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                  
+
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -2030,7 +2054,7 @@ if (sharky.getNames() != null) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
                 var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                
+
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
