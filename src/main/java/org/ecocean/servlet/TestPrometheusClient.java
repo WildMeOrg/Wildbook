@@ -43,8 +43,8 @@ import javax.xml.bind.DatatypeConverter;
 
 
 import io.prometheus.client.Counter;
-import io.prometheus.exporter;
-
+import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.MetricsServlet;
 
 /**
  *
@@ -63,6 +63,7 @@ public class TestPrometheusClient extends HttpServlet {
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
+  MetricsServlet m = new MetricsServlet();
 
 
   public void init(ServletConfig config) throws ServletException {
