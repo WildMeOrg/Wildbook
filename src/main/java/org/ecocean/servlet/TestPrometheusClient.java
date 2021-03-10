@@ -18,6 +18,7 @@
  */
 
 package org.ecocean.servlet;
+package org.eclipse.jetty.servlet;
 
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
@@ -64,6 +65,7 @@ public class TestPrometheusClient extends HttpServlet {
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
   MetricsServlet m = new MetricsServlet();
+  
 
 
   public void init(ServletConfig config) throws ServletException {

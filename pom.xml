@@ -93,10 +93,18 @@
   <version>0.10.0</version>
 </dependency>
 
+<!-- For MetricsServlet class --> 
 <dependency>
   <groupId>io.prometheus</groupId>
   <artifactId>simpleclient_servlet</artifactId>
   <version>0.10.0</version>
+</dependency>
+
+<!-- For ServletContextHandler-->
+<dependency>
+	<groupId>org.eclipse.jetty</groupId>
+	<artifactId>jetty-servlet</artifactId>
+	<version>9.4.0.M0</version>
 </dependency>
 
 
