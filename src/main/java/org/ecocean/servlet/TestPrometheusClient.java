@@ -61,6 +61,7 @@ public class TestPrometheusClient extends HttpServlet {
   boolean pageVisited = false; 	
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
+  Gauge numUsersWithLogin = null;
 
 
   public void init(ServletConfig config) throws ServletException {
@@ -68,6 +69,7 @@ public class TestPrometheusClient extends HttpServlet {
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
+    numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
   }
 
 
@@ -125,9 +127,16 @@ public class TestPrometheusClient extends HttpServlet {
 
   public void setNumberOfUsers(PrintWriter out)
   {
+    //Getting number of users by wildbook
     int numUsers = this.myShepherd.getNumUsers();
     this.numUsersInWildbook.set((double)numUsers);
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
+
+    //get number of users w/ login privileges
+    int numUsersUsername = this.myShepherd.getWithUsername();
+    int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
+    this.numUsersWithLogin.set((double)numUsersLogin + (double)numUsersUsername);
+    out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>")
   }
 
   public void setNumberOfEncounters(PrintWriter out)
