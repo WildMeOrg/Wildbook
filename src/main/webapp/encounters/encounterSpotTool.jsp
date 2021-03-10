@@ -477,9 +477,16 @@ function updateSpotCounts() {
 		return;
 	}
 
-	$('.about-spots-total').html('total spots: ' + itool.spots.length);
+	if (itool.spots.length >= 50) {
+		$('.about-spots-total').css("background-color","red");
+		$('.about-spots-total').html('total spots: ' + itool.spots.length + ' (max)');
+	} else {
+		$('.about-spots-total').css("background-color","transparent");
+		$('.about-spots-total').html('total spots: ' + itool.spots.length);
+	}
 	var sp = itool.spotsVisible();
 	$('.about-spots-in-region').html('spots in region: ' + sp.length);
+
 }
 
 function spotsCancel() {
