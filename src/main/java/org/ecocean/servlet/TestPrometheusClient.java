@@ -67,6 +67,7 @@ public class TestPrometheusClient extends HttpServlet {
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
+  Gauge numUsersWithLogin = null;
   MetricsServlet m = new MetricsServlet();
   
 
