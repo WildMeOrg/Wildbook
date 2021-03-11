@@ -137,10 +137,10 @@ public class TestPrometheusClient extends HttpServlet {
     this.numUsersInWildbook.set((double)numUsers);
 
     //get number of users w/ login privileges
-    List numUsersUsername = this.myShepherd.getWithUsername();
-    int totalNumUsersUsername = numUsersUsername.size;
+    //List numUsersUsername = this.myShepherd.getWithUsername();
+    //int totalNumUsersUsername = numUsersUsername.size;
     //int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
-    this.numUsersWithLogin.set((double)totalNumUsersUsername);
+    //this.numUsersWithLogin.set((double)totalNumUsersUsername);
    
   }
 
@@ -158,7 +158,7 @@ public class TestPrometheusClient extends HttpServlet {
   {
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
 
-    out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>"); 
+    //out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>"); 
    
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
   }
