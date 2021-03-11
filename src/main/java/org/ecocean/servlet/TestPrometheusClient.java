@@ -171,7 +171,8 @@ public class TestPrometheusClient extends HttpServlet {
     
     //Media Assets by WildBook
     Iterator numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
-    this.numMediaAssetsWildbook.set(numMediaAssetsWild);
+    int wildbookMA = numMediaAssetsWild.size();
+    this.numMediaAssetsWildbook.set((double)wildbookMA);
 
     //Media Assets by Specie
   }
