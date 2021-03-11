@@ -812,9 +812,26 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 
+    <%
+
+    //add locationID to fields selectable
+
+    %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
+        <label class="control-label text-danger"><%=props.getProperty("locationID") %></label>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+      </div>
+    </div>
+
+
+
+    <div class="form-group required">
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label"><%=props.getProperty("where") %></label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <input name="location" type="text" id="location" size="40" class="form-control">
@@ -822,21 +839,6 @@ if(CommonConfiguration.showReleaseDate(context)){
     </div>
 
 
-    <%
-
-//add locationID to fields selectable
-
-%>
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("locationID") %></label>
-      </div>
-
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
-
-      </div>
-    </div>
 <%
 
 
