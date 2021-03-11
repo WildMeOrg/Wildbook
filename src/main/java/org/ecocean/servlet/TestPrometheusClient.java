@@ -77,6 +77,7 @@ public class TestPrometheusClient extends HttpServlet {
             .name("number_encounters").help("Number encounters").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
+    numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
   }
 
 
@@ -142,8 +143,11 @@ public class TestPrometheusClient extends HttpServlet {
     //get number of users w/ login privileges
     List<User> numUsersUsername = this.myShepherd.getUsersWithUsername();
     int totalNumUsersUsername = numUsersUsername.size();
-    //int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
     this.numUsersWithLogin.set((double)totalNumUsersUsername);
+
+    //get number of users w/out login privileges
+    int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
+    this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
    
   }
 
@@ -161,7 +165,9 @@ public class TestPrometheusClient extends HttpServlet {
   {
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
 
-    out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>"); 
+    out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>"); 
+    
+    out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
    
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
   }
