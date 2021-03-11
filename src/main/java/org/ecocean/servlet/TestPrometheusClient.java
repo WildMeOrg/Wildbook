@@ -172,7 +172,7 @@ public class TestPrometheusClient extends HttpServlet {
   //Individual Metrics
   public void setNumberOfIndividuals(PrintWriter out){
     //Get num of Individuals by wildbook
-    List<MarkedIndividual> flukeBookIndi = this.myShepherd.getMarkedIndividualsFromProject(flukebook);
+    List<MarkedIndividual> flukeBookIndi = this.myShepherd.getMarkedIndividualsFromProject();
     int totalFlukeBookInd = flukeBookIndi.size();
     int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
     this.indiv.inc((double)totalFlukeBookInd);
@@ -191,6 +191,8 @@ public class TestPrometheusClient extends HttpServlet {
     //this.numMediaAssetsWildbook.set((double)numMediaAssetsWild);
 
     //Media Assets by Specie
+    // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
+    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
   }
 
   public void printMetrics(PrintWriter out)
@@ -200,8 +202,9 @@ public class TestPrometheusClient extends HttpServlet {
     out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
     out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
    
-  //  out.println("<p>Encounter Metrics</p>");
-  //   out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+   out.println("<p>Encounter Metrics</p>");
+    out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+
   out.println("<p>Individual Metrics</p>");
     out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
 
