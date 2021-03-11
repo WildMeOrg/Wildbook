@@ -141,7 +141,7 @@ public class TestPrometheusClient extends HttpServlet {
 
     //get number of users w/ login privileges
     List<User> numUsersUsername = this.myShepherd.getUsersWithUsername();
-    int totalNumUsersUsername = numUsersUsername.size;
+    int totalNumUsersUsername = numUsersUsername.size();
     //int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
     this.numUsersWithLogin.set((double)totalNumUsersUsername);
    
