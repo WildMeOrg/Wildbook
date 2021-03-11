@@ -2665,11 +2665,22 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
-
-        if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
-
+        org.json.JSONObject JSONnames = new org.json.JSONObject();
+        if (detLvl.equals(DETAIL_LEVEL_MIN)) {
+          JSONnames.put("displayName", getDisplayName());
+          obj.put("names", JSONnames);
+          return obj;
+        }
+        if (names!=null) {
+          List<String> keys = names.getSortedKeys();
+          for (String key : keys) { 
+            try {
+              JSONnames.put(key, names.getValue(key));
+            } catch (Exception e) {}
+          }
+        } 
+        obj.put("names", JSONnames);
         if (this.taxonomy != null) obj.put("taxonomy", this.taxonomy.asApiJSONObject());
-
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
     }
