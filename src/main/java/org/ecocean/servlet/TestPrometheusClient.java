@@ -80,7 +80,7 @@ public class TestPrometheusClient extends HttpServlet {
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
     numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
-    numMediaAssetsWildbook = Counter.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
+    numMediaAssetsWildbook = Gauge.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
   }
 
 
@@ -171,7 +171,7 @@ public class TestPrometheusClient extends HttpServlet {
     
     //Media Assets by WildBook
     Iterator numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
-    this.numMediaAssetsWildbook.set((double)numMediaAssetsWild);
+    this.numMediaAssetsWildbook.set(numMediaAssetsWild);
 
     //Media Assets by Specie
   }
