@@ -29,6 +29,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.MarkedIndividual;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -165,15 +166,16 @@ public class TestPrometheusClient extends HttpServlet {
     /*Number of encounters */
     int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
     this.encs.inc((double)numEncounters);
-    //out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
   }
 
   //Individual Metrics
   public void setNumberOfIndividuals(PrintWriter out){
     //Get num of Individuals by wildbook
+    List<MarkedIndividual> flukeBookIndi = this.myShepherd.getMarkedIndividualsFromProject(this);
+    int totalFlukeBookInd = flukeBookIndi.size();
     int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
-    this.indiv.inc((double)numIndividuals);
+    this.indiv.inc((double)totalFlukeBookInd);
 
   }
 
@@ -201,7 +203,7 @@ public class TestPrometheusClient extends HttpServlet {
   //  out.println("<p>Encounter Metrics</p>");
   //   out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
   out.println("<p>Individual Metrics</p>");
-    out.println("<p> Number of users is: "+this.indiv.get()+"</p>"); 
+    out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
 
   out.println("<p>Media Asset Metrics</p>");
     out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
