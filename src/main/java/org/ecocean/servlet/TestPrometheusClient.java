@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
@@ -43,6 +44,8 @@ import javax.xml.bind.DatatypeConverter;
 
 
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.MetricsServlet;
 
 /**
  *
@@ -56,12 +59,21 @@ public class TestPrometheusClient extends HttpServlet {
 
 
 	//create counter with name and description  
-    Counter encs=null;
-	
+  Shepherd myShepherd; 
+  boolean pageVisited = false; 	
+  Counter encs=null;
+  Gauge numUsersInWildbook = null; 
+  Gauge numUsersWithLogin = null;
+  MetricsServlet m = new MetricsServlet();
+  
+
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
+    numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
+    numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
   }
 
 
@@ -76,8 +88,8 @@ public class TestPrometheusClient extends HttpServlet {
     //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("TestPrometheusSevlet.class");
+    this.myShepherd = new Shepherd(context);
+    this.myShepherd.setAction("TestPrometheusSevlet.class");
 
 
 
@@ -87,18 +99,16 @@ public class TestPrometheusClient extends HttpServlet {
 
     //begin db connection
       myShepherd.beginDBTransaction();
-      try {
-        
-    	
-        
-        //get the data from the database
-        int numEncounters=myShepherd.getNumEncounters();
-        
-        //put the data into the database as a double 
-        encs.inc((double)numEncounters);
-        
-        out.println("<p> Number of encounters is: "+encs.get()+"</p>");
-
+      try 
+      { 
+       //put the data into the database as a double
+        if(!pageVisited)
+        {
+          this.setNumberOfUsers(out);
+          this.setNumberOfEncounters(out);
+          pageVisited = true; 
+        }	
+        this.printMetrics(out);
       } 
       catch (Exception lEx) {
     	
@@ -113,13 +123,43 @@ public class TestPrometheusClient extends HttpServlet {
       finally {
     	  
     	//always close DB connections  
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        this.myShepherd.rollbackDBTransaction();
+        this.myShepherd.closeDBTransaction();
       }
 
     out.close();
   }
 
+  public void setNumberOfUsers(PrintWriter out)
+  {
+    //Getting number of users by wildbook
+    int numUsers = this.myShepherd.getNumUsers();
+    this.numUsersInWildbook.set((double)numUsers);
+    //out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
+
+    //get number of users w/ login privileges
+   // int numUsersUsername = this.myShepherd.getWithUsername();
+   // int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
+    //this.numUsersWithLogin.set((double)numUsersUsername);
+    //out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>");
+  }
+
+  public void setNumberOfEncounters(PrintWriter out)
+  {
+    //get the data from the database
+    /*Number of encounters */
+    int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
+    this.encs.inc((double)numEncounters);
+    //out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+
+  }
+
+  public void printMetrics(PrintWriter out)
+  {
+    out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
+   
+    out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+  }
 
 }
 
