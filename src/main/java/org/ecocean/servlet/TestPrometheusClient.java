@@ -68,6 +68,7 @@ public class TestPrometheusClient extends HttpServlet {
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
+  Gauge numMediaAssetsWildbook = null;
   MetricsServlet m = new MetricsServlet();
   
 
@@ -79,6 +80,7 @@ public class TestPrometheusClient extends HttpServlet {
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
     numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
+    numMediaAssetsWildbook = Counter.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
   }
 
 
@@ -111,6 +113,7 @@ public class TestPrometheusClient extends HttpServlet {
         {
           this.setNumberOfUsers(out);
           this.setNumberOfEncounters(out);
+          this.setNumberofMediaAssets(out);
           pageVisited = true; 
         }	
         this.printMetrics(out);
@@ -135,6 +138,7 @@ public class TestPrometheusClient extends HttpServlet {
     out.close();
   }
 
+//User Metrics
   public void setNumberOfUsers(PrintWriter out)
   {
     //Getting number of users by wildbook
@@ -151,7 +155,7 @@ public class TestPrometheusClient extends HttpServlet {
     this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
    
   }
-
+//Ecounter Metrics
   public void setNumberOfEncounters(PrintWriter out)
   {
     //get the data from the database
@@ -162,15 +166,28 @@ public class TestPrometheusClient extends HttpServlet {
 
   }
 
+//Media Assets Metrics
+  public void setNumberofMediaAssets(PrintWriter out){
+    
+    //Media Assets by WildBook
+    Iterator numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
+    this.numMediaAssetsWildbook.set((double)numMediaAssetsWild);
+
+    //Media Assets by Specie
+  }
+
   public void printMetrics(PrintWriter out)
   {
+  out.println("<p>User Metrics</p>");
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
-
-    out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>"); 
-    
+    out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
     out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
    
+   out.println("<p>Encounter Metrics</p>");
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+
+  out.println("<p>Media Asset Metrics</p>");
+    out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>")
   }
 
 }
