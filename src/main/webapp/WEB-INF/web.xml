@@ -1208,6 +1208,19 @@
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
+  
+  
+        <servlet>
+    <servlet-name>TestPrometheusClient</servlet-name>
+    <servlet-class>org.ecocean.servlet.TestPrometheusClient</servlet-class>
+  </servlet>
+
+      <servlet-mapping>
+    <servlet-name>TestPrometheusClient</servlet-name>
+    <url-pattern>/TestPrometheusClient</url-pattern>
+  </servlet-mapping>
+  
+  
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>
