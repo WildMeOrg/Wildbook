@@ -187,7 +187,7 @@ public class TestPrometheusClient extends HttpServlet {
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
   out.println("<p>Media Asset Metrics</p>");
-    out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>")
+    out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
   }
 
 }
