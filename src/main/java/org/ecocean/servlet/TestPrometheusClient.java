@@ -69,6 +69,7 @@ public class TestPrometheusClient extends HttpServlet {
   Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
   Gauge numMediaAssetsWildbook = null;
+  Counter indiv = null;
   MetricsServlet m = new MetricsServlet();
   
 
@@ -77,6 +78,8 @@ public class TestPrometheusClient extends HttpServlet {
     super.init(config);
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
+    indiv = Counter.build()
+            .name("number_individual_wildbook").help("Number individuals by Wildbook").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
     numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
@@ -166,6 +169,14 @@ public class TestPrometheusClient extends HttpServlet {
 
   }
 
+  //Individual Metrics
+  public void setNumberOfIndividuals(PrintWriter out){
+    //Get num of Individuals by wildbook
+    int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
+    this.indiv.inc((double)numIndividuals);
+
+  }
+
 //Media Assets Metrics
   public void setNumberofMediaAssets(PrintWriter out){
     
@@ -189,6 +200,8 @@ public class TestPrometheusClient extends HttpServlet {
    
   //  out.println("<p>Encounter Metrics</p>");
   //   out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+  out.println("<p>Individual Metrics</p>");
+    out.println("<p> Number of users is: "+this.indiv.get()+"</p>"); 
 
   out.println("<p>Media Asset Metrics</p>");
     out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
