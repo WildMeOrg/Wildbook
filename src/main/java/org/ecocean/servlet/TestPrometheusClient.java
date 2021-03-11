@@ -175,7 +175,7 @@ public class TestPrometheusClient extends HttpServlet {
     // while(numMediaAssetsWild.hasNext()){
 
     // }
-    this.numMediaAssetsWildbook.set((double)numMediaAssetsWild);
+    //this.numMediaAssetsWildbook.set((double)numMediaAssetsWild);
 
     //Media Assets by Specie
   }
@@ -187,8 +187,8 @@ public class TestPrometheusClient extends HttpServlet {
     out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
     out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
    
-   out.println("<p>Encounter Metrics</p>");
-    out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+  //  out.println("<p>Encounter Metrics</p>");
+  //   out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
   out.println("<p>Media Asset Metrics</p>");
     out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
