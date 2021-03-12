@@ -901,21 +901,33 @@ rtn.put("_payload", payload);
             throw new IOException("RestServlet.handlePost() passed null class");
         }
 
+        System.out.println("STATUS 0 --> "+response.getStatus());
+
         try {
+            final String LOG_POST_SUCCESS = "RestServlet.handlePost() instance={} created={}";  
             if (cls.equals("org.ecocean.Occurrence")) {
                 Occurrence occ = Occurrence.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(occ);
-                SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, occ);
+                SystemLog.info(LOG_POST_SUCCESS, instanceId, occ);
                 myShepherd.commitDBTransaction();
                 rtn.put("success", true);
                 rtn.put("result", occ.asApiJSONObject());   //TODO what detail to pass?
             } else if (cls.equals("org.ecocean.Encounter")) {
                 Encounter enc = Encounter.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(enc);
-                SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, enc);
+                SystemLog.info(LOG_POST_SUCCESS, instanceId, enc);
                 myShepherd.commitDBTransaction();
                 rtn.put("success", true);
                 rtn.put("result", enc.asApiJSONObject());   //TODO what detail to pass?
+            } else if (cls.equals("org.ecocean.MarkedIndividual")) {
+                System.out.println("STATUS 1 --> "+response.getStatus());
+                MarkedIndividual individual = MarkedIndividual.fromApiJSONObject(myShepherd, payload);
+                myShepherd.getPM().makePersistent(individual);
+                SystemLog.info(LOG_POST_SUCCESS, instanceId, individual);
+                myShepherd.commitDBTransaction();
+                rtn.put("success", true);
+                rtn.put("result", individual.asApiJSONObject());   //TODO what detail to pass?
+                System.out.println("STATUS 2 --> "+response.getStatus());
             } else {
                 SystemLog.error("RestServlet.handlePost() passed invalid class {}, instance={}", cls, instanceId);
                 rtn.put("message", _rtnMessage("invalid_class", payload));
@@ -932,6 +944,8 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         String rtnS = rtn.toString();
         response.setContentLength(rtnS.getBytes("UTF-8").length);
+        System.out.println("RETURN toString() --> "+rtnS.toString());
+        System.out.println("STATUS 3 --> "+response.getStatus());
         out.println(rtnS);
         out.close();
         return;
