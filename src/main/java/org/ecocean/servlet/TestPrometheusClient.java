@@ -189,15 +189,16 @@ public class TestPrometheusClient extends HttpServlet {
     
     //Media Assets by WildBook
     Iterator<String> numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
-    ArrayList<String> mediaAssestsList = new ArrayList<String>();
-    // while (numMediaAssetsWild.hasNext()){
-    //   String string = (String)numMediaAssetsWild.next();
-    //   mediaAssestsList.add(string);
-    // }
+    List<String> mediaAssestsList = new ArrayList<String>();
+    while (numMediaAssetsWild.hasNext()){
+        mediaAssestsList.add(numMediaAssetsWild.next());
+      // String string = (String)numMediaAssetsWild.next();
+      // mediaAssestsList.add(string);
+    }
     // numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
-    // int wildbookMA = mediaAssestsList.size();
+    int wildbookMA = mediaAssestsList.size();
     
-    // this.numMediaAssetsWildbook.set((double)wildbookMA);
+    this.numMediaAssetsWildbook.set((double)wildbookMA);
 
     //Media Assets by Specie
     // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
