@@ -180,12 +180,12 @@ public class TestPrometheusClient extends HttpServlet {
   public void setNumberofMediaAssets(PrintWriter out){
     
     //Media Assets by WildBook
-    // Iterator<Integer> numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
-    // List<Integer> mediaAssestsList = new ArrayList<>();
-    // numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
-    // int wildbookMA = mediaAssestsList.size();
+    Iterator<Integer> numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
+    ArrayList<int> mediaAssestsList = new ArrayList<int>();
+    numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
+    int wildbookMA = mediaAssestsList.size();
     
-    // this.numMediaAssetsWildbook.set((double)wildbookMA);
+    this.numMediaAssetsWildbook.set((double)wildbookMA);
 
     //Media Assets by Specie
     // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
