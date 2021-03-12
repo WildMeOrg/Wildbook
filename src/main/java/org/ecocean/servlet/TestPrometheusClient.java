@@ -186,10 +186,10 @@ public class TestPrometheusClient extends HttpServlet {
     //   String string = (String)numMediaAssetsWild.next();
     //   mediaAssestsList.add(string);
     // }
-    numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
-    int wildbookMA = mediaAssestsList.size();
+    // numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
+    // int wildbookMA = mediaAssestsList.size();
     
-    this.numMediaAssetsWildbook.set((double)wildbookMA);
+    // this.numMediaAssetsWildbook.set((double)wildbookMA);
 
     //Media Assets by Specie
     // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
