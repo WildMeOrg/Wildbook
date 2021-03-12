@@ -66,6 +66,7 @@ public class TestPrometheusClient extends HttpServlet {
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Counter encs=null;
+  Counter encsSubDate = null;
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
@@ -79,6 +80,8 @@ public class TestPrometheusClient extends HttpServlet {
     super.init(config);
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
+    encsSubDate = Counter.build()
+            .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
     indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
@@ -166,6 +169,11 @@ public class TestPrometheusClient extends HttpServlet {
     int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
     this.encs.inc((double)numEncounters);
 
+    //Number of Encounters by Submission Dates
+    List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
+    int totalNumEncSub = numEncountersSub.size();
+    this.encsSubDate.set((double)totalNumEncSub);
+
   }
 
   //Individual Metrics
@@ -205,6 +213,7 @@ public class TestPrometheusClient extends HttpServlet {
    
    out.println("<p>Encounter Metrics</p>");
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+    out.println("<p> Number of encounters bu Submission Date is: "+this.encsSubDate.get()+"</p>");
 
   out.println("<p>Individual Metrics</p>");
     out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
