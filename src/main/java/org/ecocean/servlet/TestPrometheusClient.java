@@ -172,7 +172,7 @@ public class TestPrometheusClient extends HttpServlet {
     //Number of Encounters by Submission Dates
     List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
     int totalNumEncSub = numEncountersSub.size();
-    this.encsSubDate.set((double)totalNumEncSub);
+    this.encsSubDate.inc((double)totalNumEncSub);
 
   }
 
