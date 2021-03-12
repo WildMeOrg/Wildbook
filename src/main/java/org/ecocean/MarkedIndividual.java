@@ -2674,6 +2674,22 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
+
+        if (!Util.collectionIsEmptyOrNull(this.encounters)) {
+            org.json.JSONArray jarr = new org.json.JSONArray();
+            for (Encounter enc : this.encounters) {
+                if (detLvl.equals(DETAIL_LEVEL_MIN)) {
+                    org.json.JSONObject j = new org.json.JSONObject();
+                    j.put("id", enc.getId());
+                    j.put("version", enc.getVersion());
+                    jarr.put(j);
+                } else {
+                    jarr.put(enc.asApiJSONObject(arg));
+                }
+            }
+            obj.put("encounters", jarr);
+        }
+
         org.json.JSONObject JSONnames = new org.json.JSONObject();
         if (detLvl.equals(DETAIL_LEVEL_MIN)) {
           JSONnames.put("displayName", getDisplayName());
