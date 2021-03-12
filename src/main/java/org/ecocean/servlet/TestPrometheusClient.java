@@ -70,7 +70,7 @@ public class TestPrometheusClient extends HttpServlet {
   Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
   Gauge numMediaAssetsWildbook = null;
-  Counter indiv = null;
+  Gauge indiv = null;
   MetricsServlet m = new MetricsServlet();
   
 
@@ -79,8 +79,7 @@ public class TestPrometheusClient extends HttpServlet {
     super.init(config);
     encs = Counter.build()
             .name("number_encounters").help("Number encounters").register();
-    indiv = Counter.build()
-            .name("number_individual_wildbook").help("Number individuals by Wildbook").register();
+    indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
     numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
