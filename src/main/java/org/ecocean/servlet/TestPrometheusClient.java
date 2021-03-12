@@ -172,10 +172,8 @@ public class TestPrometheusClient extends HttpServlet {
   //Individual Metrics
   public void setNumberOfIndividuals(PrintWriter out){
     //Get num of Individuals by wildbook
-    List<MarkedIndividual> flukeBookIndi = this.myShepherd.getMarkedIndividualsFromProject();
-    int totalFlukeBookInd = flukeBookIndi.size();
     int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
-    this.indiv.inc((double)totalFlukeBookInd);
+    this.indiv.inc((double)numIndividuals);
 
   }
 
