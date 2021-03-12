@@ -180,7 +180,7 @@ public class TestPrometheusClient extends HttpServlet {
   public void setNumberofMediaAssets(PrintWriter out){
     
     //Media Assets by WildBook
-    Iterator numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
+    Iterator<Integer> numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
     List<Integer> mediaAssestsList = new ArrayList<>();
     numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
     int wildbookMA = mediaAssestsList.size();
