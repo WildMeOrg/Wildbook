@@ -213,7 +213,7 @@ public class TestPrometheusClient extends HttpServlet {
    
    out.println("<p>Encounter Metrics</p>");
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
-    out.println("<p> Number of encounters bu Submission Date is: "+this.encsSubDate.get()+"</p>");
+    out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
 
   out.println("<p>Individual Metrics</p>");
     out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
