@@ -82,10 +82,12 @@ try{
                 <button class="large"><%=props.getProperty("buttonReport")%><span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
-            <a href="adoptamanta.jsp">
-                <button class="large heroBtn">Adopt a Manta<span class="button-icon" aria-hidden="true"></button>
-            </a>
-            <br>
+            <% if (CommonConfiguration.allowAdoptions(context)) { %>
+	            <a href="adoptamanta.jsp">
+	                <button class="large heroBtn">Adopt a Manta<span class="button-icon" aria-hidden="true"></button>
+	            </a>
+	            <br>
+            <% } %>
         </div>
 
 	</div>
@@ -345,7 +347,8 @@ try{
     <section class="container main-section">
         <h2 class="section-header"><%=props.getProperty("help-title")%></h2>
         <p class="lead text-center"><%=props.getProperty("help-text")%></p>
-
+        
+		<% if (CommonConfiguration.allowAdoptions(context)) { %>
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3 class="uppercase"><%=props.getProperty("help-adopt-title")%></h3>
@@ -388,6 +391,7 @@ try{
             
             
         </section>
+        <% } %>
         <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
