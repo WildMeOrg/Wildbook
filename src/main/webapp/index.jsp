@@ -213,10 +213,12 @@ h2.vidcap {
                 <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
-            <a href="adoptashark.jsp">
-                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
-            </a>
-            <br>
+            <% if (CommonConfiguration.allowAdoptions(context)) { %>
+	            <a href="adoptashark.jsp">
+	                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+	            </a>
+	            <br>
+            <% } %>
 
             </div>
         </div>   
@@ -515,6 +517,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
         <h2 class="section-header">How can I help?</h2>
         <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
 
+		<% if (CommonConfiguration.allowAdoptions(context)) { %>
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3 class="uppercase">Adopt a Whale Shark</h3>
@@ -565,6 +568,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 
         </section>
         <hr />
+        <% } %>
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
