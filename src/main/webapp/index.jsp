@@ -560,15 +560,21 @@ You too can assist with whale shark research, by submitting photos and sighting 
             }
             catch(Exception e){e.printStackTrace();}
             finally{
-	            myShepherd.rollbackDBTransaction();
-	            myShepherd.closeDBTransaction();
+	            
             }
+            
+
             %>
 
 
         </section>
         <hr />
-        <% } %>
+        <% } 
+        
+           myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
+            %>
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
