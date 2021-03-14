@@ -110,7 +110,7 @@
 <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlets -->
 <dependency>
   <groupId>org.eclipse.jetty</groupId>
-  <artifactId>jetty-servlets</artifactId>
+  <artifactId>jeity-servlet</artifactId>
   <version>11.0.1</version>
 </dependency>
 
