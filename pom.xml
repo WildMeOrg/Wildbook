@@ -100,19 +100,20 @@
   <version>0.10.0</version>
 </dependency>
 
-<!-- For ServletContextHandler-->
+<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util -->
 <dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-servlet</artifactId>
-	<version>9.4.0.M0</version>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-util</artifactId>
+    <version>11.0.1</version>
 </dependency>
 
-<!-- https://mvnrepository.com/artifact/com.moelholm/prometheus-spring-boot-starter -->
+
+<!-- https://mvnrepository.com/artifact/com.moelholm/prometheus-spring-boot-starter
 <dependency>
   <groupId>com.moelholm</groupId>
   <artifactId>prometheus-spring-boot-starter</artifactId>
   <version>1.0.2</version>
-</dependency>
+</dependency> -->
 
 
 
