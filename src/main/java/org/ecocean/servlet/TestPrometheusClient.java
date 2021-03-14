@@ -45,7 +45,12 @@ import javax.xml.bind.DatatypeConverter;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
+import io.prometheus.client.CollectorRegistry; 
 import io.prometheus.client.exporter.MetricsServlet;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import java.util.*;
 
 /**
  *
@@ -109,6 +114,7 @@ public class TestPrometheusClient extends HttpServlet {
           pageVisited = true; 
         }	
         this.printMetrics(out);
+        this.exposeMetrics();
       } 
       catch (Exception lEx) {
     	
@@ -159,6 +165,16 @@ public class TestPrometheusClient extends HttpServlet {
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
    
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+  }
+
+  public void exposeMetrics()
+  {
+    CollectorRegistry.defaultRegistry.metricFamilySamples();
+    //Server server = new Server(1234);
+    ServletContextHandler context = new ServletContextHandler();
+    context.setContextPath("/");
+    //server.setHandler(context);
+    context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
   }
 
 }
