@@ -100,7 +100,7 @@
   <version>0.10.0</version>
 </dependency>
 
-<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
+<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
 <dependency>
   <groupId>org.eclipse.jetty</groupId>
   <artifactId>jetty-server</artifactId>
@@ -112,7 +112,7 @@
   <groupId>org.eclipse.jetty</groupId>
   <artifactId>jeity-servlet</artifactId>
   <version>11.0.1</version>
-</dependency>
+</dependency> -->
 
 
 
