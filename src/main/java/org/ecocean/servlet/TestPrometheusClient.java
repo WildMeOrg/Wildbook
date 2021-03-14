@@ -170,10 +170,10 @@ public class TestPrometheusClient extends HttpServlet {
   public void exposeMetrics()
   {
     CollectorRegistry.defaultRegistry.metricFamilySamples();
-    //Server server = new Server(1234);
+    Server server = new Server(1234);
     ServletContextHandler context = new ServletContextHandler();
     context.setContextPath("/");
-    //server.setHandler(context);
+    server.setHandler(context);
     context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
   }
 
