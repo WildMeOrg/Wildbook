@@ -122,6 +122,21 @@
   <version>20070405</version>
 </dependency>
 
+<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlets -->
+<dependency>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-servlet</artifactId>
+  <version>11.0.1</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
+<dependency>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-server</artifactId>
+  <version>11.0.1</version>
+</dependency>
+
+
 
 
 
