@@ -5,6 +5,7 @@ org.json.JSONObject, org.json.JSONArray,
 java.util.Collection,
 java.util.HashMap,
 java.util.List,
+java.util.Arrays,
 javax.jdo.Query,
 java.sql.*,
 com.google.common.collect.Lists,
@@ -72,11 +73,12 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     List deDupedAllResults = null;
     boolean isNoMatchInConsensusMatches = false;
     int numNoMatchVotes = 0;
+    List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
 
     //remove no match but track it for later
     if(currentDecisions != null && currentDecisions.size()>0){
-      encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions);
-      votesOfMostAgreedUponMatches = Decision.getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(currentDecisions);
+      encounterIdsOfMostAgreedUponMatches = Decision.getEncounterIdsOfMostAgreedUponMatches(currentDecisions, skipUsers);
+      votesOfMostAgreedUponMatches = Decision.getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(currentDecisions, skipUsers);
       if(encounterIdsOfMostAgreedUponMatches != null && encounterIdsOfMostAgreedUponMatches.size()>0){
         int noMatchIndex = encounterIdsOfMostAgreedUponMatches.indexOf("no-match");
         if(noMatchIndex>-1){
@@ -84,7 +86,6 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
           encounterIdsOfMostAgreedUponMatches.remove("no-match");
           numNoMatchVotes = votesOfMostAgreedUponMatches.get(noMatchIndex);
           votesOfMostAgreedUponMatches.remove(noMatchIndex);
-          
         }
       }
     }
@@ -260,6 +261,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
   myShepherd.beginDBTransaction();
   String encId = request.getParameter("id");
   Encounter enc = myShepherd.getEncounter(encId);
+  List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
   if (enc == null) {
       response.setStatus(404);
       out.println("404 not found");
@@ -279,7 +281,6 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             JSONObject rtn = new JSONObject();
             if(secondEncounter.equals(noMatchTxt)){
                 //just advance the encounter to finished
-                System.out.println("deleteMe got here n1");
                 Encounter focalEncounter = myShepherd.getEncounter(request.getParameter("id"));
                 if(focalEncounter!=null){
                     System.out.println("deteleMe got here encounter " + focalEncounter.getCatalogNumber() + " is non null");
@@ -927,6 +928,9 @@ function enableMatch() {
                     //populate no match details
                     if(xhr.responseJSON.similar[0]){
                         let numNoMatchVotes = xhr.responseJSON.similar[0].numNoMatchVotes; //every match candidate will have the same value for .numNoMatchVotes, so just use the first match candidate if it exists
+                        if(numNoMatchVotes === undefined){ //assuming that it's because there were no similar matches, so all of the volunteers voted for "no match"
+                            numNoMatchVotes = <%=Decision.getNumberOfMatchDecisionsMadeForEncounter(myShepherd.getDecisionsForEncounter(enc), skipUsers)%>;
+                        }
                         let noMatchHtml = '<div class="no-match-volunteer-support">*' + numNoMatchVotes + ' volunteer(s) said that there was no match. Remember that you do not have to designate a match for this individual.</div>';
                         noMatchHtml += '<input type="button" id="no-match-merge-button" value="Confirm No Match and Finish Encounter" onClick="markFinishedAndNavigateToMergePage();" />';
                         noMatchHtml += '<br/>';
@@ -1062,7 +1066,6 @@ function markFinishedAndNavigateToMergePage() {
     let checkedEncounter = $('.match-chosen-cat:checked').val();
     let noMatchTxt = "no-match";
     if (!checkedEncounter){
-        console.log("deleteMe got here no checked encounter");
         checkedEncounter = noMatchTxt; //the ajax call is looking for a match to this exact string to advance the encounter state without doing the merge stuff
     }
     let focalEncounter = encounterId;

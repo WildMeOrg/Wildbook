@@ -19,6 +19,8 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class DecisionStore extends HttpServlet {
@@ -54,6 +56,7 @@ public class DecisionStore extends HttpServlet {
         String prop = jsonIn.optString("property", null);
         JSONObject value = jsonIn.optJSONObject("value");
         JSONObject multiple = jsonIn.optJSONObject("multiple");  //special multiple prop/value set!
+        List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
         Encounter enc = myShepherd.getEncounter(encId);
         //TODO we could make this check owner of Encounter(s) etc etc
         if (enc == null) {
@@ -69,7 +72,7 @@ public class DecisionStore extends HttpServlet {
                 Decision dec = new Decision(user, enc, key, val);
                 myShepherd.getPM().makePersistent(dec);
                 ids.put(dec.getId());
-                Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
+                Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
             }
             if (ids.length() > 0) {
                 rtn.put("success", true);
@@ -87,7 +90,7 @@ public class DecisionStore extends HttpServlet {
             myShepherd.getPM().makePersistent(dec);
             rtn.put("success", true);
             rtn.put("decisionId", dec.getId());
-            Decision.updateEncounterStateBasedOnDecision(myShepherd, enc);
+            Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
         }
 
         if (rtn.optBoolean("success", false)) {

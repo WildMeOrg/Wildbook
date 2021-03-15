@@ -544,6 +544,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
 <%
     myShepherd.beginDBTransaction();
     int locIdMissingCounter = 0;
+    List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
     for (Encounter enc : encs) {
         locIdMissingCounter = 0;
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
@@ -574,7 +575,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
         if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
-          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc); //TODO comment back in
+          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO comment back in
         }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
@@ -613,7 +614,6 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
         }
 
         if (isAdmin) {
-            List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
             jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
             query = myShepherd.getPM().newQuery(jdoql);
             col = (Collection)query.execute();
@@ -660,18 +660,20 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
                 }
               }
                 if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
-                if ("match".equals(dec.getProperty())) dct++;
+                if ("match".equals(dec.getProperty())){
+                    dct++;
+                }
             }
 
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            if(Decision.getNumberOfMatchDecisionsMadeForEncounter(decs)>0){
+            if(Decision.getNumberOfMatchDecisionsMadeForEncounter(decs, skipUsers)>0){
               NumberFormat nf= NumberFormat.getInstance();
               nf.setMaximumFractionDigits(2);
               nf.setMinimumFractionDigits(2);
               // nf.setRoundingMode(RoundingMode.HALF_UP);
-              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\"><span class=\"add-link-if-merge-review\" data-current-enc-num=\"" + enc.getCatalogNumber() + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs))) + " % </span></td>");
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs, skipUsers) + "\"><span class=\"add-link-if-merge-review\" data-current-enc-num=\"" + enc.getCatalogNumber() + "\">" + nf.format((Double) (100.00 * Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs, skipUsers)/Decision.getNumberOfMatchDecisionsMadeForEncounter(decs, skipUsers))) + " % </span></td>");
             }else{
-              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs) + "\">" + "No Decisions Yet</td>");
+              out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs, skipUsers) + "\">" + "No Decisions Yet</td>");
             }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }

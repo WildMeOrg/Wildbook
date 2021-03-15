@@ -534,13 +534,10 @@ public static String getDate() {
 public static Connection getConnection() throws SQLException {
 
   Connection conn = null;
-  System.out.println("deleteMe datanucleus.ConnectionUserName is: " + CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
-  System.out.println("deleteMe datanucleus.ConnectionPassword is: " + CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
   Properties connectionProps = new Properties();
   connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
   connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
-  System.out.println("deleteMe datanucleus.ConnectionURL is: " + CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"));
   conn = DriverManager.getConnection(
   CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
   connectionProps);

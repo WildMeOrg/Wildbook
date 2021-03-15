@@ -155,7 +155,7 @@ public class MediaAssetModify extends HttpServlet {
     if(masterChildren != null && masterChildren.size()>0){
       if(masterChildren.size()>1){
         //TODO ack!?
-        System.out.println("deleteMe should not be here. More than one master child!");
+        System.out.println("BUG! Should not be here. More than one master child!");
       } else{
         MediaAsset masterChild = masterChildren.get(0);
         purgeRotationLabelsFrom(masterChild, myShepherd);
