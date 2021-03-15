@@ -114,7 +114,7 @@ public class TestPrometheusClient extends HttpServlet {
           pageVisited = true; 
         }	
         this.printMetrics(out);
-        this.exposeMetrics();
+       // this.exposeMetrics();
       } 
       catch (Exception lEx) {
     	
