@@ -128,25 +128,31 @@ public class Decision {
 
     public static Double getNumberOfAgreementsForMostAgreedUponMatch(List<Decision> decisionsForEncounter){
       Double numAgreements = 0.0;
+      JSONObject winningIndividualTracker = new JSONObject();
+      winningIndividualTracker = populateIdsWithMatchCounts(decisionsForEncounter);
+      String winningMarkedIndividualId = findWinner(winningIndividualTracker);
+      if(winningMarkedIndividualId!=null){
+        numAgreements = winningIndividualTracker.optDouble(winningMarkedIndividualId, 0.0);
+      }
+      return numAgreements;
+    }
+
+    public static JSONObject populateIdsWithMatchCounts(List<Decision> decisionsForEncounter){
       String currentMatchedMarkedIndividualId = null;
       Double currentMatchedMarkedIndividualCounter = 0.0;
-      JSONObject winningIndividualTracker = new JSONObject();
+      JSONObject idsWithMatchCounts = new JSONObject();
       JSONObject currentDecisionValue = new JSONObject();
       if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
         for(Decision currentDecision: decisionsForEncounter){
           if(currentDecision.getProperty().equals("match")){
             currentDecisionValue = currentDecision.getValue();
             currentMatchedMarkedIndividualId = currentDecisionValue.optString("id", null);
-            currentMatchedMarkedIndividualCounter = winningIndividualTracker.optDouble(currentMatchedMarkedIndividualId, 0.0);
-            winningIndividualTracker.put(currentMatchedMarkedIndividualId, currentMatchedMarkedIndividualCounter+1);
+            currentMatchedMarkedIndividualCounter = idsWithMatchCounts.optDouble(currentMatchedMarkedIndividualId, 0.0);
+            idsWithMatchCounts.put(currentMatchedMarkedIndividualId, currentMatchedMarkedIndividualCounter+1);
           }
         }
-        String winningMarkedIndividualId = findWinner(winningIndividualTracker);
-        if(winningMarkedIndividualId!=null){
-          numAgreements = winningIndividualTracker.optDouble(winningMarkedIndividualId, 0.0);
-        }
       }
-      return numAgreements;
+      return idsWithMatchCounts;
     }
 
     public static String findWinner(JSONObject winningIndividualTracker) {
@@ -166,58 +172,33 @@ public class Decision {
 
     public static List<String> getEncounterIdsOfMostAgreedUponMatches(List<Decision> decisionsForEncounter){
       List<String> matchedIds = new ArrayList<String>();
-      String currentMatchedMarkedIndividualId = null;
-      Double currentMatchedMarkedIndividualCounter = 0.0;
-      JSONObject winningIndividualTracker = new JSONObject();
-      JSONObject currentDecisionValue = new JSONObject();
+      JSONObject idsWithMatchCounts = new JSONObject();
       if(decisionsForEncounter!=null && decisionsForEncounter.size()>0){
-        for(Decision currentDecision: decisionsForEncounter){
-          if(currentDecision.getProperty().equals("match")){
-            currentDecisionValue = currentDecision.getValue();
-            currentMatchedMarkedIndividualId = currentDecisionValue.optString("id", null);
-            currentMatchedMarkedIndividualCounter = winningIndividualTracker.optDouble(currentMatchedMarkedIndividualId, 0.0);
-            winningIndividualTracker.put(currentMatchedMarkedIndividualId, currentMatchedMarkedIndividualCounter+1);
-          }
-        }
-        matchedIds = sortIdsByPopularity(winningIndividualTracker);
+        idsWithMatchCounts = populateIdsWithMatchCounts(decisionsForEncounter);
+        matchedIds = sortIdsByPopularity(idsWithMatchCounts);
       }
       return matchedIds;
     }
 
-    public static List<Integer> getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(List<Decision> decisionsForEncounter) { //TODO DRY this tf up
-      System.out.println("deleteMe getNumberOfVotesForMostAgreedUponMatchesInParallelOrder called");
+    public static List<Integer> getNumberOfVotesForMostAgreedUponMatchesInParallelOrder(List<Decision> decisionsForEncounter) {
       List<Integer> numberOfVotes = new ArrayList<Integer>();
-      String currentMatchedMarkedIndividualId = null;
-      Double currentMatchedMarkedIndividualCounter = 0.0;
-      JSONObject winningIndividualTracker = new JSONObject();
-      JSONObject currentDecisionValue = new JSONObject();
+      JSONObject idsWithMatchCounts = new JSONObject();
       if (decisionsForEncounter != null && decisionsForEncounter.size() > 0) {
-        for (Decision currentDecision : decisionsForEncounter) {
-          if (currentDecision.getProperty().equals("match")) {
-            currentDecisionValue = currentDecision.getValue();
-            currentMatchedMarkedIndividualId = currentDecisionValue
-                .optString("id", null);
-            currentMatchedMarkedIndividualCounter = winningIndividualTracker
-                .optDouble(currentMatchedMarkedIndividualId, 0.0);
-            winningIndividualTracker.put(currentMatchedMarkedIndividualId,
-                currentMatchedMarkedIndividualCounter + 1);
-          }
-        }
-        numberOfVotes = sortVotesByPopularity(winningIndividualTracker);
+        idsWithMatchCounts = populateIdsWithMatchCounts(decisionsForEncounter);
+        numberOfVotes = sortVotesByPopularity(idsWithMatchCounts);
       }
-      System.out.println("deleteMe returning numberOfVotes as : " + numberOfVotes.toString());
       return numberOfVotes;
     }
 
-    public static List<Integer> sortVotesByPopularity(JSONObject winningIndividualTracker) { //TODO DRY up
+    public static List<Integer> sortVotesByPopularity(JSONObject idsWithMatchCounts) {
       List<Integer> votes = new ArrayList<Integer>();
       int minVotesToBeIncluded = 1;
-      Iterator<String> keys = winningIndividualTracker.keys();
+      Iterator<String> keys = idsWithMatchCounts.keys();
       String key = null;
       while (keys.hasNext()) {
         key = keys.next();
-        if (winningIndividualTracker.optInt(key, 0) >= minVotesToBeIncluded) {
-          votes.add(winningIndividualTracker.optInt(key, 0));
+        if (idsWithMatchCounts.optInt(key, 0) >= minVotesToBeIncluded) {
+          votes.add(idsWithMatchCounts.optInt(key, 0));
         }
       }
       Collections.sort(votes);
@@ -225,21 +206,21 @@ public class Decision {
       return votes;
     }
 
-    public static List<String> sortIdsByPopularity(JSONObject winningIndividualTracker){
+    public static List<String> sortIdsByPopularity(JSONObject idsWithMatchCounts){
       List<String> resultsArr = new ArrayList<String>();
       List<Integer> votes = new ArrayList<Integer>();
-      List<String> idsInParallelWitVotes = new ArrayList<String>();
+      List<String> idsInParallelWithVotes = new ArrayList<String>();
       int minVotesToBeIncluded = 1;
-      Iterator<String> keys = winningIndividualTracker.keys();
+      Iterator<String> keys = idsWithMatchCounts.keys();
       String key = null;
       while(keys.hasNext()) {
           key = keys.next();
-          if(winningIndividualTracker.optInt(key,0) >= minVotesToBeIncluded){
-            votes.add(winningIndividualTracker.optInt(key,0));
-            idsInParallelWitVotes.add(key);
+          if(idsWithMatchCounts.optInt(key,0) >= minVotesToBeIncluded){
+            votes.add(idsWithMatchCounts.optInt(key,0));
+            idsInParallelWithVotes.add(key);
           }
       }
-      final List<String> stringListCopy = new ArrayList(idsInParallelWitVotes);
+      final List<String> stringListCopy = new ArrayList(idsInParallelWithVotes);
       ArrayList<String> sortedList = new ArrayList(stringListCopy);
       int[] votesPrimitive = convertIntegers(votes);
       Collections.sort(sortedList, Comparator.comparing(s -> votesPrimitive[stringListCopy.indexOf(s)])); //ugh votesPrimitive array needs to be primitive gross.
@@ -272,14 +253,5 @@ public class Decision {
       }
       return numAgreements;
     }
-
-/*
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append(indexname)
-                .append(readableName)
-                .toString();
-    }
-*/
 
 }
