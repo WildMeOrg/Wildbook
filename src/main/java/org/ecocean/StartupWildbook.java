@@ -47,9 +47,11 @@ public class StartupWildbook implements ServletContextListener {
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
 
+
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+
 
   }
 
@@ -100,7 +102,7 @@ public class StartupWildbook implements ServletContextListener {
     String rootDir = request.getSession().getServletContext().getRealPath("/");
     String dataDir = ServletUtilities.dataDir("context0", rootDir);
     String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
-    String dataUrl = urlLoc + "/ncaquariums_data_dir";
+    String dataUrl = urlLoc + "/wildbook_data_dir";
     myShepherd.beginDBTransaction();
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
     myShepherd.getPM().makePersistent(as);
@@ -123,6 +125,9 @@ public class StartupWildbook implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
+        
+        createMatchGraph();
+        
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
         if (skipInit(sce, null)) {
             System.out.println("- SKIPPED initialization due to skipInit()");
@@ -135,9 +140,9 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
-        }
+        //if (CommonConfiguration.useSpotPatternRecognition(context)) {
+        //    createMatchGraph();
+        //}
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
@@ -264,7 +269,6 @@ public class StartupWildbook implements ServletContextListener {
         ServletContext sc = sce.getServletContext();
 /*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
      see:  https://octopus.com/blog/defining-tomcat-context-paths
-
         if ("".equals(sc.getContextPath())) {
             System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
             return true;
@@ -307,4 +311,3 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 
 }
-

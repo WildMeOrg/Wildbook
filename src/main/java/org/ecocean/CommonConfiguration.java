@@ -144,9 +144,8 @@ public class CommonConfiguration {
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
     int port = request.getServerPort();
-    return request.getServerName() + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath();
+    return ("ncaquariums.wildbook.org" + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath()); 
   }
-
 
   /**
    * Utility method to return a {@code URI} instance for the specified
