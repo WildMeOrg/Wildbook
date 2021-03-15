@@ -18,7 +18,7 @@ import java.time.ZonedDateTime;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.external.ExternalSubmission;
+//import org.ecocean.external.ExternalSubmission;
 import org.ecocean.SystemLog;
 
 import javax.servlet.http.HttpServletRequest;
@@ -122,8 +122,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private List<User> informOthers;
 
     private String source;  //this is for SpotterConserveIO mostly but...
-    private List<ExternalSubmission> submissions;   //note: these may go away in favor of:
-    private List<SubmissionContentReference> submissionContentReferences;
+    //private List<ExternalSubmission> submissions;   //note: these may go away in favor of:
+    //private List<SubmissionContentReference> submissionContentReferences;
 
   // do we have these?
 
@@ -336,6 +336,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         setVersion();
     }
 
+/*
     public List<ExternalSubmission> getSubmissions() {
         return submissions;
     }
@@ -354,6 +355,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (submissionContentReferences == null) submissionContentReferences = new ArrayList<SubmissionContentReference>();
         submissionContentReferences.add(scr);
     }
+*/
 
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
@@ -1470,6 +1472,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             }
         }
 
+/*
         org.json.JSONArray jscrs = jsonIn.optJSONArray("submissionContentReferences");
         if (jscrs != null) {
             for (int i = 0 ; i < jscrs.length() ; i++) {
@@ -1478,6 +1481,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 occ.addSubmissionContentReference(new SubmissionContentReference(jscr));
             }
         }
+*/
 
 /*  we currently DO NOT *set* values that can be derived from encounters -- these will be *reported* via GET however.....
     based on discussion 2020-10-29 w/tanya
@@ -1543,6 +1547,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;  //our work is done here
 
+/*
         if (!Util.collectionIsEmptyOrNull(this.submissionContentReferences)) {
             org.json.JSONArray jarr = new org.json.JSONArray();
             for (SubmissionContentReference scr : this.submissionContentReferences) {
@@ -1550,6 +1555,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             }
             obj.put("submissionContentReferences", jarr);
         }
+*/
 
         obj.put("behavior", getGroupBehavior());
         obj.put("distance", getDistance());

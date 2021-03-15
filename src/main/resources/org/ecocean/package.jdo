@@ -267,10 +267,12 @@
           <join />
       </field>
 
+<!--
       <field name="submissions" persistence-modifier="persistent" default-fetch-group="false">
           <collection element-type="org.ecocean.external.ExternalSubmission" dependent-element="false" />
           <join />
       </field>
+-->
 
       <fetch-group name="count"/>
 	 
@@ -1021,11 +1023,13 @@
 		</field>
 	</class>
 
+<!--
 	<class name="SubmissionContentReference" identity-type="datastore">
 		<field name="parametersAsString">
 			<column jdbc-type="LONGVARCHAR" />
 		</field>
 	</class>
+-->
 
 	<class name="ComplexDateTime" identity-type="datastore">
 		<field name="dateTime" />
