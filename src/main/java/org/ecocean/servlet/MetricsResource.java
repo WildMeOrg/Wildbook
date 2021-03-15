@@ -14,7 +14,7 @@ import java.io.Writer;
 
 @Path("metrics")
 @Produces(MediaType.TEXT_PLAIN)
-public class MetrricsResource 
+public class MetricsResource 
 {
     @GET 
     public StreamingOutput metrics() 
