@@ -15,6 +15,8 @@
 	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
 
         request.setAttribute("pageTitle", "Kitizen Science &gt; Informed Consent");
+
+//////  NOTE: any changes you make here should also be made to informed consent section of register.jsp
 %>
 
 <jsp:include page="header.jsp" flush="true" />

@@ -261,7 +261,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h2 class="intro">Participate in Online Data Processing Tasks</h2>
+              <h2 class="intro">Cat &amp; Mouse: Do Online Microtasks</h2>
 
               <p align="left">
 		
@@ -300,29 +300,23 @@ Our second validation study, open to everyone, will begin in January 2020!
 
 <img src="images/participate_manatdesk.jpg" width="324" height="300" hspace="10" vspace="10" align="right" />
 
-<p>
-The second of our three validation studies is about testing the online workflow for Kitizen Science. This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match. Now, we are doing a trial of how the online side of Kitizen Science works. We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
-</p>
+<p>Kitizen Science is now open for online &quot;Cat &amp; Mouse&quot; volunteers! You can participate from anywhere so long as you have a laptop/desktop computer, a reliable internet connection, and the ability to read and understand English.</p>
+<p>Kitizen Science's online cat photo processing system is set up as a collection of &quot;microtasks,&quot; where volunteers are presented with a cat submission consisting of one or more photos. You will select attributes about the cat such as its primary color and whether it is a kitten or adult, and then compare it to suggested matches in our cat database to decide if the cat is new to our system or if it has a match. By building a record of when and where individual cats are sighted during cat surveys, you are helping us take a large number of photos and distill them into data in a format we can analyze.</p>
+<p>Some cats are harder to see than others, and you won't always get to see good details. All that we ask is that you do your best with each submission. Similar to other photo classification citizen science programs, Kitizen Science records and compares the opinions of multiple volunteers so that occasional mistakes are outvoted by a majority.</p>
+<p>There is no time limit or minimum commitment required, so this is a great way to participate in animal welfare research in a way that works with your own busy schedule. We estimate each submission will take a few minutes to process once you become familiar with our workflow. You can process a maximum of 24 submissions per day.  (People tend to become less successful at these tasks when they have been staring at photos for long periods of time.)</p>
+<p><a href="register.jsp?instructions">You can read the instructions</a> for more information before deciding whether you want to sign up as a volunteer - these instructions will also provided as part of the volunteer registration process.</p>
 
-<p xstyle="display: none;">
-You can <a href="register.jsp?instructions">read the online study instructions</a>
-before deciding whether you want to volunteer.
-</p>
-
-<p>
-This study is open from March 9 to July 31, 2020.
-</p>
 
 </div>
 
-<!--
+
 <p>
     <form method="post">
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
 </p>
--->
+
 
 
 <%
@@ -359,103 +353,108 @@ This study is open from March 9 to July 31, 2020.
 
 <% }
 if (mode == 0) {
+
+/////  NOTE: the section below should have exact text from informed_consent.jsp, if changes happen there
 %>
 
 <div id="consent-section">
+
 <h2>
-UNIVERSITY OF WASHINGTON -
-CONSENT FORM
+Informed Consent for Study of Kitizen Science Volunteers
 </h2>
 
 <h3>Testing the Photo Processing Workflow of an Online Citizen Science Project About Cats</h3>
 
 <p>
-<b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
-Study email: kitizenscience@gmail.com</b>
+<b>Protocol Number: KitizenScience_v1.0
+<br/>
+	Principal Investigator: Sabrina Aeluro, Director of Kitizen Science
+<br>
+	Contact: kitizenscience@gmail.com
+<br>
+<br>
+	This informed consent page covers your agreement to be not just a volunteer, but also a subject of our research.  Kitizen Science and this study is open to all people over the age of 18.
+</b>
 </p>
 
 <h3>
-Researcher's statement and purpose of study
+	Purpose of this study
 </h3>
 
 <p>
-The purpose of this study is to test volunteers' abilities to process photos of cats using the online workflow of a new citizen science program.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
-</p>
-
-<p>
-The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called "informed consent."  You may save a copy of this form for your records.
+	We collect survey and demographic data so we can understand our volunteers and the experience you bring to Kitizen Science, and so we can compare our volunteer demographics with those of other citizen science projects.  We also track volunteer activity on our website and app, including the total amount of time you spend logged in as a volunteer, the number of cat photo submissions you upload or process, and the route and distance you walk if you volunteer to use our app to conduct cat surveys.
 </p>
 
 <h3>
-Study procedures
+How we use this data
 </h3>
 
 <p>
-After registering for an account on the Kitizen Science website (or logging into an existing account for previous volunteers), there is a short survey about a volunteer's background and personal demographics, followed by instructions about how to process cat photo submissions on the website.  After this sign up and brief training process, volunteers are presented with a cat photo submission to be processed.  Volunteers select the attributes of the cat in the photo: its primary color/pattern, its life stage, whether it has an ear tip removed, where it has a collar, and the sex (if the anatomy is visible).  After selecting the cat's attributes, volunteers look to see if there is a match for the cat already in the system by comparing it to similar cats or noting if the cat is new to the system.  Volunteers can process as many or as few photo submissions as they like.
+This data will not be published in a way that makes it identifiable to you as an individual but will be published and shared in discussing our volunteers and how they participate in Kitizen Science.  This includes reporting the average amount of time volunteers spend on Kitizen Science per month, the gender breakdown of our volunteers, and other metrics of engagement and activity.  We also include the routes and distances traveled by app users in the statistical analysis of cat populations.
 </p>
 
 <h3>
-Risks, stress, or discomfort
+Risks and benefits
 </h3>
 
 <p>
-This study is designed with the aim to be minimally intrusive, inoffensive, and is not intended to cause stress or place subjects at risk.
+	Our survey questions are designed to be minimally intrusive, inoffensive, and are not intended to cause stress or place you at risk.
+<br>
+<br>
+	Although this study may not benefit you directly and there is no compensation provided, we appreciate your efforts to support Kitizen Science.
+<br>
+<br>
+	The study does not require the collection of any potentially personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and other data could be linked to your email address.  Only the researchers involved in this study and the people overseeing the study including IntegReview IRB will have access to your study records.
 </p>
 
 <h3>
-Alternatives to taking part in this study
+	Other information
 </h3>
 
 <p>
-You have the option to not take part in this study.
+	Please ask questions to decide if you want to be in the study.  You may stop participating at any time and you can do so without penalty or loss of benefits to which you are otherwise entitled.  You will not lose any of your legal rights by agreeing to participate in this study.
 </p>
 
 <h3>
-Benefits of the study
+Research oversight
 </h3>
 
 <p>
-While there is no individual benefit or compensation for participating in this study, your answers will help validate the methods of Kitizen Science, a new citizen science program for monitoring the impacts of spay/neuter programs on free-roaming cat populations.
+If you do not want to contact the investigator or study staff, if you have concerns or complaints about the research, or to ask questions about your rights as a study subject you may contact IntegReview.  IntegReview’s policy indicates that all concerns/complaints are to be submitted in writing for review at a convened IRB meeting to:
+<br>
+<br>
+	Email address:
+<br>
+<br>
+	integreview@integreview.com
+<br>
+<br>
+	Mailing address:
+<br>
+<br>
+	Chairperson
+<br>
+IntegReview IRB
+<br>
+3815 S. Capital of Texas Highway
+<br>
+Suite 320
+<br>
+Austin, Texas 78704
+<br>
+<br>
+	IntegReview has reviewed the information in this consent form.  This does not mean IntegReview has approved your being in the study.  You must consider the information in this consent form for yourself and decide if you want to be in this study.
 </p>
 
 <h3>
-Confidentiality of research information
+Subject's statement
 </h3>
 
 <p>
-The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and cat photo processing data could be linked to your email address.
-</p>
-
-<p>
-Government or university staff sometimes review studies such as this one to make sure they are being done safely and legally.  If a review of this study takes place, your responses may be examined.  The reviewers will protect your privacy.  The study records will not be used to put you at legal risk of harm.
-</p>
-
-<h3>
-Other information
-</h3>
-
-<p>
-You may refuse to participate and you are free to withdraw from this study at any time without penalty or loss of benefits to which you are otherwise entitled.
-</p>
-
-<h3>
-Research-related injury
-</h3>
-
-<p>
-If you think you have been harmed from being in this research, contact Sabrina Aeluro via the study email address: kitizenscience@gmail.com.  The UW does not normally provide compensation for harm except through its discretionary program for medical injury.  However, the law may allow you to seek other compensation if the harm is the fault of the researchers.  You do not waive any right to seek payment by signing this consent form.
-</p>
-
-<h3>
-Subject's statement 
-</h3>
-
-<p>
-This study has been explained to me.  I volunteer to take part in this research.  I have had a chance to ask questions.  If I have questions later about the research, or if I have been harmed by participating in this study, I can contact the researcher listed on this consent form.  If I have questions about my rights as a research subject, I can call the University of Washington Human Subjects Division at 206-543-0098 or call collect at 206-221-5940.
-</p>
-
-<p>
-I consent to participate in this study.
+	Proceeding with this survey and Kitizen Science implies my consent to participate in this research.  I may download or save a copy of this page to keep for my records.
+<br>
+<br>
+	I consent to participate in this study.
 </p>
 
 
@@ -758,27 +757,23 @@ How did you hear about Kitizen Science?
 %>
 <div id="instructions">
 
-<h3>Instructions for the Online Workflow Study</h3>
+<h1>Instructions</h1>
 
-<p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p class="style2">This study is open from March 9 to July 31, 2020.</p>
-<h3><a name="requirements" id="requirements"></a>Computer requirements</h3></a>
-<p>
-Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.
-</p>
-<h3>Rules</h3>
-<p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
-<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
-<h3>General instructions</h3>
-<p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system  or if they are a new cat to the system. These test photos were obtained in the same way that our project will gather data in the real world.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
-<p class="style2">There are 168 submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of 24 submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
-<h3>Step 1: assigning cat attributes</h3>
-<p>For each submission, you start out by assigning attributes to a cat. You may have one, two, or three photos of the cat, and you may or may not be able to see the cat's whole body. Base your attribute assignments only on what you are sure you can see.</p>
-<p>Some photos will have more than one cat. The  cat whose attributes you are assigning and  matching  will be highlighted  in a green box.</p>
-<p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
+<p>Kitizen Science's online cat photo processing system is set up as a collection of &quot;microtasks,&quot; where volunteers are presented with a cat submission consisting of one or more photos.  You will select attributes about the cat such as its primary color and whether it is a kitten or adult, and then compare it to suggested matches in our cat database to decide if the cat is new to our system or if it has a match. By building a record of when and where individual cats are sighted during cat surveys, you are helping us take a large number of photos and distill them into data in a format we can analyze.</p>
+<p>Some cats are harder to see than others, and you won't always get to see good details. All that we ask is that you do your best with each  submission. Similar to other photo classification citizen science programs, Kitizen Science  records and compares the opinions of multiple volunteers so that occasional mistakes are outvoted by a majority.</p>
+<p>There is no time limit or minimum commitment required, so this is a great way to participate in animal welfare research in a way that works with your own busy schedule.  We estimate each submission will  take a few minutes to process once you become familiar with our workflow.  You can process a maximum of 24 submissions per day.  (People tend to become less successful at these tasks when they have been staring at photos for long periods of time.)</p>
+<h2 class="style2">Key rules</h2>
+<p>We ask that you create only one login for Kitizen Science, and each login  has only one person using it.  We will be noting volunteer demographics summaries in reporting facts  about our program, so we want to have one set of demographic information  tied to one user account.  We also ask that you work by yourself and don't ask friends for help in identifying cats.</p>
+<p>Because of the small screen size of smartphones and many tablets, we do not want you to process submissions on these smaller devices. Please use a standard desktop or laptop computer.</p>
+<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you.</p>
+<h2>Step 1: Assigning cat attributes</h2>
+<p>For each submission, you start out by assigning attributes to a cat.  You will have one or more photos of a cat, and you may or may not be able to see the cat's whole body.  Base your attribute assignments only on what you are certain that you can see.</p>
+<p align="center"><img src="images/instructions_focalcat.jpg" width="600" height="250" /></p>
+<p>Some photos will have more than one cat. The   cat whose attributes you are assigning and  matching  will be emphasized  by a  green box with thicker lines, whereas background cats in the same photo will be in  a box with  thinner lines. </p>
+<p>First, select a cat's primary color or pattern group.  These are our 8 color categories:</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="550" valign="top"><div align="center"><strong>Black</strong>:  or with a  very small patch of white</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Black</strong>:  solid or with a   small patch of white</div></td>
     <td width="50" valign="top">&nbsp;</td>
     <td width="550" valign="top"><div align="center"><strong>Black &amp; White</strong></div></td>
   </tr>
@@ -837,7 +832,7 @@ Because of the small screen size of web browsers on smart phones and small table
 <p>Second, select the cat's life stage (kitten or adult).</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="551" valign="top"><div align="center"><strong>Kitten</strong>: Under about 6 months</div></td>
+    <td width="551" valign="top"><div align="center"><strong>Kitten</strong>: under about 6 months</div></td>
     <td width="50" valign="top">&nbsp;</td>
     <td width="498" valign="top"><div align="center"><strong>Adult</strong></div></td>
   </tr>
@@ -848,7 +843,7 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side, or select unknown. Depending on how much eartip was removed at surgery time, these can be very hard to see.</p>
+<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side, or select unknown. Depending on how much eartip was removed at surgery time, these can be very hard to see. If you are not certain, select &quot;unknown.&quot;</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Yes - Cat's Left</strong></div></td>
@@ -877,7 +872,7 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Fourth, select whether the cat is wearing a collar (yes, no, or unknown).</p>
+<p>Fourth, select whether the cat is wearing a collar. If you are not certain, select &quot;unknown.&quot;</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Yes</strong></div></td>
@@ -891,12 +886,12 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Lastly, select the cat's sex if it is obvious what the cat's sex is (male, female, or unknown).  A photo could contain an unsterilized male cat's rear end where you can see testicles, or a photo of an unsterilized female could show visible mammary gland development or depict a mother with her kittens.  Most cats will be labeled as unknown sex.</p>
+<p>Lastly, select the cat's sex.  A photo could contain an unsterilized male cat's rear end where you can see testicles, or a photo of an unsterilized female could show visible mammary gland development or depict a mother with her kittens.  Most cats will be labeled as unknown  because sex generally isn't visible.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="551" valign="top"><div align="center"><strong>Male - Testicles visible</strong></div></td>
+    <td width="551" valign="top"><div align="center"><strong>Male:</strong> testicles visible</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td width="498" valign="top"><div align="center"><strong> Female - Nursing or with small kittens</strong></div></td>
+    <td width="498" valign="top"><div align="center"><strong> Female: </strong> nursing kittens</div></td>
   </tr>
   <tr>
     <td><div align="center"><img src="images/instructions_male.jpg" width="402" height="300" /></div></td>
@@ -905,10 +900,10 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h3>Step 2: cat matching</h3>
-<p>After saving a cat's attributes, our system will look for likely potential matches based on those attributes, showing you cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
+<h2>Step 2: Cat matching</h2>
+<p>After saving a cat's attributes, our  program  looks for  potential matches based on a cat's attributes and its physical proximity to other cats in our system, showing you a list of cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
 <p>&nbsp;</p>
-<h3>How to compare similar cats</h3><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
+<h2>How to compare similar cats</h2><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center">Is the cat's ear tip removed (a marker  of sterilization)?  These can be hard to see at a distance or in cats with a small amount of  ear tip removed. Either ear may be tipped.</div></td>
@@ -958,7 +953,7 @@ Because of the small screen size of web browsers on smart phones and small table
   <tr>
     <td valign="top"><div align="center">How long is the cat's fur? Long, medium, or short fur?  (Sometimes  cats have tangled mats of fur shaved during the spay/neuter process, but bald spots don't stay long.)</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have the best view.  Try to do your best with the angle you have. </div></td>
+    <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have a good view.  Try to do your best with the angle you have. </div></td>
   </tr>
   <tr>
     <td><div align="center"><img src="images/whattolookfor_longfur.jpg" width="307" height="250" /></div></td>
@@ -967,7 +962,8 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h3>That's everything!</h3><p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
+<h2>That's everything!</h2>
+<p>If you have any questions, please email kitizenscience@gmail.com.</p>
 <p>&nbsp;</p>
 
 <div id="register-quiz">
