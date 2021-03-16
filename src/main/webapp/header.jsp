@@ -519,6 +519,12 @@ finally{
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
                               <li class="divider"></li>
+
+                              <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                              <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+
+                              <li class="divider"></li>
+
                             <% }
 
 
@@ -543,17 +549,7 @@ finally{
                                 <% } %>
                                 <li><a target="_blank" href="http://wiki.wildbook.org/"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                                <%
 
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
-                            	<li class="divider"></li>
-                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           	<%
-
-
-                          	}
-                            %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
                               <%
@@ -565,14 +561,10 @@ finally{
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
-
+                            
+                            <%
                             } //end if admin
-
-                            if(request.getUserPrincipal()!=null) {
                             %>
-                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                            <% } %>
 
                         </ul>
                       </li>
