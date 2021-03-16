@@ -47,9 +47,10 @@ import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.CollectorRegistry; 
 import io.prometheus.client.exporter.MetricsServlet;
-//import org.eclipse.jetty.server.Server;
-//import org.eclipse.jetty.servlet.ServletContextHandler;
-//import org.eclipse.jetty.servlet.ServletHolder;
+import com.sun.net.httpserver.HttpServer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import java.util.*;
 
 /**
@@ -69,8 +70,13 @@ public class TestPrometheusClient extends HttpServlet {
   Counter encs=null;
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
-  MetricsServlet m = new MetricsServlet();
-  
+  /*For testing dependencies*/
+  //MetricsServlet m = new MetricsServlet();
+  //Server s = new Server(); 
+  //ServletContextHandler context = new ServletContextHandler(); 
+  //ServletHolder sh = new ServletHolder();
+
+
 
 
   public void init(ServletConfig config) throws ServletException {
@@ -89,7 +95,7 @@ public class TestPrometheusClient extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    
+   // HTTPServer = server = new HTTPServer(1234); 
     //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
@@ -114,6 +120,14 @@ public class TestPrometheusClient extends HttpServlet {
           pageVisited = true; 
         }	
         this.printMetrics(out);
+	//Try to create an http endpoint
+	Server server = new Server(1234); 
+	ServletContextHandler con = new ServletContextHandler();
+	con.setContextPath("/");
+	server.setHandler(con);
+	con.addServlet(new ServletHolder(new MetricsServlet()), "/metrics"); 
+
+
        // this.exposeMetrics();
       } 
       catch (Exception lEx) {
