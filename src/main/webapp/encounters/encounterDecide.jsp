@@ -276,6 +276,10 @@ h1 { background: none !important; }
     padding: 0;
     margin: 0;
 }
+.attribute h3 {
+    padding: 0;
+    margin: 0;
+}
 
 #secondary-instructions {
     xheight: 2em;
@@ -1242,7 +1246,7 @@ There are two steps to processing each submission: selecting cat attributes, and
                     <div class="attribute-title"><%=props.getProperty("no")%></div>
                 </div>
                 <div id="unknown" class="attribute-option">
-                    <img class="attribute-image" src="../images/unknown.png" />
+                    <img class="attribute-image" src="../images/unknown_eartip.png" />
                     <div class="attribute-title"><%=props.getProperty("unknown")%></div>
                 </div>
 
