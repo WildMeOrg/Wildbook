@@ -569,6 +569,14 @@ if(request.getParameter("encounterNumber")!=null){
 %>
 <div id="please-wait">
     <h3>Processing. This may take several minutes. Please wait...</h3>
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0"
+            aria-valuemax="100" style="width: 1000%">
+            <span class="sr-only">
+                ~50% Complete
+            </span>
+        </div>
+    </div>
 </div>
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> 
 
@@ -700,6 +708,7 @@ $(window).on('resizeEnd', function(ev) {
 function mediaAssetModifyAjax(data){
   $('.popup-content').html('<div class="throbbing">updating</div>');
   $('#please-wait').show();
+  $('#enc-gallery').hide();
   $.ajax({
       url: wildbookGlobals.baseUrl + '/MediaAssetModify',
       data: JSON.stringify(data),
@@ -917,6 +926,7 @@ function doImageEnhancer(sel) {
               let rotateImageAjaxData = {};
               rotateImageAjaxData["maId"] = mediaAssetId;
               rotateImageAjaxData["rotate"]="rotate90";
+              rotateImageAjaxData["encId"] = '<%=encNum%>';
               mediaAssetModifyAjax(rotateImageAjaxData);
               mediaAsset = assetById(mediaAssetId);
             }],
@@ -926,6 +936,7 @@ function doImageEnhancer(sel) {
                     let rotateImageAjaxData = {};
                     rotateImageAjaxData["maId"] = mediaAssetId;
                     rotateImageAjaxData["rotate"] = "rotate180";
+                    rotateImageAjaxData["encId"] = '<%=encNum%>';
                     mediaAssetModifyAjax(rotateImageAjaxData);
                     mediaAsset = assetById(mediaAssetId);
                 }],
@@ -935,6 +946,7 @@ function doImageEnhancer(sel) {
                     let rotateImageAjaxData = {};
                     rotateImageAjaxData["maId"] = mediaAssetId;
                     rotateImageAjaxData["rotate"] = "rotate270";
+                    rotateImageAjaxData["encId"] = '<%=encNum%>';
                     mediaAssetModifyAjax(rotateImageAjaxData);
                     mediaAsset = assetById(mediaAssetId);
                 }],

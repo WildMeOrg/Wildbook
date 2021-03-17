@@ -3387,10 +3387,29 @@ public class Shepherd {
     return e;
   }
 
-  public Encounter getEncounter(MediaAsset ma) {
-    if (ma==null || !ma.hasAnnotations()) return null;
-    Annotation ann = ma.getAnnotations().get(0);
-    return ann.findEncounter(this);
+  // public Encounter getEncounter(MediaAsset ma) {
+  //   if (ma==null || !ma.hasAnnotations()) return null;
+  //   Annotation ann = ma.getAnnotations().get(0);
+  //   return ann.findEncounter(this);
+  // }
+
+  public List<Encounter> getEncounters(MediaAsset ma) {
+    List<Encounter> returnEncounters = new ArrayList<Encounter>();
+    List<String> encounterIdsToCheckForUnique = new ArrayList<String>();
+    if (ma == null || !ma.hasAnnotations())
+      return null;
+    List<Annotation> annotations = ma.getAnnotations();
+    if(annotations != null && annotations.size() > 0){
+      for(Annotation currentAnn: annotations){
+        Encounter candidateEncounter = currentAnn.findEncounter(this);
+        if(!encounterIdsToCheckForUnique.contains(candidateEncounter.getID())){
+          //it's a new encounter
+          returnEncounters.add(candidateEncounter);
+          encounterIdsToCheckForUnique.add(candidateEncounter.getID());
+        }
+      }
+    }
+    return returnEncounters;
   }
 
 

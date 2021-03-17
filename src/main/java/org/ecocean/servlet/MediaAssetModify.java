@@ -114,19 +114,19 @@ public class MediaAssetModify extends HttpServlet {
         if(jsonIn!=null){
           String mediaAssetId = jsonIn.optString("maId", null);
           String rotationDesired = jsonIn.optString("rotate", null);
-          if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired)){
+          String encounterId = jsonIn.optString("encId", null);
+          if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired) && Util.stringExists(
+              encounterId)){
             MediaAsset mediaAsset = myShepherd.getMediaAsset(mediaAssetId);
             if(Util.stringExists(rotationDesired) && !rotationDesired.equals("") && rotationDesired.indexOf("rotate")>-1){
               purgeRotationLabelsFrom(mediaAsset, myShepherd);
               mediaAsset.addLabel(rotationDesired);
             }
-            ArrayList<String> labels = mediaAsset.getLabels();
-            int rotationLableCounter = 0;
             myShepherd.updateDBTransaction(); //update before redoAllChildren knows which labels to actually apply
             mediaAsset.redoAllChildren(myShepherd);
             myShepherd.updateDBTransaction();
-            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd);
-            ArrayList<String> labelsAfterUpdate = mediaAsset.getLabels();
+            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd, 
+                encounterId);
             res.put("success","true");
           }
         } else{
@@ -150,11 +150,10 @@ public class MediaAssetModify extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 
-  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd){
+  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd, String encounterId){
     List<MediaAsset> masterChildren = mediaAsset.findChildrenByLabel(myShepherd, "_master");
     if(masterChildren != null && masterChildren.size()>0){
       if(masterChildren.size()>1){
-        //TODO ack!?
         System.out.println("BUG! Should not be here. More than one master child!");
       } else{
         MediaAsset masterChild = masterChildren.get(0);
@@ -170,8 +169,8 @@ public class MediaAssetModify extends HttpServlet {
           try{
             Files.createFile(newFile.toPath());
           } catch(Exception e){
-            System.out.println("Error creating file in cloneRotatedMediaAssetForDetection");
-            e.printStackTrace();
+            System.out.println("Error: Did not create file in cloneRotatedMediaAssetForDetection; it's possible that this is because the backup file already exists");
+            // e.printStackTrace();
           }
           try{
             Files.copy(currentPath, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -180,25 +179,26 @@ public class MediaAssetModify extends HttpServlet {
             try {
               newParent = astore.copyIn(newFile, sp);
             } catch (Exception e) {
-              System.out.println("Error copying in the new asset in cloneRotatedMediaAssetForDetection");
               e.printStackTrace();
             }
             newParent.updateMetadata();
             newParent.addLabel("_original");
             ArrayList<String> labels = mediaAsset.getLabels();
             for(String currentLable: labels){ //give the non-rotation labels to the clone
-              if(currentLable.indexOf("rotate")<0){
+              if(currentLable.indexOf("rotate")<0 && currentLable.indexOf("old") < 0){
                 newParent.addLabel(currentLable);
               }
             }
             mediaAsset.addLabel("old"); //assign old to the old one so that you can use that to filter it out of the dom later
             MediaAssetFactory.save(newParent, myShepherd);
             newParent.updateStandardChildren(myShepherd);
-            Encounter enc = myShepherd.getEncounter(mediaAsset);
-            if(enc != null){
-              enc.addMediaAsset(newParent);
-              Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), new Task());
-              myShepherd.storeNewTask(task);
+            List<Encounter> associatedEncounters = myShepherd.getEncounters(mediaAsset);
+            if(associatedEncounters != null && associatedEncounters.size() > 0){
+              for(Encounter enc: associatedEncounters){
+                enc.addMediaAsset(newParent);
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), new Task()); //left doing this every time in... I assume that it won't kick off if an identical media asset has already been done; I think I've seen this before at least? -Mark F.
+                myShepherd.storeNewTask(task);
+              }
             }
           } catch (Exception e){
             System.out.println("Error copying file in cloneRotatedMediaAssetForDetection method of MediaAssetModify.java");
@@ -213,8 +213,8 @@ public class MediaAssetModify extends HttpServlet {
     ArrayList<String> labels = originalMediaAsset.getLabels();
     if(labels!=null && labels.size()>0){
       for(String currentLabel: labels){
-        if(currentLabel.indexOf("rotate")>-1){
-          //there's a rotate label. Exterminate!
+        if(currentLabel.indexOf("rotate") > -1 || currentLabel.indexOf("old") > -1 || currentLabel.indexOf("_original") > -1){ // || currentLabel.indexOf("_original")
+          //there's a rotate or "old" or "_original" label. Exterminate!
           originalMediaAsset.removeLabel(currentLabel);
         }
       }

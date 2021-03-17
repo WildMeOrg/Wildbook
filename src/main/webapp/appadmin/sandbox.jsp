@@ -11,6 +11,7 @@ java.io.File,
 java.io.FileNotFoundException,
 org.ecocean.*,
 org.ecocean.servlet.*,
+org.ecocean.media.*,
 javax.jdo.*,
 java.lang.StringBuffer,
 java.util.Vector,
@@ -85,16 +86,43 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <%
 
       // Encounter targetEncounter = myShepherd.getEncounter("d8a3bcbb-ec03-4d30-86a4-090615075cf9"); // a cat with lots of potential matches
-      Encounter targetEncounter = myShepherd.getEncounter("b3fa06e2-d167-4dae-8312-216db66e1ec6"); // our lonely first porland cat
-      System.out.println("got here 1");
-      MarkedIndividual newIndivid = new MarkedIndividual("testy the test cat", targetEncounter);
-      System.out.println("got here 2");
-      boolean success = myShepherd.storeNewMarkedIndividual(newIndivid);
-      System.out.println("got here 3");
-      System.out.println("successful?: " + success);
-      myShepherd.updateDBTransaction();
-      targetEncounter.setIndividual(newIndivid);
-      myShepherd.updateDBTransaction();
+      
+      // Encounter targetEncounter = myShepherd.getEncounter("b3fa06e2-d167-4dae-8312-216db66e1ec6"); // our lonely first porland cat
+      // System.out.println("got here 1");
+      // MarkedIndividual newIndivid = new MarkedIndividual("testy the test cat", targetEncounter);
+      // System.out.println("got here 2");
+      // boolean success = myShepherd.storeNewMarkedIndividual(newIndivid);
+      // System.out.println("got here 3");
+      // System.out.println("successful?: " + success);
+      // myShepherd.updateDBTransaction();
+      // targetEncounter.setIndividual(newIndivid);
+      // myShepherd.updateDBTransaction();
+      
+      //Encounter targetEncounter = myShepherd.getEncounter("ffec0b33-a04e-4236-ba8a-fdbc379837f3"); // non-rotating cat
+      MediaAsset originalMediaAsset = myShepherd.getMediaAsset("3292");
+      System.out.println("deleteMe got here sandbox 6");
+      ArrayList<String> labels = originalMediaAsset.getLabels();
+      if(labels!=null && labels.size()>0){
+        for(String currentLabel: labels){
+          System.out.println("deleteMe got here sandbox 7 and label is: " + currentLabel);
+          if(currentLabel.indexOf("rotate") > -1 || currentLabel.indexOf("old") > -1 || currentLabel.indexOf("_original") > -1){ // || currentLabel.indexOf("_original")
+            //there's a rotate or "old" label. Exterminate!
+            System.out.println("deleteMe got here sandbox 8 in purgeRotationLabelsFrom! currentLabel about to be purged is: " + currentLabel);
+            originalMediaAsset.removeLabel(currentLabel);
+            System.out.println("deleteMe got here sandbox 9");
+          }
+        }
+      }
+      try{
+        originalMediaAsset.redoAllChildren(myShepherd);
+        System.out.println("deleteMe got here sandbox 10");
+      }catch(Exception e){
+        System.out.println("deleteMe got here sandbox 11");
+        System.out.println("Error with redoAllChildren in purgeRotationLabelsFrom method of MediaAssetModify.java");
+        e.printStackTrace();
+      } finally{
+        myShepherd.updateDBTransaction();
+      }
 
       JSONObject testObj = new JSONObject();
       testObj.put("a", 9);

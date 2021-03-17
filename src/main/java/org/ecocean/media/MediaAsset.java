@@ -1097,7 +1097,6 @@ public class MediaAsset implements java.io.Serializable {
         File targetFile = (child.localPath() == null) ? null : child.localPath().toFile();
         if ((sourceFile == null) || (targetFile == null)) throw new IOException("could not get localPath on source or target");
         boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false);
-        System.out.println("deleteMe redoChild entered. Child mediaAsset id is: " + child.getId());
         //boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false); TODO maybe a second signature for this method with the child's label?
         System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok);
         return ok;
@@ -1106,7 +1105,6 @@ public class MediaAsset implements java.io.Serializable {
         ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
         if (kids == null) return;
         for (MediaAsset kid : kids) {
-            System.out.println("deleteMe child being redone currently in redoAllChildren is: " + kid.getId());
             this.redoChild(kid);
         }
     }
