@@ -2624,12 +2624,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     public static MarkedIndividual fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         MarkedIndividual indiv = new MarkedIndividual();
 
-        System.out.println("JSONIN STRING: "+jsonIn.toString());
+        System.out.println("jsonIn for Encounter.fromApaJSONObject: "+jsonIn.toString());
         //in theory we should not have a MarkedIndividual with zero encounters... with that assumption, we fail if no encounters
         //  are referenced or newly created
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
-        System.out.println("JENCS STRING: "+jencs.toString());
-        System.out.println("JENCS STRING: "+jencs);
         if (jencs != null) {
             for (int i = 0 ; i < jencs.length() ; i++) {
                 try {
@@ -2637,16 +2635,25 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                   if (jenc == null) throw new IOException("invalid JSONObject at offset=" + i);
                   String id = jenc.optString("id", null);  //if we have one, assume lookup; otherwise, try to create new
                   Encounter enc = null;
-                  if (id == null) {
-                      System.out.println("Making new Individual.");
+
+                  if (id!=null) {
+                    enc = myShepherd.getEncounter(id);
+                    if (enc==null) {
+                      System.out.println("Making new Encounter for recieved ID : "+id);
                       enc = Encounter.fromApiJSONObject(myShepherd, jenc);
-                      if (enc == null) throw new IOException("failed to make Encounter from " + jenc);  //or maybe try/catch this call above?
+                      if (enc == null) throw new IOException("Failed to create a new Encounter for recieved ID :" +id);
+                      enc.setId(id);
+                    } else {
+                      System.out.println("Retrieved Existing Encounter for recieved ID : "+id);
+                    }
                   } else {
-                    System.out.println("Trying to get existing individual.");
-                      enc = myShepherd.getEncounter(id);
-                      if (enc == null) throw new IOException("failed to load Encounter with id=" + id);
+                    System.out.println("Making new Encounter from metadata with no specified ID.");
+                    enc = Encounter.fromApiJSONObject(myShepherd, jenc);
+                    if (enc == null) throw new IOException("Failed to create a new Encounter for metadata with no specified ID.");
                   }
+
                   indiv.addEncounter(enc);
+                  enc.setIndividual(indiv);
                 } catch (Exception e) {
                   e.printStackTrace();
                 }
