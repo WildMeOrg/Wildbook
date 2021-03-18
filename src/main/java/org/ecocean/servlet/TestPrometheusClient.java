@@ -34,11 +34,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.StreamingOutput;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -47,6 +50,8 @@ import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.CollectorRegistry; 
 import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.exporter.common.TextFormat;
+
 import com.sun.net.httpserver.HttpServer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -119,13 +124,14 @@ public class TestPrometheusClient extends HttpServlet {
           this.setNumberOfEncounters(out);
           pageVisited = true; 
         }	
-        this.printMetrics(out);
-	//Try to create an http endpoint
-	Server server = new Server(1234); 
-	ServletContextHandler con = new ServletContextHandler();
-	con.setContextPath("/");
-	server.setHandler(con);
-	con.addServlet(new ServletHolder(new MetricsServlet()), "/metrics"); 
+        //this.printMetrics(out);
+        StreamingOutput ms = this.metrics();
+	// //Try to create an http endpoint
+	// Server server = new Server(1234); 
+	// ServletContextHandler con = new ServletContextHandler();
+	// con.setContextPath("/");
+	// server.setHandler(con);
+	// con.addServlet(new ServletHolder(new MetricsServlet()), "/metrics"); 
 
 
        // this.exposeMetrics();
@@ -190,6 +196,17 @@ public class TestPrometheusClient extends HttpServlet {
   //   //server.setHandler(context);
   //   context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
   // }
+  
+  public StreamingOutput metrics()
+  {
+    return output -> 
+    {
+        try (Writer writer = new OutputStreamWriter(output))
+        {
+            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+        }
+    };
+  }
 
 }
 
