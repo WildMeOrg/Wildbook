@@ -167,7 +167,7 @@ public class TestPrometheusClient extends HttpServlet {
 //Ecounter Metrics
   public void setNumberOfEncounters(PrintWriter out)
   {
-    int i = 0;
+    int i;
     //get the data from the database
     /*Number of encounters */
     int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
@@ -186,7 +186,7 @@ public class TestPrometheusClient extends HttpServlet {
     int totalNumLoc = numEncountersLoc.size();
     // this.encsLocation.inc((double));
     PrintWriter output;
-    for(i; i < totalNumLoc; i++){
+    for(i = 0; i < totalNumLoc; i++){
         int totalNumByLoc = this.myShepherd.getNumEncounters(numEncountersLoc.get(i));
         this.encsLocation.inc((double)totalNumByLoc);
         output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.totalNumByLoc.get(i)+"</p>");
