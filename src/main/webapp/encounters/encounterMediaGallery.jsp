@@ -926,7 +926,6 @@ function doImageEnhancer(sel) {
               let rotateImageAjaxData = {};
               rotateImageAjaxData["maId"] = mediaAssetId;
               rotateImageAjaxData["rotate"]="rotate90";
-              rotateImageAjaxData["encId"] = '<%=encNum%>';
               mediaAssetModifyAjax(rotateImageAjaxData);
               mediaAsset = assetById(mediaAssetId);
             }],
@@ -936,7 +935,6 @@ function doImageEnhancer(sel) {
                     let rotateImageAjaxData = {};
                     rotateImageAjaxData["maId"] = mediaAssetId;
                     rotateImageAjaxData["rotate"] = "rotate180";
-                    rotateImageAjaxData["encId"] = '<%=encNum%>';
                     mediaAssetModifyAjax(rotateImageAjaxData);
                     mediaAsset = assetById(mediaAssetId);
                 }],
@@ -946,7 +944,6 @@ function doImageEnhancer(sel) {
                     let rotateImageAjaxData = {};
                     rotateImageAjaxData["maId"] = mediaAssetId;
                     rotateImageAjaxData["rotate"] = "rotate270";
-                    rotateImageAjaxData["encId"] = '<%=encNum%>';
                     mediaAssetModifyAjax(rotateImageAjaxData);
                     mediaAsset = assetById(mediaAssetId);
                 }],

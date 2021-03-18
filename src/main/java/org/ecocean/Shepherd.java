@@ -3387,12 +3387,6 @@ public class Shepherd {
     return e;
   }
 
-  // public Encounter getEncounter(MediaAsset ma) {
-  //   if (ma==null || !ma.hasAnnotations()) return null;
-  //   Annotation ann = ma.getAnnotations().get(0);
-  //   return ann.findEncounter(this);
-  // }
-
   public List<Encounter> getEncounters(MediaAsset ma) {
     List<Encounter> returnEncounters = new ArrayList<Encounter>();
     List<String> encounterIdsToCheckForUnique = new ArrayList<String>();

@@ -114,9 +114,7 @@ public class MediaAssetModify extends HttpServlet {
         if(jsonIn!=null){
           String mediaAssetId = jsonIn.optString("maId", null);
           String rotationDesired = jsonIn.optString("rotate", null);
-          String encounterId = jsonIn.optString("encId", null);
-          if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired) && Util.stringExists(
-              encounterId)){
+          if(Util.stringExists(mediaAssetId) && Util.stringExists(rotationDesired) ){
             MediaAsset mediaAsset = myShepherd.getMediaAsset(mediaAssetId);
             if(Util.stringExists(rotationDesired) && !rotationDesired.equals("") && rotationDesired.indexOf("rotate")>-1){
               purgeRotationLabelsFrom(mediaAsset, myShepherd);
@@ -125,8 +123,7 @@ public class MediaAssetModify extends HttpServlet {
             myShepherd.updateDBTransaction(); //update before redoAllChildren knows which labels to actually apply
             mediaAsset.redoAllChildren(myShepherd);
             myShepherd.updateDBTransaction();
-            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd, 
-                encounterId);
+            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd);
             res.put("success","true");
           }
         } else{
@@ -150,7 +147,7 @@ public class MediaAssetModify extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 
-  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd, String encounterId){
+  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd){
     List<MediaAsset> masterChildren = mediaAsset.findChildrenByLabel(myShepherd, "_master");
     if(masterChildren != null && masterChildren.size()>0){
       if(masterChildren.size()>1){
@@ -213,7 +210,7 @@ public class MediaAssetModify extends HttpServlet {
     ArrayList<String> labels = originalMediaAsset.getLabels();
     if(labels!=null && labels.size()>0){
       for(String currentLabel: labels){
-        if(currentLabel.indexOf("rotate") > -1 || currentLabel.indexOf("old") > -1 || currentLabel.indexOf("_original") > -1){ // || currentLabel.indexOf("_original")
+        if(currentLabel.indexOf("rotate") > -1 || currentLabel.indexOf("old") > -1 || currentLabel.indexOf("_original") > -1){
           //there's a rotate or "old" or "_original" label. Exterminate!
           originalMediaAsset.removeLabel(currentLabel);
         }
