@@ -12,7 +12,7 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.OutputStreamWriter;
 import java.io.Writer; 
 
-@Path("metrics")
+@Path("TestPrometheusClient")
 @Produces(MediaType.TEXT_PLAIN)
 public class MetricsResource 
 {

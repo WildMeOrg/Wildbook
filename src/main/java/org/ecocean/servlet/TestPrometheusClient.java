@@ -124,8 +124,9 @@ public class TestPrometheusClient extends HttpServlet {
           this.setNumberOfEncounters(out);
           pageVisited = true; 
         }	
+        
         //this.printMetrics(out);
-        StreamingOutput ms = this.metrics();
+       // StreamingOutput ms = this.metrics();
 	// //Try to create an http endpoint
 	// Server server = new Server(1234); 
 	// ServletContextHandler con = new ServletContextHandler();
@@ -197,16 +198,16 @@ public class TestPrometheusClient extends HttpServlet {
   //   context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
   // }
   
-  public StreamingOutput metrics()
-  {
-    return output -> 
-    {
-        try (Writer writer = new OutputStreamWriter(output))
-        {
-            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
-        }
-    };
-  }
+//  public StreamingOutput metrics()
+//  {
+//    return output -> 
+//    {
+//        try (Writer writer = new OutputStreamWriter(output))
+//        {
+//            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+//        }
+//    };
+//  }
 
 }
 
