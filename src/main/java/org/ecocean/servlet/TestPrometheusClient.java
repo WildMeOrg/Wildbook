@@ -67,6 +67,7 @@ public class TestPrometheusClient extends HttpServlet {
   boolean pageVisited = false; 	
   Counter encs=null;
   Counter encsSubDate = null;
+  Counter encsLocation = null;
   Gauge numUsersInWildbook = null; 
   Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
@@ -82,6 +83,8 @@ public class TestPrometheusClient extends HttpServlet {
             .name("number_encounters").help("Number encounters").register();
     encsSubDate = Counter.build()
             .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
+    encsLocation = Counter.build()
+            .name("number_encounters_by_Location").help("Number encounters by Location ID").register();
     indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
@@ -164,16 +167,30 @@ public class TestPrometheusClient extends HttpServlet {
 //Ecounter Metrics
   public void setNumberOfEncounters(PrintWriter out)
   {
+    int i = 0;
     //get the data from the database
     /*Number of encounters */
     int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
     this.encs.inc((double)numEncounters);
 
     //Number of Encounters by Submission Dates
-    List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
-    int totalNumEncSub = numEncountersSub.size();
-    this.encsSubDate.inc((double)totalNumEncSub);
+    // List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
+    // int totalNumEncSub = numEncountersSub.size();
+    // for(i; i < totalNumEncSub; i++){
+    //     ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
+    //     this.encsSubDate.inc((double)totalNumEncSub);
+    // }
 
+    //Number of Encounters by Location ID
+    List<String> numEncountersLoc = this.myShepherd.getAllLocationIDs();
+    int totalNumLoc = numEncountersLoc.size();
+    // this.encsLocation.inc((double));
+    PrintWriter output;
+    for(i; i < totalNumLoc; i++){
+        int totalNumByLoc = this.myShepherd.getNumEncounters(numEncountersLoc.get(i));
+        this.encsLocation.inc((double)totalNumByLoc);
+        output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.totalNumByLoc.get(i)+"</p>");
+    }
   }
 
   //Individual Metrics
@@ -181,7 +198,6 @@ public class TestPrometheusClient extends HttpServlet {
     //Get num of Individuals by wildbook
     int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
     this.indiv.inc((double)numIndividuals);
-
   }
 
 //Media Assets Metrics
@@ -214,7 +230,8 @@ public class TestPrometheusClient extends HttpServlet {
    
    out.println("<p>Encounter Metrics</p>");
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
-    out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+    // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+    // out.println("<p> Number of encounters by Location ID is: "+this.encsSubDate.get()+"</p>");
 
   out.println("<p>Individual Metrics</p>");
     out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
