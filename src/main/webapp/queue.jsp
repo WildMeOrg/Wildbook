@@ -575,7 +575,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
         if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
-          Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO comment back in
+          // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO comment back in
         }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
@@ -701,6 +701,7 @@ function ahrefSort(a, b) {
 }
 var currentActiveState = 'incoming';
 $(document).ready(function() {
+    filter(currentActiveState, true);
 
     $('.maincontent').on('click', function(ev) {
         utickState.mouseButtonActivity = true;
