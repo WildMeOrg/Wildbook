@@ -189,7 +189,7 @@ public class TestPrometheusClient extends HttpServlet {
     for(i = 0; i < totalNumLoc; i++){
         int totalNumByLoc = this.myShepherd.getNumEncounters(numEncountersLoc.get(i));
         this.encsLocation.inc((double)totalNumByLoc);
-        output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.totalNumByLoc.get(i)+"</p>");
+        output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get(i)+"</p>");
     }
   }
 
