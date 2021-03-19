@@ -328,6 +328,10 @@ public class CommonConfiguration {
     return getProperty("autoEmailAddress", context).trim();
   }
 
+  public static String getNumIaResultsUserCanInspect(String context) {
+    return getProperty("numIaResultsUserCanInspect", context).trim();
+  }
+
   public static String getNewSubmissionEmail(String context) {
     return getProperty("newSubmissionEmail",context).trim();
   }
