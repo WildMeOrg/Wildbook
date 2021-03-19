@@ -34,7 +34,7 @@ class GraphAbstract { //See static attributes below class
 	this.alphaColor = "#bf0000";
 	this.defNodeColor = "#ffffff";
 	this.fixedNodeColor = "#cccccc";	
-	this.defLinkColor = "#a6a6a6";
+	this.defLinkColor = "#eeeeee";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
 	this.maternalLinkColor = "#f3acd0";
 	this.paternalLinkColor = "#8facc6";

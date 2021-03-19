@@ -353,8 +353,6 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 <%
 
 	Properties collabProps = new Properties();
-	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
-
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
@@ -513,10 +511,6 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
 
 	</div>
-
-	<%
-	}// end if collaborationSecurityEnabled
-	%>
 
     </p> <!-- end content p -->
 
