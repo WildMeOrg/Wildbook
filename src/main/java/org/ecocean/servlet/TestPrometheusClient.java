@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.StreamingOutput;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -100,19 +101,15 @@ public class TestPrometheusClient extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-   // HTTPServer = server = new HTTPServer(1234); 
-    //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
     this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
 
-
-
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-
+    this.metrics(request, response);
     //begin db connection
       myShepherd.beginDBTransaction();
       try 
@@ -124,18 +121,6 @@ public class TestPrometheusClient extends HttpServlet {
           this.setNumberOfEncounters(out);
           pageVisited = true; 
         }	
-        
-        //this.printMetrics(out);
-       // StreamingOutput ms = this.metrics();
-	// //Try to create an http endpoint
-	// Server server = new Server(1234); 
-	// ServletContextHandler con = new ServletContextHandler();
-	// con.setContextPath("/");
-	// server.setHandler(con);
-	// con.addServlet(new ServletHolder(new MetricsServlet()), "/metrics"); 
-
-
-       // this.exposeMetrics();
       } 
       catch (Exception lEx) {
     	
@@ -180,6 +165,35 @@ public class TestPrometheusClient extends HttpServlet {
     //out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
   }
+  public void metrics(HttpServletRequest request, HttpServletResponse response) throws IOException
+  {
+    Writer writer = new BufferedWriter(response.getWriter());
+    response.setStatus(HttpServletResponse.SC_OK);
+    String contentType = TextFormat.chooseContentType(request.getHeader("Accept"));
+    response.setContentType(contentType);
+    try
+    {
+      TextFormat.writeFormat(contentType, writer, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(parse(request)));
+      writer.flush();
+    }
+    finally
+    {
+      writer.close();
+    }
+  }
+  
+  private Set<String> parse(HttpServletRequest req)
+  {
+    String[] includedParam = req.getParameterValues("name[]");
+    if(includedParam == null)
+    {
+      return Collections.emptySet();
+    }
+    else
+    {
+      return new HashSet<String>(Arrays.asList(includedParam));
+    }
+  }
 
   public void printMetrics(PrintWriter out)
   {
@@ -187,28 +201,6 @@ public class TestPrometheusClient extends HttpServlet {
    
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
   }
-
-  // public void exposeMetrics()
-  // {
-  //   CollectorRegistry.defaultRegistry.metricFamilySamples();
-  //   //Server server = new Server(1234);
-  //   ServletContextHandler context = new ServletContextHandler();
-  //   context.setContextPath("/");
-  //   //server.setHandler(context);
-  //   context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
-  // }
-  
-//  public StreamingOutput metrics()
-//  {
-//    return output -> 
-//    {
-//        try (Writer writer = new OutputStreamWriter(output))
-//        {
-//            TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
-//        }
-//    };
-//  }
-
 }
 
 
