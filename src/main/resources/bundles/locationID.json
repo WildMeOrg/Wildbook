@@ -6,7 +6,12 @@
 { "name":"Australia", "id":"Australia", "locationID":[
 	{ "name":"East Australia", "id":"East Australia", "locationID":[
 		{ "name":"Cape Byron", "id":"Cape Byron", "locationID":[] }
-	] }
+	] },
+	{
+		"name": "North Stradbroke Island",
+		"id": "North Stradbroke Island",
+		"locationID": []
+	}
 ] },
 
 { "name":"Mozambique", "id":"Mozambique", "locationID":[
