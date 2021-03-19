@@ -189,7 +189,7 @@ public class TestPrometheusClient extends HttpServlet {
     for(i = 0; i < totalNumLoc; i++){
         int totalNumByLoc = this.myShepherd.getNumEncounters(numEncountersLoc.get(i));
         this.encsLocation.inc((double)totalNumByLoc);
-        output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+        //output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
     }
   }
 
@@ -232,6 +232,7 @@ public class TestPrometheusClient extends HttpServlet {
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
     // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
     // out.println("<p> Number of encounters by Location ID is: "+this.encsSubDate.get()+"</p>");
+    out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
 
   out.println("<p>Individual Metrics</p>");
     out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
