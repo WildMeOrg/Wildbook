@@ -100,44 +100,6 @@
   <version>0.10.0</version>
 </dependency>
 
-<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
-<dependency>
-  <groupId>org.eclipse.jetty</groupId>
-  <artifactId>jetty-server</artifactId>
-  <version>11.0.1</version>
-</dependency> -->
-
-
-<!-- https://mvnrepository.com/artifact/javax.ws.rs/javax.ws.rs-api -->
-<dependency>
-  <groupId>javax.ws.rs</groupId>
-  <artifactId>javax.ws.rs-api</artifactId>
-  <version>2.1.1</version>
-</dependency>
-
-<!-- https://mvnrepository.com/artifact/com.sun.net.httpserver/http -->
-<dependency>
-  <groupId>com.sun.net.httpserver</groupId>
-  <artifactId>http</artifactId>
-  <version>20070405</version>
-</dependency>
-
-<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlets -->
-<dependency>
-  <groupId>org.eclipse.jetty</groupId>
-  <artifactId>jetty-servlet</artifactId>
-  <version>11.0.1</version>
-</dependency>
-
-<!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
-<dependency>
-  <groupId>org.eclipse.jetty</groupId>
-  <artifactId>jetty-server</artifactId>
-  <version>11.0.1</version>
-</dependency>
-
-
-
 
 
 
