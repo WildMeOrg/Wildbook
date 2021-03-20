@@ -20,13 +20,6 @@
 package org.ecocean.servlet;
 
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;
@@ -34,30 +27,33 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.StreamingOutput;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-
-import javax.xml.bind.DatatypeConverter;
-
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.CollectorRegistry; 
-import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.exporter.common.TextFormat;
-
-import com.sun.net.httpserver.HttpServer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import java.util.*;
+//import com.oreilly.servlet.multipart.FilePart;
+//import com.oreilly.servlet.multipart.MultipartParser;
+//import com.oreilly.servlet.multipart.ParamPart;
+//import com.oreilly.servlet.multipart.Part;
+//import org.ecocean.CommonConfiguration;
+//import org.ecocean.Encounter;
+//import javax.ws.rs.core.StreamingOutput;
+//import java.io.File;
+//import java.io.FileOutputStream;
+//import java.io.OutputStreamWriter;
+//import javax.xml.bind.DatatypeConverter;
+//import io.prometheus.client.exporter.MetricsServlet;
+//import com.sun.net.httpserver.HttpServer;
+//import org.eclipse.jetty.server.Server;
+//import org.eclipse.jetty.servlet.ServletContextHandler;
+//import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  *
@@ -70,25 +66,17 @@ import java.util.*;
 public class TestPrometheusClient extends HttpServlet {
 
 
-	//create counter with name and description  
+	/*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
-  Counter encs=null;
-  Gauge numUsersInWildbook = null; 
-  Gauge numUsersWithLogin = null;
-  /*For testing dependencies*/
-  //MetricsServlet m = new MetricsServlet();
-  //Server s = new Server(); 
-  //ServletContextHandler context = new ServletContextHandler(); 
-  //ServletHolder sh = new ServletHolder();
-
-
+  Counter encs;
+  Gauge numUsersInWildbook; 
+  Gauge numUsersWithLogin;
 
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    encs = Counter.build()
-            .name("number_encounters").help("Number encounters").register();
+    encs = Counter.build().name("number_encounters").help("Number encounters").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
   }
@@ -109,35 +97,37 @@ public class TestPrometheusClient extends HttpServlet {
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
+    
+    //Set up endpoint
     this.metrics(request, response);
+    
     //begin db connection
-      myShepherd.beginDBTransaction();
-      try 
-      { 
-       //put the data into the database as a double
-        if(!pageVisited)
-        {
-          this.setNumberOfUsers(out);
-          this.setNumberOfEncounters(out);
-          pageVisited = true; 
-        }	
-      } 
-      catch (Exception lEx) {
-    	
-    	//gracefully catch any errors  
-        lEx.printStackTrace();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> I was unable to upload your file.");
-        out.println(ServletUtilities.getFooter(context));
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-
-      }
-      finally {
-    	  
-    	//always close DB connections  
-        this.myShepherd.rollbackDBTransaction();
-        this.myShepherd.closeDBTransaction();
-      }
+    myShepherd.beginDBTransaction();
+    try 
+    { 
+      //put the data into the database as a double
+      if(!pageVisited)
+      {
+        this.setNumberOfUsers(out);
+        this.setNumberOfEncounters(out);
+        pageVisited = true; 
+      }	
+    } 
+    catch (Exception lEx) 
+    {
+    //gracefully catch any errors  
+      lEx.printStackTrace();
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to upload your file.");
+      out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+    finally 
+    {
+      //always close DB connections  
+      this.myShepherd.rollbackDBTransaction();
+      this.myShepherd.closeDBTransaction();
+    }
 
     out.close();
   }
@@ -165,6 +155,8 @@ public class TestPrometheusClient extends HttpServlet {
     //out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
   }
+  
+  //Implementation borrowed from MetricsServlet class
   public void metrics(HttpServletRequest request, HttpServletResponse response) throws IOException
   {
     Writer writer = new BufferedWriter(response.getWriter());
@@ -182,6 +174,7 @@ public class TestPrometheusClient extends HttpServlet {
     }
   }
   
+  //Helper method for metrics()
   private Set<String> parse(HttpServletRequest req)
   {
     String[] includedParam = req.getParameterValues("name[]");
@@ -195,6 +188,7 @@ public class TestPrometheusClient extends HttpServlet {
     }
   }
 
+  //Method for printing prometheus objects standardly 
   public void printMetrics(PrintWriter out)
   {
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
