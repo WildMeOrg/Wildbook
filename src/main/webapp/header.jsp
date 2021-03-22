@@ -322,7 +322,7 @@ finally{
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="https://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
 
             							$( "#flag_<%=myLang%>" ).click(function() {
