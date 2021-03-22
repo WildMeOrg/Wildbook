@@ -416,7 +416,7 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
-            
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
                 if (item.species != taxString) return null;
@@ -1317,7 +1317,7 @@ if(enc.getLocation()!=null){
       latBD = latBD.setScale(1, RoundingMode.HALF_UP);
       laty = latBD.toString();
       laty += " ("+encprops.getProperty("truncated")+")";
-    } 
+    }
   }
   if(enc.getLongitudeAsDouble()!=null){
     longy=enc.getLongitudeAsDouble().toString();
@@ -1326,7 +1326,7 @@ if(enc.getLocation()!=null){
       lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
       longy = lonBD.toString();
       longy += " ("+encprops.getProperty("truncated")+")";
-    } 
+    }
   }
 
   String uName = null;
@@ -1337,15 +1337,15 @@ if(enc.getLocation()!=null){
   }
   if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
     if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
-      longy = encprops.getProperty("noGPS");  
+      longy = encprops.getProperty("noGPS");
       laty = encprops.getProperty("noGPS");
     }
 %>
     <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
 <%
-  } 
+  }
 %>
-    
+
 
 <%
  	if(isOwner){
@@ -1536,7 +1536,7 @@ if(enc.getLocation()!=null){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
@@ -4932,6 +4932,7 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
@@ -5034,6 +5035,10 @@ button#upload-button {
 
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5046,7 +5051,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
