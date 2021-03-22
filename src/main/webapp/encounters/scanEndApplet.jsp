@@ -468,6 +468,9 @@ function fitRightImage() {
         </thead>
         <tbody>
         <%
+
+          Shepherd nameShepherd = new Shepherd(context);
+
           if (!xmlOK) {
             MatchObject[] results = new MatchObject[1];
             results = matches;
@@ -476,8 +479,16 @@ function fitRightImage() {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr>
           <td>
+
+            <%
+            String localIndividualName = results[p].getIndividualName();
+            if (Util.isUUID(localIndividualName)) {
+              localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+            }
+            %>
+
             <a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
@@ -531,8 +542,16 @@ function fitRightImage() {
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
+
+            <%
+            String nonLocalIndividualName = enc1.attributeValue("assignedToShark");
+            if (Util.isUUID(nonLocalIndividualName)) {
+              nonLocalIndividualName = nameShepherd.getMarkedIndividual(nonLocalIndividualName).getDisplayName();
+            }
+            %>
+
             <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
-            	<%=enc1.attributeValue("assignedToShark")%>
+            	<%=nonLocalIndividualName%>
             </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
@@ -609,7 +628,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 </tbody>
       </table>
   <%
-	//myShepherd.closeDBTransaction();
+	  nameShepherd.rollbackAndClose();
     //myShepherd = null;
     doc = null;
     root = null;
