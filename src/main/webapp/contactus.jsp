@@ -21,31 +21,23 @@
           <h1 class="intro">Contact us </h1>
 
 
-        <p>The team welcomes your comments and questions.</p>
-
-<p>Please email us at <em>info at whaleshark dot org</em>, and one of us will respond as quickly as possible.</p>
-
-<h2>Photos for Media Publications about Wildbook for Whale Sharks</h2>
-<p>The following photos from Wild Me Director Dr. Simon Pierce may be used freely, for editorial purposes, in return for a link back to https://www.simonjpierce.com (online) and/or correct attribution (print).</p>
-<p>
-	<img src="images/-simon-pierce-1140612.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1140648.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1180243.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-1260314.jpg" width="500px" height="*"/><br>
-	<img src="images/-simon-pierce-7180025.jpg" width="500px" height="*"/><br>
-</p>
-
-<h2>Logos</h2>
-The following logos may be used in conjunction with our project.
-
-<h3>Wild Me</h3>
-
-<p><img src="images/WildMe-Logo-04.png" width="500px" height="*" /></p>
-
-<h3>Wildbook&reg;</h3>
-
-<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
-
+        <div class="row">
+          <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <p>
+              In case of questions about the Fire salamander project - <a
+                href="https://www.uni-bielefeld.de/biologie/crc212/projects/A04.html">The Department of Behavioural Ecology at
+                Bielefeld University</a> /
+              <a href="https://ekvv.uni-bielefeld.de/pers_publ/publ/PersonDetail.jsp?personId=5514336">Barbara Caspers</a>
+        
+            </p>
+            <p>
+              In case of questions about the program - <a href="https://www.wildme.org/#/">Wildme</a>
+            </p>
+          </div>
+          <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <img src="images/behavioral_ecology_logo.png" alt="NC3 logo" class="overview-img" />
+          </div>
+        </div>
 
 
       <!-- end maintext -->

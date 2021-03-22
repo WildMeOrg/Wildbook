@@ -57,23 +57,6 @@
                         <img src="images/nc3_logo.png" alt="NC3 logo" class="overview-img" />
                 </div>
         </div>
-        <h1>Contact Us</h1>
-        <div class="row">
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                        <p>
-                                In case of questions about the Fire salamander project - <a href="https://www.uni-bielefeld.de/biologie/crc212/projects/A04.html">The Department of Behavioural Ecology at Bielefeld University</a> /
-                                <a href="https://ekvv.uni-bielefeld.de/pers_publ/publ/PersonDetail.jsp?personId=5514336">Barbara Caspers</a>
-                                
-                        </p>
-                        <p>
-                                In case of questions about the program - <a href="https://www.wildme.org/#/">Wildme</a>
-                        </p>
-                </div>
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                        <img src="images/behavioral_ecology_logo.png" alt="NC3 logo" class="overview-img" />
-                </div>
-        </div>
-
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
