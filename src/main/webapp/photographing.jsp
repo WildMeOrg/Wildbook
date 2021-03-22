@@ -41,13 +41,13 @@
 	</ol>
 	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-			<img src="images/howtophotograph/photo_salamander_1.jpeg" alt="Perfect dog pic" width="100%" />
+			<img src="images/howtophotograph/photo_salamander_1.jpeg" alt="Salamander walking in moss" width="100%" />
 		</div>
 		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-			<img src="images/howtophotograph/photo_salamander_2.jpeg" alt="Perfect dog pic" width="100%" />
+			<img src="images/howtophotograph/photo_salamander_2.jpeg" alt="Second salamander walking in moss" width="100%" />
 		</div>
 		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-			<img src="images/howtophotograph/photo_salamander_3.jpeg" alt="Perfect dog pic" width="100%" />
+			<img src="images/howtophotograph/photo_salamander_3.jpeg" alt="Salamander in water near a rock" width="100%" />
 		</div>
 	</div>
 	
