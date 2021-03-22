@@ -31,8 +31,9 @@ context=ServletUtilities.getContext(request);
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+File shepherdDataDir = new File(webappsDir, "wildbook_data_dir");
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+
   //session.setMaxInactiveInterval(6000);
   String num="";
     ArrayList<String> locationIDs = new ArrayList<String>();

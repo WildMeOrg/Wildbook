@@ -571,7 +571,7 @@ finally{
             if(featuredUser!=null){
                 String profilePhotoURL="images/empty_profile.jpg";
                 if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/ncaquariums_data_dir/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                	profilePhotoURL="/wildbook_data_dir/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
                 }
 
             %>
@@ -674,7 +674,7 @@ finally{
                             if (myShepherd.doesUserHaveRole(thisUser.getUsername(), "spotasharkusa", context)) {
                                 String profilePhotoURL="images/empty_profile.jpg";
                                 if(thisUser.getUserImage()!=null){
-                                    profilePhotoURL="/ncaquariums_data_dir/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                                    profilePhotoURL="/wildbook_data_dir/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                                 }
                                 //System.out.println(spotters.values().toString());
                                 Integer myInt=spotters.get(spotter);
