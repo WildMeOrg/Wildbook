@@ -139,6 +139,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   if (!wildbook.user.isAnonymous()) {
 
   	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+    // fig = updateWithAnnotationDisambiguator(fig);
   }
   intoElem.append(fig);
   /*
@@ -150,6 +151,25 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   );*/
   maLib.testExtraction(maJson);
   return;
+}
+
+updateWithAnnotationDisambiguator = function(fig){
+  let returnVal = fig;
+  console.log("html so far is: ");
+  console.log(fig);
+  let annotationDisambiguatorHtml = '';
+  annotationDisambiguatorHtml += '<div id="annotation-disambiguator">';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left" onclick="togglePreviousAnnotation(' + fig + ')"></span>';
+  annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation</span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right" onclick="toggleNextAnnotation(' + fig + ')"></span>';
+  annotationDisambiguatorHtml += '</div>';
+  returnVal.append(annotationDisambiguatorHtml);
+  return returnVal;
+  // return fig; //TODO change to returnVal;
+}
+
+togglePreviousAnnotation = function(){
+  console.log("boo");
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
