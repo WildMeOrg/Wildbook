@@ -31,7 +31,7 @@
         
             </p>
             <p>
-              In case of questions about the program - <a href="https://www.wildme.org/#/">Wildme</a>
+              In case of questions about the program - <a href="https://www.wildme.org/#/">Wild Me</a>
             </p>
           </div>
           <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
