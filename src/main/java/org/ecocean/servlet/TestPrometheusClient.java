@@ -20,13 +20,6 @@
 package org.ecocean.servlet;
 
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.MarkedIndividual;
@@ -37,19 +30,36 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import java.util.*;
-
-import javax.xml.bind.DatatypeConverter;
-
+import java.io.Writer;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.CollectorRegistry; 
+import io.prometheus.client.exporter.common.TextFormat;
+import java.util.*;
+
+// import java.util.*;
+
+// import javax.xml.bind.DatatypeConverter;
+//import com.oreilly.servlet.multipart.FilePart;
+//import com.oreilly.servlet.multipart.MultipartParser;
+//import com.oreilly.servlet.multipart.ParamPart;
+//import com.oreilly.servlet.multipart.Part;
+//import org.ecocean.CommonConfiguration;
+//import org.ecocean.Encounter;
+//import javax.ws.rs.core.StreamingOutput;
+//import java.io.File;
+//import java.io.FileOutputStream;
+//import java.io.OutputStreamWriter;
+//import javax.xml.bind.DatatypeConverter;
+//import io.prometheus.client.exporter.MetricsServlet;
+//import com.sun.net.httpserver.HttpServer;
+//import org.eclipse.jetty.server.Server;
+//import org.eclipse.jetty.servlet.ServletContextHandler;
+//import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  *
@@ -62,30 +72,34 @@ import io.prometheus.client.exporter.MetricsServlet;
 public class TestPrometheusClient extends HttpServlet {
 
 
-	//create counter with name and description  
+	/*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
-  Counter encs=null;
+  //Counter encs=null;
   Counter encsSubDate = null;
   Counter encsLocation = null;
-  Gauge numUsersInWildbook = null; 
-  Gauge numUsersWithLogin = null;
+  //Gauge numUsersInWildbook = null; 
+  //Gauge numUsersWithLogin = null;
   Gauge numUsersWithoutLogin = null;
   Gauge numMediaAssetsWildbook = null;
   Gauge indiv = null;
   MetricsServlet m = new MetricsServlet();
   
+  Counter encs;
+  Gauge numUsersInWildbook; 
+  Gauge numUsersWithLogin;
 
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    encs = Counter.build()
-            .name("number_encounters").help("Number encounters").register();
+    // encs = Counter.build()
+    //         .name("number_encounters").help("Number encounters").register();
     encsSubDate = Counter.build()
             .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
     encsLocation = Counter.build()
             .name("number_encounters_by_Location").help("Number encounters by Location ID").register();
     indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
+    encs = Counter.build().name("number_encounters").help("Number encounters").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
     numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
@@ -100,49 +114,46 @@ public class TestPrometheusClient extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    
-    //database connection setup
     String context="context0";
     context=ServletUtilities.getContext(request);
     this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
 
-
-
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-
+    
+    //Set up endpoint
+    this.metrics(request, response);
+    
     //begin db connection
-      myShepherd.beginDBTransaction();
-      try 
-      { 
-       //put the data into the database as a double
-        if(!pageVisited)
-        {
-          this.setNumberOfUsers(out);
-          this.setNumberOfEncounters(out);
-          this.setNumberofMediaAssets(out);
-          pageVisited = true; 
-        }	
-        this.printMetrics(out);
-      } 
-      catch (Exception lEx) {
-    	
-    	//gracefully catch any errors  
-        lEx.printStackTrace();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> I was unable to upload your file.");
-        out.println(ServletUtilities.getFooter(context));
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-
-      }
-      finally {
-    	  
-    	//always close DB connections  
-        this.myShepherd.rollbackDBTransaction();
-        this.myShepherd.closeDBTransaction();
-      }
+    myShepherd.beginDBTransaction();
+    try 
+    { 
+      //put the data into the database as a double
+      if(!pageVisited)
+      {
+        this.setNumberOfUsers(out);
+        this.setNumberOfEncounters(out);
+        this.setNumberofMediaAssets(out);
+        pageVisited = true; 
+      }	
+    } 
+    catch (Exception lEx) 
+    {
+    //gracefully catch any errors  
+      lEx.printStackTrace();
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to upload your file.");
+      out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+    finally 
+    {
+      //always close DB connections  
+      this.myShepherd.rollbackDBTransaction();
+      this.myShepherd.closeDBTransaction();
+    }
 
     out.close();
   }
@@ -220,7 +231,40 @@ public class TestPrometheusClient extends HttpServlet {
     // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
     // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
   }
+  
+  //Implementation borrowed from MetricsServlet class
+  public void metrics(HttpServletRequest request, HttpServletResponse response) throws IOException
+  {
+    Writer writer = new BufferedWriter(response.getWriter());
+    response.setStatus(HttpServletResponse.SC_OK);
+    String contentType = TextFormat.chooseContentType(request.getHeader("Accept"));
+    response.setContentType(contentType);
+    try
+    {
+      TextFormat.writeFormat(contentType, writer, CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(parse(request)));
+      writer.flush();
+    }
+    finally
+    {
+      writer.close();
+    }
+  }
+  
+  //Helper method for metrics()
+  private Set<String> parse(HttpServletRequest req)
+  {
+    String[] includedParam = req.getParameterValues("name[]");
+    if(includedParam == null)
+    {
+      return Collections.emptySet();
+    }
+    else
+    {
+      return new HashSet<String>(Arrays.asList(includedParam));
+    }
+  }
 
+  //Method for printing prometheus objects standardly 
   public void printMetrics(PrintWriter out)
   {
   out.println("<p>User Metrics</p>");
@@ -240,7 +284,6 @@ public class TestPrometheusClient extends HttpServlet {
   out.println("<p>Media Asset Metrics</p>");
     out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
   }
-
 }
 
 
