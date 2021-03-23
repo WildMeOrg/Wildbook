@@ -567,8 +567,20 @@ if(request.getParameter("encounterNumber")!=null){
 <%
 }
 %>
+<div id="please-wait">
+    <h3>Processing. This may take several minutes. Please wait...</h3>
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0"
+            aria-valuemax="100" style="width: 1000%">
+            <span class="sr-only">
+                ~50% Complete
+            </span>
+        </div>
+    </div>
+</div>
+<div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> 
 
-<div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
+</div>
 <script src='//<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
 
 
@@ -689,6 +701,36 @@ $(window).on('resizeEnd', function(ev) {
 	checkImageEnhancerResize();
 });
 
+// function hideMediaAssetFromDom(mediaAsset){
+//     $('#image-enhancer-wrapper-' + mediaAsset.id + '-' + mediaAsset.annotation.id).hide();
+// }
+
+function mediaAssetModifyAjax(data){
+  $('.popup-content').html('<div class="throbbing">updating</div>');
+  $('#please-wait').show();
+  $('#enc-gallery').hide();
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '/MediaAssetModify',
+      data: JSON.stringify(data),
+      type: 'POST',
+      dataType: 'json',
+      contentType: 'application/javascript',
+      complete: function(data) {
+        //   console.info('return => %o', data);
+          if (!data || !data.responseJSON) {
+              $('.popup-content').html('<div class="error">unknown error</div>');
+              return;
+          }
+          if (data.responseJSON.success) {
+            alert("You are about to rotate a media asset. Please note that this will actually create a new media asset, which will appear as the last media asset in your gallery.");
+            window.location.reload();
+            return;
+          }
+          $('.popup-content').html('<div class="error">' + (data.responseJSON.error || data.responseJSON.message) + '</div>');
+      }
+  });
+  return false;
+}
 
 function annotEditAjax(data) {
     $('.popup-content').html('<div class="throbbing">updating</div>');
@@ -807,8 +849,15 @@ function niceId(id) {
 
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
+    $('#please-wait').hide();
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
+    // $('.image-enhancer-wrapper').each(function (i, el) {
+    //     var jel = $(el);
+    //     var mid = imageEnhancer.mediaAssetIdFromElement(jel);
+    //     var ma = assetById(mid);
+    //     jel.append('<div class="edit-mode-ui"><a target="_new" href="../appadmin/manualAnnotation.jsp?assetId=' + mid + '&encounterId=' + encounterNumber + '&removeTrivial=' + (ma.features && (ma.features.length == 1) && !ma.features[0].type) + '" onclick="event.stopPropagation();">ADD annot</div>');
+    // });
     $(document).bind('keydown keyup', function(ev) {
         if (wildbook.user.isAnonymous()) return true;
         var editModeWas = editMode;
@@ -827,7 +876,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var jel = $(el);
             var mid = imageEnhancer.mediaAssetIdFromElement(jel);
-	    var ma = assetById(mid);
+	        var ma = assetById(mid);
             jel.append('<div class="edit-mode-ui"><a target="_new" href="../appadmin/manualAnnotation.jsp?assetId=' + mid + '&encounterId=' + encounterNumber + '&removeTrivial=' + (ma.features && (ma.features.length == 1) && !ma.features[0].type) + '" onclick="event.stopPropagation();">ADD annot</div>');
         });
 
@@ -871,8 +920,36 @@ function doImageEnhancer(sel) {
             ['replace this image', function(enh) {
             }],
 */
+            ['rotate 90 degrees clockwise', function(enh) {
+              let mediaAssetId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+              let mediaAsset = assetById(mediaAssetId);
+              let rotateImageAjaxData = {};
+              rotateImageAjaxData["maId"] = mediaAssetId;
+              rotateImageAjaxData["rotate"]="rotate90";
+              mediaAssetModifyAjax(rotateImageAjaxData);
+              mediaAsset = assetById(mediaAssetId);
+            }],
+            ['rotate 180 degrees clockwise', function (enh) {
+                    let mediaAssetId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    let mediaAsset = assetById(mediaAssetId);
+                    let rotateImageAjaxData = {};
+                    rotateImageAjaxData["maId"] = mediaAssetId;
+                    rotateImageAjaxData["rotate"] = "rotate180";
+                    mediaAssetModifyAjax(rotateImageAjaxData);
+                    mediaAsset = assetById(mediaAssetId);
+                }],
+                ['rotate 270 degrees clockwise', function (enh) {
+                    let mediaAssetId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                    let mediaAsset = assetById(mediaAssetId);
+                    let rotateImageAjaxData = {};
+                    rotateImageAjaxData["maId"] = mediaAssetId;
+                    rotateImageAjaxData["rotate"] = "rotate270";
+                    mediaAssetModifyAjax(rotateImageAjaxData);
+                    mediaAsset = assetById(mediaAssetId);
+                }],
+
             ['make MatchPhoto', function(enh) {
-		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
                 var indivId = false;
                 for (var i = 0 ; i < ma.features.length ; i++) {
@@ -1414,7 +1491,7 @@ console.info("############## mid=%s -> %o", mid, ma);
       h += valueSelectors;
     }
   } else {
-    console.log("your labels are empty dumbass");
+    // console.log("your labels are empty dumbass");
   }
   h += '</div></div>';
 

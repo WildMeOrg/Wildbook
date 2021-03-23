@@ -51,7 +51,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     }
 
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
-    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND \"STATE\" = 'processing' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
+    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND (\"STATE\" = 'processing' OR \"STATE\" = 'mergereview' OR \"STATE\" = 'disputed') AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
 System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
 
     JSONArray found = new JSONArray();
@@ -181,18 +181,19 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
 	Properties props=new Properties();
 	String langCode=ServletUtilities.getLanguageCode(request);
 	String context = ServletUtilities.getContext(request);
-        request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("encounterDecide.jsp");
-        myShepherd.beginDBTransaction();
-        String encId = request.getParameter("id");
-        Encounter enc = myShepherd.getEncounter(encId);
-        if (enc == null) {
-            response.setStatus(404);
-            out.println("404 not found");
-            return;
-        }
-        User user = AccessControl.getUser(request, myShepherd);
+  props = ShepherdProperties.getProperties("encounterDecide.properties", langCode, context);
+  request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterDecide.jsp");
+  myShepherd.beginDBTransaction();
+  String encId = request.getParameter("id");
+  Encounter enc = myShepherd.getEncounter(encId);
+  if (enc == null) {
+      response.setStatus(404);
+      out.println("404 not found");
+      return;
+  }
+  User user = AccessControl.getUser(request, myShepherd);
 /*
         if (!"new".equals(enc.getState())) {   //TODO other privilege checks here
             response.setStatus(401);
@@ -275,6 +276,10 @@ h1 { background: none !important; }
     padding: 0;
     margin: 0;
 }
+.attribute h3 {
+    padding: 0;
+    margin: 0;
+}
 
 #secondary-instructions {
     xheight: 2em;
@@ -336,7 +341,10 @@ h1 { background: none !important; }
     width: 22%;
     margin-bottom: 13px;
 }
-#earTip .attribute-option, #lifeStage .attribute-option {
+#earTip .attribute-option {
+    width: 22%;
+}
+#lifeStage .attribute-option {
     width: 47%;
 }
 #collar .attribute-option, #sex .attribute-option {
@@ -764,12 +772,23 @@ function enableMatch() {
                     matchData.userPresented = {};
                     var sort = {};
                     var seen = {};
+                    let similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
+                    var shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                        if (!xhr.responseJSON.similar[i].individualId) continue;
-                        if (seen[xhr.responseJSON.similar[i].individualId]) continue;
+                        if (!xhr.responseJSON.similar[i].individualId){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
+                        if (seen[xhr.responseJSON.similar[i].individualId]){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
                         var score = matchScore(xhr.responseJSON.similar[i], userData);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
-                        if (score < 0) continue;
+                        if (score < 0){
+                          similarShortCircuitTracker ++;
+                          continue;
+                        }
                         seen[xhr.responseJSON.similar[i].individualId] = true;
                         var h = '<div class="match-item">';
                         h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">See more photos of ' + xhr.responseJSON.similar[i].name + '</a></div>';
@@ -797,50 +816,58 @@ function enableMatch() {
                         if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
                             if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
                                 h = "";
+                                similarShortCircuitTracker ++;
                                 continue;
                             }
-                          console.log("getting near matchAssetLoaded call");
+                            console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
-                        } else {
-                            if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
-                                h = "";
-                                continue;
-                            }
+                            } else {
+                              if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
+                                  h = "";
+                                  similarShortCircuitTracker ++;
+                                  continue;
+                              }
                             console.log("getting near matchAssetLoaded call");
                             var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
-                        }
+                            }
 
-                        h += '<div class="match-item-info">';
-                        h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
-                        h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
-                        h += '<div>score: <b>' + score + '</b></div>';
-                        if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
-                        if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
-                        h += '</div></div>';
-                        if (!sort[score]) sort[score] = '';
-                        sort[score] += h;
+                            h += '<div class="match-item-info">';
+                            h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+                            h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
+                            h += '<div>score: <b>' + score + '</b></div>';
+                            if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
+                            if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
+                            h += '</div></div>';
+                            if (!sort[score]) sort[score] = '';
+                            sort[score] += h;
                     } //end for xhr.responseJSON.similar
                     var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
                     $('#match-results').html('');
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
+                    if(similarShortCircuitTracker == xhr.responseJSON.similar.length){
+                      $('#match-results').html('<b>No matches found</b>');
+                      shouldPopulatePaginator = false;
+                    }
 
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
-                    $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
-                    $('.match-chosen-cat').on('click', function(ev) {
-                        var id = ev.target.id;
-                        console.log(id);
-                        $('.match-chosen-cat').prop('checked', false);
-                        $('#' + id).prop('checked', true);
-                        $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
-                    });
-                    populatePaginator(keys);
+                }
+                $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
+                $('.match-chosen-cat').on('click', function(ev) {
+                  var id = ev.target.id;
+                  console.log(id);
+                  $('.match-chosen-cat').prop('checked', false);
+                  $('#' + id).prop('checked', true);
+                  $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
+                });
+                if(shouldPopulatePaginator){
+                  populatePaginator(keys);
                 }
             }
         },
@@ -850,21 +877,23 @@ function enableMatch() {
 }
 
 function populatePaginator(keyArray){
-  let items = $('.match-item');
-  let numItems = keyArray.length;
-  let perPage = 5;
-  items.slice(perPage).hide();
+  if(keyArray){
+    let items = $('.match-item');
+    let numItems = keyArray.length;
+    let perPage = 5;
+    items.slice(perPage).hide();
 
-  $('#pagination-section').pagination({
-    items: numItems,
-    itemsOnPage: perPage,
-    cssStyle: "light-theme",
-    onPageClick: function(pageNumber) {
-      var showFrom = perPage * (pageNumber - 1);
-      var showTo = showFrom + perPage;
-      items.hide().slice(showFrom, showTo).show();
-    }
-  });
+    $('#pagination-section').pagination({
+      items: numItems,
+      itemsOnPage: perPage,
+      cssStyle: "light-theme",
+      onPageClick: function(pageNumber) {
+        var showFrom = perPage * (pageNumber - 1);
+        var showTo = showFrom + perPage;
+        items.hide().slice(showFrom, showTo).show();
+      }
+    });
+  }
 }
 
 function saveMatchChoice() {
@@ -875,7 +904,7 @@ function saveMatchChoice() {
     utickState.encounterDecide.matchSaveTime = new Date().getTime();
     $.ajax({
         url: '../DecisionStore',
-        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
+        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: (matchData && matchData.userPresented)? matchData.userPresented: {}, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
         dataType: 'json',
         complete: function(xhr) {
             console.log(xhr);
@@ -1196,25 +1225,31 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h3>Ear Tip</h3>
-            <p class="attribute-info">Zoom all the way in to check.  Ear tipping can be difficult to see, and it depends on the angle of the photo and the amount of ear tip removed.<br />When in doubt, select unknown.</p>
+            <h3><%=props.getProperty("earTip")%></h3>
+            <p class="attribute-info">
+              <%=props.getProperty("zoomEarTipPt1")%>
+              <br/>
+              <%=props.getProperty("zoomEarTipPt2")%>
+            </p>
             <div id="earTip" class="attribute-select">
+
                 <div id="yes_left" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
-                    <div class="attribute-title">Yes - Cat's Left</div>
+                    <div class="attribute-title"><%=props.getProperty("catLeft")%></div>
                 </div>
                 <div id="yes_right" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipright.jpg" />
-                    <div class="attribute-title">Yes - Cat's Right</div>
+                    <div class="attribute-title"><%=props.getProperty("catRight")%></div>
                 </div>
                 <div id="no" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_untipped.jpg" />
-                    <div class="attribute-title">No</div>
+                    <div class="attribute-title"><%=props.getProperty("no")%></div>
                 </div>
                 <div id="unknown" class="attribute-option">
-                    <img class="attribute-image" src="../images/unknown.png" />
-                    <div class="attribute-title">Unknown</div>
+                    <img class="attribute-image" src="../images/unknown_eartip.png" />
+                    <div class="attribute-title"><%=props.getProperty("unknown")%></div>
                 </div>
+
             </div>
         </div>
 

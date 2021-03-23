@@ -25,9 +25,12 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 
 import org.ecocean.genetics.*;
+import org.ecocean.social.Membership;
 import org.ecocean.social.Relationship;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -39,6 +42,7 @@ import java.text.DecimalFormat;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
+import java.util.regex.*;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -105,7 +109,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
-  
+
   private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
@@ -139,6 +143,7 @@ public class MarkedIndividual implements java.io.Serializable {
     //numUnidentifiableEncounters = 0;
     setTaxonomyFromEncounters();
     setSexFromEncounters();
+    refreshDependentProperties();
     maxYearsBetweenResightings=0;
   }
 
@@ -166,20 +171,72 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getId() {
         return individualID;
     }
-
     
-
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
     public String getDisplayName() {
+        //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName()");
         return getDisplayName(null);
     }
+
     public String getDisplayName(Object keyHint) {
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(keyHint)");
+      return getDisplayName(keyHint, null, null);
+    }
+
+    public String getDisplayName(HttpServletRequest request) {
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request)");
+      return getDisplayName(null, request, null);
+    }
+
+    public String getDisplayName(HttpServletRequest request, Shepherd myShepherd) {
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request,myShepherd)");
+      return getDisplayName(null, request, myShepherd);
+    }
+
+    public String getDisplayName(Object keyHint, HttpServletRequest request, Shepherd myShepherd) {
         if (names == null) return null;
+
+        //if you have a specific preferred context and have a request/shepherd, we look for that first 
+        if (request!=null&&request.getUserPrincipal()!=null) {
+          String context = ServletUtilities.getContext(request);
+          // hopefully the call was able to provide an existing shepherd, but we have to make one if not
+          Shepherd nameShepherd = null;
+          boolean newShepherd = false;
+          try {
+            if (myShepherd==null) {
+              nameShepherd = new Shepherd(context);
+              nameShepherd.setAction("MarkedIndividual.getDisplayName()");
+              newShepherd = true;
+            } else {
+              nameShepherd = myShepherd;
+            }
+            nameShepherd.beginDBTransaction();
+            User user = AccessControl.getUser(request, nameShepherd);
+            if (user!=null) {
+              String projectContextId = null; // short circuit this because kitizen doesn't use project, and User.java doesn't yet need to be modified to include all of this: user.getProjectIdForPreferredContext();
+              if (Util.stringExists(projectContextId)) {
+                Project project = null; // short circuit this because kitizen doesn't use project, and Shepherad.java doesn't yet need to be modified to include all of this: nameShepherd.getProject(projectContextId);
+                if (project!=null) {
+                  return getDisplayName(project.getProjectIdPrefix());
+                }
+              }
+            } 
+          } catch (Exception e) {
+            if (nameShepherd!=null) {
+              nameShepherd.rollbackAndClose();            
+            }
+          } finally {
+            if (newShepherd) nameShepherd.rollbackAndClose();
+          }
+        }
+
         List<String> nameVals = getNamesList(keyHint);
-        // default case: just return the first name for the keyhint.
+        // you have provided a specific key, will get a key specific return
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+
+
         // fallback case: try using the default keyhint
         if(getNames()!=null) {
           nameVals = getNames().getValuesDefault();
@@ -188,7 +245,7 @@ public class MarkedIndividual implements java.io.Serializable {
         // second fallback: try using another nameKey
         List<String> keys = names.getSortedKeys();
         if (!Util.isEmpty(keys) && !keys.get(0).equals(keyHint)) { // need second check to disable infinite recursion
-          return (keys.get(0)+": "+getDisplayName(keys.get(0)));
+          return getDisplayName(keys.get(0));
         }
         return displayIndividualID();
     }
@@ -293,6 +350,30 @@ public class MarkedIndividual implements java.io.Serializable {
     public boolean hasNameSubstring(String value) {
       return (names!=null && names.hasValueSubstring(value));
     }
+    public boolean hasNameKey(String query){
+      boolean returnVal = false;
+      if (this.getNameKeys()!=null && this.getNameKeys().contains(query)) {
+        returnVal = true;
+      }
+      return returnVal;
+    }
+
+    public String getFirstMatchingName(String query){
+      // System.out.println("entered getFirstMatchingName. Query is: " + query);
+      String returnVal = "";
+      if (NAMES_CACHE == null) return returnVal;
+      if (query == null) return returnVal;
+      int tracker = 0;
+      for (Integer nid : NAMES_CACHE.keySet()) {
+          if (NAMES_CACHE.get(nid).matches(query.toLowerCase()) && tracker<1){
+            returnVal = NAMES_CACHE.get(nid);
+            return returnVal;
+            // tracker ++;
+            // System.out.println("tracker is: " + tracker);
+          }
+      }
+      return returnVal;
+  }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
@@ -310,7 +391,7 @@ public class MarkedIndividual implements java.io.Serializable {
           names.addValuesDefault(getLegacyIndividualID());
         }
         // use old individualID as default name moving forward
-        
+
         // add nickname and alternateID to names list (labelled), but not default list
         if (Util.stringExists(nickName)) {
             names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
@@ -347,8 +428,30 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
             vals.removeAll(rtn);  //weed out duplicates
             rtn.addAll(vals);
         }
+        q.closeAll();
         return rtn;
     }
+
+  public void addIncrementalProjectId(Project project) {
+    if (project!=null) {
+      if (!hasNameKey(project.getProjectIdPrefix())) {
+        int nextIncrement = project.getNextIndividualIdIncrement();
+        try {
+          addNameByKey(project.getProjectIdPrefix(), project.getNextIncrementalIndividualId());
+          project.getNextIncrementalIndividualIdAndAdvance();
+        } catch (Exception e) {
+          if (nextIncrement<project.getNextIndividualIdIncrement()) {
+            project.adjustIncrementalIndividualId(-1);
+          }
+          e.printStackTrace();
+        }
+      } else {
+        System.out.println("[ERROR]: Project Id not added to Individual "+getId()+". Individual already has an Id from project "+project.getProjectIdPrefix()+".");
+      }
+    } else {
+      System.out.println("[WARN]: Passed a null project to MarkedIndividual.addIncrementalProjectId() on "+getDisplayName()+".");
+    }
+  }
 
   public boolean addEncounter(Encounter newEncounter) {
       //get and therefore set the haplotype if necessary
@@ -458,7 +561,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 		this.dateFirstIdentified = d;
 		return d;
 	}
-	
+
 	 public String refreshDateLastestSighting() {
 	    Encounter[] sorted = this.getDateSortedEncounters();
 	    if (sorted.length < 1) return null;
@@ -509,15 +612,22 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
 
     for(int c=0;c<myEncs.length;c++) {
-      Encounter temp=myEncs[c];
-      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-        haveData.add(temp);
-      }
-      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
-        haveData.add(temp);
-      }
-
-      }
+      String catalogNumber="";
+      try {
+          Encounter temp=myEncs[c];
+          if(temp!=null)catalogNumber=temp.getCatalogNumber();
+          if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
+            haveData.add(temp);
+          }
+          else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+            haveData.add(temp);
+          }
+        }
+        catch(Exception e) {
+          System.out.println("Hit exception in MarkedIndividual.returnEncountersWithGPSData for Encounter: "+catalogNumber);
+          e.printStackTrace();
+        }
+    }
 
     return haveData;
 
@@ -893,7 +1003,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     Encounter[] allEncs = getDateSortedEncounters(reverse);
     return (Arrays.copyOfRange(allEncs, 0, Math.min(limit,allEncs.length)));
   }
-  
+
   public static String getWebUrl(String individualID, HttpServletRequest req) {
     return (CommonConfiguration.getServerURL(req)+"/individuals.jsp?number="+individualID);
   }
@@ -901,12 +1011,12 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     return getWebUrl(this.getIndividualID(), req);
   }
 
-  public String getHyperlink(HttpServletRequest req) {
-    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName()+ "</a>";
-  }
+  // public String getHyperlink(HttpServletRequest req) {
+  //   return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
+  // }
 
 
-  
+
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
 
@@ -1472,7 +1582,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
     return "";
   }
-  
+
   public String getDateLatestSighting() {
     if (dateTimeLatestSighting != null) {
       return dateTimeLatestSighting;
@@ -1483,7 +1593,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
-  
+
   public void setDateTimeLatestSighting(String time) {
     dateTimeLatestSighting = time;
   }
@@ -1672,7 +1782,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
     maxYearsBetweenResightings=maxYears;
   }
-  
+
 
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
@@ -1879,8 +1989,8 @@ public List<String> getAllEmailsToUpdate(){
 	//process encounters
 	for(int i=0;i<numEncounters;i++){
 		Encounter enc=(Encounter)encounters.get(i);
-		
-		
+
+
 		/*
 		if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().trim().equals(""))){
 			String submitter = enc.getSubmitterEmail();
@@ -1905,7 +2015,7 @@ public List<String> getAllEmailsToUpdate(){
 					else{if(!notifyUs.contains(photog)){notifyUs.add(photog);}}
 		}
 		*/
-		
+
 		List<User> allUsers=new ArrayList<User>();
 		if(enc.getSubmitters()!=null)allUsers.addAll(enc.getSubmitters());
 		if(enc.getPhotographers()!=null)allUsers.addAll(enc.getPhotographers());
@@ -1917,7 +2027,7 @@ public List<String> getAllEmailsToUpdate(){
 		    notifyUs.add(use.getEmailAddress());
 		  }
 		}
-		
+
 		/*
 		if((enc.getInformOthers()!=null)&&(!enc.getInformOthers().trim().equals(""))){
 							String photog = enc.getInformOthers();
@@ -2121,7 +2231,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-	          jobj.put("displayName", this.getDisplayName());
+	          jobj.put("displayName", this.getDisplayName(request));
 	          if (this.canUserAccess(request)) return jobj;
             jobj.remove("numberLocations");
             jobj.remove("sex");
@@ -2135,9 +2245,9 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             jobj.put("_sanitized", true);
             return jobj;
         }
-	
 
-  
+
+
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
     jobj.remove("nickName");
     jobj.put("nickName", this.getNickName());
@@ -2145,7 +2255,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return jobj;
   }
 
-  
+
 //Returns a somewhat rest-like JSON object containing the metadata
  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
    return uiJson(request, true);
@@ -2154,7 +2264,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
-    jobj.put("displayName", this.getDisplayName());
+    jobj.put("displayName", this.getDisplayName(request));
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
@@ -2194,7 +2304,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return resultArray;
   }
 
-  
+
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
     return getExemplarImages(myShepherd, req, 5);
   }
@@ -2233,10 +2343,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             //myShepherd.closeDBTransaction();
 
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
-              
-              
+
+
               //ok, we have a viable candidate
-              
+
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
               //do nothing and don't include it if it has NoProfilePhoto keyword
@@ -2245,10 +2355,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               else{
                 al.add(j);
               }
-              
+
             }
-            
-            
+
+
           }
           if(al.size()>numResults){return al;}
         }
@@ -2290,7 +2400,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             myShepherd.closeDBTransaction();
 
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
-              
+
               //here is the keyword filtering logic
               String removeThisName=null; // awkward to avoid concurrent modification by removing kwName in the loop
               for (String kwName: kwNamesLeft) {
@@ -2313,13 +2423,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
-    return getBestKeywordPhotos(req, kwNames, false);
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, Shepherd myShepherd) throws JSONException {
+    return getBestKeywordPhotos(req, kwNames, false, myShepherd);
   }
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords, Shepherd myShepherd) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
+    //Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    //myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
@@ -2346,32 +2456,32 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       }
     }
 
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
     return al;
   }
 
-  
+
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
-    
+
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0);
     if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
-    
+
 
   }
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarThumbnail(Shepherd myShepherd, HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
-    
+
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0, "_thumb");
     if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
-    
+
 
   }
 
 
 
-  
+
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {
@@ -2432,6 +2542,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+
         int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
@@ -2442,11 +2553,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
             return rtn;
         }
-        System.out.println("findByNames nameIds: "+nameIds.toString());
+        //System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
-        System.out.println("findByNames: "+genus+" "+specificEpithet);
+        //System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter="";
         if((genus!=null)&&(specificEpithet!=null)) {
+          genus = genus.trim();
+          specificEpithet = specificEpithet.trim();
           taxonomyStringFilter=" && enc.genus == '"+genus+"' && enc.specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
         }
         String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
@@ -2460,7 +2573,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         query.closeAll();
         return rtn;
     }
-    
+
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
       return findByNames(myShepherd, regex, null, null);
     }
@@ -2468,8 +2581,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     public static MarkedIndividual withName(Shepherd myShepherd, String name) {
       return withName(myShepherd, name, null, null);
     }
-    
-    
+
+
     // exact case-insensitive version of above func that returns 1 or 0 individuals
     public static MarkedIndividual withName(Shepherd myShepherd, String name, String genus, String specificEpithet) {
       String regex = "(^|.*;)"+name+"(;.*|$)";
@@ -2483,12 +2596,22 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     //used above, but also used in IndividualQueryProcessor, for example
     public static List<String> findNameIds(String regex) {
         List<String> nameIds = new ArrayList<String>();
-        if (NAMES_CACHE == null) return nameIds;  //snh
+        if (NAMES_CACHE == null) return nameIds;
         if (regex == null) return nameIds;
         for (Integer nid : NAMES_CACHE.keySet()) {
             if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
         }
         return nameIds;
+    }
+
+    public static List<String> findNames(String regex) {
+        List<String> names = new ArrayList<String>();
+        if (NAMES_CACHE == null) return names;  //snh
+        if (regex == null) return names;
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) names.add(NAMES_CACHE.get(nid));
+        }
+        return names;
     }
 
     //only does once (when needed)
@@ -2535,20 +2658,75 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
-    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+    public void mergeIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
       }
       this.names.merge(other.getNames());
-      this.setComments(getMergedComments(other, request, myShepherd));
+      this.setComments(getMergedComments(other, username));
+      
+      //WB-951: merge relationships
+      ArrayList<Relationship> rels=myShepherd.getAllRelationshipsForMarkedIndividual(other.getIndividualID());
+      if(rels!=null && rels.size()>0) {
+        for(Relationship rel:rels) {
+          if(rel.getMarkedIndividualName1().equals(other.getIndividualID())) {
+            rel.setIndividual1(this);
+            rel.setMarkedIndividualName1(this.getIndividualID());
+            myShepherd.updateDBTransaction();
+          }
+          else if(rel.getMarkedIndividualName2().equals(other.getIndividualID())) {
+            rel.setIndividual2(this);
+            rel.setMarkedIndividualName2(this.getIndividualID());
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+      
+      //WB-951: merge social units
+      List<SocialUnit> units= null; // short circuit this because kitizen doesn't use social units, and Shepherd.java doesn't yet need to be modified to include all of this:myShepherd.getAllSocialUnitsForMarkedIndividual(other);
+      if(units!=null && units.size()>0) {
+        for(SocialUnit unit:units) {
+          Membership member= null; // short circuit this because kitizen doesn't use social units, and user.java doesn't yet need to be modified to include all of this:unit.getMembershipForMarkedIndividual(other);
+          if(member!=null){
+            member.removeMarkedIndividual();
+            member.setMarkedIndividual(this);
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+      
+      //check for a ScheduledIndividualMerge that may have other
+      String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
+      Query q=myShepherd.getPM().newQuery(filter);
+      try{
+        Collection c=(Collection)q.execute();
+        ArrayList<ScheduledIndividualMerge> merges=new ArrayList<ScheduledIndividualMerge>(c);
+        //throw out any scheduled merge related to this individual as it is now being merged.
+        if(merges!=null && merges.size()>0){
+          for(ScheduledIndividualMerge merge:merges) {
+            myShepherd.getPM().deletePersistent(merge);
+            myShepherd.updateDBTransaction();
+          }
+        }
+      } catch (Exception e){
+        System.out.println("error looking for ScheduledIndividualMerges: ");
+        e.printStackTrace();
+      }
+      
+      
       refreshDependentProperties();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
       User user = myShepherd.getUser(request);
+      String username = user.getDisplayName();
+      return getMergedComments(other, username);
+    }
+
+    public String getMergedComments(MarkedIndividual other, String username) {
       String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
-    
+
       mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
       mergedComments += ", which had encounters: [<ul>";
       for (Encounter enc: other.getEncounters()) {
@@ -2558,9 +2736,9 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
       mergedComments += "Merged on "+Util.prettyTimeStamp();
       
-      if (user!=null) mergedComments += " by "+ user.getDisplayName();
+      if (username!=null) mergedComments += " by "+ username;
       else mergedComments += " No user was logged in.";
-      
+
       if (Util.stringExists(other.getComments())) {
         mergedComments += "</p><p>Merged comments:";
         mergedComments += other.getComments();
@@ -2570,8 +2748,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       return mergedComments;
     }
 
-    public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
-      mergeIndividual(other, request, myShepherd);
+    public void mergeAndThrowawayIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
+      mergeIndividual(other, username, myShepherd);
       myShepherd.throwAwayMarkedIndividual(other);
     }
 

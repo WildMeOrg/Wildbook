@@ -122,7 +122,7 @@ public class MediaAsset implements java.io.Serializable {
     protected DateTime userDateTime;
 
     // Variables used in the Survey, SurveyTrack, Path, Location model
-    
+
     private String correspondingSurveyTrackID;
     private String correspondingSurveyID;
 
@@ -233,7 +233,7 @@ public class MediaAsset implements java.io.Serializable {
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
     }
-    
+
     public void setCorrespondingSurveyTrackID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyTrackID = id;
@@ -246,13 +246,13 @@ public class MediaAsset implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public void setCorrespondingSurveyID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyID = id;
       }
     }
-    
+
     public String getCorrespondingSurveyID() {
       if (correspondingSurveyID != null) {
         return correspondingSurveyID;
@@ -429,7 +429,17 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void addLabel(String s) {
         if (labels == null) labels = new ArrayList<String>();
-        if (!labels.contains(s)) labels.add(s);
+        if (!labels.contains(s)){
+            ArrayList<String> dup = new ArrayList<String>(labels);
+            dup.add(s);
+            labels = dup;
+        }
+    }
+    public void removeLabel(String s){
+        if (labels == null) return;
+        ArrayList<String> dup = new ArrayList<String>(labels);
+        dup.remove(s);
+        labels = dup;
     }
     public boolean hasLabel(String s) {
         if (labels == null) return false;
@@ -686,7 +696,7 @@ public class MediaAsset implements java.io.Serializable {
             if (i == 0) {
                 String localURL = store.getUsage().substring(16);
                 return new URL(localURL);
-            } 
+            }
         } catch (java.net.MalformedURLException ex) {}
         return store.webURL(this);
     }
@@ -732,9 +742,9 @@ public class MediaAsset implements java.io.Serializable {
     public URL containerURLIfPresent() {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
 
-        URL localURL = store.getConfig().getURL("webroot"); 
+        URL localURL = store.getConfig().getURL("webroot");
         if (localURL == null) return null;
-        String hostname = localURL.getHost(); 
+        String hostname = localURL.getHost();
 
         if (containerName!=null&&containerName!="") {
             try {
@@ -788,7 +798,7 @@ public class MediaAsset implements java.io.Serializable {
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) {
                 MediaAsset kid = kids.get(0);
-                return kid; 
+                return kid;
 
             } ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
@@ -907,7 +917,7 @@ public class MediaAsset implements java.io.Serializable {
         org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException{
       return sanitizeJson(request,jobj, true);
     }
-    
+
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
           String context = ServletUtilities.getContext(request);
@@ -1030,7 +1040,7 @@ public class MediaAsset implements java.io.Serializable {
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
-            
+
             //myShepherd.rollbackDBTransaction();
             //myShepherd.closeDBTransaction();
 
@@ -1087,6 +1097,7 @@ public class MediaAsset implements java.io.Serializable {
         File targetFile = (child.localPath() == null) ? null : child.localPath().toFile();
         if ((sourceFile == null) || (targetFile == null)) throw new IOException("could not get localPath on source or target");
         boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false);
+        //boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false); TODO maybe a second signature for this method with the child's label?
         System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok);
         return ok;
     }
@@ -1240,20 +1251,20 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         for(int i=0;i<numKeywords;i++){
           Keyword kw=keywords.get(i);
           if (kw==null) return false;
-          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true; 
+          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true;
         }
       }
-      
+
       return false;
     }
-    
+
     public boolean hasKeyword(Keyword key){
       if(keywords!=null){
         if(keywords.contains(key)){return true;}
       }
       return false;
     }
-    
+
     public void removeKeyword(Keyword k) {
       if (keywords != null) {
         if (keywords.contains(k)) keywords.remove(k);

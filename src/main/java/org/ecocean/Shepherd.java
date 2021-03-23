@@ -47,6 +47,7 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 
 
 /**
@@ -362,6 +363,21 @@ public class Shepherd {
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new collaboration in shepherd.storeNewCollaboration().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewScheduledIndividualMerge(ScheduledIndividualMerge wsim) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wsim);
+      commitDBTransaction();
+      return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println(
+          "I failed to create a new ScheduledIndividualMerge in shepherd.storeNewScheduledIndividualMerge().");
       e.printStackTrace();
       return false;
     }
@@ -3371,10 +3387,23 @@ public class Shepherd {
     return e;
   }
 
-  public Encounter getEncounter(MediaAsset ma) {
-    if (ma==null || !ma.hasAnnotations()) return null;
-    Annotation ann = ma.getAnnotations().get(0);
-    return ann.findEncounter(this);
+  public List<Encounter> getEncounters(MediaAsset ma) {
+    List<Encounter> returnEncounters = new ArrayList<Encounter>();
+    List<String> encounterIdsToCheckForUnique = new ArrayList<String>();
+    if (ma == null || !ma.hasAnnotations())
+      return null;
+    List<Annotation> annotations = ma.getAnnotations();
+    if(annotations != null && annotations.size() > 0){
+      for(Annotation currentAnn: annotations){
+        Encounter candidateEncounter = currentAnn.findEncounter(this);
+        if(!encounterIdsToCheckForUnique.contains(candidateEncounter.getID())){
+          //it's a new encounter
+          returnEncounters.add(candidateEncounter);
+          encounterIdsToCheckForUnique.add(candidateEncounter.getID());
+        }
+      }
+    }
+    return returnEncounters;
   }
 
 

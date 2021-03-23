@@ -249,7 +249,7 @@ public abstract class AssetStore implements java.io.Serializable {
        (1) this "should be" backwards compatible; (2) we now have parent-child assets that cross store boundaries (YouTubeAssetStore / children)
        (3) restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
     */
-    
+
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
         if ((parent == null) || (parent.getId() < 1)) return null;
         ArrayList<MediaAsset> all=new ArrayList<MediaAsset>();
@@ -631,7 +631,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
 //FOR NOW (TODO) we are disabling non-trivial annotations display, such is life?
 if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotation -->";
 /*
-        //for non-trivial annotations, lets try to find the 
+        //for non-trivial annotations, lets try to find the
         if ((ann != null) && !ann.isTrivial()) {
             kids = ma.findChildrenByLabel(myShepherd, "_annotation");
             if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) ma = kids.get(0);
@@ -642,7 +642,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
 
         String smallUrl = url.toString();
         kids = ma.findChildrenByLabel(myShepherd, "_watermark");
-        if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) smallUrl = kids.get(0).webURL().toString(); 
+        if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) smallUrl = kids.get(0).webURL().toString();
 
         //this should be based on permission for example:
         more += " data-full-url=\"" + url + "\" ";

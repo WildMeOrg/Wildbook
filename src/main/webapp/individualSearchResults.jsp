@@ -250,7 +250,12 @@
 				else{return "";}
 			},
 		},
-	
+        {
+            key: 'individualID',
+            label: '<%=props.getProperty("matchPhotoCol")%>',
+            value: _colMatchPhoto,
+            sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); },
+        },
 		{
 			key: 'numberEncounters',
 			label: '<%=props.getProperty("numEncounters")%>',
@@ -323,7 +328,7 @@
 			}
 		$('#results-table').append(th + '</tr></thead>');
 		for (var i = 0 ; i < howMany ; i++) {
-			var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+			var r = '<tr class="pageableTable-visible">';
 			for (var c = 0 ; c < colDefn.length ; c++) {
 				r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
 			}
@@ -354,7 +359,7 @@
 	
 	function rowClick(el) {
 		console.log(el);
-		var w = window.open('individuals.jsp?number=' + el.getAttribute('data-id'), '_blank');
+		var w = window.open('individuals.jsp?number=' + el.closest("tr").getAttribute('data-id'), '_blank');
 		w.focus();
 		return false;
 	}
@@ -559,12 +564,11 @@
 	}
 	*/
 	
-	
 	function _colIndividual(o) {
 		var i = '<b>' + o.displayName + '</b>';
 		var fi = o.dateFirstIdentified;
 		if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
-		return i;
+		return '<a onClick="return rowClick(this);" href="#">' + i + '</a>';
 	}
 
 	function _colNickname(o) {
@@ -572,6 +576,10 @@
 		return o.nickname;
 	}
 	
+	function _colMatchPhoto(o) {
+		if (o.individualID == undefined) return '-';
+		return '<a target="_new" href=\"individualGallery.jsp?id=' + o.individualID + '">Click</a>';
+	}
 	
 	function _colNumberEncounters(o) {
 		if (o.numberEncounters == undefined) return '';
