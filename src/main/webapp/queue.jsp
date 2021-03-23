@@ -561,7 +561,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
             }
           }
           if(locIdMissingCounter<1){ //locationId is missing, and no decision has flagged it yet
-            System.out.println("adding flag-locationid-missing to encounter " + enc.getCatalogNumber()); //TODO comment back in
+            System.out.println("adding flag-locationid-missing to encounter " + enc.getCatalogNumber());
             JSONObject val = new JSONObject();
             List valueArr = new ArrayList<String>();
             valueArr.add("flag-locationid-missing");
@@ -575,7 +575,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
         if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
-          // Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO comment back in
+          //Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO Rutvik & Hardik: comment back in when Sabrina wants to enable the "mergereview" or "disputed" assignments
         }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
