@@ -93,6 +93,14 @@
   <version>0.10.0</version>
 </dependency>
 
+<!-- For MetricsServlet class --> 
+<dependency>
+  <groupId>io.prometheus</groupId>
+  <artifactId>simpleclient_servlet</artifactId>
+  <version>0.10.0</version>
+</dependency>
+
+
 
 
 <dependency>
