@@ -39,13 +39,9 @@ public class flukebook
     static final Guage usersActive = Gauge.build()
         .name("numberofUsersActive").help("Number of active users.").register(); 
     
-}
 
-//how do we connect this to the wildbook?
-//Adding comment
-//Added by Sarah
-public class MediaAssets
-{
+    //Added by Sarah 
+    //Media Assets
     static final Gauge mediaAssets = Gauge.build();
         .name("numMediaAssests").help("Number of Media Assets in Total.").reigster();
     //Seperate media assets for each wildbook possibly??
@@ -53,10 +49,7 @@ public class MediaAssets
         .name("numMediaAssestsWB").help("Number of Media Assets by WildBook.").reigster();
     static final Gauge assetsBySpecies = Gauge.build();
         .name("numMediaAssestsSpecies").help("Number of Media Assets by species.").reigster();
-}
-
-public class BulkImports
-{
+    //Bulk Imports
     static final Gauge averageImportSize = Gauge.build();
         .name("avgImportSize").help("Average Size of all imports.").reigster();
     static final Gauge sizeImport = Gauge.build();
@@ -65,16 +58,10 @@ public class BulkImports
         .name("timeToBringInImports").help("Total Time to Bring in a set of imports.").reigster();
     static final Gauge numAnnotationsImport = Gauge.build();
         .name("numAnnotations").help("Number of Annotations from import.").reigster();
-}
-
-public class NumOfExceptions
-{
-    static final Gauge numofExceptions = Gauge.build();
+    //Number of Exceptions
+     static final Gauge numofExceptions = Gauge.build();
         .name("numExceptions").help("Number of Exceptions from each book.").register();
-}
-
-public class InstanceOfMatching
-{
+    //Instance of Matching
     static final Counter newIndividuals = Gauge.build();
         .name("numIndiv").help("New Individual.").reigster();
     static final Counter existingIndividual = Gauge.build();
@@ -82,3 +69,5 @@ public class InstanceOfMatching
     static final Counter mergeIndividual = Gauge.build();
         .name("mergeIndivs").help("Merge Individuals.").reigster();
 }
+
+//how do we connect this to the wildbook?

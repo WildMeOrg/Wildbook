@@ -21,6 +21,8 @@ package org.ecocean.servlet;
 
 
 import org.ecocean.Shepherd;
+import org.ecocean.User;
+import org.ecocean.MarkedIndividual;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -38,6 +40,10 @@ import io.prometheus.client.Gauge;
 import io.prometheus.client.CollectorRegistry; 
 import io.prometheus.client.exporter.common.TextFormat;
 import java.util.*;
+
+// import java.util.*;
+
+// import javax.xml.bind.DatatypeConverter;
 //import com.oreilly.servlet.multipart.FilePart;
 //import com.oreilly.servlet.multipart.MultipartParser;
 //import com.oreilly.servlet.multipart.ParamPart;
@@ -69,6 +75,16 @@ public class TestPrometheusClient extends HttpServlet {
 	/*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
+  //Counter encs=null;
+  Counter encsSubDate = null;
+  Counter encsLocation = null;
+  //Gauge numUsersInWildbook = null; 
+  //Gauge numUsersWithLogin = null;
+  Gauge numUsersWithoutLogin = null;
+  Gauge numMediaAssetsWildbook = null;
+  Gauge indiv = null;
+  MetricsServlet m = new MetricsServlet();
+  
   Counter encs;
   Gauge numUsersInWildbook; 
   Gauge numUsersWithLogin;
@@ -76,9 +92,18 @@ public class TestPrometheusClient extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
+    // encs = Counter.build()
+    //         .name("number_encounters").help("Number encounters").register();
+    encsSubDate = Counter.build()
+            .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
+    encsLocation = Counter.build()
+            .name("number_encounters_by_Location").help("Number encounters by Location ID").register();
+    indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
     encs = Counter.build().name("number_encounters").help("Number encounters").register();
     numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
     numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
+    numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
+    numMediaAssetsWildbook = Gauge.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
   }
 
 
@@ -110,6 +135,7 @@ public class TestPrometheusClient extends HttpServlet {
       {
         this.setNumberOfUsers(out);
         this.setNumberOfEncounters(out);
+        this.setNumberofMediaAssets(out);
         pageVisited = true; 
       }	
     } 
@@ -132,28 +158,78 @@ public class TestPrometheusClient extends HttpServlet {
     out.close();
   }
 
+//User Metrics
   public void setNumberOfUsers(PrintWriter out)
   {
     //Getting number of users by wildbook
     int numUsers = this.myShepherd.getNumUsers();
     this.numUsersInWildbook.set((double)numUsers);
-    //out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>");
 
     //get number of users w/ login privileges
-   // int numUsersUsername = this.myShepherd.getWithUsername();
-   // int numUsersEmail = this.myShepherd.getUsersWithEmailAddresses();
-    //this.numUsersWithLogin.set((double)numUsersUsername);
-    //out.println("<p> Number of users is: "+this.numUsersWithLogin.get()+"</p>");
-  }
+    List<User> numUsersUsername = this.myShepherd.getUsersWithUsername();
+    int totalNumUsersUsername = numUsersUsername.size();
+    this.numUsersWithLogin.set((double)totalNumUsersUsername);
 
+    //get number of users w/out login privileges
+    int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
+    this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
+   
+  }
+//Ecounter Metrics
   public void setNumberOfEncounters(PrintWriter out)
   {
+    int i;
     //get the data from the database
     /*Number of encounters */
     int numEncounters=this.myShepherd.getNumEncounters(); //in aggregate
     this.encs.inc((double)numEncounters);
-    //out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
 
+    //Number of Encounters by Submission Dates
+    // List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
+    // int totalNumEncSub = numEncountersSub.size();
+    // for(i; i < totalNumEncSub; i++){
+    //     ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
+    //     this.encsSubDate.inc((double)totalNumEncSub);
+    // }
+
+    //Number of Encounters by Location ID
+    List<String> numEncountersLoc = this.myShepherd.getAllLocationIDs();
+    int totalNumLoc = numEncountersLoc.size();
+    // this.encsLocation.inc((double));
+    PrintWriter output;
+    for(i = 0; i < totalNumLoc; i++){
+        int totalNumByLoc = this.myShepherd.getNumEncounters(numEncountersLoc.get(i));
+        this.encsLocation.inc((double)totalNumByLoc);
+        //output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+    }
+  }
+
+  //Individual Metrics
+  public void setNumberOfIndividuals(PrintWriter out){
+    //Get num of Individuals by wildbook
+    int numIndividuals = this.myShepherd.getNumMarkedIndividuals();
+    this.indiv.inc((double)numIndividuals);
+  }
+
+//Media Assets Metrics
+  public void setNumberofMediaAssets(PrintWriter out){
+    
+    //Media Assets by WildBook
+    Iterator<String> numMediaAssetsWild = this.myShepherd.getAllMediaAssets();
+    List<String> mediaAssestsList = new ArrayList<String>();
+    // while (numMediaAssetsWild.hasNext()){
+    //     mediaAssestsList.add(numMediaAssetsWild.next());
+    //   // String string = (String)numMediaAssetsWild.next();
+    //   // mediaAssestsList.add(string);
+    // }
+    // numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
+    // int wildbookMA = mediaAssestsList.size();
+    
+    // this.numMediaAssetsWildbook.set((double)wildbookMA);
+
+    //Media Assets by Specie
+    // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
+    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
   }
   
   //Implementation borrowed from MetricsServlet class
@@ -191,9 +267,22 @@ public class TestPrometheusClient extends HttpServlet {
   //Method for printing prometheus objects standardly 
   public void printMetrics(PrintWriter out)
   {
+  out.println("<p>User Metrics</p>");
     out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
+    out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
+    out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
    
+   out.println("<p>Encounter Metrics</p>");
     out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+    // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+    // out.println("<p> Number of encounters by Location ID is: "+this.encsSubDate.get()+"</p>");
+    out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
+
+  out.println("<p>Individual Metrics</p>");
+    out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
+
+  out.println("<p>Media Asset Metrics</p>");
+    out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
   }
 }
 
