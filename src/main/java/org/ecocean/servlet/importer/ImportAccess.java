@@ -1267,7 +1267,7 @@ public class ImportAccess extends HttpServlet {
     String baseDir = ServletUtilities.dataDir(myShepherd.getContext(), rootDir);
     String assetStorePath="/data/wildbook_data_dir/encounters";
     //String rootURL="http://localhost:8080";
-    String rootURL="flukebook.org";
+    String rootURL="amphibian-reptile.wildbook.org";
     String assetStoreURL=rootURL+"/wildbook_data_dir/encounters";
     //////////////// begin local //////////////
     LocalAssetStore as = new LocalAssetStore("Oman-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);

@@ -21,7 +21,7 @@ package org.ecocean;
 
 /**
  * <code>spot</code> stores the data for a single blob(spot) thresholded by the EasyObject library from a cropped
- * digital image of a whale shark encounter. The data within a spot is collected by the constructor only. No
+ * digital image of a amphibian or reptile encounter. The data within a spot is collected by the constructor only. No
  * "setter" methods are allowed in order to preserve data integrity.
  * <p/>
  *

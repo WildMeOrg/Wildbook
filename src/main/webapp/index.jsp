@@ -180,27 +180,22 @@ h2.vidcap {
  
 
 </style>
-<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
 
-        
-   <div id="fullScreenDiv">
-        <div id="videoDiv">           
-            <video playsinline preload id="video" autoplay muted>
-            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
-            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
-            </video> 
-        </div>
-        <div id="messageBox"> 
-            <div>
-                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
+<section class="hero container-fluid main-section relative main-background">
+    <div class="container relative">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+            <div id="index-splash-text">
 
+                <h1 class="hidden">Wildbook for Amphibians and Reptiles</h1>
+                <!--<h2>Wildbook for Carnivores</h2>-->
+                <a href="submit.jsp">
+                    <button class="large">
+                        <%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true">
+                    </button>
+                </a>
             </div>
-        </div>   
+        </div>
     </div>
-
-  
-
-
 </section>
 
 <section class="container text-center main-section">
@@ -443,7 +438,7 @@ h2.vidcap {
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Amphibian and Reptile Wildbook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         
                     </div>
                 </div>

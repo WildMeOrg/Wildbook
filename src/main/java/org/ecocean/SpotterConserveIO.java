@@ -338,7 +338,7 @@ System.out.println("vols namesIn=[" + namesIn + "]");
 
 
 /******************************************
-    CaribWhale flavor
+    wildbook flavor
   "Jake's trips are under project #4 which is Carib Whale and should be very similar to the CINMS format"  -virgil
         thus, some of this piggybacks on ci* calls.
 
@@ -358,15 +358,15 @@ there are of course (sigh) some minor differences, so mind the hacking.
         if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
         if (createDate != null) survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
 
-        survey.setProjectType("CaribWhale Spotter conserve.IO");
+        survey.setProjectType("Wildbook Spotter conserve.IO");
         String comments = "<p>Data Collector: <b>" + jin.optString("Data Collector", "<i>none provided</i>") + "</b>; ";
         comments += "Assistants: <b>" + jin.optString("Assistants", "<i>none provided</i>") + "</b>; ";
         comments += "Operator: <b>" + jin.optString("Operator", "<i>none provided</i>") + "</b>; ";
         comments += "Departure port: <b>" + jin.optString("Departure Port", "<i>none provided</i>") + "</b>; ";
         comments += "trip ID: <b>" + jin.optInt("_tripId", 0) + "</b></p>";
         survey.addComments(comments);
-        survey.setProjectName("CaribWhale");
-        survey.setOrganization("CaribWhale");
+        survey.setProjectName("Wildbook");
+        survey.setOrganization("Wildbook");
 
         //there will be only one SurveyTrack pulled from this data, fwiw
         SurveyTrack st = cwToSurveyTrack(jin, myShepherd);
@@ -378,7 +378,7 @@ there are of course (sigh) some minor differences, so mind the hacking.
 
         //HACK ... can be either one of these
         JSONArray weatherArr = jin.optJSONArray("Demo Weather");
-        if (weatherArr == null) weatherArr = jin.optJSONArray("CaribWhale Weather");
+        if (weatherArr == null) weatherArr = jin.optJSONArray("Wildbook Weather");
         if (weatherArr != null) {
             ArrayList<Observation> wths = new ArrayList<Observation>();
             for (int i = 0 ; i < weatherArr.length() ; i++) {
@@ -466,7 +466,7 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
 
         //HACK it can be either of these   :(
         JSONArray behavArr = jin.optJSONArray("Behavior");
-        if (behavArr == null) behavArr = jin.optJSONArray("CaribWhale Behavior");
+        if (behavArr == null) behavArr = jin.optJSONArray("Wildbook Behavior");
         if (behavArr != null) {
             List<Instant> bhvs = new ArrayList<Instant>();
             for (int i = 0 ; i < behavArr.length() ; i++) {
@@ -476,7 +476,7 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
             occ.setBehaviors(bhvs);
         }
 
-/*   this does not seem to exist in CaribWhale ... :/
+/*   this does not seem to exist in Wildbook ... :/
         if (jin.optJSONArray("CINMS Photo Log") != null) {
             ArrayList<Encounter> encs = new ArrayList<Encounter>();
             JSONArray je = jin.getJSONArray("CINMS Photo Log");
@@ -500,7 +500,7 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
     public static Instant cwToBehavior(JSONObject jin) {
         //HACK can be either of these....
         String name = jin.optString("Behavior", null);
-        if (name == null) name = jin.optString("CaribWhale Behavior", null);
+        if (name == null) name = jin.optString("Wildbook Behavior", null);
         DateTime dt = toDateTime(jin.optString("create_date", null));
         if ((name == null) || (dt == null)) return null;
         return new Instant(name, dt, null);

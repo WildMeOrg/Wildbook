@@ -44,7 +44,7 @@ try{
 
 
 	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
 	Iterator allEncs=myShepherd.getAllEncounters();
 
   Iterator allMediaAssets=myShepherd.getAllMediaAssets();
@@ -60,7 +60,7 @@ while(allMediaAssets.hasNext()){
   URL oldUrl = store.webURL(ma);
   %><p>MediaAsset <%=id%> has AssetStore <%=store.toString() %> with webpath <%=oldUrl%></p><%
 
-/*  if ((url != null) && url.contains("flukebook.org")) {
+/*  if ((url != null) && url.contains("amphibian-reptile.wildbook.org")) {
 
     String
 

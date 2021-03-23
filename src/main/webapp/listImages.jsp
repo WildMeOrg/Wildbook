@@ -69,7 +69,7 @@ while(encounters.hasNext()){
 	"individualID":	"<%=individualID %>",	
 	<%
 	String spotFilenameURL="";
-	if(enc.getSpotImageFileName()!=null){spotFilenameURL="http://www.flukebook.org/caribwhale_data_dir/encounters/"+Encounter.subdir(enc.getCatalogNumber())+"/"+enc.getSpotImageFileName();}
+	if(enc.getSpotImageFileName()!=null){spotFilenameURL="http://www.amphibian-reptile.wildbook.org/wildbook_data_dir/encounters/"+Encounter.subdir(enc.getCatalogNumber())+"/"+enc.getSpotImageFileName();}
 	
 
 	%>

@@ -39,7 +39,7 @@ int unNamed = 0;
 try {
 
 	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
 
   Iterator allIndividuals=myShepherd.getAllMarkedIndividuals();
 
@@ -80,7 +80,7 @@ finally{
 
 </ul>
 <p>Done successfully: <%=numFixes %></p>
-<p><%=unNamed %> unnamed whales found</p>
+<p><%=unNamed %> unnamed amphibians and/or reptiles found</p>
 
 
 </body>

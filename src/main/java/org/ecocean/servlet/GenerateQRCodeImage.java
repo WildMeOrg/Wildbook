@@ -30,7 +30,7 @@ public class GenerateQRCodeImage extends HttpServlet {
   public void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
  
-        String myURL = "http://www.whaleshark.org/individuals.jsp?number="+request.getParameter("number");
+        String myURL = "http://www.amphibian-reptile.wildbook.org/individuals.jsp?number="+request.getParameter("number");
  
         //reset code size to 238x238
         ByteArrayOutputStream out = QRCode.from(myURL).withSize(238, 238).to(

@@ -2204,7 +2204,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves any all approved encounters that are stored in the database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are approved
+   * @return an Iterator of all amphibian or reptile encounters stored in the database that are approved
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters() {
@@ -2475,7 +2475,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database in the order specified by the input String
    *
-   * @return an Iterator of all valid whale shark encounters stored in the visual database, arranged by the input String
+   * @return an Iterator of all valid amphibian or reptile encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order) {
@@ -2595,7 +2595,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves a filtered list of encounters that are stored in the database in the order specified by the input String
    *
-   * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged by the input String
+   * @return a filtered Iterator of amphibian or reptile encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
@@ -3178,7 +3178,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all amphibian or reptile encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
@@ -3194,7 +3194,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all amphibian or reptile encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
@@ -3232,7 +3232,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the input String
    *
-   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
+   * @return an Iterator of all amphibian or reptile encounters stored in the database that are unacceptable for the visual ID library in the String order
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String order) {
@@ -5277,7 +5277,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
@@ -5294,10 +5294,10 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-        
+
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-        
+
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5319,7 +5319,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
@@ -5339,7 +5339,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-      
+
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));

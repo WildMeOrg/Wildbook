@@ -193,6 +193,16 @@ finally{
       ul.nav.navbar-nav {
         width: 100%;
       }
+      .navbar-local{
+        font-size: xx-large;
+
+      }
+      .navbar-local-wrapper{
+        margin-top: 9px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
     </style>
 
@@ -372,7 +382,9 @@ finally{
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <div class="navbar-local-wrapper">
+                    <a target="_blank" href="<%=urlLoc %>" class="navbar-local"><%=props.getProperty("wildbookTitle")%></a>
+                  </div>
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
@@ -417,7 +429,7 @@ finally{
 
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
-                          	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+                          	<!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>

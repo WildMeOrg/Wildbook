@@ -36,7 +36,7 @@ int numFixes=0;
 try {
 
 	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "wildbook_data_dir");
 
   Iterator allSpaces=myShepherd.getAllWorkspaces();
 

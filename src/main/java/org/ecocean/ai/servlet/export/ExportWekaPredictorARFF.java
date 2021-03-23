@@ -116,7 +116,7 @@ public class ExportWekaPredictorARFF extends HttpServlet{
         ArrayList<MediaAsset> goodDataVideos=new ArrayList<MediaAsset>();
         
 
-          sb.append("@RELATION YouTubeWhaleShark\n\n@ATTRIBUTE description String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
+          sb.append("@RELATION YouTubeAmphibiandReptile\n\n@ATTRIBUTE description String\n@ATTRIBUTE class {good,poor}\n\n@data\n");
 
         int gotLangCode = 0;
         for(int i=0;i<numResults;i++){
