@@ -1212,7 +1212,7 @@
   
         <servlet>
     <servlet-name>TestPrometheusClient</servlet-name>
-    <servlet-class>org.ecocean.servlet.TestPrometheusClient</servlet-class>
+    <servlet-class>org.ecocean.metrics.TestPrometheusClient</servlet-class>
   </servlet>
 
       <servlet-mapping>
