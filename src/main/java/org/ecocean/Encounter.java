@@ -349,7 +349,7 @@ public class Encounter implements java.io.Serializable {
   // (not necessarily an individual name from the WB database)
   private String fieldID;
 
-  // This is a standard 1-5 color scale used by cetacean researchers
+  // This is a standard 1-5 color scale used by amphibian or reptile researchers
   private Integer flukeType;
 
   // added by request for ASWN, this is the role an individual served in its occurrence

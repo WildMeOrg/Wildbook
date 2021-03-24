@@ -206,52 +206,22 @@ h2.vidcap {
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" />
+  	<!-- <img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" /> -->
 		  	
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" />
+  	<!-- <img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" /> -->
 		
 		
 	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
+  	<!-- <img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" /> -->
 		
   	
   	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
   	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
   	
-  	<div class="row">
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
-		  	<em><%=props.getProperty("megapteraMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
-		  	<em><%=props.getProperty("physeterMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
-		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
-		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
-	  	</section>
-	  	
-  	</div>
-  	
-  	
-
-  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
 
 </section>
 
@@ -317,7 +287,7 @@ h2.vidcap {
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <!-- <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" /> -->
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -431,18 +401,18 @@ h2.vidcap {
         <hr/>
 
         <main class="container">
-            <article class="text-center">
-                <div class="row">
-                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
+            <!-- <article class="text-center">
+                <div class="row"> -->
+                    <!-- <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" /> -->
                    
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+<!-- <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
                             <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Amphibian and Reptile Wildbook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         
-                    </div>
-                </div>
-            </article>
+                    </div> -->
+                <!-- </div>
+            </article> -->
         <main>
 
     </section>
