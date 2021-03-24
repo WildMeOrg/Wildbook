@@ -70,6 +70,7 @@ public class Decision {
     }
 
     public static void updateEncounterStateBasedOnDecision(Shepherd myShepherd, Encounter enc, List<String> skipUsers){
+      System.out.println("Updating encounter state based on decision for encounter: " + enc.getCatalogNumber());
       String context="context0";
       List<Decision> decisionsForEncounter = myShepherd.getDecisionsForEncounter(enc);
       if(decisionsForEncounter != null && decisionsForEncounter.size() > 0){
@@ -78,7 +79,7 @@ public class Decision {
         Double numberOfMatchDecisionsMadeForEncounter = Decision.getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter, skipUsers);
         if(numberOfMatchDecisionsMadeForEncounter == 0) return; //avoid divide by zero errors
         // System.out.println("Decision numberOfMatchDecisionsMadeForEncounter is: " + numberOfMatchDecisionsMadeForEncounter);
-        if(getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter, skipUsers) >= MIN_DECISIONS_TO_CHANGE_ENC_STATE){
+        if(numberOfMatchDecisionsMadeForEncounter >= MIN_DECISIONS_TO_CHANGE_ENC_STATE){
           // System.out.println("Decision " + getNumberOfMatchDecisionsMadeForEncounter(decisionsForEncounter) + " decisions have been made about the ecounter, which is at or above the " + MIN_DECISIONS_TO_CHANGE_ENC_STATE + " count threshold.");
           Double numberOfAgreementsForMostAgreedUponMatch = Decision.getNumberOfAgreementsForMostAgreedUponMatch(decisionsForEncounter, skipUsers);
           Double agreementRatio = numberOfAgreementsForMostAgreedUponMatch/numberOfMatchDecisionsMadeForEncounter;
@@ -157,7 +158,7 @@ public class Decision {
               currentMatchedMarkedIndividualCounter = idsWithMatchCounts.optDouble(currentMatchedMarkedIndividualId, 0.0);
               idsWithMatchCounts.put(currentMatchedMarkedIndividualId,currentMatchedMarkedIndividualCounter + 1);
             }
-            
+
           }
         }
       }
@@ -257,9 +258,12 @@ public class Decision {
         for(Decision currentDecision: decisionsForEncounter){
           if(currentDecision.getProperty().equals("match")){
             if(currentDecision.getUser() == null){ // I guess allow this to increment?
-              numAgreements ++;  
+              System.out.println("Decision adding a match decision to the tally for a nameless user");
+              numAgreements ++;
             }
             if(currentDecision.getUser() != null && !skipUsers.contains(currentDecision.getUser().getUsername())){
+              System.out.println("Decision adding a match decision to the tally for user: " +  currentDecision.getUser().getUsername() + " for current decision: " + currentDecision
+                  .toString());
               numAgreements ++;
             }
           }

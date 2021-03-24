@@ -123,7 +123,7 @@ public class MediaAssetModify extends HttpServlet {
             myShepherd.updateDBTransaction(); //update before redoAllChildren knows which labels to actually apply
             mediaAsset.redoAllChildren(myShepherd);
             myShepherd.updateDBTransaction();
-            cloneRotatedMediaAssetForDetection(mediaAsset, myShepherd);
+            cloneRotatedMediaAssetAndSendToDetection(mediaAsset, myShepherd);
             res.put("success","true");
           }
         } else{
@@ -147,7 +147,7 @@ public class MediaAssetModify extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 
-  public void cloneRotatedMediaAssetForDetection(MediaAsset mediaAsset, Shepherd myShepherd){
+  public void cloneRotatedMediaAssetAndSendToDetection(MediaAsset mediaAsset, Shepherd myShepherd){
     List<MediaAsset> masterChildren = mediaAsset.findChildrenByLabel(myShepherd, "_master");
     if(masterChildren != null && masterChildren.size()>0){
       if(masterChildren.size()>1){
@@ -166,7 +166,7 @@ public class MediaAssetModify extends HttpServlet {
           try{
             Files.createFile(newFile.toPath());
           } catch(Exception e){
-            System.out.println("Error: Did not create file in cloneRotatedMediaAssetForDetection; it's possible that this is because the backup file already exists");
+            System.out.println("Error: Did not create file in cloneRotatedMediaAssetAndSendToDetection; it's possible that this is because the backup file already exists");
             // e.printStackTrace();
           }
           try{
@@ -198,7 +198,7 @@ public class MediaAssetModify extends HttpServlet {
               }
             }
           } catch (Exception e){
-            System.out.println("Error copying file in cloneRotatedMediaAssetForDetection method of MediaAssetModify.java");
+            System.out.println("Error copying file in cloneRotatedMediaAssetAndSendToDetection method of MediaAssetModify.java");
             e.printStackTrace();
           }
         }
