@@ -40,6 +40,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
 import org.ecocean.api.ApiHttpServlet;
 import org.ecocean.api.query.QueryParser;
+import org.ecocean.api.ApiValueException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Iterator;
@@ -934,6 +935,12 @@ rtn.put("_payload", payload);
                 myShepherd.rollbackDBTransaction();
                 response.setStatus(400);
             }
+        } catch (ApiValueException ex) {
+            SystemLog.error("RestServlet.handlePost() invalid value {}", ex.toString(), ex);
+            rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+            rtn.put("fields", new JSONArray(ex.getFields()));
+            myShepherd.rollbackDBTransaction();
+            response.setStatus(601);
         } catch (Exception ex) {
             SystemLog.error("RestServlet.handlePost() threw exception {}", ex.toString(), ex);
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));

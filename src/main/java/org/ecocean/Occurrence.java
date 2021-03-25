@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.api.ApiValueException;
 //import org.ecocean.external.ExternalSubmission;
 import org.ecocean.SystemLog;
 
@@ -1151,6 +1152,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return decimalLatitude;
     }
     public void setDecimalLatitude(Double decimalLatitude) {
+        if (!Util.isValidDecimalLatitude(decimalLatitude)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
       this.decimalLatitude = decimalLatitude;
     }
     public Double getDecimalLongitude() {
@@ -1160,6 +1162,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return (decimalLongitude!=null && decimalLatitude!=null);
     }
     public void setDecimalLongitude(Double decimalLongitude) {
+        if (!Util.isValidDecimalLongitude(decimalLongitude)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
       this.decimalLongitude = decimalLongitude;
     }
 
