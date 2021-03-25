@@ -1,0 +1,42 @@
+{
+  "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
+  "_global": {
+    "_note": "according to drew, these are not used and should be set within _confs below!",
+    "add_images": "https://tier2.dyn.wildme.io:5001/api/image/json/",
+    "add_annotations": "https://tier2.dyn.wildme.io:5001/api/annot/json/",
+    "start_identify": "https://tier2.dyn.wildme.io:5001/api/engine/query/graph/",
+    "identify_review": "https://tier2.dyn.wildme.io:5001/api/review/query/graph/",
+    "start_detect": "https://tier2.dyn.wildme.io:5001/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://tier2.dyn.wildme.io:5001/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://tier2.dyn.wildme.io:5001/api/engine/job/status/",
+    "get_job_result": "https://tier2.dyn.wildme.io:5001/api/engine/job/result/"
+  },
+  "_default": "@Salamandra.salamandra",
+  "Salamandra": {
+    "salamandra": {
+      "_default":{
+        "_id_conf": "@Salamandra.salamandra.fire_sal._id_conf"
+      },
+      "_detect_conf": [
+        {
+          "start_detect": "https://tier2.dyn.wildme.io:5001/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "model_tag": "salanader_fire_v0",
+          "labeler_model_tag": "salanader_fire_v0",
+          "nms_thresh": 0.40,
+          "sensitivity": 0.76
+        }
+      ],
+      "fire_sal":{
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on":true
+            },
+            "description": "HotSpotter pattern-matcher"
+          }
+        ]
+      }
+    }
+  }
+}
