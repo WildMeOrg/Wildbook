@@ -225,6 +225,10 @@
         <join />
       </field>
 
+	<field name="context" persistence-modifier="persistent" default-fetch-group="false">
+		<column length="128" allows-null="false" />
+	</field>
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
       </field>

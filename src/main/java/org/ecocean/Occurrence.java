@@ -60,6 +60,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     private String groupBehavior;  // aka overall behavior
     //we are dropping support of .behaviors -- in favor of .groupBehavior ... TODO migration must copy these over
     private List<Instant> behaviors;
+    private String context;  // type of sighting
 
     //date/time related
     // this can be manually set, otherwise can be derived from Encounters
@@ -185,6 +186,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public void setStartTime(ComplexDateTime dt) {
         setVersion();
         startTime = dt;
+        _validateStartEndTimes();
     }
     public ComplexDateTime getStartTime() {
         return startTime;
@@ -192,9 +194,15 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public void setEndTime(ComplexDateTime dt) {
         setVersion();
         endTime = dt;
+        _validateStartEndTimes();
     }
     public ComplexDateTime getEndTime() {
         return endTime;
+    }
+
+    private void _validateStartEndTimes() {
+        if ((this.startTime == null) || (this.endTime == null)) return;
+        if (this.startTime.gmtMinus(this.endTime) > 0L) throw new ApiValueException("startTime > endTime", "startTime");
     }
 
   public boolean addEncounter(Encounter enc){
@@ -531,6 +539,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   return encs2;
 }
 
+    public void setContext(String c) {
+        context = c;
+    }
+    public String getContext() {
+        return context;
+    }
 
     public void setLocationId(String loc) {
         locationId = loc;
@@ -591,12 +605,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
    * @return a String of comments
    */
   public String getComments() {
-    if (comments != null) {
-
-      return comments;
-    } else {
-      return "None";
-    }
+        return comments;
   }
 
   /**
@@ -605,12 +614,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
    * @return a String of comments
    */
   public void addComments(String newComments) {
-    if ((comments != null) && (!(comments.equals("None")))) {
-      comments += newComments;
-    } else {
-      comments = newComments;
-    }
+        if (comments == null) comments = "";
+        comments += newComments;
   }
+
+    public void setComments(String com) {
+        comments = com;
+    }
 
 
   public void setMillis(Long millis) {this.millis = millis;}
@@ -1152,7 +1162,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return decimalLatitude;
     }
     public void setDecimalLatitude(Double decimalLatitude) {
-        if (!Util.isValidDecimalLatitude(decimalLatitude)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
+        if ((decimalLatitude != null) && !Util.isValidDecimalLatitude(decimalLatitude)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
       this.decimalLatitude = decimalLatitude;
     }
     public Double getDecimalLongitude() {
@@ -1162,7 +1172,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return (decimalLongitude!=null && decimalLatitude!=null);
     }
     public void setDecimalLongitude(Double decimalLongitude) {
-        if (!Util.isValidDecimalLongitude(decimalLongitude)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
+        if ((decimalLongitude != null) && !Util.isValidDecimalLongitude(decimalLongitude)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
       this.decimalLongitude = decimalLongitude;
     }
 
@@ -1183,12 +1193,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return distance;
     }
     public void setDistance(Double distance) {
+        if ((distance != null) && (distance < 0.0d)) throw new ApiValueException("invalid distance", "distance");
       this.distance = distance;
     }
     public Double getBearing() {
       return bearing;
     }
     public void setBearing(Double bearing) {
+        if ((bearing != null) && ((bearing < 0.0d) || (bearing > 360.0d))) throw new ApiValueException("bearing out of range", "bearing");
       this.bearing = bearing;
     }
 
@@ -1433,18 +1445,29 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setStartTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("startTime", null)));
         occ.setEndTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("endTime", null)));
 
-        occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+        try {
+            occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+        } catch (Exception ex) {
+            throw new ApiValueException(ex.toString(), "customFields");
+        }
 
         occ.setFromJSONObject("bearing", Double.class, jsonIn);
+        occ.setFromJSONObject("distance", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
         occ.setFromJSONObject("behavior", String.class, jsonIn);
+        occ.setFromJSONObject("comments", String.class, jsonIn);
+        occ.setFromJSONObject("context", String.class, jsonIn, true);
         occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
         occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
 
+        if (!occ.hasLatLon() && (occ.getLocationId() == null) && (occ.getVerbatimLocality() == null)) {
+            throw new ApiValueException("must have at least one location-related value", "locationId");
+        }
+
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
         // we *may* want to allow this superpower for the edm, but for now lets be strict
-        if ((jencs == null) || (jencs.length() < 1)) throw new IOException("cannot have zero encounters");
+        if ((jencs == null) || (jencs.length() < 1)) throw new ApiValueException("cannot have zero encounters", "encounters");
         if (jencs != null) {
             for (int i = 0 ; i < jencs.length() ; i++) {
                 org.json.JSONObject jenc = jencs.optJSONObject(i);
@@ -1469,8 +1492,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 org.json.JSONObject jtx = jtxs.optJSONObject(i);
                 if (jtx == null) throw new IOException("invalid JSONObject at offset=" + i);
                 Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", "__FAIL__"));
-                if (tx == null) throw new IOException("invalid taxonomy at " + jtx);
-                if (!siteTxs.contains(tx)) throw new IOException("non-site taxonomy " + tx);
+                if (tx == null) throw new ApiValueException("invalid taxonomy at " + jtx, "taxonomies");
+                if (!siteTxs.contains(tx)) throw new ApiValueException("non-site taxonomy " + tx, "taxonomies");
                 occ.addTaxonomy(tx);
             }
         }

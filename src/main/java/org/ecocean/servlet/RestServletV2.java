@@ -938,7 +938,7 @@ rtn.put("_payload", payload);
         } catch (ApiValueException ex) {
             SystemLog.error("RestServlet.handlePost() invalid value {}", ex.toString(), ex);
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));
-            rtn.put("fields", new JSONArray(ex.getFields()));
+            rtn.put("errorFields", new JSONArray(ex.getFields()));
             myShepherd.rollbackDBTransaction();
             response.setStatus(601);
         } catch (Exception ex) {

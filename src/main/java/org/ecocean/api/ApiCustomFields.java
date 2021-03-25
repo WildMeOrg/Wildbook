@@ -376,19 +376,31 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     this is for fromApiJSONObject() calls on sub-classes.   its just to get around the boring setFoo redundancy now.  optimize later!
     NOTE: this is ugly and uses reflection.   optimize/change later???
 */
-    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
+    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json, boolean required) throws IOException {
         SystemLog.debug("trying key=" + key + " with json=" + json);
-        if ((key == null) || (json == null) || !json.has(key)) return false;
+        if (key == null) return false;
+        if (required && ((json == null) || !json.has(key) || json.isNull(key))) throw new ApiValueException("value is required for " + key, key);
+        if ((json == null) || !json.has(key)) return false;
         String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
         try {
             Object val = null;
             if (!json.isNull(key)) val = json.get(key);
             Method setter = this.getClass().getMethod(setterName, cls);
             setter.invoke(this, cls.cast(val));
-        } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException ex) {
+        } catch (java.lang.reflect.InvocationTargetException ex) {
+            if (ex.getCause() instanceof ApiValueException) {
+                ApiValueException newEx = (ApiValueException)ex.getCause();
+                throw newEx;
+            } else {
+                throw new IOException("setter woes: " + ex.getCause().toString());
+            }
+        } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException ex) {
             throw new IOException("setter woes: " + ex.toString());
         }
         return true;
+    }
+    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
+        return setFromJSONObject(key, cls, json, false);
     }
 
     //kinda utility/convenience thing for opts
