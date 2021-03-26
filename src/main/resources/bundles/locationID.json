@@ -18,14 +18,18 @@
 
 { "name":"NSW-Magic Point", "id":"NSW- Magic Point", "locationID":[] },
 
-{ "name":"NSW- Shellharbour- Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[] },
+{ "name":"NSW- Shellharbour-Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[] },
 
 { "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[] },
 
 { "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[] },
 
+{ "name":"NSW-Sydney-Oak Park", "id":"NSW-Sydney-Oak Park", "locationID":[] },
 
-{ "name":"SA- Adelaide- Second Valley", "id":"SA- Adelaide- Second Valley", "locationID":[] },
+
+
+
+{ "name":"SA-Adelaide-Second Valley", "id":"SA- Adelaide- Second Valley", "locationID":[] },
 
 { "name":"SA-Encounter Bay", "id":"SA-Encounter Bay", "locationID":[] },
 
@@ -61,7 +65,14 @@
 
 { "name":"TAS-Hobart-Kingston", "id":"TAS-Hobart-Kingston", "locationID":[] },
 
+{ "name":"VIC-Blairgowrie", "id":"VIC-Blairgowrie", "locationID":[] },
 
+{ "name":"VIC-Castle Rock", "id":"VIC-Castle Rock", "locationID":[] },
+
+
+
+
+{ "name":"VIC-Cottage by the Sea", "id":"VIC-Cottage by the Sea", "locationID":[] },
 
 { "name":"VIC-Flinders", "id":"VIC-Flinders", "locationID":[] },
 
@@ -69,7 +80,15 @@
 
 { "name":"VIC-Portsea", "id":"VIC-Portsea", "locationID":[] },
 
-{ "name":"VIC-Blairgowrie", "id":"VIC-Blairgowrie", "locationID":[] },
+{ "name":"VIC-Sorrento", "id":"VIC-Sorrento", "locationID":[] },
+
+{ "name":"VIC-SS Coogee", "id":"VIC-SS Coogee", "locationID":[] },
+
+{ "name":"VIC-Walkerville", "id":"VIC-Walkerville", "locationID":[] },
+
+{ "name":"VIC-Western Port Bay-Somers", "id":"VIC-Western Port Bay-Somers", "locationID":[] },
+
+
 
 { "name":"WA-Albany-Little Beach", "id":"WA-Albany-Little Beach", "locationID":[] },
 
@@ -133,3 +152,10 @@
 
   ]
 }
+
+
+
+
+
+
+
