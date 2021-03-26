@@ -951,8 +951,6 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         String rtnS = rtn.toString();
         response.setContentLength(rtnS.getBytes("UTF-8").length);
-        System.out.println("RETURN toString() --> "+rtnS.toString());
-        System.out.println("STATUS 3 --> "+response.getStatus());
         out.println(rtnS);
         out.close();
         return;

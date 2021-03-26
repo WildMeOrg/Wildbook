@@ -24,6 +24,7 @@ src/main/webapp/encounters/*20*
 src/main/caribwhale_data_dir
 /webapps
 /src/main/webapp/javascript/git-info.json
+/src/main/webapp/edm/json/git-info.json
 /node_modules
 .vscode/
 *.swp

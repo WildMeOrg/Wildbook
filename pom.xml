@@ -876,7 +876,7 @@ https://github.com/datanucleus/datanucleus-rdbms/issues/336
       			</goals>
       			<configuration> <!-- note: this is unix-centric... so thats probably bad -->
         			<executable>${basedir}/config/git-json-info.sh</executable>
-				<workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
+				<workingDirectory>${basedir}/src/main/webapp/edm/json</workingDirectory>
       			</configuration>
     		</execution>
 
