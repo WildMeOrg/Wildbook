@@ -4006,6 +4006,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         enc.setFromJSONObject("sex", String.class, jsonIn);  //ditto?
         enc.setFromJSONObject("country", String.class, jsonIn);
         enc.setFromJSONObject("verbatimLocality", String.class, jsonIn);
+        enc.setFromJSONObject("verbatimEventDate", String.class, jsonIn);
 
         org.json.JSONObject jind = jsonIn.optJSONObject("individual");
         if (jind != null) {
