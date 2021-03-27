@@ -120,10 +120,10 @@ public class Prometheus
       // }
 
       //Number of Encounters by Submission Dates
-      List<String> numEncountersSub = this.myShepherd.getAllRecordedBy();
+      List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
       for(i = 0; i < totalNumEncSub; i++){
-          ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
+          ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(i);
           this.encsSubDate.inc((double)totalNumEncSub);
       }
 
@@ -166,15 +166,15 @@ public class Prometheus
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //Media Assets by Specie
-      int i;
-      MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
-      int sizeOfSets = numMediaAssetsSpecie.size();
-      int[] numSpeciesAssetsArray = new int[sizeOfSets];
+      // int i;
+      // MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
+      // int sizeOfSets = numMediaAssetsSpecie.size();
+      // int[] numSpeciesAssetsArray = new int[sizeOfSets];
 
-      for(i = 0; i < sizeOfSets; i++){
-        numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
-         // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
-      }
+      // for(i = 0; i < sizeOfSets; i++){
+      //   numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
+      //    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
+      // }
 
     }
     
