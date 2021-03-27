@@ -109,13 +109,21 @@ public class Prometheus
       int numEncounters = ms.getNumEncounters(); //in aggregate
       this.encs.inc((double)numEncounters);
 
+      //Num of Encounters by Wildbook
+
+      //Num of Encounters by Specie
+      List<String> specieNames = ms.getAllTaxonomyNames();
+      for (string name : specieNames){
+        ArrayList<Encounters> specieisEncounters = ms.getAllEncountersForSpecies(name, );
+      }
+
       //Number of Encounters by Submission Dates
-      // List<String> numEncountersSub = this.myShepherd.getAllVerbatimEventDates();
-      // int totalNumEncSub = numEncountersSub.size();
-      // for(i; i < totalNumEncSub; i++){
-      //     ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
-      //     this.encsSubDate.inc((double)totalNumEncSub);
-      // }
+      List<String> numEncountersSub = this.myShepherd.getAllRecordedBy();
+      int totalNumEncSub = numEncountersSub.size();
+      for(i; i < totalNumEncSub; i++){
+          ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
+          this.encsSubDate.inc((double)totalNumEncSub);
+      }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
@@ -139,8 +147,8 @@ public class Prometheus
     public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
     {
       //Media Assets by WildBook
-      Iterator<String> numMediaAssetsWild = ms.getAllMediaAssets();
-      List<String> mediaAssestsList = new ArrayList<String>();
+      // Iterator<String> numMediaAssetsWild = ms.getAllMediaAssets();
+      // List<String> mediaAssestsList = new ArrayList<String>();
       // while (numMediaAssetsWild.hasNext()){
       //     mediaAssestsList.add(numMediaAssetsWild.next());
       //   // String string = (String)numMediaAssetsWild.next();
@@ -151,9 +159,21 @@ public class Prometheus
       
       // this.numMediaAssetsWildbook.set((double)wildbookMA);
 
+      ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
+      int totalNumMediaAssests = numMediaAssetsWild.size();
+      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
+
       //Media Assets by Specie
-      // MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
-      // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
+      int i;
+      MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
+      int sizeOfSets = numMediaAssetsSpecie.size();
+      int[] numSpeciesAssetsArray = new int[sizeOfSets];
+
+      for(i = 0; i < sizeOfSets; i++){
+        numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
+         // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
+      }
+
     }
     
     //Method for printing prometheus objects standardly 
@@ -167,7 +187,6 @@ public class Prometheus
      out.println("<p>Encounter Metrics</p>");
       out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
       // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
-      // out.println("<p> Number of encounters by Location ID is: "+this.encsSubDate.get()+"</p>");
       out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
 
     out.println("<p>Individual Metrics</p>");
