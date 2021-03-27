@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.MediaAsset;
+import org.ecocean.MediaAssetSet;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
@@ -166,7 +168,7 @@ public class Prometheus
 
       //Media Assets by Specie
       int i;
-      MediaAssetSet numMediaAssetsSpecie = this.myShepherd.getMediaAssetSet();
+      MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
       int sizeOfSets = numMediaAssetsSpecie.size();
       int[] numSpeciesAssetsArray = new int[sizeOfSets];
 
