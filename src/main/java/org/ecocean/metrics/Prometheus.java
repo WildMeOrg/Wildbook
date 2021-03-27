@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
+import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetSet;
