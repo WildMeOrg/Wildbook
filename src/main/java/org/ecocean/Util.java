@@ -1205,6 +1205,18 @@ public class Util {
         if (startTime > 0l) diff = Long.toString(t - startTime);
         System.out.println(now.toString() + " MARK [" + msg + "," + t + "," + diff + "]");
     }
+
+    public static JSONObject getSystemInfoJSONObject(Shepherd myShepherd) {
+        JSONObject edm = new JSONObject();
+        edm.put("systemTime", System.currentTimeMillis());
+        try {
+            edm.put("git-info", stringToJSONObject(readFromFile("webapps/wildbook/edm/json/git-info.json")));
+        } catch (Exception ex) {}
+        JSONObject info = new JSONObject();
+        info.put("edm", edm);
+        return info;
+    }
+
 }
 
 

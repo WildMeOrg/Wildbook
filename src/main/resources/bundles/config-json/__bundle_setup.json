@@ -1,5 +1,6 @@
 {
 	"bundle": [
+		"_system",
 		"site.name",
 		"site.needsSetup",
 		"site.private",

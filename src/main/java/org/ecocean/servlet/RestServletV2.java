@@ -504,6 +504,10 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
                         for (int i = 0 ; i < arr.length() ; i++) {
                             String bid = arr.optString(i, null);
                             if (bid == null) continue;
+                            if (bid.equals("_system")) {
+                                content.put("_system", Util.getSystemInfoJSONObject(myShepherd));
+                                continue;
+                            }
                             conf = ConfigurationUtil.getConfiguration(myShepherd, bid);
                             if (conf.getModified() > bversion) bversion = conf.getModified();
                             JSONObject kid = confGetTree(conf, isAdmin, definition, myShepherd);
