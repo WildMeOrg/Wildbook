@@ -17,8 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
-import org.ecocean.MediaAsset;
-import org.ecocean.MediaAssetSet;
+import org.ecocean.Shepherd.MediaAsset;
+import org.ecocean.Shepherd.MediaAssetSet;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
