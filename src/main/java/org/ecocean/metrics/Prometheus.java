@@ -112,13 +112,14 @@ public class Prometheus
       //Num of Encounters by Wildbook
 
       //Num of Encounters by Specie
-      List<String> specieNames = ms.getAllTaxonomyNames();
-      for (string name : specieNames){
-        ArrayList<Encounters> specieisEncounters = ms.getAllEncountersForSpecies(name, );
-      }
+      // List<String> specieNames = ms.getAllTaxonomyNames();
+      // for (string name : specieNames){
+      //   ArrayList<Encounters> specieisEncounters = ms.getAllEncountersForSpecies(name, );
+      // }
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = this.myShepherd.getAllRecordedBy();
+      int i;
       int totalNumEncSub = numEncountersSub.size();
       for(i; i < totalNumEncSub; i++){
           ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
