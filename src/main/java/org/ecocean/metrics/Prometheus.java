@@ -118,13 +118,13 @@ public class Prometheus
       // }
 
       //Number of Encounters by Submission Dates
-      List<String> numEncountersSub = this.myShepherd.getAllRecordedBy();
-      int i;
-      int totalNumEncSub = numEncountersSub.size();
-      for(i; i < totalNumEncSub; i++){
-          ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
-          this.encsSubDate.inc((double)totalNumEncSub);
-      }
+      // List<String> numEncountersSub = this.myShepherd.getAllRecordedBy();
+      // int i;
+      // int totalNumEncSub = numEncountersSub.size();
+      // for(i; i < totalNumEncSub; i++){
+      //     ArrayList<Encounter> numOfEncounters = this.myShepherd.getMostRecentIdentifiedEncountersByDate(i);
+      //     this.encsSubDate.inc((double)totalNumEncSub);
+      // }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
