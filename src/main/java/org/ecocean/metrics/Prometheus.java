@@ -167,15 +167,15 @@ public class Prometheus
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //Media Assets by Specie
-      // int i;
-      // MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
-      // int sizeOfSets = numMediaAssetsSpecie.size();
-      // int[] numSpeciesAssetsArray = new int[sizeOfSets];
+      int i;
+      MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
+      int sizeOfSets = numMediaAssetsSpecie.size();
+      int[] numSpeciesAssetsArray = new int[sizeOfSets];
 
-      // for(i = 0; i < sizeOfSets; i++){
-      //   numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
-      //    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
-      // }
+      for(i = 0; i < sizeOfSets; i++){
+        numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
+         // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
+      }
 
     }
     
