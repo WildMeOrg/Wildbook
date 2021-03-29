@@ -195,7 +195,7 @@ public class Prometheus
      
      out.println("<p>Encounter Metrics</p>");
       out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
-      out.println("<p> Number of encounters is: "+this.encsWildBook.get()+"</p>");
+      out.println("<p> Number of encounters by wildbook is: "+this.encsWildBook.get()+"</p>");
       // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
       out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
 
