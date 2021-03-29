@@ -32,6 +32,7 @@ public class Prometheus
     boolean pageVisited = false;  
     Counter encsSubDate = null;
     Counter encsLocation = null;
+    Counter encWildBook = null;
     Gauge numUsersWithoutLogin = null;
     Gauge numMediaAssetsWildbook = null;
     Gauge indiv = null;
@@ -49,6 +50,7 @@ public class Prometheus
               .name("number_encounters_by_Location").help("Number encounters by Location ID").register();
       indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
       encs = Counter.build().name("number_encounters").help("Number encounters").register();
+      encsWildBook = Counter.build().name("number_encounters_wildbook").help("Number encounters by Wildbook").register();
       numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
       numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
       numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
@@ -113,6 +115,9 @@ public class Prometheus
       this.encs.inc((double)numEncounters);
 
       //Num of Encounters by Wildbook
+      Vector numEncoutnersTotal = ms.getAllEncountersNoFilterAsVector();
+      int numEncountersWild = numEncoutnersTotal.size();
+      this.encsWildBook.inc((double)numEncountersWild);
 
       //Num of Encounters by Specie
       // List<String> specieNames = ms.getAllTaxonomyNames();
@@ -189,6 +194,7 @@ public class Prometheus
      
      out.println("<p>Encounter Metrics</p>");
       out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
+      out.println("<p> Number of encounters is: "+this.encsWildBook.get()+"</p>");
       // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
       out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
 
