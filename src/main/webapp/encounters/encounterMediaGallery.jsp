@@ -1813,6 +1813,7 @@ $(document).ready(function() {
     .go{
         color: #0C1;
         margin-bottom: 1.2em;
+        cursor: pointer;
     }
 </style>
 <%
