@@ -98,7 +98,9 @@ console.info('complete? err=%o data=%o', err, data);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-          file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+          if(file && file.name){
+            file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+          }
           console.log('added %o %o', file, event);
 		});
 		flow.on('fileProgress', function(file, chunk){
