@@ -329,7 +329,12 @@ public class CommonConfiguration {
   }
 
   public static String getNumIaResultsUserCanInspect(String context) {
-    return getProperty("numIaResultsUserCanInspect", context).trim();
+    try{
+      return getProperty("numIaResultsUserCanInspect", context).trim();
+    } catch(Exception e){
+      System.out.println("Error in getNumIaResultsUserCanInspect. Returning default of 16.");
+      return "16";
+    }
   }
 
   public static String getNewSubmissionEmail(String context) {
