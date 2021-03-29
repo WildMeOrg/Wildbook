@@ -139,10 +139,9 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   if (!wildbook.user.isAnonymous()) {
 
   	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
-    // fig = updateWithAnnotationDisambiguator(fig);
   }
   intoElem.append(fig);
-  intoElem = updateWithAnnotationDisambiguator(intoElem);
+  intoElem = updateWithAnnotationDisambiguator(intoElem, maJson.id);
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
@@ -154,31 +153,27 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   return;
 }
 
-updateWithAnnotationDisambiguator = function(inputHtml){
+updateWithAnnotationDisambiguator = function(inputHtml, mediaAssetId){
   let returnVal = inputHtml;
   console.log("html so far is: ");
   console.log(inputHtml);
   let annotationDisambiguatorHtml = '';
   let left = "left";
   let right = "right";
-  annotationDisambiguatorHtml += '<div id="annotation-disambiguator">';
-  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left" onclick="toggleFocalAnnotationChange(\'' + left + '\')"> </span>';
-  // annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + returnVal +'\')"></span>';
+  annotationDisambiguatorHtml += '<div id="annotation-disambiguator" data-media-asset-id="' + mediaAssetId + '">';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + mediaAssetId + '\')"> </span>';
   annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation </span>';
-  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right" onclick="toggleFocalAnnotationChange(\'' + right + '\')"> </span>';
-  // annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right" onclick="toggleFocalAnnotationChange(\'' + right + '\',' + returnVal + ')"> </span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\')"> </span>';
   annotationDisambiguatorHtml += '<span class="go el el-circle-arrow-right" onclick="goToEncounterHighlighted()">Go To Highlighted Encounter</span>';
   annotationDisambiguatorHtml += '</div>';
   returnVal.append(annotationDisambiguatorHtml);
   return returnVal;
 }
 
-toggleFocalAnnotationChange = function (direction){
-
-  // let currentFocalAnnotationIndex = $('.image-enhancer-feature-focused').data('idx');
-  // let currentFocalXaxis = parseFloat($('.image-enhancer-feature-focused').css('left').replace('px',''));
-  let currentFocalId = $('.image-enhancer-feature-focused').attr('id');
-  let allEnhancerFeatureElements = $('.image-enhancer-feature');
+toggleFocalAnnotationChange = function (direction, mediaAssetId){
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + "']");
+  let currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
+  let allEnhancerFeatureElements = $(parentElement).find('.image-enhancer-feature');
   let enhancerFeatureIdArray = [];
   Array.prototype.forEach.call(allEnhancerFeatureElements, enhancerFeatureElement =>{ //forEach wasn't working
     let currentId = $(enhancerFeatureElement).attr('id');
@@ -659,12 +654,4 @@ $(document).ready(function() {
 	if (!wildbook.user.isAnonymous()) {
   		maLib.initPhotoSwipeFromDOM('#enc-gallery');
 	}
-});
-
-$("*").click(function (e) {
-  e.preventDefault();
-  e.stopPropagation();
-  console.log("element clicked is: ");
-  console.log(e);
-  console.log($(this)[0].tagName);
 });
