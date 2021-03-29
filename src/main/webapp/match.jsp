@@ -920,7 +920,9 @@ console.warn('pendingUpload -> %o', pendingUpload);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-      		file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+      if(file && file.name){
+        file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+      }
 			console.log('added %o %o', file, event);
 			pendingUpload++;
 			$('#file-input').hide();

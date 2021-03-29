@@ -161,9 +161,10 @@ public class StandardImport extends HttpServlet {
 
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
-    filename = filename.replaceAll("[^a-zA-Z0-9\\. ]", "");
-
-    System.out.println("Filename? = "+filename);
+    if(Util.stringExists(filename)){
+      filename = filename.replaceAll("[^a-zA-Z0-9\\. ]", "");
+      System.out.println("Filename? = "+filename);
+    }
 
     if (isUserUpload&&filename!=null&&filename.length()>0) {
       filename = uploadDirectory+"/"+filename;
@@ -1322,7 +1323,7 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i);
-    localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+    if(Util.stringExists(localPath)) localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -2010,12 +2011,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_STRING) {
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
-        str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
+        if(Util.stringExists(str)) str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
       }
       // not ideal, but maybe get something
       if (str==null&&cell!=null) {
         str = cell.toString();
-        str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
+        if(Util.stringExists(str)) str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
       }
     } catch (Exception e) {
       // it should be basically impossible to get here. this is not a challenge.
@@ -2361,7 +2362,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
           System.out.println("ERROR: importXlsFile() rootDir=" + rootDir+";f is: "+f);
           return null;
         }
-        
+
         /*
         try {
             for (final File f : dir.listFiles()) {

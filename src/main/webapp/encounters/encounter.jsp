@@ -4932,7 +4932,9 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
-    file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+    if(file && file.name){
+      file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+    }
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
