@@ -1049,7 +1049,7 @@ function enhancerDisplayAnnots(el, opt) {
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i, ma.id);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
     }
 }
 
@@ -1072,7 +1072,7 @@ function featureSortOrder(feat) {
     return rtn;
 }
 
-function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
