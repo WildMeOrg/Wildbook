@@ -32,7 +32,7 @@ public class Prometheus
     boolean pageVisited = false;  
     Counter encsSubDate = null;
     Counter encsLocation = null;
-    Counter encWildBook = null;
+    Counter encsWildBook = null;
     Gauge numUsersWithoutLogin = null;
     Gauge numMediaAssetsWildbook = null;
     Gauge indiv = null;
