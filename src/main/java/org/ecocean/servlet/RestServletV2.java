@@ -906,7 +906,6 @@ rtn.put("_payload", payload);
             throw new IOException("RestServlet.handlePost() passed null class");
         }
 
-        System.out.println("STATUS 0 --> "+response.getStatus());
 
         try {
             final String LOG_POST_SUCCESS = "RestServlet.handlePost() instance={} created={}";  
@@ -925,14 +924,12 @@ rtn.put("_payload", payload);
                 rtn.put("success", true);
                 rtn.put("result", enc.asApiJSONObject());   //TODO what detail to pass?
             } else if (cls.equals("org.ecocean.MarkedIndividual")) {
-                System.out.println("STATUS 1 --> "+response.getStatus());
                 MarkedIndividual individual = MarkedIndividual.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(individual);
                 SystemLog.info(LOG_POST_SUCCESS, instanceId, individual);
                 myShepherd.commitDBTransaction();
                 rtn.put("success", true);
                 rtn.put("result", individual.asApiJSONObject());   //TODO what detail to pass?
-                System.out.println("STATUS 2 --> "+response.getStatus());
             } else {
                 SystemLog.error("RestServlet.handlePost() passed invalid class {}, instance={}", cls, instanceId);
                 rtn.put("message", _rtnMessage("invalid_class", payload));
