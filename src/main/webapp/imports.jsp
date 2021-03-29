@@ -11,6 +11,7 @@ java.util.List,
 java.util.Collection,
 java.util.ArrayList,
 org.ecocean.security.Collaboration,
+java.util.HashMap,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -236,9 +237,11 @@ if (itask == null) {
     int numIA = 0;
     boolean foundChildren = false;
 
-    JSONArray jarr = new JSONArray();
+    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
-        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
+       
+    	JSONArray jarr=new JSONArray();
+    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -281,6 +284,9 @@ if (itask == null) {
         }
 
         out.println("</tr>");
+        
+        jarrs.put(enc.getCatalogNumber(), jarr);
+        
     }
     int percent = -1;
     if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
@@ -289,19 +295,35 @@ if (itask == null) {
 <p>
 Total images: <b><%=allAssets.size()%></b>
 <script>
-var allAssetIds = <%=jarr.toString(4)%>;
+let js_jarrs = new Map();
+<%
+for(String key:jarrs.keySet()){
+%>
+	js_jarrs.set('<%=key %>',<%=jarrs.get(key).toString() %>);
+<%
+}
+%>
 
 function sendToIA(skipIdent) {
     if (!confirmCommit()) return;
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
     var locIds = $('#id-locationids').val();
-    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
-        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
-        } else {
-            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
-        }
-    });
+    
+    for (let [key, value] of js_jarrs) {
+    	console.log('Sending these imported mediaAssets for Encounter ' + key + ': ' + value)
+
+	    wildbook.sendMediaAssetsToIA(value, locIds, skipIdent, function(x) {
+	        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+	            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+	        } else {
+	            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+	        }
+	    });
+    	  
+	}
+    
+    
+    
 }
  
 
