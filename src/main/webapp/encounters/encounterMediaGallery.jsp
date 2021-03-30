@@ -207,6 +207,10 @@ function forceLink(el) {
 
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
+                                                if ((ma.getMetadata() != null) && !j.has("metadata")) {
+                                                    JSONObject md = Util.toggleJSONObject(Util.stringToJSONObject(ma.getMetadata().getDataAsString()));
+                                                    j.put("metadata", md.optJSONObject("attributes"));
+                                                }
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
