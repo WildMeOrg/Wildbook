@@ -125,7 +125,7 @@ public class Prometheus
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       for(i = 0; i< specieNames.size(); i++){
-        out.println("<p> Number of encounters by Submission Date is: "+specieNames+"</p>");
+        out.println("<p> All specie types "+specieNames+"</p>");
       }
 
 
