@@ -1079,7 +1079,7 @@ function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     var focused = (feat.annotationId == focusAnnId);
-    var fel = $('<div data-encid="' + feat.encounterId + '" data-idx="' + zdelta + '" title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
+    var fel = $('<div data-encid="' + feat.encounterId + '" title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
 
     var tooltip;
     if (feat.individualId) {
