@@ -403,6 +403,51 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         return setFromJSONObject(key, cls, json, false);
     }
 
+
+    public JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatch has null json");
+        JSONArray opArr = jsonIn.optJSONArray("_value");
+        if (opArr == null) throw new IOException("apiPatch requires an ARRAY of op-objects");
+        JSONArray rtn = new JSONArray();
+        for (int i = 0 ; i < opArr.length() ; i++) {
+            JSONObject jsonOp = opArr.optJSONObject(i);
+            if (jsonOp == null) throw new IOException("apiPatch got non-object at offset=" + i);
+            String op = jsonOp.optString("op", null);
+            if (op == null) throw new IOException("apiPatch got null op at offset=" + i);
+            try {
+                switch (op) {
+                    case "add":
+                        rtn.put(this.apiPatchAdd(myShepherd, jsonOp));
+                        break;
+                    case "replace":
+                        rtn.put(this.apiPatchReplace(myShepherd, jsonOp));
+                        break;
+                    case "remove":
+                    case "move":
+                    case "copy":
+                    case "test":
+                    default:
+                        throw new IOException("apiPatch op=" + op + " not supported (yet)");
+                }
+            } catch (ApiValueException valex) {
+                throw valex;
+            }
+        }
+        return rtn;
+    }
+
+    //these should all be overridden... perhaps?
+    public JSONObject apiPatchAdd(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchAdd");
+    }
+    //NOTE:  both add and replace will act like setter if it is not an array value (i.e. most things)
+    public JSONObject apiPatchReplace(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchReplace");
+    }
+    public JSONObject apiPatchRemove(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchRemove");
+    }
+
     //kinda utility/convenience thing for opts
     private static boolean optsBoolean(Object val) {
         if ((val == null) || !(val instanceof Boolean)) return false;

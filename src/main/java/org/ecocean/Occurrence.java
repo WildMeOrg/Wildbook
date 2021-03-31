@@ -1613,32 +1613,11 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return obj;
     }
 
-    //TODO this prob should move to base-class and let apiPatchFOO ones be in subclasses
-    public void apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
-        if (jsonIn == null) throw new IOException("apiPatch has null json");
-        String op = jsonIn.optString("op", null);
-        if (op == null) throw new IOException("apiPatch has null op");
-        switch (op) {
-            case "add":
-                this.apiPatchAdd(myShepherd, jsonIn);
-                break;
-            case "replace":
-                this.apiPatchReplace(myShepherd, jsonIn);
-                break;
-            case "remove":
-            case "move":
-            case "copy":
-            case "test":
-            default:
-                throw new IOException("apiPatch op=" + op + " not supported (yet)");
-        }
-    }
-
-    //both add and replace will act like setter if it is not an array value (i.e. most things)
-    public void apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+    public org.json.JSONObject apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         if (jsonIn == null) throw new IOException("apiPatchAdd has null json");
         String path = jsonIn.optString("path", null);
         if (path == null) throw new IOException("apiPatchAdd has null path");
+        if (path.startsWith("/")) path = path.substring(1);
         Object valueObj = jsonIn.opt("value");
         boolean hasValue = jsonIn.has("value");
 /*
@@ -1648,6 +1627,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 */
         if (!hasValue || (valueObj == null)) throw new IOException("apiPatchAdd has empty value - NOT YET SUPPORTED");
 
+        org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatchAdd on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
@@ -1666,23 +1646,28 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 default:
                     throw new Exception("apiPatchAdd unknown path " + path);
             }
+        } catch (ApiValueException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new IOException("apiPatchAdd unable to modify " + this + " due to " + ex.toString());
         }
+        return rtn;
     }
 
-    //as noted above, for non-array targets, this is the *same as* an add (i.e. it (re)sets the value)), so
+    //for non-array targets, this is the *same as* an add (i.e. it (re)sets the value)), so
     //  you will note many cases just pass to apiPatchAdd()
-    public void apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+    public org.json.JSONObject apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         if (jsonIn == null) throw new IOException("apiPatchReplace has null json");
         String path = jsonIn.optString("path", null);
         if (path == null) throw new IOException("apiPatchReplace has null path");
+        if (path.startsWith("/")) path = path.substring(1);
         Object valueObj = jsonIn.opt("value");
         boolean hasValue = jsonIn.has("value");
 
         //see above
         if (!hasValue || (valueObj == null)) throw new IOException("apiPatchReplace has empty value - NOT YET SUPPORTED");
 
+        org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
@@ -1696,9 +1681,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
             }
+        } catch (ApiValueException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
         }
+        return rtn;
     }
 
     // rule is, we die, we take our encounters with us!

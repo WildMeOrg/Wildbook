@@ -963,6 +963,7 @@ rtn.put("_payload", payload);
         JSONObject rtn = new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("RestServletV2.handlePatch");
+        myShepherd.beginDBTransaction();
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
 
@@ -1001,8 +1002,27 @@ rtn.put("_payload", payload);
                 out.close();
                 return;
             } else {
-                occ.apiPatch(myShepherd, payload);
-                rtn.put("result", occ.asApiJSONObject());
+                try {
+                    JSONArray patchRes = occ.apiPatch(myShepherd, payload);  //this means *all* patches must succeed
+                    rtn.put("result", occ.asApiJSONObject());
+                    rtn.put("patchResults", patchRes);
+                } catch (ApiValueException ex) {
+                    SystemLog.error("RestServlet.handlePatch() invalid value {}", ex.toString(), ex);
+                    rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                    rtn.put("errorFields", new JSONArray(ex.getFields()));
+                    response.setStatus(601);
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    String rtnS = rtn.toString();
+                    response.setContentLength(rtnS.getBytes("UTF-8").length);
+                    out.println(rtnS);
+                    out.close();
+                    return;
+                } catch (Exception ex) {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    throw new IOException(ex.toString());
+                }
             }
         } else {
             myShepherd.rollbackDBTransaction();
