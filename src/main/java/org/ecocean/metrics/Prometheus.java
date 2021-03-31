@@ -124,19 +124,22 @@ public class Prometheus
       List<String> specieNames = ms.getAllTaxonomyNames();
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
+      for(i = 0; i< specieNames.size(); i++){
+        out.println("<p> Number of encounters by Submission Date is: "+specieNames+"</p>");
+      }
+
 
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
-      int totalNumEncSub = numEncountersSub.size();
-      for(int dataSub : numEncountersSub){
-          ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
-          for(i = 0; i < totalNumEncSub; i++){  
-              this.encsSubDate.inc((double)numOfEncounters);
-               out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
-               i++;
-          }
-      }
+      // int totalNumEncSub = numEncountersSub.size();
+      // for(String dataSub : numEncountersSub){
+      //     ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
+      //     for(i = 0; i < totalNumEncSub; i++){  
+      //         this.encsSubDate.inc((double)numOfEncounters);
+      //          out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
+      //     }
+      // }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
