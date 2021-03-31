@@ -121,17 +121,21 @@ public class Prometheus
       this.encsWildBook.inc((double)numEncountersWild);
 
       //Num of Encounters by Specie
-      // List<String> specieNames = ms.getAllTaxonomyNames();
-      // for (string name : specieNames){
-      //   ArrayList<Encounters> specieisEncounters = ms.getAllEncountersForSpecies(name, );
-      // }
+      List<String> specieNames = ms.getAllTaxonomyNames();
+      //Tokenizes Taxonomy to get genus and Epithet(specie)
+      //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
+
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
-      for(i = 0; i < totalNumEncSub; i++){
-          ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(i);
-          this.encsSubDate.inc((double)totalNumEncSub);
+      for(string dataSub : numEncountersSub){
+          ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
+          for(i = 0; i < totalNumEncSub; i++){
+              this.encsSubDate.inc((double)numOfEncounters[i]);
+               out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+               i++;
+          }
       }
 
       //Number of Encounters by Location ID
@@ -156,18 +160,6 @@ public class Prometheus
     public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
     {
       //Media Assets by WildBook
-      // Iterator<String> numMediaAssetsWild = ms.getAllMediaAssets();
-      // List<String> mediaAssestsList = new ArrayList<String>();
-      // while (numMediaAssetsWild.hasNext()){
-      //     mediaAssestsList.add(numMediaAssetsWild.next());
-      //   // String string = (String)numMediaAssetsWild.next();
-      //   // mediaAssestsList.add(string);
-      // }
-      // numMediaAssetsWild.forEachRemaining(mediaAssestsList::add);
-      // int wildbookMA = mediaAssestsList.size();
-      
-      // this.numMediaAssetsWildbook.set((double)wildbookMA);
-
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
       int totalNumMediaAssests = numMediaAssetsWild.size();
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
