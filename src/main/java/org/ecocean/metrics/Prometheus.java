@@ -90,7 +90,6 @@ public class Prometheus
       }
     }
     
-    
     public void setNumberOfUsers(PrintWriter out, Shepherd ms)
     {
       //Getting number of users by wildbook
@@ -149,7 +148,7 @@ public class Prometheus
       for(i = 0; i < totalNumLoc; i++){
           int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
           this.encsLocation.inc((double)totalNumByLoc);
-          output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i).getName()+ "is: "+this.encsLocation.get()+"</p>");
+          output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
       }
     }
     
