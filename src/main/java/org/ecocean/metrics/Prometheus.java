@@ -133,7 +133,7 @@ public class Prometheus
           ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
           for(i = 0; i < totalNumEncSub; i++){  
               this.encsSubDate.inc((double)numOfEncounters);
-               out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+               out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
                i++;
           }
       }
