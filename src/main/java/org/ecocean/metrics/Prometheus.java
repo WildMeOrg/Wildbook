@@ -148,7 +148,7 @@ public class Prometheus
       for(i = 0; i < totalNumLoc; i++){
           int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
           this.encsLocation.inc((double)totalNumByLoc);
-          output.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+          out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
       }
     }
     
