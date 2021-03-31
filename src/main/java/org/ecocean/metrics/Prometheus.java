@@ -129,10 +129,10 @@ public class Prometheus
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
-      for(string dataSub : numEncountersSub){
+      for(String dataSub : numEncountersSub){
           ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
-          for(i = 0; i < totalNumEncSub; i++){
-              this.encsSubDate.inc((double)numOfEncounters[i]);
+          for(i = 0; i < totalNumEncSub; i++){  
+              this.encsSubDate.inc((double)numOfEncounters);
                out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
                i++;
           }
