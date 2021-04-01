@@ -131,7 +131,7 @@ public class Prometheus
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
-      // int totalNumEncSub = numEncountersSub.size();
+      int totalNumEncSub = numEncountersSub.size();
       // for(String dataSub : numEncountersSub){
       //     ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
       //     for(i = 0; i < totalNumEncSub; i++){  
@@ -139,6 +139,11 @@ public class Prometheus
       //          out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
       //     }
       // }
+      for(i = 0; i < totalNumEncSub; i++){
+        int totalNumSub = ms.getMostRecentIdentifiedEncountersByDate(numEncountersSub.get(i));
+        this.encsSubDate.inc((double)totalNumEncSub);
+        out.println("<p> Number of encounters by Location ID" +totalNumEncSub.get(i)+ "is: "+this.encsSubDate.get()+"</p>");
+      }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
