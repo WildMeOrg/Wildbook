@@ -51,7 +51,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     }
 
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
-    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND (\"STATE\" = 'processing' OR \"STATE\" = 'mergereview' OR \"STATE\" = 'disputed') AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
+    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist"; // removed AND (\"STATE\" = 'processing' OR \"STATE\" = 'mergereview' OR \"STATE\" = 'disputed')
 System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
 
     JSONArray found = new JSONArray();
@@ -67,7 +67,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         Object[] row = (Object[]) it.next();
         String encId = (String)row[0];
         Double dist = (Double)row[1];
-        if (dist > 3000) continue;  //sanity perimeter
+        if (dist > 50) continue;  //sanity perimeter
         Encounter menc = myShepherd.getEncounter(encId);
         if (menc == null) continue;
         if(menc.getLocationID()!= null && enc.getLocationID() != null && !menc.getLocationID().equals(enc.getLocationID())){ //further filter by location ID: if both locationIDs exist but are different, don't include this match encounter in the match list
@@ -759,14 +759,13 @@ function enableMatch() {
     $.ajax({
         url: url,
         complete: function(xhr) {
-            console.log(xhr);
             if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
                 if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
                     $('#match-results').html('<b>No matches found</b>');
-                } else {
+                } else { //TODO Rutvik & Hardik: this whole section might need its logic modified slightly once default match photos are being assigned to encounters
                     matchData = xhr.responseJSON;
                     matchData.assetData = {};
                     matchData.userPresented = {};
@@ -775,10 +774,10 @@ function enableMatch() {
                     let similarShortCircuitTracker = 0; //track the number of times things short circuit. If it ends up being the same as similar.length, we need to report no matches found
                     var shouldPopulatePaginator = true;
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                        if (!xhr.responseJSON.similar[i].individualId){
-                          similarShortCircuitTracker ++;
-                          continue;
-                        }
+                        if (!xhr.responseJSON.similar[i].individualId){ //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+                          similarShortCircuitTracker ++; //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+                          continue; //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+                        } //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
                         if (seen[xhr.responseJSON.similar[i].individualId]){
                           similarShortCircuitTracker ++;
                           continue;
@@ -812,8 +811,8 @@ function enableMatch() {
                         for (var j=0;j<queryAssetEls.length;j++) {
                             allQueryAssetIds.push(queryAssetEls[j].id.replace("wrapper-",""));
                         }
-
-                        if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
+                        //TODO Rutvik & Hardik: currently, xhr.responseJSON.similar[i] returns all match candidates (both Encounters that belong to MarkedIndividuals and Encounters that don't). Only encounters that are assigned to marked individuals can have matchPhotos, so any of the logic below that looks for *.matchPhoto will fail on Encounters not associated with MarkedIndividuals. When Sabrina asks you to assign default matchPhotos to encounters, it may be worth checking the logic below to make sure that it is working correctly.
+                        if (xhr.responseJSON.similar[i].matchPhoto && (xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
                             if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.secondary.id.toString())) {
                                 h = "";
                                 similarShortCircuitTracker ++;
@@ -825,15 +824,17 @@ function enableMatch() {
                             h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
                             } else {
-                              if (allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
+                              if (xhr.responseJSON.similar[i].matchPhoto && allQueryAssetIds.includes(xhr.responseJSON.similar[i].matchPhoto.id.toString())) {
                                   h = "";
                                   similarShortCircuitTracker ++;
                                   continue;
                               }
                             console.log("getting near matchAssetLoaded call");
-                            var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
-                            h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
-                            matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+                            if(xhr.responseJSON.similar[i].matchPhoto){
+                                var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
+                                h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
+                                matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+                            }
                             }
 
                             h += '<div class="match-item-info">';

@@ -140,7 +140,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
 
         }
         Double dist = (Double)row[1];
-        if (dist > 3000) continue;  //sanity perimeter
+        if (dist > 50) continue;  //sanity perimeter
         Encounter menc = myShepherd.getEncounter(encId);
         if (menc == null) continue;
         if(menc.getLocationID()!= null && enc.getLocationID() != null && !menc.getLocationID().equals(enc.getLocationID())){ //further filter by location ID: if both locationIDs exist but are different, don't include this match encounter in the match list
@@ -306,6 +306,30 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
                 if(Util.stringExists(indDisplayName2)){
                     rtn.put("indDisplayName2", indDisplayName2);
                 }
+
+                //handle cases where one or both encounters are not assigned to markedIndividuals currently
+                //TODO Rutvik & Hardik: this whole section cannot be tested until Encounters not added to MarkedIndividuals are considered match candidates. This requires encounters to have default matchPhotos, which allows other logic in this file and in encounterDecide.jsp to work. You will need to confirm that this is working as expected.
+                if(Util.stringExists(indId1) && !Util.stringExists(indId2)){
+                    //focal has an individual, but candidate does not, so assign it to focal
+                    myShepherd.getMarkedIndividual(myShepherd.getEncounter(request.getParameter("id"))).addEncounter(myShepherd.getEncounter(secondEncounter));
+                    myShepherd.updateDBTransaction();
+                    rtn.put("mergeMessage", "Cat encounter was added to individual " + indId1);
+                }
+                if(!Util.stringExists(indId1) && Util.stringExists(indId2)){
+                    //candidate has an individual, but focal does not, so assign it to candidate
+                    myShepherd.getMarkedIndividual(myShepherd.getEncounter(secondEncounter)).addEncounter(myShepherd.getEncounter(request.getParameter("id")));
+                    myShepherd.updateDBTransaction();
+                    rtn.put("mergeMessage", "Cat encounter was added to individual " + indId2);
+                }
+                if(!Util.stringExists(indId1) && !Util.stringExists(indId2)){
+                    //neither encounter is connected to an individual yet, so create one
+                    MarkedIndividual newIndividual = new MarkedIndividual(myShepherd.getEncounter(request.getParameter("id")));
+                    newIndividual.addEncounter(myShepherd.getEncounter(secondEncounter));
+                    myShepherd.updateDBTransaction();
+                    rtn.put("mergeMessage", "Cat encounters were combined to create individual " + newIndividual.getId());
+                    rtn.put("newIndividualId", newIndividual.getId());
+                }
+
     
                 if (Util.stringExists(indId1) && Util.stringExists(indId2)) {
                     rtn.put("success", true);
@@ -967,12 +991,12 @@ function enableMatch() {
     });
 }
 
-function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker, maxScore){
+function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuitTracker, maxScore){ //TODO Rutvik & Hardik: this whole section might need its logic modified slightly once default match photos are being assigned to encounters
   let returnObj = {}
-  if (!matchCandidate.individualId){
-    similarShortCircuitTracker ++;
-    return;
-  }
+  if (!matchCandidate.individualId){ //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+    similarShortCircuitTracker ++;//TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+    return; //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
+  } //TODO Rutvik & Hardik: comment this out once default match photos are being assigned to encounters
   if (seen[matchCandidate.individualId]){
     similarShortCircuitTracker ++;
     return;
@@ -1004,7 +1028,8 @@ function handleMatchCandidate(matchCandidate, seen, sort, i, similarShortCircuit
   for (var j=0;j<queryAssetEls.length;j++) {
       allQueryAssetIds.push(queryAssetEls[j].id.replace("wrapper-",""));
   }
-  if ((matchCandidate.matchPhoto.encounterId == encounterId) && matchCandidate.matchPhoto.secondary) {
+  //TODO Rutvik & Hardik: currently, this logic runs through all match candidates (both Encounters that belong to MarkedIndividuals and Encounters that don't). Only encounters that are assigned to marked individuals can have matchPhotos, so any of the logic below that looks for *.matchPhoto will fail on Encounters not associated with MarkedIndividuals. When Sabrina asks you to assign default matchPhotos to encounters, it may be worth checking the logic below to make sure that it is working correctly.
+  if (matchCandidate.matchPhoto && (matchCandidate.matchPhoto.encounterId == encounterId) && matchCandidate.matchPhoto.secondary) {
       if (allQueryAssetIds.includes(matchCandidate.matchPhoto.secondary.id.toString())) {
           h = "";
           similarShortCircuitTracker ++;
@@ -1064,12 +1089,13 @@ function populatePaginator(keyArray){
 
 function markFinishedAndNavigateToMergePage() {
     let checkedEncounter = $('.match-chosen-cat:checked').val();
+    debugger;
     let noMatchTxt = "no-match";
     if (!checkedEncounter){
         checkedEncounter = noMatchTxt; //the ajax call is looking for a match to this exact string to advance the encounter state without doing the merge stuff
     }
     let focalEncounter = encounterId;
-    var url = 'mergeReviewDecide.jsp?id=' + encounterId + '&secondEncId=' + checkedEncounter;
+    var url = 'mergeReviewDecide.jsp?id=' + focalEncounter + '&secondEncId=' + checkedEncounter;
     $.ajax({
         url: url,
         complete: function (data) {
