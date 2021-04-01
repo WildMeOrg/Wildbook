@@ -99,37 +99,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       // myShepherd.updateDBTransaction();
       
       //Encounter targetEncounter = myShepherd.getEncounter("ffec0b33-a04e-4236-ba8a-fdbc379837f3"); // non-rotating cat
-      MediaAsset originalMediaAsset = myShepherd.getMediaAsset("3292");
-      System.out.println("deleteMe got here sandbox 6");
-      ArrayList<String> labels = originalMediaAsset.getLabels();
-      if(labels!=null && labels.size()>0){
-        for(String currentLabel: labels){
-          System.out.println("deleteMe got here sandbox 7 and label is: " + currentLabel);
-          if(currentLabel.indexOf("rotate") > -1 || currentLabel.indexOf("old") > -1 || currentLabel.indexOf("_original") > -1){ // || currentLabel.indexOf("_original")
-            //there's a rotate or "old" label. Exterminate!
-            System.out.println("deleteMe got here sandbox 8 in purgeRotationLabelsFrom! currentLabel about to be purged is: " + currentLabel);
-            originalMediaAsset.removeLabel(currentLabel);
-            System.out.println("deleteMe got here sandbox 9");
-          }
-        }
-      }
-      try{
-        originalMediaAsset.redoAllChildren(myShepherd);
-        System.out.println("deleteMe got here sandbox 10");
-      }catch(Exception e){
-        System.out.println("deleteMe got here sandbox 11");
-        System.out.println("Error with redoAllChildren in purgeRotationLabelsFrom method of MediaAssetModify.java");
-        e.printStackTrace();
-      } finally{
-        myShepherd.updateDBTransaction();
-      }
-
-      JSONObject testObj = new JSONObject();
-      testObj.put("a", 9);
-      testObj.put("b", 12);
-      testObj.put("c", 10);
-      List<String> testResults = Decision.sortIdsByPopularity(testObj);
-      System.out.println("testResults are: " + testResults.toString());
       // List<Decision> oldDecisions = myShepherd.getDecisionsForEncounter(targetEncounter);
       // if(oldDecisions!=null && oldDecisions.size()>0){
       //   System.out.println("oldDecisions.size() is: " + oldDecisions.size() + " for encounter: " +targetEncounter.getCatalogNumber());
@@ -139,9 +108,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       //   }
       // }
 
-      // Encounter targetEncounter = myShepherd.getEncounter("666f6626-24ae-4bf4-b480-1209881449b6");
-      // targetEncounter.setState("processing");
-      // myShepherd.updateDBTransaction();
+      Encounter targetEncounter = myShepherd.getEncounter("2603de8c-6bce-4330-8f64-d1f49a094381"); //666f6626-24ae-4bf4-b480-1209881449b6 //ec4b2aeb-09dd-457b-a8dc-fe87eb94dc98 (portland 1)
+      targetEncounter.setState("processing");
+      MarkedIndividual newIndividual = new MarkedIndividual("portland2",targetEncounter);
+      myShepherd.storeNewMarkedIndividual(newIndividual);
+      System.out.println("deleteMe newIndividual is: " + newIndividual.getId());
+      myShepherd.updateDBTransaction();
       //
       // targetEncounter = myShepherd.getEncounter("f5cc05e5-54e4-4cdf-9162-f45e7b361cbb");
       // targetEncounter.setState("processing");

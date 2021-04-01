@@ -531,9 +531,35 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
 <table id="queue-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false">
 <thead>
 <tr>
-<% for (int ci = 0 ; ci < theads.length ; ci++) { %>
-    <th <%=((ci == 0 || ci == 2 || ci == 3 || ci == 7) ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
-<% } %>
+<% for (int ci = 0 ; ci < theads.length ; ci++) {
+    List<String> ahrefSortHeaders = new ArrayList<String>();
+    ahrefSortHeaders.add("ID");
+    ahrefSortHeaders.add("Cat");
+    List<String> percentSortHeaders = new ArrayList<String>();
+    percentSortHeaders.add("Level of Agreement");
+    String currentHeader = theads[ci];
+    if(ahrefSortHeaders.contains(currentHeader)){
+        %>
+        <th data-sorter="ahrefSort" class="th-<%=ci%>"
+                data-sortable="true"><%=theads[ci]%>
+        </th>
+        <%
+    } 
+    if(percentSortHeaders.contains(currentHeader)){
+        %>
+        <th data-sorter="percentSort" class="th-<%=ci%>"
+                data-sortable="true"><%=theads[ci]%>
+        </th>
+        <%
+    }
+    if(!percentSortHeaders.contains(currentHeader) && !ahrefSortHeaders.contains(currentHeader)){
+        %>
+        <th class="th-<%=ci%>" data-sortable="true">
+            <%=theads[ci]%>
+        </th>
+        <%
+    }
+} %>
 </tr>
 </thead>
 <tbody>
@@ -574,7 +600,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
         }
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
-        if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){
+        if(Util.stringExists(enc.getState()) && (enc.getState().equals("processing") || enc.getState().equals("disputed") || enc.getState().equals("mergereview"))){ // keeping this in case we need to place it back in ||enc.getState().equals("finished")
           //Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers); //TODO Rutvik & Hardik: comment back in when Sabrina wants to enable the "mergereview" or "disputed" assignments
         }
 
@@ -661,6 +687,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
               }
                 if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
                 if ("match".equals(dec.getProperty())){
+                  System.out.println("Decision incrementing dct for user: " + dec.getUser().getUsername());
                     dct++;
                 }
             }
@@ -699,9 +726,33 @@ function ahrefSort(a, b) {
     if (!valB.length) valB = b;
     return valA.localeCompare(valB);
 }
+    function percentSort(a, b) {
+        var valA = $(a).text();
+        if (!valA.length) valA = a;
+        var valB = $(b).text();
+        if (!valB.length) valB = b;
+        function getValue(s) { return s.match(/\d+/) || 0; } //TODO might not get decimals right; seems low priority to fix
+        return getValue(valB) - getValue(valA);
+    }
+function populateResolveLink(){
+    let state = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
+    setActiveTab(state);
+    if (state === "mergereview" || state === "disputed") {
+        let linkSpanElems = $('.add-link-if-merge-review');
+        $(linkSpanElems).each(function (index, spanElem) {
+            let currentEncNum = $(spanElem).attr("data-current-enc-num");
+            let anchorHtml = '<a class=\"remove-upon-filter-button-click\" href=\"encounters/mergeReviewDecide.jsp?id=' + currentEncNum + '\" target=\"new\">Resolve</a>';
+            $(spanElem).append(anchorHtml);
+        });
+    }
+}
 var currentActiveState = 'incoming';
 $(document).ready(function() {
     filter(currentActiveState, true);
+
+    $('#queue-table').on('reset-view.bs.table', function (e) {
+        populateResolveLink();
+    });
 
     $('.maincontent').on('click', function(ev) {
         utickState.mouseButtonActivity = true;
@@ -716,17 +767,7 @@ $(document).ready(function() {
     $('.filter-button').on('click', function(){
       $('.remove-upon-filter-button-click').remove();
       $('#viewAllDesired').prop( "checked", false );
-      let state = $('button.tab-active').text().split(/\d/)[0].trim().replace(/ /g, ''); //check which button is active
-      setActiveTab(state);
-      if(state === "mergereview" || state === "disputed"){
-        let linkSpanElems = $('.add-link-if-merge-review');
-        $(linkSpanElems).each(function(index,spanElem){
-          let currentEncNum = $(spanElem).attr("data-current-enc-num");
-          let anchorHtml = '<a class=\"remove-upon-filter-button-click\" href=\"encounters/mergeReviewDecide.jsp?id=' + currentEncNum + '\" target=\"new\">Resolve</a>';
-          $(spanElem).append(anchorHtml);
-        });
-
-      }
+      populateResolveLink();
     });
 
     $('#viewAllDesired').change(
