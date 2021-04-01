@@ -139,11 +139,11 @@ public class Prometheus
       //          out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
       //     }
       // }
-      for(i = 0; i < totalNumEncSub; i++){
-        int totalNumSub = ms.getMostRecentIdentifiedEncountersByDate(numEncountersSub.get(i));
-        this.encsSubDate.inc((double)totalNumEncSub);
-        out.println("<p> Number of encounters by Location ID" +totalNumEncSub.get(i)+ "is: "+this.encsSubDate.get()+"</p>");
-      }
+      // for(i = 0; i < totalNumEncSub; i++){
+      //   ArrayList<Encounter> totalNumSub = ms.getMostRecentIdentifiedEncountersByDate(numEncountersSub.get(i));
+      //   this.encsSubDate.inc((double)totalNumEncSub);
+      //   out.println("<p> Number of encounters by Submission Date: " +numEncountersSub.get(i)+ "is: "+this.encsSubDate.get()+"</p>");
+      // }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
