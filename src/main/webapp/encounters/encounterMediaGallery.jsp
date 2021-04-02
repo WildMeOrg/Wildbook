@@ -494,6 +494,11 @@ figcaption div {
     outline: solid black 2px;
     background-color: rgba(120,255,0,0.3) !important;
 }
+.image-enhancer-feature-toggled {
+    z-index: 30;
+    outline: solid black 2px;
+    background-color: rgba(120,255,0,0.3) !important;
+}
 
 	.match-tools {
 		padding: 5px 15px;

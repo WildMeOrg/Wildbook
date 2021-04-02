@@ -168,7 +168,10 @@ updateWithAnnotationDisambiguator = function(inputHtml, mediaAssetId){
 
 toggleFocalAnnotationChange = function (direction, mediaAssetId){
   let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + "']");
-  let currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
+  let currentFocalId = $(parentElement).find('.image-enhancer-feature-toggled').attr('id');
+  if(!currentFocalId){
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
+  }
   let allEnhancerFeatureElements = $(parentElement).find('.image-enhancer-feature');
   let enhancerFeatureIdArray = [];
   Array.prototype.forEach.call(allEnhancerFeatureElements, enhancerFeatureElement =>{ //forEach wasn't working
@@ -183,9 +186,9 @@ toggleFocalAnnotationChange = function (direction, mediaAssetId){
   let indexOfCurrentFocal = enhancerFeatureIdArray.findIndex(elem => elem['id'] == currentFocalId);
   let indexOfTargetEnhancerFeature = getCorrectIndexOfTargetEnhancerFeature(direction, enhancerFeatureIdArray, indexOfCurrentFocal);
   let idOfTargetEnhancerFeature = enhancerFeatureIdArray[indexOfTargetEnhancerFeature].id;
-  $('#' + currentFocalId).removeClass('image-enhancer-feature-focused');
-  $('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-focused');
-  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  $('#' + currentFocalId).removeClass('image-enhancer-feature-toggled');
+  $('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-toggled');
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
   console.log("encounter id linked to current highlighted annotation is: " + currentFocalEncounterId);
 }
 
@@ -202,7 +205,10 @@ getCorrectIndexOfTargetEnhancerFeature = function(direction, enhancerFeatureIdAr
 
 goToEncounterHighlighted = function (mediaAssetId){
   let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + "']");
-  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  if (!currentFocalEncounterId) {
+    currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  }
   window.location.href = 'encounter.jsp?number=' + currentFocalEncounterId;
 }
 
