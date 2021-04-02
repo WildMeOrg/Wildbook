@@ -89,8 +89,12 @@ public class ConfigurationUtil {
         //TODO other cache checks?  expires? etc
         Configuration conf = null;
         if (valueCache.get(root) != null) {
-            System.out.println("INFO: _loadConfiguration(" + root + ") read from cache");
-            conf = new Configuration(root, valueCache.get(root));
+            //System.out.println("INFO: _loadConfiguration(" + root + ") read from cache");
+            try {
+                conf = new Configuration(root, valueCache.get(root));
+            } catch (Exception e) {
+                System.out.println("WARN: _loadConfiguration(" + root + ") through an exception reading from cache");
+            }
         } else {
             conf = myShepherd.getConfiguration(root);
             if (conf != null) {
