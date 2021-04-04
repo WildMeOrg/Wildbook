@@ -118,8 +118,10 @@ public class IA {
 
     public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, Taxonomy taxy, final Task parentTask, int tweetAssetId) {
         System.out.println("intakeMediaAssetsOneSpecies called for "+mas.size()+" media assets:");
+        handleMissingAcmids(mas, myShepherd);
         for (MediaAsset ma: mas) {
             System.out.println("intakeMediaAssetsOneSpecies incl. ma "+ma.getId());
+            System.out.println("acmid is: " + ma.getAcmId());
         }
 
         JSONArray maArr = new JSONArray();
@@ -183,6 +185,48 @@ public class IA {
         return topTask;
     }
 
+    public static void handleMissingAcmids(List<MediaAsset>mediaAssets, Shepherd myShepherd){
+        int count = 0;
+        int stopAfter = 200000;
+        int batchThreshold = 50;
+        int batchesSoFar = 0;
+        ArrayList<MediaAsset> assetsWithMissingAcmids = new ArrayList<MediaAsset>();
+        try{
+            for (MediaAsset ma: mediaAssets) {
+                count ++;
+                if(count > stopAfter){
+                  break;
+                }
+                if (ma != null && !ma.hasAcmId()) {
+                    assetsWithMissingAcmids.add(ma);
+                }
+                if ((assetsWithMissingAcmids.size()>=batchThreshold)|| count == mediaAssets.size()){
+                    if(assetsWithMissingAcmids.size() > 0){ // if count gets to the end and assetsWithMissingAcmids is still empty, no need to do any of this
+                        try{
+                            IBEISIA.sendMediaAssetsNew(assetsWithMissingAcmids, myShepherd.getContext());
+                        }catch(Exception e){
+                            System.out.println("Error sending media asset to IA in handleMissingAcmids method in IA.java");
+                            e.printStackTrace();
+                        }
+                        try {
+                            Thread.sleep(30000);
+                        } catch (java.lang.InterruptedException ex) {
+                            System.out.println("You’re not the only one who didn’t sleep well. Neither did the thread in handleMissingAcmids in IA.java");
+                            ex.printStackTrace();
+                        }
+                    }
+                    batchesSoFar++;
+                    assetsWithMissingAcmids = new ArrayList<MediaAsset>();
+                    myShepherd.updateDBTransaction();
+                }
+            }
+        } catch(Exception e){
+            System.out.println("Error in handleMissingAcmids in IA.java");
+            e.printStackTrace();
+            myShepherd.rollbackDBTransaction();
+        }
+    }
+
 
     //similar behavior to above: basically fake /ia api call, but via queue
     //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
@@ -240,7 +284,7 @@ public class IA {
             if (opts != null) {
                 Iterator<JSONObject> itr = opts.iterator();
                 while (itr.hasNext()) {
-                    if (!itr.next().optBoolean("default", true)) itr.remove(); 
+                    if (!itr.next().optBoolean("default", true)) itr.remove();
                 }
             }
 
@@ -268,7 +312,7 @@ public class IA {
               }
             }
             if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
-            
+
             // just one IA class, one algorithm case
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
@@ -345,9 +389,9 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
           if (topTask == null) topTask = new Task(taskId);
           myShepherd.storeNewTask(topTask);
           JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
-  
+
           //for now (TODO) we just send MAs off to detection and annots off to identification
-  
+
           JSONArray mlist = jin.optJSONArray("mediaAssetIds");
           if ((mlist != null) && (mlist.length() > 0)) {
               System.out.println("MLIST: " + mlist);
@@ -374,7 +418,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                   if (ann == null) continue;
                   anns.add(ann);
               }
-  
+
               // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task,
               // or else you will link to the original root task
               List<MediaAsset> masForNewRoot = new ArrayList<>();
@@ -390,7 +434,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                       topTask.addObject(ma);
                   }
               }
-  
+
               Task atask = intakeAnnotations(myShepherd, anns, topTask);
               System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
               topTask.addChild(atask);

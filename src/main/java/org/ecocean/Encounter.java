@@ -525,13 +525,6 @@ public class Encounter implements java.io.Serializable {
 
     }
 
-    //need to get ALL project id's from db, there is no single. methods reside on shepherd
-    @Deprecated
-    public String getProjectId(){
-      return "Bloop";
-    }
-
-
     public String getZebraClass() {
         return zebraClass;
     }
@@ -3213,7 +3206,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	//convenience function to Collaboration permissions
 	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessEncounter(this, request);
+	  return Collaboration.canUserAccessEncounter(this, request);
 	}
         public boolean canUserEdit(User user) {
             return isUserOwner(user);
