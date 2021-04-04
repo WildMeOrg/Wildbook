@@ -24,7 +24,7 @@
           "model_tag": "salanader_fire_v0",
           "labeler_model_tag": "salanader_fire_v0",
           "nms_thresh": 0.40,
-          "sensitivity": 0.76
+          "sensitivity": 0.50
         }
       ],
       "fire_sal":{
@@ -32,6 +32,26 @@
           {
             "query_config_dict": {
               "sv_on":true
+            },
+            "description": "HotSpotter pattern-matcher"
+          }
+        ]
+      },
+      "salanader_fire": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher"
+          }
+        ]
+      },
+      "salanader_fire_adult": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
             },
             "description": "HotSpotter pattern-matcher"
           }
