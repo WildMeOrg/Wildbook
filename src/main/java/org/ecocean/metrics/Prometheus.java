@@ -127,7 +127,7 @@ public class Prometheus
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
       //Genus call
-      List<String> genuesNames = ms.getAllGenues();
+      List<String> genuesNames = ms.getAllGenuses();
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
