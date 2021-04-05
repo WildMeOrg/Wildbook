@@ -8,7 +8,7 @@ import org.ecocean.metrics.Prometheus;
 public class TestJunit 
 {
   String messsage = "Hello worl";
-  Prometheus promObject = new Prometheus(); 
+  //Prometheus promObject = new Prometheus(); 
 
   @Test
   public void testPrintMessage()
