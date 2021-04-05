@@ -559,7 +559,11 @@
 	{"name":"Atlantic Ocean (South)","id":"South Atlantic","locationID":[
 
 			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
-			{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+			{ "name":"Brazil", "id":"Brazil", "locationID":[
+			
+				{ "name":"Brazil-Northeast", "id":"Brazil-Northeast", "locationID":[] }
+			
+			] },
 			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
 			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
 
