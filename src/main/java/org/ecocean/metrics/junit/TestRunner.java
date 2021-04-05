@@ -1,5 +1,7 @@
 package org.ecocean.metrics.junit; 
 
+import java.io.PrintWriter;
+
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -7,15 +9,15 @@ import org.junit.runner.notification.Failure;
 public class TestRunner
 {
 
-  public static void main()
+  public static void main(PrintWriter out)
   {
     Result result = JUnitCore.runClasses(TestJunit.class);
     
     for(Failure failure : result.getFailures())
     {
-      System.out.println(failure.toString()); 
+      out.println(failure.toString()); 
     }
     
-    System.out.println(result.wasSuccessful());
+    out.println(result.wasSuccessful());
   }
 }

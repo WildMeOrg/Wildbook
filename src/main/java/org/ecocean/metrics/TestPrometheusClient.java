@@ -106,7 +106,7 @@ public class TestPrometheusClient extends HttpServlet {
     this.myShepherd.beginDBTransaction();
     
     //Run unit tests?
-    TestRunner.main();
+    TestRunner.main(out);
     
     try 
     { 
