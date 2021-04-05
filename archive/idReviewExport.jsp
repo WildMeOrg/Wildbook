@@ -75,7 +75,7 @@ try {
 			}
 		}
 		
-		sb.append(indy.getIndividualID()+","+indy.getDisplayName()+","+baseURL+"/encounters/thumbnailSearchResults.jsp?individualIDExact="+indy.getIndividualID()+","+numLefts+","+numRights+"\n");
+		sb.append(indy.getIndividualID()+","+indy.getDisplayName()+","+baseURL+"/encounters/thumbnailSearchResults.jsp?startNum=0&endNum=10&individualIDExact="+indy.getIndividualID()+","+numLefts+","+numRights+"\n");
 		
 	}
 	
