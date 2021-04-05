@@ -22,6 +22,7 @@ package org.ecocean.metrics;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.metrics.junit.TestRunner;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.MarkedIndividual;
 
@@ -103,6 +104,9 @@ public class TestPrometheusClient extends HttpServlet {
     
     //begin db connection
     this.myShepherd.beginDBTransaction();
+    
+    //Run unit tests?
+    TestRunner.main();
     
     try 
     { 
