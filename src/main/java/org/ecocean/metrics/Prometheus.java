@@ -135,10 +135,10 @@ public class Prometheus
         out.println("<p> All specie types: "+specieNames+"</p>");
           for(j = 0; j < genuesNames.size(); j++){
             out.println("<p> All genues types: "+genuesNames+"</p>");
-            ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpecies(genuesNames, specieNames);
-            int totalEncsSpecies = allEncsSpecies.size();
-            this.encsSpecies.inc((double)totalEncsSpecies);
-            out.println("<p> Number of encounters by Species, for Species" +specieNames.get(i)+ "is: "+this.encsSpecies.get()+"</p>");
+            // ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpecies(genuesNames, specieNames);
+            // int totalEncsSpecies = allEncsSpecies.size();
+            // this.encsSpecies.inc((double)totalEncsSpecies);
+            // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(i)+ "is: "+this.encsSpecies.get()+"</p>");
 
           }
       }
