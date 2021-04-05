@@ -31,6 +31,7 @@ public class Prometheus
 {
     /*Initialize variables*/
     boolean pageVisited = false;  
+    Counter encsSpecies = null;
     Counter encsSubDate = null;
     Counter encsLocation = null;
     Counter encsWildBook = null;
@@ -45,6 +46,8 @@ public class Prometheus
     public Prometheus()
     {
       //register all metrics
+      encsSpecies = Counter.build()
+              .name("number_encounters_by_specie").help("Number encounters by Specie").register();
       encsSubDate = Counter.build()
               .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
       encsLocation = Counter.build()
@@ -109,6 +112,7 @@ public class Prometheus
     public void setNumberOfEncounters(PrintWriter out, Shepherd ms)
     {
       int i;
+      int j;
       //get the data from the database
       /*Number of encounters */
       int numEncounters = ms.getNumEncounters(); //in aggregate
@@ -120,16 +124,27 @@ public class Prometheus
       this.encsWildBook.inc((double)numEncountersWild);
 
       //Num of Encounters by Specie
+      //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
+      //Genus call
+      List<String> genuesNames = ms.getAllGenues();
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
+      
       for(i = 0; i< specieNames.size(); i++){
-        out.println("<p> All specie types "+specieNames+"</p>");
+        out.println("<p> All specie types: "+specieNames+"</p>");
+          for(j = 0; j < genuesNames.size(); j++){
+            out.println("<p> All genues types: "+genuesNames+"</p>");
+            ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpecies(specieNames, genuesNames);
+            totalEncsSpecies = allEncsSpeccies.size();
+            this.encsSpecies.inc((double)totalEncsSpecies);
+            out.println("<p> Number of encounters by Species, for Species" +specieNames.get(i)+ "is: "+this.encsSpecies.get()+"</p>");
+
+          }
       }
 
-
-
       //Number of Encounters by Submission Dates
+      //Do not worry about tiem series now, get larger ints working first
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
       // for(String dataSub : numEncountersSub){
