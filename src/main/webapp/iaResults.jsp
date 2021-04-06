@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+org.ecocean.CommonConfiguration,
 java.util.HashMap,
 org.ecocean.security.Collaboration,
 org.ecocean.identity.IdentityServiceLog,
@@ -1236,7 +1237,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
-	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
+	let dataInd = parseInt(num) + 1;
+	var h = '<div data-index="' + dataInd + '" data-acmid="' + acmId + '" class="has-data-index annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
@@ -1526,9 +1528,12 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
-            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
-            	//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
-            	$(selector).append(illustrationHtml);
+				let resultIndex = $(selector).closest(".has-data-index").data("index");
+				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
+					var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+					//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+					$(selector).append(illustrationHtml);
+				}
             }
 
         }  //end if (mainAsset)
@@ -2096,11 +2101,12 @@ $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
+	// replace reserved pound sign in incremental ID's
+	selectedProject = selectedProject.replaceAll("#", "%23");
 	if (selectedProject&&selectedProject.length) {
 		reloadURL += "&projectIdPrefix="+selectedProject;
 	}
 	window.location.href = reloadURL;
-	//applyResearchProjectLinks()
 });
 
 // this is messy, but i'm avoiding another database hit
