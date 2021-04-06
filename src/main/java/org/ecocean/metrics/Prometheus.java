@@ -132,13 +132,13 @@ public class Prometheus
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
       for(i = 0; i< specieNames.size(); i++){
-        out.println("<p> All specie types: "+specieNames+"</p>");
+        // nmout.println("<p> All specie types: "+specieNames+"</p>");
         String specieNamei = specieNames.get(i);
-        out.println("<p> All specie types: "+specieNamei+"</p>");
+        out.println("<p> Specie Types: "+specieNamei.get(i)+"</p>");
           for(j = 0; j < genuesNames.size(); j++){
-            out.println("<p> All genues types: "+genuesNames+"</p>");
+            // out.println("<p> All genues types: "+genuesNames+"</p>");
             String genusesNamej = genuesNames.get(j);
-            out.println("<p> All genues types: "+genusesNamej+"</p>");
+            out.println("<p> Genues Types: "+genusesNamej.get(j)+"</p>");
 
             // ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpecies(genuesNames, specieNames);
             // int totalEncsSpecies = allEncsSpecies.size();
