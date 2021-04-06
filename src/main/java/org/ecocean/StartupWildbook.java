@@ -117,11 +117,42 @@ public class StartupWildbook implements ServletContextListener {
 
   }
 
+
+    private static User initAdminUser(String context) {
+        String password = System.getenv("ADMIN_PASSWORD");
+        String email = System.getenv("ADMIN_EMAIL");
+        String username = System.getenv("ADMIN_USERNAME");
+        if ((password == null) || (email == null)) {
+            System.out.println(" * StartupWildbook.initAdminUser() skipped");
+            return null;
+        }
+        if (username == null) username = email;  //good enough if not provided
+        User admin = null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("StartupWildbook.initAdminUser");
+        myShepherd.beginDBTransaction();
+        try {
+            admin = User.createAdminUser(myShepherd, username, email, password);
+        } catch (Exception ex) {
+            System.out.println(" * StartupWildbook.initAdminUser() error: " + ex.toString());
+        }
+        if (admin == null) {
+            System.out.println(" * StartupWildbook.initAdminUser() failed (username=" + username + ")");
+            myShepherd.rollbackDBTransaction();
+        } else {
+            System.out.println(" * StartupWildbook.initAdminUser() successfully created " + admin);
+            myShepherd.commitDBTransaction();
+        }
+        myShepherd.closeDBTransaction();
+        return admin;
+    }
+
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
+        initAdminUser(context);
         if (context != null) {
             System.out.println("- SKIPPED initialization because of next-gen");
             return;

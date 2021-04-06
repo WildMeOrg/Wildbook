@@ -716,7 +716,13 @@ rtn.put("_payload", payload);
                 myShepherd.closeDBTransaction();
                 rtn.put("message", _rtnMessage("init_admin_user_exists_error"));
             } else {
-                User newAdmin = _init_create_admin(myShepherd, initAdmin);
+                User newAdmin = null;
+                try {
+                    newAdmin = User.createAdminUser(myShepherd, initAdmin.optString("username", null), initAdmin.optString("email", null), initAdmin.optString("password", null));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    rtn.put("details", ex.toString());
+                }
                 if (newAdmin == null) {
                     myShepherd.rollbackDBTransaction();
                     myShepherd.closeDBTransaction();
@@ -734,23 +740,6 @@ rtn.put("_payload", payload);
         response.setContentLength(rtnS.getBytes("UTF-8").length);
         out.println(rtnS);
         out.close();
-    }
-    private User _init_create_admin(Shepherd myShepherd, JSONObject data) {
-        if (data == null) return null;
-        String password = data.optString("password", null);
-        String username = data.optString("username", null);
-        String email = data.optString("email", null);
-        if ((password == null) || (username == null) || (email == null)) return null;
-        String salt = ServletUtilities.getSalt().toHex();
-        String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
-        User newUser = new User(username, hashedPassword, salt);
-        newUser.setEmailAddress(email);
-        myShepherd.getPM().makePersistent(newUser);
-        Role role = new Role(username, USER_ROLENAME_ADMIN);
-        role.setContext("context0");
-        myShepherd.getPM().makePersistent(role);
-        SystemLog.error("RestServletV2._init_create_admin() created admin user {}", newUser);
-        return newUser;
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashSet;
 import java.io.Serializable;
+import java.io.IOException;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
@@ -453,6 +454,22 @@ public class User implements Serializable {
         List<Organization> orgs = new ArrayList<Organization>();
         orgs.add(org);
         organizationsReciprocate(orgs);
+    }
+
+
+    public static User createAdminUser(Shepherd myShepherd, String username, String email, String password) throws IOException {
+        if ((password == null) || (username == null) || (email == null)) throw new IOException("must provide username/email/password");
+        List<String> admins = myShepherd.getAllUsernamesWithRolename(org.ecocean.servlet.RestServletV2.USER_ROLENAME_ADMIN);
+        if (!Util.collectionIsEmptyOrNull(admins)) throw new IOException("admin(s) already exist");
+        String salt = ServletUtilities.getSalt().toHex();
+        String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
+        User newUser = new User(username, hashedPassword, salt);
+        newUser.setEmailAddress(email);
+        myShepherd.getPM().makePersistent(newUser);
+        Role role = new Role(username, org.ecocean.servlet.RestServletV2.USER_ROLENAME_ADMIN);
+        role.setContext("context0");
+        myShepherd.getPM().makePersistent(role);
+        return newUser;
     }
 
     //basically mean uuid-equivalent, so deal
