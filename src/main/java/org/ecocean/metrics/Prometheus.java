@@ -138,7 +138,7 @@ public class Prometheus
           for(j = 0; j < genuesNames.size(); j++){
             out.println("<p> All genues types: "+genuesNames+"</p>");
             String genusesNamej = genuesNames.get(j);
-            out.println("<p> All genues types: "+genuesNamesj+"</p>");
+            out.println("<p> All genues types: "+genuesNamej+"</p>");
 
             // ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpecies(genuesNames, specieNames);
             // int totalEncsSpecies = allEncsSpecies.size();
