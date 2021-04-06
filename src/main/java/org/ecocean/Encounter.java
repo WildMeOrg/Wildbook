@@ -525,13 +525,6 @@ public class Encounter implements java.io.Serializable {
 
     }
 
-    //need to get ALL project id's from db, there is no single. methods reside on shepherd
-    @Deprecated
-    public String getProjectId(){
-      return "Bloop";
-    }
-
-
     public String getZebraClass() {
         return zebraClass;
     }
