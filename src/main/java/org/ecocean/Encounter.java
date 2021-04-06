@@ -4011,7 +4011,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         org.json.JSONObject jind = jsonIn.optJSONObject("individual");
         if (jind != null) {
             MarkedIndividual indiv = myShepherd.getMarkedIndividual(jind.optString("id", null));
-            if (indiv == null) throw new IOException("invalid individual: " + jind + "; CREATION of MarkedIndividual not yet supported!");
+            if (indiv == null) throw new IOException("Invalid Individual: " + jind + "; Specified MarkedIndividual either does not exist or has not been persisted.");
             enc.setIndividual(indiv);
         }
 
