@@ -691,8 +691,8 @@ public class StandardImport extends HttpServlet {
     if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
 
-    String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
-    if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
+    //String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
+    //if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
 
   	if (enc!=null) {
       occ.addEncounter(enc);
