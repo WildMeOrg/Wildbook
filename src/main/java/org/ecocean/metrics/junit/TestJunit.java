@@ -56,9 +56,10 @@ public class TestJunit
     }
     this.promObject = new Prometheus(true);
     //run method
-    this.promObject.setNumberOfUsers(pw, myShepherd);
+    this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
+    int s = this.myShepherd.getNumUsers();
+    assertEquals((int) this.promObject.numUsersInWildbook.get(), s);
     
-    assertEquals(messsage, "hi");
   }
   
   
