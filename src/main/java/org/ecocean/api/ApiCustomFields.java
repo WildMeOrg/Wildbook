@@ -431,6 +431,8 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
                 }
             } catch (ApiValueException valex) {
                 throw valex;
+            } catch (Exception ex) {
+                throw ex;
             }
         }
         return rtn;

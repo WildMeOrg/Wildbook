@@ -1644,6 +1644,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "decimalLongitude":
                     this.setDecimalLongitude(tryDouble(valueObj));
                     break;
+                case "locationId":
+                    this.setLocationId((String)valueObj);
+                    break;
                 default:
                     throw new Exception("apiPatchAdd unknown path " + path);
             }
@@ -1652,6 +1655,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         } catch (Exception ex) {
             throw new IOException("apiPatchAdd unable to modify " + this + " due to " + ex.toString());
         }
+        rtn.put("op", "add");
+        rtn.put("path", path);
+        rtn.put("value", valueObj);
         return rtn;
     }
 
@@ -1677,6 +1683,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "endTime":
                 case "decimalLatitude":
                 case "decimalLongitude":
+                case "locationId":
+                    rtn.put("_chainedAdd", true);
                     this.apiPatchAdd(myShepherd, jsonIn);
                     break;
                 default:
@@ -1687,6 +1695,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         } catch (Exception ex) {
             throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
         }
+        rtn.put("op", "replace");
+        rtn.put("path", path);
+        rtn.put("value", valueObj);
         return rtn;
     }
 

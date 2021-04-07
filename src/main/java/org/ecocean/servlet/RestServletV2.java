@@ -1008,9 +1008,16 @@ rtn.put("_payload", payload);
                     out.close();
                     return;
                 } catch (Exception ex) {
+                    SystemLog.error("RestServlet.handlePatch() generic exception {}", ex.toString(), ex);
+                    rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                    response.setStatus(500);
                     myShepherd.rollbackDBTransaction();
                     myShepherd.closeDBTransaction();
-                    throw new IOException(ex.toString());
+                    String rtnS = rtn.toString();
+                    response.setContentLength(rtnS.getBytes("UTF-8").length);
+                    out.println(rtnS);
+                    out.close();
+                    return;
                 }
             }
         } else {
