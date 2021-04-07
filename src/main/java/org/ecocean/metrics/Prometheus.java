@@ -34,7 +34,7 @@ public class Prometheus
     Gauge indiv = null;
    
     Counter encs;
-    Gauge numUsersInWildbook; 
+    public Gauge numUsersInWildbook; 
     Gauge numUsersWithLogin;
     
     //Default constructor
