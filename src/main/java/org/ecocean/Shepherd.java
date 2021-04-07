@@ -2343,7 +2343,7 @@ public class Shepherd {
 
 
   public Occurrence getOccurrenceForEncounter(String encounterID){
-    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
+    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.id == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
@@ -4965,7 +4965,7 @@ public class Shepherd {
   }
 
   public ArrayList<Annotation> getAnnotationsForEncounter(String encounterID){
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc.catalogNumber == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc.id == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     ArrayList<Annotation> al=new ArrayList<Annotation>(c);
