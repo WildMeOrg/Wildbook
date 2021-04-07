@@ -42,6 +42,7 @@ import org.ecocean.configuration.*;
 import org.ecocean.api.ApiHttpServlet;
 import org.ecocean.api.query.QueryParser;
 import org.ecocean.api.ApiValueException;
+import org.ecocean.api.ApiDeleteCascadeException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Iterator;
@@ -1121,6 +1122,8 @@ rtn.put("_payload", payload);
             return;
         }
 
+        boolean allowCascadeIndividual = Util.booleanNotFalse(request.getHeader("x-allow-delete-cascade-individual"));
+        boolean allowCascadeSighting = Util.booleanNotFalse(request.getHeader("x-allow-delete-cascade-sighting"));
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("RestServletV2.handleDelete");
         myShepherd.beginDBTransaction();
@@ -1167,7 +1170,24 @@ rtn.put("_payload", payload);
         }
 
         try {
-            obj.delete(myShepherd);
+            obj.delete(myShepherd, allowCascadeSighting, allowCascadeIndividual);
+
+        } catch (ApiDeleteCascadeException casc) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            SystemLog.warn("RestServlet.handleDelete() failed on {} due to cascade {}", obj, casc);
+            JSONObject jerr = new JSONObject();
+            jerr.put("id", id);
+            jerr.put("class", cls);
+            rtn.put("message", _rtnMessage("cascade", jerr));
+            rtn.put("details", casc.toString());
+            String rtnS = rtn.toString();
+            response.setStatus(481);
+            response.setContentLength(rtnS.getBytes("UTF-8").length);
+            out.println(rtnS);
+            out.close();
+            return;
+
         } catch (IOException ex) {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();

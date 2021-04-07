@@ -510,8 +510,11 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
 
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 
-    // this works fine for encounters presently but we override for occurrencesightings
     public void delete(Shepherd myShepherd) throws IOException {
+        this.delete(myShepherd, false, false);  //play cautious when not passed cascade booleans
+    }
+    // really want to override this
+    public void delete(Shepherd myShepherd, boolean cascadeOccurrence, boolean cascadeMarkedIndividual) throws IOException {
         myShepherd.getPM().deletePersistent(this);
     }
 }

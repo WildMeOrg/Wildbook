@@ -247,6 +247,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     setVersion();
   }
 
+    public int getNumEncounters() {
+        return Util.collectionSize(this.encounters);
+    }
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
@@ -1842,14 +1845,20 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return rtn;
     }
 
-    // rule is, we die, we take our encounters with us!
-    public void delete(Shepherd myShepherd) throws IOException {
-        //in new-world, we should never have zero!
-        if (!Util.collectionIsEmptyOrNull(this.encounters)) for (Encounter enc : this.encounters) {
-            SystemLog.debug("deletion of Occurrence {} triggering deletion of {}", this.getId(), enc);
-            enc.delete(myShepherd);
+    /*
+        rule is, we die, we take our encounters with us!   so this can have a cascade effect on individual... caution!
+    */
+    public void delete(Shepherd myShepherd, boolean cascadeOccurrence, boolean cascadeMarkedIndividual) throws IOException {
+        if (Util.collectionIsEmptyOrNull(this.encounters)) {  //this should not happen in new world!
+            SystemLog.warn("no encounters found during deletion of {}", this);
+            myShepherd.getPM().deletePersistent(this);
+        } else {
+            for (Encounter enc : this.encounters) {
+                SystemLog.debug("deletion of Occurrence {} triggering deletion of Encounter {}", this.getId(), enc);
+                // cascadeOccurrence=true here because we (implicitly!) want last encounter removed to cascade and delete *us* !!
+                enc.delete(myShepherd, true, cascadeMarkedIndividual);
+            }
         }
-        myShepherd.getPM().deletePersistent(this);
     }
 
     //TODO should probably be in Util or base class?
