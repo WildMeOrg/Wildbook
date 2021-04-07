@@ -131,14 +131,14 @@ public class Prometheus
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
-      for(i = 0; i< specieNames.size(); i++){
-        out.println("<p> All specie types: "+specieNames.get(i)+"</p>");
-          for(j = 0; j < genuesNames.size(); j++){
-            out.println("<p> All genues types: "+genuesNames.get(j)+"</p>");
+      for(i = 0; i< genuesNames.size(); i++){
+        out.println("<p> All specie types: "+genuesNames.get(i)+"</p>");
+          for(j = 0; j < specieNames.size(); j++){
+            out.println("<p> All genues types: "+specieNames.get(j)+"</p>");
             ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(i), specieNames.get(j));
             int totalEncsSpecies = allEncSpecies.size();
             this.encsSpecies.inc((double)totalEncsSpecies);
-            out.println("<p> Number of encounters by Species, for Species" +specieNames.get(i)+ "is: "+this.encsSpecies.get()+"</p>");
+            out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
 
           }
       }
