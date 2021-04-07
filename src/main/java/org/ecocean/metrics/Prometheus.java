@@ -37,6 +37,7 @@ public class Prometheus
     Gauge numUsersInWildbook; 
     Gauge numUsersWithLogin;
     
+    //Default constructor
     public Prometheus()
     {
       //register all metrics
@@ -50,6 +51,22 @@ public class Prometheus
       numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
       numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
       numMediaAssetsWildbook = Gauge.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
+    }
+    //Test constructor
+    public Prometheus(boolean isTesting)
+    {
+      //initialize but do not register metrics.
+      encsSubDate = Counter.build()
+          .name("number_encounters_by_date").help("Number encounters by Submission Date").create();
+      encsLocation = Counter.build()
+          .name("number_encounters_by_Location").help("Number encounters by Location ID").create();
+      indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").create();
+      encs = Counter.build().name("number_encounters").help("Number encounters").create();
+      numUsersInWildbook = Gauge.build().name("number_users").help("Number users").create();
+      numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").create();
+      numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").create();
+      numMediaAssetsWildbook = Gauge.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").create();
+      
     }
     
     //Implementation borrowed from MetricsServlet class
