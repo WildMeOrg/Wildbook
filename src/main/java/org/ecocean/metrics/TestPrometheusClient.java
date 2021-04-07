@@ -78,7 +78,7 @@ public class TestPrometheusClient extends HttpServlet {
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
-
+  
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -97,10 +97,12 @@ public class TestPrometheusClient extends HttpServlet {
     context=ServletUtilities.getContext(request);
     this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
-
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
+    
+    out.println("The context: " + context);
     
     //begin db connection
     this.myShepherd.beginDBTransaction();
@@ -116,6 +118,7 @@ public class TestPrometheusClient extends HttpServlet {
         metricsExtractor.setNumberOfUsers(out, this.myShepherd);
         metricsExtractor.setNumberOfEncounters(out, this.myShepherd);
         metricsExtractor.setNumberofMediaAssets(out, this.myShepherd);
+        
         pageVisited = true; 
       }	
     } 
@@ -140,6 +143,8 @@ public class TestPrometheusClient extends HttpServlet {
     
     out.close();
   }
+  
+  
 }
 
 
