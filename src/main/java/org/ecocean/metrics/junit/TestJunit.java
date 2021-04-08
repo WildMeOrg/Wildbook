@@ -31,6 +31,8 @@ public class TestJunit
   int usersInWildbook = -1; 
   int wLogin = -1;
   int woLogin = -1; 
+  int encsInWildbook = -1; 
+
 
   @Before
   public void setUp() throws FileNotFoundException
@@ -39,30 +41,36 @@ public class TestJunit
     this.myShepherd = new Shepherd("context0");
     this.promObject = new Prometheus(true);
 
-    //Read input from file
-    File myFile = new File("databaseDump.txt"); 
-    Scanner sc = new Scanner(myFile);
-    boolean reachedUserSection = false;
+    //for now hardcode the actual values
+    this.usersInWildbook = 31;
+    this.wLogin = 22;
+    this.woLogin = 9; 
+    this.encsInWildbook = 32; 
+    //TODO: FIGURE THIS OUT
+    //Read input from file (cannot find file for some reason) 
+    // File myFile = new File("databaseDump.txt"); 
+    // Scanner sc = new Scanner(myFile);
+    // boolean reachedUserSection = false;
      
-    while(sc.hasNextLine())
-    {
-      if(reachedUserSection)
-      {
-        try
-        {
-          this.usersInWildbook = Integer.parseInt(sc.nextLine());
-          this.wLogin = Integer.parseInt(sc.nextLine());
-          this.woLogin = Integer.parseInt(sc.nextLine());
-        }
-        catch(Exception e) {}
-        reachedUserSection = false; 
-      }
-      else if(sc.hasNext("NumberOfUsers"))
-      {
-        reachedUserSection = true; 
-      }
-      sc.nextLine();
-    }
+    // while(sc.hasNextLine())
+    // {
+    //   if(reachedUserSection)
+    //   {
+    //     try
+    //     {
+    //       this.usersInWildbook = Integer.parseInt(sc.nextLine());
+    //       this.wLogin = Integer.parseInt(sc.nextLine());
+    //       this.woLogin = Integer.parseInt(sc.nextLine());
+    //     }
+    //     catch(Exception e) {}
+    //     reachedUserSection = false; 
+    //   }
+    //   else if(sc.hasNext("NumberOfUsers"))
+    //   {
+    //     reachedUserSection = true; 
+    //   }
+    //   sc.nextLine();
+    // }
     
   }
   
@@ -75,14 +83,40 @@ public class TestJunit
   @Test
   public void testSetNumberOfUsers() 
   {
+    this.myShepherd.beginDBTransaction();
     //run method
     this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
     //int s = this.myShepherd.getNumUsers();
-    assertEquals((int) this.promObject.numUsersInWildbook.get()- 1, this.usersInWildbook);
-    assertEquals((int) this.promObject.numUsersWithLogin.get() - 1, this.wLogin);
-    assertEquals((int) this.promObject.numUsersWithoutLogin.get() - 1, this.woLogin);
+    assertEquals((int) this.promObject.numUsersInWildbook.get(), this.usersInWildbook);
+    assertEquals((int) this.promObject.numUsersWithLogin.get(), this.wLogin);
+    assertEquals((int) this.promObject.numUsersWithoutLogin.get(), this.woLogin);
+    //TODO: get active users metric is pending
   
+    this.myShepherd.closeDBTransaction();
   }
-  
-  
+
+  @Test 
+  public void testSetNumberOfEncounters()
+  {
+    this.myShepherd.closeDBTransaction();
+    this.promObject.setNumberOfEncounters(this.pw, this.myShepherd);
+    assertEquals((int) this.promObject.encs.get(), this.encsInWildbook);
+    //TODO: The rest of the metrics for this method
+    this.myShepherd.closeDBTransaction();  
+  }
+
+  @Test 
+  public void testSetNumberOfIndividuals()
+  {
+
+  }
+
+  @Test
+  public void testSetNumberofMediaAssets()
+  {
+    
+  }
+
+
+   
 }

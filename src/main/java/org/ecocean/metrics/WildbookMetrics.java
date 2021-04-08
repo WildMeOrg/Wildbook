@@ -105,8 +105,8 @@ public class WildbookMetrics extends HttpServlet {
     //begin db connection
     this.myShepherd.beginDBTransaction();
     
-    //Run unit tests?
-    TestRunner.main(out);
+    //Run unit tests
+    //TestRunner.main(out);
     
     try 
     { 
@@ -119,6 +119,7 @@ public class WildbookMetrics extends HttpServlet {
         
         pageVisited = true; 
       }	
+
     } 
     catch (Exception lEx) 
     {
