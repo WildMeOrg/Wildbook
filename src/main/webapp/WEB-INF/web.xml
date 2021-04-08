@@ -653,7 +653,6 @@
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
 
-
 <!--
 <servlet>
 <servlet-name>EncounterSetPatterningPassport</servlet-name>
@@ -1848,8 +1847,6 @@
           <servlet-name>IndividualSetName</servlet-name>
           <url-pattern>/IndividualSetName</url-pattern>
   </servlet-mapping>
-
-
 
     <servlet-mapping>
           <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
