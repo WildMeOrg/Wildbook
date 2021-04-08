@@ -21,18 +21,48 @@ import org.ecocean.metrics.Prometheus;
 public class TestJunit 
 {
   String messsage = "Hello worl";
+
   Shepherd myShepherd;
   File myFile;
   PrintWriter pw; 
   Prometheus promObject; 
   
+  //Testing vars
+  int usersInWildbook = -1; 
+  int wLogin = -1;
+  int woLogin = -1; 
 
   @Before
-  public void setUp()
+  public void setUp() throws FileNotFoundException
   {
     //initialize our global variables
     this.myShepherd = new Shepherd("context0");
     this.promObject = new Prometheus(true);
+
+    //Read input from file
+    File myFile = new File("databaseDump.txt"); 
+    Scanner sc = new Scanner(myFile);
+    boolean reachedUserSection = false;
+     
+    while(sc.hasNextLine())
+    {
+      if(reachedUserSection)
+      {
+        try
+        {
+          this.usersInWildbook = Integer.parseInt(sc.nextLine());
+          this.wLogin = Integer.parseInt(sc.nextLine());
+          this.woLogin = Integer.parseInt(sc.nextLine());
+        }
+        catch(Exception e) {}
+        reachedUserSection = false; 
+      }
+      else if(sc.hasNext("NumberOfUsers"))
+      {
+        reachedUserSection = true; 
+      }
+      sc.nextLine();
+    }
     
   }
   
@@ -43,32 +73,15 @@ public class TestJunit
   }
   
   @Test
-  public void testSetNumberOfUsers() throws FileNotFoundException
+  public void testSetNumberOfUsers() 
   {
-    //Read input from file
-    File myFile = new File("../ShepherdData/databaseDump.txt"); 
-    Scanner sc = new Scanner(myFile);
-    boolean reachedFileSection = false;
-    int i = -1; 
-    int c = -1;
-    int d = -1;  
-    while(sc.hasNextLine())
-    {
-      if(reachedFileSection)
-      {
-        i = sc.nextInt();
-        c = sc.nextInt();
-        d = sc.nextInt();
-      }
-      else if(sc.hasNext("NumberOfUsers"))
-      {
-        reachedFileSection = true; 
-      }
-    }
     //run method
     this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
     //int s = this.myShepherd.getNumUsers();
-    assertEquals((int) this.promObject.numUsersInWildbook.get(), i);
+    assertEquals((int) this.promObject.numUsersInWildbook.get()- 1, this.usersInWildbook);
+    assertEquals((int) this.promObject.numUsersWithLogin.get() - 1, this.wLogin);
+    assertEquals((int) this.promObject.numUsersWithoutLogin.get() - 1, this.woLogin);
+  
   }
   
   
