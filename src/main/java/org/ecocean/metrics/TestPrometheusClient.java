@@ -94,15 +94,13 @@ public class TestPrometheusClient extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     String context="context0";
-    String context2=ServletUtilities.getContext(request);
-    this.myShepherd = new Shepherd(context2);
+    String context=ServletUtilities.getContext(request);
+    this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
     
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    
-    out.println("The context: " + context2);
     
     //begin db connection
     this.myShepherd.beginDBTransaction();

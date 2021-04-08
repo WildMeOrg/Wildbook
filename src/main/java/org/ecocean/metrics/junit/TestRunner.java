@@ -18,6 +18,6 @@ public class TestRunner
       out.println(failure.toString()); 
     }
     
-    out.println(result.wasSuccessful());
+    out.println("Did all tests pass? " + result.wasSuccessful());
   }
 }
