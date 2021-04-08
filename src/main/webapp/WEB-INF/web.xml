@@ -1211,13 +1211,13 @@
   
   
         <servlet>
-    <servlet-name>TestPrometheusClient</servlet-name>
-    <servlet-class>org.ecocean.metrics.TestPrometheusClient</servlet-class>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <servlet-class>org.ecocean.metrics.WildbookMetrics</servlet-class>
   </servlet>
 
       <servlet-mapping>
-    <servlet-name>TestPrometheusClient</servlet-name>
-    <url-pattern>/TestPrometheusClient</url-pattern>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <url-pattern>/WildbookMetrics</url-pattern>
   </servlet-mapping>
   
   

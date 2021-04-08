@@ -71,7 +71,7 @@ import java.util.*;
  * @author jholmber
  *
  */
-public class TestPrometheusClient extends HttpServlet {
+public class WildbookMetrics extends HttpServlet {
 
 
 	/*Initialize variables*/
