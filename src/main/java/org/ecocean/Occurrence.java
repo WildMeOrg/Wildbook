@@ -540,6 +540,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 }
 
     public void setContext(String c) {
+        if ((c == null) || c.equals("")) throw new ApiValueException("context must not be empty", "context");
         context = c;
     }
     public String getContext() {
@@ -805,6 +806,11 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     setTaxonomies(taxis);
     setVersion();
   }
+    public void removeTaxonomy(Taxonomy tx) {
+        if ((tx == null) || (this.taxonomies == null)) return;
+        this.taxonomies.remove(tx);
+    }
+
   private void ensureTaxonomiesExist() {
     if (this.taxonomies==null) this.taxonomies = new ArrayList<Taxonomy>();
   }
@@ -1489,12 +1495,11 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (jtxs != null) {
             Set<Taxonomy> siteTxs = Taxonomy.siteTaxonomies(myShepherd);
             for (int i = 0 ; i < jtxs.length() ; i++) {
-                org.json.JSONObject jtx = jtxs.optJSONObject(i);
-                if (jtx == null) throw new IOException("invalid JSONObject at offset=" + i);
-                Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", "__FAIL__"));
-                if (tx == null) throw new ApiValueException("invalid taxonomy at " + jtx, "taxonomies");
-                if (!siteTxs.contains(tx)) throw new ApiValueException("non-site taxonomy " + tx, "taxonomies");
-                occ.addTaxonomy(tx);
+                try {
+                    occ.addTaxonomy(resolveTaxonomyJSONObject(myShepherd, jtxs.optJSONObject(i), siteTxs));  //throws IllegalArgumentException if bad
+                } catch (IllegalArgumentException ex) {
+                    throw new ApiValueException(ex.toString(), "taxonomies");
+                }
             }
         }
 
@@ -1615,21 +1620,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
 
     public org.json.JSONObject apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
-        if (jsonIn == null) throw new IOException("apiPatchAdd has null json");
+        String opName = jsonIn.optString("op", null);  //valuable cuz apiPatchAdd is recycled by apiPatchReplace below
+        if (jsonIn == null) throw new IOException("apiPatch op=" + opName + " has null json");
         String path = jsonIn.optString("path", null);
-        if (path == null) throw new IOException("apiPatchAdd has null path");
+        if (path == null) throw new IOException("apiPatch op=" + opName + " has null path");
         if (path.startsWith("/")) path = path.substring(1);
         Object valueObj = jsonIn.opt("value");
         boolean hasValue = jsonIn.has("value");
-/*
-    TODO FIXME
-    what to do with value=null or hasValue=f ??  should this behave the same as "remove" patch???
-    thus: we are going to barf on this for now
-*/
-        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchAdd has empty value - NOT YET SUPPORTED");
+
+        // unsure if we should let add/replace set null, so we are only going to allow this
+        if (!hasValue || (valueObj == null)) throw new IOException("apiPatch op=" + opName + " has empty value - use op=remove");
 
         org.json.JSONObject rtn = new org.json.JSONObject();
-        SystemLog.debug("apiPatchAdd on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+        SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 case "startTime":
@@ -1644,18 +1647,36 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "decimalLongitude":
                     this.setDecimalLongitude(tryDouble(valueObj));
                     break;
+                case "context":
+                    this.setContext((String)valueObj);
+                    break;
                 case "locationId":
                     this.setLocationId((String)valueObj);
                     break;
+                case "taxonomies":
+                    // we allow for both { "id": "uuid" } and simply "uuid" as values here
+                    org.json.JSONObject tj = jsonIn.optJSONObject("value");
+                    if (tj == null) {
+                        String tid = jsonIn.optString("value", null);
+                        if (tid == null) throw new ApiValueException("must pass json object with .id or string id", "taxonomies");
+                        tj = new org.json.JSONObject();
+                        tj.put("id", tid);
+                    }
+                    try {
+                        this.addTaxonomy(resolveTaxonomyJSONObject(myShepherd, tj));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                    }
+                    break;
                 default:
-                    throw new Exception("apiPatchAdd unknown path " + path);
+                    throw new Exception("apiPatch op=" + opName + " unknown path " + path);
             }
         } catch (ApiValueException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new IOException("apiPatchAdd unable to modify " + this + " due to " + ex.toString());
+            throw new IOException("apiPatch op=" + opName + " unable to modify " + this + " due to " + ex.toString());
         }
-        rtn.put("op", "add");
+        rtn.put("op", opName);
         rtn.put("path", path);
         rtn.put("value", valueObj);
         return rtn;
@@ -1672,7 +1693,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         boolean hasValue = jsonIn.has("value");
 
         //see above
-        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchReplace has empty value - NOT YET SUPPORTED");
+        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchReplace has empty value - use op=remove");
 
         org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
@@ -1681,6 +1702,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 //these cases are all equivalent to add
                 case "startTime":
                 case "endTime":
+                case "context":
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "locationId":
@@ -1698,6 +1720,60 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         rtn.put("op", "replace");
         rtn.put("path", path);
         rtn.put("value", valueObj);
+        return rtn;
+    }
+
+    public org.json.JSONObject apiPatchRemove(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatchRemove has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatchRemove has null path");
+        if (path.startsWith("/")) path = path.substring(1);
+
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                case "startTime":
+                    this.setStartTime(null);
+                    break;
+                case "endTime":
+                    this.setEndTime(null);
+                    break;
+                case "decimalLatitude":
+                    this.setDecimalLatitude(null);
+                    break;
+                case "decimalLongitude":
+                    this.setDecimalLongitude(null);
+                    break;
+                case "locationId":
+                    this.setLocationId(null);
+                    break;
+                case "taxonomies":
+                    // we allow for both { "id": "uuid" } and simply "uuid" as values here
+                    org.json.JSONObject tj = jsonIn.optJSONObject("value");
+                    if (tj == null) {
+                        String tid = jsonIn.optString("value", null);
+                        if (tid == null) throw new ApiValueException("must pass json object with .id or string id", "taxonomies");
+                        tj = new org.json.JSONObject();
+                        tj.put("id", tid);
+                    }
+                    try {
+                        this.removeTaxonomy(resolveTaxonomyJSONObject(myShepherd, tj));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                    }
+                    rtn.put("value", tj.getString("id"));
+                    break;
+                default:
+                    throw new Exception("apiPatchRemove unsupported path " + path);
+            }
+        } catch (ApiValueException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IOException("apiPatchRemove unable to modify " + this + " due to " + ex.toString());
+        }
+        rtn.put("op", "remove");
+        rtn.put("path", path);
         return rtn;
     }
 

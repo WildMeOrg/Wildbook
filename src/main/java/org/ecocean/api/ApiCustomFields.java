@@ -4,6 +4,7 @@ import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.Organization;
 import org.ecocean.Shepherd;
+import org.ecocean.Taxonomy;
 import org.ecocean.customfield.*;
 import org.ecocean.SystemLog;
 
@@ -38,6 +39,10 @@ public class ApiCustomFields {
     }
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setVersion() {
+        SystemLog.warn("setVersion() called on " + this + "; should be overridden");
     }
 /*
     public long getVersion() {
@@ -372,6 +377,19 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     }
 
 
+    // input should be { "id": "taxonomy-uuid-here" } .... may later support other options?
+    //  throws IllegalArgumentException if badness
+    public static Taxonomy resolveTaxonomyJSONObject(Shepherd myShepherd, JSONObject tj, Set<Taxonomy> validTxs) {
+        if (tj == null) throw new IllegalArgumentException("passed null JSONObject");
+        Taxonomy tx = myShepherd.getTaxonomyById(tj.optString("id", "__FAIL__"));
+        if (tx == null) throw new IllegalArgumentException("invalid taxonomy at " + tj);
+        if ((validTxs != null) && !validTxs.contains(tx)) throw new IllegalArgumentException("non-site taxonomy " + tx);
+        return tx;
+    }
+    public static Taxonomy resolveTaxonomyJSONObject(Shepherd myShepherd, JSONObject tj) {
+        return resolveTaxonomyJSONObject(myShepherd, tj, Taxonomy.siteTaxonomies(myShepherd));
+    }
+
 /*
     this is for fromApiJSONObject() calls on sub-classes.   its just to get around the boring setFoo redundancy now.  optimize later!
     NOTE: this is ugly and uses reflection.   optimize/change later???
@@ -397,6 +415,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException ex) {
             throw new IOException("setter woes: " + ex.toString());
         }
+        this.setVersion();
         return true;
     }
     public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
@@ -423,9 +442,17 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
                         rtn.put(this.apiPatchReplace(myShepherd, jsonOp));
                         break;
                     case "remove":
+                        rtn.put(this.apiPatchRemove(myShepherd, jsonOp));
+                        break;
                     case "move":
+                        rtn.put(this.apiPatchMove(myShepherd, jsonOp));
+                        break;
                     case "copy":
+                        rtn.put(this.apiPatchCopy(myShepherd, jsonOp));
+                        break;
                     case "test":
+                        rtn.put(this.apiPatchTest(myShepherd, jsonOp));
+                        break;
                     default:
                         throw new IOException("apiPatch op=" + op + " not supported (yet)");
                 }
@@ -435,6 +462,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
                 throw ex;
             }
         }
+        this.setVersion();
         return rtn;
     }
 
@@ -448,6 +476,15 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     }
     public JSONObject apiPatchRemove(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
         throw new IOException("must override apiPatchRemove");
+    }
+    public JSONObject apiPatchMove(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchMove");
+    }
+    public JSONObject apiPatchCopy(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchCopy");
+    }
+    public JSONObject apiPatchTest(Shepherd myShepherd, JSONObject jsonIn) throws IOException {
+        throw new IOException("must override apiPatchTest");
     }
 
     //kinda utility/convenience thing for opts
