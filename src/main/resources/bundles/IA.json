@@ -1,0 +1,45 @@
+{
+  "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
+  "_global": {
+    "_note": "according to drew, these are not used and should be set within _confs below!",
+    "add_images": "https://kaiju.dyn.wildme.io:5010/api/image/json/",
+    "add_annotations": "https://kaiju.dyn.wildme.io:5010/api/annot/json/",
+    "start_identify": "https://kaiju.dyn.wildme.io:5010/api/engine/query/graph/",
+    "identify_review": "https://kaiju.dyn.wildme.io:5010/api/review/query/graph/",
+    "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://kaiju.dyn.wildme.io:5010/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://kaiju.dyn.wildme.io:5010/api/engine/job/status/",
+    "get_job_result": "https://kaiju.dyn.wildme.io:5010/api/engine/job/result/"
+  },
+  "_default": "@Equus.quagga",
+  "Equus": {
+    "grevyi": "@Equus.quagga",
+    "quagga": {
+      "_default":{
+        "_id_conf": "@Equus.quagga.zebra._id_conf"
+      },
+      "_detect_conf": [
+        {
+          "start_detect": "https://kaiju.dyn.wildme.io:5010/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "zebra_v1",
+          "model_tag": "ggr2",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.4
+        }
+      ],
+      "quagga": "@Equus.quagga.zebra",
+      "zebra_grevys": "@Equus.quagga.zebra",
+      "zebra":{
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on":false
+            },
+            "description": "HotSpotter pattern-matcher"
+          }
+        ]
+      }
+    }
+  }
+}
