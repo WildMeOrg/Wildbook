@@ -99,17 +99,17 @@ public class Prometheus
     public void setNumberOfUsers(PrintWriter out, Shepherd ms)
     {
       //Getting number of users by wildbook
-      int numUsers = ms.getNumUsers() + random;
-      this.numUsersInWildbook.set((double)numUsers);
+      int numUsers = ms.getNumUsers();
+      this.numUsersInWildbook.set((double)numUsers + random);
 
       //get number of users w/ login privileges
       List<User> numUsersUsername = ms.getUsersWithUsername();
-      int totalNumUsersUsername = numUsersUsername.size() + random;
-      this.numUsersWithLogin.set((double)totalNumUsersUsername);
+      int totalNumUsersUsername = numUsersUsername.size();
+      this.numUsersWithLogin.set((double)totalNumUsersUsername + random);
 
       //get number of users w/out login privileges
       int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
-      this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
+      this.numUsersWithoutLogin.set((double)totalNumUserNoLogin + random);
     }
     
     public void setNumberOfEncounters(PrintWriter out, Shepherd ms)
@@ -124,7 +124,7 @@ public class Prometheus
       //Num of Encounters by Wildbook
       Vector numEncoutnersTotal = ms.getAllEncountersNoFilterAsVector();
       int numEncountersWild = numEncoutnersTotal.size();
-      this.encsWildBook.inc((double)numEncountersWild);
+      this.encsWildBook.inc((double)numEncountersWild + random);
 
       //Num of Encounters by Specie
       //Epithet (specie) calling
@@ -179,7 +179,7 @@ public class Prometheus
     {
       //Get num of Individuals by wildbook
       int numIndividuals = ms.getNumMarkedIndividuals();
-      this.indiv.inc((double)numIndividuals);
+      this.indiv.inc((double)numIndividuals + random);
     }
     
     public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
@@ -187,7 +187,7 @@ public class Prometheus
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
       int totalNumMediaAssests = numMediaAssetsWild.size() + random;
-      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
+      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests + random);
 
       //Media Assets by Specie
       // int i;
