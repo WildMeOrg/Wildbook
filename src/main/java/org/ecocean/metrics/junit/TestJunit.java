@@ -27,8 +27,8 @@ public class TestJunit
   public void setUp()
   {
     //initialize our global variables
-//    this.myShepherd = new Shepherd("context0");
-//    this.promObject = new Prometheus(true);
+    this.myShepherd = new Shepherd("context0");
+    this.promObject = new Prometheus(true);
     
   }
   
@@ -42,8 +42,8 @@ public class TestJunit
   public void testSetNumberOfUsers()
   {
     //initialize global vars
-    this.myShepherd = new Shepherd("context0");
-    this.promObject = new Prometheus(true);
+//    this.myShepherd = new Shepherd("context0");
+//    this.promObject = new Prometheus(true);
     //run method
     this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
     int s = this.myShepherd.getNumUsers();
