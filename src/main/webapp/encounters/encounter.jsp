@@ -4989,7 +4989,6 @@ button#upload-button {
 
 
   function filesChanged(f) {
-    console.log("deleteMe got into filesChanged");
   	var h = '';
   	for (var i = 0 ; i < f.files.length ; i++) {
   		h += '<div class="file-item" id="file-item-' + i + '" data-i="' + i + '" data-name="' + f.files[i].name + '" data-size="' + f.files[i].size + '"><div class="file-name">' + f.files[i].name + '</div><div class="file-size">' + niceSize(f.files[i].size) + '</div><div class="file-status"></div><div class="file-bar"></div></div>';
@@ -5035,11 +5034,6 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
-    // let progressBarHtml = '<div id="progress-div"><h4><%= encprops.getProperty("Loading") %></h4>';
-    // progressBarHtml += '<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only"><%= encprops.getProperty("PercentComplete")%></span>';
-    // progressBarHtml += '</div></div></div>';
-    // document.getElementById('updone').innerHTML = progressBarHtml;
-
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
 
