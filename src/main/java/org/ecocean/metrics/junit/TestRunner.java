@@ -11,7 +11,7 @@ public class TestRunner
 
   public static void main(PrintWriter out)
   {
-    javax.xml.transform.Result result = JUnitCore.runClasses(TestJunit.class);
+    Result result = JUnitCore.runClasses(TestJunit.class);
     
     for(Failure failure : result.getFailures())
     {
@@ -19,6 +19,5 @@ public class TestRunner
     }
     
     out.println("Did all tests pass? " + result.wasSuccessful() + "\n\n");
-    out.println(result.toString());
   }
 }
