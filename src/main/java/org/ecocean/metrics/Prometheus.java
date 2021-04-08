@@ -100,16 +100,16 @@ public class Prometheus
     {
       //Getting number of users by wildbook
       int numUsers = ms.getNumUsers();
-      this.numUsersInWildbook.set((double)numUsers + random);
+      this.numUsersInWildbook.set((double)numUsers);
 
       //get number of users w/ login privileges
       List<User> numUsersUsername = ms.getUsersWithUsername();
       int totalNumUsersUsername = numUsersUsername.size();
-      this.numUsersWithLogin.set((double)totalNumUsersUsername + random);
+      this.numUsersWithLogin.set((double)totalNumUsersUsername);
 
       //get number of users w/out login privileges
       int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
-      this.numUsersWithoutLogin.set((double)totalNumUserNoLogin + random);
+      this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
     }
     
     public void setNumberOfEncounters(PrintWriter out, Shepherd ms)
@@ -124,7 +124,7 @@ public class Prometheus
       //Num of Encounters by Wildbook
       Vector numEncoutnersTotal = ms.getAllEncountersNoFilterAsVector();
       int numEncountersWild = numEncoutnersTotal.size();
-      this.encsWildBook.inc((double)numEncountersWild + random);
+      this.encsWildBook.inc((double)numEncountersWild);
 
       //Num of Encounters by Specie
       //Epithet (specie) calling
@@ -165,7 +165,7 @@ public class Prometheus
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
-      int totalNumLoc = numEncountersLoc.size() + random;
+      int totalNumLoc = numEncountersLoc.size();
       // this.encsLocation.inc((double));
       // PrintWriter output;
       for(i = 0; i < totalNumLoc; i++){
@@ -179,15 +179,15 @@ public class Prometheus
     {
       //Get num of Individuals by wildbook
       int numIndividuals = ms.getNumMarkedIndividuals();
-      this.indiv.inc((double)numIndividuals + random);
+      this.indiv.inc((double)numIndividuals);
     }
     
     public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
     {
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
-      int totalNumMediaAssests = numMediaAssetsWild.size() + random;
-      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests + random);
+      int totalNumMediaAssests = numMediaAssetsWild.size();
+      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //Media Assets by Specie
       // int i;
@@ -210,21 +210,21 @@ public class Prometheus
     public void printMetrics(PrintWriter out)
     {
     out.println("<p>User Metrics</p>");
-      out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
-      out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
-      out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
+      out.println("<p> Number of users is: "+ (this.numUsersInWildbook.get() + random)+"</p>"); 
+      out.println("<p> Number of users with login is: "+(this.numUsersWithLogin.get() + random)+"</p>");     
+      out.println("<p> Number of users without login is: "+(this.numUsersWithoutLogin.get() + random)+"</p>"); 
      
      out.println("<p>Encounter Metrics</p>");
-      out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
-      out.println("<p> Number of encounters by wildbook is: "+this.encsWildBook.get()+"</p>");
-      out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
+      out.println("<p> Number of encounters is: "+(this.encs.get() + random)+"</p>");
+      out.println("<p> Number of encounters by wildbook is: "+(this.encsWildBook.get() + random)+"</p>");
+      // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
       // out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
 
     out.println("<p>Individual Metrics</p>");
-      out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
+      out.println("<p> Number of Individuals by Wildbook is: "+ (this.indiv.get() + random)+"</p>"); 
 
     out.println("<p>Media Asset Metrics</p>");
-      out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
+      out.println("<p> Number of Media Assets by Wildbook: "+ (this.numMediaAssetsWildbook.get() + random)+"</p>");
     }
     
     
