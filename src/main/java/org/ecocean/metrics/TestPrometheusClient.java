@@ -78,6 +78,7 @@ public class TestPrometheusClient extends HttpServlet {
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
 
+  
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -114,6 +115,13 @@ public class TestPrometheusClient extends HttpServlet {
         metricsExtractor.setNumberofMediaAssets(out, this.myShepherd);
         pageVisited = true; 
       }	
+
+      else{
+       metricsExtractor.encs.inc(Math.random());
+       metricsExtractor.numUsersInWildbook.inc(Math.random());
+       metricsExtractor.numMediaAssetsWildbook.inc(Math.random());
+       metricsExtractor.indiv.inc(Math.random());
+      }
     } 
     catch (Exception lEx) 
     {
