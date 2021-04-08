@@ -1,13 +1,17 @@
 package org.ecocean.metrics.junit; 
 
 import org.junit.Before;
-import org.junit.Test; 
+import org.junit.Test;
+
+import com.amazonaws.services.cloudsearchv2.model.IntArrayOptions;
+
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -39,12 +43,32 @@ public class TestJunit
   }
   
   @Test
-  public void testSetNumberOfUsers()
+  public void testSetNumberOfUsers() throws FileNotFoundException
   {
+    //Read input from file
+    File myFile = new File("../ShepherdData/databaseDump.txt"); 
+    Scanner sc = new Scanner(myFile);
+    boolean reachedFileSection = false;
+    int i = -1; 
+    int c = -1;
+    int d = -1;  
+    while(sc.hasNextLine())
+    {
+      if(reachedFileSection)
+      {
+        i = sc.nextInt();
+        c = sc.nextInt();
+        d = sc.nextInt();
+      }
+      else if(sc.hasNext("NumberOfUsers"))
+      {
+        reachedFileSection = true; 
+      }
+    }
     //run method
     this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
-    int s = this.myShepherd.getNumUsers();
-    assertEquals((int) this.promObject.numUsersInWildbook.get(), s);
+    //int s = this.myShepherd.getNumUsers();
+    assertEquals((int) this.promObject.numUsersInWildbook.get(), i);
   }
   
   

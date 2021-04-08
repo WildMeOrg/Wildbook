@@ -31,17 +31,24 @@ public class Prometheus
 {
     /*Initialize variables*/
     private boolean pageVisited = false;  
+    
+    //Encounters
+    public Counter encs;
     public Counter encsSpecies;
     public Counter encsSubDate;
     public Counter encsLocation;
     public Counter encsWildBook;
-    public Gauge numUsersWithoutLogin;
-    public Gauge numMediaAssetsWildbook;
-    public Gauge indiv;
-   
-    public Counter encs;
+
+    //Users
     public Gauge numUsersInWildbook; 
     public Gauge numUsersWithLogin;
+    public Gauge numUsersWithoutLogin;
+
+    //Media assets
+    public Gauge numMediaAssetsWildbook;
+    
+    //individuals
+    public Gauge indiv;
     
     //Default constructor
     public Prometheus()
@@ -149,6 +156,8 @@ public class Prometheus
       //get number of users w/out login privileges
       int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
       this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
+
+      //TODO: Set number of active users
     }
     
     /** setNumberOfEncounters
