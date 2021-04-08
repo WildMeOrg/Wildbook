@@ -42,6 +42,9 @@ public class Prometheus
     Counter encs;
     Gauge numUsersInWildbook; 
     Gauge numUsersWithLogin;
+
+    //Global int for testing
+    int random = Math.random();
     
     public Prometheus()
     {
@@ -96,12 +99,12 @@ public class Prometheus
     public void setNumberOfUsers(PrintWriter out, Shepherd ms)
     {
       //Getting number of users by wildbook
-      int numUsers = ms.getNumUsers();
+      int numUsers = ms.getNumUsers() + random;
       this.numUsersInWildbook.set((double)numUsers);
 
       //get number of users w/ login privileges
       List<User> numUsersUsername = ms.getUsersWithUsername();
-      int totalNumUsersUsername = numUsersUsername.size();
+      int totalNumUsersUsername = numUsersUsername.size() + random;
       this.numUsersWithLogin.set((double)totalNumUsersUsername);
 
       //get number of users w/out login privileges
@@ -162,7 +165,7 @@ public class Prometheus
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
-      int totalNumLoc = numEncountersLoc.size();
+      int totalNumLoc = numEncountersLoc.size() + random;
       // this.encsLocation.inc((double));
       // PrintWriter output;
       for(i = 0; i < totalNumLoc; i++){
@@ -183,7 +186,7 @@ public class Prometheus
     {
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
-      int totalNumMediaAssests = numMediaAssetsWild.size();
+      int totalNumMediaAssests = numMediaAssetsWild.size() + random;
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //Media Assets by Specie
