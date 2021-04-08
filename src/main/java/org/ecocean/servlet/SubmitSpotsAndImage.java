@@ -135,7 +135,7 @@ System.out.println("====> params = " + params);
     MediaAsset crMa = store.create(params);
     crMa.copyInBase64(json.optString("imageData", null));
     crMa.addLabel("_spot" + (rightSide ? "Right" : ""));  //we are sticking with "legacy" '_spot' for left
-    crMa.setParentId(maId);
+    //crMa.setParentId(maId);
     crMa.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
     //ma.updateMinimalMetadata();
 
