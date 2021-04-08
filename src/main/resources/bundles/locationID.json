@@ -141,6 +141,9 @@
 				{"name":"Mexico","id":"Mexico","locationID":[
 
 					{ "name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[] },
+					
+					{ "name":"Bahía de Banderas", "id":"Bahia de Banderas", "locationID":[] },
+					
 					{ "name":"Guamilule", "id":"Guamilule", "locationID":[] },
 
 					{ "name":"Ixtapa", "id":"Ixtapa", "locationID":[] },
