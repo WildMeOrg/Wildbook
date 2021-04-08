@@ -109,7 +109,7 @@ maLib.testCaptionFunction = function(maJson) {
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
 maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
-    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
+  if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
@@ -141,7 +141,9 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
   }
   intoElem.append(fig);
-  updateWithAnnotationDisambiguator(intoElem, maJson.id);
+  if(maJson && maJson.features && maJson.features.length>1){
+    updateWithAnnotationDisambiguator(intoElem, maJson.id);
+  }
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
