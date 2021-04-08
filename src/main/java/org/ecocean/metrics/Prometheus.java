@@ -44,7 +44,7 @@ public class Prometheus
     Gauge numUsersWithLogin;
 
     //Global int for testing
-    int random = Math.random();
+    double random = Math.random();
     
     public Prometheus()
     {
