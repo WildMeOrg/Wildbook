@@ -94,7 +94,7 @@ public class TestPrometheusClient extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     String context="context0";
-    String context=ServletUtilities.getContext(request);
+    context = ServletUtilities.getContext(request);
     this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
     
