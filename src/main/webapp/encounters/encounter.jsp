@@ -3,6 +3,8 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -97,7 +99,7 @@
     }
   }
 
-
+	/*
 	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
 		if ((request == null) || (enc == null)) return false;
 		JSONObject jobj = new JSONObject();
@@ -110,6 +112,7 @@
 		}
 		return true;
 	}
+	*/
 
 	private String escapeSpecialRegexChars(String str) {
 		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
@@ -412,9 +415,10 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                //if (taxString && (item.species != taxString)) return null;
+                if (item.species != taxString) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -566,50 +570,50 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
-            	System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
+            	//System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             	String encNum = enc.getCatalogNumber();
-						boolean visible = enc.canUserAccess(request);
-						if (!visible) visible = checkAccessKey(request, enc);
-						if (!visible) {
+				boolean visible = enc.canUserAccess(request);
+				System.out.println("visible: "+visible);
+				//if (!visible) visible = checkAccessKey(request, enc);
+				if (!visible) {
 
 
-              // remove any potentially-sensitive data, labeled with the secure-field class
-              %>
-              <script type="text/javascript">
-                $(document).ready(function() {
-                  $('.secure-field').remove();
-                });
-              </script>
-              <%
+	              // remove any potentially-sensitive data, labeled with the secure-field class
+	              %>
+	              <script type="text/javascript">
+	                $(document).ready(function() {
+	                  $('.secure-field').remove();
+	                });
+	              </script>
+	              <%
 
+					String blocker = "";
+					List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+					Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+					String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+					String uid = null;
+					String name = null;
+            				String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
+					if (request.getUserPrincipal() == null) {
+						cmsg = "<p>Access limited.</p>";
+					} if ((c == null) || (c.getState() == null)) {
+						uid = enc.getAssignedUsername();
+						name = enc.getSubmitterName();
+						if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+					} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
+					} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
+					}
 
-							String blocker = "";
-							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
-							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-							String uid = null;
-							String name = null;
-              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
-							if (request.getUserPrincipal() == null) {
-								cmsg = "<p>Access limited.</p>";
-							} if ((c == null) || (c.getState() == null)) {
-								uid = enc.getAssignedUsername();
-								name = enc.getSubmitterName();
-								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
-							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
-							} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
-							}
-
-							cmsg = cmsg.replace("'", "\\'");
-							if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
-							} else {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
-							}
-							out.println(blocker);
-						}
+					cmsg = cmsg.replace("'", "\\'");
+					if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+					} else {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+					}
+					out.println(blocker);
+				} //end if !visible
 
 
       			pageContext.setAttribute("enc", enc);
@@ -618,12 +622,12 @@ var encounterNumber = '<%=num%>';
         			livingStatus = " (deceased)";
       			}
 
-if (request.getParameter("refreshImages") != null) {
-	System.out.println("refreshing images!!! ==========");
-	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
-	enc.refreshAssetFormats(myShepherd);
-	System.out.println("============ out ==============");
-}
+				if (request.getParameter("refreshImages") != null) {
+					System.out.println("refreshing images!!! ==========");
+					//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+					enc.refreshAssetFormats(myShepherd);
+					System.out.println("============ out ==============");
+				}
 
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
@@ -1306,18 +1310,52 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
  	<%
  	}
  	%>
- 	<!-- adding ne submit GPS-->
+
+  <!-- Display GPS to researchers if configured in commonConfiguration.properties-->
+
+<%
+  String longy="";
+  String laty="";
+  if(enc.getLatitudeAsDouble()!=null){
+    laty=enc.getLatitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal latBD = new BigDecimal(laty);
+      latBD = latBD.setScale(1, RoundingMode.HALF_UP);
+      laty = latBD.toString();
+      laty += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+  if(enc.getLongitudeAsDouble()!=null){
+    longy=enc.getLongitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal lonBD = new BigDecimal(longy);
+      lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
+      longy = lonBD.toString();
+      longy += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+
+  String uName = null;
+  User gpsUser = null;
+  if (request.getUserPrincipal()!=null) {
+    uName = request.getUserPrincipal().getName();
+    gpsUser = myShepherd.getUser(uName);
+  }
+  if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
+    if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
+      longy = encprops.getProperty("noGPS");
+      laty = encprops.getProperty("noGPS");
+    }
+%>
+    <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
+<%
+  }
+%>
 
 
-
- 	<%
+<%
  	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
-     	%>
+%>
 
       <script type="text/javascript">
         $(document).ready(function() {
@@ -1333,6 +1371,9 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
             $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
             function() {
               $("#latCheck, #longCheck").show();
+              console.log('tryyna set GPS!');
+              $("#latitudeSpan").text($('#lat').val());
+              $("#longitudeSpan").text($('#longitude').val());
             })
             .fail(function(response) {
               $("#gpsErrorDiv").show();
@@ -1352,12 +1393,10 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
                   $("#setGPSbutton").removeAttr("disabled");
-                  //alert("here 1!");
                   emptyMarkers();
               }
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
-                  //alert("here 2!");
               }
               else{
               	//alert("Trying to validate!");
@@ -1503,7 +1542,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
@@ -1600,7 +1639,7 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-console.info('resetIdButtons()');
+//console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
@@ -3851,7 +3890,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>
@@ -4899,6 +4938,7 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    // file.name = file.name.replace(/[^a-zA-Z\. ]/g, "");
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
@@ -5001,6 +5041,10 @@ button#upload-button {
 
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5013,7 +5057,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
