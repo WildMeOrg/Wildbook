@@ -30,38 +30,80 @@ import io.prometheus.client.exporter.common.TextFormat;
 public class Prometheus
 {
     /*Initialize variables*/
-    boolean pageVisited = false;  
-    Counter encsSpecies = null;
-    Counter encsSubDate = null;
-    Counter encsLocation = null;
-    Counter encsWildBook = null;
-    Gauge numUsersWithoutLogin = null;
-    Gauge numMediaAssetsWildbook = null;
-    Gauge indiv = null;
-   
-    Counter encs;
-    Gauge numUsersInWildbook; 
-    Gauge numUsersWithLogin;
+    private boolean pageVisited = false;  
     
+    //Encounters
+    public Counter encs;
+    public Counter encsSpecies;
+    public Counter encsSubDate;
+    public Counter encsLocation;
+    public Counter encsWildBook;
+
+    //Users
+    public Gauge numUsersInWildbook; 
+    public Gauge numUsersWithLogin;
+    public Gauge numUsersWithoutLogin;
+
+    //Media assets
+    public Gauge numMediaAssetsWildbook;
+    
+    //individuals
+    public Gauge indiv;
+    
+    //Default constructor
     public Prometheus()
     {
       //register all metrics
-      encsSpecies = Counter.build()
-              .name("number_encounters_by_specie").help("Number encounters by Specie").register();
-      encsSubDate = Counter.build()
-              .name("number_encounters_by_date").help("Number encounters by Submission Date").register();
-      encsLocation = Counter.build()
-              .name("number_encounters_by_Location").help("Number encounters by Location ID").register();
-      indiv = Gauge.build().name("number_individual_wildbook").help("Number individuals by Wildbook").register();
-      encs = Counter.build().name("number_encounters").help("Number encounters").register();
-      encsWildBook = Counter.build().name("number_encounters_wildbook").help("Number encounters by Wildbook").register();
-      numUsersInWildbook = Gauge.build().name("number_users").help("Number users").register();
-      numUsersWithLogin = Gauge.build().name("number_users_w_login").help("Number users with Login").register();
-      numUsersWithoutLogin = Gauge.build().name("number_users_wout_login").help("Number users without Login").register();
-      numMediaAssetsWildbook = Gauge.build().name("number_mediaassets_wild").help("Number of Media Assets by Wildbook").register();
+      encsSpecies = Counter.build().name("wildbook_encounters_by_specie")
+        .help("Number encounters by Specie").register();
+      encsSubDate = Counter.build().name("wildbook_encounters_by_date")
+        .help("Number encounters by Submission Date").register();
+      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
+        .help("Number encounters by Location ID").register();
+      indiv = Gauge.build().name("wildbook_individual_wildbook")
+        .help("Number individuals by Wildbook").register();
+      encs = Counter.build().name("wildbook_encounters")
+        .help("Number encounters").register();
+      encsWildBook = Counter.build().name("wildbook_encounters_wildbook")
+        .help("Number encounters by Wildbook").register();
+      numUsersInWildbook = Gauge.build().name("wildbook_users")
+        .help("Number users").register();
+      numUsersWithLogin = Gauge.build().name("wildbook_users_w_login")
+        .help("Number users with Login").register();
+      numUsersWithoutLogin = Gauge.build().name("wildbook_users_wout_login")
+        .help("Number users without Login").register();
+      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
+        .help("Number of Media Assets by Wildbook").register();
+    }
+
+    //Unit test constructor
+    public Prometheus(boolean isTesting)
+    {
+      //initialize but do not register metrics.
+      encsSubDate = Counter.build().name("wildbook_encounters_by_date")
+        .help("Number encounters by Submission Date").create();
+      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
+        .help("Number encounters by Location ID").create();
+      indiv = Gauge.build().name("wildbook_individual_wildbook")
+        .help("Number individuals by Wildbook").create();
+      encs = Counter.build().name("wildbook_encounters")
+        .help("Number encounters").create();
+      numUsersInWildbook = Gauge.build().name("wildbook_users")
+        .help("Number users").create();
+      numUsersWithLogin = Gauge.build().name("wildbook_users_w_login")
+        .help("Number users with Login").create();
+      numUsersWithoutLogin = Gauge.build().name("wildbook_users_wout_login")
+        .help("Number users without Login").create();
+      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
+        .help("Number of Media Assets by Wildbook").create();
+      
     }
     
-    //Implementation borrowed from MetricsServlet class
+    /** Implementation borrowed from MetricsServlet class
+    * Parses the default collector registery into the kind of 
+    * output that prometheus likes
+    * Visit https://github.com/prometheus/client_java/blob/master/simpleclient_servlet/src/main/java/io/prometheus/client/exporter/MetricsServlet.java
+    */
     public void metrics(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
       Writer writer = new BufferedWriter(response.getWriter());
@@ -79,7 +121,7 @@ public class Prometheus
       }
     }
     
-    //Helper method for metrics()
+    //Helper method for metrics() also borrowed from MetricsServlet.java
     private Set<String> parse(HttpServletRequest req)
     {
       String[] includedParam = req.getParameterValues("name[]");
@@ -93,6 +135,13 @@ public class Prometheus
       }
     }
     
+    /** setNumberOfUsers
+     * Sets the counters/gauges for metrics related to number of users
+     * Parameters
+     *    out: For debugging purposes, in case we want to another way of
+     *         printing the value in the page. 
+     *    ms: shepherd object for creating database transactions.
+     */
     public void setNumberOfUsers(PrintWriter out, Shepherd ms)
     {
       //Getting number of users by wildbook
@@ -107,8 +156,17 @@ public class Prometheus
       //get number of users w/out login privileges
       int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
       this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
+
+      //TODO: Set number of active users
     }
     
+    /** setNumberOfEncounters
+     * Sets the counters/gauges for metrics related to number of encounters
+     * Parameters
+     *    out: For debugging purposes, in case we want to another way of
+     *         printing the value in the page. 
+     *    ms: shepherd object for creating database transactions.
+     */
     public void setNumberOfEncounters(PrintWriter out, Shepherd ms)
     {
       int i;
@@ -172,6 +230,13 @@ public class Prometheus
       }
     }
     
+    /** setNumberOfIndividuals
+     * Sets the counters/gauges for metrics related to number of individuals
+     * Parameters
+     *    out: For debugging purposes, in case we want to another way of
+     *         printing the value in the page. 
+     *    ms: shepherd object for creating database transactions.
+     */
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
       //Get num of Individuals by wildbook
@@ -179,6 +244,13 @@ public class Prometheus
       this.indiv.inc((double)numIndividuals);
     }
     
+    /** setNumberOfMediaAssets
+     * Sets the counters/gauges for metrics related to number of media assets
+     * Parameters
+     *    out: For debugging purposes, in case we want to another way of
+     *         printing the value in the page. 
+     *    ms: shepherd object for creating database transactions.
+     */
     public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
     {
       //Media Assets by WildBook
