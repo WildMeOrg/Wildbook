@@ -14,7 +14,7 @@ var maLib = {};
  * @param {DOM} intoElem - the element that will be populated
  *
  */
-maLib.maJsonToFigureElem = function(maJson, intoElem) {
+maLib.maJsonToFigureElem = function (maJson, intoElem) {
   // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
@@ -23,14 +23,14 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
     h = maJson.metadata.height;
   }
   if (!url) {
-    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    console.log('failed to parse into html this MediaAsset: ' + JSON.stringify(maJson));
     return;
   }
-  var wxh = w+'x'+h;
+  var wxh = w + 'x' + h;
   var watermarkUrl = maLib.getChildUrl('_watermark');
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
-      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      $('<a href="' + url + '" itemprop="contentUrl" data-size="' + wxh + '"/>').append(
         maLib.mkImg(maJson)
       )
     )
@@ -40,36 +40,36 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
 }
 
 
-maLib.startIdentify = function(el) {
-  	var aid = el.getAttribute('data-id');
-  	el.parentElement.innerHTML = '<i>starting identification</i>';
-  	jQuery.ajax({
-  		url: '/ia',
-  		type: 'POST',
-  		dataType: 'json',
-  		contentType: 'application/javascript',
-  		success: function(d) {
-  			console.info('identify returned %o', d);
-  			if (d.taskID) {
-  				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
-  			} else {
-  				alert('error starting identification');
-  			}
-  		},
-  		error: function(x,y,z) {
-  			alert('error starting identification');
-  			console.warn('%o %o %o', x, y, z);
-  		},
-  		data: JSON.stringify({
-  			identify: { annotationIds: [ aid ] }
-  		})
-  	});
-  }
+maLib.startIdentify = function (el) {
+  var aid = el.getAttribute('data-id');
+  el.parentElement.innerHTML = '<i>starting identification</i>';
+  jQuery.ajax({
+    url: '/ia',
+    type: 'POST',
+    dataType: 'json',
+    contentType: 'application/javascript',
+    success: function (d) {
+      console.info('identify returned %o', d);
+      if (d.taskID) {
+        window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+      } else {
+        alert('error starting identification');
+      }
+    },
+    error: function (x, y, z) {
+      alert('error starting identification');
+      console.warn('%o %o %o', x, y, z);
+    },
+    data: JSON.stringify({
+      identify: { annotationIds: [aid] }
+    })
+  });
+}
 
 
-maLib.defaultCaptionFunction = function(maJson) {
-  if ('url' in maJson) {return maJson.url;}
-  else {return "Test caption, do not read"}
+maLib.defaultCaptionFunction = function (maJson) {
+  if ('url' in maJson) { return maJson.url; }
+  else { return "Test caption, do not read" }
 }
 
 /*
@@ -82,21 +82,21 @@ fig.append(
 */
 
 
-maLib.cascadiaCaptionFunction = function(maJson) {
+maLib.cascadiaCaptionFunction = function (maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
-    partArray = partArray[partArray.length-1].split('.');
+    partArray = partArray[partArray.length - 1].split('.');
     return partArray[0];
   }
   return "Test caption, do not read";
 
 }
 
-maLib.blankCaptionFunction = function(maJson) {
+maLib.blankCaptionFunction = function (maJson) {
   return "";
 }
 
-maLib.testCaptionFunction = function(maJson) {
+maLib.testCaptionFunction = function (maJson) {
   //return ("test caption for MediaAsset "+maJson.id);
   return "";
 }
@@ -108,8 +108,8 @@ maLib.testCaptionFunction = function(maJson) {
  *
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
-maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
-    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
+maLib.maJsonToFigureElemCaption = function (maJson, intoElem, caption, maCaptionFunction) {
+  if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
@@ -124,23 +124,26 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
     h = maJson.metadata.height;
   }
   if (!url) {
-    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    console.log('failed to parse into html this MediaAsset: ' + JSON.stringify(maJson));
     return;
   }
-  var wxh = w+'x'+h;
+  var wxh = w + 'x' + h;
   var watermarkUrl = maLib.getChildUrl('_watermark');
 
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
   fig.append(
-    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+    $('<a href="' + url + '" itemprop="contentUrl" data-size="' + wxh + '"/>').append(
       maLib.mkImg(maJson)
     )
   );
   if (!wildbook.user.isAnonymous()) {
 
-  	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+    fig.append('<figcaption itemprop="caption description">' + caption + maCaptionFunction(maJson) + '</figcaption>');
   }
   intoElem.append(fig);
+  if (maJson && maJson.features && maJson.features.length > 1) {
+    updateWithAnnotationDisambiguator(intoElem, maJson.id);
+  }
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
@@ -152,8 +155,67 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   return;
 }
 
-maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
-  console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson "+maJson);
+updateWithAnnotationDisambiguator = function (inputHtml, mediaAssetId) {
+  let annotationDisambiguatorHtml = '';
+  let left = "left";
+  let right = "right";
+  annotationDisambiguatorHtml += '<div id="annotation-disambiguator" data-media-asset-id="' + mediaAssetId + '">';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + mediaAssetId + '\')"> </span>';
+  annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation </span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\')"> </span>';
+  annotationDisambiguatorHtml += '<span class="go el el-circle-arrow-right" onclick="goToEncounterHighlighted(\'' + mediaAssetId + '\')"> Go To Highlighted Encounter</span>';
+  annotationDisambiguatorHtml += '</div>';
+  inputHtml.append(annotationDisambiguatorHtml);
+}
+
+toggleFocalAnnotationChange = function (direction, mediaAssetId) {
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + "']");
+  let currentFocalId = $(parentElement).find('.image-enhancer-feature-toggled').attr('id');
+  if (!currentFocalId) {
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
+  }
+  let allEnhancerFeatureElements = $(parentElement).find('.image-enhancer-feature');
+  let enhancerFeatureIdArray = [];
+  Array.prototype.forEach.call(allEnhancerFeatureElements, enhancerFeatureElement => { //forEach wasn't working
+    let currentId = $(enhancerFeatureElement).attr('id');
+    let currentXaxis = parseFloat($(enhancerFeatureElement).css('left').replace('px', ''));
+    let currentIdArrayEntry = {};
+    currentIdArrayEntry['id'] = currentId;
+    currentIdArrayEntry['xAxis'] = currentXaxis;
+    enhancerFeatureIdArray.push(currentIdArrayEntry);
+  });
+  enhancerFeatureIdArray = enhancerFeatureIdArray.sort((a, b) => a.xAxis > b.xAxis ? 1 : -1);
+  let indexOfCurrentFocal = enhancerFeatureIdArray.findIndex(elem => elem['id'] == currentFocalId);
+  let indexOfTargetEnhancerFeature = getCorrectIndexOfTargetEnhancerFeature(direction, enhancerFeatureIdArray, indexOfCurrentFocal);
+  let idOfTargetEnhancerFeature = enhancerFeatureIdArray[indexOfTargetEnhancerFeature].id;
+  $('#' + currentFocalId).removeClass('image-enhancer-feature-toggled');
+  $('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-toggled');
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  console.log("encounter id linked to current highlighted annotation is: " + currentFocalEncounterId);
+}
+
+getCorrectIndexOfTargetEnhancerFeature = function (direction, enhancerFeatureIdArray, indexOfCurrentFocal) {
+  let indexOfTargetEnhancerFeature = direction === "right" ? indexOfCurrentFocal + 1 : indexOfCurrentFocal - 1;
+  if (indexOfTargetEnhancerFeature > enhancerFeatureIdArray.length - 1) { //handle case where going right of end of array is reached
+    indexOfTargetEnhancerFeature = 0;
+  }
+  if (indexOfTargetEnhancerFeature < 0) { //handle case where going left of beginning of array is reached
+    indexOfTargetEnhancerFeature = enhancerFeatureIdArray.length - 1;
+  }
+  return indexOfTargetEnhancerFeature;
+}
+
+goToEncounterHighlighted = function (mediaAssetId) {
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + "']");
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  if (!currentFocalEncounterId) {
+    currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  }
+  window.location.href = 'encounter.jsp?number=' + currentFocalEncounterId;
+}
+
+maLib.maJsonToFigureElemCaptionGrid = function (maJson, intoElem, caption, maCaptionFunction) {
+  console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson " + maJson);
 
   intoElem.append('<div class=\"col-md-6\"></div>');
   intoElem = intoElem.find('div.col-md-6').last();
@@ -162,7 +224,7 @@ maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCapt
 
 
 
-maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCaptionFunction) {
+maLib.maJsonToFigureElemColCaption = function (maJson, intoElem, colSize, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   // TODO: genericize caption
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
@@ -177,17 +239,17 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
     h = maJson.metadata.height;
   }
   if (!url) {
-    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    console.log('failed to parse into html this MediaAsset: ' + JSON.stringify(maJson));
     return;
   }
-  var wxh = w+'x'+h;
+  var wxh = w + 'x' + h;
   var watermarkUrl = maLib.getChildUrl('_watermark');
 
-  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" class="col-md-'+colSize+'"/>');
+  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" class="col-md-' + colSize + '"/>');
 
 
   fig.append(
-    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+    $('<a href="' + url + '" itemprop="contentUrl" data-size="' + wxh + '"/>').append(
       maLib.mkImg(maJson)
     )
   );
@@ -200,7 +262,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
 
 
   var caption = maCaptionFunction(maJson);
-  fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
+  fig.append('<figcaption itemprop="caption description">' + caption + '</figcaption>');
 
   intoElem.append(fig);
   /*
@@ -229,9 +291,9 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
 
 
 
-maLib.testExtraction = function(maJson) {
+maLib.testExtraction = function (maJson) {
   var children = "[";
-  for (child in maJson.children) {children += JSON.stringify(child)}
+  for (child in maJson.children) { children += JSON.stringify(child) }
   //console.log('\nMediaAsset '+maJson.id+' stringified: '+JSON.stringify(maJson));
   var nChildren;
   try {
@@ -240,16 +302,16 @@ maLib.testExtraction = function(maJson) {
   catch (e) {
     nChildren = 'undefined';
   }
-  console.log('\t'+maJson.id+' has nChildren = '+nChildren);
-console.log(maJson);
+  console.log('\t' + maJson.id + ' has nChildren = ' + nChildren);
+  console.log(maJson);
 
-  console.log('\t'+maJson.id+' has child watermark url: '+maLib.getChildUrl(maJson, '_watermark'));
+  console.log('\t' + maJson.id + ' has child watermark url: ' + maLib.getChildUrl(maJson, '_watermark'));
 
 }
 
 
 
-maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
+maLib.maJsonToFigureElemDisplayChild = function (maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
@@ -258,13 +320,13 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
     h = maJson.metadata.height;
   }
   if (!url) {
-    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    console.log('failed to parse into html this MediaAsset: ' + JSON.stringify(maJson));
     return;
   }
-  var wxh = w+'x'+h;
+  var wxh = w + 'x' + h;
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
-      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      $('<a href="' + url + '" itemprop="contentUrl" data-size="' + wxh + '"/>').append(
         maLib.mkImg(maJson)
       )
     )
@@ -280,7 +342,7 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
 maLib.hasLabel = function (maJson, _label) {
   if (maJson.labels != undefined) {
     for (index in maJson.labels) {
-      if (maJson.labels[index] == _label) {return true;}
+      if (maJson.labels[index] == _label) { return true; }
     }
   }
   return false
@@ -315,7 +377,7 @@ maLib.hasChildWithLabel = function (maJson, _label) {
  * @return string - the url of the picture depicting the labeled child
  */
 maLib.getChildUrl = function (maJson, _label) {
-  var child = maLib.getChildWithLabel(maJson,_label);
+  var child = maLib.getChildWithLabel(maJson, _label);
   if (child != null && 'url' in child) {
     return (child.url);
   }
@@ -327,170 +389,170 @@ maLib.getChildUrl = function (maJson, _label) {
  * that is especially formatted, and launches photoswipe from that div
  * @param {string} gallerySelector - selector that will grab gallery DOMs from the webpage
  */
-maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
+maLib.initPhotoSwipeFromDOM = function (gallerySelector) {
   // parse slide data (url, title, size ...) from DOM elements
   // (children of gallerySelector)
-  var parseThumbnailElements = function(el) {
-      var thumbElements = $(el).find('figure'),
+  var parseThumbnailElements = function (el) {
+    var thumbElements = $(el).find('figure'),
       //var thumbElements = el.childNodes,
-          numNodes = thumbElements.length,
-          items = [],
-          figureEl,
-          linkEl,
-          size,
-          item;
+      numNodes = thumbElements.length,
+      items = [],
+      figureEl,
+      linkEl,
+      size,
+      item;
 
-      for(var i = 0; i < numNodes; i++) {
+    for (var i = 0; i < numNodes; i++) {
 
-          figureEl = thumbElements[i]; // <figure> element
+      figureEl = thumbElements[i]; // <figure> element
 
-          // include only element nodes
-          if(figureEl.nodeType !== 1) {
-              continue;
-          }
-
-          linkEl = figureEl.children[0]; // <a> element
-
-          //size = linkEl.getAttribute('data-size').split('x');
-        size = [800,600];  //fallback that hopefully we never see
-        var imgEl = linkEl.children[0];
-        if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
-            size = [imgEl.naturalWidth, imgEl.naturalHeight];
-        }
-
-          // create slide object
-          item = {
-              src: linkEl.getAttribute('href'),
-              w: parseInt(size[0], 10),
-              h: parseInt(size[1], 10)
-          };
-
-          if(figureEl.children.length > 1) {
-              // <figcaption> content
-              item.title = figureEl.children[1].innerHTML;
-          }
-
-          if(linkEl.children.length > 0) {
-              // <img> thumbnail element, retrieving thumbnail url
-              item.msrc = linkEl.children[0].getAttribute('src');
-          }
-
-          item.el = figureEl; // save link to element for getThumbBoundsFn
-          items.push(item);
+      // include only element nodes
+      if (figureEl.nodeType !== 1) {
+        continue;
       }
 
-      return items;
+      linkEl = figureEl.children[0]; // <a> element
+
+      //size = linkEl.getAttribute('data-size').split('x');
+      size = [800, 600];  //fallback that hopefully we never see
+      var imgEl = linkEl.children[0];
+      if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
+        size = [imgEl.naturalWidth, imgEl.naturalHeight];
+      }
+
+      // create slide object
+      item = {
+        src: linkEl.getAttribute('href'),
+        w: parseInt(size[0], 10),
+        h: parseInt(size[1], 10)
+      };
+
+      if (figureEl.children.length > 1) {
+        // <figcaption> content
+        item.title = figureEl.children[1].innerHTML;
+      }
+
+      if (linkEl.children.length > 0) {
+        // <img> thumbnail element, retrieving thumbnail url
+        item.msrc = linkEl.children[0].getAttribute('src');
+      }
+
+      item.el = figureEl; // save link to element for getThumbBoundsFn
+      items.push(item);
+    }
+
+    return items;
   };
 
   // find nearest parent element
   var closest = function closest(el, fn) {
-      return el && ( fn(el) ? el : closest(el.parentNode, fn) );
+    return el && (fn(el) ? el : closest(el.parentNode, fn));
   };
 
   // triggers when user clicks on thumbnail
-  var onThumbnailsClick = function(e) {
-      e = e || window.event;
-      e.preventDefault ? e.preventDefault() : e.returnValue = false;
+  var onThumbnailsClick = function (e) {
+    e = e || window.event;
+    e.preventDefault ? e.preventDefault() : e.returnValue = false;
 
-      var eTarget = e.target || e.srcElement;
+    var eTarget = e.target || e.srcElement;
 
-      // find root element of slide
-      var clickedListItem = closest(eTarget, function(el) {
-          return (el.tagName && el.tagName.toUpperCase() === 'FIGURE');
-      });
+    // find root element of slide
+    var clickedListItem = closest(eTarget, function (el) {
+      return (el.tagName && el.tagName.toUpperCase() === 'FIGURE');
+    });
 
-      if(!clickedListItem) {
-          return;
+    if (!clickedListItem) {
+      return;
+    }
+
+    // find index of clicked item by looping through all child nodes
+    // alternatively, you may define index via data- attribute
+    // var clickedGallery = clickedListItem.parentNode;
+    var clickedGallery = clickedListItem.closest(gallerySelector);
+
+    //var childNodes = clickedListItem.parentNode.childNodes;
+    var childNodes = $(clickedGallery).find('figure');
+
+    var numChildNodes = childNodes.length,
+      nodeIndex = 0,
+      index;
+
+    console.log('numChildNodes = ' + numChildNodes);
+
+    for (var i = 0; i < numChildNodes; i++) {
+      if (childNodes[i].nodeType !== 1) {
+        continue;
       }
 
-      // find index of clicked item by looping through all child nodes
-      // alternatively, you may define index via data- attribute
-      // var clickedGallery = clickedListItem.parentNode;
-      var clickedGallery = clickedListItem.closest(gallerySelector);
-
-      //var childNodes = clickedListItem.parentNode.childNodes;
-      var childNodes = $(clickedGallery).find('figure');
-
-      var numChildNodes = childNodes.length,
-          nodeIndex = 0,
-          index;
-
-      console.log('numChildNodes = '+numChildNodes);
-
-      for (var i = 0; i < numChildNodes; i++) {
-          if(childNodes[i].nodeType !== 1) {
-              continue;
-          }
-
-          if(childNodes[i] === clickedListItem) {
-              index = nodeIndex;
-              break;
-          }
-          nodeIndex++;
+      if (childNodes[i] === clickedListItem) {
+        index = nodeIndex;
+        break;
       }
+      nodeIndex++;
+    }
 
-      if(index >= 0) {
-          // open PhotoSwipe if valid index found
-          console.log("Opening photoswipe through other avenue. Index="+index);
-          openPhotoSwipe( index, clickedGallery );
-      }
-      return false;
+    if (index >= 0) {
+      // open PhotoSwipe if valid index found
+      console.log("Opening photoswipe through other avenue. Index=" + index);
+      openPhotoSwipe(index, clickedGallery);
+    }
+    return false;
   };
 
   // parse picture index and gallery index from URL (#&pid=1&gid=2)
-  var photoswipeParseHash = function() {
+  var photoswipeParseHash = function () {
     var hash = window.location.hash.substring(1),
-    params = {};
-    console.log('photoswipeParseHash hash = '+hash);
+      params = {};
+    console.log('photoswipeParseHash hash = ' + hash);
 
-    if(hash.length < 5) {
+    if (hash.length < 5) {
       console.log('\thash length is short--returning empty parameters');
       return params;
     }
 
     var vars = hash.split('&');
     for (var i = 0; i < vars.length; i++) {
-      if(!vars[i]) {
+      if (!vars[i]) {
         continue;
       }
       var pair = vars[i].split('=');
-      if(pair.length < 2) {
+      if (pair.length < 2) {
         continue;
       }
       params[pair[0]] = pair[1];
     }
 
-    if(params.gid) {
-        params.gid = parseInt(params.gid, 10);
+    if (params.gid) {
+      params.gid = parseInt(params.gid, 10);
     }
     return params;
   };
 
-  var openPhotoSwipe = function(index, galleryElement, disableAnimation, fromURL) {
+  var openPhotoSwipe = function (index, galleryElement, disableAnimation, fromURL) {
     var pswpElement = document.querySelectorAll('.pswp')[0],
-        gallery,
-        options,
-        items;
+      gallery,
+      options,
+      items;
     items = parseThumbnailElements(galleryElement);
     // define options (if needed)
     options = {
       // define gallery index (for URL)
       galleryUID: galleryElement.getAttribute('data-pswp-uid'),
-      getThumbBoundsFn: function(index) {
+      getThumbBoundsFn: function (index) {
         // See Options -> getThumbBoundsFn section of documentation for more info
         var thumbnail = items[index].el.getElementsByTagName('img')[0], // find thumbnail
           pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
           rect = thumbnail.getBoundingClientRect();
-        return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+        return { x: rect.left, y: rect.top + pageYScroll, w: rect.width };
       }
     };
     // PhotoSwipe opened from URL
-    if(fromURL) {
-      if(options.galleryPIDs) {
+    if (fromURL) {
+      if (options.galleryPIDs) {
         // parse real index when custom PIDs are used
         // http://photoswipe.com/documentation/faq.html#custom-pid-in-url
-        for(var j = 0; j < items.length; j++) {
-          if(items[j].pid == index) {
+        for (var j = 0; j < items.length; j++) {
+          if (items[j].pid == index) {
             options.index = j;
             break;
           }
@@ -503,100 +565,100 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
       options.index = parseInt(index, 10);
     }
     // exit if index not found
-    if( isNaN(options.index) ) {
+    if (isNaN(options.index)) {
       return;
     }
-    if(disableAnimation) {
+    if (disableAnimation) {
       options.showAnimationDuration = 0;
     }
 
-    console.log("initializing photoswipe with "+items.length+" items.");
+    console.log("initializing photoswipe with " + items.length + " items.");
     // Pass data to PhotoSwipe and initialize it
-    gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
+    gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, options);
     gallery.init();
   };
 
   // loop through all gallery elements and bind events
-  var galleryElements = document.querySelectorAll( gallerySelector );
+  var galleryElements = document.querySelectorAll(gallerySelector);
 
-  for(var i = 0, l = galleryElements.length; i < l; i++) {
-    galleryElements[i].setAttribute('data-pswp-uid', i+1);
+  for (var i = 0, l = galleryElements.length; i < l; i++) {
+    galleryElements[i].setAttribute('data-pswp-uid', i + 1);
     galleryElements[i].onclick = onThumbnailsClick;
   }
 
   // Parse URL and open gallery if it contains #&pid=3&gid=1
   var hashData = photoswipeParseHash();
-  if(hashData.pid && hashData.gid) {
+  if (hashData.pid && hashData.gid) {
     console.log('\tabout to call openPhotoSwipe');
-    openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
+    openPhotoSwipe(hashData.pid, galleryElements[hashData.gid - 1], true, true);
   }
 };
 
-maLib.isImage = function(maJson) {
-    if (maJson.metadata && maJson.metadata.contentType) return (maJson.metadata.contentType.substring(0,6) == "image/");
-    //kind of a little tricky cuz there is some legacy data with no metadata let alone mimetype, sooooooo
-    var regex = new RegExp("\\.(jpe?g|png|gif)$", "i");
-    if (!maJson.url) return false;
-    return regex.test(maJson.url);
+maLib.isImage = function (maJson) {
+  if (maJson.metadata && maJson.metadata.contentType) return (maJson.metadata.contentType.substring(0, 6) == "image/");
+  //kind of a little tricky cuz there is some legacy data with no metadata let alone mimetype, sooooooo
+  var regex = new RegExp("\\.(jpe?g|png|gif)$", "i");
+  if (!maJson.url) return false;
+  return regex.test(maJson.url);
 }
 
-maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
+maLib.nonImageDisplay = function (maJson, intoElem, caption, maCaptionFunction) {
 
-    if (maLib.isImage(maJson)) return false;
-    if (!maJson.url) return false;
+  if (maLib.isImage(maJson)) return false;
+  if (!maJson.url) return false;
 
-    caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
-    
-    var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
+  caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
 
-    var filename = maJson.url;
-    var i = filename.lastIndexOf("/");
-    if (i >= 0) filename = filename.substring(i + 1);
+  var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
 
-    if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
-        intoElem.append('<div class="video-display"><video class="video-element" style="width: 100%;" controls>' +
-        '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
-        '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
-        '</video><div class="video-caption"><small>File: <b>' + filename + '</b></small></div></div>');
-    } else {
-        intoElem.append('<div class="non-image-display" style="text-align: center;"><a download style="padding: 10px; background-color: #AAA; margin: 10px;" href="' +
-        maJson.url + '"><small>File: <b>' + filename + '</b></small></a></div>');
-    }
-    return true;
+  var filename = maJson.url;
+  var i = filename.lastIndexOf("/");
+  if (i >= 0) filename = filename.substring(i + 1);
+
+  if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
+    intoElem.append('<div class="video-display"><video class="video-element" style="width: 100%;" controls>' +
+      '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
+      '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
+      '</video><div class="video-caption"><small>File: <b>' + filename + '</b></small></div></div>');
+  } else {
+    intoElem.append('<div class="non-image-display" style="text-align: center;"><a download style="padding: 10px; background-color: #AAA; margin: 10px;" href="' +
+      maJson.url + '"><small>File: <b>' + filename + '</b></small></a></div>');
+  }
+  return true;
 }
 
 
 
 
-maLib.getUrl = function(maJson) {
-    url = maJson.url;
-    if (!url) return;
-    if (!wildbookGlobals.username) {
-        var wmUrl = maLib.getChildUrl(maJson, '_watermark');
-        if (wmUrl) url = wmUrl;
-    }
-console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
-    url = wildbook.cleanUrl(url);
-    return url;
+maLib.getUrl = function (maJson) {
+  url = maJson.url;
+  if (!url) return;
+  if (!wildbookGlobals.username) {
+    var wmUrl = maLib.getChildUrl(maJson, '_watermark');
+    if (wmUrl) url = wmUrl;
+  }
+  console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
+  url = wildbook.cleanUrl(url);
+  return url;
 }
 
-maLib.mkImg = function(maJson) {
-	//console.log('maJson: '+maJson);
-    var url = maLib.getUrl(maJson);
-    return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotation.id + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotation.id + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
+maLib.mkImg = function (maJson) {
+  //console.log('maJson: '+maJson);
+  var url = maLib.getUrl(maJson);
+  return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotation.id + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotation.id + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
 }
 
-maLib.mkImgPictureBook = function(maJson) {
-	//console.log('maJson: '+maJson);
-    var url = maLib.getUrl(maJson);
-    return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.features[0].annotationId + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.features[0].annotationId + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
+maLib.mkImgPictureBook = function (maJson) {
+  //console.log('maJson: '+maJson);
+  var url = maLib.getUrl(maJson);
+  return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.features[0].annotationId + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.features[0].annotationId + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
 }
 
 // execute above function
 
-$(document).ready(function() {
-  	//maLib.initPhotoSwipeFromDOM('.my-gallery');
-	if (!wildbook.user.isAnonymous()) {
-  		maLib.initPhotoSwipeFromDOM('#enc-gallery');
-	}
+$(document).ready(function () {
+  //maLib.initPhotoSwipeFromDOM('.my-gallery');
+  if (!wildbook.user.isAnonymous()) {
+    maLib.initPhotoSwipeFromDOM('#enc-gallery');
+  }
 });
