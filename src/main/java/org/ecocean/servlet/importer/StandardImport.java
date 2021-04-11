@@ -2348,23 +2348,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     //returns file so you can use .getName() or .lastModified() etc
     public static File importXlsFile(String rootDir) {
         File dir = new File(rootDir, "import");
-<<<<<<< HEAD
-=======
-        File f=null;
-        if(ServletUtilities.useCustomStyle(request, "IndoCet")) {
-          f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
-        }
-        else {
-          f = new File(dir, "WildbookStandardFormat.xlsx");
-        }
-        if (f!=null && f.isFile()) {return f;}
-        else {
-          System.out.println("ERROR: importXlsFile() rootDir=" + rootDir+";f is: "+f);
-          return null;
-        }
-
-        /*
->>>>>>> f634f4aca... WB-652 more graceful error handling if file names are missing anywhere
         try {
             for (final File f : dir.listFiles()) {
                 if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
