@@ -386,7 +386,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(0.4283,37.9193);
+var center = new google.maps.LatLng(10.8, 160.8);
 
 var map;
 
@@ -398,7 +398,7 @@ function updateMap() {
     var pt = placeMarkerLatLon(latVal, lonVal);
     if (pt) {
         map.setCenter(pt);
-        map.setZoom(7);
+        map.setZoom(5);
     }
 }
 
@@ -430,7 +430,7 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 6;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -811,6 +811,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
+
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
 
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">

@@ -24,8 +24,15 @@ Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
 
-String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
 String langCode=ServletUtilities.getLanguageCode(request);
+
+//check for and inject a default user 'tomcat' if none exists
+// Make a properties object for lang support.
+Properties props = new Properties();
+// Grab the properties file with the correct language strings.
+props = ShepherdProperties.getProperties("index.properties", langCode,context);
+
 
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
@@ -37,272 +44,21 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   <%
   StartupWildbook.initializeWildbook(request, myShepherd);
 }
-// Make a properties object for lang support.
-Properties props = new Properties();
-// Grab the properties file with the correct language strings.
-props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 
-%>
 
 
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
-<script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
-  <script type="text/javascript">
-  var map;
-  var mapZoom = 8;
-  var center;
-  var newCenter;	
-//Define the overlay, derived from google.maps.OverlayView
-  function Label(opt_options) {
-   // Initialization
-   this.setValues(opt_options);
-   // Label specific
-   var span = this.span_ = document.createElement('span');
-   span.style.cssText = 'font-weight: bold;' +
-                        'white-space: nowrap; ' +
-                        'padding: 2px; z-index: 999 !important;';
-   span.style.zIndex=999;
-   var div = this.div_ = document.createElement('div');
-   div.style.zIndex=999;
-   div.appendChild(span);
-   div.style.cssText = 'position: absolute; display: none;z-index: 999 !important;';
-  };
-  Label.prototype = new google.maps.OverlayView;
-  // Implement onAdd
-  Label.prototype.onAdd = function() {
-   var pane = this.getPanes().overlayLayer;
-   pane.appendChild(this.div_);
-   // Ensures the label is redrawn if the text or position is changed.
-   var me = this;
-   this.listeners_ = [
-     google.maps.event.addListener(this, 'position_changed',
-         function() { me.draw(); }),
-     google.maps.event.addListener(this, 'text_changed',
-         function() { me.draw(); })
-   ];
-  };
-  // Implement onRemove
-  Label.prototype.onRemove = function() {
-   this.div_.parentNode.removeChild(this.div_);
-   // Label is removed from the map, stop updating its position/text.
-   for (var i = 0, I = this.listeners_.length; i < I; ++i) {
-     google.maps.event.removeListener(this.listeners_[i]);
-   }
-  };
-  
-  // Implement draw
-  Label.prototype.draw = function() {
-   var projection = this.getProjection();
-   var position = projection.fromLatLngToDivPixel(this.get('position'));
-   var div = this.div_;
-   div.style.left = position.x + 'px';
-   div.style.top = position.y + 'px';
-   div.style.display = 'block';
-   div.style.zIndex=999;
-   this.span_.innerHTML = this.get('text').toString();
-  };
-  		//map
-  		//var map;
-  	  var bounds = new google.maps.LatLngBounds();
-      function initialize() {
-    	// Create an array of styles for our Google Map.
-  	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-		
-    	if (center == null) {
-	    	center = new google.maps.LatLng(0,0);
-    	} else {
-    		center = map.getCenter();
-    	}
-        map = new google.maps.Map(document.getElementById('map_canvas'), {
-          zoom: mapZoom,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
-          zoomControl: true,
-          scaleControl: false,
-          scrollwheel: false,
-          disableDoubleClickZoom: true,
-        });
-    	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-    	    // Create a new StyledMapType object, passing it the array of styles,
-    	    // as well as the name to be displayed on the map type control.
-    	    var styledMap = new google.maps.StyledMapType(gmap_styles, {name: "Styled Map"});
-    	    //Associate the styled map with the MapTypeId and set it to display.
-    	    map.mapTypes.set('map_style', styledMap);
-    	    map.setMapTypeId('map_style');
-        var markers = [];
- 	    var movePathCoordinates = [];
- 	    //iterate here to add points per location ID
- 		var maxZoomService = new google.maps.MaxZoomService();
- 		maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
- 			    if (response.status == google.maps.MaxZoomStatus.OK) {
- 			    	if(response.zoom < map.getZoom()){
- 			    		map.setZoom(response.zoom);
- 			    	}
- 			    }
- 		});
- 		
- 		// let's add map points for our locationIDs
- 		<%
- 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
- 		int numLocationIDs = locs.size();
- 		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
- 		myShepherd.beginDBTransaction();
- 		try{
-	 		for(int i=0;i<numLocationIDs;i++){
-	 			String locID = locs.get(i);
-	 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
-	 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
-	 				String lat = st.nextToken();
-	 				String longit=st.nextToken();
-	 				String thisLatLong=lat+","+longit;
-	 		        //now  let's calculate how many
-	 		        int numSightings=myShepherd.getNumEncounters(locID);
-	 		        if(numSightings>0){
-	 		        	Integer numSightingsInteger=new Integer(numSightings);
-	 		          %>
-	 		         var latLng<%=i%> = new google.maps.LatLng(<%=thisLatLong%>);
-			          bounds.extend(latLng<%=i%>);
-	 		          var divString<%=i%> = "<div style=\"font-weight:bold;margin-top: 5px; text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:60px;padding: 2px; background-image: url('cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
-	 		         var marker<%=i%> = new RichMarker({
-	 		            position: latLng<%=i%>,
-	 		            map: map,
-	 		            draggable: false,
-	 		           content: divString<%=i%>,
-	 		           flat: true
-	 		        });
-	 			      markers.push(marker<%=i%>);
-	 		          map.fitBounds(bounds);
-	 				<%
-	 			} //end if
-	 			}  //end if
-	 		}  //end for
- 		}
- 		catch(Exception e){
- 			e.printStackTrace();
- 		}
- 		finally{
- 			myShepherd.rollbackDBTransaction();
- 		}
- 	 	%>
-    	 google.maps.event.addListener(map, 'dragend', function() {
-    		var idleListener = google.maps.event.addListener(map, 'idle', function() {
-    			google.maps.event.removeListener(idleListener);
-    			console.log("GetCenter : "+map.getCenter());
-    			mapZoom = map.getZoom();
-    			newCenter = map.getCenter();
-    			center = newCenter;
-    			map.setCenter(map.getCenter());
-    		});
-    		 
- 	     }); 	 
-    	 
-    	 google.maps.event.addDomListener(window, "resize", function() {	 
- 	    	console.log("Resize Center : "+center);
- 	    	google.maps.event.trigger(map, "resize");
- 	  	    console.log("Resize : "+newCenter);
- 	  	    map.setCenter(center);
- 	     });    
- 	 } // end initialize function
- 	  	  
- 	  	 
- 	 
- 	 
-      function fullScreen(){
-  		$("#map_canvas").addClass('full_screen_map');
-  		$('html, body').animate({scrollTop:0}, 'slow');
-  		initialize();
-  		//hide header
-  		$("#header_menu").hide();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute fullscreen!");
-  	}
-  	function exitFullScreen() {
-  		$("#header_menu").show();
-  		$("#map_canvas").removeClass('full_screen_map');
-  		initialize();
-  		if(overlaysSet){overlaysSet=false;setOverlays();}
-  		//alert("Trying to execute exitFullScreen!");
-  	}
-  	//making the exit fullscreen button
-  	function FSControl(controlDiv, map) {
-  	  // Set CSS styles for the DIV containing the control
-  	  // Setting padding to 5 px will offset the control
-  	  // from the edge of the map
-  	  controlDiv.style.padding = '5px';
-  	  // Set CSS for the control border
-  	  var controlUI = document.createElement('DIV');
-  	  controlUI.style.backgroundColor = '#f8f8f8';
-  	  controlUI.style.borderStyle = 'solid';
-  	  controlUI.style.borderWidth = '1px';
-  	  controlUI.style.borderColor = '#a9bbdf';;
-  	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-  	  controlUI.style.cursor = 'pointer';
-  	  controlUI.style.textAlign = 'center';
-  	  controlUI.title = 'Toggle the fullscreen mode';
-  	  //controlDiv.appendChild(controlUI);
-  	  // Set CSS for the control interior
-  	  var controlText = document.createElement('DIV');
-  	  controlText.style.fontSize = '12px';
-  	  controlText.style.fontWeight = 'bold';
-  	  controlText.style.color = '#000000';
-  	  controlText.style.paddingLeft = '4px';
-  	  controlText.style.paddingRight = '4px';
-  	  controlText.style.paddingTop = '3px';
-  	  controlText.style.paddingBottom = '2px';
-  	  controlUI.appendChild(controlText);
-  	  controlText.style.visibility='hidden';
-  	  //toggle the text of the button
-  	  if($("#map_canvas").hasClass("full_screen_map")){
-  	      controlText.innerHTML = 'Exit Fullscreen';
-  	  } else {
-  	      controlText.innerHTML = 'Fullscreen';
-  	  }
- 	  google.maps.event.addDomListener(controlUI, 'click', function() {
- 	 	if($("#map_canvas").hasClass("full_screen_map")){
- 	  	  exitFullScreen();
- 	  	} else {
- 	  	  fullScreen();
- 	  	}
- 	  });
-  	  
-  	  // Setup the click event listeners: toggle the full screen
-  	}
-    google.maps.event.addDomListener(window, 'load', initialize);
-  	
-  </script>
-<%
 
 
 //let's quickly get the data we need from Shepherd
 
-int numMarkedIndividualsPlains=0;
-int numMarkedIndividualsGrevy=0;
+int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
-
-QueryCache qc=QueryCacheFactory.getQueryCache(context);
-
 myShepherd.beginDBTransaction();
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -314,9 +70,7 @@ try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividualsPlains=qc.getQueryByName("numMarkedIndividualsPlains").executeCountQuery(myShepherd).intValue();
-    numMarkedIndividualsGrevy=qc.getQueryByName("numMarkedIndividualsGrevy").executeCountQuery(myShepherd).intValue();
-    
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
@@ -331,53 +85,178 @@ catch(Exception e){
     System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
 }
-finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
-}
+
 %>
 
-<section class="hero container-fluid main-section relative">
-    <div class="container relative">
-        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h2>Welcome to Wildbook for Zebras!</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-			-->
-            <a href="submit.jsp">
-                <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
-            </a>
-        </div>
+<style>
 
-	</div>
+
+
+
+#fullScreenDiv{
+    width:100%;
+   /* Set the height to match that of the viewport. */
+    
+    width: auto;
+    padding:0!important;
+    margin: 0!important;
+    position: relative;
+}
+#video{    
+    width: 100vw; 
+    height: auto;
+    object-fit: cover;
+    left: 0px;
+    top: 0px;
+    z-index: -1;
+}
+
+h2.vidcap {
+	font-size: 2.4em;
+	
+	color: #fff;
+	font-weight:300;
+	text-shadow: 1px 2px 2px #333;
+	margin-top: 35%;
+}
+
+
+
+/* The container for our text and stuff */
+#messageBox{
+    position: absolute;  top: 0;  left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height:100%;
+}
+
+@media screen and (min-width: 851px) {
+	h2.vidcap {
+	    font-size: 3.3em;
+	    margin-top: -45%;
+	}
+}
+
+@media screen and (max-width: 850px) and (min-width: 551px) {
+
+	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:50px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
+	h2.vidcap {
+	    font-size: 2.4em;
+	    margin-top: 55%;
+	}
+	
+}
+@media screen and (max-width: 550px) {
+
+	
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+	    
+	    width: auto;
+	    padding-top:150px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+	
+	h2.vidcap {
+	    font-size: 1.8em;
+	    margin-top: 100%;
+	}
+	
+}
+ 
+
+</style>
+<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
+
+        
+   <div id="fullScreenDiv">
+        <div id="videoDiv">           
+            <video playsinline preload id="video" autoplay muted>
+            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
+            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
+            </video> 
+        </div>
+        <div id="messageBox"> 
+            <div>
+                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
+
+            </div>
+        </div>   
+    </div>
+
+  
 
 
 </section>
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header">Machine Learning & Citizen Science & Conservation Research</h2>
+	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
 
-  	<p class="lead">Wildbook for Zebras applies computer vision algorithms and deep learning to identify and track individual zebras across hundreds of thousands of photos. We help researchers collaborate with each other and citizen scientists contribute to the effort. A.I. scales and speeds research and conservation.</p>
+  	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
   	
-  	<h3 class="section-header">Step 1. Deep Learning Finds Animals</h3>
-  	<p class="lead">We train computer vision to find individual zebras in photos and identify the species. </p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionZebra.jpg" />
+  	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" />
 		  	
   	
-  	<h3 class="section-header">Step 2. Algorithms and Neural Networks Identify Individuals</h3>
-  	<p class="lead">When we know where each animal is, we can identify them individually using algorithms that make digital "fingerprints" for each animal, such as identifying them by their unique stripes. We replace hours of human labor with just a few minutes of computer vision, scanning for matches across tens of thousands of photos.</p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/matches.jpg" />
+  	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" />
 		
 		
-	<h3 class="section-header">Step 3. Population Dynamics Define Conservation Action</h3>
-  	<p class="lead">If we can quickly track individuals in a population, we can model size and migration to generate new insights and support rapid, data-driven conservation action.</p>
+	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
+  	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
+		
+  	
+  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
+  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
+  	
+  	<div class="row">
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
+		  	<em><%=props.getProperty("megapteraMatching") %></em>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
+		  	<em><%=props.getProperty("physeterMatching") %></em>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+		  	<div class="focusbox-inner opec">
+		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
+		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
+	  	</section>
+	  	
+  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+		  	<div class="focusbox-inner opec">
+		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
+		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
+	  	</section>
+	  	
+  	</div>
+  	
+  	
 
-
+  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
 
 </section>
 
@@ -388,7 +267,7 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -402,7 +281,7 @@ finally{
                     <div class="focusbox-inner opec">
                         <h2><%=props.getProperty("ourContributors") %></h2>
                         <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
                             <p><%=featuredUser.getFullName() %>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
@@ -414,7 +293,7 @@ finally{
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
                     </div>
                 </section>
             <%
@@ -424,14 +303,14 @@ finally{
             catch(Exception e){e.printStackTrace();}
             finally{
 
-            	myShepherd.rollbackDBTransaction();
+            	//myShepherd.rollbackDBTransaction();
             }
             %>
 
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest encounters</h2>
+                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -441,10 +320,6 @@ finally{
                        try{
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
-	                           String displayName="";
-	                           if(thisEnc.getIndividual()!=null){
-	                        	   displayName=thisEnc.getIndividual().getDisplayName();
-	                           }
 	                           %>
 	                            <li>
 	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
@@ -459,7 +334,7 @@ finally{
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=displayName %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
 
 
 	                            </li>
@@ -483,10 +358,12 @@ finally{
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+
+	                    System.out.println("  I think my startTime is: "+startTime);
 
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
@@ -508,7 +385,7 @@ finally{
 
 	                          %>
 	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
@@ -525,7 +402,7 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    //finally{myShepherd.rollbackDBTransaction();}
 
                    %>
 
@@ -539,40 +416,108 @@ finally{
 
 <div class="container-fluid">
     <section class="container text-center  main-section">
-        <div class="row">
+       <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividualsPlains %></span> identified Plains Zebras</i></p>
-            </section>
-                        <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividualsGrevy %></span> identified Grevy's Zebras</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
+            </section>
         </div>
 
         <hr/>
 
-
+        <main class="container">
+            <article class="text-center">
+                <div class="row">
+                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
+                   
+<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
+                        <p class="lead">
+                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                        
+                    </div>
+                </div>
+            </article>
+        <main>
 
     </section>
 </div>
 
 
+<%
+if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
+%>
+<div class="container-fluid">
+    <section class="container main-section">
 
+        <!-- Complete header for adoption section in index properties file -->
+        <%=props.getProperty("adoptionHeader") %>
+        <section class="adopt-section row">
+
+            <!-- Complete text body for adoption section in index properties file -->
+            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+              <%=props.getProperty("adoptionBody") %>
+            </div>
+            <%
+            myShepherd.beginDBTransaction();
+            try{
+	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+	            if(adopt!=null){
+	            %>
+	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+		                <div class="focusbox-inner" style="overflow: hidden;">
+		                	<%
+		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+
+		                	%>
+		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
+		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+		                    <%
+		                    if(adopt.getAdopterQuote()!=null){
+		                    %>
+			                    <blockquote>
+			                        <%=adopt.getAdopterQuote() %>
+			                    </blockquote>
+		                    <%
+		                    }
+		                    %>
+		                </div>
+		            </div>
+
+	            <%
+				}
+            }
+            catch(Exception e){e.printStackTrace();}
+            finally{myShepherd.rollbackDBTransaction();}
+
+            %>
+
+
+        </section>
+
+        <hr/>
+        <%= props.getProperty("donationText") %>
+    </section>
+</div>
+<%
+}
+%>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
-<script>
-window.addEventListener("resize", function(e) { $("#map_canvas").height($("#map_canvas").width()*0.662); });
-google.maps.event.addDomListener(window, "resize", function() {
-	 google.maps.event.trigger(map, "resize");
-	 map.fitBounds(bounds);
-	});
-</script>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
