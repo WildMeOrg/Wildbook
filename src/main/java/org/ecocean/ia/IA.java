@@ -121,6 +121,7 @@ public class IA {
         handleMissingAcmids(mas, myShepherd);
         for (MediaAsset ma: mas) {
             System.out.println("intakeMediaAssetsOneSpecies incl. ma "+ma.getId());
+            System.out.println("acmid is: " + ma.getAcmId());
         }
 
         JSONArray maArr = new JSONArray();

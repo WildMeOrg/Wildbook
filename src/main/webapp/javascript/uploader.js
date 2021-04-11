@@ -87,7 +87,7 @@ console.info('complete? err=%o data=%o', err, data);
 //console.log('files --> %o', files);
                         pendingUpload = files.length;
                         for (var i = 0 ; i < files.length ; i++) {
-//console.log('%d %o', i, files[i]);
+                            console.log('%d %o', i, files[i]);
                             filenameToKey(files[i].name);
                         }
                         document.getElementById('upcontrols').style.display = 'none';
@@ -98,7 +98,10 @@ console.info('complete? err=%o data=%o', err, data);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-    			console.log('added %o %o', file, event);
+          if(file && file.name){
+            file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+          }
+          console.log('added %o %o', file, event);
 		});
 		flow.on('fileProgress', function(file, chunk){
 			var el = findElement(file.name, file.size);
@@ -253,5 +256,3 @@ function niceSize(s) {
 	if (s < 1024*1024) return Math.floor(s/1024) + 'k';
 	return Math.floor(s/(1024*1024) * 10) / 10 + 'M';
 }
-
-
