@@ -202,8 +202,10 @@ if (itask == null) {
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<br>Status: "+itask.getStatus());
-    out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-	out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    if(itask.getParameters()!=null){
+    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+    }	
+    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
     if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
     for (int i = 0 ; i < headers.length ; i++) {
@@ -293,7 +295,20 @@ if (itask == null) {
 %>
 </tbody></table>
 <p>
-Total images: <b><%=allAssets.size()%></b>
+Total MediAssets: <b><%=allAssets.size()%></b><br>
+<ul>
+<%
+int numWithACMID=0;
+int numDetectionComplete=0;
+for(MediaAsset asset:allAssets){
+	if(asset.getAcmId()!=null)numWithACMID++;
+	if(asset.getDetectionStatus()!=null && asset.getDetectionStatus().equals("complete")) numDetectionComplete++;
+}
+%>
+<li>Number with acmIDs: <%=numWithACMID %></li>
+<li>Number that have completed detection: <%=numDetectionComplete %></li>
+</ul>
+
 <script>
 let js_jarrs = new Map();
 <%
@@ -361,7 +376,7 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
  } //end if admin mode
 
 //who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
-if("complete".equals(itask.getStatus()) && (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
+if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 	    %>
 	    	<div style="margin-bottom: 20px;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
