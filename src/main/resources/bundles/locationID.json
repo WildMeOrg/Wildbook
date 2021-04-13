@@ -49,6 +49,55 @@
 					"locationID": []
 				}
 			]
+		},
+		{
+			"name": "South Africa",
+			"id": "South Africa",
+			"locationID": [
+				{
+					"name": "Nuwejaars Wetland SMA",
+					"id": "Nuwejaars Wetland SMA",
+					"locationID": []
+				},
+				{
+					"name": "Elandsberg Nature Reserve",
+					"id": "Elandsberg Nature Reserve",
+					"locationID": [
+						
+					]
+				},
+				{
+					"name": "Kosierskraal",
+					"id": "Kosierskraal",
+					"locationID": []
+				},
+				{
+					"name": "Pampoenvlei",
+					"id": "Pampoenvlei",
+					"locationID": []
+				},
+				{
+					"name": "Groote Post",
+					"id": "Groote Post",
+					"locationID": []
+				}
+				,
+				{
+					"name": "Vlakkenhuiwel",
+					"id": "Vlakkenhuiwel",
+					"locationID": []
+				}
+			]
 		}
+		
+
+
+
+
+
+
+
+
+
 	]
 }
