@@ -575,6 +575,9 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } else if (j.optJSONObject("identify") != null) {
             res = _doIdentify(j, res, myShepherd, context, baseUrl);
 
+        } else if (j.optJSONObject("bulkImport") != null) {
+            res = handleBulkImport(j, res, myShepherd, context, baseUrl);
+
         } else if (j.optJSONObject("resolver") != null) {
             res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
 
@@ -1378,5 +1381,45 @@ System.out.println("qjob => " + qjob);
         return rtn;
     }
 
+
+    public static JSONObject handleBulkImport(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
+        if (res == null) throw new RuntimeException("IAGateway.handleBulkImport() called without res passed in");
+        if (baseUrl == null) return res;
+        if (jin == null) return res;
+        JSONObject maMap = jin.optJSONObject("bulkImport");
+        System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
+        if (maMap == null) return res;  // "should never happen"
+        /*
+            maMap is just js_jarrs from imports.jsp, basically { encID0: [ma0, ... maN], ... encIDX: [maY, .. maZ] }
+            so we need 1 detection job per element
+        */
+        JSONObject mapRes = new JSONObject();
+        int okCount = 0;
+        for (Object e: maMap.keySet()) {
+            String encId = (String)e;
+            JSONArray maIds = maMap.optJSONArray(encId);
+            if (maIds == null) {
+                mapRes.put(encId, "no JSONArray");
+                System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
+                continue;
+            }
+            JSONObject qjob = new JSONObject(jin.toString());  //clone it to start with so we get all same content
+            qjob.remove("bulkImport");  // ... but then lose this
+            qjob.put("mediaAssetIds", maIds);
+            qjob.put("v2", true);
+            qjob.put("__context", context);
+            qjob.put("__baseUrl", baseUrl);
+            qjob.put("__handleBulkImport", System.currentTimeMillis());
+            boolean ok = addToQueue(context, qjob.toString());
+            if (ok) okCount++;
+            mapRes.put(encId, "queued=" + ok);
+        }
+        res.put("encounterCount", maMap.keySet().size());
+        res.put("queuedCount", okCount);
+        res.put("mapResults", mapRes);
+        res.remove("error");
+        res.put("success", true);
+        return res;
+    }
 
 }

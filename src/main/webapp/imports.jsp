@@ -322,27 +322,35 @@ for(String key:jarrs.keySet()){
 function sendToIA(skipIdent) {
     if (!confirmCommit()) return;
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-    var locIds = $('#id-locationids').val();
-    
-    for (let [key, value] of js_jarrs) {
-    	console.log('Sending these imported mediaAssets for Encounter ' + key + ': ' + value)
+    var locationIds = $('#id-locationids').val();
 
-	    wildbook.sendMediaAssetsToIA(value, locIds, skipIdent, function(x) {
-	        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-	            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
-	        } else {
-	            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
-	        }
-	    });
-    	  
-	}
-    
-    
-    
+    // some of this borrowed from core.js sendMediaAssetsToIA()
+    // but now we send bulkImport as the entire js_jarrs value
+    var data = {
+        taskParameters: { skipIdent: skipIdent || false },
+        bulkImport: {}
+    };
+    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
+    if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+
+    console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/ia',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: 'application/javascript',
+        complete: function(x) {
+            console.log('sendToIA() response: %o', x);
+	    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+	        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+	    } else {
+	        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+	    }
+        }
+    });
 }
  
-
-
 </script>
 </p>
 
