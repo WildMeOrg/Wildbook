@@ -328,8 +328,9 @@ function sendToIA(skipIdent) {
     // but now we send bulkImport as the entire js_jarrs value
     var data = {
         taskParameters: { skipIdent: skipIdent || false },
-        bulkImport: js_jarrs
+        bulkImport: {}
     };
+    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
     if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 
     console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
