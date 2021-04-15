@@ -188,6 +188,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         startTime = dt;
         _validateStartEndTimes();
     }
+    public void setStartTimeNoCheck(ComplexDateTime dt) {
+        setVersion();
+        startTime = dt;
+    }
     public ComplexDateTime getStartTime() {
         return startTime;
     }
@@ -195,6 +199,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         setVersion();
         endTime = dt;
         _validateStartEndTimes();
+    }
+    public void setEndTimeNoCheck(ComplexDateTime dt) {
+        setVersion();
+        endTime = dt;
     }
     public ComplexDateTime getEndTime() {
         return endTime;
@@ -1448,6 +1456,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (jsonIn.optString("id", null) != null) throw new IOException("passing id value not allowed");  //i think this will be our standard
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
+
         occ.setStartTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("startTime", null)));
         occ.setEndTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("endTime", null)));
 
@@ -1542,6 +1551,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
         obj.put("context", this.getContext());
+        obj.put("comments", this.getComments());
         obj.put("createdEDM", this.getDateTimeCreated());
         ComplexDateTime st = getStartTimeSomehow();
         ComplexDateTime et = getEndTimeSomehow();
@@ -1620,6 +1630,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return obj;
     }
 
+    // this overrides base, just so we can post-validate
+    public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
+        this._validateStartEndTimes();
+        return rtn;
+    }
+
     public org.json.JSONObject apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         String opName = jsonIn.optString("op", null);  //valuable cuz apiPatchAdd is recycled by apiPatchReplace below
         if (jsonIn == null) throw new IOException("apiPatch op=" + opName + " has null json");
@@ -1637,10 +1654,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 case "startTime":
-                    this.setStartTime( new ComplexDateTime((String)valueObj) );
+                    this.setStartTimeNoCheck( new ComplexDateTime((String)valueObj) );
                     break;
                 case "endTime":
-                    this.setEndTime( new ComplexDateTime((String)valueObj) );
+                    this.setEndTimeNoCheck( new ComplexDateTime((String)valueObj) );
                     break;
                 case "decimalLatitude":
                     this.setDecimalLatitude(tryDouble(valueObj));
