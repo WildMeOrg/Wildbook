@@ -568,6 +568,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return verbatimLocality;
     }
 
+    //when we *must* have some kind of location
+    public void _validateLocations() {
+        if (!this.hasLatLon() && (this.getLocationId() == null) && (this.getVerbatimLocality() == null)) {
+            throw new ApiValueException("must have at least one location-related value", "locationId");
+        }
+    }
+
     //these are for falling back on values derived from encounters if need be
     public String getLocationIdSomehow() {
         if (locationId != null) return locationId;
@@ -1475,10 +1482,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setFromJSONObject("context", String.class, jsonIn, true);
         occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
         occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
-
-        if (!occ.hasLatLon() && (occ.getLocationId() == null) && (occ.getVerbatimLocality() == null)) {
-            throw new ApiValueException("must have at least one location-related value", "locationId");
-        }
+        occ._validateLocations();
 
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
         // we *may* want to allow this superpower for the edm, but for now lets be strict
@@ -1634,6 +1638,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
         this._validateStartEndTimes();
+        this._validateLocations();
         return rtn;
     }
 
@@ -1647,23 +1652,25 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         boolean hasValue = jsonIn.has("value");
 
         // unsure if we should let add/replace set null, so we are only going to allow this
-        if (!hasValue || (valueObj == null)) throw new IOException("apiPatch op=" + opName + " has empty value - use op=remove");
+        // if (!hasValue || (valueObj == null)) throw new IOException("apiPatch op=" + opName + " has empty value - use op=remove");
+        // okay, flopping on this via discussion w/ben on 2021-04-15 -- now will allow setting null as a value until we dont like it
+        if (!hasValue) throw new IOException("apiPatch op=" + opName + " has no value - use op=remove");
 
         org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 case "startTime":
-                    this.setStartTimeNoCheck( new ComplexDateTime((String)valueObj) );
+                    this.setStartTimeNoCheck( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
                     break;
                 case "endTime":
-                    this.setEndTimeNoCheck( new ComplexDateTime((String)valueObj) );
+                    this.setEndTimeNoCheck( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
                     break;
                 case "decimalLatitude":
-                    this.setDecimalLatitude(tryDouble(valueObj));
+                    this.setDecimalLatitude( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
                 case "decimalLongitude":
-                    this.setDecimalLongitude(tryDouble(valueObj));
+                    this.setDecimalLongitude( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
                 case "context":
                     this.setContext((String)valueObj);
