@@ -1672,8 +1672,23 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "decimalLongitude":
                     this.setDecimalLongitude( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
+                case "bearing":
+                    this.setBearing( (valueObj == null) ? null : tryDouble(valueObj) );
+                    break;
+                case "distance":
+                    this.setDistance( (valueObj == null) ? null : tryDouble(valueObj) );
+                    break;
                 case "context":
                     this.setContext((String)valueObj);
+                    break;
+                case "comments":
+                    this.addComments((String)valueObj);
+                    break;
+                case "behavior":
+                    this.setBehavior((String)valueObj);
+                    break;
+                case "verbatimLocality":
+                    this.setVerbatimLocality((String)valueObj);
                     break;
                 case "locationId":
                     this.setLocationId((String)valueObj);
@@ -1727,12 +1742,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 //these cases are all equivalent to add
                 case "startTime":
                 case "endTime":
+                case "bearing":
+                case "distance":
                 case "context":
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "locationId":
+                case "behavior":
+                case "verbatimLocality":
                     rtn.put("_chainedAdd", true);
                     this.apiPatchAdd(myShepherd, jsonIn);
+                    break;
+                case "comments":
+                    this.setComments((String)valueObj);
                     break;
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
