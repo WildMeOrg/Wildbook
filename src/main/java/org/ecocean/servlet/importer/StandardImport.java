@@ -1324,6 +1324,9 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i);
+    if (Util.stringExists(localPath)){
+      localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+    }
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -2006,15 +2009,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   public String getString(final Row row, final int i) {
     System.out.println("Calling getString on row "+row.getRowNum()+" with cell "+i+" value "+String.valueOf(row.getCell(i)));
     final Cell cell = row.getCell(i);
-    String colNameOfCell = getKeyByValue(colIndexMap, cell.getColumnIndex()); //get the key of colIndexMap from it's index value.
     String str = null;
     try {
       if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_STRING) {
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
-        if(Pattern.matches(".*mediaAsset\\d+$", colNameOfCell)){ //only column names ending with mediaAssets followed by digits should return true here and get sanitized below
-          if(Util.stringExists(str)) str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
-      }
       }
       // not ideal, but maybe get something
       if (str==null&&cell!=null) {
@@ -2031,15 +2030,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     feedback.logParseValue(i, str, row);
     return str.trim();
-  }
-
-  public static <T, E> T getKeyByValue(Map<T, E> map, E value) {
-    for (Entry<T, E> entry : map.entrySet()) {
-      if (Objects.equals(value, entry.getValue())) {
-        return entry.getKey();
-      }
-    }
-    return null;
   }
 
   public Boolean getBooleanFromString(Row row, int i) {
