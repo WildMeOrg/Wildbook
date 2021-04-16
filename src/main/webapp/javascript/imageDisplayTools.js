@@ -162,8 +162,8 @@ updateWithAnnotationDisambiguator = function(inputHtml, mediaAssetId, maAnnotati
   annotationDisambiguatorHtml += '<div id="annotation-disambiguator" data-media-asset-id="' + mediaAssetId + '-' + maAnnotationId + '">';
   annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId +'\')"> </span>';
   annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation </span>';
-  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId +'\')"> </span>';
-  annotationDisambiguatorHtml += '<span class="go el el-circle-arrow-right" onclick="goToEncounterHighlighted(\'' + mediaAssetId + '\',\'' + maAnnotationId + '\')"> Go To Highlighted Encounter</span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId + '\')"> </span>';
+  annotationDisambiguatorHtml += '<div id="go-to-encounter-wrapper"></div>';
   annotationDisambiguatorHtml += '</div>';
   inputHtml.append(annotationDisambiguatorHtml);
 }
@@ -201,6 +201,9 @@ toggleFocalAnnotationChange = function (direction, mediaAssetId, annotationId){
   $(parentElement).find('#' + currentFocalId).removeClass('image-enhancer-feature-toggled');
   $(parentElement).find('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-toggled');
   let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  let newLinkHtml = '<a class="go el el-circle-arrow-right" href="encounter.jsp?number=' + currentFocalEncounterId + '" onclick="goToEncounterHighlighted(\'' + mediaAssetId + '\',\'' + annotationId + '\')"> Go To Highlighted Encounter</a>';
+  $('#go-to-encounter-wrapper').empty();
+  $('#go-to-encounter-wrapper').html(newLinkHtml);
 }
 
 getCorrectIndexOfTargetEnhancerFeature = function(direction, enhancerFeatureIdArray, indexOfCurrentFocal){
@@ -220,7 +223,7 @@ goToEncounterHighlighted = function (mediaAssetId, maAnnotationId){
   if (!currentFocalEncounterId) {
     currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
   }
-  window.location.href = 'encounter.jsp?number=' + currentFocalEncounterId;
+  window.open('encounter.jsp?number=' + currentFocalEncounterId, '_self');
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
