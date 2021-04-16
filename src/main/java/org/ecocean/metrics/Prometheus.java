@@ -42,9 +42,6 @@ public class Prometheus
     Counter encs;
     Gauge numUsersInWildbook; 
     Gauge numUsersWithLogin;
-
-    //Global int for testing
-    int random = (int)Math.random();
     
     public Prometheus()
     {
@@ -142,12 +139,10 @@ public class Prometheus
             int totalEncsSpecies = allEncSpecies.size();
             this.encsSpecies.inc((double)totalEncsSpecies);
             out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
-
           }
       }
 
       //Number of Encounters by Submission Dates
-      //Do not worry about tiem series now, get larger ints working first
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
       // for(String dataSub : numEncountersSub){
