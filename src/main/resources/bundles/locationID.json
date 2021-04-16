@@ -568,7 +568,8 @@
 			
 			] },
 			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
-			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
+			{ "name":"Gabon", "id":"Gabon", "locationID":[] },
+			{ "name":"South Georgia", "id":"South Georgia", "locationID":[] }
 
 	]},
 
