@@ -1039,7 +1039,8 @@ function enhancerDisplayAnnots(el, opt) {
     var ma = assetByAnnotationId(aid);
 //console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
-    var featwrap = $('<div class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    var featwrap = $('<div data-media-asset-id="' + ma.id + '-' + ma.annotation.id + '" data-count="' + featureWrapperCounter + '"class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    featureWrapperCounter ++;
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
