@@ -978,6 +978,7 @@ rtn.put("_payload", payload);
                     String key = "site.custom.customFields." + cfcls;
                     ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
                 }
+                ConfigurationUtil.resetValueCache("site");
             } catch (Exception ex) {
                 SystemLog.error("RestServlet.handlePatch() on configuration threw {}", ex.toString(), ex);
                 rtn.put("message", _rtnMessage("error", payload, ex.toString()));
