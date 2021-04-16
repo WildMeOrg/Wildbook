@@ -26,6 +26,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.customfield.CustomFieldValue;
 import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.ia.Task;
 import org.ecocean.external.*;
@@ -3967,6 +3968,18 @@ public class Shepherd {
             q.setOrdering(ordering);
             Collection c = (Collection)q.execute(className);
             List<CustomFieldDefinition> all = new ArrayList<CustomFieldDefinition>(c);
+            q.closeAll();
+            return all;
+        } catch (Exception x) {
+            x.printStackTrace();
+            return null;
+        }
+    }
+    public List<CustomFieldValue> getCustomFieldValuesForDefinition(CustomFieldDefinition cfd) {
+        try {
+            Query q = pm.newQuery("SELECT FROM org.ecocean.customfield.CustomFieldValue WHERE this.definition == defn PARAMETERS org.ecocean.customfield.CustomFieldDefinition defn");
+            Collection c = (Collection)q.execute(cfd);
+            List<CustomFieldValue> all = new ArrayList<CustomFieldValue>(c);
             q.closeAll();
             return all;
         } catch (Exception x) {
