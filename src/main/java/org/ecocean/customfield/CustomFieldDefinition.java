@@ -3,6 +3,8 @@ package org.ecocean.customfield;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.DataDefinition;
+import org.ecocean.configuration.ConfigurationUtil;
+import org.ecocean.SystemLog;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.List;
@@ -153,10 +155,28 @@ public class CustomFieldDefinition implements java.io.Serializable {
         return rtn;
     }
 
-    //FIXME TODO
     public void remove(Shepherd myShepherd, boolean force) throws CustomFieldException {
-        //has value????
-        System.out.println("CustomFieldDefinition.remove() NOT YET IMPLEMENTED");
+        List<CustomFieldValue> values = this.getValues(myShepherd);
+        int numValues = Util.collectionSize(values);
+        if (!force && (numValues > 0)) throw new CustomFieldException(this + " has " + numValues + " values associated; to remove CustomFieldDefinition anyway, use force=true option");
+        SystemLog.debug("proceeding with remove() on {}, {} values, force={}", this, numValues, force);
+        if (numValues > 0) {
+            retireValues(values);
+            //re-assign this cfd ???  FIXME do this!
+        } else {
+            myShepherd.getPM().deletePersistent(this);
+        }
+        ConfigurationUtil.resetValueCache("site");
+    }
+
+    private static void retireValues(List<CustomFieldValue> values) {
+        if (values == null) return;
+        SystemLog.debug("retiring {} values", values.size());
+        //FIXME make this do this, obvs.
+    }
+
+    public List<CustomFieldValue> getValues(Shepherd myShepherd) {
+        return myShepherd.getCustomFieldValuesForDefinition(this);
     }
 
     //note: this ignores 'id' passed in!  (it will set own)

@@ -972,10 +972,23 @@ rtn.put("_payload", payload);
         if (cls.equals("configuration")) {  //right now, patch only really supported on customFields
             try {
                 rtn.put("result", ConfigurationUtil.apiPatch(myShepherd, payload));
+                //now we update configuration for all the custom values cuz we dont know which we just changed.  :/
+                String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+                for (String cfcls : classes) {
+                    String key = "site.custom.customFields." + cfcls;
+                    ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
+                }
             } catch (Exception ex) {
+                SystemLog.error("RestServlet.handlePatch() on configuration threw {}", ex.toString(), ex);
+                rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                response.setStatus(602);
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
-                throw new IOException(ex.toString());
+                String rtnS = rtn.toString();
+                response.setContentLength(rtnS.getBytes("UTF-8").length);
+                out.println(rtnS);
+                out.close();
+                return;
             }
 
         } else if (cls.equals("org.ecocean.Occurrence")) {
