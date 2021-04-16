@@ -161,18 +161,12 @@ public class CustomFieldDefinition implements java.io.Serializable {
         if (!force && (numValues > 0)) throw new CustomFieldException(this + " has " + numValues + " values associated; to remove CustomFieldDefinition anyway, use force=true option");
         SystemLog.debug("proceeding with remove() on {}, {} values, force={}", this, numValues, force);
         if (numValues > 0) {
-            retireValues(values);
-            //re-assign this cfd ???  FIXME do this!
-        } else {
-            myShepherd.getPM().deletePersistent(this);
+            SystemLog.debug("retiring {} values", values.size());
+            for (CustomFieldValue cfv : values) {
+                myShepherd.getPM().deletePersistent(cfv);
+            }
         }
-        ConfigurationUtil.resetValueCache("site");
-    }
-
-    private static void retireValues(List<CustomFieldValue> values) {
-        if (values == null) return;
-        SystemLog.debug("retiring {} values", values.size());
-        //FIXME make this do this, obvs.
+        myShepherd.getPM().deletePersistent(this);
     }
 
     public List<CustomFieldValue> getValues(Shepherd myShepherd) {
