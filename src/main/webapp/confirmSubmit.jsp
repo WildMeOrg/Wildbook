@@ -486,7 +486,9 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
   // Email new submission address(es) defined in commonConfiguration.properties
+ 
   Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+  /*
   List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
   String mailSubj = "New encounter submission: " + number;
   for (String emailTo : mailTo) {
@@ -494,6 +496,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
     mailer.setUrlScheme(request.getScheme());
     es.execute(mailer);
   }
+  */
 
   // Email those assigned this location code
   if (informMe != null) {
