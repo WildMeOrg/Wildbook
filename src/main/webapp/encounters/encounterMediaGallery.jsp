@@ -494,6 +494,11 @@ figcaption div {
     outline: solid black 2px;
     background-color: rgba(120,255,0,0.3) !important;
 }
+.image-enhancer-feature-toggled {
+    z-index: 30;
+    outline: solid black 2px;
+    background-color: rgba(120,255,0,0.3) !important;
+}
 
 	.match-tools {
 		padding: 5px 15px;
@@ -830,6 +835,7 @@ function niceId(id) {
 }
 
 //initializes image enhancement (layers)
+var featureWrapperCounter = 0;
 jQuery(document).ready(function() {
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
@@ -1039,7 +1045,8 @@ function enhancerDisplayAnnots(el, opt) {
     var ma = assetByAnnotationId(aid);
 //console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
-    var featwrap = $('<div class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    var featwrap = $('<div data-media-asset-id="' + ma.id + '-' + ma.annotation.id + '" data-count="' + featureWrapperCounter + '"class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    featureWrapperCounter ++;
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
@@ -1047,7 +1054,7 @@ function enhancerDisplayAnnots(el, opt) {
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i, ma.id);
     }
 }
 
@@ -1070,14 +1077,14 @@ function featureSortOrder(feat) {
     return rtn;
 }
 
-function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     var focused = (feat.annotationId == focusAnnId);
-    var fel = $('<div title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
+    var fel = $('<div data-encid="' + feat.encounterId + '" title="Annot" style="z-index: ' + (31 + (zdelta || 0)) + ';" class="image-enhancer-feature" />');
 
     var tooltip;
     if (feat.individualId) {
@@ -1807,6 +1814,11 @@ $(document).ready(function() {
 		cursor: pointer;
 		display: block;
 	}
+    .go{
+        color: #0C1;
+        margin-bottom: 1.2em;
+        cursor: pointer;
+    }
 </style>
 <%
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
