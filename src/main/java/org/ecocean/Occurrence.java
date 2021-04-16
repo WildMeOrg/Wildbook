@@ -1656,6 +1656,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         // okay, flopping on this via discussion w/ben on 2021-04-15 -- now will allow setting null as a value until we dont like it
         if (!hasValue) throw new IOException("apiPatch op=" + opName + " has no value - use op=remove");
 
+        if ((valueObj != null) && valueObj.equals(null)) valueObj = null;  //convert org.json.JSONObject.NULL to java null
+
         org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
