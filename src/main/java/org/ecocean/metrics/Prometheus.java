@@ -262,10 +262,20 @@ public class Prometheus
             // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
             // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
-            // ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
-            // int specQuagga = speciesEquusQuagga.size();
-            // out.println("<p> Species Equus Quagga Encounters: "+speciesEquusQuagga+"</p>");
-            // this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+            ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
+            int specEquusQuagga = speciesEquusQuagga.size();
+            out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
+            this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
+
+            ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+            int specEquusGrevyi = speciesEquusGrevyi.size();
+            out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
+            this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
+
+            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
+            int specPzGzHybrid = speciesPzGzHybrid.size();
+            out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
+            this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
 
 
       //Number of Encounters by Submission Dates
@@ -361,6 +371,10 @@ public class Prometheus
      out.println("<p>Encounter Metrics</p>");
       out.println("<p> Number of encounters is: "+(this.encs.get())+"</p>");
       out.println("<p> Number of encounters by wildbook is: "+(this.encsWildBook.get())+"</p>");
+
+      out.println("<p> Number of encounters by Species Equus Quagga Encounters: " + (this.encountersForSpecieEquusQuagga.get()) + "<p>");
+      out.println("<p> Number of encounters by Species Equus Grevyi Encounters: " + (this.encountersForSpecieEquusGrevyi.get()) + "<p>");
+      out.println("<p> Number of encounters by Species PzGz Hybrid Encounters: " + (this.encountersForSpeciePzGzHybrid.get()) + "<p>");
    
       out.println("<p> Number of encounters by Location ID Kenya: " + (this.encountersForLocationKenya.get()) + "<p>");
       out.println("<p> Number of encounters by Location ID Mpala: " + (this.encountersForLocationMpala.get()) + "<p>");
