@@ -36,7 +36,8 @@ public class Prometheus
     public Counter encs;
     public Counter encsSpecies;
     public Counter encsSubDate;
-    public Counter encsLocation;
+    // public Counter encountersForLocationIDKenyais;
+    // public Counter encountersForLocationIDKenyais;
     public Counter encsWildBook;
 
     //Users
@@ -196,7 +197,9 @@ public class Prometheus
         out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
           for(j = 0; j < specieNames.size(); j++){
             out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
+          }
+
+          ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
             // int specQuagga = speciesEquusQuagga.size();
             out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
             ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
@@ -213,28 +216,16 @@ public class Prometheus
             // int totalEncsSpecies = allEncSpecies.size();
             // this.encsSpecies.inc((double)totalEncsSpecies);
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
-          }
       }
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
-      // for(String dataSub : numEncountersSub){
-      //     ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
-      //     for(i = 0; i < totalNumEncSub; i++){  
-      //         this.encsSubDate.inc((double)numOfEncounters);
-      //          out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
-      //     }
-      // }
-      // for(i = 0; i < totalNumEncSub; i++){
-      //   ArrayList<Encounter> totalNumSub = ms.getMostRecentIdentifiedEncountersByDate(numEncountersSub.get(i));
-      //   this.encsSubDate.inc((double)totalNumEncSub);
-      //   out.println("<p> Number of encounters by Submission Date: " +numEncountersSub.get(i)+ "is: "+this.encsSubDate.get()+"</p>");
-      // }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
       int totalNumLoc = numEncountersLoc.size();
+      out.println("<p> Species List: "+numEncountersLoc+"</p>");
       // this.encsLocation.inc((double));
       // PrintWriter output;
       for(i = 0; i < totalNumLoc; i++){
