@@ -226,7 +226,7 @@ public class Prometheus
           }
 
           ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
-            int specQuagga = speciesEquusQuagga.size();
+            int specQuagga = speciesEquusQuagga1.size();
             out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
             ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
             out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
