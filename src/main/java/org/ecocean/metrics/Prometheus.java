@@ -290,12 +290,14 @@ public class Prometheus
 
       Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
 
-      // List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
-      // while(countIndivi.hasNext()){
-      //   markedIndividualsList.add(countIndivi.next());
-      // }
+      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+      while(countIndivi.hasNext()){
+        markedIndividualsList.add(countIndivi.next());
+      }
 
-      out.println("<p> Individuals Iterator: "+countIndivi+"</p>");
+      int sizeMarkedIndiv = markedIndividualsList.size();
+
+      out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
