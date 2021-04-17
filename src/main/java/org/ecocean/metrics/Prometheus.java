@@ -184,11 +184,11 @@ public class Prometheus
       //Num of Encounters by Specie
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
-      out.println("<p> All specie types: "+specieNames.get()+"</p>");
+      out.println("<p> All specie types: "+specieNames+"</p>");
 
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
-      out.println("<p> All genus types: "+genuesNames.get()+"</p>");
+      out.println("<p> All genus types: "+genuesNames+"</p>");
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
