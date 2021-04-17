@@ -34,9 +34,16 @@ public class Prometheus
     
     //Encounters
     public Counter encs;
+
+    //Encounter Species Counters
     public Counter encsSpecies;
+    public Counter encountersForSpecieEquusQuagga;
+    public Counter encountersForSpecieEquusGrevyi;
+    public Counter encountersForSpeciePzGzHybrid;
+
     public Counter encsSubDate;
 
+    //Encounter Location Counters
     public Counter encountersForLocationKenya;
     public Counter encountersForLocationMpala;
     public Counter encountersForLocationMpalacentral;
@@ -67,6 +74,14 @@ public class Prometheus
         .help("Number encounters by Specie").register();
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").register();
+
+      //Specie Counters
+      encountersForSpecieEquusQuagga = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Quagga")
+        .help("Number encounters by Specie type Equus Quagga").register();
+      encountersForSpecieEquusGrevyi = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Grevyi")
+        .help("Number encounters by Specie type Equus Grevyi").register();
+      encountersForSpeciePzGzHybrid = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_PzGz_Hybrid")
+        .help("Number encounters by Specie type PzGz Hybrid").register();
 
       //Location Counters
       encountersForLocationKenya = Counter.build().name("wildbook_encounters_by_Location_Kenya")
@@ -223,6 +238,7 @@ public class Prometheus
         out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
           for(j = 0; j < specieNames.size(); j++){
             out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
+            ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
           }
 
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
@@ -237,13 +253,19 @@ public class Prometheus
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
       }
 
-      ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
-            int specQuagga = speciesEquusQuagga1.size();
-            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
-            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
-            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
+            // int specQuagga = speciesEquusQuagga1.size();
+            // out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+            // out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
+            // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+
+            // ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
+            // int specQuagga = speciesEquusQuagga.size();
+            // out.println("<p> Species Equus Quagga Encounters: "+speciesEquusQuagga+"</p>");
+            // this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
