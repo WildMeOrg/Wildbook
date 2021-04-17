@@ -59,8 +59,8 @@ public class Prometheus
         .help("Number encounters by Specie").register();
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").register();
-      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
-        .help("Number encounters by Location ID").register();
+      // encsLocation = Counter.build().name("wildbook_encounters_by_Location")
+      //   .help("Number encounters by Location ID").register();
       indiv = Gauge.build().name("wildbook_individual_wildbook")
         .help("Number individuals by Wildbook").register();
       encs = Counter.build().name("wildbook_encounters")
@@ -83,8 +83,8 @@ public class Prometheus
       //initialize but do not register metrics.
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").create();
-      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
-        .help("Number encounters by Location ID").create();
+      // encsLocation = Counter.build().name("wildbook_encounters_by_Location")
+      //   .help("Number encounters by Location ID").create();
       indiv = Gauge.build().name("wildbook_individual_wildbook")
         .help("Number individuals by Wildbook").create();
       encs = Counter.build().name("wildbook_encounters")
@@ -230,8 +230,8 @@ public class Prometheus
       // PrintWriter output;
       for(i = 0; i < totalNumLoc; i++){
           int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
-          this.encsLocation.inc((double)totalNumByLoc);
-          out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+          // this.encsLocation.inc((double)totalNumByLoc);
+          // out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
       }
     }
     
