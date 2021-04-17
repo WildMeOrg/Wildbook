@@ -202,9 +202,9 @@ public class Prometheus
             int specGrevyi = speciesEquusGrevyi.size();
             ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
             int specPzGz = speciesPzGz.size();
-            out.println("<p> Encounters for species: "+specieNames.get(0)+ ": " + specQuagga"</p>");
-            out.println("<p> Encounters for species: "+specieNames.get(1)+ ": " + specQuagga"</p>");
-            out.println("<p> Encounters for species: "+specieNames.get(2)+ ": " + specQuagga"</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(0)+ ": " + specQuagga + "</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(1)+ ": " + specQuagga + "</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(2)+ ": " + specQuagga + "</p>");
             // int totalEncsSpecies = allEncSpecies.size();
             // this.encsSpecies.inc((double)totalEncsSpecies);
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
