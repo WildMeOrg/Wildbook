@@ -326,7 +326,7 @@ public class Prometheus
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
 
-      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndiviuals();
+      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
       out.println("<p> Individuals from All Marked Method: "+countIndivi+"</p>");
 
 
