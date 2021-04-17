@@ -184,11 +184,11 @@ public class Prometheus
       //Num of Encounters by Specie
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
-      out.println("<p> All specie types: "+specieNames+"</p>");
+      out.println("<p> Species List: "+specieNames+"</p>");
 
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
-      out.println("<p> All genus types: "+genuesNames+"</p>");
+      out.println("<p> Genus List: "+genuesNames+"</p>");
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
@@ -196,7 +196,15 @@ public class Prometheus
         out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
           for(j = 0; j < specieNames.size(); j++){
             out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
-            // ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(i), specieNames.get(j));
+            ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(1), specieNames.get(0));
+            int specQuagga = speciesEquusQuagga.size();
+            ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(1), specieNames.get(1));
+            int specGrevyi = speciesEquusGrevyi.size();
+            ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(2), specieNames.get(2));
+            int specPzGz = speciesPzGz.size();
+            out.println("<p> Encounters for species: "+specieNames.get(0)+ ": " + specQuagga"</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(1)+ ": " + specQuagga"</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(2)+ ": " + specQuagga"</p>");
             // int totalEncsSpecies = allEncSpecies.size();
             // this.encsSpecies.inc((double)totalEncsSpecies);
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
