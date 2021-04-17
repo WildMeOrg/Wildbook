@@ -282,6 +282,21 @@ public class Prometheus
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
+    
+
+      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
+
+      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+      while(countIndivi.hasNext()){
+        markedIndividualsList.add(countIndivi.next());
+      }
+
+      int sizeMarkedIndiv = markedIndividualsList.size();
+
+      out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
+
+      this.indiv.inc((double)sizeMarkedIndiv);
+
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
@@ -326,18 +341,18 @@ public class Prometheus
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
 
-    Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
+    // Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
 
-      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
-      while(countIndivi.hasNext()){
-        markedIndividualsList.add(countIndivi.next());
-      }
+    //   List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+    //   while(countIndivi.hasNext()){
+    //     markedIndividualsList.add(countIndivi.next());
+    //   }
 
-      int sizeMarkedIndiv = markedIndividualsList.size();
+    //   int sizeMarkedIndiv = markedIndividualsList.size();
 
-      out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
+    //   out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
 
-      this.indiv.inc((double)sizeMarkedIndiv);
+    //   this.indiv.inc((double)sizeMarkedIndiv);
 
 
       //Get num of Individuals by wildbook
