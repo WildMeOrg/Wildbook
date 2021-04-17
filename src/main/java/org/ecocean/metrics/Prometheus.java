@@ -226,12 +226,12 @@ public class Prometheus
           }
 
           ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
-            // int specQuagga = speciesEquusQuagga.size();
-            // out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
-            // ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
-            // out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
-            // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
-            // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+            int specQuagga = speciesEquusQuagga.size();
+            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
+            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
             // int specGrevyi = speciesEquusGrevyi.size();
             // ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
@@ -250,15 +250,8 @@ public class Prometheus
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
-      int totalNumLoc = numEncountersLoc.size();
+      
       out.println("<p> Location List: "+numEncountersLoc+"</p>");
-      // this.encsLocation.inc((double));
-      // PrintWriter output;
-      // for(i = 0; i < totalNumLoc; i++){
-      //     int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
-      //     this.encsLocation.inc((double)totalNumByLoc);
-      //     out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
-      // }
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
