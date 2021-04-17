@@ -295,7 +295,7 @@ public class Prometheus
 
       // out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
 
-      this.indiv.inc((double)sizeMarkedIndiv);
+      // this.indiv.inc((double)sizeMarkedIndiv);
 
 
       //Number of Encounters by Location ID
