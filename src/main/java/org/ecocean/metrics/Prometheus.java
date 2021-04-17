@@ -328,7 +328,7 @@ public class Prometheus
 
       Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
 
-      List<String> markedIndividualsList = new ArrayList<String>();
+      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
       while(countIndivi.hasNext()){
         markedIndividualsList.add(countIndivi.next());
       }
