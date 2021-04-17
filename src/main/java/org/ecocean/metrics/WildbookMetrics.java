@@ -22,6 +22,7 @@ package org.ecocean.metrics;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.metrics.junit.TestRunner;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.MarkedIndividual;
 
@@ -70,14 +71,13 @@ import java.util.*;
  * @author jholmber
  *
  */
-public class TestPrometheusClient extends HttpServlet {
+public class WildbookMetrics extends HttpServlet {
 
 
 	/*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
-
   
 
   public void init(ServletConfig config) throws ServletException {
@@ -94,16 +94,19 @@ public class TestPrometheusClient extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
     String context="context0";
-    context=ServletUtilities.getContext(request);
+    context = ServletUtilities.getContext(request);
     this.myShepherd = new Shepherd(context);
     this.myShepherd.setAction("TestPrometheusSevlet.class");
-
+    
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     
     //begin db connection
     this.myShepherd.beginDBTransaction();
+    
+    //Run unit tests
+    //TestRunner.main(out);
     
     try 
     { 
@@ -113,6 +116,7 @@ public class TestPrometheusClient extends HttpServlet {
         metricsExtractor.setNumberOfUsers(out, this.myShepherd);
         metricsExtractor.setNumberOfEncounters(out, this.myShepherd);
         metricsExtractor.setNumberofMediaAssets(out, this.myShepherd);
+        
         pageVisited = true; 
       }	
 
@@ -144,6 +148,8 @@ public class TestPrometheusClient extends HttpServlet {
     
     out.close();
   }
+  
+  
 }
 
 
