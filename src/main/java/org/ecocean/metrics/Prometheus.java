@@ -288,6 +288,15 @@ public class Prometheus
       
       out.println("<p> Location List: "+numEncountersLoc+"</p>");
 
+      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
+
+      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+      while(countIndivi.hasNext()){
+        markedIndividualsList.add(countIndivi.next());
+      }
+
+      out.println("<p> Individuals Iterator: "+markedIndividualsList+"</p>");
+
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
 
@@ -326,14 +335,14 @@ public class Prometheus
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
 
-      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
+      // Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
 
-      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
-      while(countIndivi.hasNext()){
-        markedIndividualsList.add(countIndivi.next());
-      }
+      // List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+      // while(countIndivi.hasNext()){
+      //   markedIndividualsList.add(countIndivi.next());
+      // }
 
-      out.println("<p> Individuals Iterator: "+markedIndividualsList+"</p>");
+      // out.println("<p> Individuals Iterator: "+markedIndividualsList+"</p>");
 
 
       //Get num of Individuals by wildbook
