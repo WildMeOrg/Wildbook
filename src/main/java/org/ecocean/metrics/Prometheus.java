@@ -36,8 +36,16 @@ public class Prometheus
     public Counter encs;
     public Counter encsSpecies;
     public Counter encsSubDate;
-    // public Counter encountersForLocationIDKenyais;
-    // public Counter encountersForLocationIDKenyais;
+
+    public Counter encountersForLocationKenya;
+    public Counter encountersForLocationMpala;
+    public Counter encountersForLocationMpalacentral;
+    public Counter encountersForLocationMpala_Central;
+    public Counter encountersForLocationMpala_North;
+    public Counter encountersForLocationMpala_South;
+    public Counter encountersForLocationMpala_central;
+    public Counter encountersForLocation01Pejeta_East;
+
     public Counter encsWildBook;
 
     //Users
@@ -59,8 +67,26 @@ public class Prometheus
         .help("Number encounters by Specie").register();
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").register();
-      // encsLocation = Counter.build().name("wildbook_encounters_by_Location")
-      //   .help("Number encounters by Location ID").register();
+
+      //Location Counters
+      encountersForLocationKenya = Counter.build().name("wildbook_encounters_by_Location_Kenya")
+        .help("Number encounters by Location ID Kenya").register();
+      encountersForLocationMpala = Counter.build().name("wildbook_encounters_by_Location_Mpala")
+        .help("Number encounters by Location ID Mpala").register();
+      encountersForLocationMpalacentral = Counter.build().name("wildbook_encounters_by_Location_Mpalacentral")
+        .help("Number encounters by Location ID Mpala central").register();
+      encountersForLocationMpala_Central = Counter.build().name("wildbook_encounters_by_Location_Mpala_Central")
+        .help("Number encounters by Location ID Mpala.Central").register();
+      encountersForLocationMpala_North = Counter.build().name("wildbook_encounters_by_Location_Mpala_North")
+        .help("Number encounters by Location ID Mpala.North").register();
+      encountersForLocationMpala_South = Counter.build().name("wildbook_encounters_by_Location_Mpala_South")
+        .help("Number encounters by Location ID Mpala.South").register();
+      encountersForLocationMpala_central = Counter.build().name("wildbook_encounters_by_Location_Mpala_central")
+        .help("Number encounters by Location ID Mpala.central").register();
+      encountersForLocation01Pejeta_East = Counter.build().name("wildbook_encounters_by_Location_01Pejeta_East")
+        .help("Number encounters by Location ID 01 Pejeta.East").register();
+      
+
       indiv = Gauge.build().name("wildbook_individual_wildbook")
         .help("Number individuals by Wildbook").register();
       encs = Counter.build().name("wildbook_encounters")
@@ -225,14 +251,19 @@ public class Prometheus
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
       int totalNumLoc = numEncountersLoc.size();
-      out.println("<p> Species List: "+numEncountersLoc+"</p>");
+      out.println("<p> Location List: "+numEncountersLoc+"</p>");
       // this.encsLocation.inc((double));
       // PrintWriter output;
       for(i = 0; i < totalNumLoc; i++){
           int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
-          // this.encsLocation.inc((double)totalNumByLoc);
-          // out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+          this.encsLocation.inc((double)totalNumByLoc);
+          out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
       }
+
+      int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
+      this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+
+
     }
     
     /** setNumberOfIndividuals
@@ -293,6 +324,7 @@ public class Prometheus
       out.println("<p> Number of encounters by wildbook is: "+(this.encsWildBook.get())+"</p>");
       // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
       // out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
+      out.println("<p> Number of encounters by Location ID Kenya: " + (this.encountersForLocationKenya.get()) + "<p>")
 
     out.println("<p>Individual Metrics</p>");
       out.println("<p> Number of Individuals by Wildbook is: "+ (this.indiv.get())+"</p>"); 
