@@ -254,11 +254,11 @@ public class Prometheus
       out.println("<p> Location List: "+numEncountersLoc+"</p>");
       // this.encsLocation.inc((double));
       // PrintWriter output;
-      for(i = 0; i < totalNumLoc; i++){
-          int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
-          this.encsLocation.inc((double)totalNumByLoc);
-          out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
-      }
+      // for(i = 0; i < totalNumLoc; i++){
+      //     int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
+      //     this.encsLocation.inc((double)totalNumByLoc);
+      //     out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
+      // }
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
       this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
