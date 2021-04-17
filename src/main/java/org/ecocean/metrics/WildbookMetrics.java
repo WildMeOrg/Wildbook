@@ -116,6 +116,7 @@ public class WildbookMetrics extends HttpServlet {
         metricsExtractor.setNumberOfUsers(out, this.myShepherd);
         metricsExtractor.setNumberOfEncounters(out, this.myShepherd);
         metricsExtractor.setNumberofMediaAssets(out, this.myShepherd);
+        metricsExtractor.setNumberOfIndividuals(out, this.myShepherd);
         
         pageVisited = true; 
       }	
