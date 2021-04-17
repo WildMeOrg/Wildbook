@@ -333,7 +333,7 @@ public class Prometheus
         markedIndividualsList.add(countIndivi.next());
       }
 
-      out.println("<p> Individuals Iterator: "+markedIndividualsList.get()+"</p>");
+      out.println("<p> Individuals Iterator: "+markedIndividualsList+"</p>");
 
 
       //Get num of Individuals by wildbook
