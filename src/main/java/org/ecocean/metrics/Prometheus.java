@@ -284,16 +284,16 @@ public class Prometheus
       int totalNumEncSub = numEncountersSub.size();
     
 
-      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
+      // Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
 
-      List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
-      while(countIndivi.hasNext()){
-        markedIndividualsList.add(countIndivi.next());
-      }
+      // List<MarkedIndividual> markedIndividualsList = new ArrayList<MarkedIndividual>();
+      // while(countIndivi.hasNext()){
+      //   markedIndividualsList.add(countIndivi.next());
+      // }
 
-      int sizeMarkedIndiv = markedIndividualsList.size();
+      // int sizeMarkedIndiv = markedIndividualsList.size();
 
-      out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
+      // out.println("<p> Individuals Iterator: "+sizeMarkedIndiv+"</p>");
 
       this.indiv.inc((double)sizeMarkedIndiv);
 
@@ -356,8 +356,8 @@ public class Prometheus
 
 
       //Get num of Individuals by wildbook
-      // int numIndividuals = ms.getNumMarkedIndividuals();
-      // this.indiv.inc((double)numIndividuals);
+      int numIndividuals = ms.getNumMarkedIndividuals();
+      this.indiv.inc((double)numIndividuals);
     }
     
     /** setNumberOfMediaAssets
