@@ -327,7 +327,13 @@ public class Prometheus
     {
 
       Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndividuals();
-      out.println("<p> Individuals from All Marked Method: "+countIndivi+"</p>");
+
+      List<String> markedIndividualsList = new ArrayList<String>();
+      while(countIndivi.hasNext()){
+        markedIndividualsList.add(countIndivi.next());
+      }
+
+      out.println("<p> Individuals Iterator: "+markedIndividualsList+"</p>");
 
 
       //Get num of Individuals by wildbook
