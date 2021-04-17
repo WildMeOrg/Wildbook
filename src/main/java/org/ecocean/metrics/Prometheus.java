@@ -225,13 +225,6 @@ public class Prometheus
             out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
           }
 
-          ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
-            int specQuagga = speciesEquusQuagga1.size();
-            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
-            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
-            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
             // int specGrevyi = speciesEquusGrevyi.size();
             // ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
@@ -243,6 +236,14 @@ public class Prometheus
             // this.encsSpecies.inc((double)totalEncsSpecies);
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
       }
+
+      ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
+            int specQuagga = speciesEquusQuagga1.size();
+            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
+            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
       //Number of Encounters by Submission Dates
       List<String> numEncountersSub = ms.getAllRecordedBy();
