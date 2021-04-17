@@ -323,7 +323,6 @@ public class Prometheus
      */
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
-    //   while(countIndivi.hasNext()){
       //Get num of Individuals by wildbook
       int numIndividuals = ms.getNumMarkedIndividuals();
       this.indiv.inc((double)numIndividuals);
