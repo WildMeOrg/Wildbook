@@ -227,11 +227,11 @@ public class Prometheus
 
           ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
             // int specQuagga = speciesEquusQuagga.size();
-            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
-            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
-            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+            // out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+            // out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(2));
+            // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
             // int specGrevyi = speciesEquusGrevyi.size();
             // ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
@@ -261,7 +261,29 @@ public class Prometheus
       // }
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
-      this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+            this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+
+      int totalNumEncsByLocMpala = ms.getNumEncounters(numEncountersLoc.get(2));
+            this.encountersForLocationMpala.inc((double)totalNumEncsByLocMpala);
+
+      int totalNumEncsByLocMpalacentral = ms.getNumEncounters(numEncountersLoc.get(3));
+            this.encountersForLocationMpalacentral.inc((double)totalNumEncsByLocMpalacentral);
+
+      int totalNumEncsByLocMpala_Central = ms.getNumEncounters(numEncountersLoc.get(4));
+            this.encountersForLocationMpala_Central.inc((double)totalNumEncsByLocMpala_Central);
+
+      int totalNumEncsByLocMpala_North = ms.getNumEncounters(numEncountersLoc.get(5));
+            this.encountersForLocationMpala_North.inc((double)totalNumEncsByLocMpala_North);
+
+      int totalNumEncsByLocMpala_South = ms.getNumEncounters(numEncountersLoc.get(6));
+            this.encountersForLocationMpala_South.inc((double)totalNumEncsByLocMpala_South);
+
+      int totalNumEncsByLoc_central = ms.getNumEncounters(numEncountersLoc.get(7));
+            this.encountersForLocationMpala_central.inc((double)totalNumEncsByLoc_central);
+
+      int totalNumEncsByLoc01Pejeta_East = ms.getNumEncounters(numEncountersLoc.get(8));
+            this.encountersForLocation01Pejeta_East.inc((double)totalNumEncsByLoc01Pejeta_East);
+
 
 
     }
@@ -322,9 +344,15 @@ public class Prometheus
      out.println("<p>Encounter Metrics</p>");
       out.println("<p> Number of encounters is: "+(this.encs.get())+"</p>");
       out.println("<p> Number of encounters by wildbook is: "+(this.encsWildBook.get())+"</p>");
-      // out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
-      // out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
+   
       out.println("<p> Number of encounters by Location ID Kenya: " + (this.encountersForLocationKenya.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala: " + (this.encountersForLocationMpala.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala central: " + (this.encountersForLocationMpalacentral.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.Central: " + (this.encountersForLocationMpala_Central.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.North: " + (this.encountersForLocationMpala_North.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.South: " + (this.encountersForLocationMpala_South.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.central: " + (this.encountersForLocationMpala_central.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID 01 Pejeta East: " + (this.encountersForLocation01Pejeta_East.get()) + "<p>");
 
     out.println("<p>Individual Metrics</p>");
       out.println("<p> Number of Individuals by Wildbook is: "+ (this.indiv.get())+"</p>"); 
