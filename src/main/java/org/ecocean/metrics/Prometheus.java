@@ -21,6 +21,7 @@ import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetSet;
+import org.ecocean.MarkedIndividual;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
@@ -324,6 +325,11 @@ public class Prometheus
      */
     public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
     {
+
+      Iterator<MarkedIndividual> countIndivi = ms.getAllMarkedIndiviuals();
+      out.println("<p> Individuals from All Marked Method: "+countIndivi+"</p>");
+
+
       //Get num of Individuals by wildbook
       int numIndividuals = ms.getNumMarkedIndividuals();
       this.indiv.inc((double)numIndividuals);
