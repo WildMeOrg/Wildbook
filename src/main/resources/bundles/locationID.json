@@ -11,6 +11,8 @@
       {"name":"Fiji", "id":"Fiji", "locationID":[]},
       {"name":"French Polynesia", "id":"French Polynesia", "locationID":[]},
       {"name":"Guam", "id":"Guam", "locationID":[]},
+	  {"name":"Cocos Islands", "id":"Cocos Islands", "locationID":[]},
+	  {"name":"Galapagos Islands", "id":"Galapagos Islands", "locationID":[]},
 	  
 	  {
 				"name": "Hawaiʻi Island", "id": "Hawaii", "locationID":[
@@ -348,6 +350,8 @@
 			 {
 			  "name": "Bothnian Sea", "id": "Bothnian Sea" },
 			  {
+			  "name": "Canary Islands", "id": "Canary Islands" },
+			  {
 			  "name": "Cape Verde", "id": "Cape Verde"  },
 			 {
 			  "name": "Central Baltic Sea", "id": "Central Baltic Sea"  },
@@ -361,15 +365,26 @@
 
 			 {
 			  "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
+			  
+			  {
+			  "name": "North Mediterranean", "id": "North Mediterranean"  },
+			  
+			  {
+			  "name": "East Mediterranean", "id": "East Mediterranean", "locationID":[
+			  
+				{"name":"Israel","id":"Israel", "locationID":[
 
-			  {"name":"Israel","id":"Israel", "locationID":[
+					{"name": "Ashdod", "id": "Ashdod" },
+					{"name": "Ashkelon", "id": "Ashkelon" },
+					{"name": "Dor", "id": "Dor" },
+					{"name": "Herzelia", "id": "Herzelia" }
 
-				{"name": "Ashdod", "id": "Ashdod" },
-				{"name": "Ashkelon", "id": "Ashkelon" },
-				{"name": "Dor", "id": "Dor" },
-				{"name": "Herzelia", "id": "Herzelia" }
+				]}
+			  
+			  
+			  ]  }
 
-			]}
+
 
 
 			  ] },
@@ -386,8 +401,13 @@
 			 {
 			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
 
-				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
-				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
+				{ "name":"Bahamas", "id":"Bahamas", "locationID":[
+				
+					{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
+					{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] }
+				
+				] },
+
 				{ "name":"Dominica", "id":"Dominica", "locationID":[] },
 				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
 				{ "name":"Martinique", "id":"Martinique", "locationID":[] },
@@ -576,6 +596,8 @@
 	{
 		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
+		
+	
 
 		{ "name":"BANGLADESH - West", "id":"BANGLADESH - West", "locationID":[] },
 
@@ -961,11 +983,18 @@
 
 			]
 		  },
+		   { "name":"Seychelles", "id":"Seychelles", "locationID":[
+		  
+				{ "name":"Aldabra Atoll", "id":"Aldabra Atoll", "locationID":[] }
+		  
+		  ] },
+		  
 		  {"name":"Yemen","id":"Yemen","locationID":[
 
 		  				{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
 
 		  ]}
+		 
 
 		],
 		"defaultLatitude": -20.0,
