@@ -52,30 +52,12 @@ if(request.getParameter("locationCodeField")!=null){
 }
 
 //params from donorbox
-String donorboxId = "";
-if(Util.stringExists(request.getParameter("id"))){
-	donorboxId=request.getParameter("id");
-}
-String donorboxFirstName = "";
-if(Util.stringExists(request.getParameter("first_name"))){
-	donorboxFirstName=request.getParameter("first_name");
-}
-String donorboxLastName = "";
-if(Util.stringExists(request.getParameter("last_name"))){
-	donorboxLastName=request.getParameter("last_name");
-}
-String donorboxAmnt = "";
-if(Util.stringExists(request.getParameter("amount"))){
-	donorboxAmnt=request.getParameter("amount");
-}
-String donorboxCurrency = "";
-if(Util.stringExists(request.getParameter("currency"))){
-	donorboxCurrency=request.getParameter("currency");
-}
-String donorboxDuration = "";
-if(Util.stringExists(request.getParameter("duration"))){
-	donorboxDuration=request.getParameter("duration");
-}
+String donorboxId = Util.getRequestParamIfExists(requestion, "id");
+String donorboxFirstName = Util.getRequestParamIfExists(requestion, "first_name");
+String donorboxLastName = Util.getRequestParamIfExists(requestion, "last_name");
+String donorboxAmnt = Util.getRequestParamIfExists(requestion, "amount");
+String donorboxCurrency = Util.getRequestParamIfExists(requestion, "currency");
+String donorboxDuration = Util.getRequestParamIfExists(requestion, "duration");
 
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
