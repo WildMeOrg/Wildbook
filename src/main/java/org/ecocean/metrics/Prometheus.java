@@ -240,7 +240,7 @@ public class Prometheus
           for(j = 0; j < specieNames.size(); j++){
             out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
             ArrayList<Encounter> specieEncounterNums = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
-            out.println("<p> Encounters for species: "+specieNames.get(i)+ ": " + specieEncounterNums + "</p>");
+            out.println("<p> Encounters for species: "+specieNames.get(j)+ ": " + specieEncounterNums + "</p>");
           }
 
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
@@ -255,7 +255,8 @@ public class Prometheus
             // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
       }
 
-            ArrayList<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies("PzGz", "Equus quagga");
+            //Testing Code
+            List<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specQuagga = speciesEquusQuagga1.size();
             out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
             ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies("PzGz", "Equus grevyi");
@@ -263,6 +264,7 @@ public class Prometheus
             ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies("PzGz", "PzGz Hybrid");
             out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
+            //Actual Metrics
             ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(0));
             int specEquusQuagga = speciesEquusQuagga.size();
             out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
