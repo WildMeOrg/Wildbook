@@ -340,9 +340,9 @@ public class CommonConfiguration {
   public static String getAdoptionCampaignUrl(String context) {
     try {
       return getProperty("adoptionCampaignUrl", context).trim();
-    } catch (Exception e) {
+    } catch (NullPointerException e) {
       System.out.println(
-          "Error in getAdoptionCampaignUrl. Returning nothing as a default.");
+          "NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
       return "";
     }
   }
