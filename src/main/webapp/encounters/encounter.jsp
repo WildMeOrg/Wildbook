@@ -415,7 +415,7 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
-            
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
                 if (item.species != taxString) return null;
@@ -1316,7 +1316,7 @@ if(enc.getLocation()!=null){
       latBD = latBD.setScale(1, RoundingMode.HALF_UP);
       laty = latBD.toString();
       laty += " ("+encprops.getProperty("truncated")+")";
-    } 
+    }
   }
   if(enc.getLongitudeAsDouble()!=null){
     longy=enc.getLongitudeAsDouble().toString();
@@ -1325,7 +1325,7 @@ if(enc.getLocation()!=null){
       lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
       longy = lonBD.toString();
       longy += " ("+encprops.getProperty("truncated")+")";
-    } 
+    }
   }
 
   String uName = null;
@@ -1336,15 +1336,15 @@ if(enc.getLocation()!=null){
   }
   if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
     if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
-      longy = encprops.getProperty("noGPS");  
+      longy = encprops.getProperty("noGPS");
       laty = encprops.getProperty("noGPS");
     }
 %>
     <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
 <%
-  } 
+  }
 %>
-    
+
 
 <%
  	if(isOwner){
@@ -1535,7 +1535,7 @@ if(enc.getLocation()!=null){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
@@ -4931,6 +4931,9 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    if(file && file.name){
+      file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+    }
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
@@ -4938,6 +4941,10 @@ button#upload-button {
     var p = ((file._prevUploadedSize / file.size) * 100) + '%';
     updateProgress(el, p, 'uploading');
     console.log('progress %o %o', file._prevUploadedSize, file);
+    let progressBarHtml = '<div id="progress-div"><h4><%= encprops.getProperty("Loading") %></h4>';
+    progressBarHtml += '<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only"><%= encprops.getProperty("PercentComplete")%></span>';
+    progressBarHtml += '</div></div></div>';
+    document.getElementById('updone').innerHTML = progressBarHtml;
   });
   flow.on('fileSuccess', function(file,message){
     var el = findElement(file.name, file.size);
@@ -5027,12 +5034,12 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
-  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
-    console.log("upload finished.");
-    console.log('upload finished. Files added: '+filenames);
-
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5045,7 +5052,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
@@ -5065,6 +5073,10 @@ button#upload-button {
             data: ajaxDataString,
             success: function(d) {
               console.info("I attached MediaAsset "+maId+" to encounter <%=encNum%>");
+              $('#progress-div').hide();
+              document.getElementById('updone').innerHTML = '<i>Processing complete. Refresh page to see new image.</i>';
+              console.log("upload finished.");
+              console.log('upload finished. Files added: ' + filenames);
             },
             error: function(x,y,z) {
               console.warn("failed to MediaAssetAttach");
