@@ -24,6 +24,7 @@
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
+         org.apache.commons.codec.net.URLCodec,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -154,8 +155,8 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-
-
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
@@ -1995,7 +1996,7 @@ function checkIdDisplay() {
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
+								<a href="../occurrence.jsp?number=<%=urlCodec.encode(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID()) %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
