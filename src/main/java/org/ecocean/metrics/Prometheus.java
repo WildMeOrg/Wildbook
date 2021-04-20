@@ -265,17 +265,17 @@ public class Prometheus
             out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
             //Actual Metrics
-            ArrayList<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
+            List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
             out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
             this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
-            ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
+            List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
             out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
+            List<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
             out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
