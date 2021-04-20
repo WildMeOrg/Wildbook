@@ -19,6 +19,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.api.ApiValueException;
+import org.ecocean.api.ApiDeleteCascadeException;
 //import org.ecocean.external.ExternalSubmission;
 import org.ecocean.SystemLog;
 
@@ -1727,6 +1728,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             }
         } catch (ApiValueException ex) {
             throw ex;
+        } catch (ApiDeleteCascadeException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new IOException("apiPatch op=" + opName + " unable to modify " + this + " due to " + ex.toString());
         }
@@ -1774,6 +1777,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     throw new Exception("apiPatchReplace unknown path " + path);
             }
         } catch (ApiValueException ex) {
+            throw ex;
+        } catch (ApiDeleteCascadeException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
@@ -1863,6 +1868,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     throw new Exception("apiPatchRemove unsupported path " + path);
             }
         } catch (ApiValueException ex) {
+            throw ex;
+        } catch (ApiDeleteCascadeException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new IOException("apiPatchRemove unable to modify " + this + " due to " + ex.toString());

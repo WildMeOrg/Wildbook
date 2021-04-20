@@ -1043,6 +1043,17 @@ rtn.put("_payload", payload);
                     out.println(rtnS);
                     out.close();
                     return;
+                } catch (ApiDeleteCascadeException ex) {
+                    SystemLog.error("RestServlet.handlePatch() cascade conflict {}", ex.toString(), ex);
+                    rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                    response.setStatus(602);
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    String rtnS = rtn.toString();
+                    response.setContentLength(rtnS.getBytes("UTF-8").length);
+                    out.println(rtnS);
+                    out.close();
+                    return;
                 } catch (Exception ex) {
                     SystemLog.error("RestServlet.handlePatch() generic exception {}", ex.toString(), ex);
                     rtn.put("message", _rtnMessage("error", payload, ex.toString()));
@@ -1187,7 +1198,7 @@ rtn.put("_payload", payload);
             rtn.put("message", _rtnMessage("cascade", jerr));
             rtn.put("details", casc.toString());
             String rtnS = rtn.toString();
-            response.setStatus(481);
+            response.setStatus(603);
             response.setContentLength(rtnS.getBytes("UTF-8").length);
             out.println(rtnS);
             out.close();
