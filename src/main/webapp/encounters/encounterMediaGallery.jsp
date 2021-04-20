@@ -1098,7 +1098,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
     for (var i = 0 ; i < assets.length ; i++) {
-    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;}
+    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+feat.iaClass;}
     	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.viewpoint){tooltip=tooltip+'<br>Viewpoint: '+assets[i].annotation.viewpoint;}
     }
 
@@ -1107,7 +1107,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.addClass('image-enhancer-feature-aoi');
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
-    if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
+    //if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
     if (focused) {
     	fel.addClass('image-enhancer-feature-focused');
     }
