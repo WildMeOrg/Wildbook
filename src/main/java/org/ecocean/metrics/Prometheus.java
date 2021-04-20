@@ -235,13 +235,13 @@ public class Prometheus
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
-      for(i = 0; i< genuesNames.size(); i++){
-        out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
-          for(j = 0; j < specieNames.size(); j++){
-            out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
-            ArrayList<Encounter> specieEncounterNums = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
-            out.println("<p> Encounters for species: "+specieNames.get(j)+ ": " + specieEncounterNums + "</p>");
-          }
+      // for(i = 0; i< genuesNames.size(); i++){
+      //   out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
+      //     for(j = 0; j < specieNames.size(); j++){
+      //       out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
+      //       ArrayList<Encounter> specieEncounterNums = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
+      //       out.println("<p> Encounters for species: "+specieNames.get(j)+ ": " + specieEncounterNums + "</p>");
+      //     }
 
             // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
             // int specGrevyi = speciesEquusGrevyi.size();
@@ -256,13 +256,13 @@ public class Prometheus
       }
 
             //Testing Code
-            List<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies("Equus", "quagga");
-            int specQuagga = speciesEquusQuagga1.size();
-            out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies("Equus", "grevyi");
-            out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
-            ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies("PzGz", "Hybrid");
-            out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+            // List<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies("Equus", "quagga");
+            // int specQuagga = speciesEquusQuagga1.size();
+            // out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies("Equus", "grevyi");
+            // out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies("PzGz", "Hybrid");
+            // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
             //Actual Metrics
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
