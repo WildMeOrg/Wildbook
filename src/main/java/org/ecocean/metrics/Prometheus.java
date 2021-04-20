@@ -254,7 +254,7 @@ public class Prometheus
             out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("Equus", "hybrid");
+            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
             out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
