@@ -77,9 +77,10 @@ public class EncounterSetSubmitterID extends HttpServlet {
       Encounter enc = myShepherd.getEncounter(encounterNumber);
       
       User encOwner = myShepherd.getUserByUUID(enc.getSubmitterID());
-      if ((ServletUtilities.isCurrentUserOrgAdminOfTargetUser(encOwner, request, myShepherd)||
-          ServletUtilities.isUserAuthorizedForEncounter(enc, request))&&
-          CommonConfiguration.isCatalogEditable(context)) {
+      if ((encOwner==null&&request.isUserInRole("orgAdmin")|| // case 1
+          ServletUtilities.isCurrentUserOrgAdminOfTargetUser(encOwner, request, myShepherd)|| // case 2
+          ServletUtilities.isUserAuthorizedForEncounter(enc, request))&& // case 3
+          CommonConfiguration.isCatalogEditable(context)) { // all cases require
         unauthorized = false;
       }
 
