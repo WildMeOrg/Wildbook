@@ -1715,6 +1715,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                         throw new ApiValueException(ex.getMessage(), "taxonomies");
                     }
                     break;
+                case "encounters":
+                    // really the only thing we can ADD is a _new_ encounter (raw data) so existing ones arent allowed
+                    org.json.JSONObject ej = jsonIn.optJSONObject("value");
+                    String id = ej.optString("id", null);
+                    if (id != null) throw new ApiValueException("cannot add encounter by id; must use op=move instead", "encounters");
+                    Encounter enc = Encounter.fromApiJSONObject(myShepherd, ej);
+                    this.addEncounter(enc);
                 default:
                     throw new Exception("apiPatch op=" + opName + " unknown path " + path);
             }
@@ -1762,6 +1769,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "comments":
                     this.setComments((String)valueObj);
                     break;
+                // currently not going to support op=replace for encounter; instead should use move + remove
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
             }
@@ -1831,6 +1839,25 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                         throw new ApiValueException(ex.getMessage(), "taxonomies");
                     }
                     rtn.put("value", tj.getString("id"));
+                    break;
+                case "encounters":
+                    String id = jsonIn.optString("value", null);
+                    if (id == null) throw new ApiValueException("must pass value=id with encounter id", "encounters");
+                    if (this.getNumEncounters() < 1) throw new ApiValueException("no encounters; which is bad", "encounters");  //snh
+                    Encounter found = null;
+                    for (Encounter enc : this.encounters) {
+                        if (enc.getId().equals(id)) {
+                            found = enc;
+                            break;
+                        }
+                    }
+                    if (found == null) throw new ApiValueException("invalid encounter id=" + id, "encounters");
+                    // we delete the encounter, but accommodate possible cascading implications
+                    found.delete(myShepherd,
+                        jsonIn.optBoolean(KEY_DELETE_CASCADE_SIGHTING, false),
+                        jsonIn.optBoolean(KEY_DELETE_CASCADE_INDIVIDUAL, false)
+                    );
+                    this.removeEncounter(found);
                     break;
                 default:
                     throw new Exception("apiPatchRemove unsupported path " + path);

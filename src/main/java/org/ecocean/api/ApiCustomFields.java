@@ -27,6 +27,8 @@ import java.io.IOException;
 public class ApiCustomFields {
     public static final String DETAIL_LEVEL_MIN = "min";
     public static final String DETAIL_LEVEL_MAX = "max";
+    public static final String KEY_DELETE_CASCADE_INDIVIDUAL = "_deleteCascadeIndividual";
+    public static final String KEY_DELETE_CASCADE_SIGHTING = "_deleteCascadeSighting";
 
     private String id = null;
     //private long version = 0l;
@@ -433,6 +435,9 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
             if (jsonOp == null) throw new IOException("apiPatch got non-object at offset=" + i);
             String op = jsonOp.optString("op", null);
             if (op == null) throw new IOException("apiPatch got null op at offset=" + i);
+            //we need to carry over these booleans to each patch, in case it has delete-cascade implications
+            jsonOp.put(KEY_DELETE_CASCADE_INDIVIDUAL, jsonIn.optBoolean(KEY_DELETE_CASCADE_INDIVIDUAL, false));
+            jsonOp.put(KEY_DELETE_CASCADE_SIGHTING, jsonIn.optBoolean(KEY_DELETE_CASCADE_SIGHTING, false));
             try {
                 switch (op) {
                     case "add":

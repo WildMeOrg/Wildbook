@@ -40,6 +40,7 @@ import org.ecocean.Organization;
 import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
 import org.ecocean.api.ApiHttpServlet;
+import org.ecocean.api.ApiCustomFields;
 import org.ecocean.api.query.QueryParser;
 import org.ecocean.api.ApiValueException;
 import org.ecocean.api.ApiDeleteCascadeException;
@@ -962,6 +963,10 @@ rtn.put("_payload", payload);
         rtn.put("success", false);
         rtn.put("transactionId", instanceId);
 
+        //these are for verifying that cascade is allowed; using same headers as DELETE does
+        payload.put(ApiCustomFields.KEY_DELETE_CASCADE_INDIVIDUAL, Util.booleanNotFalse(request.getHeader("x-allow-delete-cascade-individual")));
+        payload.put(ApiCustomFields.KEY_DELETE_CASCADE_SIGHTING, Util.booleanNotFalse(request.getHeader("x-allow-delete-cascade-sighting")));
+
         String id = payload.optString("id", null);  //not sure id is a real thing (due to path), but definitely not required
         String cls = payload.optString("class", null);
         if (cls == null) {
@@ -1128,7 +1133,7 @@ rtn.put("_payload", payload);
         myShepherd.setAction("RestServletV2.handleDelete");
         myShepherd.beginDBTransaction();
 
-        org.ecocean.api.ApiCustomFields obj = null;  //takes care of *most* cases
+        ApiCustomFields obj = null;  //takes care of *most* cases
         switch (cls) {
             case "org.ecocean.Encounter":
                 obj = myShepherd.getEncounter(id);
