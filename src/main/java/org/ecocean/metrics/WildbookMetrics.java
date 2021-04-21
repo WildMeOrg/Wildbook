@@ -89,13 +89,11 @@ public class WildbookMetrics extends MetricsServlet {
     this.myShepherd.beginDBTransaction();
     try 
       { 
-        //put the data into the database as a double
         if(!pageVisited)
           {
             metricsExtractor.setNumberOfUsers(null, this.myShepherd);
             metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
             metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
-            
             pageVisited = true; 
           } 
     
