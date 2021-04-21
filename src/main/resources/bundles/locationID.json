@@ -2,6 +2,19 @@
 	"description": "we require a root-level node here fwiw",
 	"locationID": [
 		{
+			"name": "Cameroon",
+			"id": "Cameroon",
+			"defaultLatitude": 5.3, "defaultLongitude": 12.5,
+			"locationID": [
+				{
+					"name": "BeNP",
+					"id": "BeNP",
+					"description": "BeNP",
+					"defaultLatitude": 1.270203, "defaultLongitude": 37.382723
+				}
+			]
+		},
+		{
 			"name": "Kenya",
 			"id": "Kenya",
 			"defaultLatitude": 0.0, "defaultLongitude": 38.0,
@@ -26,6 +39,11 @@
 					"name": "Mugie",
 					"id": "Mugie",
 					"defaultLatitude": 0.2, "defaultLongitude": 37.41
+				},
+				{
+					"name": "Ol Jogi",
+					"id": "Ol Jogi",
+					"defaultLatitude": 0.3, "defaultLongitude": 37
 				},
 				{
 					"name": "Ol Pejeta",
