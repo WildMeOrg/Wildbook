@@ -1643,8 +1643,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     // this overrides base, just so we can post-validate
     public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
-        this._validateStartEndTimes();
-        this._validateLocations();
+        if (!this.isJDODeleted()) {
+            this._validateStartEndTimes();
+            this._validateLocations();
+        }
         return rtn;
     }
 
@@ -1857,12 +1859,18 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                         }
                     }
                     if (found == null) throw new ApiValueException("invalid encounter id=" + id, "encounters");
+                    rtn.put("value", id);
                     // we delete the encounter, but accommodate possible cascading implications
+                    String occId = this.getId();
                     found.delete(myShepherd,
                         jsonIn.optBoolean(KEY_DELETE_CASCADE_SIGHTING, false),
                         jsonIn.optBoolean(KEY_DELETE_CASCADE_INDIVIDUAL, false)
                     );
-                    this.removeEncounter(found);
+                    if (this.isJDODeleted()) {
+                        SystemLog.warn("looks like enc id={} delete cascaded to delete occurrence id={}", id, occId);
+                    } else {
+                        this.removeEncounter(found);
+                    }
                     break;
                 default:
                     throw new Exception("apiPatchRemove unsupported path " + path);

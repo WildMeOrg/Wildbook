@@ -1029,7 +1029,13 @@ rtn.put("_payload", payload);
             } else {
                 try {
                     JSONArray patchRes = occ.apiPatch(myShepherd, payload);  //this means *all* patches must succeed
-                    rtn.put("result", occ.asApiJSONObject());
+                    if (occ.isJDODeleted()) {
+                        JSONObject del = new JSONObject();
+                        del.put("deleted", id);
+                        rtn.put("result", del);
+                    } else {
+                        rtn.put("result", occ.asApiJSONObject());
+                    }
                     rtn.put("patchResults", patchRes);
                 } catch (ApiValueException ex) {
                     SystemLog.error("RestServlet.handlePatch() invalid value {}", ex.toString(), ex);

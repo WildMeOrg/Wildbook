@@ -23,6 +23,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
 import java.io.IOException;
+import javax.jdo.JDOHelper;
+import javax.jdo.ObjectState;
 
 public class ApiCustomFields {
     public static final String DETAIL_LEVEL_MIN = "min";
@@ -467,7 +469,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
                 throw ex;
             }
         }
-        this.setVersion();
+        if (!this.isJDODeleted()) this.setVersion();
         return rtn;
     }
 
@@ -521,6 +523,10 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     // really want to override this
     public void delete(Shepherd myShepherd, boolean cascadeOccurrence, boolean cascadeMarkedIndividual) throws IOException {
         myShepherd.getPM().deletePersistent(this);
+    }
+
+    public boolean isJDODeleted() {
+        return JDOHelper.getObjectState(this).equals(ObjectState.PERSISTENT_DELETED);
     }
 }
 
