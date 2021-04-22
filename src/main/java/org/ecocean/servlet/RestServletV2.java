@@ -33,6 +33,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.customfield.CustomFieldDefinition;
+import org.ecocean.customfield.CustomFieldException;
 import org.ecocean.User;
 import org.ecocean.Role;
 import org.ecocean.Organization;
@@ -979,10 +980,25 @@ rtn.put("_payload", payload);
                     ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
                 }
                 ConfigurationUtil.resetValueCache("site");
+            } catch (CustomFieldException ex) {
+                SystemLog.error("RestServlet.handlePatch() on configuration threw {}", ex.toString(), ex);
+                rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                if (ex.getNumValues() > 0) {
+                    rtn.put("hasValues", true);
+                    rtn.put("numValues", ex.getNumValues());
+                }
+                response.setStatus(602);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                String rtnS = rtn.toString();
+                response.setContentLength(rtnS.getBytes("UTF-8").length);
+                out.println(rtnS);
+                out.close();
+                return;
             } catch (Exception ex) {
                 SystemLog.error("RestServlet.handlePatch() on configuration threw {}", ex.toString(), ex);
                 rtn.put("message", _rtnMessage("error", payload, ex.toString()));
-                response.setStatus(602);
+                response.setStatus(603);
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
                 String rtnS = rtn.toString();

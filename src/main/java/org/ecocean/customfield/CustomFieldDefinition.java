@@ -146,7 +146,8 @@ public class CustomFieldDefinition implements java.io.Serializable {
         rtn.put("op", op);
         switch (op) {
             case "remove":
-                this.remove(myShepherd, jsonIn.optBoolean("force", false));
+                int numValues = this.remove(myShepherd, jsonIn.optBoolean("force", false));
+                rtn.put("numValues", numValues);
                 rtn.put("success", true);
                 break;
             default:
@@ -155,10 +156,10 @@ public class CustomFieldDefinition implements java.io.Serializable {
         return rtn;
     }
 
-    public void remove(Shepherd myShepherd, boolean force) throws CustomFieldException {
+    public int remove(Shepherd myShepherd, boolean force) throws CustomFieldException {
         List<CustomFieldValue> values = this.getValues(myShepherd);
         int numValues = Util.collectionSize(values);
-        if (!force && (numValues > 0)) throw new CustomFieldException(this + " has " + numValues + " values associated; to remove CustomFieldDefinition anyway, use force=true option");
+        if (!force && (numValues > 0)) throw new CustomFieldException(this + " has " + numValues + " values associated; to remove CustomFieldDefinition anyway, use force=true option", numValues);
         SystemLog.debug("proceeding with remove() on {}, {} values, force={}", this, numValues, force);
         if (numValues > 0) {
             SystemLog.debug("retiring {} values", values.size());
@@ -167,6 +168,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
             }
         }
         myShepherd.getPM().deletePersistent(this);
+        return numValues;
     }
 
     public List<CustomFieldValue> getValues(Shepherd myShepherd) {
