@@ -48,8 +48,29 @@ try {
 
     for(Encounter enc:encs){
     	%>
-    	<li><a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a> and points at occurrence: <a target="_blank" href="../occurrence.jsp?number=<%=enc.getOccurrenceID() %>"><%=enc.getOccurrenceID() %></a></li>
+    	<li><a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a> and points at occurrence: <a target="_blank" href="../occurrence.jsp?number=<%=enc.getOccurrenceID() %>"><%=enc.getOccurrenceID() %></a>
     	<%
+    	
+    	if(request.getParameter("fixIt")!=null && request.getParameter("fixIt").equals("true")){
+    		
+    		String occurrenceID = enc.getOccurrenceID();
+    		if(myShepherd.getOccurrence(occurrenceID)!=null){
+    			Occurrence occur = myShepherd.getOccurrence(occurrenceID);
+    			occur.addEncounter(enc);
+    			enc.addComments("Added to occurrence "+occurrenceID+ " by script occurrenceBidirectionalReferentialIntegrityCheck2.jsp.");
+    			occur.addComments("Added encounter #"+enc.getCatalogNumber()+ " by script occurrenceBidirectionalReferentialIntegrityCheck2.jsp.");
+    			myShepherd.updateDBTransaction();
+    			%>
+    			<ul><li>Fixed!</li></ul>
+    			<%
+    		}
+    		
+    	}
+    	
+    	%>
+    	</li>
+    	<%
+    	
     }
     
 %>
