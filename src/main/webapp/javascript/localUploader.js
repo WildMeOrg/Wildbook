@@ -100,7 +100,9 @@ console.log('%d %o', i, files[i]);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-          file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+          if(file && file.name){
+              file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+          }
           console.log('added %o %o', file, event);
 		});
 		flow.on('fileProgress', function(file, chunk){
@@ -245,10 +247,9 @@ function filesChanged(f) {
 function filesChangedSetFilename(f) {
     console.log("filesChangedSetFilename")
     filesChanged(f);
-    document.getElementById("hiddenFilename").innerHTML = f.files[0].name;
+    let filename = f.files[0].name.replace(/[^a-zA-Z0-9\. ]/g, "")
+    document.getElementById("hiddenFilename").innerHTML = filename;    
 }
-
-
 
 function updateProgress(el, width, status, bg) {
 	if (!el) return;

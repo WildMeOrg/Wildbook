@@ -812,6 +812,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
+
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label text-danger"><%=props.getProperty("where") %></label>
