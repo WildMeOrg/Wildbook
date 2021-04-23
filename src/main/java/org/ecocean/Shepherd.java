@@ -3605,7 +3605,7 @@ public class Shepherd {
         if(t instanceof java.sql.SQLException){
           java.sql.SQLException exc=(java.sql.SQLException)t;
           java.sql.SQLException g=exc.getNextException();
-          g.printStackTrace();
+          if (g != null) g.printStackTrace();
         }
         t.printStackTrace();
       }
