@@ -13,6 +13,7 @@
 			</field>
 			<field name="customFieldValues" persistence-modifier="persistent" default-fetch-group="true">
 				<collection element-type="org.ecocean.customfield.CustomFieldValue" dependent-element="true" />
+				<foreign-key name="APICUSTOMFIELDS_CUSTOMFIELDVALUES_FK1" delete-action="cascade" />
 				<join />
 			</field>
 		</class>
