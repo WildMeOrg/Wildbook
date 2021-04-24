@@ -75,7 +75,7 @@ public class LocationID {
       filename="locationID_"+qualifier+".json";
     } 
     
-    String shepherdDataDir="wildbook_data_dir";
+    String shepherdDataDir=CommonConfiguration.getShepherdDataDir("context0"); //TODO delete this comment cruft "giraffe_data_dir"; //why is this hard-coded at all?!
     Properties contextsProps=ShepherdProperties.getContextsProperties();
     if(contextsProps.getProperty("context0"+"DataDir")!=null){
       shepherdDataDir=contextsProps.getProperty("context0"+"DataDir");
