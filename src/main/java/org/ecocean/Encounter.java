@@ -3600,6 +3600,9 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
+        if (this.getCountry()!=null&&!"".equals(this.getCountry())) {
+          enc.setCountry(this.getCountry());
+        }
 
         Occurrence occ = myShepherd.getOccurrence(this);
         if (occ != null) {
