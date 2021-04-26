@@ -21,6 +21,7 @@ import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetSet;
+import org.ecocean.MarkedIndividual;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
@@ -34,10 +35,26 @@ public class Prometheus
     
     //Encounters
     public Counter encs;
+
+    //Encounter Species Counters
     public Counter encsSpecies;
+    public Counter encountersForSpecieEquusQuagga;
+    public Counter encountersForSpecieEquusGrevyi;
+    public Counter encountersForSpeciePzGzHybrid;
+
     public Counter encsSubDate;
-    public Counter encsLocation;
-    public Counter encsWildBook;
+
+    //Encounter Location Counters
+    public Counter encountersForLocationKenya;
+    public Counter encountersForLocationMpala;
+    public Counter encountersForLocationMpalacentral;
+    public Counter encountersForLocationMpala_Central;
+    public Counter encountersForLocationMpala_North;
+    public Counter encountersForLocationMpala_South;
+    public Counter encountersForLocationMpala_central;
+    public Counter encountersForLocation01Pejeta_East;
+
+    // public Counter encsWildBook;
 
     //Users
     public Gauge numUsersInWildbook; 
@@ -58,14 +75,40 @@ public class Prometheus
         .help("Number encounters by Specie").register();
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").register();
-      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
-        .help("Number encounters by Location ID").register();
+
+      //Specie Counters
+      encountersForSpecieEquusQuagga = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Quagga")
+        .help("Number encounters by Specie type Equus Quagga").register();
+      encountersForSpecieEquusGrevyi = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Grevyi")
+        .help("Number encounters by Specie type Equus Grevyi").register();
+      encountersForSpeciePzGzHybrid = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_PzGz_Hybrid")
+        .help("Number encounters by Specie type PzGz Hybrid").register();
+
+      //Location Counters
+      encountersForLocationKenya = Counter.build().name("wildbook_encounters_by_Location_Kenya")
+        .help("Number encounters by Location ID Kenya").register();
+      encountersForLocationMpala = Counter.build().name("wildbook_encounters_by_Location_Mpala")
+        .help("Number encounters by Location ID Mpala").register();
+      encountersForLocationMpalacentral = Counter.build().name("wildbook_encounters_by_Location_Mpalacentral")
+        .help("Number encounters by Location ID Mpala central").register();
+      encountersForLocationMpala_Central = Counter.build().name("wildbook_encounters_by_Location_Mpala_Central")
+        .help("Number encounters by Location ID Mpala.Central").register();
+      encountersForLocationMpala_North = Counter.build().name("wildbook_encounters_by_Location_Mpala_North")
+        .help("Number encounters by Location ID Mpala.North").register();
+      encountersForLocationMpala_South = Counter.build().name("wildbook_encounters_by_Location_Mpala_South")
+        .help("Number encounters by Location ID Mpala.South").register();
+      encountersForLocationMpala_central = Counter.build().name("wildbook_encounters_by_Location_Mpala_central")
+        .help("Number encounters by Location ID Mpala.central").register();
+      encountersForLocation01Pejeta_East = Counter.build().name("wildbook_encounters_by_Location_01Pejeta_East")
+        .help("Number encounters by Location ID 01 Pejeta.East").register();
+      
+
       indiv = Gauge.build().name("wildbook_individual_wildbook")
         .help("Number individuals by Wildbook").register();
       encs = Counter.build().name("wildbook_encounters")
         .help("Number encounters").register();
-      encsWildBook = Counter.build().name("wildbook_encounters_wildbook")
-        .help("Number encounters by Wildbook").register();
+      // encsWildBook = Counter.build().name("wildbook_encounters_wildbook")
+      //   .help("Number encounters by Wildbook").register();
       numUsersInWildbook = Gauge.build().name("wildbook_users")
         .help("Number users").register();
       numUsersWithLogin = Gauge.build().name("wildbook_users_w_login")
@@ -82,8 +125,8 @@ public class Prometheus
       //initialize but do not register metrics.
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").create();
-      encsLocation = Counter.build().name("wildbook_encounters_by_Location")
-        .help("Number encounters by Location ID").create();
+      // encsLocation = Counter.build().name("wildbook_encounters_by_Location")
+      //   .help("Number encounters by Location ID").create();
       indiv = Gauge.build().name("wildbook_individual_wildbook")
         .help("Number individuals by Wildbook").create();
       encs = Counter.build().name("wildbook_encounters")
@@ -176,58 +219,76 @@ public class Prometheus
       int numEncounters = ms.getNumEncounters(); //in aggregate
       this.encs.inc((double)numEncounters);
 
-      //Num of Encounters by Wildbook
-      Vector numEncoutnersTotal = ms.getAllEncountersNoFilterAsVector();
-      int numEncountersWild = numEncoutnersTotal.size();
-      this.encsWildBook.inc((double)numEncountersWild);
-
       //Num of Encounters by Specie
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
+      out.println("<p> Species List: "+specieNames+"</p>");
+
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
+      out.println("<p> Genus List: "+genuesNames+"</p>");
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
-      for(i = 0; i< genuesNames.size(); i++){
-        out.println("<p> All specie types: "+genuesNames.get(i)+"</p>");
-          for(j = 0; j < specieNames.size(); j++){
-            out.println("<p> All genues types: "+specieNames.get(j)+"</p>");
-            ArrayList<Encounter> allEncSpecies = ms.getAllEncountersForSpeciesWithSpots(genuesNames.get(i), specieNames.get(j));
-            int totalEncsSpecies = allEncSpecies.size();
-            this.encsSpecies.inc((double)totalEncsSpecies);
-            out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
+      //Code to figure out which species go to which genus to get the total
+      // for(i = 0; i< genuesNames.size(); i++){
+      //   out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
+      //     for(j = 0; j < specieNames.size(); j++){
+      //       out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
+      //       ArrayList<Encounter> specieEncounterNums = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
+      //       out.println("<p> Encounters for species: "+specieNames.get(j)+ ": " + specieEncounterNums + "</p>");
+      //     }
 
-          }
-      }
+            //Actual Metrics
+            List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
+            int specEquusQuagga = speciesEquusQuagga.size();
+            out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
+            this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
+
+            List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
+            int specEquusGrevyi = speciesEquusGrevyi.size();
+            out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
+            this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
+
+            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
+            int specPzGzHybrid = speciesPzGzHybrid.size();
+            out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
+            this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
+
 
       //Number of Encounters by Submission Dates
-      //Do not worry about tiem series now, get larger ints working first
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
-      // for(String dataSub : numEncountersSub){
-      //     ArrayList<Encounter> numOfEncounters = ms.getMostRecentIdentifiedEncountersByDate(dataSub);
-      //     for(i = 0; i < totalNumEncSub; i++){  
-      //         this.encsSubDate.inc((double)numOfEncounters);
-      //          out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get(i)+"</p>");
-      //     }
-      // }
-      // for(i = 0; i < totalNumEncSub; i++){
-      //   ArrayList<Encounter> totalNumSub = ms.getMostRecentIdentifiedEncountersByDate(numEncountersSub.get(i));
-      //   this.encsSubDate.inc((double)totalNumEncSub);
-      //   out.println("<p> Number of encounters by Submission Date: " +numEncountersSub.get(i)+ "is: "+this.encsSubDate.get()+"</p>");
-      // }
 
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
-      int totalNumLoc = numEncountersLoc.size();
-      // this.encsLocation.inc((double));
-      // PrintWriter output;
-      for(i = 0; i < totalNumLoc; i++){
-          int totalNumByLoc = ms.getNumEncounters(numEncountersLoc.get(i));
-          this.encsLocation.inc((double)totalNumByLoc);
-          out.println("<p> Number of encounters by Location ID" +numEncountersLoc.get(i)+ "is: "+this.encsLocation.get()+"</p>");
-      }
+      
+      out.println("<p> Location List: "+numEncountersLoc+"</p>");
+
+      int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
+            this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
+
+      int totalNumEncsByLocMpala = ms.getNumEncounters(numEncountersLoc.get(2));
+            this.encountersForLocationMpala.inc((double)totalNumEncsByLocMpala);
+
+      int totalNumEncsByLocMpalacentral = ms.getNumEncounters(numEncountersLoc.get(3));
+            this.encountersForLocationMpalacentral.inc((double)totalNumEncsByLocMpalacentral);
+
+      int totalNumEncsByLocMpala_Central = ms.getNumEncounters(numEncountersLoc.get(4));
+            this.encountersForLocationMpala_Central.inc((double)totalNumEncsByLocMpala_Central);
+
+      int totalNumEncsByLocMpala_North = ms.getNumEncounters(numEncountersLoc.get(5));
+            this.encountersForLocationMpala_North.inc((double)totalNumEncsByLocMpala_North);
+
+      int totalNumEncsByLocMpala_South = ms.getNumEncounters(numEncountersLoc.get(6));
+            this.encountersForLocationMpala_South.inc((double)totalNumEncsByLocMpala_South);
+
+      int totalNumEncsByLoc_central = ms.getNumEncounters(numEncountersLoc.get(7));
+            this.encountersForLocationMpala_central.inc((double)totalNumEncsByLoc_central);
+
+      int totalNumEncsByLoc01Pejeta_East = ms.getNumEncounters(numEncountersLoc.get(8));
+            this.encountersForLocation01Pejeta_East.inc((double)totalNumEncsByLoc01Pejeta_East);
+
     }
     
     /** setNumberOfIndividuals
@@ -258,20 +319,7 @@ public class Prometheus
       int totalNumMediaAssests = numMediaAssetsWild.size();
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
-      //Media Assets by Specie
-      // int i;
-      // MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
-      // int sizeOfSets = numMediaAssetsSpecie.size();
-      // int[] numSpeciesAssetsArray = new int[sizeOfSets];
-
-      // for(i = 0; i < sizeOfSets; i++){
-      //   numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
-      //    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
-      // }
-            // List<String> specieNamesMedia = ms.getAllTaxonomyNames();
-            // for(string mediaNames : specieNamesMedia){
-            //   ArrayList<MediaAsset> mediaAssestBySpeciesList = ms.getAllMediAssetsWithKeyword(mediaNames);
-            // }
+      //Media Assets by Species
 
     }
     
@@ -279,21 +327,31 @@ public class Prometheus
     public void printMetrics(PrintWriter out)
     {
     out.println("<p>User Metrics</p>");
-      out.println("<p> Number of users is: "+this.numUsersInWildbook.get()+"</p>"); 
-      out.println("<p> Number of users with login is: "+this.numUsersWithLogin.get()+"</p>");     
-      out.println("<p> Number of users without login is: "+this.numUsersWithoutLogin.get()+"</p>"); 
+      out.println("<p> Number of users is: "+ (this.numUsersInWildbook.get())+"</p>"); 
+      out.println("<p> Number of users with login is: "+(this.numUsersWithLogin.get())+"</p>");     
+      out.println("<p> Number of users without login is: "+(this.numUsersWithoutLogin.get())+"</p>"); 
      
      out.println("<p>Encounter Metrics</p>");
-      out.println("<p> Number of encounters is: "+this.encs.get()+"</p>");
-      out.println("<p> Number of encounters by wildbook is: "+this.encsWildBook.get()+"</p>");
-      out.println("<p> Number of encounters by Submission Date is: "+this.encsSubDate.get()+"</p>");
-      // out.println("<p> Number of encounters by Location ID is: "+this.encsLocation.get()+"</p>");
+      out.println("<p> Number of encounters by Wildbook is: "+(this.encs.get())+"</p>");
+
+      out.println("<p> Number of encounters by Species Equus Quagga Encounters: " + (this.encountersForSpecieEquusQuagga.get()) + "<p>");
+      out.println("<p> Number of encounters by Species Equus Grevyi Encounters: " + (this.encountersForSpecieEquusGrevyi.get()) + "<p>");
+      out.println("<p> Number of encounters by Species PzGz Hybrid Encounters: " + (this.encountersForSpeciePzGzHybrid.get()) + "<p>");
+   
+      out.println("<p> Number of encounters by Location ID Kenya: " + (this.encountersForLocationKenya.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala: " + (this.encountersForLocationMpala.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala central: " + (this.encountersForLocationMpalacentral.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.Central: " + (this.encountersForLocationMpala_Central.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.North: " + (this.encountersForLocationMpala_North.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.South: " + (this.encountersForLocationMpala_South.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID Mpala.central: " + (this.encountersForLocationMpala_central.get()) + "<p>");
+      out.println("<p> Number of encounters by Location ID 01 Pejeta East: " + (this.encountersForLocation01Pejeta_East.get()) + "<p>");
 
     out.println("<p>Individual Metrics</p>");
-      out.println("<p> Number of Individuals by Wildbook is: "+this.indiv.get()+"</p>"); 
+      out.println("<p> Number of Individuals by Wildbook is: "+ (this.indiv.get())+"</p>"); 
 
     out.println("<p>Media Asset Metrics</p>");
-      out.println("<p> Number of Media Assets by Wildbook: "+this.numMediaAssetsWildbook.get()+"</p>");
+      out.println("<p> Number of Media Assets by Wildbook: "+ (this.numMediaAssetsWildbook.get())+"</p>");
     }
     
     
