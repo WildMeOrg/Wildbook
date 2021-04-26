@@ -54,7 +54,7 @@ public class Prometheus
     public Counter encountersForLocationMpala_central;
     public Counter encountersForLocation01Pejeta_East;
 
-    public Counter encsWildBook;
+    // public Counter encsWildBook;
 
     //Users
     public Gauge numUsersInWildbook; 
@@ -107,8 +107,8 @@ public class Prometheus
         .help("Number individuals by Wildbook").register();
       encs = Counter.build().name("wildbook_encounters")
         .help("Number encounters").register();
-      encsWildBook = Counter.build().name("wildbook_encounters_wildbook")
-        .help("Number encounters by Wildbook").register();
+      // encsWildBook = Counter.build().name("wildbook_encounters_wildbook")
+      //   .help("Number encounters by Wildbook").register();
       numUsersInWildbook = Gauge.build().name("wildbook_users")
         .help("Number users").register();
       numUsersWithLogin = Gauge.build().name("wildbook_users_w_login")
@@ -219,11 +219,6 @@ public class Prometheus
       int numEncounters = ms.getNumEncounters(); //in aggregate
       this.encs.inc((double)numEncounters);
 
-      //Num of Encounters by Wildbook
-      Vector numEncoutnersTotal = ms.getAllEncountersNoFilterAsVector();
-      int numEncountersWild = numEncoutnersTotal.size();
-      this.encsWildBook.inc((double)numEncountersWild);
-
       //Num of Encounters by Specie
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
@@ -235,6 +230,7 @@ public class Prometheus
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
+      //Code to figure out which species go to which genus to get the total
       // for(i = 0; i< genuesNames.size(); i++){
       //   out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
       //     for(j = 0; j < specieNames.size(); j++){
@@ -323,20 +319,7 @@ public class Prometheus
       int totalNumMediaAssests = numMediaAssetsWild.size();
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
-      //Media Assets by Specie
-      // int i;
-      // MediaAssetSet numMediaAssetsSpecie = ms.getMediaAssetSet();
-      // int sizeOfSets = numMediaAssetsSpecie.size();
-      // int[] numSpeciesAssetsArray = new int[sizeOfSets];
-
-      // for(i = 0; i < sizeOfSets; i++){
-      //   numSpeciesAssetsArray = Integer.parseInt(numMediaAssetsSpecie);
-      //    // int numSpeciesAssets = Integer.parseInt(numMediaAssetsSpecie);
-      // }
-            // List<String> specieNamesMedia = ms.getAllTaxonomyNames();
-            // for(string mediaNames : specieNamesMedia){
-            //   ArrayList<MediaAsset> mediaAssestBySpeciesList = ms.getAllMediAssetsWithKeyword(mediaNames);
-            // }
+      //Media Assets by Species
 
     }
     
@@ -349,8 +332,7 @@ public class Prometheus
       out.println("<p> Number of users without login is: "+(this.numUsersWithoutLogin.get())+"</p>"); 
      
      out.println("<p>Encounter Metrics</p>");
-      out.println("<p> Number of encounters is: "+(this.encs.get())+"</p>");
-      out.println("<p> Number of encounters by wildbook is: "+(this.encsWildBook.get())+"</p>");
+      out.println("<p> Number of encounters by Wildbook is: "+(this.encs.get())+"</p>");
 
       out.println("<p> Number of encounters by Species Equus Quagga Encounters: " + (this.encountersForSpecieEquusQuagga.get()) + "<p>");
       out.println("<p> Number of encounters by Species Equus Grevyi Encounters: " + (this.encountersForSpecieEquusGrevyi.get()) + "<p>");
