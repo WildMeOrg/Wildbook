@@ -53,6 +53,7 @@ public class WildbookMetrics extends MetricsServlet {
             metricsExtractor.setNumberOfUsers(null, this.myShepherd);
             metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
             metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
+            metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
             pageVisited = true; 
           } 
       } 
