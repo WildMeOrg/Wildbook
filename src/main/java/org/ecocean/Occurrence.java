@@ -1557,8 +1557,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("context", this.getContext());
         obj.put("comments", this.getComments());
         obj.put("createdEDM", this.getDateTimeCreated());
-        ComplexDateTime st = getStartTimeSomehow();
-        ComplexDateTime et = getEndTimeSomehow();
+        //ComplexDateTime st = getStartTimeSomehow();
+        //ComplexDateTime et = getEndTimeSomehow();
+        ComplexDateTime st = this.getStartTime();
+        ComplexDateTime et = this.getEndTime();
         if (st != null) obj.put("startTime", st.toIso8601());
         if (et != null) obj.put("endTime", et.toIso8601());
 
