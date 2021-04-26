@@ -352,14 +352,6 @@ public class CommonConfiguration {
     }
   }
 
-  public static String getLocPrefixExceptionItem0(String context) {
-    if (Util.stringExists(getProperty("locPrefixExceptionItem0", context))) {
-      return getProperty("locPrefixExceptionItem0", context).trim();
-    } else {
-      return null;
-    }
-  }
-
   public static boolean getLoggedOutDefaultDesired(String context){
     return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
   }

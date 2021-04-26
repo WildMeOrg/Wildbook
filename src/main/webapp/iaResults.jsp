@@ -40,14 +40,6 @@ System.out.println("setImportTaskComplete() setting true for annot " + ann.getId
     myShepherd.commitDBTransaction();
 }
 
-private static String nextNameFromLocation(Encounter enc) {
-    if (enc == null) return null;
-    String prefix = enc.getLocationID();
-    if (prefix == null) return null;
-    if (prefix.length() > 3) prefix = prefix.substring(0,3);
-    return MarkedIndividual.nextNameByPrefix(prefix.toLowerCase());
-}
-
 String rotationInfo(MediaAsset ma) {
     if ((ma == null) || (ma.getMetadata() == null)) return null;
     HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
@@ -1643,10 +1635,11 @@ function locationBasedCheckbox(el, qann) {
 		$('#new-name-input').attr('placeholder', $('#new-name-input').data('placeholder-orig')).removeAttr('disabled');
 		return true;
 	}
-	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
+	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId;
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
-	$('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
+	$('#new-name-input').attr('placeholder', <%= LocationID.getPrefixForLocationID(enc.getLocationID(), null)%> + 'NNN').attr('disabled', 'disabled');
+	// $('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
