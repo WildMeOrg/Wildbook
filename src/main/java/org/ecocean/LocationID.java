@@ -148,6 +148,29 @@ public class LocationID {
     return null;
   }
   
+  public static String getPrefixForLocationID(String locationID, String qualifier) {
+    if(locationID == null) return "";
+    String locPrefix = null;
+    JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
+    if(j != null) locPrefix = j.optString("prefix", null);
+    if(locPrefix == null){
+      locPrefix = locationID.toLowerCase();
+      if (locPrefix.length() > 3) locPrefix = locPrefix.substring(0, 3);
+    }
+    System.out.println("deleteMe got here b1 getPrefixForLocationID is returning: " + locPrefix);
+    return locPrefix;
+  }
+
+  public static int getPrefixDigitPaddingForLocationID(String locationID, String qualifier) {
+    if (locationID == null) return 3;
+    int digitPadding = 3;
+    JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
+    if (j != null) {
+      digitPadding = j.optInt("prefixDigitPadding", 3);
+    }
+    System.out.println("deleteMe got here b2 getPrefixDigitPaddingForLocationID is returning: " + digitPadding);
+    return digitPadding;
+  }
   
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children

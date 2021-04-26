@@ -325,22 +325,13 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 			//enc2.setState("approved");
 
 			// neither have an individual
-			List<String> locPrefixExceptionList = new ArrayList<String>();
-			locPrefixExceptionList.add(CommonConfiguration.getLocPrefixExceptionItem0(context));
 			if (indiv==null&&indiv2==null) {
                                 //note that useLocation flavor has slight race condition possible here...
                                 // might be better to have way to *create* indiv with new loc-based name
                                 if (useLocation) {
-                                    String locPrefix = enc.getLocationID().toLowerCase();
-                                    if(Util.stringExists(locPrefix)) System.out.println("deleteMe locPrefix is: " + locPrefix);
-                                    if (locPrefix.length() > 3){
-                                      if(locPrefixExceptionList.contains(locPrefix)){
-                                        // don't substring
-                                      } else{
-                                        locPrefix = locPrefix.substring(0,3);
-                                      }
-                                    }
-                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, 3);
+                                    String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
+									int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
                                 }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
