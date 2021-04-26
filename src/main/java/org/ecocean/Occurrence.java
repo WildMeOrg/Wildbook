@@ -1734,8 +1734,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         Object valueObj = jsonIn.opt("value");
         boolean hasValue = jsonIn.has("value");
 
-        //see above
-        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchReplace has empty value - use op=remove");
+        if ((valueObj != null) && valueObj.equals(null)) valueObj = null;  //convert org.json.JSONObject.NULL to java null
 
         org.json.JSONObject rtn = new org.json.JSONObject();
         SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
@@ -1796,6 +1795,21 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "locationId":
                     this.setLocationId(null);
+                    break;
+                case "bearing":
+                    this.setBearing(null);
+                    break;
+                case "distance":
+                    this.setDistance(null);
+                    break;
+                case "behavior":
+                    this.setBehavior(null);
+                    break;
+                case "verbatimLocality":
+                    this.setVerbatimLocality(null);
+                    break;
+                case "comments":
+                    this.setComments(null);
                     break;
                 case "taxonomies":
                     // we allow for both { "id": "uuid" } and simply "uuid" as values here
