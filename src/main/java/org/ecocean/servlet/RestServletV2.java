@@ -1031,7 +1031,7 @@ rtn.put("_payload", payload);
                     JSONArray patchRes = occ.apiPatch(myShepherd, payload);  //this means *all* patches must succeed
                     if (occ.isJDODeleted()) {
                         JSONObject del = new JSONObject();
-                        del.put("deleted", id);
+                        del.put("deletedSighting", id);
                         rtn.put("result", del);
                     } else {
                         rtn.put("result", occ.asApiJSONObject());
