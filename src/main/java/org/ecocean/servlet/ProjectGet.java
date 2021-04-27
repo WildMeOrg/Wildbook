@@ -39,7 +39,7 @@ public class ProjectGet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
 
@@ -55,17 +55,21 @@ public class ProjectGet extends HttpServlet {
             res.put("success",false);
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
+            //System.out.println("Here 1");
+            
             boolean getEncounterMetadata = false;
             String getEncounterMetadataOpt = j.optString("getEncounterMetadata", null);
-            if ("true".equals(getEncounterMetadataOpt)) {
+            if (getEncounterMetadataOpt !=null && "true".equals(getEncounterMetadataOpt)) {
                 getEncounterMetadata = true;
             }
             boolean getUserIncrementalIds = false;
             String getUserIncrementalIdsOpt = j.optString("getUserIncrementalIds", null);
-            if ("true".equals(getUserIncrementalIdsOpt)) {
+            if (getUserIncrementalIdsOpt!=null && "true".equals(getUserIncrementalIdsOpt)) {
                 getUserIncrementalIds = true;
             }
 
+            //System.out.println("Here 2");
+            
             String projectUUID = null;
             String ownerId = null;
             String participantId = null;
@@ -95,7 +99,7 @@ public class ProjectGet extends HttpServlet {
             }
 
             String annotInProject = j.optString("annotInProject", null);
-            if ("true".equals(annotInProject)) {
+            if (annotInProject != null && "true".equals(annotInProject)) {
                 String acmId = j.optString("acmId", null);
                 if (Util.stringExists(acmId)&&Util.stringExists(projectIdPrefix)) {
                     res.put("inProject", "false");
@@ -294,27 +298,38 @@ public class ProjectGet extends HttpServlet {
             }
 
             //get specific project
+            //System.out.println("Here 7");
             projectIdPrefix = j.optString("projectIdPrefix", null);
             projectUUID = j.optString("projectUUID", null);
             if ((Util.stringExists(projectIdPrefix)|| Util.stringExists(projectUUID))&&!complete) {
+              //System.out.println("Here 8");
                 Project project = null;
                 if (Util.stringExists(projectIdPrefix)) {
                     project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
+                    //System.out.println("Here 8a");
                 }
                 if (Util.stringExists(projectUUID)) {
                     project = myShepherd.getProject(projectUUID);
+                    //System.out.println("Here 8b");
                 }
 
                 JSONArray projectArr = new JSONArray();
+                //System.out.println("Here 9");
                 if (project!=null) {
+                  //System.out.println("Here 9a");
                     if (getEncounterMetadata) {
+                      //System.out.println("Here 9b");
                         projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd, request));
+                        //System.out.println("Here 9c");
                     } else {
                         projectArr.put(project.asJSONObject());
+                        //System.out.println("Here 9d");
                     }
                 }
+                //System.out.println("Here 10");
                 if (getEditPermission!=null&&"true".equals(getEditPermission)) {
                     User user = myShepherd.getUser(request);
+                    //System.out.println("Here 10a");
                     res.put("userCanEdit","false");
                     if (user!=null&&(user.hasRoleByName("admin", myShepherd)||user.getId().equals(project.getOwnerId()))) {
                         res.put("userCanEdit","true");
@@ -324,8 +339,9 @@ public class ProjectGet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_OK);
                 res.put("success",true);
                 complete = true;
+                //System.out.println("Here 11");
             }
-
+            //System.out.println("Here 12");
             out.println(res);
             out.close();
 
