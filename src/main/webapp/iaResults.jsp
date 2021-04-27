@@ -146,6 +146,9 @@ if (request.getParameter("acmId") != null) {
 	 			if (enc != null) {
 	 				jann.put("encounterId", enc.getCatalogNumber());
 	 				jann.put("encounterLocationId", enc.getLocationID());
+					jann.put("encounterLocationIdPrefix", enc.getPrefixForLocationID());
+					jann.put("encounterLocationIdPrefixDigitPadding", enc.getPrefixDigitPaddingForLocationID());
+
 	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
@@ -831,7 +834,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    // console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -1638,8 +1641,7 @@ function locationBasedCheckbox(el, qann) {
 	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId;
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
-	$('#new-name-input').attr('placeholder', <%= LocationID.getPrefixForLocationID(enc.getLocationID(), null)%> + 'NNN').attr('disabled', 'disabled');
-	// $('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
+	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationIdPrefix + "N".repeat(annotData[qann][0].encounterLocationIdPrefixDigitPadding)).attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
