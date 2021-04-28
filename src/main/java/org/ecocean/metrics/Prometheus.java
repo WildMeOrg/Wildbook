@@ -223,17 +223,14 @@ public class Prometheus
             //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
-            out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
             this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
             List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
-            out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
+            List<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
-            out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
 
 
@@ -244,7 +241,7 @@ public class Prometheus
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
       
-      out.println("<p> Location List: "+numEncountersLoc+"</p>");
+      // out.println("<p> Location List: "+numEncountersLoc+"</p>");
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
@@ -301,7 +298,20 @@ public class Prometheus
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //TODO: Media Assets by Species
+            Long MAspeciesEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
+            // int specEquusQuagga = speciesEquusQuagga.size();
+            out.println("<p> Media Assets Species Equus Quagga Encounters: "+MAspeciesEquusQuagga+"</p>");
+            // this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
+            Long MAspeciesEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
+            // int specEquusGrevyi = speciesEquusGrevyi.size();
+            out.println("<p> Species Equus Grevyi Encounters: "+MAspeciesEquusGrevyi+"</p>");
+            // this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
+
+            Long MAspeciesPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
+            // int specPzGzHybrid = speciesPzGzHybrid.size();
+            out.println("<p> Species PzGz Hybrid Encounters: "+MAspeciesPzGzHybrid+"</p>");
+            // this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
     }
     
     //Method for printing prometheus objects standardly 
