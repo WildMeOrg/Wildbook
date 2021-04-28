@@ -219,10 +219,6 @@ public class Prometheus
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
       out.println("<p> Genus List: "+genuesNames+"</p>");
-<<<<<<< HEAD
-
-            //Metrics by Species
-=======
       //Tokenizes Taxonomy to get genus and Epithet(specie)
       //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
       
@@ -256,7 +252,6 @@ public class Prometheus
             // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
 
             //Actual Metrics
->>>>>>> parent of d0eec479b (Cleanup)
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
             out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
