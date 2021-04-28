@@ -644,7 +644,7 @@ public Long countMediaAssets(Shepherd myShepherd){
 		q2.closeAll();
 	return myValue;
 }
-
+//Last thing that was added by me - Sarah S.
 
   public Collaboration getCollaboration(String id) {
     Collaboration collab = null;
