@@ -237,7 +237,7 @@ public class Prometheus
             //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
-            this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
+            this.encountersForSpecieEquusQuagga.set((double)specEquusQuagga);
 
             List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
@@ -309,20 +309,20 @@ public class Prometheus
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
       int totalNumMediaAssests = numMediaAssetsWild.size();
-      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
+      this.numMediaAssetsWildbook.set((double)totalNumMediaAssests);
 
       //TODO: Media Assets by Species
             Long MAspeciesEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
             out.println("<p> Media Assets Species Equus Quagga Encounters: "+MAspeciesEquusQuagga+"</p>");
-            this.mediaAssetsForSpecieEquusQuagga.inc((double)MAspeciesEquusQuagga);
+            this.mediaAssetsForSpecieEquusQuagga.set((double)MAspeciesEquusQuagga);
 
             Long MAspeciesEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
             out.println("<p> Species Equus Grevyi Encounters: "+MAspeciesEquusGrevyi+"</p>");
-            this.mediaAssetsForSpecieEquusGrevyi.inc((double)MAspeciesEquusGrevyi);
+            this.mediaAssetsForSpecieEquusGrevyi.set((double)MAspeciesEquusGrevyi);
 
             Long MAspeciesPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
             out.println("<p> Species PzGz Hybrid Encounters: "+MAspeciesPzGzHybrid+"</p>");
-            this.mediaAssetsForSpeciePzGzHybrid.inc((double)MAspeciesPzGzHybrid);
+            this.mediaAssetsForSpeciePzGzHybrid.set((double)MAspeciesPzGzHybrid);
     }
     
     //Method for printing prometheus objects standardly 
