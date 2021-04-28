@@ -219,8 +219,44 @@ public class Prometheus
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
       out.println("<p> Genus List: "+genuesNames+"</p>");
+<<<<<<< HEAD
 
             //Metrics by Species
+=======
+      //Tokenizes Taxonomy to get genus and Epithet(specie)
+      //Look at Taxonmomy object, getting list of Taxonomy getGenus getEpithet
+      
+      // for(i = 0; i< genuesNames.size(); i++){
+      //   out.println("<p> All genues types: "+genuesNames.get(i)+"</p>");
+      //     for(j = 0; j < specieNames.size(); j++){
+      //       out.println("<p> All specie types: "+specieNames.get(j)+"</p>");
+      //       ArrayList<Encounter> specieEncounterNums = ms.getAllEncountersForSpecies(genuesNames.get(i), specieNames.get(j));
+      //       out.println("<p> Encounters for species: "+specieNames.get(j)+ ": " + specieEncounterNums + "</p>");
+      //     }
+
+      //       // ArrayList<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies(genuesNames.get(1), specieNames.get(1));
+      //       // int specGrevyi = speciesEquusGrevyi.size();
+      //       // ArrayList<Encounter> speciesPzGz = ms.getAllEncountersForSpecies(genuesNames.get(2), specieNames.get(2));
+      //       // int specPzGz = speciesPzGz.size();
+      //       // out.println("<p> Encounters for species: "+specieNames.get(0)+ ": " + specQuagga + "</p>");
+      //       // out.println("<p> Encounters for species: "+specieNames.get(1)+ ": " + specQuagga + "</p>");
+      //       // out.println("<p> Encounters for species: "+specieNames.get(2)+ ": " + specQuagga + "</p>");
+      //       // int totalEncsSpecies = allEncSpecies.size();
+      //       // this.encsSpecies.inc((double)totalEncsSpecies);
+      //       // out.println("<p> Number of encounters by Species, for Species" +specieNames.get(j)+ "is: "+this.encsSpecies.get()+"</p>");
+      // }
+
+            // //Testing Code
+            // List<Encounter> speciesEquusQuagga1 = ms.getAllEncountersForSpecies("Equus", "quagga");
+            // int specQuagga = speciesEquusQuagga1.size();
+            // out.println("<p> Species Equus Quagga Encounters Try 1: "+speciesEquusQuagga1+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga2 = ms.getAllEncountersForSpecies("Equus", "grevyi");
+            // out.println("<p> Species Equus Quagga Encounters Try 2: "+speciesEquusQuagga2+"</p>");
+            // ArrayList<Encounter> speciesEquusQuagga3 = ms.getAllEncountersForSpecies("PzGz", "Hybrid");
+            // out.println("<p> Species Equus Quagga Encounters Try 3: "+speciesEquusQuagga3+"</p>");
+
+            //Actual Metrics
+>>>>>>> parent of d0eec479b (Cleanup)
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
             out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
@@ -231,7 +267,7 @@ public class Prometheus
             out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("Equus", "hybrid");
+            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
             out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
