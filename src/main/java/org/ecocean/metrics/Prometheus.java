@@ -59,13 +59,8 @@ public class Prometheus
     public Gauge numUsersWithLogin;
     public Gauge numUsersWithoutLogin;
 
-    //Media Assets Gauge
+    //Media assets Gauge
     public Gauge numMediaAssetsWildbook;
-
-    //Media Assets by Species Counters
-    public Gauge mediaAssetsForSpecieEquusQuagga;
-    public Gauge mediaAssetsForSpecieEquusGrevyi;
-    public Gauge mediaAssetsForSpeciePzGzHybrid;
     
     //individuals Gauge
     public Gauge indiv;
@@ -117,15 +112,6 @@ public class Prometheus
         .help("Number users without Login").register();
       numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
         .help("Number of Media Assets by Wildbook").register();
-
-        //Media Assets by Specie Counters
-      mediaAssetsForSpecieEquusQuagga = Gauge.build().name("media_assets_encounters_by_Specie_Type_Equus_Quagga")
-        .help("Number  media assets by Specie type Equus Quagga").register();
-      mediaAssetsForSpecieEquusGrevyi = Gauge.build().name("media_assets_encounters_by_Specie_Type_Equus_Grevyi")
-        .help("Number  media assets by Specie type Equus Grevyi").register();
-      mediaAssetsForSpeciePzGzHybrid = Gauge.build().name("media_assets_by_Specie_Type_Equus_PzGz_Hybrid")
-        .help("Number of media assets by Specie type PzGz Hybrid").register();
-
     }
 
     //Unit test constructor
@@ -237,14 +223,17 @@ public class Prometheus
             //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
+            out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
             this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
             List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
+            out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            List<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
+            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
+            out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
 
 
@@ -255,7 +244,7 @@ public class Prometheus
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
       
-      // out.println("<p> Location List: "+numEncountersLoc+"</p>");
+      out.println("<p> Location List: "+numEncountersLoc+"</p>");
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
@@ -309,20 +298,10 @@ public class Prometheus
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
       int totalNumMediaAssests = numMediaAssetsWild.size();
-      this.numMediaAssetsWildbook.set((double)totalNumMediaAssests);
+      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //TODO: Media Assets by Species
-            Long MAspeciesEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
-            out.println("<p> Media Assets Species Equus Quagga Encounters: "+MAspeciesEquusQuagga+"</p>");
-            this.mediaAssetsForSpecieEquusQuagga.set((double)MAspeciesEquusQuagga);
 
-            Long MAspeciesEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
-            out.println("<p> Species Equus Grevyi Encounters: "+MAspeciesEquusGrevyi+"</p>");
-            this.mediaAssetsForSpecieEquusGrevyi.set((double)MAspeciesEquusGrevyi);
-
-            Long MAspeciesPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
-            out.println("<p> Species PzGz Hybrid Encounters: "+MAspeciesPzGzHybrid+"</p>");
-            this.mediaAssetsForSpeciePzGzHybrid.set((double)MAspeciesPzGzHybrid);
     }
     
     //Method for printing prometheus objects standardly 
@@ -354,9 +333,6 @@ public class Prometheus
 
     out.println("<p>Media Asset Metrics</p>");
       out.println("<p> Number of Media Assets by Wildbook: "+ (this.numMediaAssetsWildbook.get())+"</p>");
-      out.println("<p> Number of media assets by Species Equus Quagga Encounters: " + (this.mediaAssetsForSpecieEquusQuagga.get()) + "<p>");
-      out.println("<p> Number of media assets by Species Equus Grevyi Encounters: " + (this.mediaAssetsForSpecieEquusGrevyi.get()) + "<p>");
-      out.println("<p> Number of media assets by Species PzGz Hybrid Encounters: " + (this.mediaAssetsForSpeciePzGzHybrid.get()) + "<p>");
     }
     
     
