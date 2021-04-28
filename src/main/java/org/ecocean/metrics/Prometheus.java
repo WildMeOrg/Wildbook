@@ -237,7 +237,7 @@ public class Prometheus
             //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
-            this.encountersForSpecieEquusQuagga.set((double)specEquusQuagga);
+            this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
             List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
