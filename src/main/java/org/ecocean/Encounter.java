@@ -4062,7 +4062,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
     public void delete(Shepherd myShepherd, boolean cascadeOccurrence, boolean cascadeMarkedIndividual) throws IOException {
         Occurrence occ = myShepherd.getOccurrence(this);  //new-world this should never be null
-        if (occ == null) throw new IOException("no occurrence found for " + this);
+        String encStr = this.toString();
+        if (occ == null) {  //as noted above, this is pretty sketchy, but lets proceed anyway
+            SystemLog.warn("weird, we have no occurrence found.  but deleting anyway: {}", encStr);
+            myShepherd.getPM().deletePersistent(this);
+            return;
+        }
         int numOccEncs = occ.getNumEncounters();
         if ((numOccEncs < 2) && !cascadeOccurrence) throw new ApiDeleteCascadeException(occ + " will be removed via cascade; aborting"); 
         int numIndivEncs = -1;
@@ -4071,7 +4076,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             if (numIndivEncs == 0) throw new IOException("danger: zero Encounters reported on " + individual);  //snh
             if ((numIndivEncs == 1) && !cascadeMarkedIndividual) throw new ApiDeleteCascadeException(individual + " will be removed via cascade; aborting"); 
         }
-        String encStr = this.toString();
         myShepherd.getPM().deletePersistent(this);
         if (numOccEncs < 2) {
             SystemLog.warn("cascade delete of {} via Encounter {}", occ, encStr);
