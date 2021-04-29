@@ -1703,7 +1703,15 @@ console.info('resetIdButtons()');
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          String locationIdPrefix = enc.getPrefixForLocationID();
+                          int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          if(enc.getLocationID() != null && nextID == null){
+                            nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          } 
+                          if(enc.getLocationID() == null && nextID == null){
+                            nextID = encprops.getProperty("noLocationID");
+                          } 
                           %>
                            <script type="text/javascript">
                           	function populateID() {

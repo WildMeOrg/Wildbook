@@ -137,6 +137,8 @@ if (request.getParameter("acmId") != null) {
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 		}
+		String locationIdPrefix = null;
+		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
@@ -146,8 +148,11 @@ if (request.getParameter("acmId") != null) {
 	 			if (enc != null) {
 	 				jann.put("encounterId", enc.getCatalogNumber());
 	 				jann.put("encounterLocationId", enc.getLocationID());
-					jann.put("encounterLocationIdPrefix", enc.getPrefixForLocationID());
-					jann.put("encounterLocationIdPrefixDigitPadding", enc.getPrefixDigitPaddingForLocationID());
+					locationIdPrefix = enc.getPrefixForLocationID();
+					jann.put("encounterLocationIdPrefix", locationIdPrefix);
+					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
+					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
 
 	 			}
 				MediaAsset ma = ann.getMediaAsset();
@@ -1641,7 +1646,7 @@ function locationBasedCheckbox(el, qann) {
 	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId;
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
-	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationIdPrefix + "N".repeat(annotData[qann][0].encounterLocationIdPrefixDigitPadding)).attr('disabled', 'disabled');
+	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationNextValue).attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
