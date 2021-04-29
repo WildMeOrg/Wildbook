@@ -370,6 +370,9 @@
 			 {
 			  "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
 			  
+		
+			  {
+			  "name": "Golfe du Lion", "id": "Golfe du Lion"  },
 			  {
 			  "name": "North Mediterranean", "id": "North Mediterranean"  },
 			  
