@@ -61,6 +61,10 @@ public class Prometheus
 
     //Media assets Gauge
     public Gauge numMediaAssetsWildbook;
+    public Gauge numMediaAssetsSpecieEquusQuagga;
+    public Gauge numMediaAssetsSpecieEquusGrevyi;
+    public Gauge numMediaAssetsSpeciePzGzHybrid;
+    
     
     //individuals Gauge
     public Gauge indiv;
@@ -112,6 +116,13 @@ public class Prometheus
         .help("Number users without Login").register();
       numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
         .help("Number of Media Assets by Wildbook").register();
+
+      numMediaAssetsSpecieEquusQuagga = Gauge.build().name("equusQuagga_mediaassets")
+        .help("Number of Media Assets by Specie Equus Quagga").register();
+      numMediaAssetsSpecieEquusGrevyi = Gauge.build().name("equusGrevyi_mediaassets")
+        .help("Number of Media Assets by Specie Equus Grevyi").register();
+      numMediaAssetsSpeciePzGzHybrid = Gauge.build().name("pzgzHybrid_mediaassets")
+        .help("Number of Media Assets by Specie PzGz Hyrbid").register();
     }
 
     //Unit test constructor
@@ -301,6 +312,17 @@ public class Prometheus
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
       //TODO: Media Assets by Species
+            Long mediaAssetsEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
+            out.println("<p> Species Equus Quagga Media Assets: "+mediaAssetsEquusQuagga+"</p>");
+            this.numMediaAssetsSpecieEquusQuagga.inc((double)mediaAssetsEquusQuagga);
+
+            Long mediaAssetsEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
+            out.println("<p> Species Equus Grevyi Media Assets: "+mediaAssetsEquusGrevyi+"</p>");
+            this.numMediaAssetsSpecieEquusGrevyi.inc((double)mediaAssetsEquusGrevyi);
+
+            Long mediaAssetsPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
+            out.println("<p> Species PzGz Hybrid Media Assets: "+mediaAssetsPzGzHybrid+"</p>");
+            this.numMediaAssetsSpeciePzGzHybrid.inc((double)mediaAssetsPzGzHybrid);
 
     }
     
@@ -333,6 +355,11 @@ public class Prometheus
 
     out.println("<p>Media Asset Metrics</p>");
       out.println("<p> Number of Media Assets by Wildbook: "+ (this.numMediaAssetsWildbook.get())+"</p>");
+
+      out.println("<p> Number of Media Assets by Specie Equus Quagga: "+ (this.numMediaAssetsSpecieEquusQuagga.get())+"</p>");
+      out.println("<p> Number of Media Assets by Equus Grevyi: "+ (this.numMediaAssetsSpecieEquusGrevyi.get())+"</p>");
+      out.println("<p> Number of Media Assets by PzGz Hybrid: "+ (this.numMediaAssetsSpeciePzGzHybrid.get())+"</p>");
+
     }
     
     
