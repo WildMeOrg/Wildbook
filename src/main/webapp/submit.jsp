@@ -89,12 +89,14 @@ $(document).ready( function() {
 	<%
 	if(user != null){
 		%>
-		let userId = '<%= user.getId()%>';
+		let userId = '<%= user.getUsername()%>';
 		let requestForProjectNames = {};
-		requestForProjectNames['ownerId'] = userId;
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
 		doAjaxForProject(requestForProjectNames,userId);
 		<%
-	}else{
+	}
+	else{
 		%>
 
 		<%
