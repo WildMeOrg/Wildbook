@@ -19,59 +19,17 @@
 
 package org.ecocean.metrics;
 
-
 import org.ecocean.Shepherd;
-import org.ecocean.User;
-import org.ecocean.metrics.junit.TestRunner;
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.MarkedIndividual;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.MetricsServlet;
-import io.prometheus.client.exporter.common.TextFormat;
-import java.util.*;
-
-// import java.util.*;
-
-// import javax.xml.bind.DatatypeConverter;
-//import com.oreilly.servlet.multipart.FilePart;
-//import com.oreilly.servlet.multipart.MultipartParser;
-//import com.oreilly.servlet.multipart.ParamPart;
-//import com.oreilly.servlet.multipart.Part;
-//import org.ecocean.CommonConfiguration;
-//import org.ecocean.Encounter;
-//import javax.ws.rs.core.StreamingOutput;
-//import java.io.File;
-//import java.io.FileOutputStream;
-//import java.io.OutputStreamWriter;
-//import javax.xml.bind.DatatypeConverter;
-//import io.prometheus.client.exporter.MetricsServlet;
-//import com.sun.net.httpserver.HttpServer;
-//import org.eclipse.jetty.server.Server;
-//import org.eclipse.jetty.servlet.ServletContextHandler;
-//import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
- *
- * This servlet allows the user to upload an extracted, processed patterning file that corresponds to
- * a previously uploaded set of spots. This file is then used for visualization of the extracted pattern
- * and visualizations of potentially matched spots.
- * @author jholmber
- *
- */
+*
+* This servlet allows Wildbook metrics to be accessible via endpoint. 
+* @author jholmber, Gabe Marcial, Joanna Hoang, Sarah Schibel
+*
+*/
 public class WildbookMetrics extends MetricsServlet {
 
 
@@ -90,6 +48,7 @@ public class WildbookMetrics extends MetricsServlet {
     this.myShepherd.beginDBTransaction();
     try 
       { 
+        //This if may not even be necessary as I believe init should only be called once. 
         if(!this.pageVisited)
           {
             this.metricsExtractor.setNumberOfUsers(null, this.myShepherd);
