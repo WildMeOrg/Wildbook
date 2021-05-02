@@ -218,7 +218,7 @@ public class Prometheus
 
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
-      out.println("<p> Genus List: "+genuesNames+"</p>");
+      //out.println("<p> Genus List: "+genuesNames+"</p>");
 
             //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
