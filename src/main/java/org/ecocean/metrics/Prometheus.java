@@ -225,21 +225,26 @@ public class Prometheus
       //Num of Encounters by Specie
       //Epithet (specie) calling
       List<String> specieNames = ms.getAllTaxonomyNames();
+      //out.println("<p> Species List: "+specieNames+"</p>");
 
       //Genus call
       List<String> genuesNames = ms.getAllGenuses();
-    
-            //Actual Metrics
+      //out.println("<p> Genus List: "+genuesNames+"</p>");
+
+            //Metrics by Species
             List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
             int specEquusQuagga = speciesEquusQuagga.size();
+          //  out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
             this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
             List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
             int specEquusGrevyi = speciesEquusGrevyi.size();
+          //  out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
             this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
             ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
             int specPzGzHybrid = speciesPzGzHybrid.size();
+           // out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
             this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
 
 
@@ -250,6 +255,7 @@ public class Prometheus
       //Number of Encounters by Location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
       
+      //out.println("<p> Location List: "+numEncountersLoc+"</p>");
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
