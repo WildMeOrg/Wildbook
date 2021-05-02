@@ -32,8 +32,9 @@ import io.prometheus.client.exporter.MetricsServlet;
 */
 public class WildbookMetrics extends MetricsServlet {
 
-
-	/*Initialize variables*/
+  private static final long serialVersionUID = 1L; //an eclipse security thing
+  
+  /*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
