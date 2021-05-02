@@ -39,7 +39,8 @@ import java.io.Writer;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
-import io.prometheus.client.CollectorRegistry; 
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.exporter.common.TextFormat;
 import java.util.*;
 
@@ -71,7 +72,7 @@ import java.util.*;
  * @author jholmber
  *
  */
-public class WildbookMetrics extends HttpServlet {
+public class WildbookMetrics extends MetricsServlet {
 
 
 	/*Initialize variables*/
@@ -80,75 +81,40 @@ public class WildbookMetrics extends HttpServlet {
   Prometheus metricsExtractor; 
   
 
-  public void init(ServletConfig config) throws ServletException {
+  public void init(ServletConfig config) throws ServletException 
+  {
     super.init(config);
     metricsExtractor = new Prometheus(); 
-  }
-
-
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
-  }
-
-
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
-    String context="context0";
-    context = ServletUtilities.getContext(request);
-    this.myShepherd = new Shepherd(context);
+    this.myShepherd = new Shepherd("context0");
     this.myShepherd.setAction("TestPrometheusSevlet.class");
-    
-    //set up for response
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
-    
-    //begin db connection
     this.myShepherd.beginDBTransaction();
-    
-    //Run unit tests
-    //TestRunner.main(out);
-    
     try 
-    { 
-      //put the data into the database as a double
-      if(!pageVisited)
-      {
-        metricsExtractor.setNumberOfUsers(out, this.myShepherd);
-        metricsExtractor.setNumberOfEncounters(out, this.myShepherd);
-        metricsExtractor.setNumberofMediaAssets(out, this.myShepherd);
-        metricsExtractor.setNumberOfIndividuals(out, this.myShepherd);
-        
-        pageVisited = true; 
-      }	
-
-      else{
-       metricsExtractor.encs.inc(Math.random());
-       metricsExtractor.numUsersInWildbook.inc(Math.random());
-       metricsExtractor.numMediaAssetsWildbook.inc(Math.random());
-       metricsExtractor.indiv.inc(Math.random());
-      }
-    } 
-    catch (Exception lEx) 
-    {
-    //gracefully catch any errors  
-      lEx.printStackTrace();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to upload your file.");
-      out.println(ServletUtilities.getFooter(context));
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-    }
-    finally 
-    {
-      //always close DB connections  
-      this.myShepherd.rollbackDBTransaction();
-      this.myShepherd.closeDBTransaction();
-    }
-    
-    //Set up endpoint
-    this.metricsExtractor.metrics(request, response);
-    
-    out.close();
+      { 
+        if(!pageVisited)
+          {
+            metricsExtractor.setNumberOfUsers(null, this.myShepherd);
+            metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
+            metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
+            metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
+            pageVisited = true; 
+          } 
+      } 
+      catch (Exception lEx) 
+        {
+        //gracefully catch any errors  
+          lEx.printStackTrace();
+        }
+      finally 
+        {
+          //always close DB connections  
+          this.myShepherd.rollbackDBTransaction();
+          this.myShepherd.closeDBTransaction();
+        }
   }
+
+
+  
+
   
   
 }
