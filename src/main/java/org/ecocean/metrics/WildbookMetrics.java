@@ -39,7 +39,6 @@ public class WildbookMetrics extends MetricsServlet {
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
   
-
   public void init(ServletConfig config) throws ServletException 
   {
     super.init(config);
