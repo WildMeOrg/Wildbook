@@ -24,51 +24,49 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import io.prometheus.client.exporter.MetricsServlet;
 
-
 /**
- *
- * This servlet allows Wildbook metrics to be accessible via endpoint. 
- * @author jholmber, Gabe Marcial, Joanna Hoang, Sarah Schibel
- *
- */
+*
+* This servlet allows Wildbook metrics to be accessible via endpoint. 
+* @author jholmber, Gabe Marcial, Joanna Hoang, Sarah Schibel
+*
+*/
 public class WildbookMetrics extends MetricsServlet {
-
-  private static final long serialVersionUID = 1L; //an eclipse security thing
   
   /*Initialize variables*/
   Shepherd myShepherd; 
   boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
   
-  public void init(ServletConfig config) throws ServletException {
+  public void init(ServletConfig config) throws ServletException 
+  {
     super.init(config);
-    metricsExtractor = new Prometheus(); 
+    this.metricsExtractor = new Prometheus(); 
     this.myShepherd = new Shepherd("context0");
-    this.myShepherd.setAction("TestPrometheusSevlet.class");
+    this.myShepherd.setAction("WildBookMetrics.class");
     this.myShepherd.beginDBTransaction();
     try 
       { 
-        if(!pageVisited)
+        //This if may not even be necessary as I believe init should only be called once. 
+        if(!this.pageVisited)
           {
-            metricsExtractor.setNumberOfUsers(null, this.myShepherd);
-            metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
-            metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
-            metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
-            pageVisited = true; 
+            this.metricsExtractor.setNumberOfUsers(null, this.myShepherd);
+            this.metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
+            this.metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
+            this.metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
+            this.pageVisited = true; 
           } 
       } 
       catch (Exception lEx) 
         {
-        //gracefully catch any errors  
           lEx.printStackTrace();
         }
       finally 
         {
-          //always close DB connections  
           this.myShepherd.rollbackDBTransaction();
           this.myShepherd.closeDBTransaction();
         }
   }
+  
 }
 
 
