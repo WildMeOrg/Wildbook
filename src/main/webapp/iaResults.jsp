@@ -166,9 +166,9 @@ if (request.getParameter("acmId") != null) {
 				if (project!=null) {
 					try {
 
-						if (enc!=null) {;
-							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
-						}
+						//if (enc!=null) {;
+						//	System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
+						//}
 
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 							System.out.println("num encounters in project: "+project.getEncounters().size());
