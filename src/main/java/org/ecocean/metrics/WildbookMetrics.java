@@ -85,18 +85,28 @@ public class WildbookMetrics extends MetricsServlet {
   {
     super.init(config);
     metricsExtractor = new Prometheus(); 
-    this.myShepherd = new Shepherd("context0");
-    this.myShepherd.setAction("TestPrometheusSevlet.class");
+  }
+
+  @Override
+  protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
+          throws ServletException, IOException {
+    super.doPost(req, resp);
+
+    this.myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    this.myShepherd.setAction("WildBookMetrics.class");
+
+    PrintWriter out = resp.getWriter(); 
     this.myShepherd.beginDBTransaction();
+    
     try 
       { 
-        if(!pageVisited)
+        if(!this.pageVisited)
           {
-            metricsExtractor.setNumberOfUsers(null, this.myShepherd);
-            metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
-            metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
-            metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
-            pageVisited = true; 
+            this.metricsExtractor.setNumberOfUsers(null, this.myShepherd);
+            this.metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
+            this.metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
+            this.metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
+            this.pageVisited = true; 
           } 
       } 
       catch (Exception lEx) 
@@ -110,12 +120,9 @@ public class WildbookMetrics extends MetricsServlet {
           this.myShepherd.rollbackDBTransaction();
           this.myShepherd.closeDBTransaction();
         }
+
   }
 
-
-  
-
-  
   
 }
 
