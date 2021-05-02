@@ -84,20 +84,10 @@ public class WildbookMetrics extends MetricsServlet {
   public void init(ServletConfig config) throws ServletException 
   {
     super.init(config);
-    metricsExtractor = new Prometheus(); 
-  }
-
-  @Override
-  protected void doPost(final HttpServletRequest req, final HttpServletResponse resp)
-          throws ServletException, IOException {
-    super.doPost(req, resp);
-
-    this.myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    this.metricsExtractor = new Prometheus(); 
+    this.myShepherd = new Shepherd("context0");
     this.myShepherd.setAction("WildBookMetrics.class");
-
-    PrintWriter out = resp.getWriter(); 
     this.myShepherd.beginDBTransaction();
-    
     try 
       { 
         if(!this.pageVisited)
@@ -111,18 +101,14 @@ public class WildbookMetrics extends MetricsServlet {
       } 
       catch (Exception lEx) 
         {
-        //gracefully catch any errors  
           lEx.printStackTrace();
         }
       finally 
         {
-          //always close DB connections  
           this.myShepherd.rollbackDBTransaction();
           this.myShepherd.closeDBTransaction();
         }
-
   }
-
   
 }
 
