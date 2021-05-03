@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils;
 
 public class JsonProperties extends Properties {
 
-	private static final String propertiesOverrideDir = "/data/giraffe_data_dir/WEB-INF/classes/bundles";
+	private static final String propertiesOverrideDir = "/var/lib/tomcat8/webapps/giraffe_data_dir/WEB-INF/classes/bundles";
 	private static final String propertiesDir = "WEB-INF/classes/bundles";
 	private static final String jsonLinkPrefix = "@";
 

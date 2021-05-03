@@ -10,6 +10,8 @@
 					"name": "BeNP",
 					"id": "BeNP",
 					"description": "BeNP",
+					"prefix": "BeNP",
+					"prefixDigitPadding": 4,
 					"defaultLatitude": 1.270203, "defaultLongitude": 37.382723
 				}
 			]

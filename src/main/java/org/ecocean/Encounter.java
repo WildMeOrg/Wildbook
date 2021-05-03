@@ -3486,6 +3486,13 @@ throw new Exception();
             }
             return returnEncs;
         }
+        public String getPrefixForLocationID(){ //convenience function
+          return LocationID.getPrefixForLocationID(this.getLocationID(), null);
+        }
+        
+        public int getPrefixDigitPaddingForLocationID() { // convenience function
+          return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
+        }
 
 
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
