@@ -49,10 +49,10 @@ public class WildbookMetrics extends MetricsServlet {
         //This if may not even be necessary as I believe init should only be called once. 
         if(!this.pageVisited)
           {
-            this.metricsExtractor.setNumberOfUsers(null, this.myShepherd);
-            this.metricsExtractor.setNumberOfEncounters(null, this.myShepherd);
-            this.metricsExtractor.setNumberofMediaAssets(null, this.myShepherd);
-            this.metricsExtractor.setNumberOfIndividuals(null, this.myShepherd);
+            this.metricsExtractor.setNumberOfUsers(this.myShepherd);
+            this.metricsExtractor.setNumberOfEncounters(this.myShepherd);
+            this.metricsExtractor.setNumberofMediaAssets(this.myShepherd);
+            this.metricsExtractor.setNumberOfIndividuals(this.myShepherd);
             this.pageVisited = true; 
           } 
       } 

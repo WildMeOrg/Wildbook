@@ -61,6 +61,10 @@ public class Prometheus
 
     //Media assets Gauge
     public Gauge numMediaAssetsWildbook;
+    public Gauge numMediaAssetsSpecieEquusQuagga;
+    public Gauge numMediaAssetsSpecieEquusGrevyi;
+    public Gauge numMediaAssetsSpeciePzGzHybrid;
+    
     
     //individuals Gauge
     public Gauge indiv;
@@ -112,6 +116,13 @@ public class Prometheus
         .help("Number users without Login").register();
       numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
         .help("Number of Media Assets by Wildbook").register();
+
+      numMediaAssetsSpecieEquusQuagga = Gauge.build().name("equusQuagga_mediaassets")
+        .help("Number of Media Assets by Specie Equus Quagga").register();
+      numMediaAssetsSpecieEquusGrevyi = Gauge.build().name("equusGrevyi_mediaassets")
+        .help("Number of Media Assets by Specie Equus Grevyi").register();
+      numMediaAssetsSpeciePzGzHybrid = Gauge.build().name("pzgzHybrid_mediaassets")
+        .help("Number of Media Assets by Specie PzGz Hyrbid").register();
     }
 
     //Unit test constructor
@@ -174,11 +185,9 @@ public class Prometheus
     /** setNumberOfUsers
      * Sets the counters/gauges for metrics related to number of users
      * Parameters
-     *    out: For debugging purposes, in case we want to another way of
-     *         printing the value in the page. 
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfUsers(PrintWriter out, Shepherd ms)
+    public void setNumberOfUsers(Shepherd ms)
     {
       //Getting number of users by wildbook
       int numUsers = ms.getNumUsers();
@@ -199,11 +208,9 @@ public class Prometheus
     /** setNumberOfEncounters
      * Sets the counters/gauges for metrics related to number of encounters
      * Parameters
-     *    out: For debugging purposes, in case we want to another way of
-     *         printing the value in the page. 
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfEncounters(PrintWriter out, Shepherd ms)
+    public void setNumberOfEncounters(Shepherd ms)
     {
       int i;
       int j;
@@ -212,39 +219,27 @@ public class Prometheus
       this.encs.inc((double)numEncounters);
 
       //Num of Encounters by Specie
-      //Epithet (specie) calling
-      List<String> specieNames = ms.getAllTaxonomyNames();
-      //out.println("<p> Species List: "+specieNames+"</p>");
+      List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
+      int specEquusQuagga = speciesEquusQuagga.size();
+      this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
 
-      //Genus call
-      List<String> genuesNames = ms.getAllGenuses();
-      //out.println("<p> Genus List: "+genuesNames+"</p>");
+      List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
+      int specEquusGrevyi = speciesEquusGrevyi.size();
+      this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
 
-            //Metrics by Species
-            List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
-            int specEquusQuagga = speciesEquusQuagga.size();
-          //  out.println("<p> Species Equus Quagga Encounters: "+specEquusQuagga+"</p>");
-            this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
-
-            List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
-            int specEquusGrevyi = speciesEquusGrevyi.size();
-          //  out.println("<p> Species Equus Grevyi Encounters: "+specEquusGrevyi+"</p>");
-            this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
-
-            ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
-            int specPzGzHybrid = speciesPzGzHybrid.size();
-           // out.println("<p> Species PzGz Hybrid Encounters: "+specPzGzHybrid+"</p>");
-            this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
+      ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
+      int specPzGzHybrid = speciesPzGzHybrid.size();
+      this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
 
 
       //Number of Encounters by Submission Dates
+      //TODO: Time Series Item, this method is not complete
       List<String> numEncountersSub = ms.getAllRecordedBy();
       int totalNumEncSub = numEncountersSub.size();
 
       //Number of Encounters by Location ID
+      //Getting location ID
       List<String> numEncountersLoc = ms.getAllLocationIDs();
-      
-      //out.println("<p> Location List: "+numEncountersLoc+"</p>");
 
       int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
             this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
@@ -275,11 +270,9 @@ public class Prometheus
     /** setNumberOfIndividuals
      * Sets the counters/gauges for metrics related to number of individuals
      * Parameters
-     *    out: For debugging purposes, in case we want to another way of
-     *         printing the value in the page. 
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfIndividuals(PrintWriter out, Shepherd ms)
+    public void setNumberOfIndividuals(Shepherd ms)
     {
       //Get num of Individuals by wildbook
       int numIndividuals = ms.getNumMarkedIndividuals();
@@ -289,53 +282,26 @@ public class Prometheus
     /** setNumberOfMediaAssets
      * Sets the counters/gauges for metrics related to number of media assets
      * Parameters
-     *    out: For debugging purposes, in case we want to another way of
-     *         printing the value in the page. 
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberofMediaAssets(PrintWriter out, Shepherd ms)
+    public void setNumberofMediaAssets(Shepherd ms)
     {
       //Media Assets by WildBook
       ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
       int totalNumMediaAssests = numMediaAssetsWild.size();
       this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
 
-      //TODO: Media Assets by Species
+      //Media Assets by Specie
+      Long mediaAssetsEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
+      this.numMediaAssetsSpecieEquusQuagga.inc((double)mediaAssetsEquusQuagga);
 
-    }
-    
-    //Method for printing prometheus objects standardly 
-    public void printMetrics(PrintWriter out)
-    {
-    out.println("<p>User Metrics</p>");
-      out.println("<p> Number of users is: "+ (this.numUsersInWildbook.get())+"</p>"); 
-      out.println("<p> Number of users with login is: "+(this.numUsersWithLogin.get())+"</p>");     
-      out.println("<p> Number of users without login is: "+(this.numUsersWithoutLogin.get())+"</p>"); 
-     
-     out.println("<p>Encounter Metrics</p>");
-      out.println("<p> Number of encounters by Wildbook is: "+(this.encs.get())+"</p>");
+      Long mediaAssetsEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
+      this.numMediaAssetsSpecieEquusGrevyi.inc((double)mediaAssetsEquusGrevyi);
 
-      out.println("<p> Number of encounters by Species Equus Quagga Encounters: " + (this.encountersForSpecieEquusQuagga.get()) + "<p>");
-      out.println("<p> Number of encounters by Species Equus Grevyi Encounters: " + (this.encountersForSpecieEquusGrevyi.get()) + "<p>");
-      out.println("<p> Number of encounters by Species PzGz Hybrid Encounters: " + (this.encountersForSpeciePzGzHybrid.get()) + "<p>");
-   
-      out.println("<p> Number of encounters by Location ID Kenya: " + (this.encountersForLocationKenya.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala: " + (this.encountersForLocationMpala.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala central: " + (this.encountersForLocationMpalacentral.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala.Central: " + (this.encountersForLocationMpala_Central.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala.North: " + (this.encountersForLocationMpala_North.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala.South: " + (this.encountersForLocationMpala_South.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID Mpala.central: " + (this.encountersForLocationMpala_central.get()) + "<p>");
-      out.println("<p> Number of encounters by Location ID 01 Pejeta East: " + (this.encountersForLocation01Pejeta_East.get()) + "<p>");
+      Long mediaAssetsPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
+      this.numMediaAssetsSpeciePzGzHybrid.inc((double)mediaAssetsPzGzHybrid);
 
-    out.println("<p>Individual Metrics</p>");
-      out.println("<p> Number of Individuals by Wildbook is: "+ (this.indiv.get())+"</p>"); 
-
-    out.println("<p>Media Asset Metrics</p>");
-      out.println("<p> Number of Media Assets by Wildbook: "+ (this.numMediaAssetsWildbook.get())+"</p>");
-    }
-    
-    
+    }      
     
 }
 

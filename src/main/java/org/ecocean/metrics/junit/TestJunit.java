@@ -85,7 +85,7 @@ public class TestJunit
   {
     this.myShepherd.beginDBTransaction();
     //run method
-    this.promObject.setNumberOfUsers(this.pw, this.myShepherd);
+    this.promObject.setNumberOfUsers(this.myShepherd);
     //int s = this.myShepherd.getNumUsers();
     assertEquals((int) this.promObject.numUsersInWildbook.get(), this.usersInWildbook);
     assertEquals((int) this.promObject.numUsersWithLogin.get(), this.wLogin);
@@ -99,7 +99,7 @@ public class TestJunit
   public void testSetNumberOfEncounters()
   {
     this.myShepherd.closeDBTransaction();
-    this.promObject.setNumberOfEncounters(this.pw, this.myShepherd);
+    this.promObject.setNumberOfEncounters(this.myShepherd);
     assertEquals((int) this.promObject.encs.get(), this.encsInWildbook);
     //TODO: The rest of the metrics for this method
     this.myShepherd.closeDBTransaction();  
