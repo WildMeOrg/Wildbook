@@ -28,14 +28,14 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
-	<h1 class="intro-adopt">Adopt a Shark</h1>
-	<h2>Support cutting edge sand tiger shark research.</h2>
+	<h1 class="intro-adopt">Adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%></h1>
+	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>
-		By adopting a sand tiger shark, you can give it a nickname and receive updates each time it is spotted by citizen scientists.
-		Funds raised through shark adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional sand tiger shark research and conservation.
+		By adopting a(n) <%=CommonConfiguration.getAnimalSingular(context)%>, you can give it a nickname and receive updates each time it is spotted by citizen scientists.
+		Funds raised through <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional <%=CommonConfiguration.getAnimalSingular(context)%> research and conservation.
 		</p>
-		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
+		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Begin Adoption<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
 	<section id="custom-donation-image">
 		<img src="images/ncaquariums/adoption_levels_trimmed.png" alt="donation options" />
@@ -85,7 +85,7 @@ context=ServletUtilities.getContext(request);
 					<p>$?/yr</p>
 				</div>
 				<p>
-					We appreciate your support of ongoing sand tiger shark research
+					We appreciate your support of ongoing <%=CommonConfiguration.getAnimalSingular(context)%> research
 				</p>
 			</div>
 		</article>
@@ -111,7 +111,7 @@ context=ServletUtilities.getContext(request);
 
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Sand Tiger Shark Adopter</p>
+							<p><%=CommonConfiguration.getAnimalSingularCapitalized(context)%> Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
