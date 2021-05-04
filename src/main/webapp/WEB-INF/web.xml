@@ -445,7 +445,13 @@
         /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
-            </param-value>
+
+		/ProjectCreate = authc
+		/ProjectDelete = authc
+		/ProjectGet = authc
+		/ProjectUpdate = authc
+		/ProjectIA = authc
+			</param-value>
         </init-param>
     </filter>
 

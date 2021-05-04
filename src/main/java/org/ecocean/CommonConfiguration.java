@@ -389,6 +389,14 @@ public class CommonConfiguration {
 
 
 
+  public static String getShepherdDataDir(String context) {
+    if (Util.stringExists(getProperty("shepherdDataDir", context))) {
+      return getProperty("shepherdDataDir", context).trim();
+    } else {
+      return "wildbook_data_dir";
+    }
+  }
+
   public static String getNewSubmissionEmail(String context) {
     return getProperty("newSubmissionEmail",context).trim();
   }

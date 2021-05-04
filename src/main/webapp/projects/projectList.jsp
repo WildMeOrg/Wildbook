@@ -42,23 +42,30 @@ User currentUser = AccessControl.getUser(request, myShepherd);
 
           <%
           try{
-              if(currentUser != null){
+
+        	if(currentUser != null){
                 List<Project> allProjects = new ArrayList<Project>();
-                List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
-                List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
-                if(userProjects != null && userProjects.size()>0){
-                  for(int i=0; i<userProjects.size(); i++){
-                    if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
-                      allProjects.add(userProjects.get(i));
-                    }
-                  }
+                List<Project> userProjects = new ArrayList<Project>();
+                if(request.isUserInRole("admin")){
+                	allProjects=myShepherd.getAllProjects();
                 }
-                if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
-                  for(int i=0; i<projectsUserBelongsTo.size(); i++){
-                    if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
-                      allProjects.add(projectsUserBelongsTo.get(i));
-                    }
-                  }
+                else{
+	                userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
+	                List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+	                if(userProjects != null && userProjects.size()>0){
+	                  for(int i=0; i<userProjects.size(); i++){
+	                    if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
+	                      allProjects.add(userProjects.get(i));
+	                    }
+	                  }
+	                }
+	                if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
+	                  for(int i=0; i<projectsUserBelongsTo.size(); i++){
+	                    if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
+	                      allProjects.add(projectsUserBelongsTo.get(i));
+	                    }
+	                  }
+	                }
                 }
                 userProjects = allProjects;
 
