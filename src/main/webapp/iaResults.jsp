@@ -158,10 +158,6 @@ if (request.getParameter("acmId") != null) {
 				if (project!=null) {
 					try {
 
-						//if (enc!=null) {;
-						//	System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
-						//}
-
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 							System.out.println("num encounters in project: "+project.getEncounters().size());
 							MarkedIndividual individual = enc.getIndividual();
@@ -1172,7 +1168,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var extern_reference = resJSON.dannot_extern_reference;
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
-		console.log("maxToEvaluate: "+maxToEvaluate);
+		
 
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
@@ -1181,7 +1177,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			if (!d) break;
 			
 			
-			var annotId = d[1];
+			var acmId = d[1];
 			
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
@@ -1192,7 +1188,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			let validEnc = true;
 
 			if (isSelected) {
-				validEnc = projectACMIds.includes(annotId);
+				validEnc = projectACMIds.includes(acmId);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
