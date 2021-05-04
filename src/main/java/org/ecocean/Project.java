@@ -118,7 +118,7 @@ public class Project implements java.io.Serializable {
     }
 
     public void addUser(User user) {
-        List<User> userArr = new ArrayList<>();
+        List<User> userArr = new ArrayList<User>();
         if (user!=null) {
             userArr.add(user);
             addUsers(userArr);
@@ -352,7 +352,7 @@ public class Project implements java.io.Serializable {
 
     public JSONArray getAllACMIdsJSON() {
         JSONArray allACMIds = new JSONArray();
-        List<String> allACMIDsStr = new ArrayList<>();
+        List<String> allACMIDsStr = new ArrayList<String>();
         for (Encounter enc : encounters) {
             if (enc.hasAnnotations()) {
                 List<Annotation> anns = enc.getAnnotations();
@@ -368,7 +368,7 @@ public class Project implements java.io.Serializable {
     }
     public JSONArray getAllAnnotIdsJSON() {
       JSONArray allAnnotIds = new JSONArray();
-      List<String> allAnnotIDsStr = new ArrayList<>();
+      List<String> allAnnotIDsStr = new ArrayList<String>();
       for (Encounter enc : encounters) {
           if (enc.hasAnnotations()) {
               List<Annotation> anns = enc.getAnnotations();
