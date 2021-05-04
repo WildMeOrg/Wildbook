@@ -2,6 +2,7 @@
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
 	            org.ecocean.media.MediaAsset,
+              org.ecocean.CommonConfiguration,
               org.ecocean.security.HiddenIndividualReporter,
               java.util.ArrayList,
               java.util.List,
@@ -362,6 +363,7 @@ int numDataContributors=0;
         String[] pairUrl = new String[2];
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
+        String[] pairIndividualID = new String[2];
         String[] pairCopyright = new String[2];
         String[] pairMediaAssetID = new String[2];
         // construct a panel showing each individual
@@ -385,6 +387,7 @@ int numDataContributors=0;
           pairMediaAssetID[j]=maJson.optString("id");
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
+          pairIndividualID[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
           if (indie.getNickName()!=null && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")){
             System.out.println("got in here");
@@ -500,7 +503,7 @@ int numDataContributors=0;
                       String sexValue = pair[j].getSex();
                       if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
                     %>
-                    <%=props.getProperty("sex")%> <%=sexValue%>
+                    <%=props.getProperty("sex")%>: <%=sexValue%>
                   </p>
                 </td>
                 <td>
@@ -519,6 +522,7 @@ int numDataContributors=0;
                       </button>
                     </a>
                   <%
+                  } else{
                   }
                   %>
                     <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>

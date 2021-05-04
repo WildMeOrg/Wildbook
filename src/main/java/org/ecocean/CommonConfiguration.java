@@ -354,7 +354,7 @@ public class CommonConfiguration {
     } catch (Exception e) {
       System.out.println(
           "Error in getAnimalSingular. Returning nothing as a default.");
-      return "";
+      return "animal";
     }
   }
 
@@ -364,7 +364,7 @@ public class CommonConfiguration {
     } catch (Exception e) {
       System.out.println(
           "Error in getAnimalSingularCapitalized. Returning nothing as a default.");
-      return "";
+      return "Animal";
     }
   }
 
@@ -374,7 +374,7 @@ public class CommonConfiguration {
     } catch (Exception e) {
       System.out
           .println("Error in getAnimalPlural. Returning nothing as a default.");
-      return "";
+      return "animals";
     }
   }
 
@@ -384,7 +384,7 @@ public class CommonConfiguration {
     } catch (Exception e) {
       System.out.println(
           "Error in getAnimalPluralCapitalized. Returning nothing as a default.");
-      return "";
+      return "Animals";
     }
   }
 
