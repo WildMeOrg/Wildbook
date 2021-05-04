@@ -16,7 +16,10 @@
 	  
 	  {
 				"name": "Hawaiʻi Island", "id": "Hawaii", "locationID":[
-				
+                                        {
+                                        "name": "Hilo", "id": "Hilo"
+                                        },				
+
 					{
 					"name": "Kealakekua Bay", "id": "Kealakekua Bay"
 					},
