@@ -337,6 +337,58 @@ public class CommonConfiguration {
     }
   }
 
+  public static String getAdoptionCampaignUrl(String context) {
+    try {
+      return getProperty("adoptionCampaignUrl", context).trim();
+    } catch (NullPointerException e) {
+      System.out.println(
+          "NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
+      return "";
+    }
+  }
+
+  public static String getAnimalSingular(String context) {
+    try {
+      return getProperty("animalSingular", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalSingular. Returning nothing as a default.");
+      return "animal";
+    }
+  }
+
+  public static String getAnimalSingularCapitalized(String context) {
+    try {
+      return getProperty("animalSingularCapitalized", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalSingularCapitalized. Returning nothing as a default.");
+      return "Animal";
+    }
+  }
+
+  public static String getAnimalPlural(String context) {
+    try {
+      return getProperty("animalPlural", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalPlural. Returning nothing as a default.");
+      return "animals";
+    }
+  }
+
+  public static String animalPluralCapitalized(String context) {
+    try {
+      return getProperty("animalPlural", context).trim();
+    } catch (Exception e) {
+      System.out
+          .println("Error in getAnimalPluralCapitalized. Returning nothing as a default.");
+      return "Animals";
+    }
+  }
+
+
+
   public static String getShepherdDataDir(String context) {
     if (Util.stringExists(getProperty("shepherdDataDir", context))) {
       return getProperty("shepherdDataDir", context).trim();
