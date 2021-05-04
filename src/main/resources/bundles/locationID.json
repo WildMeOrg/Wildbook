@@ -61,11 +61,7 @@
       {"name":"Marshall Islands", "id":"Marshall Islands", "locationID":[]},
       {"name":"Nauru", "id":"Nauru", "locationID":[]},
       {"name":"New Caledonia", "id":"New Caledonia", "locationID":[]},
-	  {"name":"New Zealand", "id":"New Zealand", "locationID":[
-	  
-		{"name":"Cloudy Bay", "id":"Cloudy Bay", "locationID":[]}
-	  
-	  ]},
+
       {"name":"Niue", "id":"Niue", "locationID":[]},
       {"name":"Northern Mariana Islands", "id":"Northern Mariana Islands", "locationID":[]},
       {"name":"Palau", "id":"Palau", "locationID":[]},
@@ -332,7 +328,12 @@
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
-				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
+				{ "name":"New Zealand", "id":"NewZealand", "locationID":[
+				
+					{"name":"Cloudy Bay", "id":"Cloudy Bay", "locationID":[]}
+				
+				
+				] }
 			]}
 
 
