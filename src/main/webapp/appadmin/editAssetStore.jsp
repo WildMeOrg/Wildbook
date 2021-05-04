@@ -41,7 +41,7 @@ out.println("<h2>" + as + "</h2><p>original configuration: <b>" + as.getConfig()
 // here is where you set the new values you want!  note this varies by AssetStore type, so be careful?
 AssetStoreConfig newConfig = new AssetStoreConfig();
 newConfig.put("root", "/var/lib/tomcat8/webapps/ncaquariums_data_dir");
-newConfig.put("webroot", "https://dev2.unacceptablebehavior.org/ncaquariums_data_dir");
+newConfig.put("webroot", "https://ncaquariums.wildbook.org/ncaquariums_data_dir");
 
 out.println("<p>new configuration: <b>" + newConfig + "</b></p>");
 
