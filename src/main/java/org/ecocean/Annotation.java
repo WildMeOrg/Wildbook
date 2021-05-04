@@ -890,7 +890,7 @@ System.out.println("[1] getMatchingSet params=" + params);
             for (int i = 0 ; i < owner.length() ; i++) {
                 String opt = owner.optString(i, null);
                 if (!Util.stringExists(opt)) continue;
-                if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
+                if (opt.equals("me")) f += " && user.uuid == '" + userId + "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 ///TODO also handle "collab" (users you collab with)   :/
             }
         }
