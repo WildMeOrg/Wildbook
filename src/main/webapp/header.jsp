@@ -45,6 +45,7 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
+
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 boolean isUserLoggedIn = false;
@@ -141,7 +142,6 @@ finally{
 
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
-
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
       <link rel="stylesheet" href="<%=urlLoc %>/css/multipleSubmit.css">
 
@@ -216,7 +216,7 @@ finally{
                       <%
                       if(CommonConfiguration.allowAdoptions(context)){
                       %>
-                        <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><span><%=props.getProperty("adoptAnAnimal") %>&nbsp</span></button></a>
+                        <a id="adoption-header-link" href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><span><%=props.getProperty("adoptAnAnimal") %>&nbsp</span></button></a>
                       <%
                       }
                       %>

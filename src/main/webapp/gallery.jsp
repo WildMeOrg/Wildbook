@@ -576,6 +576,13 @@ myShepherd=null;
 <script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
 <script>
 
+  $(document).ready(function(){
+    const donorboxId = '<%= donorboxId%>';
+    if(donorboxId){
+      $('#adoption-header-link').hide();
+    }
+  });
+
   imageCropper.cropPicsGalleryPage = function() {
     console.log("========Cropping Gallery Pictures=======");
     imageCropper.cropGridPics();

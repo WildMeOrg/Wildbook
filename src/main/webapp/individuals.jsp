@@ -438,11 +438,6 @@ $(document).ready(function() {
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
                   <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a class="btn btn-sm adoptButton" href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><%=props.getProperty("adoptMe") %></a>
-                  <%
-                  }
                   if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
@@ -460,11 +455,6 @@ $(document).ready(function() {
             %>
             <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
-            if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a class="btn btn-sm adoptButton" href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><%= props.getProperty("adoptMe") %></a>
-                  <%
-                  }
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
