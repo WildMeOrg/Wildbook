@@ -44,7 +44,7 @@ QueryCache qc=QueryCacheFactory.getQueryCache(context);
 myShepherd.beginDBTransaction();
 
 try{
-    
+
 
 
 
@@ -63,7 +63,7 @@ try{
         e.printStackTrace();
     }
 
-    
+
 
 %>
 
@@ -74,7 +74,7 @@ try{
             <h2><%=props.getProperty("mainStrapline")%></h2>
             <!--
             <button id="watch-movie" class="large light">
-				Watch the movie 
+				Watch the movie
 				<span class="button-icon" aria-hidden="true">
 			</button>
 			-->
@@ -83,7 +83,7 @@ try{
             </a>
             <br>
             <% if (CommonConfiguration.allowAdoptions(context)) { %>
-	            <a href="adoptamanta.jsp">
+	            <a href="adoptananimal.jsp">
 	                <button class="large heroBtn">Adopt a Manta<span class="button-icon" aria-hidden="true"></button>
 	            </a>
 	            <br>
@@ -92,11 +92,11 @@ try{
 
 	</div>
 
-    
+
 </section>
 
 <section class="container text-center main-section">
-	
+
 	<h2 class="section-header"><%=props.getProperty("howItWorks-title")%></h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
@@ -106,7 +106,7 @@ try{
 	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("howItWorks-step3")%><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("howItWorks-step4")%><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("howItWorks-step5")%><span class="caret"></span></li>
-	    </ol> 
+	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -174,7 +174,7 @@ try{
 
     <aside class="container main-section">
         <div class="row">
-        
+
             <!-- Random user profile to select -->
             <%
             //myShepherd.beginDBTransaction();
@@ -183,15 +183,15 @@ try{
                 String profilePhotoURL="images/empty_profile.jpg";
                 if(featuredUser.getUserImage()!=null){
                 	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                } 
-            
+                }
+
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                     <div class="focusbox-inner opec">
                         <h2><%=props.getProperty("contributors")%></h2>
                         <div>
                             <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %> 
+                            <p><%=featuredUser.getFullName() %>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
                                 %>
@@ -209,13 +209,13 @@ try{
             }
             //myShepherd.rollbackDBTransaction();
             %>
-            
-            
+
+
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("latestEncounters")%></h2>
                     <ul class="encounter-list list-unstyled">
-                       
+
                        <%
                        ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
@@ -237,14 +237,14 @@ try{
                                     </time>
                                 </small>
                                 <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
-                           
-                           
+
+
                             </li>
                         <%
                         }
                         //myShepherd.rollbackDBTransaction();
                         %>
-                       
+
                     </ul>
                     <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("latestEncounters-more")%></a>
                 </div>
@@ -255,12 +255,12 @@ try{
                     <ul class="encounter-list list-unstyled">
                     <%
                     //myShepherd.beginDBTransaction();
-                    
+
                     //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                     long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
-                    
+
                     System.out.println("  I think my startTime is: "+startTime);
-                    
+
                     Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
                     int numUsersToDisplay=3;
                     if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
@@ -274,11 +274,11 @@ try{
                               User thisUser=myShepherd.getUser(spotter);
                               if(thisUser.getUserImage()!=null){
                               	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                              } 
+                              }
                               //System.out.println(spotters.values().toString());
                             Integer myInt=spotters.get(spotter);
                             //System.out.println(spotters);
-                            
+
                           %>
                                 <li>
                                     <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
@@ -291,15 +291,15 @@ try{
                                     %>
                                     <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
                                 </li>
-                                
+
                            <%
                            numUsersToDisplay--;
-                    }    
+                    }
                    } //end while
                    //myShepherd.rollbackDBTransaction();
                    %>
-                        
-                    </ul>   
+
+                    </ul>
                     <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters")%></a>
                 </div>
             </section>
@@ -317,7 +317,7 @@ try{
                 <p class="brand-primary"><i><span class="massive"><%=nf.format(numEncounters)%></span> <%=props.getProperty("statText-encounters")%></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                
+
                 <p class="brand-primary"><i><span class="massive"><%=nf.format(numDataContributors)%></span> <%=props.getProperty("statText-contributors")%></i></p>
             </section>
         </div>
@@ -338,7 +338,7 @@ try{
                 </div>
             </article>
         <main>
-        
+
     </section>
 </div>
 
@@ -347,7 +347,7 @@ try{
     <section class="container main-section">
         <h2 class="section-header"><%=props.getProperty("help-title")%></h2>
         <p class="lead text-center"><%=props.getProperty("help-text")%></p>
-        
+
 		<% if (CommonConfiguration.allowAdoptions(context)) { %>
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -357,7 +357,7 @@ try{
                     <li><%=props.getProperty("help-adopt-text2")%></li>
                     <li><%=props.getProperty("help-adopt-text3")%></li>
                 </ul>
-                <a href="adoptamanta.jsp" title="<%=props.getProperty("help-adopt-linkText")%>"><%=props.getProperty("help-adopt-linkText")%></a>
+                <a href="adoptananimal.jsp" title="<%=props.getProperty("help-adopt-linkText")%>"><%=props.getProperty("help-adopt-linkText")%></a>
             </div>
             <%
             //myShepherd.beginDBTransaction();
@@ -368,7 +368,7 @@ try{
 	                <div class="focusbox-inner" style="overflow: hidden;">
 	                	<%
 	                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-	                    
+
 	                	%>
 	                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
 	                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
@@ -383,13 +383,13 @@ try{
 	                    %>
 	                </div>
 	            </div>
-            
+
             <%
 			}
             //myShepherd.rollbackDBTransaction();
             %>
-            
-            
+
+
         </section>
         <% } %>
         <hr />
@@ -397,10 +397,10 @@ try{
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3><%=props.getProperty("help-donate-title")%></h3>
                 <p><%=props.getProperty("help-donate-text")%></p>
-                <a href="adoptamanta.jsp" title="<%=props.getProperty("help-donate-linkText")%>"><%=props.getProperty("help-donate-linkText")%></a>
+                <a href="adoptananimal.jsp" title="<%=props.getProperty("help-donate-linkText")%>"><%=props.getProperty("help-donate-linkText")%></a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptamanta.jsp">
+                <a href="adoptananimal.jsp">
 	                <button class="large contrast">
 	                    <%=props.getProperty("help-donate-title")%>
 	                    <span class="button-icon" aria-hidden="true">

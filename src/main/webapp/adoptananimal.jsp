@@ -32,65 +32,68 @@ context=ServletUtilities.getContext(request);
 	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a <%=CommonConfiguration.getAnimalSingular(context)%>, give it a nickname, and receive updates each time it's spotted! Funds
+			Adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%>, give it a nickname, and receive updates each time it's spotted! Funds
 			raised by <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to offset the costs of maintaining this global library and
 			to support new and existing research projects for <%=CommonConfiguration.getAnimalPlural(context)%>.
 		</p>
 		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Begin Adoption<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
+
+	<!--
 	<section id="custom-donation-image">
 		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
 	</section>
+	-->
+
 	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
-	<%-- <section class="donations">
-		<article class="donation-option-group">
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Fry</p>
-					<p>$2/m</p>
+	 <section>
+		<article class="">
+			<div class="container">
+
+				<div class="col-xs-12">
+					<h3>Adoption Levels</h3>
 				</div>
-				<p>
-					A great option for children
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Whopper</p>
-					<p>$5/m</p>
+
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Yearling</strong></h4>
+						<p class="adoptionOptionComment">$3/m</p>
+					</div>
+					<p>
+						Fun for kids and families that want to start multiple adoptions.
+					</p>
 				</div>
-				<p>
-					Makes an excellent gift!
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Behemoth</p>
-					<p>$20/m</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Juvenile</strong></h4>
+						<p class="adoptionOptionComment">$6/month</p>
+					</div>
+					<p>
+						Great gift for the conservation minded person who loves <%=CommonConfiguration.getAnimalPlural(context)%>.
+					</p>
 				</div>
-				<p>
-					Big families and groups
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Legend</p>
-					<p>$1000/yr</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Adult</strong></h4>
+						<p class="adoptionOptionComment">$12/month</p>
+					</div>
+					<p>
+						This level of support is great for a family that wants to adopt a <%=CommonConfiguration.getAnimalSingular(context)%> together.
+					</p>
 				</div>
-				<p>
-					Corporate adoptions and legends of the sea
-				</p>
-			</div>
-			<div class="donation-option">
-				<div class="donation-circle">
-					<p>Custom</p>
-					<p>$?/yr</p>
+				<div class="col-xs-6 adoptionOptionDiv">
+					<div class="adoptionPriceDiv">
+						<h4><strong>Group / Company</strong></h4>
+						<p class="adoptionOptionComment">$100/month</p>
+					</div>
+					<p>
+						Did you know a group of rays is called a fever?
+					</p>
 				</div>
-				<p>
-					We appreciate your support of ongoing whale shark research
-				</p>
 			</div>
+
 		</article>
-	</section> --%>
+	</section>
 
 
 
@@ -100,7 +103,6 @@ context=ServletUtilities.getContext(request);
 
 				<%
 				Shepherd myShepherd=new Shepherd(context);
-				myShepherd.setAction("adoptananimal.jsp");
 				myShepherd.beginDBTransaction();
 				try{
 					if(myShepherd.getNumAdoptions()>0){
@@ -113,7 +115,7 @@ context=ServletUtilities.getContext(request);
 
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p><%=CommonConfiguration.getAnimalSingularCapitalized(context)%> Adopter</p>
+							<p>Manta Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
