@@ -3,7 +3,7 @@ package org.ecocean.servlet;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 
-import javax.annotation.processing.Generated;
+//import javax.annotation.processing.Generated;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
