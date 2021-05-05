@@ -1725,6 +1725,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     if (id != null) throw new ApiValueException("cannot add encounter by id; must use op=move instead", "encounters");
                     Encounter enc = Encounter.fromApiJSONObject(myShepherd, ej);
                     this.addEncounter(enc);
+                    break;
+                case "customFields":
+                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                    //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
+                    this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                    break;
                 default:
                     throw new Exception("apiPatch op=" + opName + " unknown path " + path);
             }
@@ -1775,6 +1782,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     this.setComments((String)valueObj);
                     break;
                 // currently not going to support op=replace for encounter; instead should use move + remove
+                case "customFields":
+                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                    //since this is replace, we will want to zero out listy-types
+                    String cfdId = cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_");
+                    this.resetCustomFieldValues(cfdId);
+                    this.trySetting(myShepherd, cfdId, cfj.opt("value"));
+                    break;
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
             }

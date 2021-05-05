@@ -35,6 +35,7 @@ public abstract class CustomFieldValue implements java.io.Serializable {
 */
 
     public static CustomFieldValue makeSpecific(CustomFieldDefinition def, Object val) throws IOException {
+        SystemLog.debug("CustomFieldValue.makeSpecific() looking for type={} in obj val={} --- defn={}", def.getType(), val, def);
         switch (def.getType()) {
             case "string":
                 return new CustomFieldValueString(def, val);
