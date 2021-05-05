@@ -34,7 +34,7 @@ context=ServletUtilities.getContext(request);
 	String shark = "";
 	if (request.getParameter("number") != null) {
 		shark = request.getParameter("number");
-	} 
+	}
 
 	// Necessary to persist your selected shark across multiple form submissions.
 	// Payment status is also stored in session.
@@ -62,7 +62,7 @@ context=ServletUtilities.getContext(request);
 				hasNickName = false;
 			}
 		}
-	} 
+	}
 	catch (Exception e) {
 		System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
@@ -96,64 +96,35 @@ context=ServletUtilities.getContext(request);
 
 <jsp:include page="header.jsp" flush="true"/>
 <link rel="stylesheet" href="css/createadoption.css">
+<style type="text/css">
+	#adoption-html-wrapper {
+		margin-left: 4.7em;
+	}
+</style>
+<script type="text/javascript">
+	$(document).ready(function () {
+		let adoptionHtml = '';
+		adoptionHtml += '<script src="https://donorbox.org/widget.js" paypalExpress="false"></scr'+'ipt>';
+		let adoptionUrl = '<%=CommonConfiguration.getAdoptionCampaignUrl(context)%>';
+		adoptionHtml += '<iframe allowpaymentrequest="" frameborder="0" height="900px" name="donorbox" scrolling="no" seamless = "seamless" src = "' + adoptionUrl + '"style = "max-width: 500px; min-width: 250px; max-height:none!important" width = "100%" ></iframe > ';
+		$('#adoption-html-wrapper').html(adoptionHtml);
+
+	});
+</script>
+
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-    <h4>After filling out the financial information, you will be able to create your profile and choose your manta's nickname.</h4>
+    <h4>After filling out the financial information, you will be able to create your profile and choose and nickname your animal.</h4>
+
+     <h3>Financial Information</h3>
+		<img id="circle-divider" src="cust/mantamatcher/img/circle-divider.png"/><br><br>
+
   </section>
 
-	<%-- BEGIN STRIPE FORM --%>
-	<form action="StripePayment" method="POST" id="payment-form" accept-charset="UTF-8">
-		<div class="form-header">
-	    <h2>Financial Information</h2>
-			<img src="cust/mantamatcher/img/circle-divider.png"/>
-	  </div>
-	  <span class="payment-errors"></span>
-		<div class="input-col-1">
-			<div class="input-group">
-				<span class="input-group-addon">Adoption Type</span>
-				<select id='planName' class="input-l-width" name="planName">
-					<option value="plan_DWNybD6bUUVxLO">Yearling $3/Month</option>
-					<option value="plan_DWO3tq3sCZozQ1" selected="selected">Juvenile - $6/Month</option>
-					<option value="plan_DWO6pwnwz3YtjU">Adult - $12/Month</option>
-					<option value="plan_DWO8MT3l82Kmfb">Group / Company - $100/Month</option>
-			</select>
-			</div>
-			<div class="input-group">
-				<span class="input-group-addon">Name On Card</span>
-				<input type="text" class="input-l-width" name="nameOnCard">
-			</div>
-			<div class="input-group">
-			  <span class="input-group-addon">Card Number</span>
-			  <input type="text" class="input-l-width" data-stripe="number">
-			</div>
-			<div class="input-group">
-			  <span class="input-group-addon">Expiration</span>
-			  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
-			  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
-			</div>
-		</div>
-		<div class="input-col-2">
-			<div class="input-group">
-			  <span class="input-group-addon">CVC</span>
-			  <input type="text" class="input-s-width" data-stripe="cvc">
-			</div>
-			<div class="input-group">
-			  <span class="input-group-addon">Billing Zip</span>
-			  <input type="text" class="input-m-width" data-stripe="address_zip">
-			</div>
-			<div class="input-group">
-				<span class="input-group-addon">Billing Email</span>
-				<input type="text" class="input-l-width" name="email">
-			</div>
-				<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
-				<input id="selectedShark" type="hidden" name="selectedShark" value="">
-			  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
-		</div>
-	</form>
-	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
+  <section class="centered" id="adoption-html-wrapper">
 
-
+  </section>
 
 	<form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 		<div class="form-header">

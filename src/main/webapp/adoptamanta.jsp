@@ -1,11 +1,11 @@
-<%@ page 
-	contentType="text/html; charset=utf-8" 
-	language="java" 
+<%@ page
+	contentType="text/html; charset=utf-8"
+	language="java"
 	import="org.ecocean.servlet.ServletUtilities,
 			org.ecocean.*,
-			java.util.Properties, 
-			java.io.FileInputStream, 
-			java.io.File, 
+			java.util.Properties,
+			java.io.FileInputStream,
+			java.io.File,
 			java.io.FileNotFoundException,
 			java.util.Iterator
 			" %>
@@ -28,15 +28,15 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
-	<h1 class="intro-adopt">Adopt a Manta</h1>
-	<h2>Support cutting edge manta research.</h2>
+	<h1 class="intro-adopt">Adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%></h1>
+	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a manta, give it a nickname, and receive updates each time it's spotted! Funds
-			raised by manta adoptions are used to offset the costs of maintaining this global library and
-			to support new and existing research projects.
+			Adopt a <%=CommonConfiguration.getAnimalSingular(context)%>, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to offset the costs of maintaining this global library and
+			to support new and existing research projects for <%=CommonConfiguration.getAnimalPlural(context)%>.
 		</p>
-		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a manta<span class="button-icon" aria-hidden="true"></span></button></a>
+		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Begin Adoption<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
 
 	<!--
@@ -60,7 +60,7 @@ context=ServletUtilities.getContext(request);
 						<p class="adoptionOptionComment">$3/m</p>
 					</div>
 					<p>
-						Fun for kids and families that want to start multiple adoptions. 
+						Fun for kids and families that want to start multiple adoptions.
 					</p>
 				</div>
 				<div class="col-xs-6 adoptionOptionDiv">
@@ -69,7 +69,7 @@ context=ServletUtilities.getContext(request);
 						<p class="adoptionOptionComment">$6/month</p>
 					</div>
 					<p>
-						Great gift for the conservation minded person who loves mantas. 
+						Great gift for the conservation minded person who loves <%=CommonConfiguration.getAnimalPlural(context)%>.
 					</p>
 				</div>
 				<div class="col-xs-6 adoptionOptionDiv">
@@ -78,7 +78,7 @@ context=ServletUtilities.getContext(request);
 						<p class="adoptionOptionComment">$12/month</p>
 					</div>
 					<p>
-						This level of support is great for a family that wants to adopt a manta together. 
+						This level of support is great for a family that wants to adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%> together.
 					</p>
 				</div>
 				<div class="col-xs-6 adoptionOptionDiv">
@@ -93,14 +93,14 @@ context=ServletUtilities.getContext(request);
 			</div>
 
 		</article>
-	</section> 
-	
+	</section>
+
 
 
 	<section class="adopters-featured">
 			<h2>Join the Family!</h2>
 			<article class="adopter-feature-gallery">
-			
+
 				<%
 				Shepherd myShepherd=new Shepherd(context);
 				myShepherd.beginDBTransaction();
@@ -109,10 +109,10 @@ context=ServletUtilities.getContext(request);
 					Iterator<Adoption> adoptions=myShepherd.getAllAdoptionsNoQuery();
 					int iter=0;
 					while((adoptions.hasNext())&&(iter<4)){
-					
+
 					Adoption ad=adoptions.next();
 					%>
-			
+
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
 							<p>Manta Adopter</p>
@@ -138,7 +138,7 @@ context=ServletUtilities.getContext(request);
 					myShepherd.closeDBTransaction();
 				}
 				%>
-			
+
 			</article>
 		</section>
 
