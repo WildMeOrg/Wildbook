@@ -24,6 +24,7 @@
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
+         org.apache.commons.codec.net.URLCodec,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -154,8 +155,8 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-
-
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
@@ -1746,7 +1747,15 @@ function resetIdButtons() {
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          String locationIdPrefix = enc.getPrefixForLocationID();
+                          int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          if(enc.getLocationID() != null && nextID == null){
+                            nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          } 
+                          if(enc.getLocationID() == null && nextID == null){
+                            nextID = encprops.getProperty("noLocationID");
+                          } 
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -1995,7 +2004,7 @@ function checkIdDisplay() {
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
+								<a href="../occurrence.jsp?number=<%=urlCodec.encode(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID()) %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
@@ -4941,6 +4950,10 @@ button#upload-button {
     var p = ((file._prevUploadedSize / file.size) * 100) + '%';
     updateProgress(el, p, 'uploading');
     console.log('progress %o %o', file._prevUploadedSize, file);
+    let progressBarHtml = '<div id="progress-div"><h4><%= encprops.getProperty("Loading") %></h4>';
+    progressBarHtml += '<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only"><%= encprops.getProperty("PercentComplete")%></span>';
+    progressBarHtml += '</div></div></div>';
+    document.getElementById('updone').innerHTML = progressBarHtml;
   });
   flow.on('fileSuccess', function(file,message){
     var el = findElement(file.name, file.size);
@@ -5030,10 +5043,6 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
-  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
-    console.log("upload finished.");
-    console.log('upload finished. Files added: '+filenames);
-
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
 
@@ -5073,6 +5082,10 @@ button#upload-button {
             data: ajaxDataString,
             success: function(d) {
               console.info("I attached MediaAsset "+maId+" to encounter <%=encNum%>");
+              $('#progress-div').hide();
+              document.getElementById('updone').innerHTML = '<i>Processing complete. Refresh page to see new image.</i>';
+              console.log("upload finished.");
+              console.log('upload finished. Files added: ' + filenames);
             },
             error: function(x,y,z) {
               console.warn("failed to MediaAssetAttach");

@@ -50,6 +50,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 //import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
@@ -160,7 +162,6 @@ public class StandardImport extends HttpServlet {
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
     if(Util.stringExists(filename)){
-      filename = filename.replaceAll("[^a-zA-Z0-9\\. ]", "");
       System.out.println("Filename? = "+filename);
     }
 
@@ -1106,6 +1107,8 @@ public class StandardImport extends HttpServlet {
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
   	}
 
+  	//genotype
+  	/*
     String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // we need to add uniqueness to the parsed string bc it's a primary key
     // but adding full encID is too long of a string.
@@ -1118,7 +1121,51 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(microMark);
       } // if microMark was grabbed from Shepherd correctly there is no further data to store.
     }
+    */
+  	
+  	MicrosatelliteMarkersAnalysis markers = null;
+  	String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames");
+  	String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0");
+  	String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1");
+    if(sample!=null 
+        && alleleNames!=null && !alleleNames.trim().equals("")
+            && alleleZeroes!=null && !alleleZeroes.trim().equals("")
+                && alleleOnes!=null && !alleleOnes.trim().equals("")
+      ) {
+      
+          ArrayList<Locus> loci=new ArrayList<Locus>();  
+          
+          //iterate the names and allele0 and allele1 values
+          StringTokenizer namesSTR = new StringTokenizer(alleleNames,",");
+          StringTokenizer namesAllele0 = new StringTokenizer(alleleZeroes,",");
+          StringTokenizer namesAllele1 = new StringTokenizer(alleleOnes,",");
+          int numNames=namesSTR.countTokens();
+          if(numNames>0 && namesSTR.countTokens()==namesAllele0.countTokens() && namesSTR.countTokens()==namesAllele1.countTokens()) {
+            
+            //OK, names and alleles are the same size
+            for(int i=0;i<numNames;i++) {
+              int all0 = (Integer.parseInt(namesAllele0.nextToken()));
+              int all1 = (Integer.parseInt(namesAllele1.nextToken()));
+              Locus locus=new Locus(namesSTR.nextToken(),all0,all1);
+              loci.add(locus);
+            }
+            
+            markers = new MicrosatelliteMarkersAnalysis(Util.generateUUID(),tissueSampleID, encID, loci);
 
+              if(committing && loci.size()>0) {
+                myShepherd.getPM().makePersistent(markers);
+              }
+              sample.addGeneticAnalysis(markers);
+          }
+          else {
+            System.out.println("names and alleles sizes don't match!");
+          }
+    }
+  	
+ 	
+
+    //Sex Analysis import
+    /*
     String sexAnalID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
     String sexAnalSex = getString(row, "SexAnalysis.sex");
     if (sexAnalID!=null) {
@@ -1134,6 +1181,28 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(sexAnal);
       } else sexAnal.setSex(sexAnalSex);
     }
+    */
+  	SexAnalysis sexAnal=null;
+  	String sexAnalSex = getString(row, "SexAnalysis.sex");
+  	if(sample!=null && sexAnalSex!=null && !sexAnalSex.trim().equals("")) {
+  	  sexAnal = new SexAnalysis(Util.generateUUID(), sexAnalSex, encID, tissueSampleID);
+  	  if(committing) {
+  	    myShepherd.getPM().makePersistent(sexAnal);
+  	  }
+  	  sample.addGeneticAnalysis(sexAnal);
+  	}
+  	
+  	//add haplotype
+  	MitochondrialDNAAnalysis haplo=null;
+    String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype");
+    if(sample!=null && haplotype!=null && !haplotype.trim().equals("")) {
+      haplo = new MitochondrialDNAAnalysis(Util.generateUUID(), haplotype, encID, tissueSampleID);
+      if(committing) {
+        myShepherd.getPM().makePersistent(haplo);
+      }
+      sample.addGeneticAnalysis(haplo);
+    }
+  	
 
     if (sample!=null) enc.addTissueSample(sample);
     // END SAMPLES
@@ -1321,7 +1390,9 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i);
-    if(Util.stringExists(localPath)) localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+    if (Util.stringExists(localPath)){
+      localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+    }
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -2009,12 +2080,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_STRING) {
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
-        if(Util.stringExists(str)) str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
       }
       // not ideal, but maybe get something
       if (str==null&&cell!=null) {
         str = cell.toString();
-        if(Util.stringExists(str)) str = str.replaceAll("[^a-zA-Z0-9\\. ]", "");
       }
     } catch (Exception e) {
       // it should be basically impossible to get here. this is not a challenge.

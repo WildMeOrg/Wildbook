@@ -138,6 +138,8 @@ if (request.getParameter("acmId") != null) {
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 		}
+		String locationIdPrefix = null;
+		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
@@ -147,6 +149,12 @@ if (request.getParameter("acmId") != null) {
 	 			if (enc != null) {
 	 				jann.put("encounterId", enc.getCatalogNumber());
 	 				jann.put("encounterLocationId", enc.getLocationID());
+					locationIdPrefix = enc.getPrefixForLocationID();
+					jann.put("encounterLocationIdPrefix", locationIdPrefix);
+					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
+					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
+
 	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
@@ -322,9 +330,9 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
                                 //note that useLocation flavor has slight race condition possible here...
                                 // might be better to have way to *create* indiv with new loc-based name
                                 if (useLocation) {
-                                    String locPrefix = enc.getLocationID().toLowerCase();
-                                    if (locPrefix.length() > 3) locPrefix = locPrefix.substring(0,3);
-                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, 3);
+                                    String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
+									int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
                                 }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
@@ -835,7 +843,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    // console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -1660,7 +1668,7 @@ function locationBasedCheckbox(el, qann) {
 	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
-	$('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
+	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationNextValue).attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
