@@ -91,7 +91,6 @@
 
 				/import/** = authc, roles[researcher]
 
-				#/gallery.jsp = authc
 				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
@@ -445,15 +444,21 @@
         /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
-		
-		
+
+
 		/MantaMatcher = authc, roles[researcher]
 		/encounters/encounterCR.jsp = authc, roles[researcher]
 		/EncounterAddMantaPattern = authc, roles[researcher]
-		
+
 		/adoptions/adoption.jsp = authc, roles[adoption]
 				  /adoptions/allAdoptions.jsp = authc, roles[adoption]
-		
+
+					/ProjectCreate = authc
+					/ProjectDelete = authc
+					/ProjectGet = authc
+					/ProjectUpdate = authc
+					/ProjectIA = authc
+
             </param-value>
         </init-param>
     </filter>
@@ -1217,6 +1222,19 @@
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
+
+
+        <servlet>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <servlet-class>org.ecocean.metrics.WildbookMetrics</servlet-class>
+  </servlet>
+
+      <servlet-mapping>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <url-pattern>/WildbookMetrics</url-pattern>
+  </servlet-mapping>
+
+
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>
@@ -2755,26 +2773,26 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
-  
+
       <servlet>
     <servlet-name>MantaMatcher</servlet-name>
     <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
   </servlet>
-  
+
     <servlet-mapping>
     <servlet-name>MantaMatcher</servlet-name>
     <url-pattern>/MantaMatcher/*</url-pattern>
   </servlet-mapping>
-  
+
       <servlet>
     <servlet-name>EncounterAddMantaPattern</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
   </servlet>
-  
+
         <servlet-mapping>
       	<servlet-name>EncounterAddMantaPattern</servlet-name>
       	<url-pattern>/EncounterAddMantaPattern</url-pattern>
 	</servlet-mapping>
-  
+
 
 </web-app>

@@ -181,7 +181,7 @@ context=ServletUtilities.getContext(request);
 %>
 </div>
 <div style="float:left; margin: 5px;">
-<a href="createadoption.jsp?number=<%=name%>"><button class="btn btn-md">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+<a href="createadoption.jsp?number=<%=name%>"><button class="btn btn-md">Adopt an Animal<span class="button-icon" aria-hidden="true"></button></a>
 </div>
 <p>&nbsp;</p>
 

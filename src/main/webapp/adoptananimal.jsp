@@ -1,11 +1,11 @@
-<%@ page 
-	contentType="text/html; charset=utf-8" 
-	language="java" 
+<%@ page
+	contentType="text/html; charset=utf-8"
+	language="java"
 	import="org.ecocean.servlet.ServletUtilities,
 			org.ecocean.*,
-			java.util.Properties, 
-			java.io.FileInputStream, 
-			java.io.File, 
+			java.util.Properties,
+			java.io.FileInputStream,
+			java.io.File,
 			java.io.FileNotFoundException,
 			java.util.Iterator
 			" %>
@@ -28,15 +28,15 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
-	<h1 class="intro-adopt">Adopt a Manta</h1>
-	<h2>Support cutting edge giant manta research.</h2>
+	<h1 class="intro-adopt">Adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%></h1>
+	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>
-			Adopt a giant manta, give it a nickname, and receive updates each time it's spotted! Funds
-			raised by manta adoptions are used to offset the costs of maintaining this global research platform and
-			to support new and existing research projects.
+			Adopt a <%=CommonConfiguration.getAnimalSingular(context)%>, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to offset the costs of maintaining this global library and
+			to support new and existing research projects for <%=CommonConfiguration.getAnimalPlural(context)%>.
 		</p>
-		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a manta<span class="button-icon" aria-hidden="true"></span></button></a>
+		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Begin Adoption<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
 	<section id="custom-donation-image">
 		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
@@ -91,13 +91,13 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</article>
 	</section> --%>
-	
+
 
 
 	<section class="adopters-featured">
 			<h2>Join the Family!</h2>
 			<article class="adopter-feature-gallery">
-			
+
 				<%
 				Shepherd myShepherd=new Shepherd(context);
 				myShepherd.setAction("adoptananimal.jsp");
@@ -107,13 +107,13 @@ context=ServletUtilities.getContext(request);
 					Iterator<Adoption> adoptions=myShepherd.getAllAdoptionsNoQuery();
 					int iter=0;
 					while((adoptions.hasNext())&&(iter<4)){
-					
+
 					Adoption ad=adoptions.next();
 					%>
-			
+
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Giant Manta Adopter</p>
+							<p><%=CommonConfiguration.getAnimalSingularCapitalized(context)%> Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
@@ -136,7 +136,7 @@ context=ServletUtilities.getContext(request);
 					myShepherd.closeDBTransaction();
 				}
 				%>
-			
+
 			</article>
 		</section>
 
