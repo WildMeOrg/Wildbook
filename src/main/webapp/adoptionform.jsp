@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
     import="org.ecocean.servlet.*, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"
     %>
+<jsp:include page="header.jsp" flush="true" />
     <% 
     //handle some cache-related security 
     response.setHeader("Cache-Control", "no-cache" ); 
@@ -26,9 +27,10 @@
     } 
     String stripePublicKey=stripeProps.getProperty("publicKey"); 
     Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction ("createadoption.jsp"); 
+    myShepherd.setAction ("adoptionform.jsp"); 
     myShepherd.beginDBTransaction(); 
-    String shark="" ; 
+    try{
+        String shark="" ; 
     if(request.getParameter("number") !=null) { 
         shark=request.getParameter("number"); 
     } // Necessary to persist your selected shark across multiple form submissions. // Payment status is also stored in session. 
@@ -106,7 +108,6 @@
 
 	String servletURL = " ../AdoptionAction"; %>
 
-        <jsp:include page="header.jsp" flush="true" />
         <link rel="stylesheet" href="css/createadoption.css">
         <% 
             if(Util.stringExists(donorboxId) && Util.stringExists(shark)){ //TODO I could cross check this against the donorbox api (for an additional $17/month), but I don't think warranted. As is, an evil user could just but an id in the url and pass this check. But, let's not over-engineer. Who is trying to hoodwink a non-profit just to be able to nickname an animal?
@@ -191,13 +192,20 @@
                 <!-- </div> -->
             </form>
             <% } %>
-                <% myShepherd.rollbackDBTransaction(); myShepherd.closeDBTransaction(); %>
+                <% 
+                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 1");
+                myShepherd.rollbackDBTransaction(); 
+                myShepherd.closeDBTransaction(); 
+                %>
 
             </section>
         </div>
         <%
             }
             else{
+                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 2");
+                myShepherd.rollbackDBTransaction(); 
+                myShepherd.closeDBTransaction();
                 %>
                 <script type="text/javascript">
                     //redirect to payment page 
@@ -206,8 +214,6 @@
                 <%
             }
         %>
-
-        <jsp:include page="footer.jsp" flush="true" />
 
         <!-- Auto populate start date with current date. -->
         <script>
@@ -224,3 +230,12 @@
             $(".adoptionStartDate").val(date);
             $(".adoptionStartHeader").text(date);
         </script>
+    <%
+    } catch(Exception e){
+        e.printStackTrace();
+    } finally{
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    }
+    %>
+    <jsp:include page="footer.jsp" flush="true" />
