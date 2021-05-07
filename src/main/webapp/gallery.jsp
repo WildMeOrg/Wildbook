@@ -550,15 +550,38 @@ try{
 	          <%
 	          if (startNum>0) {
 	            int newStart = Math.max(startNum-numIndividualsOnPage,0);
-	            %>
-	            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
-	            <%
+				if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				  %>
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+				  <%
+				}else{
+					%>
+						<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+					<%
+				}
 	          }
+			  if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  } else{
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  }
 	          %>
 
-	          <%=props.getProperty("seeMore") %>
-
-	&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+	          
 	        </p>
 
 	      </row>
