@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.*, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<jsp:include page="header.jsp" flush="true" />
 <%
 
 //handle some cache-related security
@@ -20,18 +21,11 @@ context=ServletUtilities.getContext(request);
 
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
-
-	Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
-	if (stripeProps == null) {
-			 System.out.println("There are no available API keys for Stripe!");
-	}
-	String stripePublicKey = stripeProps.getProperty("publicKey");
-
 	Shepherd myShepherd = new Shepherd(context);
-	myShepherd.setAction	("createadoption.jsp");
+	myShepherd.setAction("createadoption.jsp");
 	myShepherd.beginDBTransaction();
-
-	String shark = "";
+	try{
+		String shark = "";
 	if (request.getParameter("number") != null) {
 		shark = request.getParameter("number");
 	}
@@ -94,7 +88,6 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<jsp:include page="header.jsp" flush="true"/>
 <link rel="stylesheet" href="css/createadoption.css">
 <style type="text/css">
 	#adoption-html-wrapper {
@@ -208,74 +201,20 @@ context=ServletUtilities.getContext(request);
 	}
 	%>
 	<%
+	  System.out.println("deleteMe db transaction being closed in createadoptionform.jsp 1");
 	  myShepherd.rollbackDBTransaction();
 	  myShepherd.closeDBTransaction();
 	%>
 </div>
 
-<jsp:include page="footer.jsp" flush="true" />
-
 <!-- Javascript Section -->
-<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-<script type="text/javascript">
-	// Publishable Key
-	Stripe.setPublishableKey('<%=stripePublicKey%>');
 
-	var stripeResponseHandler = function(status, response) {
-		var $form = $('#payment-form');
-
-		if (response.error) {
-		// show errors
-		$form.find('.payment-errors').text(response.error.message);
-		$form.find('button').prop('disabled', false);
-		} else {
-		// token contains id, last 4 card digits, and card type
-		var token = response.id;
-		//  submit to the server
-		$form.append($('<input type="hidden" name="stripeToken" />').val(token));
-		// and re-submit
-		 $form.get(0).submit();
-		}
-	};
-
-	function formSwitcher() {
-		if (<%= sessionPaid %> === true) {
-			$("#payment-form").hide();
-			$("#adoption-form").show();
-		}
+<%
+	}catch (Exception e){
+		e.printStackTrace();
+	}finally{
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 	}
-	formSwitcher();
-
-	jQuery(function($) {
-		$('#payment-form').submit(function(e) {
-		 var $form = $(this);
-
-		 // Disable the submit button to prevent repeated clicks
-		 /*$form.find('button').prop('disabled', true);*/
-		 // Enable input fields for building profile
-			/*$(".disabled-input").prop('disabled', false);*/
-
-		 Stripe.card.createToken($form, stripeResponseHandler);
-
-		 formSwitcher();
-		 // Prevent the form from submitting with the default action
-		 return false;
-		});
-	});
-</script>
-
-<!-- Auto populate start date with current date. -->
-<script>
-  var myDate, day, month, year, date;
-  myDate = new Date();
-  day = myDate.getDate();
-  if (day <10)
-    day = "0" + day;
-  month = myDate.getMonth() + 1;
-  if (month < 10)
-    month = "0" + month;
-  year = myDate.getFullYear();
-  date = year + "-" + month + "-" + day;
-  $(".adoptionStartDate").val(date);
-	$(".adoptionStartHeader").text(date);
-</script>
+%>
+<jsp:include page="footer.jsp" flush="true" />
