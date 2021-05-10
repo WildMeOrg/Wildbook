@@ -9,7 +9,7 @@
 				{
 					"name": "BeNP",
 					"id": "BeNP",
-					"description": "BeNP",
+					"description": "Bénoué National Park",
 					"prefix": "BeNP",
 					"prefixDigitPadding": 4,
 					"defaultLatitude": 1.270203, "defaultLongitude": 37.382723
@@ -45,6 +45,9 @@
 				{
 					"name": "Ol Jogi",
 					"id": "Ol Jogi",
+					"description": "Ol Jogi Conservancy",
+					"prefix": "OlJo",
+					"prefixDigitPadding": 4,
 					"defaultLatitude": 0.3, "defaultLongitude": 37
 				},
 				{
