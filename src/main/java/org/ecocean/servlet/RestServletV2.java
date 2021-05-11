@@ -564,6 +564,7 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
         List<String> updated = new ArrayList<String>();
         List<Configuration> updatedConfs = new ArrayList<Configuration>();
 rtn.put("_payload", payload);
+        List<String> updatedCFD = new ArrayList<String>();
 
         try {
             for (Object k : payload.keySet()) {
@@ -582,7 +583,8 @@ rtn.put("_payload", payload);
                             if (dj == null) throw new IOException(key + " was not passed valid JSON object at position " + i);
                             dj.put("className", "org.ecocean." + cname);
 //System.out.println(key + "[" + i + "] => " + dj);
-                            CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
+                            CustomFieldDefinition cfd = CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
+                            updatedCFD.add(cfd.getId());
                             //since this was added, we want to set the conf using *all cfds* for this key:
                         }
                     }
@@ -648,6 +650,7 @@ rtn.put("_payload", payload);
             conf.resetRootCache();
         }
         rtn.put("updated", new JSONArray(updated));
+        rtn.put("updatedCustomFieldDefinitionIds", new JSONArray(updatedCFD));
         rtn.put("message", _rtnMessage("success"));
         String rtnS = rtn.toString();
         response.setContentLength(rtnS.getBytes("UTF-8").length);
