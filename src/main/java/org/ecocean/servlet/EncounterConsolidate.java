@@ -31,8 +31,8 @@
 public class EncounterConsolidate{
   public static void makeEncountersMissingSubmittersPublic(Shepherd myShepherd){
     System.out.println("makeEncountersMissingSubmitterIdsPublic entered");
-  	String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"N/A\" || this.submitterID==null && submitters.isEmpty()"; //.contains(null)"
-  	ArrayList<Encounter> encs=new ArrayList<Encounter>();
+  	String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"N/A\" || this.submitterID==null"; //.contains(null)" //&& submitters.isEmpty()
+  	List<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     System.out.println(c.size() + " encounters found with missing submitterIds");
@@ -40,7 +40,7 @@ public class EncounterConsolidate{
       encs=new ArrayList<Encounter>(c);
       for(int i=0; i<encs.size(); i++){
         Encounter currentEncounter = encs.get(i);
-        List<User> submitters = currentEncounter.getSubmitters();
+        // List<User> submitters = currentEncounter.getSubmitters();
         // if(i==0 || i==encs.size()-1){ //TODO temporary just to streamline printing
         //   System.out.println("adding public as submitter id to encounter: " + currentEncounter.getCatalogNumber() + " with submitterId " + currentEncounter.getSubmitterID());
         //   System.out.println("submitters in encounter include the likes of:");
