@@ -58,7 +58,7 @@ if (Util.stringExists(requestEmail)) {
             tagMap.put("@REQUEST_TIMESTAMP@", Long.toString(System.currentTimeMillis()));
             String recPath = "/var/spool/WildbookQueryCache/access_request_" + System.currentTimeMillis() + ".json";  //hacktacular hard-coded location
             Util.writeToFile(new JSONObject(tagMap).toString(), recPath);
-            String[] mailTo = new String[]{"test@example.com"};
+            String[] mailTo = new String[]{"sito.org+giraffeadmin@gmail.com"};
             for (int i = 0 ; i < mailTo.length ; i++) {
                 NotificationMailer mailer = new NotificationMailer(context, ServletUtilities.getLanguageCode(request), mailTo[i], "requestAccess", tagMap);
                 mailer.setUrlScheme(request.getScheme());
