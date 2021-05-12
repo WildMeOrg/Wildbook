@@ -1107,6 +1107,8 @@ public class StandardImport extends HttpServlet {
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
   	}
 
+  	//genotype
+  	/*
     String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // we need to add uniqueness to the parsed string bc it's a primary key
     // but adding full encID is too long of a string.
@@ -1119,7 +1121,51 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(microMark);
       } // if microMark was grabbed from Shepherd correctly there is no further data to store.
     }
+    */
+  	
+  	MicrosatelliteMarkersAnalysis markers = null;
+  	String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames");
+  	String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0");
+  	String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1");
+    if(sample!=null 
+        && alleleNames!=null && !alleleNames.trim().equals("")
+            && alleleZeroes!=null && !alleleZeroes.trim().equals("")
+                && alleleOnes!=null && !alleleOnes.trim().equals("")
+      ) {
+      
+          ArrayList<Locus> loci=new ArrayList<Locus>();  
+          
+          //iterate the names and allele0 and allele1 values
+          StringTokenizer namesSTR = new StringTokenizer(alleleNames,",");
+          StringTokenizer namesAllele0 = new StringTokenizer(alleleZeroes,",");
+          StringTokenizer namesAllele1 = new StringTokenizer(alleleOnes,",");
+          int numNames=namesSTR.countTokens();
+          if(numNames>0 && namesSTR.countTokens()==namesAllele0.countTokens() && namesSTR.countTokens()==namesAllele1.countTokens()) {
+            
+            //OK, names and alleles are the same size
+            for(int i=0;i<numNames;i++) {
+              int all0 = (Integer.parseInt(namesAllele0.nextToken()));
+              int all1 = (Integer.parseInt(namesAllele1.nextToken()));
+              Locus locus=new Locus(namesSTR.nextToken(),all0,all1);
+              loci.add(locus);
+            }
+            
+            markers = new MicrosatelliteMarkersAnalysis(Util.generateUUID(),tissueSampleID, encID, loci);
 
+              if(committing && loci.size()>0) {
+                myShepherd.getPM().makePersistent(markers);
+              }
+              sample.addGeneticAnalysis(markers);
+          }
+          else {
+            System.out.println("names and alleles sizes don't match!");
+          }
+    }
+  	
+ 	
+
+    //Sex Analysis import
+    /*
     String sexAnalID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
     String sexAnalSex = getString(row, "SexAnalysis.sex");
     if (sexAnalID!=null) {
@@ -1135,6 +1181,28 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(sexAnal);
       } else sexAnal.setSex(sexAnalSex);
     }
+    */
+  	SexAnalysis sexAnal=null;
+  	String sexAnalSex = getString(row, "SexAnalysis.sex");
+  	if(sample!=null && sexAnalSex!=null && !sexAnalSex.trim().equals("")) {
+  	  sexAnal = new SexAnalysis(Util.generateUUID(), sexAnalSex, encID, tissueSampleID);
+  	  if(committing) {
+  	    myShepherd.getPM().makePersistent(sexAnal);
+  	  }
+  	  sample.addGeneticAnalysis(sexAnal);
+  	}
+  	
+  	//add haplotype
+  	MitochondrialDNAAnalysis haplo=null;
+    String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype");
+    if(sample!=null && haplotype!=null && !haplotype.trim().equals("")) {
+      haplo = new MitochondrialDNAAnalysis(Util.generateUUID(), haplotype, encID, tissueSampleID);
+      if(committing) {
+        myShepherd.getPM().makePersistent(haplo);
+      }
+      sample.addGeneticAnalysis(haplo);
+    }
+  	
 
     if (sample!=null) enc.addTissueSample(sample);
     // END SAMPLES

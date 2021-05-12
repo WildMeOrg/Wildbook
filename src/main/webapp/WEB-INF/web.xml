@@ -445,7 +445,13 @@
         /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
-            </param-value>
+
+		/ProjectCreate = authc
+		/ProjectDelete = authc
+		/ProjectGet = authc
+		/ProjectUpdate = authc
+		/ProjectIA = authc
+			</param-value>
         </init-param>
     </filter>
 
@@ -1208,6 +1214,19 @@
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
+  
+  
+        <servlet>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <servlet-class>org.ecocean.metrics.WildbookMetrics</servlet-class>
+  </servlet>
+
+      <servlet-mapping>
+    <servlet-name>WildbookMetrics</servlet-name>
+    <url-pattern>/WildbookMetrics</url-pattern>
+  </servlet-mapping>
+  
+  
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>

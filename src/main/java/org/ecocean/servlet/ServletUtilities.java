@@ -736,10 +736,15 @@ public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) 
     while ((line = reader.readLine()) != null) {
       sb.append(line).append('\n');
     }
-  } finally {
-    reader.close();
   }
   //ParseException
+  catch(Exception e) {
+    e.printStackTrace();
+    System.out.println("Errored state of sb is: "+sb.toString());
+  }
+  finally {
+    reader.close();
+  }
   return new JSONObject(sb.toString());
 }
 

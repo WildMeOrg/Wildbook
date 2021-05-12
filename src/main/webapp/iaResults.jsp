@@ -138,6 +138,8 @@ if (request.getParameter("acmId") != null) {
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 		}
+		String locationIdPrefix = null;
+		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
@@ -147,6 +149,12 @@ if (request.getParameter("acmId") != null) {
 	 			if (enc != null) {
 	 				jann.put("encounterId", enc.getCatalogNumber());
 	 				jann.put("encounterLocationId", enc.getLocationID());
+					locationIdPrefix = enc.getPrefixForLocationID();
+					jann.put("encounterLocationIdPrefix", locationIdPrefix);
+					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
+					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
+
 	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
@@ -157,10 +165,6 @@ if (request.getParameter("acmId") != null) {
 				}
 				if (project!=null) {
 					try {
-
-						if (enc!=null) {;
-							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
-						}
 
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 							System.out.println("num encounters in project: "+project.getEncounters().size());
@@ -322,9 +326,9 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
                                 //note that useLocation flavor has slight race condition possible here...
                                 // might be better to have way to *create* indiv with new loc-based name
                                 if (useLocation) {
-                                    String locPrefix = enc.getLocationID().toLowerCase();
-                                    if (locPrefix.length() > 3) locPrefix = locPrefix.substring(0,3);
-                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, 3);
+                                    String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
+									int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
                                 }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
@@ -598,8 +602,8 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
-	<div id="result_settings">
-
+	<div id="result_settings" style="display: inline-block;">
+      <div>
 		<span id="scoreTypeSettings">
 		<%
 
@@ -626,7 +630,8 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-		<div id="projectDropdownDiv">
+	</div>	
+		<div id="projectDropdownDiv" style="padding: 0px 0px 0px 50px;">
 			<span hidden class="control-label" id="projectDropdownSpan">
 				<label>Project Selection</label>
 				<select name="projectDropdown" id="projectDropdown">
@@ -634,12 +639,25 @@ h4.intro.accordion .rotate-chevron.down {
 			</span> 
 		</div>
 
-		<style>
-		div#result_settings {
-			text-align: center;
+
+
+		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		<!-- need to add javascript to update the link href on  -->
+		<div id="scoreNumSettings">
+				<span id="scoreNumInput">
+					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
+				</span>
+				<button class="nResults" onclick="nResultsClicker()">set</button>
+		</div>
+
+	</div>
+	
+	<style>
+		div#result_settings, div#projectDropdownDiv {
+			
 		}
-		div#result_settings button:last-child {
-			margin-right: 0;
+		div#result_settings button:last-child, div#projectDropdownDiv {
+			margin-right: 15px 15px 15px 15px;
 		}
 		div#result_settings span#scoreTypeSettings {
 			float: left;
@@ -661,17 +679,6 @@ h4.intro.accordion .rotate-chevron.down {
 				}
 			}
 		</script>
-
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
-		<!-- need to add javascript to update the link href on  -->
-		<span id="scoreNumSettings">
-				<span id="scoreNumInput">
-					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
-				</span>
-				<button class="nResults" onclick="nResultsClicker()">set</button>
-		</span>
-
-	</div>
 
 
 
@@ -769,9 +776,11 @@ var INDIVIDUAL_SCORES = <%=individualScores%>;
 
 var projectIdPrefix = '<%=projectIdPrefix%>';
 var researchProjectName = '<%=researchProjectName%>';
+var researchProjectUUID = '<%=researchProjectUUID%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
+var projectAnnotIds = [];
 var queryAnnotId;
 var annotData = {};
 
@@ -835,7 +844,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    // console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -897,7 +906,7 @@ function grabTaskResult(tid) {
 	let paramStr = 'iaLogs.jsp?taskId=' + tid;
 	console.log("do i have a projectId in grabTaskResult()????? "+projectIdPrefix);
 	if (projectIdPrefix!=null&&projectIdPrefix.length>0) {
-		paramStr += "&projectId="+projectIdPrefix;
+		paramStr += "&projectId="+researchProjectUUID;
 	}
 
 	$.ajax({
@@ -917,6 +926,9 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					projectData = d[i].projectData;
 					if (d[i].projectACMIds) {
 						projectACMIds = d[i].projectACMIds;
+					}
+					if (d[i].projectAnnotIds) {
+						projectAnnotIds = d[i].projectAnnotIds;
 					}
 				}
 
@@ -1164,31 +1176,33 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var extern_reference = resJSON.dannot_extern_reference;
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
-
+		
 
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
 			
 			var d = sorted[i].split(/\s/);
 			if (!d) break;
+			
+			
 			var acmId = d[1];
+			
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
-			
-			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+acmId);
+
+			//console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+annotId);
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
 
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
-				console.log("Project ACM Ids : "+projectACMIds);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
 
-				console.log("has_illustration = "+has_illustration);
-				
+				//console.log("has_illustration = "+has_illustration);
+
 				var illustUrl;
 				if (has_illustration) {
 					illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
@@ -1660,7 +1674,7 @@ function locationBasedCheckbox(el, qann) {
 	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
-	$('#new-name-input').attr('placeholder', loc.substring(0,3).toLowerCase() + 'NNN').attr('disabled', 'disabled');
+	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationNextValue).attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
