@@ -369,7 +369,12 @@
 
 			 { "name":"Greenland", "id":"Greenland", "locationID":[] },
 
-			{ "name":"Iceland", "id":"Iceland", "locationID":[] },
+			{ "name":"Iceland", "id":"Iceland", "locationID":[
+			
+				{"name": "Breiðafjörður", "id": "Breiðafjörður"  }
+			
+			
+			] },
 
 			 {
 			  "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
