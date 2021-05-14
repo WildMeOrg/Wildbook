@@ -5,61 +5,109 @@
 		{
 			"name": "Klufterbach",
 			"id": "KB",
+			"geospatialInfo":{
+				"lat":50.686688,
+				"long":7.127002
+			},
 			"locationID": []
 		},
 		{
 			"name": "Venner Bach",
 			"id": "VB",
+			"geospatialInfo": {
+				"lat": 50.670721,
+				"long": 7.129955
+			},
 			"locationID": []
 		},
 		{
 			"name": "Katzenlochbach/Villiper Bach",
 			"id": "KOB",
+			"geospatialInfo": {
+				"lat": 50.667533,
+				"long": 7.083178
+			},
 			"locationID": []
 		},
 		{
 			"name": "Marienforster Bach/Keltersbaumbach",
 			"id": "MB",
+			"geospatialInfo": {
+				"lat": 50.675925,
+				"long": 7.136618
+			},
 			"locationID": []
 		},
 		{
 			"name": "Annaberger Bach",
 			"id": "AB",
+			"geospatialInfo": {
+				"lat": 50.684203,
+				"long": 7.116158
+			},
 			"locationID": []
 		},
 		{
 			"name": "Tümpel KoVK",
 			"id": "KoVK",
+			"geospatialInfo": {
+				"lat": 50.660984,
+				"long": 7.034919
+			},
 			"locationID": []
 		},
 		{
 			"name": "Tümpelgraben TG",
 			"id": "TG",
+			"geospatialInfo": {
+				"lat": 50.681499,
+				"long": 7.118652
+			},
 			"locationID": []
 		},
 		{
 			"name": "Seitengraben SG",
 			"id": "SG",
+			"geospatialInfo": {
+				"lat": 50.682431,
+				"long": 7.116877
+			},
 			"locationID": []
 		},
 		{
 			"name": "Tümpel TT",
 			"id": "TT",
+			"geospatialInfo": {
+				"lat": 50.681057,
+				"long": 7.121233
+			},
 			"locationID": []
 		},
 		{
 			"name": "Schutzhütte",
 			"id": "hut",
+			"geospatialInfo": {
+				"lat": 50.682028,
+				"long": 7.118937
+			},
 			"locationID": []
 		},
 		{
 			"name": "Kernlebensraum",
 			"id": "KLR",
+			"geospatialInfo": {
+				"lat": 51.923413,
+				"long": 8.872099
+			},
 			"locationID": []
 		},
 		{
 			"name": "Paderborner Dorf",
 			"id": "PD",
+			"geospatialInfo": {
+				"lat": 51.917119,
+				"long": 8.880677
+			},
 			"locationID": []
 		},
   ]
