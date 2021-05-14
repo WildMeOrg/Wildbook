@@ -311,6 +311,7 @@ try{
 	    //return;
 	}
 	double scale = imgHeight / ma.getHeight();
+        if (ma.isRotated90Or270()) scale = imgHeight / ma.getWidth();
 	
 	%>
 	
@@ -318,7 +319,8 @@ try{
 	
 	
 	<p>
-	MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
+	MediaAsset <b><a title="<%=ma.toString()%><%=(ma.isRotated90Or270() ? " -- adjusted for ROTATION &#128257;" : "")%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
+
 	<script>scale = <%=scale%>;
         var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
 
