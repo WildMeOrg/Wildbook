@@ -208,12 +208,6 @@ public class IA {
                             System.out.println("Error sending media asset to IA in handleMissingAcmids method in IA.java");
                             e.printStackTrace();
                         }
-                        try {
-                            Thread.sleep(30000);
-                        } catch (java.lang.InterruptedException ex) {
-                            System.out.println("You’re not the only one who didn’t sleep well. Neither did the thread in handleMissingAcmids in IA.java");
-                            ex.printStackTrace();
-                        }
                     }
                     batchesSoFar++;
                     assetsWithMissingAcmids = new ArrayList<MediaAsset>();
