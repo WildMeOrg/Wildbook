@@ -1402,8 +1402,14 @@ System.out.println("qjob => " + qjob);
                 System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
                 continue;
             }
+            Task task = new Task();
+            task.setParameters(jin.optJSONObject("taskParameters"));
+            myShepherd.storeNewTask(task);
+            myShepherd.commitDBTransaction();
+            System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
             JSONObject qjob = new JSONObject(jin.toString());  //clone it to start with so we get all same content
             qjob.remove("bulkImport");  // ... but then lose this
+            qjob.put("taskId", task.getId());
             qjob.put("mediaAssetIds", maIds);
             qjob.put("v2", true);
             qjob.put("__context", context);
@@ -1411,7 +1417,7 @@ System.out.println("qjob => " + qjob);
             qjob.put("__handleBulkImport", System.currentTimeMillis());
             boolean ok = addToQueue(context, qjob.toString());
             if (ok) okCount++;
-            mapRes.put(encId, "queued=" + ok);
+            mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
         }
         res.put("encounterCount", maMap.keySet().size());
         res.put("queuedCount", okCount);
