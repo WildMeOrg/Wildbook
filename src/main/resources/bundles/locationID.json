@@ -8,116 +8,116 @@
 			  
 			  
 				{
-				  "name": "Ningaloo (non-specific)", "id": "1a" },
+				  "name": "Ningaloo (non-specific)", "id": "1a", "prefix": "A-", "prefixDigitPadding": 3 },
 				 {
-				  "name": "North Ningaloo", "id": "1a1" },
+				  "name": "North Ningaloo", "id": "1a1", "prefix": "A-", "prefixDigitPadding": 3 },
 				  {
-				  "name": "South Ningaloo", "id": "1a2" },
+				  "name": "South Ningaloo", "id": "1a2", "prefix": "A-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Shark Bay Region", "id": "1a3" },
+				  "name": "Shark Bay Region", "id": "1a3", "prefix": "A-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "North West shelf region", "id": "1a4" },
+				  "name": "North West shelf region", "id": "1a4", "prefix": "A-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Australia (Pacific Ocean)", "id": "1b" },
+				  "name": "Australia (Pacific Ocean)", "id": "1b", "prefix": "AP-", "prefixDigitPadding": 3 },
 				  
 				{
-				  "name": "Qld", "id": "1b1" },
+				  "name": "Qld", "id": "1b1", "prefix": "AP-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "NSW", "id": "1b2" }
+				  "name": "NSW", "id": "1b2", "prefix": "AP-", "prefixDigitPadding": 3 }
 			  
 			  
 			  ]},
 
 			  
 			  {
-			  "name": "ChristmasIsland", "id": "ChristmasIsland" },
+			  "name": "ChristmasIsland", "id": "ChristmasIsland", "prefix": "X-", "prefixDigitPadding": 3 },
 			  
 			   {
-			  "name": "Indonesia", "id": "Indonesia" },
+			  "name": "Indonesia", "id": "Indonesia", "prefix": "ID-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "Japan", "id": "Japan" },
 			  
 			  {
-			  "name": "Malaysia", "id": "Malaysia" },
+			  "name": "Malaysia", "id": "Malaysia", "prefix": "MY-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "Thailand", "id": "Thailand" },
+			  "name": "Thailand", "id": "Thailand", "prefix": "T-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "Myanmar", "id": "Myanmar" },
+			  "name": "Myanmar", "id": "Myanmar", "prefix": "MR-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "1g", "id": "1g" },
 			  
 			  {
-			  "name": "2", "id": "2" },
+			  "name": "2", "id": "2", "prefix": "CRB-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2a", "id": "2a" },
+			  "name": "2a", "id": "2a", "prefix": "H-", "prefixDigitPadding": 3 },
 			 
 			{
-			  "name": "2b", "id": "2b" },
+			  "name": "2b", "id": "2b", "prefix": "BZ-", "prefixDigitPadding": 3 },
 			{
-			  "name": "2c", "id": "2c" },
+			  "name": "2c", "id": "2c", "prefix": "MXA-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2d", "id": "2d" },
+			  "name": "Texas", "id": "2d", "prefix": "TX-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2e", "id": "2e" },
+			  "name": "2e", "id": "2e", "prefix": "GC-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "2e1", "id": "2e1" },
+			  "name": "2e1", "id": "2e1", "prefix": "GC-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "2f", "id": "2f" },
 			  
 			  {
-			  "name": "2g", "id": "2g" },
+			  "name": "2g", "id": "2g", "prefix": "USA-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "South Atlantic", "id": "2h", "locationID":[
+			  "name": "South Atlantic", "id": "2h", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
 				  {
-				  "name": "St. Helena Island", "id": "2h1" },
+				  "name": "St. Helena Island", "id": "2h1", "prefix": "SHA-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Ascension Island", "id": "2h2" },
+				  "name": "Ascension Island", "id": "2h2", "prefix": "ID-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Brazil", "id": "2h3" },
+				  "name": "Brazil", "id": "2h3", "prefix": "BRZ-", "prefixDigitPadding": 3 },
 				   {
 				  "name": "Azores", "id": "2h4" }
 			  ] 
 			  },
 			  
 			  {
-			  "name": "4a", "id": "4a" },
+			  "name": "4a", "id": "4a", "prefix": "MZ-", "prefixDigitPadding": 3 },
 			  
 			  			  {
-			  "name": "4a1", "id": "4a1" },
+			  "name": "4a1", "id": "4a1", "prefix": "MZ-", "prefixDigitPadding": 3 },
 			  
 			  			  {
 			  "name": "4a2", "id": "4a2" },
 			  
 			  			  {
-			  "name": "Tanzania", "id": "Tanzania" },
+			  "name": "Tanzania", "id": "Tanzania", "prefix": "TZ-", "prefixDigitPadding": 3 },
 
 			  {
-			  "name": "Kenya", "id": "Kenya" },
+			  "name": "Kenya", "id": "Kenya", "prefix": "K-", "prefixDigitPadding": 3 },
 			  
 			  			  {
-			  "name": "SouthAfrica", "id": "SouthAfrica" },
+			  "name": "SouthAfrica", "id": "SouthAfrica", "prefix": "SA-", "prefixDigitPadding": 3 },
 			  
 			  			  {
-			  "name": "Djibouti", "id": "Djibouti" },
+			  "name": "Djibouti", "id": "Djibouti", "prefix": "DJ-", "prefixDigitPadding": 3 },
 			  
 			  			  {
-			  "name": "Madagascar", "id": "Madagascar" },
+			  "name": "Madagascar", "id": "Madagascar", "prefix": "MD-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "Madagascar", "id": "Madagascar" },
@@ -131,7 +131,7 @@
 
 
 			 {
-			  "name": "RedSea", "id": "RedSea", "locationID":[
+			  "name": "RedSea", "id": "RedSea", "prefix": "R-", "prefixDigitPadding": 3, "locationID":[
 			  
 			  
 				{"name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" }
@@ -143,10 +143,10 @@
 			
 			  
 			   {
-			  "name": "4h", "id": "4h" },
+			  "name": "4h", "id": "4h", "prefix": "Q-", "prefixDigitPadding": 3 },
 			  
 			   {
-			  "name": "4h1", "id": "4h1" },
+			  "name": "4h1", "id": "4h1", "prefix": "Q-", "prefixDigitPadding": 3 },
 			  
 			   {
 			  "name": "4h1a", "id": "4h1a" },
@@ -170,28 +170,28 @@
 			  "name": "4h4", "id": "4h4" },
 			  
 			  {
-			  "name": "Maldives", "id": "Maldives" },
+			  "name": "Maldives", "id": "Maldives", "prefix": "M-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "Seychelles", "id": "Seychelles" },
+			  "name": "Seychelles", "id": "Seychelles", "prefix": "S-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a", "id": "6a" },
+			  "name": "6a", "id": "6a", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a1", "id": "6a1" },
+			  "name": "6a1", "id": "6a1", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a2", "id": "6a2" },
+			  "name": "6a2", "id": "6a2", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a3", "id": "6a3" },
+			  "name": "6a3", "id": "6a3", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6a4", "id": "6a4" },
+			  "name": "6a4", "id": "6a4", "prefix": "P-", "prefixDigitPadding": 3 },
 			  
 			  {
-			  "name": "6b", "id": "6b" },
+			  "name": "6b", "id": "6b", "prefix": "TW-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "Pacific Ocean", "id": "7", "locationID":[
@@ -213,15 +213,15 @@
 				  ]},
 				  
 				  {
-				  "name": "Cocos Islands", "id": "7b" },
+				  "name": "Cocos Islands", "id": "7b", "prefix": "CR-", "prefixDigitPadding": 3 },
 				  
 			
 				  {
-				  "name": "Galapagos Islands", "id": "7a" },
+				  "name": "Galapagos Islands", "id": "7a", "prefix": "G-", "prefixDigitPadding": 3 },
 				   
 				  
 				  {
-				  "name": "Hawaii", "id": "Hawaii" },
+				  "name": "Hawaii", "id": "Hawaii", "prefix": "HW-", "prefixDigitPadding": 3 },
 				  
 				  {
 				  "name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
@@ -229,30 +229,30 @@
 						{
 							"name": "7d", "id": "7d" }
 
-					]
+					], "prefix": "MX-", "prefixDigitPadding": 3
 				  },
 				  
 				  {
-				  "name": "Mexico-LC", "id": "Mexico-LC" },
+				  "name": "Mexico-LC", "id": "Mexico-LC", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit" },
+				  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Mexico-BLA", "id": "Mexico-BLA" },
+				  "name": "Mexico-BLA", "id": "Mexico-BLA", "prefix": "MX-", "prefixDigitPadding": 3 },
 
 
 				{
-				  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo" },
+				  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo", "prefix": "MX-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Mexico-BC", "id": "Mexico-BC" },
+				  "name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
 
 				{
 				  "name": "8a", "id": "8a" },
 				  	  
 				  {
-				  "name": "Panama", "id": "Panama" },
+				  "name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
 				  
 				  {
 				  "name": "Peru", "id": "Peru" }
