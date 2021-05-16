@@ -194,48 +194,72 @@
 			  "name": "6b", "id": "6b" },
 			  
 			  {
-			  "name": "7", "id": "7" },
+			  "name": "Pacific Ocean", "id": "7", "locationID":[
 			  
-			  {
-			  "name": "7a", "id": "7a" },
-			  
-			  {
-			  "name": "7b", "id": "7b" },
-			  
-			  
-			  {
-			  "name": "Panama", "id": "Panama" },
-			  
-			   {
-			  "name": "7d", "id": "7d" },
-			  
-			  {
-			  "name": "Mexico-BLP", "id": "Mexico-BLP" },
-			  
-			  {
-			  "name": "Mexico-LC", "id": "Mexico-LC" },
-			  
-			  {
-			  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit" },
-			  
-			  {
-			  "name": "Mexico-BLA", "id": "Mexico-BLA" },
+				  {
+				  "name": "California", "id": "California", "locationID":[
+					
+						{
+					  "name": "Ano Nuevo", "id": "Ano Nuevo" },
+					  {
+					  "name": "Aptos", "id": "Aptos" },
+					  {
+					  "name": "Farallon Islands", "id": "Farallon Islands" },
+					  {
+					  "name": "Point Reyes", "id": "Point Reyes" },
+					  {
+					  "name": "Morro Bay", "id": "Morro Bay" }
+				  
+				  ]},
+				  
+				  {
+				  "name": "Cocos Islands", "id": "7b" },
+				  
+			
+				  {
+				  "name": "Galapagos Islands", "id": "7a" },
+				   
+				  
+				  {
+				  "name": "Hawaii", "id": "Hawaii" },
+				  
+				  {
+				  "name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
+				  
+						{
+							"name": "7d", "id": "7d" }
+
+					]
+				  },
+				  
+				  {
+				  "name": "Mexico-LC", "id": "Mexico-LC" },
+				  
+				  {
+				  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit" },
+				  
+				  {
+				  "name": "Mexico-BLA", "id": "Mexico-BLA" },
 
 
-			{
-			  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo" },
-			  
-			  {
-			  "name": "Mexico-BC", "id": "Mexico-BC" },
+				{
+				  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo" },
+				  
+				  {
+				  "name": "Mexico-BC", "id": "Mexico-BC" },
 
-			{
-			  "name": "8a", "id": "8a" },
-			  
-			  {
-			  "name": "Peru", "id": "Peru" },
-			  
-			  {
-			  "name": "Hawaii", "id": "Hawaii" }
+				{
+				  "name": "8a", "id": "8a" },
+				  	  
+				  {
+				  "name": "Panama", "id": "Panama" },
+				  
+				  {
+				  "name": "Peru", "id": "Peru" }
+				  
+				  
+				  
+			] }
 
 
 
