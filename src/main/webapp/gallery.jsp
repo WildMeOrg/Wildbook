@@ -51,6 +51,14 @@ if(request.getParameter("locationCodeField")!=null){
 	locationCodeFieldString="&locationCodeField="+request.getParameter("locationCodeField");
 }
 
+//params from donorbox
+String donorboxId = Util.getRequestParamIfExists(request, "id");
+String donorboxFirstName = Util.getRequestParamIfExists(request, "first_name");
+String donorboxLastName = Util.getRequestParamIfExists(request, "last_name");
+String donorboxAmnt = Util.getRequestParamIfExists(request, "amount");
+String donorboxCurrency = Util.getRequestParamIfExists(request, "currency");
+String donorboxDuration = Util.getRequestParamIfExists(request, "duration");
+
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
@@ -517,7 +525,7 @@ try{
 	                  <%
 	                  if(CommonConfiguration.allowAdoptions(context)){
 	                  %>
-	                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+	                    <a href="<%=urlLoc%>/adoptionform.jsp?number=<%=pairIndividualID[j]%>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  <%
 	                  }
 	                  %>
@@ -542,15 +550,36 @@ try{
 	          <%
 	          if (startNum>0) {
 	            int newStart = Math.max(startNum-numIndividualsOnPage,0);
-	            %>
-	            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
-	            <%
+				if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				  %>
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+				  <%
+				}else{
+					%>
+						<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+					<%
+				}
 	          }
+			  if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  } else{
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  }
 	          %>
-
-	          <%=props.getProperty("seeMore") %>
-
-	&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
 	        </p>
 
 	      </row>

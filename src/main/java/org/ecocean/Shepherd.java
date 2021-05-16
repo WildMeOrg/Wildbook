@@ -46,6 +46,7 @@ import java.text.SimpleDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
@@ -3943,6 +3944,21 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return ann.findEncounter(this);
   }
 
+  //Added in for media assets by specie - Sarah Schibel
+  public Long countMediaAssetsBySpecies(String genus, String specificEpithet, Shepherd myShepherd){
+	Long myValue=new Long(0);
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	return myValue;
+}
+public Long countMediaAssets(Shepherd myShepherd){
+	Long myValue=new Long(0);
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	return myValue;
+}
 
   /**
    * Opens the database up for information retrieval, storage, and removal
@@ -5576,6 +5592,22 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
         if (u != null) return u;
         return getUserByEmailAddress(value);  //see note below about uniqueness, alas
     }
+    
+    public JSONArray getAllProjectACMIdsJSON(String projectId) {
+      JSONArray allAnnotIds = new JSONArray();
+      String filter="SELECT FROM org.ecocean.Annotation WHERE acmId!=null && enc.annotations.contains(this) && project.id=='"+projectId+"' && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc;org.ecocean.Project project";
+      Query q = pm.newQuery(filter);
+      q.setResult("distinct acmId");
+      Collection results = (Collection) q.execute();
+      ArrayList<String> al=new ArrayList<String>(results);
+      q.closeAll();
+      for (String ann :al) {
+            allAnnotIds.put(ann);
+    }
+      
+      return allAnnotIds;
+    }
+    
 
 
 } //end Shepherd class
