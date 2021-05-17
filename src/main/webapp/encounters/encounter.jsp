@@ -5766,11 +5766,12 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
  	      catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
 
  	      int numLoci=10;
- 	      try{
- 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty("numLoci",context))).intValue();
- 	 	  }
- 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
-
+ 	      if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
+	 	      try{
+	 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty(enc.getGenus()+"."+enc.getSpecificEpithet()+".numLoci",context))).intValue();
+	 	 	  }
+	 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	      }
  		  for(int locus=0;locus<numLoci;locus++){
  			 String locusNameValue="";
  			 if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())){locusNameValue=msDNA.getLoci().get(locus).getName();}
@@ -6230,11 +6231,12 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
  	      catch(Exception e){System.out.println("numPloids configuration value did not resolve to an integer.");e.printStackTrace();}
 
  	      int numLoci=10;
- 	      try{
- 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty("numLoci",context))).intValue();
- 	 	  }
- 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
-
+ 	      if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
+	 	      try{
+	 	 	  	numLoci=(new Integer(CommonConfiguration.getProperty(enc.getGenus()+"."+enc.getSpecificEpithet()+".numLoci",context))).intValue();
+	 	 	  }
+	 	 	  catch(Exception e){System.out.println("numLoci configuration value did not resolve to an integer.");e.printStackTrace();}
+ 	      }
  		  for(int locus=0;locus<numLoci;locus++){
  			 String locusNameValue="";
  			 if((msDNA.getLoci()!=null)&&(locus<msDNA.getLoci().size())){locusNameValue=msDNA.getLoci().get(locus).getName();}
