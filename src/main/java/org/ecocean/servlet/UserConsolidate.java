@@ -583,39 +583,29 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public static JSONObject suspendLessCredentialedAccounts(Shepherd myShepherd, JSONObject returnJson){
+  public static JSONObject suspendLessCredentialedAccounts(Shepherd myShepherd, final JSONObject returnJson){
     returnJson.put("success", false);
     int suspensionCount = 0;
     List<User> allUsers = myShepherd.getAllUsers();
     int totalNumberOfUsers = allUsers.size();
-    String filter = "";
     PersistenceManager persistenceManager = myShepherd.getPM();
-    Query query = persistenceManager.newQuery(filter);
-    Collection c = null;
     List<User> matchingUserCohort = new ArrayList<User>();
     for(User currentUser: allUsers){
       //for each user, find other users with matching email addresses but non-matching, non-null usernames
-      if(currentUser.getEmailAddress()!=null){
-        filter="SELECT FROM org.ecocean.User WHERE emailAddress==\"" + currentUser.getEmailAddress() + "\" && username!=null && uuid!=\"" + currentUser.getUUID() + "\"";
-        query = persistenceManager.newQuery(filter);
-        c = (Collection) (query.execute());
-        if(c!=null){
-          matchingUserCohort=new ArrayList<User>(c);
-          //including the currentUser, find highestCredentialedUser from the list
-          matchingUserCohort.add(currentUser);
-          User highestCredentialedMatch = getHighestCredentialedUserInList(matchingUserCohort, myShepherd);
-          //for the others on the list without that uuid, change their email address to uuid@localhost
-          for(User currentMatchingUserCohortMember: matchingUserCohort){
-            if(currentMatchingUserCohortMember.getUUID() != highestCredentialedMatch.getUUID()){
-              currentMatchingUserCohortMember.setEmailAddress(currentMatchingUserCohortMember.getUUID() + "@localhost");
-              //TODO decide if you need to update db transactions here
-              myShepherd.updateDBTransaction();
-              System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
-              suspensionCount ++;
-            }else{
-              System.out.println("deleteMe the one not getting suspended is: " + currentMatchingUserCohortMember.toString());
-            }
-          }
+      matchingUserCohort = getAllUsersWithEmailAddressWithOptAdditionalFilter(currentUser.getEmailAddress(), persistenceManager, " && username!=null && uuid!=\"" + currentUser.getUUID() + "\"");
+      //including the currentUser, find highestCredentialedUser from the list
+      matchingUserCohort.add(currentUser);
+      User highestCredentialedMatch = getHighestCredentialedUserInList(matchingUserCohort, myShepherd);
+      //for the others on the list without that uuid, change their email address to uuid@localhost
+      for(User currentMatchingUserCohortMember: matchingUserCohort){
+        if(currentMatchingUserCohortMember.getUUID() != highestCredentialedMatch.getUUID()){
+          currentMatchingUserCohortMember.setEmailAddress(currentMatchingUserCohortMember.getUUID() + "@localhost");
+          //TODO decide if you need to update db transactions here
+          myShepherd.updateDBTransaction();
+          System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
+          suspensionCount ++;
+        }else{
+          System.out.println("deleteMe the one not getting suspended is: " + currentMatchingUserCohortMember.toString());
         }
       }
     }
@@ -625,7 +615,7 @@ public class UserConsolidate extends HttpServlet {
     return returnJson;
   }
 
-  public static JSONObject consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(Shepherd myShepherd, JSONObject returnJson){
+  public static JSONObject consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(Shepherd myShepherd, final JSONObject returnJson){
     returnJson.put("success", false);
     //find users with email addresses but no usernames
     List<User> usernamelessUsers = new ArrayList<User>();
@@ -660,24 +650,9 @@ public class UserConsolidate extends HttpServlet {
     return returnJson;
   }
 
-  public static List<User> getOtherUsersWithMatchingEmailAddress(User focalUser, PersistenceManager persistenceManager){
-    List<User> matchingUsers =new ArrayList<User>();
-    if(focalUser == null) return null;
-    if(focalUser.getEmailAddress() == null) return null;
-    if(focalUser.getUUID() == null) return null;
-    String focalUserEmailAddress = focalUser.getEmailAddress();
-    String focalUserUuid = focalUser.getUUID();
-    String filter="SELECT FROM org.ecocean.User where \"" + focalUserEmailAddress + "\"==this.emailAddress && this.uuid!=\"" + focalUserUuid + "\" ";
-    Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      matchingUsers =new ArrayList<User>(c);
-      query.closeAll();
-      return matchingUsers;
-    }else{
-      query.closeAll();
-      return null;
-    }
+  public static List<User> getOtherUsersWithMatchingEmailAddress(User focalUser, PersistenceManager persistenceManager){ // now a wrapper method
+    if(focalUser == null || focalUser.getUUID() == null) return null;
+    return getAllUsersWithEmailAddressWithOptAdditionalFilter(focalUser.getEmailAddress(), persistenceManager, "&& this.uuid!=\"" + focalUser.getUUID() + "\"");
   }
 
   public static User getHighestCredentialedUserInList(List<User> candidateUsers, Shepherd myShepherd){
@@ -795,22 +770,23 @@ public class UserConsolidate extends HttpServlet {
     }
   }
 
-
-  public static List<User> getUsersWithMissingUsernamesWhoMatchEmail(PersistenceManager persistenceManager, String emailAddress){
-    List<User> usernamelessUsers=new ArrayList<User>();
+  public static List<User> getAllUsersWithEmailAddressWithOptAdditionalFilter(String emailAddress, PersistenceManager persistenceManager, String additionalFilter){
+    List<User> returnUsers=new ArrayList<User>();
     if(!"".equals(emailAddress) && emailAddress!=null){
-      String filter="SELECT FROM org.ecocean.User where \"" + emailAddress + "\"==this.emailAddress && this.username==null || this.username==\"N/A\" ";
+      String filter = null;
+      if(additionalFilter != null){
+        filter="SELECT FROM org.ecocean.User where \"" + emailAddress.toLowerCase() + "\"==this.emailAddress.toLowerCase() " + additionalFilter;
+      }else{
+        filter="SELECT FROM org.ecocean.User where \"" + emailAddress.toLowerCase() + "\"==this.emailAddress.toLowerCase()";
+      }
       Query query=persistenceManager.newQuery(filter);
       Collection c = (Collection) (query.execute());
       if(c!=null){
-        usernamelessUsers=new ArrayList<User>(c);
-        for(int i=0; i<usernamelessUsers.size(); i++){
-          User currentUser = usernamelessUsers.get(i);
-        }
+        returnUsers=new ArrayList<User>(c);
       }
       query.closeAll();
     }
-    return usernamelessUsers;
+    return returnUsers;
   }
 
 
@@ -966,6 +942,42 @@ public class UserConsolidate extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        }
+        myShepherd.beginDBTransaction();
+    }
+
+    //assign orphaned encounters to Public user
+    try{
+      Boolean assignOrphanedEncountersToPublicDesired = jsonRes.optBoolean("assignOrphanedEncountersToPublicDesired", false);
+      if(assignOrphanedEncountersToPublicDesired){
+        //if there's not a user named Public with email address public@wildme.org, create one
+        User publicUser = myShepherd.getUser("Public");
+        if(publicUser == null){
+          //make it
+          String publicUserName = "Public";
+          String publicUserEmail = "public@wildme.org";
+          String salt = ServletUtilities.getSalt().toHex();
+          String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt); //admins can change this later
+          publicUser = new User(publicUserName, hashedPassword, salt);
+          publicUser.setEmailAddress(publicUserEmail);
+          myShepherd.updateDBTransaction();  
+        }
+        //find all encounters where submitterID is null or "N/A" and change to Public
+        EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
+        myShepherd.updateDBTransaction();
+      }
+    } catch (Exception e) {
+        System.out.println("deleteMe got here error p1");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning encounters with submitterIDs of null or N/A to the public user.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning encounters with submitterIDs of null or N/A to the public user.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         if (out!=null) {

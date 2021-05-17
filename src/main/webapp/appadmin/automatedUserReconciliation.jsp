@@ -48,9 +48,12 @@ try{
     dedupeLessCompleteJson['dedupeLessCompleteDesired'] = true;
     let suspendLessCredentialedJson = {};
     suspendLessCredentialedJson['suspendLessCredentialedDesired'] = true;
+    let assignOrphanedEncountersToPublicJson = {};
+    assignOrphanedEncountersToPublicJson['assignOrphanedEncountersToPublicDesired'] = true;
     $(document).ready(function() {
         doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
         doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
+        doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
     });
 
     function doAjaxCallForDedupeLessCompleteAccounts(jsonRequest){
@@ -94,6 +97,27 @@ try{
             }
           });
       }
+
+      function doAjaxCallForAssigningOrphanEncountersToPublic(jsonRequest) {
+          $.ajax({
+            url: wildbookGlobals.baseUrl + '../UserConsolidate',
+            type: 'POST',
+            data: JSON.stringify(jsonRequest),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+              console.log("deleteMe data coming back from doAjaxCallForAssigningOrphanEncountersToPublic is: ");
+              console.log(data);
+              if (data.success) {
+                console.log("deleteMe got here a3");
+                //TODO display how many there are now vs how many there were
+              }
+            },
+            error: function (x, y, z) {
+              console.warn('%o %o %o', x, y, z);
+            }
+          });
+        }
 
 
     function displayProgressBar(loadingStatus){
