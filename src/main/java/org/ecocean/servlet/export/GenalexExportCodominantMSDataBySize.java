@@ -94,17 +94,6 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
 
        //business logic start here
         
-        //load the optional locales
-        Properties props = new Properties();
-        try {
-          //props.load(getClass().getResourceAsStream("/bundles/locales.properties"));
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-          
-        } catch (Exception e) {
-          System.out.println("     Could not load locationIDGPS.properties in class GenalexExportCodominantMSDataBySize.");
-          e.printStackTrace();
-        }
-        
       //let's set up some cell formats
         WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
         WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
