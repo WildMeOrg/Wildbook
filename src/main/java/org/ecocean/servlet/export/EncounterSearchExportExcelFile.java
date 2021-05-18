@@ -16,6 +16,7 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import java.lang.Boolean;
 
 
 public class EncounterSearchExportExcelFile extends HttpServlet{
@@ -263,7 +264,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             }
             //check for available locale coordinates
             //this functionality is primarily used for data export to iobis.org
-            else if ((enc.getLocationCode() != null) && (!enc.getLocationCode().equals(""))) {
+            Boolean defaultGpsDesired = false;
+            defaultGpsDesired = Boolean.parseBoolean(request.getParameter("locales"));
+            if (defaultGpsDesired && (enc.getLocationCode() != null) && (!enc.getLocationCode().equals(""))) {
               try {
                 String lc = enc.getLocationCode();
                 if (props.getProperty(lc) != null) {
