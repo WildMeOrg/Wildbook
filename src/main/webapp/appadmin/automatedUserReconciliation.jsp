@@ -52,11 +52,14 @@ try{
     assignOrphanedEncountersToPublicJson['assignOrphanedEncountersToPublicDesired'] = true;
     let renameUsernamelessToAnonymousJson = {};
     renameUsernamelessToAnonymousJson['renameUsernamelessToAnonymousDesired'] = true;
+    let suspendEmaillessOrInvalidEmailJson = {};
+    suspendEmaillessOrInvalidEmailJson['suspendEmaillessOrInvalidEmailDesired'] = true;
     $(document).ready(function() {
         doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
-        // doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
+        doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
         doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
         doAjaxCallForRenamingUsernamelessToAnonymous(renameUsernamelessToAnonymousJson);
+        doAjaxCallForSuspendingEmaillessOrInvalidEmails(suspendEmaillessOrInvalidEmailJson);
     });
 
     function doAjaxCallForDedupeLessCompleteAccounts(jsonRequest){
@@ -143,6 +146,26 @@ try{
             });
           }
 
+          function doAjaxCallForSuspendingEmaillessOrInvalidEmails(jsonRequest) {
+              $.ajax({
+                url: wildbookGlobals.baseUrl + '../UserConsolidate',
+                type: 'POST',
+                data: JSON.stringify(jsonRequest),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                  console.log("deleteMe data coming back from doAjaxCallForSuspendingEmaillessOrInvalidEmails is: ");
+                  console.log(data);
+                  if (data.success) {
+                    console.log("deleteMe got here a5");
+                    //TODO display how many there are now vs how many there were
+                  }
+                },
+                error: function (x, y, z) {
+                  console.warn('%o %o %o', x, y, z);
+                }
+              });
+            }
 
     function displayProgressBar(loadingStatus){
       let progressHtml = '';
