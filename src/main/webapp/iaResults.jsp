@@ -73,7 +73,7 @@ myShepherd.setAction("matchResults nameKey getter");
 myShepherd.beginDBTransaction();
 User user = myShepherd.getUser(request);
 String currentUsername = "";
-if (user!=null){	
+if (user!=null){
 	currentUsername = user.getUsername();
 }
 
@@ -175,7 +175,7 @@ if (request.getParameter("acmId") != null) {
 								jann.put("projectIdPrefix", projectIdPrefix);
 								jann.put("projectUUID", project.getId());
 							}
-						} 
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -210,7 +210,7 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 	res.put("individualId", request.getParameter("individualID"));
         res.put("useLocation", useLocation);
 	res.put("taskId", taskId);
-	String projectId = null; 
+	String projectId = null;
 	if (Util.stringExists(request.getParameter("projectId"))) {
 		res.put("projectId", request.getParameter("projectId"));
 		projectId = request.getParameter("projectId");
@@ -320,7 +320,7 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 
 			//enc.setState("approved");
 			//enc2.setState("approved");
-			
+
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
                                 //note that useLocation flavor has slight race condition possible here...
@@ -334,12 +334,12 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 					System.out.println("CASE 1: both indy null");
 					if (Util.isUUID(individualID)) {
 						indiv = myShepherd.getMarkedIndividual(individualID);
-					} 
+					}
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
 					}
-					
-					
+
+
 
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
@@ -349,7 +349,7 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 							project.getNextIncrementalIndividualIdAndAdvance();
 							myShepherd.updateDBTransaction();
 						}
-						
+
 						indiv.addNameByKey(projectId, individualID);
 						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
@@ -360,16 +360,16 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
-					
+
 					myShepherd.updateDBTransaction();
                                         setImportTaskComplete(myShepherd, enc);
                                         setImportTaskComplete(myShepherd, enc2);
                     indiv.refreshNamesCache();
-                    
+
                     IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
                     IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
-                    
-                    
+
+
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -384,29 +384,29 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 				myShepherd.updateDBTransaction();
 				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
                                 setImportTaskComplete(myShepherd, enc2);
-			} 	
-			
+			}
+
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);					
+				enc.setIndividual(indiv2);
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-				
+
 				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
                                 setImportTaskComplete(myShepherd, enc);
-			} 
+			}
 
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg); 
+			enc.setMatchedBy(matchMsg);
 			enc2.setMatchedBy(matchMsg);
 
 			if (res.optString("error", null) == null) res.put("success", true);
-			
+
 		} catch (Exception e) {
 			//enc.setState("unapproved");
 			//enc2.setState("unapproved");
@@ -419,7 +419,7 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	} 
+	}
 
 	if (indiv == null && indiv2 == null) {
 		res.put("error", "No valid record could be found or created for name: " + individualID);
@@ -488,7 +488,7 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
-             
+
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -498,11 +498,11 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		} else {
 			System.out.println("trying to set USER BASED automatic name.......");
 			// old user based id
-			mark.addName(nextNameKey, nextName);		
+			mark.addName(nextNameKey, nextName);
 		}
-		
+
 		System.out.println("RTN for no match naming: "+rtn.toString());
-		
+
 		rtn.put("success",true);
 		out.println(rtn.toString());
 		myShepherd.commitDBTransaction();
@@ -585,18 +585,18 @@ h4.intro.accordion .rotate-chevron.down {
 </style>
 
 <script>
-	
-	
+
+
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
-	
+
 	//Map of the OpenSeadragon viewers
 	var viewers = new Map();
 	var features=new Map();
-	
+
 </script>
 
 
@@ -630,13 +630,13 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-	</div>	
+	</div>
 		<div id="projectDropdownDiv" style="padding: 0px 0px 0px 50px;">
 			<span hidden class="control-label" id="projectDropdownSpan">
 				<label>Project Selection</label>
 				<select name="projectDropdown" id="projectDropdown">
 				</select>
-			</span> 
+			</span>
 		</div>
 
 
@@ -651,10 +651,10 @@ h4.intro.accordion .rotate-chevron.down {
 		</div>
 
 	</div>
-	
+
 	<style>
 		div#result_settings, div#projectDropdownDiv {
-			
+
 		}
 		div#result_settings button:last-child, div#projectDropdownDiv {
 			margin-right: 15px 15px 15px 15px;
@@ -933,7 +933,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				}
 
 				if (d[i].status && d[i].status._action == 'getJobResult') {
-					
+
 					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
@@ -1098,19 +1098,22 @@ function showTaskResult(res, taskId) {
 				var algoDesc = 'texture (HotSpotter match results)'; // default display description if no algo info given
                 if (algoInfo == 'CurvRankTwoFluke') {
                     algoDesc = 'trailing edge (CurvRank v2)';
-                } 
+                }
                 else if (algoInfo == 'CurvRankTwoDorsal') {
                     algoDesc = 'trailing edge (CurvRank v2)';
-                } 
+                }
+                else if (algoInfo == 'CurvRankTwoRidge') {
+                    algoDesc = 'dorsal ridge edge (CurvRank v2)';
+                }
                 else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
-                } 
+                }
                 else if (algoInfo == 'Deepsense') {
                     algoDesc = 'Deepsense AI\'s Right Whale Matcher';
-                } 
+                }
                 else if (algoInfo == 'CurvRankDorsal') {
                     algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
-                } 
+                }
                 else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
                 }
@@ -1176,17 +1179,17 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var extern_reference = resJSON.dannot_extern_reference;
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
-		
+
 
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
-			
+
 			var d = sorted[i].split(/\s/);
 			if (!d) break;
-			
-			
+
+
 			var acmId = d[1];
-			
+
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
 
@@ -1212,7 +1215,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 				} else {
 					illustUrl = false;
 				}
-				
+
 				var adjustedScore = d[0];
 				displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 				// ----- END Hotspotter IA Illustration-----
@@ -1224,9 +1227,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			}
 
 		}
-		$('.annot-summary').on('mousemove', function(ev) { 
+		$('.annot-summary').on('mousemove', function(ev) {
 			//console.log('mouseover2 with num viewers: '+viewers.size);
-			annotClick(ev); 
+			annotClick(ev);
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
@@ -1270,17 +1273,17 @@ console.info('%d ===> %s', num, acmId);
 	if (projectId!=""&&projectId!=undefined) {
 		paramString += "&projectIdPrefix="+projectId;
 	}
-	
-	
+
+
 	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
     if (!imgs.length) {
             imgs = $('<div style="height: 400px;" class="bonus-wrapper" />');
             imgs.appendTo('#task-' + taskId)
      }
      imgs.append(h);
-	
+
 	console.log("PARAMSTRING: "+paramString);
-	
+
 	$.ajax({
 		url: paramString,  //hacktacular!
 		type: 'GET',
@@ -1349,18 +1352,18 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
             	//console.log(mainAsset.url);
-                
+
             	var img = $('<img src="' + mainAsset.url + '" />');
                 //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
                 //imgLink.append(img);
-            	
+
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft, mainAsset); });
                 //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
-                
 
-     
-                
+
+
+
               		var viewer=OpenSeadragon({
                     	id: taskId+"+"+acmId,
                         tileSources: {
@@ -1376,16 +1379,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         animationTime: 0,
 
                 	});
-                	
+
               		//viewer.world.setAutoRefigureSizes(true);
-              		
+
                 	viewer.addHandler('open', function() {
                 		var ft = features.get(viewer.id.split('+')[1]);
                 		//console.log(ft);
                 		var marginFactor=1;
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
-                	   	
+
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
@@ -1393,16 +1396,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var elt = document.createElement("div");
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
-                       
-                        
+
+
                         viewer.addOverlay({
                             element: elt,
                             checkResize: true,
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
-                	
+
                 	});
-    
+
                 	viewer.addHandler('full-screen', event => {
                 		if(event.fullPage==false){
                 			var eventArgs={
@@ -1410,15 +1413,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
-                	    	
+
                 	    }
                 	});
-                	
+
                 	viewer.addHandler('switchAnnots', event => {
                 		//console.log("switch annots with acmId: "+event.acmId);
-                		
+
                 		var marginFactor=1.0;
-                		
+
                 		//need to get annot feature
                 		var ft = features.get(viewer.id.split('+')[1]);
                 		//console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
@@ -1429,17 +1432,17 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                 	});
-                	
 
-                	
+
+
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
-            	
-            	
+
+
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
-                
-                
+
+
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
@@ -1460,11 +1463,11 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
-				
+
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
-				
+
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
 					//console.log("Did you get in the display name finder block??? Ye!");
@@ -1490,12 +1493,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
                     //thisResultLine.append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
-                    
+
 					if (!indivId) {
-						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
 					}
 				}
-				
+
 				if (isProjectSelected()) {
 					console.log("trying to show project-based id for asset...(UUID: "+projectUUID+" )");
 					h += ' in <a class="project-link" target="_new" href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
@@ -1504,7 +1507,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 						thisResultLine.append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
 					}
 				}
-				
+
 				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
@@ -1534,7 +1537,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
-                } 
+                }
                 else {
                     if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
@@ -1580,7 +1583,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
 
 function getSelectedProjectIdPrefix() {
 	let selectedValue = $("#projectDropdown option:selected").val();
-	if (selectedValue==""||selectedValue==undefined||selectedValue==null||selectedValue=="null") return ""; 
+	if (selectedValue==""||selectedValue==undefined||selectedValue==null||selectedValue=="null") return "";
 	return selectedValue;
 }
 
@@ -1614,7 +1617,7 @@ function annotCheckbox(el) {
 		allowSyncReturn = false;
 		let requestJSON = {};
 		requestJSON['projectIdPrefix'] = selectedProjectIdPrefix;
-		requestJSON['action'] = 'getNextIdForProject'; 
+		requestJSON['action'] = 'getNextIdForProject';
 		$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
 			type: 'POST',
@@ -1627,12 +1630,12 @@ function annotCheckbox(el) {
 				if (!nextId) {
 					nextId = '';
 				}
-				
+
 				h  = '<input id="autocomplete-individual-name" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
 				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-				h += '/>'; 
-				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedProjectIdPrefix+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
+				h += '/>';
+				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedProjectIdPrefix+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 
 				$('#enc-action').html(h);
 
@@ -1790,18 +1793,18 @@ function drawFeature(imgEl, ft, asset) {
     var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
 
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
-    
-    
+
+
     /* values are from-top, from-right, from-bottom, from-left */
-    
+
     //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
-   
-    
-    
+
+
+
     //imgEl.css("transform-origin", "0 0");
     //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
-    
-    
+
+
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
@@ -1971,7 +1974,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
 					// updates encounters in results list with name and link to indy
-					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
+					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
 				}
 			} else {
@@ -2026,8 +2029,8 @@ function negativeButtonClick(encId, oldDisplayName) {
 			type: 'GET',
 			dataType: 'json',
 			complete: function(d) {
-				console.log("RTN from negativeButtonClick : "+JSON.stringify(d)); 
-				updateNameCallback(d, oldDisplayName); 
+				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
+				updateNameCallback(d, oldDisplayName);
 			}
 		})
 	}
@@ -2084,7 +2087,7 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 	} else {
 		emptyOption = $('<option value="" class="projectSelectOption">'+NONE_SELECTED+'</option>');
 	}
-	dropdown.append(emptyOption); 
+	dropdown.append(emptyOption);
 	for (i=0;i<projectsArr.length;i++) {
 		let project = projectsArr[i];
 		let selectEl;
