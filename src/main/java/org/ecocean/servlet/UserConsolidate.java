@@ -605,7 +605,7 @@ public class UserConsolidate extends HttpServlet {
           System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
           suspensionCount ++;
         }else{
-          System.out.println("deleteMe the one not getting suspended is: " + currentMatchingUserCohortMember.toString());
+          System.out.println("dedupe the one not getting suspended is: " + currentMatchingUserCohortMember.toString());
         }
       }
     }
@@ -913,14 +913,13 @@ public class UserConsolidate extends HttpServlet {
         returnJson = consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(myShepherd, returnJson);
       }
     } catch (Exception e) {
-        System.out.println("deleteMe got here error a4");
+        System.out.println("dedupe exception e while getting or consolidating users with less complete accounts.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or consolidating users with less complete accounts.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for user consolidate with less complete accounts transaction.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        myShepherd.updateDBTransaction();
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -936,14 +935,13 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.updateDBTransaction();
       }
     } catch (Exception e) {
-        System.out.println("deleteMe got here error a5");
+        System.out.println("dedupe exception while suspending less-credentialed user accounts.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while suspending less-credentialed user accounts.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        myShepherd.updateDBTransaction();
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -972,12 +970,44 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.updateDBTransaction();
       }
     } catch (Exception e) {
-        System.out.println("deleteMe got here error p1");
+        System.out.println("dedupe exception while assigning encounters with submitterIDs of null or N/A to the public user");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while assigning encounters with submitterIDs of null or N/A to the public user.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for assigning encounters with submitterIDs of null or N/A to the public user.....");
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        }
+        myShepherd.beginDBTransaction();
+    }
+
+
+    //assign usernameless users to Anonymous
+    try{
+      Boolean renameUsernamelessToAnonymousDesired = jsonRes.optBoolean("renameUsernamelessToAnonymousDesired", false);
+      if(renameUsernamelessToAnonymousDesired){
+        List<User> usernamelessUsers = new ArrayList<User>();
+        usernamelessUsers = findUsersWithNonNullEmailAddressesAndNoUsername(myShepherd);
+        if(usernamelessUsers != null && usernamelessUsers.size() > 0){
+          //for each of them, change the username and update
+          for(User currentUser: usernamelessUsers){
+            System.out.println("dedupe assigning Anonymous_+uuid to user: " + currentUser.getUUID());
+            currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+    } catch (Exception e) {
+        System.out.println("dedupe Exception while renaming usernameless non null email users to anonymous_+uuid.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while renaming usernameless non null email users to anonymous_+uuid.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+        System.out.println("dedupe closing ajax call for renaming usernameless non null email users to anonymous_+uuid.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         if (out!=null) {
@@ -1110,4 +1140,17 @@ public class UserConsolidate extends HttpServlet {
     int randIndex = randVar.nextInt(maxInd); //maxInd itself is excluded from nextInt
     return users.get(randIndex);
   }
+
+  public static List<User> findUsersWithNonNullEmailAddressesAndNoUsername(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE this.username==null && this.emailAddress!=null";
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      returnUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
+    return returnUsers;
+  }
+
 }

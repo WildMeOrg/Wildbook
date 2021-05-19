@@ -50,10 +50,13 @@ try{
     suspendLessCredentialedJson['suspendLessCredentialedDesired'] = true;
     let assignOrphanedEncountersToPublicJson = {};
     assignOrphanedEncountersToPublicJson['assignOrphanedEncountersToPublicDesired'] = true;
+    let renameUsernamelessToAnonymousJson = {};
+    renameUsernamelessToAnonymousJson['renameUsernamelessToAnonymousDesired'] = true;
     $(document).ready(function() {
         doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
-        doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
+        // doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
         doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
+        doAjaxCallForRenamingUsernamelessToAnonymous(renameUsernamelessToAnonymousJson);
     });
 
     function doAjaxCallForDedupeLessCompleteAccounts(jsonRequest){
@@ -118,6 +121,27 @@ try{
             }
           });
         }
+
+        function doAjaxCallForRenamingUsernamelessToAnonymous(jsonRequest) {
+            $.ajax({
+              url: wildbookGlobals.baseUrl + '../UserConsolidate',
+              type: 'POST',
+              data: JSON.stringify(jsonRequest),
+              dataType: 'json',
+              contentType: 'application/json',
+              success: function (data) {
+                console.log("deleteMe data coming back from doAjaxCallForRenamingUsernamelessToAnonymous is: ");
+                console.log(data);
+                if (data.success) {
+                  console.log("deleteMe got here a4");
+                  //TODO display how many there are now vs how many there were
+                }
+              },
+              error: function (x, y, z) {
+                console.warn('%o %o %o', x, y, z);
+              }
+            });
+          }
 
 
     function displayProgressBar(loadingStatus){
