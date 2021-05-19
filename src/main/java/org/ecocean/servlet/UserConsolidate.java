@@ -699,11 +699,11 @@ public class UserConsolidate extends HttpServlet {
     roleHierarchy.add("machinelearning");
     for(String currentRoleBeingChecked: roleHierarchy){
       if(aRoleNames.contains(currentRoleBeingChecked) && !bRoleNames.contains(currentRoleBeingChecked)){
-        System.out.println("deleteMe user " + userA.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userB.getUsername() + " does not!");
+        // System.out.println("deleteMe user " + userA.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userB.getUsername() + " does not!");
         return true;
       }
       if(bRoleNames.contains(currentRoleBeingChecked) && !aRoleNames.contains(currentRoleBeingChecked)){
-        System.out.println("deleteMe user " + userB.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userA.getUsername() + " does not!");
+        // System.out.println("deleteMe user " + userB.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userA.getUsername() + " does not!");
         return false;
       }
     }
@@ -762,10 +762,10 @@ public class UserConsolidate extends HttpServlet {
     DateTime lastLoginADate = new DateTime(lastLoginA);
     DateTime lastLoginBDate = new DateTime(lastLoginB);
     if(lastLoginADate.compareTo(lastLoginBDate) >0){
-      System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is more recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
+      // System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is more recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
       return true;
     }else{
-      System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is LESS recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
+      // System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is LESS recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
       return false;
     }
   }
@@ -932,7 +932,6 @@ public class UserConsolidate extends HttpServlet {
       Boolean suspendLessCredentialedDesired = jsonRes.optBoolean("suspendLessCredentialedDesired", false);
       if(suspendLessCredentialedDesired){
         returnJson = suspendLessCredentialedAccounts(myShepherd, returnJson);
-        myShepherd.updateDBTransaction();
       }
     } catch (Exception e) {
         System.out.println("dedupe exception while suspending less-credentialed user accounts.");
@@ -1002,12 +1001,42 @@ public class UserConsolidate extends HttpServlet {
         }
       }
     } catch (Exception e) {
-        System.out.println("dedupe Exception while renaming usernameless non null email users to anonymous_+uuid.");
+        System.out.println("dedupe exception while renaming usernameless non null email users to anonymous_+uuid.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while renaming usernameless non null email users to anonymous_+uuid.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for renaming usernameless non null email users to anonymous_+uuid.....");
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        }
+        myShepherd.beginDBTransaction();
+    }
+
+    //assign emailless or invalid emails to uuid@localhost
+    try{
+      Boolean suspendEmaillessOrInvalidEmailDesired = jsonRes.optBoolean("suspendEmaillessOrInvalidEmailDesired", false);
+      if(suspendEmaillessOrInvalidEmailDesired){
+        List<User> emailProblemUsers = new ArrayList<User>();
+        emailProblemUsers = findUsersWithMissingOrInvalidEmailsButNonNullUsernames(myShepherd);
+        if(emailProblemUsers != null && emailProblemUsers.size() > 0){
+          for(User currentUser: emailProblemUsers){
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " to user: " + currentUser.getUUID());
+            currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+    } catch (Exception e) {
+        System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         if (out!=null) {
@@ -1150,6 +1179,25 @@ public class UserConsolidate extends HttpServlet {
       returnUsers=new ArrayList<User>(c);
     }
     query.closeAll();
+    return returnUsers;
+  }
+
+  public static List<User> findUsersWithMissingOrInvalidEmailsButNonNullUsernames(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE this.username!=null";
+    List<User> nonNullUsernameUsers=new ArrayList<User>();
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      nonNullUsernameUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
+    //only add users with invalid email addresses or missing ones to the returnUsers list
+    for(User currentUserCandidate: nonNullUsernameUsers){
+      if(currentUserCandidate.getEmailAddress() == null || !Util.isValidEmailAddress(currentUserCandidate.getEmailAddress())){
+        returnUsers.add(currentUserCandidate);
+      }
+    }
     return returnUsers;
   }
 
