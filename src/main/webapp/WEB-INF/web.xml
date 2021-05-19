@@ -1222,7 +1222,7 @@
 
       <servlet-mapping>
     <servlet-name>WildbookMetrics</servlet-name>
-    <url-pattern>/WildbookMetrics</url-pattern>
+    <url-pattern>/metrics</url-pattern>
   </servlet-mapping>
   
   
