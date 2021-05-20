@@ -185,9 +185,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
 
     public void setStartTime(ComplexDateTime dt) {
-        setVersion();
         startTime = dt;
         _validateStartEndTimes();
+        setVersion();
     }
     public void setStartTimeNoCheck(ComplexDateTime dt) {
         setVersion();
@@ -197,9 +197,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return startTime;
     }
     public void setEndTime(ComplexDateTime dt) {
-        setVersion();
         endTime = dt;
         _validateStartEndTimes();
+        setVersion();
     }
     public void setEndTimeNoCheck(ComplexDateTime dt) {
         setVersion();
@@ -210,7 +210,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
 
     private void _validateStartEndTimes() {
-        if ((this.startTime == null) || (this.endTime == null)) return;
+        if (this.startTime == null) throw new ApiValueException("startTime must have a value", "startTime");
+        if (this.endTime == null) return;
         if (this.startTime.gmtMinus(this.endTime) > 0L) throw new ApiValueException("startTime > endTime", "startTime");
     }
 
