@@ -59,6 +59,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
+import org.ecocean.api.ApiValueException;
 import org.ecocean.api.ApiDeleteCascadeException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -2184,15 +2185,19 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
   public void setDecimalLatitude(Double lat){
+        if ((lat != null) && !Util.isValidDecimalLatitude(lat)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
       this.decimalLatitude = lat;
       gpsLatitude = Util.decimalLatLonToString(lat);
+        setVersion();
    }
 
   public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
   public void setDecimalLongitude(Double lon) {
+      if ((lon != null) && !Util.isValidDecimalLatitude(lon)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
       this.decimalLongitude = lon;
       gpsLongitude = Util.decimalLatLonToString(lon);
+        setVersion();
   }
   
   public Double getEndDecimalLatitudeAsDouble(){return (endDecimalLatitude == null) ? null : endDecimalLatitude.doubleValue();}
@@ -4057,6 +4062,211 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
+    }
+
+
+    // this overrides base, just so we can post-validate
+    public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
+/*
+        if (!this.isJDODeleted()) {
+            this._validateStartEndTimes();
+            this._validateLocations();
+        }
+*/
+        return rtn;
+    }
+
+    public org.json.JSONObject apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        String opName = jsonIn.optString("op", null);  //valuable cuz apiPatchAdd is recycled by apiPatchReplace below
+        if (jsonIn == null) throw new IOException("apiPatch op=" + opName + " has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatch op=" + opName + " has null path");
+        if (path.startsWith("/")) path = path.substring(1);
+        Object valueObj = jsonIn.opt("value");
+        boolean hasValue = jsonIn.has("value");
+
+        // unsure if we should let add/replace set null, so we are only going to allow this
+        // if (!hasValue || (valueObj == null)) throw new IOException("apiPatch op=" + opName + " has empty value - use op=remove");
+        // okay, flopping on this via discussion w/ben on 2021-04-15 -- now will allow setting null as a value until we dont like it
+        if (!hasValue) throw new IOException("apiPatch op=" + opName + " has no value - use op=remove");
+
+        if ((valueObj != null) && valueObj.equals(null)) valueObj = null;  //convert org.json.JSONObject.NULL to java null
+
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                case "time":
+                    this.setTime( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
+                    break;
+                case "sex":
+                    this.setSex((String)valueObj);
+                    break;
+                case "decimalLatitude":
+                    this.setDecimalLatitude( (valueObj == null) ? null : tryDouble(valueObj) );
+                    break;
+                case "decimalLongitude":
+                    this.setDecimalLongitude( (valueObj == null) ? null : tryDouble(valueObj) );
+                    break;
+                case "comments":
+                    this.addComments((String)valueObj);
+                    break;
+                case "behavior":
+                    this.setBehavior((String)valueObj);
+                    break;
+                case "verbatimLocality":
+                    this.setVerbatimLocality((String)valueObj);
+                    break;
+                case "locationId":
+                    this.setLocationId((String)valueObj);
+                    break;
+                case "taxonomy":
+                    // we allow for both { "id": "uuid" } and simply "uuid" as values here
+                    org.json.JSONObject tj = jsonIn.optJSONObject("value");
+                    if (tj == null) {
+                        String tid = jsonIn.optString("value", null);
+                        if (tid == null) throw new ApiValueException("must pass json object with .id or string id", "taxonomies");
+                        tj = new org.json.JSONObject();
+                        tj.put("id", tid);
+                    }
+                    try {
+                        this.setTaxonomy(resolveTaxonomyJSONObject(myShepherd, tj));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                    }
+                    break;
+/*
+                case "customFields":
+                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                    //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
+                    this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                    break;
+*/
+                default:
+                    throw new Exception("apiPatch op=" + opName + " unknown path " + path);
+            }
+        } catch (ApiValueException ex) {
+            throw ex;
+        } catch (ApiDeleteCascadeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IOException("apiPatch op=" + opName + " unable to modify " + this + " due to " + ex.toString());
+        }
+        rtn.put("op", opName);
+        rtn.put("path", path);
+        rtn.put("value", valueObj);
+        return rtn;
+    }
+
+    //for non-array targets, this is the *same as* an add (i.e. it (re)sets the value)), so
+    //  you will note many cases just pass to apiPatchAdd()
+    public org.json.JSONObject apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatchReplace has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatchReplace has null path");
+        if (path.startsWith("/")) path = path.substring(1);
+        Object valueObj = jsonIn.opt("value");
+        boolean hasValue = jsonIn.has("value");
+
+        if ((valueObj != null) && valueObj.equals(null)) valueObj = null;  //convert org.json.JSONObject.NULL to java null
+
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                //these cases are all equivalent to add
+                case "time":
+                case "sex":
+                case "decimalLatitude":
+                case "decimalLongitude":
+                case "behavior":
+                case "verbatimLocality":
+                case "locationId":
+                case "taxonomy":
+                    rtn.put("_chainedAdd", true);
+                    this.apiPatchAdd(myShepherd, jsonIn);
+                    break;
+                case "comments":
+                    this.setComments((String)valueObj);
+                    break;
+/*
+                case "customFields":
+                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                    //since this is replace, we will want to zero out listy-types
+                    String cfdId = cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_");
+                    this.resetCustomFieldValues(cfdId);
+                    this.trySetting(myShepherd, cfdId, cfj.opt("value"));
+                    break;
+*/
+                default:
+                    throw new Exception("apiPatchReplace unknown path " + path);
+            }
+        } catch (ApiValueException ex) {
+            throw ex;
+        } catch (ApiDeleteCascadeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
+        }
+        rtn.put("op", "replace");
+        rtn.put("path", path);
+        rtn.put("value", valueObj);
+        return rtn;
+    }
+
+    public org.json.JSONObject apiPatchRemove(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatchRemove has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatchRemove has null path");
+        if (path.startsWith("/")) path = path.substring(1);
+
+        org.json.JSONObject rtn = new org.json.JSONObject();
+        SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                case "time":
+                    this.setTime(null);
+                    break;
+                case "sex":
+                    this.setSex(null);
+                    break;
+                case "decimalLatitude":
+                    this.setDecimalLatitude(null);
+                    break;
+                case "decimalLongitude":
+                    this.setDecimalLongitude(null);
+                    break;
+                case "behavior":
+                    this.setBehavior(null);
+                    break;
+                case "verbatimLocality":
+                    this.setVerbatimLocality(null);
+                    break;
+                case "locationId":
+                    this.setLocationId(null);
+                    break;
+                case "taxonomy":
+                    this.setTaxonomy(null);
+                    break;
+                case "comments":
+                    this.setComments(null);
+                    break;
+                default:
+                    throw new Exception("apiPatchRemove unsupported path " + path);
+            }
+        } catch (ApiValueException ex) {
+            throw ex;
+        } catch (ApiDeleteCascadeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IOException("apiPatchRemove unable to modify " + this + " due to " + ex.toString());
+        }
+        rtn.put("op", "remove");
+        rtn.put("path", path);
+        return rtn;
     }
 
 
