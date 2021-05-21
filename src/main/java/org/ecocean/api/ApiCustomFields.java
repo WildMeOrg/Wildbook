@@ -394,6 +394,12 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         return resolveTaxonomyJSONObject(myShepherd, tj, Taxonomy.siteTaxonomies(myShepherd));
     }
 
+    public static Double tryDouble(Object obj) {  //this will throw exceptions if conversion problems
+        if (obj == null) return null;
+        if (obj instanceof Integer) return new Double((Integer)obj);
+        return (Double)obj;
+    }
+
 /*
     this is for fromApiJSONObject() calls on sub-classes.   its just to get around the boring setFoo redundancy now.  optimize later!
     NOTE: this is ugly and uses reflection.   optimize/change later???

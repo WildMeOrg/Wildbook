@@ -1918,10 +1918,4 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         }
     }
 
-    //TODO should probably be in Util or base class?
-    public static Double tryDouble(Object obj) {  //this will throw exceptions if conversion problems
-        if (obj == null) return null;
-        if (obj instanceof Integer) return new Double((Integer)obj);
-        return (Double)obj;
-    }
 }
