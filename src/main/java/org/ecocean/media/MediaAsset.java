@@ -482,6 +482,20 @@ public class MediaAsset implements java.io.Serializable {
         return false;
     }
 
+    public String getRotationInfo() {
+        if (this.getMetadata() == null) return null;
+        HashMap<String,String> orient = this.getMetadata().findRecurse(".*orient.*");
+        if (orient == null) return null;
+        for (String k : orient.keySet()) {
+            if (orient.get(k).matches(".*90.*")) return orient.get(k);
+            if (orient.get(k).matches(".*270.*")) return orient.get(k);
+        }
+        return null;
+    }
+    public boolean isRotated90Or270() {
+        return (this.getRotationInfo() != null);
+    }
+
     public Path localPath()
     {
         if (store == null) return null;
