@@ -538,8 +538,12 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
 <table id="queue-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false">
 <thead>
 <tr>
-<% for (int ci = 0 ; ci < theads.length ; ci++) {
-    List<String> ahrefSortHeaders = new ArrayList<String>();
+<%
+List<String> noSortHeaders = new ArrayList<String>();
+List<String> ahrefSortHeaders = new ArrayList<String>();
+for (int ci = 0 ; ci < theads.length ; ci++) {
+	
+	noSortHeaders.add("#");
     ahrefSortHeaders.add("ID");
     ahrefSortHeaders.add("Cat");
     List<String> percentSortHeaders = new ArrayList<String>();
@@ -559,13 +563,19 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
         </th>
         <%
     }
-    if(!percentSortHeaders.contains(currentHeader) && !ahrefSortHeaders.contains(currentHeader)){
+    if(noSortHeaders.contains(currentHeader)){
+        %>
+        <th class="th-<%=ci%>" data-sortable="false"><%=theads[ci]%>
+        </th>
+        <%
+    } else if(!percentSortHeaders.contains(currentHeader) && !ahrefSortHeaders.contains(currentHeader)){
         %>
         <th class="th-<%=ci%>" data-sortable="true">
             <%=theads[ci]%>
         </th>
         <%
     }
+    
 } %>
 </tr>
 </thead>
