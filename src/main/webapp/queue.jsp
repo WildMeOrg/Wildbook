@@ -513,7 +513,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
     <button class="filter-button" id="filter-button-flagged" onClick="return filter('flagged',true);">flagged<span class="fct"></span></button>
     <button class="filter-button" id="filter-button-disputed" onClick="return filter('disputed',true);">disputed<span class="fct"></span></button>
     <button class="filter-button" id="filter-button-rejected" onClick="return filter('rejected',true);">rejected<span class="fct"></span></button>
-    <button class="filter-button" id="filter-button-rejected" onClick="return filter('validation',true);">validation<span class="fct"></span></button>
+    <button class="filter-button" id="filter-button-validation" onClick="return filter('validation',true);">validation<span class="fct"></span></button>
     <br>
     <input type="checkbox" id="viewAllDesired" name="viewAllDesired" value="true">
     <label for="viewAllDesired"> View All</label><br>
