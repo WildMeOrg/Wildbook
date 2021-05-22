@@ -4136,14 +4136,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                         throw new ApiValueException(ex.getMessage(), "taxonomies");
                     }
                     break;
-/*
                 case "customFields":
                     org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
                     if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
                     //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
                     this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
                     break;
-*/
                 default:
                     throw new Exception("apiPatch op=" + opName + " unknown path " + path);
             }
@@ -4191,7 +4189,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 case "comments":
                     this.setComments((String)valueObj);
                     break;
-/*
                 case "customFields":
                     org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
                     if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
@@ -4200,7 +4197,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     this.resetCustomFieldValues(cfdId);
                     this.trySetting(myShepherd, cfdId, cfj.opt("value"));
                     break;
-*/
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
             }
