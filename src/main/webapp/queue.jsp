@@ -612,9 +612,12 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
         }
 
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
+        
+        if (isAdmin) {
+       	 out.println("<td><input id= " + enc.getCatalogNumber() + "type=\"checkbox\" name=\"name2\" /></td>");
+        }
         out.println("<td class=\"col-id\">");
         if (isAdmin) {
-        	out.println("<td><input id= " + enc.getCatalogNumber() +"type=\"checkbox\" name=\"name2\" /></td>");
             out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + ename + "</a>");
         } else {
             out.println("<a href=\"encounters/encounterDecide.jsp?id=" + enc.getCatalogNumber() + "\" target=\"new\">" + ename + "</a>");
