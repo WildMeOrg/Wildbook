@@ -416,7 +416,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
+if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -445,15 +445,21 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
     height: 50px;
     float: right;
 }
-.th-0, .th-1 {
+
+.th-0{
+    width: 2em;
+}
+.th-1, .th-2 {
     width: 8em;
 }
-.th-2, .th-3 {
+.th-3, .th-4 {
     width: 12em;
 }
-.th-4, .th-5 {
+.th-5, .th-6 {
     width: 4em;
 }
+
+
 
 #filter-tabs button {
     font-size: 0.9em;
@@ -629,7 +635,8 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "Sub Date", "Col Date",
                 indivId = enc.getIndividual().getId();
                 ct = Util.collectionSize(getMatchPhotoAnnotations(myShepherd, enc.getIndividual()));
             }
-%><td class="col-state-<%=enc.getState()%>"><%=enc.getState()%></td>
+%>
+<td class="col-state-<%=enc.getState()%>"><%=enc.getState()%></td>
 <td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td><%
 
         }
