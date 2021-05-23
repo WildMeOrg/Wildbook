@@ -416,7 +416,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags"};
+if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col Date", "Dec Ct", "Level of Agreement", "Flags", "Location"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -745,7 +745,8 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
             }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
-
+        out.println("<td><input id= " + enc.getCatalogNumber() + " type=\"checkbox\" name=\"name2\" /></td>");
+        out.println("<td" + enc.getLocationID() + "</td>");
         out.println("</tr>");
     }
     myShepherd.rollbackAndClose();
