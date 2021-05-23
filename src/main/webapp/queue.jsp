@@ -520,6 +520,7 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
     <button class="filter-button" id="filter-button-rejected" onClick="return filter('rejected',true);">rejected<span class="fct"></span></button>
     <button class="filter-button" id="filter-button-validation" onClick="return filter('validation',true);">validation<span class="fct"></span></button>
     <br>
+    <br> Change status to :
     <select name="state" id="selectState" class="form-control" size="1">
 		<%
 								boolean hasMoreStates=true;
@@ -642,7 +643,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         
         if (isAdmin) {
-       	 out.println("<td><input id= " + enc.getCatalogNumber() + " type=\"checkbox\" name=\"name2\" /></td>");
+       	 out.println("<td><input value= " + enc.getCatalogNumber() + " type=\"checkbox\" name=\"name2\" /></td>");
         }
         out.println("<td class=\"col-id\">");
         if (isAdmin) {
@@ -789,6 +790,29 @@ function populateResolveLink(){
 }
 var currentActiveState = 'incoming';
 $(document).ready(function() {
+	$("#selectState").click(function(event) {
+        event.preventDefault();
+
+        $("#editWork").hide();
+
+        var number = $("table tr td input[type='checkbox']:checked").map(function(){
+			return $(this).val();
+        }).get().join(",");
+        var state = $(this).val();
+
+        debugger;
+        $.post("../EncounterSetState", {"number": number, "state": state},
+        function() {
+          $("#workErrorDiv").hide();
+          $("#workCheck").show();
+          $("#displayWork").html(state);
+        })
+        .fail(function(response) {
+          $("#workError, #workErrorDiv").show();
+          $("#workErrorDiv").html(response.responseText);
+        });
+      });
+	
     filter(currentActiveState, true);
 
     $('#queue-table').on('reset-view.bs.table', function (e) {
