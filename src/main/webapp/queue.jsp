@@ -744,7 +744,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
               out.println("<td class=\"col-lvl-ag-" + Decision.getNumberOfAgreementsForMostAgreedUponMatch(decs, skipUsers) + "\">" + "No Decisions Yet</td>");
             }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
-            out.println("<td" + enc.getLocationID() + "</td>");
+            out.println("<td>" + enc.getLocationID() + "</td>");
         }
         
         out.println("</tr>");
