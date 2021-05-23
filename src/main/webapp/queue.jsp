@@ -745,7 +745,6 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
             }
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
-        out.println("<td><input id= " + enc.getCatalogNumber() + " type=\"checkbox\" name=\"name2\" /></td>");
         out.println("<td" + enc.getLocationID() + "</td>");
         out.println("</tr>");
     }
