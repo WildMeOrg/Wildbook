@@ -521,6 +521,25 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
     <button class="filter-button" id="filter-button-rejected" onClick="return filter('rejected',true);">rejected<span class="fct"></span></button>
     <button class="filter-button" id="filter-button-validation" onClick="return filter('validation',true);">validation<span class="fct"></span></button>
     <br>
+    <select name="state" id="selectState" class="form-control" size="1">
+		<%
+								boolean hasMoreStates=true;
+								int stateTaxNum=0;
+								while(hasMoreStates){
+	  								String currentLifeState = "encounterState"+stateTaxNum;
+	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
+	  									%>
+	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
+	  									<%
+										stateTaxNum++;
+	  								}
+	  								else{
+	     								hasMoreStates=false;
+	  								}
+	
+								} //end while
+								%>
+	</select>
     <input type="checkbox" id="viewAllDesired" name="viewAllDesired" value="true">
     <label for="viewAllDesired"> View All</label><br>
     <span id="filter-info"></span>
@@ -624,7 +643,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         
         if (isAdmin) {
-       	 out.println("<td><input id= " + enc.getCatalogNumber() + "\" type=\"checkbox\" name=\"name2\" /></td>");
+       	 out.println("<td><input id= " + enc.getCatalogNumber() + " type=\"checkbox\" name=\"name2\" /></td>");
         }
         out.println("<td class=\"col-id\">");
         if (isAdmin) {
