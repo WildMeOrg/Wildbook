@@ -464,7 +464,6 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
 #filter-tabs button {
     font-size: 0.9em;
     font-weight: bold;
-    margin: 10px;
 }
 #filter-tabs button.tab-active {
     background-color: #FFA;
