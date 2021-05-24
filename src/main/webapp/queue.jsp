@@ -791,7 +791,6 @@ function populateResolveLink(){
 var currentActiveState = 'incoming';
 $(document).ready(function() {
 	$("#selectState").click(function(event) {
-		$("#delete-button").click(function(){
 			debugger;
 		    if(confirm("Are you sure you want change status of selected encounters ?")){
 		    	event.preventDefault();
@@ -818,8 +817,6 @@ $(document).ready(function() {
 		    else{
 		        return false;
 		    }
-		});
-        
       });
 	
     filter(currentActiveState, true);
