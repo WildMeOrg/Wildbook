@@ -522,6 +522,7 @@ if (isAdmin) theads = new String[]{"#", "ID", "State", "Cat", "Sub Date", "Col D
     <br>
     <br> Change status to :
     <select name="state" id="selectState" class="form-control" size="1">
+    <option value="">-Select-</option>
 		<%
 								boolean hasMoreStates=true;
 								int stateTaxNum=0;
