@@ -62,20 +62,24 @@ public class EncounterSetState extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-    boolean isOwner = true;
 
     System.out.println("-------------------------------- " + request.getParameter("number"));
-    String[] myArray = request.getParameter("number").split(",");
-    List <String> myList = Arrays.asList(myArray);
-
-    if ((request.getParameter("number") != null)&&(request.getParameter("state") != null)) {
+    String state = request.getParameter("state");
+    List<String> numberList = Arrays.asList(request.getParameter("number").split(","));
+    
+    if(state == null || numberList == null){
+      // out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
+    }
+    
+    for (String number : numberList) {
+      System.out.println("-------------------------------- status change of " + number);
       myShepherd.beginDBTransaction();
-      Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
+      Encounter changeMe = myShepherd.getEncounter(number);
       setDateLastModified(changeMe);
-      String state = request.getParameter("state");
 
       String oldScar = "None";
-
 
       try {
         if(changeMe.getState()!=null){
@@ -106,14 +110,9 @@ public class EncounterSetState extends HttpServlet {
         
 
       }
-    } 
-    else {
-     // out.println(ServletUtilities.getHeader(request));
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      
-
     }
+
+   
 
 
     out.close();

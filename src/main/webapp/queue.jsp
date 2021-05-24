@@ -791,26 +791,35 @@ function populateResolveLink(){
 var currentActiveState = 'incoming';
 $(document).ready(function() {
 	$("#selectState").click(function(event) {
-        event.preventDefault();
+		$("#delete-button").click(function(){
+			debugger;
+		    if(confirm("Are you sure you want change status of selected encounters ?")){
+		    	event.preventDefault();
 
-        $("#editWork").hide();
+		        $("#editWork").hide();
 
-        var number = $("table tr td input[type='checkbox']:checked").map(function(){
-			return $(this).val();
-        }).get().join(",");
-        var state = $(this).val();
+		        var number = $("table tr td input[type='checkbox']:checked").map(function(){
+					return $(this).val();
+		        }).get().join(",");
+		        var state = $(this).val();
 
-        debugger;
-        $.post("../EncounterSetState", {"number": number, "state": state},
-        function() {
-          $("#workErrorDiv").hide();
-          $("#workCheck").show();
-          $("#displayWork").html(state);
-        })
-        .fail(function(response) {
-          $("#workError, #workErrorDiv").show();
-          $("#workErrorDiv").html(response.responseText);
-        });
+		        debugger;
+		        $.post("../EncounterSetState", {"number": number, "state": state},
+		        function() {
+		          $("#workErrorDiv").hide();
+		          $("#workCheck").show();
+		          $("#displayWork").html(state);
+		        })
+		        .fail(function(response) {
+		          $("#workError, #workErrorDiv").show();
+		          $("#workErrorDiv").html(response.responseText);
+		        });
+		    }
+		    else{
+		        return false;
+		    }
+		});
+        
       });
 	
     filter(currentActiveState, true);
