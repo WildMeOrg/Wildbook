@@ -20,9 +20,10 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,9 +31,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.List;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 
 
 public class EncounterSetState extends HttpServlet {
@@ -40,7 +40,7 @@ public class EncounterSetState extends HttpServlet {
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
-
+ 
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
@@ -64,7 +64,9 @@ public class EncounterSetState extends HttpServlet {
     boolean locked = false;
     boolean isOwner = true;
 
- 
+    System.out.println("-------------------------------- " + request.getParameter("number"));
+    String[] myArray = request.getParameter("number").split(",");
+    List <String> myList = Arrays.asList(myArray);
 
     if ((request.getParameter("number") != null)&&(request.getParameter("state") != null)) {
       myShepherd.beginDBTransaction();
