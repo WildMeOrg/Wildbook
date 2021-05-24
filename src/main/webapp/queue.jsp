@@ -808,6 +808,7 @@ $(document).ready(function() {
 		          $("#workErrorDiv").hide();
 		          $("#workCheck").show();
 		          $("#displayWork").html(state);
+		          location.reload();
 		        })
 		        .fail(function(response) {
 		          $("#workError, #workErrorDiv").show();
