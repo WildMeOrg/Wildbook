@@ -790,7 +790,7 @@ function populateResolveLink(){
 }
 var currentActiveState = 'incoming';
 $(document).ready(function() {
-	$("#selectState").click(function(event) {
+	$("#selectState").on('change', function(event) {
 			debugger;
 		    if(confirm("Are you sure you want change status of selected encounters ?")){
 		    	event.preventDefault();
