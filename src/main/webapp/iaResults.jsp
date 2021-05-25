@@ -900,6 +900,7 @@ function grabTaskResult(tid) {
 //	$("#initial-waiter").remove();
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
+        var mostRecentObj = false;
 	var gotResult = false;
 //console.warn('------------------- grabTaskResult(%s)', tid);
 
@@ -941,10 +942,23 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					$("#initial-waiter").remove();
 
 				} else {
-					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
+					if (!mostRecent && d[i].status && d[i].status._action) {
+                                            mostRecent = d[i].status._action;
+                                            mostRecentObj = d[i];
+                                        }
 				}
 			}
-			if (!gotResult) {
+                        if (mostRecent == 'error') {
+				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                let errorMsg = 'unknown error';
+                                if (mostRecentObj.status && mostRecentObj.status.error && mostRecentObj.status.error.emptyTargetAnnotations) {
+                                    errorMsg = 'No data to match against, please refine your matching parameters.';
+                                }
+				$('#initial-waiter').remove();
+			        $('#task-' + tid).append('<p class="error">there was an error with task ' + tid + ': <b>' + errorMsg + '</b></p>');
+                                console.log('ERROR DATA: %o %s', mostRecentObj);
+
+			} else if (!gotResult) {
 				//console.log("Element length: "+$('#task-' + tid).length+" Element contents: "+document.getElementsByClassName("elementa")[0].innerHTML);
 				if ($('#task-' + tid).length) {
 					$('#initial-waiter').remove();
