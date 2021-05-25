@@ -365,6 +365,19 @@ Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
 Util.mark("sendIdentify-C", startTime);
+
+        // WB-1665 now wants us to bail upon empty target annots:
+	if (Util.collectionIsEmptyOrNull(tlist)) {
+            System.out.println("WARNING: bailing on empty target list");
+            JSONObject emptyRtn = new JSONObject();
+            JSONObject status = new JSONObject();
+            status.put("message", "rejected");
+            status.put("error", "Empty target annotation list");
+            status.put("emptyTargetAnnotations", true);
+            emptyRtn.put("status", status);
+            return emptyRtn;
+        }
+
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing..
