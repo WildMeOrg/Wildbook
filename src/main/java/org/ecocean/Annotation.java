@@ -718,7 +718,6 @@ System.out.println("[1] getMatchingSet params=" + params);
         else if(enc.getSpecificEpithet().equals("sp.")) {
           filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst "
             + this.getMatchingSetFilterFromParameters(params)
-            + this.getMatchingSetFilterIAClassClause(filterIAClass, this.getIAClass())
             + this.getMatchingSetFilterViewpointClause(myShepherd)
             + this.getPartClause(myShepherd)
             + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber()
@@ -729,7 +728,6 @@ System.out.println("[1] getMatchingSet params=" + params);
         else {
           filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst "
             + this.getMatchingSetFilterFromParameters(params)
-            + this.getMatchingSetFilterIAClassClause(filterIAClass, this.getIAClass())
             + this.getMatchingSetFilterViewpointClause(myShepherd)
             + this.getPartClause(myShepherd)
             + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber()
@@ -807,12 +805,6 @@ System.out.println("[1] getMatchingSet params=" + params);
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
         System.out.println("VIEWPOINT CLAUSE: "+clause);
         return clause;
-    }
-
-    private String getMatchingSetFilterIAClassClause(boolean filterIAClass, String iaClass) {
-        if (!filterIAClass) return "";
-        String iaClassClause = " && iaClass.equals('"+iaClass+"') ";
-        return iaClassClause;
     }
 
     private String getPartClause(Shepherd myShepherd) {

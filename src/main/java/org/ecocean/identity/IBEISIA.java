@@ -59,6 +59,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import org.ecocean.JsonProperties;
+import org.ecocean.IAJsonProperties;
 
 import java.io.IOException;
 
@@ -2038,7 +2039,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
                           if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
 
-                            annot.setMatchAgainst(true);
+                            if (IBEISIA.validIAClassForIdentification(annot, context, myShepherd)) {
+                                annot.setMatchAgainst(true);
+                            }
                             myShepherd.updateDBTransaction();
 
                             allAnns.add(annot);  //this is cumulative over *all MAs*
@@ -2575,7 +2578,9 @@ System.out.println("identification most recent action found is " + action);
             }
             Boolean aoi = iaIsOfInterestFromAnnotUUID(acmId, context);
             ann.setIsOfInterest(aoi);
-            ann.setMatchAgainst(true);  //kosher?
+            if (IBEISIA.validIAClassForIdentification(ann, context, myShepherd)) {
+                ann.setMatchAgainst(true);  //kosher?
+            }
             ann.setViewpointFromIA(context);  //note: can block ... but wygd
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
@@ -4281,25 +4286,38 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         return Util.asSortedList(jobIds);
     }
 
-
     public static boolean validIAClassForIdentification(Annotation ann, String context) {
+        return validIAClassForIdentification(ann, context, null);
+    }
+
+    public static boolean validIAClassForIdentification(Annotation ann, String context, Shepherd myShepherd) {
+        String iaClassName = ann.getIAClass();
+        //check IA.json first.. you can't do this without a Shepherd but I'll use one if it's around
+        try {
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig!=null) {
+                if (myShepherd==null) {
+                    myShepherd = new Shepherd(context);
+                } 
+                Taxonomy tax = iaConfig.taxonomyFromIAClass(iaClassName, myShepherd);
+                String configKey = IAJsonProperties.identConfigKey(tax, iaClassName);
+                JSONArray config = (JSONArray) iaConfig.get(configKey);
+                if (config==null||config.length()==0) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        } catch (JSONException je) {
+            je.printStackTrace();
+        }
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        if (ann.getIAClass()==null&&(idClasses.isEmpty()||idClasses==null)) return true;
-        if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty()||idClasses==null)) {
+        if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
+        if (iaClassName!=null&&(idClasses.contains(iaClassName)||idClasses.isEmpty()||idClasses==null)) {
             return true;
         }
         return false;
     }
-
-    public static boolean validIAClassForIdentification(String iaClassName, String context) {
-      ArrayList<String> idClasses = getAllIdentificationClasses(context);
-      if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
-      if (iaClassName!=null&&(idClasses.contains(iaClassName)||idClasses.isEmpty()||idClasses==null)) {
-          return true;
-      }
-      return false;
-  }
-
 
     public static boolean validForIdentification(Annotation ann)  {
         return validForIdentification(ann, null);
