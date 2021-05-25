@@ -1,6 +1,9 @@
 package org.ecocean.metrics;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -16,12 +19,14 @@ import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/*
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.User;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetSet;
 import org.ecocean.MarkedIndividual;
+*/
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
@@ -34,17 +39,21 @@ public class Prometheus
     private boolean pageVisited = false;  
     
     //Encounters by Wildbook Counter
-    public Counter encs;
+    //public Counter encs;
 
     //Encounter Species Counters
-    public Counter encsSpecies;
+    //public Counter encsSpecies;
+    
+    /*
     public Counter encountersForSpecieEquusQuagga;
     public Counter encountersForSpecieEquusGrevyi;
     public Counter encountersForSpeciePzGzHybrid;
+    */
 
-    public Counter encsSubDate;
+    //public Counter encsSubDate;
 
     //Encounter Location Counters
+    /*
     public Counter encountersForLocationKenya;
     public Counter encountersForLocationMpala;
     public Counter encountersForLocationMpalacentral;
@@ -53,40 +62,52 @@ public class Prometheus
     public Counter encountersForLocationMpala_South;
     public Counter encountersForLocationMpala_central;
     public Counter encountersForLocation01Pejeta_East;
-
+     */
     //Users Gauges
-    public Gauge numUsersInWildbook; 
-    public Gauge numUsersWithLogin;
-    public Gauge numUsersWithoutLogin;
+    //public Gauge numUsersInWildbook; 
+    //public Gauge numUsersWithLogin;
+    //public Gauge numUsersWithoutLogin;
 
     //Media assets Gauge
-    public Gauge numMediaAssetsWildbook;
+    //public Gauge numMediaAssetsWildbook;
+    
+    /*
     public Gauge numMediaAssetsSpecieEquusQuagga;
     public Gauge numMediaAssetsSpecieEquusGrevyi;
     public Gauge numMediaAssetsSpeciePzGzHybrid;
+    */
+    
+    private String context="context0";
     
     
     //individuals Gauge
-    public Gauge indiv;
+    //public Gauge indiv;
+    
+    String csvFile = "/data/metrics/metrics.csv";
+    String cvsSplitBy = ",";
     
     //Default constructor
     public Prometheus()
     {
+      this.context=context;
       //register all metrics
-      encsSpecies = Counter.build().name("wildbook_encounters_by_specie")
-        .help("Number encounters by Specie").register();
-      encsSubDate = Counter.build().name("wildbook_encounters_by_date")
-        .help("Number encounters by Submission Date").register();
+     // encsSpecies = Counter.build().name("wildbook_encounters")
+     //   .help("Number encounters by Specie").register();
+      //encsSubDate = Counter.build().name("wildbook_encounters_by_date")
+      //  .help("Number encounters by Submission Date").register();
 
       //Specie Counters
+      /*
       encountersForSpecieEquusQuagga = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Quagga")
         .help("Number encounters by Specie type Equus Quagga").register();
       encountersForSpecieEquusGrevyi = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_Grevyi")
         .help("Number encounters by Specie type Equus Grevyi").register();
       encountersForSpeciePzGzHybrid = Counter.build().name("wildbook_encounters_by_Specie_Type_Equus_PzGz_Hybrid")
         .help("Number encounters by Specie type PzGz Hybrid").register();
-
+      */
+      
       //Location Counters
+      /*
       encountersForLocationKenya = Counter.build().name("wildbook_encounters_by_Location_Kenya")
         .help("Number encounters by Location ID Kenya").register();
       encountersForLocationMpala = Counter.build().name("wildbook_encounters_by_Location_Mpala")
@@ -103,8 +124,11 @@ public class Prometheus
         .help("Number encounters by Location ID Mpala.central").register();
       encountersForLocation01Pejeta_East = Counter.build().name("wildbook_encounters_by_Location_01Pejeta_East")
         .help("Number encounters by Location ID 01 Pejeta.East").register();
+      */
       
-      indiv = Gauge.build().name("wildbook_individual_wildbook")
+      
+      /*
+      indiv = Gauge.build().name("wildbook_individuals")
         .help("Number individuals by Wildbook").register();
       encs = Counter.build().name("wildbook_encounters")
         .help("Number encounters").register();
@@ -114,20 +138,26 @@ public class Prometheus
         .help("Number users with Login").register();
       numUsersWithoutLogin = Gauge.build().name("wildbook_users_wout_login")
         .help("Number users without Login").register();
-      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
+      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets")
         .help("Number of Media Assets by Wildbook").register();
 
+      */
+      
+      /*
       numMediaAssetsSpecieEquusQuagga = Gauge.build().name("equusQuagga_mediaassets")
         .help("Number of Media Assets by Specie Equus Quagga").register();
       numMediaAssetsSpecieEquusGrevyi = Gauge.build().name("equusGrevyi_mediaassets")
         .help("Number of Media Assets by Specie Equus Grevyi").register();
       numMediaAssetsSpeciePzGzHybrid = Gauge.build().name("pzgzHybrid_mediaassets")
         .help("Number of Media Assets by Specie PzGz Hyrbid").register();
+        */
     }
 
     //Unit test constructor
     public Prometheus(boolean isTesting)
     {
+      
+      /*
       //initialize but do not register metrics.
       encsSubDate = Counter.build().name("wildbook_encounters_by_date")
         .help("Number encounters by Submission Date").create();
@@ -141,8 +171,9 @@ public class Prometheus
         .help("Number users with Login").create();
       numUsersWithoutLogin = Gauge.build().name("wildbook_users_wout_login")
         .help("Number users without Login").create();
-      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets_wild")
+      numMediaAssetsWildbook = Gauge.build().name("wildbook_mediaassets")
         .help("Number of Media Assets by Wildbook").create();
+      */
       
     }
     
@@ -187,121 +218,252 @@ public class Prometheus
      * Parameters
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfUsers(Shepherd ms)
+    /*
+    public void setNumberOfUsers()
     {
-      //Getting number of users by wildbook
-      int numUsers = ms.getNumUsers();
-      this.numUsersInWildbook.set((double)numUsers);
-
-      //get number of users w/ login privileges
-      List<User> numUsersUsername = ms.getUsersWithUsername();
-      int totalNumUsersUsername = numUsersUsername.size();
-      this.numUsersWithLogin.set((double)totalNumUsersUsername);
-
-      //get number of users w/out login privileges
-      int totalNumUserNoLogin = (numUsers-totalNumUsersUsername);
-      this.numUsersWithoutLogin.set((double)totalNumUserNoLogin);
-
-      //TODO: Set number of active users
+      //Shepherd ms=new Shepherd(context);
+      //ms.beginDBTransaction();
+      try {
+        //Getting number of users by wildbook
+        //int numUsers = ms.getNumUsers();
+        //this.numUsersInWildbook.set((double)numUsers);
+        //numUsersInWildbook = Gauge.build().name("wildbook_users")
+        String value=getValue("wildbook_users");
+        this.numUsersInWildbook.inc(new Double(value));
+        
+        String value2=getValue("wildbook_users_wout_login");
+        this.numUsersWithoutLogin.inc(new Double(value2));
+        
+        String value3=getValue("wildbook_users_w_login");
+        this.numUsersWithLogin.inc(new Double(value3));
+  
+        
+  
+        //TODO: Set number of active users
+      
+      }
+      catch(Exception e) {e.printStackTrace();}
+      finally {
+        //ms.rollbackAndClose();
+      }
     }
+    */
     
     /** setNumberOfEncounters
      * Sets the counters/gauges for metrics related to number of encounters
      * Parameters
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfEncounters(Shepherd ms)
+    /*
+    public void setNumberOfEncounters()
     {
-      int i;
-      int j;
-      /*Number of encounters */
-      int numEncounters = ms.getNumEncounters(); //in aggregate
-      this.encs.inc((double)numEncounters);
+      
+      //Shepherd ms=new Shepherd(context);
+      //ms.beginDBTransaction();
+      try {
+        int i;
+        int j;
+       
+        //int numEncounters = ms.getNumEncounters(); //in aggregate
+        //this.encs.inc((double)numEncounters);
+  
+        String value=getValue("wildbook_encounters");
+        this.encs.inc(new Double(value));
+        
 
-      //Num of Encounters by Specie
-      List<Encounter> speciesEquusQuagga = ms.getAllEncountersForSpecies("Equus", "quagga");
-      int specEquusQuagga = speciesEquusQuagga.size();
-      this.encountersForSpecieEquusQuagga.inc((double)specEquusQuagga);
-
-      List<Encounter> speciesEquusGrevyi = ms.getAllEncountersForSpecies("Equus", "grevyi");
-      int specEquusGrevyi = speciesEquusGrevyi.size();
-      this.encountersForSpecieEquusGrevyi.inc((double)specEquusGrevyi);
-
-      ArrayList<Encounter> speciesPzGzHybrid = ms.getAllEncountersForSpecies("PzGz", "hybrid");
-      int specPzGzHybrid = speciesPzGzHybrid.size();
-      this.encountersForSpeciePzGzHybrid.inc((double)specPzGzHybrid);
-
-
-      //Number of Encounters by Submission Dates
-      //TODO: Time Series Item, this method is not complete
-      List<String> numEncountersSub = ms.getAllRecordedBy();
-      int totalNumEncSub = numEncountersSub.size();
-
-      //Number of Encounters by Location ID
-      //Getting location ID
-      List<String> numEncountersLoc = ms.getAllLocationIDs();
-
-      int totalNumEncsByLocKenya = ms.getNumEncounters(numEncountersLoc.get(1));
-            this.encountersForLocationKenya.inc((double)totalNumEncsByLocKenya);
-
-      int totalNumEncsByLocMpala = ms.getNumEncounters(numEncountersLoc.get(2));
-            this.encountersForLocationMpala.inc((double)totalNumEncsByLocMpala);
-
-      int totalNumEncsByLocMpalacentral = ms.getNumEncounters(numEncountersLoc.get(3));
-            this.encountersForLocationMpalacentral.inc((double)totalNumEncsByLocMpalacentral);
-
-      int totalNumEncsByLocMpala_Central = ms.getNumEncounters(numEncountersLoc.get(4));
-            this.encountersForLocationMpala_Central.inc((double)totalNumEncsByLocMpala_Central);
-
-      int totalNumEncsByLocMpala_North = ms.getNumEncounters(numEncountersLoc.get(5));
-            this.encountersForLocationMpala_North.inc((double)totalNumEncsByLocMpala_North);
-
-      int totalNumEncsByLocMpala_South = ms.getNumEncounters(numEncountersLoc.get(6));
-            this.encountersForLocationMpala_South.inc((double)totalNumEncsByLocMpala_South);
-
-      int totalNumEncsByLoc_central = ms.getNumEncounters(numEncountersLoc.get(7));
-            this.encountersForLocationMpala_central.inc((double)totalNumEncsByLoc_central);
-
-      int totalNumEncsByLoc01Pejeta_East = ms.getNumEncounters(numEncountersLoc.get(8));
-            this.encountersForLocation01Pejeta_East.inc((double)totalNumEncsByLoc01Pejeta_East);
+  
+        //Number of Encounters by Submission Dates
+        //TODO: Time Series Item, this method is not complete
+        //List<String> numEncountersSub = ms.getAllRecordedBy();
+        //int totalNumEncSub = numEncountersSub.size();
+  
+        //Number of Encounters by Location ID
+        //Getting location ID
+        //List<String> numEncountersLoc = ms.getAllLocationIDs();
+  
+    
+            
+      }
+      catch(Exception e) {e.printStackTrace();}
+      finally {
+        //ms.rollbackAndClose();
+      }
 
     }
+    */
     
     /** setNumberOfIndividuals
      * Sets the counters/gauges for metrics related to number of individuals
      * Parameters
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberOfIndividuals(Shepherd ms)
+    /*
+    public void setNumberOfIndividuals()
     {
-      //Get num of Individuals by wildbook
-      int numIndividuals = ms.getNumMarkedIndividuals();
-      this.indiv.inc((double)numIndividuals);
+
+      try {
+        //Get num of Individuals by wildbook
+        //int numIndividuals = ms.getNumMarkedIndividuals();
+        //this.indiv.inc((double)numIndividuals);
+        
+        String value=getValue("wildbook_individuals");
+        this.indiv.inc(new Double(value));
+        
+      }
+      catch(Exception e) {e.printStackTrace();}
+      finally {
+   
+      }
     }
-    
+    */
     /** setNumberOfMediaAssets
      * Sets the counters/gauges for metrics related to number of media assets
      * Parameters
      *    ms: shepherd object for creating database transactions.
      */
-    public void setNumberofMediaAssets(Shepherd ms)
+    /*
+    public void setNumberofMediaAssets()
     {
-      //Media Assets by WildBook
-      ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
-      int totalNumMediaAssests = numMediaAssetsWild.size();
-      this.numMediaAssetsWildbook.inc((double)totalNumMediaAssests);
+      //Shepherd ms=new Shepherd(context);
+      //ms.beginDBTransaction();
+      try {
+        //Media Assets by WildBook
+        //ArrayList<MediaAsset> numMediaAssetsWild = ms.getAllMediaAssetsAsArray();
+        //int totalNumMediaAssests = numMediaAssetsWild.size();
+        String value=getValue("wildbook_mediaassets");
+        this.numMediaAssetsWildbook.inc(new Double(value));
+  
+    
+      }
+      catch(Exception e) {e.printStackTrace();}
+      finally {
+        //ms.rollbackAndClose();
+      }
 
-      //Media Assets by Specie
-      Long mediaAssetsEquusQuagga = ms.countMediaAssetsBySpecies("Equus", "quagga", ms);
-      this.numMediaAssetsSpecieEquusQuagga.inc((double)mediaAssetsEquusQuagga);
+    }    
+    */
+    
+    public String getValue(String key) {
+      if(key==null)return null;
+      String value=null;
+      String csvFile = "/data/metrics/metrics.csv";
+      BufferedReader br = null;
+      String line = "";
+      
+      try {
 
-      Long mediaAssetsEquusGrevyi = ms.countMediaAssetsBySpecies("Equus", "grevyi", ms);
-      this.numMediaAssetsSpecieEquusGrevyi.inc((double)mediaAssetsEquusGrevyi);
+        br = new BufferedReader(new FileReader(csvFile));
+        while ((line = br.readLine()) != null) {
 
-      Long mediaAssetsPzGzHybrid = ms.countMediaAssetsBySpecies("PzGz", "hybrid", ms);
-      this.numMediaAssetsSpeciePzGzHybrid.inc((double)mediaAssetsPzGzHybrid);
+            // use comma as separator
+            String[] vals = line.split(cvsSplitBy);
+            if(vals[0]!=null && vals[1]!=null){
+              String m_key=vals[0];
+              String m_value=vals[1];
 
-    }      
+              if(m_key.trim().equals(key)) {value=m_value;} 
+            }
+        }        
+      } 
+      catch (FileNotFoundException e) {
+          e.printStackTrace();
+      } 
+      catch (IOException e) {
+          e.printStackTrace();
+      } 
+      finally {
+          if (br != null) {
+              try {
+                  br.close();
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+      return value;
+    }
+    
+    public void getValues() {
+      
+      //setNumberofMediaAssets();
+      //setNumberOfEncounters();
+      //setNumberOfIndividuals();
+      //setNumberofMediaAssets();
+      //setNumberOfUsers();
+      
+      
+      ArrayList<String> metrics=new ArrayList<String>();
+      
+      BufferedReader br = null;
+      String line = "";
+      try {
+
+        br = new BufferedReader(new FileReader(csvFile));
+        while ((line = br.readLine()) != null) {
+
+          metrics.add(line);
+            
+        }        
+      } 
+      catch (FileNotFoundException e) {
+          e.printStackTrace();
+      } 
+      catch (IOException e) {
+          e.printStackTrace();
+      } 
+      finally {
+          if (br != null) {
+              try {
+                  br.close();
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+      
+      for(String metric:metrics) {
+        
+        
+        String[] vals = metric.split(cvsSplitBy);
+        
+        if(vals.length>3) {
+        
+          try {
+              String m_key=vals[0];
+              String m_value=vals[1];
+              String m_type=vals[2];
+              String m_help=vals[3];
+              System.out.println("Loading: "+m_key+","+m_value+","+m_type+","+m_help);
+              if(m_type.trim().equals("gauge")) {
+                System.out.println("Loading gauge: "+m_key);
+                Gauge.build().name(m_key.trim())
+                .help(m_help.trim()).register().inc(new Double(m_value.trim()));
+              }
+              else if(m_type.trim().equals("counter")) {
+                System.out.println("Loading counter: "+m_key);
+                Counter.build().name(m_key.trim())
+                .help(m_help.trim()).register().inc(new Double(m_value.trim()));
+              }
+          }
+          catch(Exception e) {
+            e.printStackTrace();
+          }
+          
+        
+        }
+          
+        
+      }
+      
+      
+      //return metrics;
+    }
+    
+    
+    
+    
+    
+    
     
 }
 
