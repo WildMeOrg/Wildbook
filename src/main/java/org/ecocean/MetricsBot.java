@@ -17,6 +17,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
 
@@ -98,6 +100,7 @@ public class MetricsBot {
 
     public static String buildGauge(String filter, String name, String help, String context) {
       System.out.println("-- Collecting metrics for: "+ name);
+      System.out.println("        "+ filter);
       String line=null;
       
       Shepherd myShepherd=new Shepherd(context);
@@ -142,12 +145,37 @@ public class MetricsBot {
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset", "wildbook_mediaassets_total","Number of media assets",context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "wildbook_encounters_total","Number of encounters",context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual", "wildbook_individuals_total","Number of marked individuals",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_datacontributors_total","Number of data contributors",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users_total","Number of users",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_public_total","Number of public data contributors",context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence", "wildbook_sightings_total","Number of sightings",context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Annotation", "wildbook_annotations_total","Number of annotations",context));
         
+        //User-related
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_datacontributors_total","Number of data contributors",context));
+        /*
+        long currentTime=System.currentTimeMillis();
+        long oneDayAgo=currentTime-(1000*60*60*24);
+        long oneWeekAgo=currentTime-(1000*60*60*24*7);
+        long oneMonthAgo=currentTime-(1000*60*60*24*30);
+        long oneYearAgo=currentTime-(1000*60*60*24*365);
+        */
+        
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime oldDay = now.minusDays(1);
+        long oneDayAgo = oldDay.toInstant().toEpochMilli();
+        ZonedDateTime oldWeek = now.minusDays(7);
+        long oneWeekAgo = oldWeek.toInstant().toEpochMilli();
+        ZonedDateTime oldMonth = now.minusMonths(1);
+        long oneMonthAgo = oldMonth.toInstant().toEpochMilli();
+        ZonedDateTime oldYear = now.minusYears(1);
+        long oneYearAgo = oldYear.toInstant().toEpochMilli();
+        
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > "+oneDayAgo, "wildbook_users_lastDayLogin_total","Number of users logging in (24 hours)",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > "+oneWeekAgo, "wildbook_users_lastWeekLogin_total","Number of users logging in (Last 7 days)",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > "+oneMonthAgo, "wildbook_users_lastMonthLogin_total","Number of users logging in (Last 30 days)",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User where username != null && lastLogin > "+oneYearAgo, "wildbook_users_lastYearLogin_total","Number of users logging in (Last 365 days)",context));
+        
+        
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users_total","Number of users",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_public_total","Number of public data contributors",context));
         //csvLines.add(buildGauge("SELECT count(distinct specificEpithet) FROM org.ecocean.Encounter", "wildbook_taxonomies","Number of species",context));
 
         //Taxonomy has to be treated differently because of past data pollution from Spotter app
