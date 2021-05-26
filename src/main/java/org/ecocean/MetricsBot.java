@@ -65,50 +65,8 @@ public class MetricsBot {
                     return;
                 }
                 
-                
-                //first, make sure metrics file exists
-                //if not, create it
-                File metricsFile=new File(csvFile);
-                File metricsDir=metricsFile.getParentFile();
-                try {
-                  if(!metricsDir.exists()) {
-                    boolean created=metricsDir.mkdirs();
-                    if(!created) throw new Exception("Could not create directory: "+metricsDir.getAbsolutePath());
-                  }
-                
-                  //store our CSV lines for writing
-                  ArrayList<String> csvLines=new ArrayList<String>();
-
-                  //execute queries to get metrics
-                  
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset", "wildbook_mediaassets","Number of media assets"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "wildbook_encounters","Number of encounters"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual", "wildbook_individuals","Number of marked individuals"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_data_contributors","Number of data contributors"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users","Number of users"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_data_contributors_public","Number of public data contributors"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence", "wildbook_sightings","Number of sightings"));
-                  csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Taxonomy", "wildbook_taxonomies","Number of species"));
-                  
-                  
-                  
-                  //write the file
-                  //set up the output stream
-                  FileOutputStream fos = new FileOutputStream(csvFile);
-                  OutputStreamWriter outp = new OutputStreamWriter(fos);
-                  for(String line:csvLines) {
-                    outp.write(line+"\n");
-                  }
-                  outp.close();
-                  fos.close();
-                  outp=null;
-                  
-                  
-               }
-               catch(Exception f) {
-                 System.out.println("Exception in MetricsBot!");
-                 f.printStackTrace();
-               } 
+               refreshMetrics(context); 
+               
             }
             
             
@@ -136,7 +94,7 @@ public class MetricsBot {
         System.out.println("================ = = = = = = ===================== MetricsBot.cleanup() finished.");
     }
 
-    public static String buildGauge(String filter, String name, String help) {
+    public static String buildGauge(String filter, String name, String help, String context) {
       System.out.println("-- Collecting metrics for: "+ name);
       String line=null;
       
@@ -161,6 +119,51 @@ public class MetricsBot {
       }
       System.out.println("   -- Done: "+ line);
       return line;
+    }
+    
+    public static void refreshMetrics(String context) {
+      //first, make sure metrics file exists
+      //if not, create it
+      File metricsFile=new File(csvFile);
+      File metricsDir=metricsFile.getParentFile();
+      try {
+        if(!metricsDir.exists()) {
+          boolean created=metricsDir.mkdirs();
+          if(!created) throw new Exception("Could not create directory: "+metricsDir.getAbsolutePath());
+        }
+      
+        //store our CSV lines for writing
+        ArrayList<String> csvLines=new ArrayList<String>();
+
+        //execute queries to get metrics
+        
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset", "wildbook_mediaassets","Number of media assets",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "wildbook_encounters","Number of encounters",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual", "wildbook_individuals","Number of marked individuals",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_data_contributors","Number of data contributors",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users","Number of users",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_data_contributors_public","Number of public data contributors",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence", "wildbook_sightings","Number of sightings",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Taxonomy", "wildbook_taxonomies","Number of species",context));
+
+        
+        //write the file
+        //set up the output stream
+        FileOutputStream fos = new FileOutputStream(csvFile);
+        OutputStreamWriter outp = new OutputStreamWriter(fos);
+        for(String line:csvLines) {
+          outp.write(line+"\n");
+        }
+        outp.close();
+        fos.close();
+        outp=null;
+        
+        
+     }
+     catch(Exception f) {
+       System.out.println("Exception in MetricsBot!");
+       f.printStackTrace();
+     } 
     }
 
 
