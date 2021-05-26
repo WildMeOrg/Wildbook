@@ -1046,6 +1046,37 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.beginDBTransaction();
     }
 
+    //assign emailless and usernameless anonymous_uuid uuid@localhost
+    try{
+      Boolean suspendUsersMissingEmailAndUsernameDesired = jsonRes.optBoolean("suspendUsersMissingEmailAndUsernameDesired", false);
+      if(suspendUsersMissingEmailAndUsernameDesired){
+        List<User> worldsWorstUsers = new ArrayList<User>();
+        worldsWorstUsers = findUsersWithMissingEmailAndUsername(myShepherd);
+        if(worldsWorstUsers != null && worldsWorstUsers.size() > 0){
+          for(User currentUser: worldsWorstUsers){
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " and username: Anonymous_" + currentUser.getUUID() + " to user: " + currentUser.getUUID());
+            currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
+            currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+    } catch (Exception e) {
+        System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        }
+        myShepherd.beginDBTransaction();
+    }
+
     try{
       //get info from servlet request, if it exsists
       String userName = jsonRes.optString("username", null);
@@ -1195,9 +1226,22 @@ public class UserConsolidate extends HttpServlet {
     //only add users with invalid email addresses or missing ones to the returnUsers list
     for(User currentUserCandidate: nonNullUsernameUsers){
       if(currentUserCandidate.getEmailAddress() == null || !Util.isValidEmailAddress(currentUserCandidate.getEmailAddress())){
+        System.out.println("deleteMe adding " + currentUserCandidate.getEmailAddress() + " from user " + currentUserCandidate.getUUID() + " to the invalid or missing email list");
         returnUsers.add(currentUserCandidate);
       }
     }
+    return returnUsers;
+  }
+
+  public static List<User> findUsersWithMissingEmailAndUsername(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE (this.username==null || this.username==\"N/A\" ) && this.emailAddress==null";
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      returnUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
     return returnUsers;
   }
 
