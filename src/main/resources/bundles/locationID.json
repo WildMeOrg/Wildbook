@@ -13,21 +13,21 @@
       {"name":"Guam", "id":"Guam", "locationID":[]},
 	  {"name":"Cocos Islands", "id":"Cocos Islands", "locationID":[]},
 	  {"name":"Galapagos Islands", "id":"Galapagos Islands", "locationID":[]},
-	  
+
 	  {
 				"name": "Hawaiʻi Island", "id": "Hawaii", "locationID":[
                                         {
                                         "name": "Hilo", "id": "Hilo"
-                                        },				
+                                        },
 
 					{
 					"name": "Kealakekua Bay", "id": "Kealakekua Bay"
 					},
-				
+
 					{
 					"name": "Hoʻokena Bay", "id": "Hookena Bay"
 					},
-					
+
 					{
 					"name": "Honaunau Bay", "id": "Honaunau Bay"
 					}
@@ -37,15 +37,15 @@
 				},
 				{
 				"name": "Oʻahu", "id": "Oahu", "locationID":[
-				
+
 					{
 					"name": "West Oʻahu", "id": "West Oahu"
 					},
-				
+
 					{
 					"name": "North Oʻahu", "id": "North Oahu"
 					},
-					
+
 					{
 					"name": "East Oʻahu", "id": "East Oahu"
 					},
@@ -56,7 +56,7 @@
 				{
 				"name": "Kauai", "id": "Kauai"
 		},
-	  
+
       {"name":"Kiribati", "id":"Kiribati", "locationID":[]},
       {"name":"Marshall Islands", "id":"Marshall Islands", "locationID":[]},
       {"name":"Nauru", "id":"Nauru", "locationID":[]},
@@ -146,9 +146,9 @@
 				{"name":"Mexico","id":"Mexico","locationID":[
 
 					{ "name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[] },
-					
+
 					{ "name":"Bahía de Banderas", "id":"Bahia de Banderas", "locationID":[] },
-					
+
 					{ "name":"Guamilule", "id":"Guamilule", "locationID":[] },
 
 					{ "name":"Ixtapa", "id":"Ixtapa", "locationID":[] },
@@ -176,17 +176,17 @@
 					"name": "Sea of Cortés", "id":"sea of cortes",
 					"locationID":[
 						{ "name":"Bahía de la Paz", "id":"Bahia de la paz", "locationID":[] },
-						
+
 						{
 						"name": "Baja California", "id":"Baja California", "locationID":[
-						
+
 							{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
 							{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[
-							
+
 								{ "name":"Bahía Almejas", "id":"Bahia Almejas", "locationID":[] }
-							
+
 							] }
-						
+
 						] }
 
 					]
@@ -202,7 +202,7 @@
 			] },
 			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
 
-				
+
 
 				{ "name":"Northern British Columbia", "id":"Northern British Columbia", "locationID":[] },
 
@@ -220,7 +220,7 @@
 				  "name": "Salish Sea", "id": "Salish Sea" },
 				{ "name":"Santa Barbara Channel", "id":"Santa Barbara Channel", "locationID":[] },
 
-			
+
 
 				{ "name":"Southern British Columbia", "id":"Southern British Columbia", "locationID":[] },
 
@@ -267,7 +267,7 @@
 				"name": "E Aleut.", "id": "E Aleut."
 				},
 
-				
+
 				{
 				"name": "MX-AR", "id": "MX-AR"
 				},
@@ -329,10 +329,10 @@
 			{"name":"South Pacific","id":"South Pacific","locationID":[
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"New Zealand", "id":"NewZealand", "locationID":[
-				
+
 					{"name":"Cloudy Bay", "id":"Cloudy Bay", "locationID":[]}
-				
-				
+
+
 				] }
 			]}
 
@@ -363,6 +363,7 @@
 			  "name": "Cape Verde", "id": "Cape Verde"  },
 			 {
 			  "name": "Central Baltic Sea", "id": "Central Baltic Sea"  },
+        { "name":"Estuary of Saint-Lawrence", "id":"Estuary of Saint-Lawrence", "locationID":[] },
 			  { "name":"Faroe Islands", "id":"Faroe Islands", "locationID":[] },
 
 			{ "name":"France", "id":"France", "locationID":[] },
@@ -370,24 +371,24 @@
 			 { "name":"Greenland", "id":"Greenland", "locationID":[] },
 
 			{ "name":"Iceland", "id":"Iceland", "locationID":[
-			
+
 				{"name": "Breiðafjörður", "id": "Breiðafjörður"  }
-			
-			
+
+
 			] },
 
 			 {
 			  "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
-			  
-		
+
+
 			  {
 			  "name": "Golfe du Lion", "id": "Golfe du Lion"  },
 			  {
 			  "name": "North Mediterranean", "id": "North Mediterranean"  },
-			  
+
 			  {
 			  "name": "East Mediterranean", "id": "East Mediterranean", "locationID":[
-			  
+
 				{"name":"Israel","id":"Israel", "locationID":[
 
 					{"name": "Ashdod", "id": "Ashdod" },
@@ -396,8 +397,8 @@
 					{"name": "Herzelia", "id": "Herzelia" }
 
 				]}
-			  
-			  
+
+
 			  ]  }
 
 
@@ -418,10 +419,10 @@
 			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
 
 				{ "name":"Bahamas", "id":"Bahamas", "locationID":[
-				
+
 					{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
 					{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] }
-				
+
 				] },
 
 				{ "name":"Dominica", "id":"Dominica", "locationID":[] },
@@ -483,10 +484,10 @@
 
 			 {
 			  "name": "Norwegian Sea", "id": "Norwegian Sea" },
-			  
+
 			  {
 			  "name": "SW Portugal", "id": "SW Portugal" },
-			  
+
 			 {
 			  "name": "Sargasso Sea", "id": "Sargasso Sea" },
 			 {
@@ -599,9 +600,9 @@
 
 			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
 			{ "name":"Brazil", "id":"Brazil", "locationID":[
-			
+
 				{ "name":"Brazil-Northeast", "id":"Brazil-Northeast", "locationID":[] }
-			
+
 			] },
 			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
 			{ "name":"Gabon", "id":"Gabon", "locationID":[] },
@@ -612,8 +613,8 @@
 	{
 		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
-		
-	
+
+
 
 		{ "name":"BANGLADESH - West", "id":"BANGLADESH - West", "locationID":[] },
 
@@ -1000,17 +1001,17 @@
 			]
 		  },
 		   { "name":"Seychelles", "id":"Seychelles", "locationID":[
-		  
+
 				{ "name":"Aldabra Atoll", "id":"Aldabra Atoll", "locationID":[] }
-		  
+
 		  ] },
-		  
+
 		  {"name":"Yemen","id":"Yemen","locationID":[
 
 		  				{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
 
 		  ]}
-		 
+
 
 		],
 		"defaultLatitude": -20.0,
