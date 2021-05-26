@@ -54,12 +54,15 @@ try{
     renameUsernamelessToAnonymousJson['renameUsernamelessToAnonymousDesired'] = true;
     let suspendEmaillessOrInvalidEmailJson = {};
     suspendEmaillessOrInvalidEmailJson['suspendEmaillessOrInvalidEmailDesired'] = true;
+    let suspendUsersMissingEmailAndUsernameJson = {};
+    suspendUsersMissingEmailAndUsernameJson['suspendUsersMissingEmailAndUsernameDesired'] = true;
     $(document).ready(function() {
         doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
         doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
         doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
         doAjaxCallForRenamingUsernamelessToAnonymous(renameUsernamelessToAnonymousJson);
         doAjaxCallForSuspendingEmaillessOrInvalidEmails(suspendEmaillessOrInvalidEmailJson);
+        doAjaxCallForSuspendingEmaillessAndUsernameless(suspendUsersMissingEmailAndUsernameJson);
     });
 
     function doAjaxCallForDedupeLessCompleteAccounts(jsonRequest){
@@ -166,6 +169,27 @@ try{
                 }
               });
             }
+
+            function doAjaxCallForSuspendingEmaillessAndUsernameless(jsonRequest) {
+                $.ajax({
+                  url: wildbookGlobals.baseUrl + '../UserConsolidate',
+                  type: 'POST',
+                  data: JSON.stringify(jsonRequest),
+                  dataType: 'json',
+                  contentType: 'application/json',
+                  success: function (data) {
+                    console.log("deleteMe data coming back from doAjaxCallForSuspendingEmaillessAndUsernameless is: ");
+                    console.log(data);
+                    if (data.success) {
+                      console.log("deleteMe got here a6");
+                      //TODO display how many there are now vs how many there were
+                    }
+                  },
+                  error: function (x, y, z) {
+                    console.warn('%o %o %o', x, y, z);
+                  }
+                });
+              }
 
     function displayProgressBar(loadingStatus){
       let progressHtml = '';
