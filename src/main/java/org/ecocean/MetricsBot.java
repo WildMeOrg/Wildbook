@@ -5,13 +5,15 @@ package org.ecocean;
 
 
 import javax.jdo.Query;
-
+import javax.servlet.http.HttpServletRequest;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
@@ -137,15 +139,37 @@ public class MetricsBot {
 
         //execute queries to get metrics
         
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset", "wildbook_mediaassets","Number of media assets",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "wildbook_encounters","Number of encounters",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual", "wildbook_individuals","Number of marked individuals",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_data_contributors","Number of data contributors",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users","Number of users",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_data_contributors_public","Number of public data contributors",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence", "wildbook_sightings","Number of sightings",context));
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Taxonomy", "wildbook_taxonomies","Number of species",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.media.MediaAsset", "wildbook_mediaassets_total","Number of media assets",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter", "wildbook_encounters_total","Number of encounters",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual", "wildbook_individuals_total","Number of marked individuals",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User", "wildbook_datacontributors_total","Number of data contributors",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users_total","Number of users",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_public_total","Number of public data contributors",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Occurrence", "wildbook_sightings_total","Number of sightings",context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Annotation", "wildbook_annotations_total","Number of annotations",context));
+        
+        //csvLines.add(buildGauge("SELECT count(distinct specificEpithet) FROM org.ecocean.Encounter", "wildbook_taxonomies","Number of species",context));
 
+        //Taxonomy has to be treated differently because of past data pollution from Spotter app
+        List<String> taxa=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+        if(taxa!=null) {
+          System.out.println("-- Collecting metrics for: wildbook_taxonomies_total");
+          csvLines.add("wildbook_taxonomies_total"+","+taxa.size()+","+"gauge"+","+"Number of species");
+          System.out.println("   -- Done");
+        }
+        for(String tax:taxa) {
+          StringTokenizer str=new StringTokenizer(tax," ");
+          if(str.countTokens()>1) {
+            String genus = str.nextToken();
+            String specificEpithet=str.nextToken();
+            if(str.hasMoreTokens())specificEpithet+=" "+str.nextToken();
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.specificEpithet == '"+specificEpithet+"'", "wildbook_individuals_"+genus+"_"+specificEpithet.replaceAll(" ","_")+"_total","Number of marked individuals ("+genus+" "+specificEpithet+")",context));
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where specificEpithet == '"+specificEpithet+"'", "wildbook_encounters_"+genus+"_"+specificEpithet.replaceAll(" ","_")+"_total","Number of encounters ("+genus+" "+specificEpithet+")",context));
+            
+          }
+        }
+        
+        
         
         //write the file
         //set up the output stream
