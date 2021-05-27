@@ -19,7 +19,8 @@
 
 package org.ecocean.metrics;
 
-import org.ecocean.Shepherd;
+
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import io.prometheus.client.exporter.MetricsServlet;
@@ -33,28 +34,25 @@ import io.prometheus.client.exporter.MetricsServlet;
 public class WildbookMetrics extends MetricsServlet {
   
   /*Initialize variables*/
-  Shepherd myShepherd; 
-  boolean pageVisited = false; 	
+  //Shepherd myShepherd; 
+  //boolean pageVisited = false; 	
   Prometheus metricsExtractor; 
   
   public void init(ServletConfig config) throws ServletException 
   {
     super.init(config);
     this.metricsExtractor = new Prometheus(); 
-    this.myShepherd = new Shepherd("context0");
-    this.myShepherd.setAction("WildBookMetrics.class");
-    this.myShepherd.beginDBTransaction();
+    //this.myShepherd = new Shepherd("context0");
+    //this.myShepherd.setAction("WildBookMetrics.class");
+    //this.myShepherd.beginDBTransaction();
     try 
       { 
         //This if may not even be necessary as I believe init should only be called once. 
-        if(!this.pageVisited)
-          {
-            this.metricsExtractor.setNumberOfUsers(this.myShepherd);
-            this.metricsExtractor.setNumberOfEncounters(this.myShepherd);
-            this.metricsExtractor.setNumberofMediaAssets(this.myShepherd);
-            this.metricsExtractor.setNumberOfIndividuals(this.myShepherd);
-            this.pageVisited = true; 
-          } 
+        //if(!this.pageVisited)
+        //  {
+            this.metricsExtractor.getValues();
+            //this.pageVisited = true; 
+          //} 
       } 
       catch (Exception lEx) 
         {
@@ -62,8 +60,8 @@ public class WildbookMetrics extends MetricsServlet {
         }
       finally 
         {
-          this.myShepherd.rollbackDBTransaction();
-          this.myShepherd.closeDBTransaction();
+          //this.myShepherd.rollbackDBTransaction();
+          //this.myShepherd.closeDBTransaction();
         }
   }
   
