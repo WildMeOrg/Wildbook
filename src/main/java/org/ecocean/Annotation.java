@@ -733,8 +733,9 @@ System.out.println("[1] getMatchingSet params=" + params);
             + this.getMatchingSetFilterViewpointClause(myShepherd)
             + this.getPartClause(myShepherd)
             + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber()
-            + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
-            + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+            //+ "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
+            + "' && enc.annotations.contains(this)"
+            + " && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
         

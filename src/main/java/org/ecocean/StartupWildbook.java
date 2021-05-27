@@ -143,6 +143,7 @@ public class StartupWildbook implements ServletContextListener {
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
+        MetricsBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
 
@@ -251,6 +252,7 @@ public class StartupWildbook implements ServletContextListener {
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         TwitterBot.cleanup();
+        MetricsBot.cleanup();
     }
 
 
