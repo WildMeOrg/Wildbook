@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.ecocean.MetricsBot;
 
@@ -164,26 +165,74 @@ public class Prometheus
       for(String metric:metrics) {
         
         
-        String[] vals = metric.split(cvsSplitBy);
+        String[] vals = metric.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         
         if(vals.length>3) {
         
           try {
-              String m_key=vals[0];
-              String m_value=vals[1];
-              String m_type=vals[2];
-              String m_help=vals[3];
-              System.out.println("Loading: "+m_key+","+m_value+","+m_type+","+m_help);
-              if(m_type.trim().equals("gauge")) {
+              String m_key=vals[0].trim();
+              String m_value=vals[1].trim();
+              String m_type=vals[2].trim();
+              String m_help=vals[3].trim();
+              String m_labels=null;
+              if(vals.length>4)m_labels=vals[4].trim();
+              if(m_type.equals("gauge")) {
+                
                 System.out.println("Loading gauge: "+m_key);
-                Gauge.build().name(m_key.trim())
-                .help(m_help.trim()).register().inc(new Double(m_value.trim()));
+                
+                if(m_labels!=null) {
+                  
+                  //preprocess labels
+                  m_labels=m_labels.replaceAll("\"","");
+                  ArrayList<String> labelNames=new ArrayList<String>();
+                  ArrayList<String> labelValues=new ArrayList<String>();
+                  StringTokenizer str=new StringTokenizer(m_labels,",");
+                  while(str.hasMoreTokens()) {
+                    String token=str.nextToken();
+                    StringTokenizer str2=new StringTokenizer(token,":");
+                    String name=str2.nextToken();
+                    String value=str2.nextToken();
+                    labelNames.add(name);
+                    labelValues.add(value);
+                  }
+
+                  
+                  //add label names and build gauge
+                  
+                  StringTokenizer str4=new StringTokenizer(labelNames.get(0),"_");
+                  String prefix4= str4.nextToken();
+    
+                  Gauge g=Gauge.build().name(m_key).labelNames(prefix4).help(m_help).register();
+                  //set gauge value overall
+                  
+                  
+                  //add label values
+                  for(int i=0;i<labelNames.size();i++) {
+                    String name=labelNames.get(i);
+                    String[] str3=name.split("_", 2);
+                    //StringTokenizer str3=new StringTokenizer(name,"_");
+                    String suffix=str3[1];
+                    String value = labelValues.get(i);
+                    if(name!=null && value!=null)g.labels(suffix).inc(new Double(value));
+                    
+                  }
+                  
+                  
+                }
+                //no labels, easy case!
+                else{
+                  Gauge.build().name(m_key).help(m_help).register().inc(new Double(m_value));
+                }
+                
               }
-              else if(m_type.trim().equals("counter")) {
+              /*
+               //we don't support counters...yet
+              else if(m_type.equals("counter")) {
                 System.out.println("Loading counter: "+m_key);
-                Counter.build().name(m_key.trim())
-                .help(m_help.trim()).register().inc(new Double(m_value.trim()));
+                Counter.build().name(m_key)
+                .help(m_help).register().inc(new Double(m_value));
               }
+              */
           }
           catch(Exception e) {
             e.printStackTrace();
