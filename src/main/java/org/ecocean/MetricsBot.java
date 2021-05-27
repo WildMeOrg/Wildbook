@@ -21,6 +21,8 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
+import io.prometheus.client.CollectorRegistry;
+import org.ecocean.metrics.Prometheus;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;
@@ -134,6 +136,11 @@ public class MetricsBot {
     }
     
     public static void refreshMetrics(String context) {
+      
+      //clear old metrics
+      CollectorRegistry.defaultRegistry.clear();
+      
+      
       //first, make sure metrics file exists
       //if not, create it
       File metricsFile=new File(csvFile);
@@ -261,6 +268,10 @@ public class MetricsBot {
         outp.close();
         fos.close();
         outp=null;
+        
+        //now reload metrics
+        Prometheus metricsExtractor = new Prometheus();
+        metricsExtractor.getValues(); 
         
         
      }
