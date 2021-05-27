@@ -733,7 +733,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params, boolean filterIAClass) {
         String filter="";
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
-        else if(enc.getSpecificEpithet().equals("sp.")) {
+        else if(enc.getSpecificEpithet().equals("sp")) {
           filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst "
             + this.getMatchingSetFilterFromParameters(params)
             + this.getMatchingSetFilterIAClassClause(filterIAClass, this.getIAClass())
@@ -751,8 +751,9 @@ System.out.println("[1] getMatchingSet params=" + params);
             + this.getMatchingSetFilterViewpointClause(myShepherd)
             + this.getPartClause(myShepherd)
             + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber()
-            + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
-            + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+            //+ "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
+            + "' && enc.annotations.contains(this)"
+            + " && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
         
@@ -766,7 +767,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
       String filter="";
       if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
-      else if(specificEpithet.equals("sp.")) {
+      else if(specificEpithet.equals("sp")) {
         filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' VARIABLES org.ecocean.Encounter enc";
         }
       else {
@@ -908,7 +909,7 @@ System.out.println("[1] getMatchingSet params=" + params);
             for (int i = 0 ; i < owner.length() ; i++) {
                 String opt = owner.optString(i, null);
                 if (!Util.stringExists(opt)) continue;
-                if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
+                if (opt.equals("me")) f += " && user.uuid == '" + userId + "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
                 ///TODO also handle "collab" (users you collab with)   :/
             }
         }

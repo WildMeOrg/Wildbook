@@ -16,6 +16,7 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import java.lang.Boolean;
 
 
 public class EncounterSearchExportExcelFile extends HttpServlet{
@@ -84,15 +85,6 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
       
        //business logic start here
         
-        //load the optional locales
-        Properties props = new Properties();
-        try {
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-        
-        } catch (Exception e) {
-          System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
-          e.printStackTrace();
-        }
         
       //let's set up some cell formats
         WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
@@ -255,19 +247,16 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             
             Label lNumberx23 = new Label(22, count, enc.getLocation());
             sheet.addCell(lNumberx23);
-            if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
-              Label lNumberx24 = new Label(23, count, enc.getDWCDecimalLongitude());
-              sheet.addCell(lNumberx24);
-              Label lNumberx25 = new Label(24, count, enc.getDWCDecimalLatitude());
-              sheet.addCell(lNumberx25);
-            }
+            
             //check for available locale coordinates
             //this functionality is primarily used for data export to iobis.org
-            else if ((enc.getLocationCode() != null) && (!enc.getLocationCode().equals(""))) {
+            Boolean defaultGpsDesired = false;
+            defaultGpsDesired = Boolean.parseBoolean(request.getParameter("locales"));
+            if (defaultGpsDesired && (enc.getLocationCode() != null) && (!enc.getLocationCode().equals(""))) {
               try {
                 String lc = enc.getLocationCode();
-                if (props.getProperty(lc) != null) {
-                  String gps = props.getProperty(lc);
+                if (lc != null && LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) != null && LocationID.getLongitude(lc, LocationID.getLocationIDStructure()) != null) {
+                  String gps = LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) + "," + LocationID.getLongitude(lc, LocationID.getLocationIDStructure());
                   StringTokenizer st = new StringTokenizer(gps, ",");
                   Label lNumberx25 = new Label(24, count, st.nextToken());
                   sheet.addCell(lNumberx25);
@@ -279,6 +268,15 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
                 System.out.println("     I hit an error getting locales in searchResults.jsp.");
               }
             }
+
+            //overwrite with explicit gps coordinates AFTER populating with regional ones above
+            if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
+              Label lNumberx24 = new Label(23, count, enc.getDWCDecimalLongitude());
+              sheet.addCell(lNumberx24);
+              Label lNumberx25 = new Label(24, count, enc.getDWCDecimalLatitude());
+              sheet.addCell(lNumberx25);
+            }
+
             if ((enc.getSex()!=null)&&(!enc.getSex().equals("unknown"))) {
               Label lSex = new Label(25, count, enc.getSex());
               sheet.addCell(lSex);
