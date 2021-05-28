@@ -850,7 +850,8 @@ System.out.println("+ starting ident task " + annTaskId);
             IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
             // WB-1665: log as error when we cannot send ident task
-            if ((sent.optJSONObject("status") == null) || !sent.getJSONObject("status").optBoolean("success", false)) {
+            JSONObject sendIdentifyResults = sent.optJSONObject("sendIdentify");
+            if ((sendIdentifyResults != null) && ((sendIdentifyResults.optJSONObject("status") == null) || !sendIdentifyResults.getJSONObject("status").optBoolean("success", false))) {
                 System.out.println("_sendIdentificationTask() unable to initiate identification: " + sent);
                 ann.setIdentificationStatus(IBEISIA.STATUS_ERROR);
                 sent.put("_action", "error");
