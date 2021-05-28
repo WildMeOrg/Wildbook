@@ -98,6 +98,7 @@ $(document).ready(function() {
 	$("#route-list").DataTable({
 		"processing" : true,
 		"serverside" : false,
+		"dom": '<"top"f>rt<"bottom"lp><"clear">',
 		"ajax" : "../RouteList",
 		"columns" : [
 			{
