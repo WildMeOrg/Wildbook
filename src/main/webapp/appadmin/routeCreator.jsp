@@ -6,6 +6,16 @@ org.json.JSONObject, org.json.JSONArray,
 org.joda.time.DateTime,
 java.util.Properties" %>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+<style>
+#table_div_id.dataTables_filter {
+  float: left;
+  text-align: left;
+}
+div.dt-buttons {
+    position: relative;
+    float: left;
+}
+</style>
 <%
 String context = ServletUtilities.getContext(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
@@ -40,6 +50,7 @@ if (request.getParameter("save") != null) {
 
 %>
 <jsp:include page="../header.jsp" flush="true"/>
+<div class="container maincontent">
 <table id="route-list" class="display" style="width:100%">
         <thead>
             <tr>
@@ -52,6 +63,7 @@ if (request.getParameter("save") != null) {
             </tr>
         </thead>
 </table>
+</div>
 <script type="text/javascript"
   src="https://maps.googleapis.com/maps/api/js?key=<%=mapKey%>&libraries=drawing">
 </script>
@@ -99,6 +111,14 @@ $(document).ready(function() {
 		"processing" : true,
 		"serverside" : false,
 		"dom": '<"top"f>rt<"bottom"lp><"clear">',
+		buttons: [
+		            {
+		                text: 'Add new button',
+		                action: function ( e, dt, node, config ) {
+		                    
+		                }
+		            }
+		        ],
 		"ajax" : "../RouteList",
 		"columns" : [
 			{
