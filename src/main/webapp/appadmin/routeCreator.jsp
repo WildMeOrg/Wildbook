@@ -39,6 +39,7 @@ if (request.getParameter("save") != null) {
     request.setAttribute("pageTitle", "Route Creator");
 
 %>
+<jsp:include page="../header.jsp" flush="true"/>
 <table id="route-list" class="display" style="width:100%">
         <thead>
             <tr>
@@ -50,8 +51,6 @@ if (request.getParameter("save") != null) {
             </tr>
         </thead>
 </table>
-<jsp:include page="../header.jsp" flush="true"/>
-
 <script type="text/javascript"
   src="https://maps.googleapis.com/maps/api/js?key=<%=mapKey%>&libraries=drawing">
 </script>
@@ -100,11 +99,30 @@ $(document).ready(function() {
 		"serverside" : false,
 		"ajax" : "../RouteList",
 		"columns" : [
-		          {data : "name"},
-		          {data : "locationId"},
-		          {data : "startTime"},
-		          {data : "endTime"},
-		          {data : "path"}
+			{
+				data : "name"
+			},
+			{
+				data : "locationId"
+			},
+			{
+				data : "startTime"
+			},
+			{
+				data : "endTime"
+			},
+			{
+				data : "path", 
+				render : function ( data, type, row, meta ) {
+					return '';
+				}
+			},
+			{
+				data: "id" , 
+				render : function ( data, type, row, meta ) {
+					return '<a href="'+ data +'" ><i class="fe fe-delete"></i>Delete</a>';
+				}
+			}
 		]
 	});
 	
