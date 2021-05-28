@@ -502,9 +502,10 @@ function drawFeature(id) {
     el.append(f);
     if (!bbox || !bbox.width) return;  //trivial annot, so leave it as whole image
     var scale = img.height / img.naturalHeight;
-    f.css('width', (bbox.width * scale) + 'px');
+		let widthScale = img.width / img.naturalWidth;
+    f.css('width', (bbox.width * widthScale) + 'px');
     f.css('height', (bbox.height * scale) + 'px');
-    f.css('left', (bbox.x * scale) + 'px');
+    f.css('left', (bbox.x * widthScale) + 'px');
     f.css('top', (bbox.y * scale) + 'px');
     if (bbox.theta) f.css('transform', 'rotate(' +  bbox.theta + 'rad)');
 }

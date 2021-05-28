@@ -67,9 +67,6 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
   haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
-    Properties localeprops = new Properties();
-   localeprops=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
-
    List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
    int numSpecies=allSpecies.size();
   
@@ -156,13 +153,12 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
             thisEncLat=enc.getLatitudeAsDouble();
             thisEncLong=enc.getLongitudeAsDouble();
           }
-          //let's see if locationIDGPS.properties has a location we can use
 
           else if(useLocales){
                    try {
                         String lc = enc.getLocationCode();
-                        if (localeprops.getProperty(lc) != null) {
-                          String gps = localeprops.getProperty(lc);
+                        if (lc != null && LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) != null && LocationID.getLongitude(lc, LocationID.getLocationIDStructure()) != null) {
+                          String gps = LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) + "," + LocationID.getLongitude(lc, LocationID.getLocationIDStructure());
                           StringTokenizer st = new StringTokenizer(gps, ",");
                           thisEncLat=(new Double(st.nextToken()))+ran.nextDouble()*0.02;
                           thisEncLong=(new Double(st.nextToken()))+ran.nextDouble()*0.02;;

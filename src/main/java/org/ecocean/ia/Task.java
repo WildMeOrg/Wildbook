@@ -132,11 +132,19 @@ public class Task implements java.io.Serializable {
         return children;
     }
     public void setChildren(List<Task> kids) {
-        children = kids;
+        if (kids == null) {
+            children = null;
+            return;
+        }
+        children = new ArrayList<Task>();
+        for (Task kid : kids) {
+            this.addChild(kid);  //let this do the work
+        }
     }
     public List<Task> addChild(Task kid) {
         if (children == null) children = new ArrayList<Task>();
         if (kid == null) return children;
+        if (kid.getId().equals(this.getId())) return children;  //dont add ourself to children
         if (!children.contains(kid)) children.add(kid);
         return children;
     }
