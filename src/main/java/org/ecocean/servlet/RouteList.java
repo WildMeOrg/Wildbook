@@ -3,6 +3,8 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.jdo.Query;
 import javax.servlet.ServletConfig;
@@ -11,22 +13,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.Shepherd;
-import org.ecocean.Decision;
-import org.ecocean.User;
-import org.ecocean.Util;
-import org.ecocean.movement.Path;
-import org.ecocean.Encounter;
 import org.ecocean.Route;
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.AccessControl;
-import org.json.JSONObject;
+import org.ecocean.Shepherd;
+import org.ecocean.movement.Path;
 import org.json.JSONArray;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import org.json.JSONObject;
 
 public class RouteList extends HttpServlet {
   @Override
