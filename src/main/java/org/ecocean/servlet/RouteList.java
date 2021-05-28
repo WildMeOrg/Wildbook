@@ -28,6 +28,7 @@ public class RouteList extends HttpServlet {
   @Override
   public void doGet(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
+    System.out.println("------------------- get ");
     doPost(request, response);
   }
 
