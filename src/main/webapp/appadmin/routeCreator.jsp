@@ -81,6 +81,15 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 }
 
 $(document).ready(function() {
+	$.ajax({
+		url: '../RouteList',
+		  cache: false,
+		  success: function(data){
+		    var a = data;
+		  }
+		});
+	
+	
     mapSetup();
     $('#startTime').val(new Date().toISOString());
     $('#endTime').val(new Date(new Date().getTime() + 600000).toISOString());
