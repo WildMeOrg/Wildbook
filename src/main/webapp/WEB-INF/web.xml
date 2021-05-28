@@ -126,6 +126,7 @@
          /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 		/IndividualSetAlternateID = authc, roles[researcher]
 		 /EncounterSetAlternateID = authc, roles[researcher]
+		 /RouteList = authc, roles[researcher]
 		 /EncounterSetState = authc, roles[researcher]
 		 /EncounterSetScarring = authc, roles[researcher]
 		 /EncounterSetGPS = authc, roles[researcher]
@@ -709,6 +710,11 @@
   <servlet>
     <servlet-name>MediaAssetAttach</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
+</servlet>
+
+<servlet>
+    <servlet-name>RouteList</servlet-name>
+    <servlet-class>org.ecocean.servlet.RouteList</servlet-class>
 </servlet>
 
 
