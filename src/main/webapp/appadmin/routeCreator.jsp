@@ -5,8 +5,8 @@ org.ecocean.movement.Path,
 org.json.JSONObject, org.json.JSONArray,
 org.joda.time.DateTime,
 java.util.Properties" %>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
 <%
-
 String context = ServletUtilities.getContext(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
@@ -55,6 +55,7 @@ if (request.getParameter("save") != null) {
 <script type="text/javascript"
   src="https://maps.googleapis.com/maps/api/js?key=<%=mapKey%>&libraries=drawing">
 </script>
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script>
 var map;
 var drawingManager;
@@ -91,6 +92,8 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 
 }
 
+
+	
 $(document).ready(function() {
 	$("#route-list").DataTable({
 		"processing" : true,
