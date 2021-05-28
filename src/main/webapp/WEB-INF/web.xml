@@ -244,6 +244,7 @@
 				/EncounterCreate = authc, roles[researcher]
 				/MediaAssetsForUser = authc
 				/MediaAssetAttach= authc, roles[researcher]
+				/RouteList= authc, roles[researcher]
 				/EncounterResetDate = authc, roles[researcher]
 				/IndividualSearchExportCapture = authc, roles[researcher]
 				/EncounterSetTapirLinkExposure = authc, roles[researcher]
