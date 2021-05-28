@@ -1636,6 +1636,11 @@
          <servlet-name>MediaAssetAttach</servlet-name>
          <url-pattern>/MediaAssetAttach</url-pattern>
       </servlet-mapping>
+      
+      <servlet-mapping>
+         <servlet-name>RouteList</servlet-name>
+         <url-pattern>/RouteList</url-pattern>
+      </servlet-mapping>
 
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
