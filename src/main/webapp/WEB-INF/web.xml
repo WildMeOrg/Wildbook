@@ -711,6 +711,11 @@
     <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
 </servlet>
 
+<servlet>
+    <servlet-name>RouteList</servlet-name>
+    <servlet-class>org.ecocean.servlet.RouteList</servlet-class>
+</servlet>
+
 
   <servlet>
     <servlet-name>EncounterResetDate</servlet-name>
