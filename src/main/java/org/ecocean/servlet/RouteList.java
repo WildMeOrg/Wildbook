@@ -41,13 +41,14 @@ public class RouteList extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
 
-    JSONObject rtn = new JSONObject("{\"success\": true}");
+    JSONObject rtn = new JSONObject();
     Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Route");
     q.setOrdering("startTime");
     Collection c = (Collection) (q.execute());
     JSONArray jarr = new JSONArray();
+    JSONObject jrt = null;
     for (Route rt : new ArrayList<Route>(c)) {
-      JSONObject jrt = new JSONObject();
+      jrt = new JSONObject();
       jrt.put("id", rt.getId());
       jrt.put("name", rt.getName());
       jrt.put("locationId", rt.getLocationId());
@@ -61,7 +62,7 @@ public class RouteList extends HttpServlet {
       jarr.put(jrt);
     }
     q.closeAll();
-    rtn.put("routes", jarr);
+    rtn.put("data", jarr);
     System.out.println(rtn.toString());
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();

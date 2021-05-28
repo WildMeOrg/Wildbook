@@ -39,6 +39,17 @@ if (request.getParameter("save") != null) {
     request.setAttribute("pageTitle", "Route Creator");
 
 %>
+<table id="route-list" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Location Id</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Path</th>
+            </tr>
+        </thead>
+</table>
 <jsp:include page="../header.jsp" flush="true"/>
 
 <script type="text/javascript"
@@ -81,13 +92,18 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 }
 
 $(document).ready(function() {
-	$.ajax({
-		url: '../RouteList',
-		  cache: false,
-		  success: function(data){
-		    var a = data;
-		  }
-		});
+	$("#route-list").DataTable({
+		"processing" : true,
+		"serverside" : false,
+		"ajax" : "../RouteList",
+		"columns" : [
+		          {data : "name"},
+		          {data : "locationId"},
+		          {data : "startTime"},
+		          {data : "endTime"},
+		          {data : "path"}
+		]
+	});
 	
 	
     mapSetup();
