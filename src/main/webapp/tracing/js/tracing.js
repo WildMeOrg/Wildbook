@@ -754,7 +754,7 @@ var comEcostatsTracing = (function(){
 			// center the div element in the current visible window space
 			jqCenter(fluke_tracer);
 			// get the current image to show from the url
-			//imgurl='http://localhost:8080/caribwhale_data_dir/encounters/1/b/1b4dec1b-f100-4bf7-af55-655987b3ad91/gray.png';
+			//imgurl='http://localhost:8080/wildbook_data_dir/encounters/1/b/1b4dec1b-f100-4bf7-af55-655987b3ad91/gray.png';
 			add_image(imgurl);
 			if (first_load==true){
 				// try to deal with paperscript and jQuery combined problem that otherwise results in not the full image appearing on first load

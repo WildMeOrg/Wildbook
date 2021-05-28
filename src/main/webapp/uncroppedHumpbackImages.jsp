@@ -78,7 +78,7 @@ while(encounters.hasNext()){
 	for(int p=0;p<numImages;p++){
 		
 		SinglePhotoVideo spv=images.get(p);
-		String spotFilenameURL="http://www.flukebook.org/caribwhale_data_dir/encounters/"+Encounter.subdir(enc.getCatalogNumber())+"/"+spv.getFilename();
+		String spotFilenameURL="http://www.grouperspotter.org/wildbook_data_dir/encounters/"+Encounter.subdir(enc.getCatalogNumber())+"/"+spv.getFilename();
 		%>
 		"<%=spotFilenameURL %>"
 		<%

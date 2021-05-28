@@ -1,16 +1,16 @@
-SUBJECT: Email from Flukebook 
+SUBJECT: Email from Grouper Spotter 
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The Flukebook  Team
+The Grouper Spotter  Team
 
 
 LEGAL STATEMENT
 
-Flukebook  is copyrighted 2009-2017 by Wild Me.
-Individual contributors to Flukebook  retain copyrights for submitted images.
+Grouper Spotter  is copyrighted 2009-2017 by Wild Me.
+Individual contributors to Grouper Spotter  retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 
