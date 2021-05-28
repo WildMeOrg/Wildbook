@@ -35,6 +35,7 @@ public class RouteList extends HttpServlet {
   @Override
   public void doPost(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
+    System.out.println("------------------- post ");
     response.setHeader("Access-Control-Allow-Origin", "*");
     PrintWriter out = response.getWriter();
     String context = ServletUtilities.getContext(request);

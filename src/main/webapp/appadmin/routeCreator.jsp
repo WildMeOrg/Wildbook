@@ -48,6 +48,7 @@ if (request.getParameter("save") != null) {
                 <th>Start Time</th>
                 <th>End Time</th>
                 <th>Path</th>
+                <th>Action</th>
             </tr>
         </thead>
 </table>
