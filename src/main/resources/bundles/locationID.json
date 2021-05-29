@@ -12,6 +12,14 @@
 	{
 		"name": "Test",
 		"id": "test"
+	},
+	{
+		"name": "Phoenix",
+		"id": "Phoenix"
+	},
+	{
+		"name": "Chicago",
+		"id": "Chicago"
 	}
   ]
 }

@@ -110,17 +110,7 @@ $(document).ready(function() {
 	$("#route-list").DataTable({
 		"processing" : true,
 		"serverside" : false,
-		"dom": 'B<"top"f>rt<"bottom"lp><"clear">',
-		buttons: [
-		            {
-		                text: 'Add new button',
-		                action: function ( e, dt, node, config ) {
-		                    dt.button().add( 1, {
-		                       
-		                    } );
-		                }
-		            }
-		        ],
+		"dom": '<"top"f>rt<"bottom"lp><"clear">',
 		"ajax" : "../RouteList",
 		"columns" : [
 			{
