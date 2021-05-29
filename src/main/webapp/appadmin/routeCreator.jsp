@@ -110,7 +110,21 @@ $(document).ready(function() {
 	$("#route-list").DataTable({
 		"processing" : true,
 		"serverside" : false,
+		dom: 'Bfrtip',
 		"dom": '<"top"f>rt<"bottom"lp><"clear">',
+		 "buttons": [
+		            {
+		                text: 'Add new button',
+		                action: function ( e, dt, node, config ) {
+		                    dt.button().add( 1, {
+		                        text: 'Button '+(counter++),
+		                        action: function () {
+		                            this.remove();
+		                        }
+		                    } );
+		                }
+		            }
+		        ],
 		"ajax" : "../RouteList",
 		"columns" : [
 			{
