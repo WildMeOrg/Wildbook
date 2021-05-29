@@ -111,7 +111,6 @@ $(document).ready(function() {
 		"processing" : true,
 		"serverside" : false,
 		dom: 'Bfrtip',
-		"dom": '<"top"f>rt<"bottom"lp><"clear">',
 		 "buttons": [
 		            {
 		                text: 'Add new button',
