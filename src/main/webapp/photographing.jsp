@@ -19,16 +19,16 @@
 	<p>Each grouper can be identified by its coloration patterns, spots, bars and blotches. A full side on shot is most
 	valuable for identification and a set of images of both sides of the fish is the ideal data submission. However, fish
 	can be identified by just head and tail patterns as well.</p>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_1.png" alt="">
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_2.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_1.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_2.png" alt="">
 	<p>Good example images of left and right side of the same fish in barred color phase</p>
 	<h2>COLOR PHASES</h2>
 	<p>Nassau Grouper can be seen in four color phases, A. barred B. bicolor C. dark D. white belly</p>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_3.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_3.png" alt="">
 	<p>It is possible to identify Individual grouper from all four color phases however the most valuable are barred and
 	bicolor.</p>
 	<p>The dark phase can only be identified if the patterns of the fish can still be seen</p>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_4.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_4.png" alt="">
 	<p>This foreground image is an example of a dark phase Nassau Grouper worth submitting. Fish in left background would not
 	be good to submit.</p>
 	<h2>YOUR APPROACH</h2>
@@ -49,7 +49,7 @@
 		<li>Uploaded to website in jpeg format, preferably no larger than 2Mb file size.</li>
 		<li>Bicolored images are also valuable. You will choose whether it is a bicolor image upon upload.</li>
 	</ul>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_5.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_5.png" alt="">
 	<p>Good example of a bicolored images of a fish. Crop each fish out and submit separately.</p>
 	<h2>Important Notes</h2>
 	<ul>
@@ -66,11 +66,11 @@
 		<li>Please note any other interesting features on the fish; shark bites, tags, etc.</li>
 		<li>If multiple individuals are captured in one image please crop and submit them separately.</li>
 	</ul>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_6.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_6.png" alt="">
 	<p>Example of a head shot of the same fish changing color phase but still distinguishable as an individual.</p>
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_7.png" alt="">
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_8.png" alt="">
-	<img src="../webapp/cust/mantamatcher/img/grouper_photo_9.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_7.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_8.png" alt="">
+	<img src="./cust/mantamatcher/img/grouper_photo_9.png" alt="">
 
 			
 	
