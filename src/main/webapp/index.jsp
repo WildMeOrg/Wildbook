@@ -10,7 +10,8 @@
               org.ecocean.cache.*,
               org.datanucleus.api.jdo.JDOPersistenceManager,
               org.datanucleus.FetchGroup,
-              javax.jdo.*
+              javax.jdo.*,
+              org.ecocean.metrics.Prometheus
               "
 %>
 
@@ -43,23 +44,6 @@ Properties props = new Properties();
 // Grab the properties file with the correct language strings.
 props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
-
-//check for and inject a default user 'tomcat' if none exists
-if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
-  %>
-    <script type="text/javascript">
-      console.log("Wildbook is not initialized!");
-    </script>
-  <%
-  StartupWildbook.initializeWildbook(request, myShepherd);
-}
-
-
-
-
-
-
 //let's quickly get the data we need from Shepherd
 
 int numMarkedIndividuals=0;
@@ -68,7 +52,7 @@ int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
 myShepherd.beginDBTransaction();
-QueryCache qc=QueryCacheFactory.getQueryCache(context);
+//QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -80,8 +64,10 @@ try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
-    numEncounters=myShepherd.getNumEncounters();
+    //numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
+    numMarkedIndividuals=(new Double(Prometheus.getValue("wildbook_individuals_total"))).intValue();
+    //numEncounters=myShepherd.getNumEncounters();
+    numEncounters=(new Double(Prometheus.getValue("wildbook_encounters_total"))).intValue();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     //numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
@@ -315,8 +301,7 @@ h2.vidcap {
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
-                    </div>
+                        </div>
                 </section>
             <%
             } // end if
@@ -356,7 +341,7 @@ h2.vidcap {
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
+	                                <p><%=thisEnc.getDisplayName() %></p>
 
 
 	                            </li>
@@ -372,8 +357,7 @@ h2.vidcap {
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
-                </div>
+                  </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
@@ -429,7 +413,7 @@ h2.vidcap {
                    %>
 
                     </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
+                    
                 </div>
             </section>
         </div>
@@ -440,7 +424,7 @@ h2.vidcap {
     <section class="container text-center  main-section">
        <div class="row">
        		<section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p  class="brand-primary" ><i><span style="font-size: 4.5em" class="massive">1.2M+</span> <%=props.getProperty("numPhotos") %></i></p>
+                <p  class="brand-primary" ><i><span style="font-size: 4.5em" class="massive">2M+</span> <%=props.getProperty("numPhotos") %></i></p>
             </section>
                         <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary" ><i><span  style="font-size: 4.5em"class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
