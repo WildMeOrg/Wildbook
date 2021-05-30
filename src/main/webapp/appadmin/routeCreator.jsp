@@ -109,18 +109,15 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 $(document).ready(function() {
 	
 	// Delete a record
-    $('#route-list').on('click', 'td.editor-delete', function (e) {
-        e.preventDefault();
- 
-        $.ajax({
-        	  url: "../RouteList?action=delete&id="+,
-        	  cache: false,
-        	  success: function(html){
-        	    $("#results").append(html);
-        	  }
-        	});
-        
-    } );
+    function deleteRoute(id){
+    	 $.ajax({
+       	  url: "../RouteList?action=delete&id="+id,
+       	  cache: false,
+       	  success: function(html){
+       	    $("#results").append(html);
+       	  }
+       	});
+	}
 	
 	
 	$("#route-list").DataTable({
@@ -164,7 +161,7 @@ $(document).ready(function() {
 				data : "id", 
 				render : function ( data, type, row, meta ) {
 					var a = data;
-					return '<a href = "#" onClick = "openSolution('+ 'id' +');"><i class="el el-remove-sign"></i></a>';
+					return '<a href = "#" onClick = "deleteRoute('+ 'id' +');"><i class="el el-remove-sign"></i></a>';
 				}
 			},
 		]
