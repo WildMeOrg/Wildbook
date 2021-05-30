@@ -35,36 +35,39 @@ public class RouteList extends HttpServlet {
   @Override
   public void doPost(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
-    System.out.println("------------------- post ");
     response.setHeader("Access-Control-Allow-Origin", "*");
+    
+    // init variables
     PrintWriter out = response.getWriter();
     String context = ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.beginDBTransaction();
-
     JSONObject rtn = new JSONObject();
-    Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Route");
-    q.setOrdering("startTime");
-    Collection c = (Collection) (q.execute());
-    JSONArray jarr = new JSONArray();
-    JSONObject jrt = null;
-    for (Route rt : new ArrayList<Route>(c)) {
-      jrt = new JSONObject();
-      jrt.put("id", rt.getId());
-      jrt.put("name", rt.getName());
-      jrt.put("locationId", rt.getLocationId());
-      jrt.put("startTime", rt.getStartTime());
-      jrt.put("endTime", rt.getEndTime());
-      Path path = rt.getPath();
-      if (path != null) {
-        JSONArray pts = Path.toJSONArray(path.getPointLocations());
-        jrt.put("path", pts);
+    Shepherd myShepherd = new Shepherd(context);
+    
+    
+    myShepherd.beginDBTransaction();
+    if(request.getParameter("action").equals("getList")){
+      Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Route");
+      q.setOrdering("startTime");
+      Collection c = (Collection) (q.execute());
+      JSONArray jarr = new JSONArray();
+      JSONObject jrt = null;
+      for (Route rt : new ArrayList<Route>(c)) {
+        jrt = new JSONObject();
+        jrt.put("id", rt.getId());
+        jrt.put("name", rt.getName());
+        jrt.put("locationId", rt.getLocationId());
+        jrt.put("startTime", rt.getStartTime());
+        jrt.put("endTime", rt.getEndTime());
+        Path path = rt.getPath();
+        if (path != null) {
+          JSONArray pts = Path.toJSONArray(path.getPointLocations());
+          jrt.put("path", pts);
+        }
+        jarr.put(jrt);
       }
-      jarr.put(jrt);
+      q.closeAll();
+      rtn.put("data", jarr);
     }
-    q.closeAll();
-    rtn.put("data", jarr);
-    System.out.println(rtn.toString());
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
     response.setContentType("text/json");
