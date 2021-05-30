@@ -112,11 +112,14 @@ $(document).ready(function() {
     $('#route-list').on('click', 'td.editor-delete', function (e) {
         e.preventDefault();
  
-        editor.remove( $(this).closest('tr'), {
-            title: 'Delete record',
-            message: 'Are you sure you wish to remove this record?',
-            buttons: 'Delete'
-        } );
+        $.ajax({
+        	  url: "../RouteList?action=delete&id="+,
+        	  cache: false,
+        	  success: function(html){
+        	    $("#results").append(html);
+        	  }
+        	});
+        
     } );
 	
 	
@@ -158,11 +161,12 @@ $(document).ready(function() {
 				}
 			},
 			{
-				data: null,
-                className: "dt-center editor-delete",
-                defaultContent: '<i class="el el-file-edit"/>',
-                orderable: false
-			}
+				data : "id", 
+				render : function ( data, type, row, meta ) {
+					var a = data;
+					return '<a href = "#" onClick = "openSolution('+ 'id' +');"><i class="el el-remove-sign"></i></a>';
+				}
+			},
 		]
 	});
 	
