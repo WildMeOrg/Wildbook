@@ -21,6 +21,7 @@ public class Route implements java.io.Serializable {
     private DateTime startTime;
     private DateTime endTime;
     private Path path;
+    private boolean archive;
     //private Set<User> users;
 
     public Route() {
@@ -64,6 +65,18 @@ public class Route implements java.io.Serializable {
         users.add(user);
     }
 */
+
+    public boolean isArchive() {
+      return archive;
+    }
+
+    public void setArchive(boolean archive) {
+      this.archive = archive;
+    }
+
+    public void setId(String id) {
+      this.id = id;
+    }
 
     public String getName() {
         return name;
