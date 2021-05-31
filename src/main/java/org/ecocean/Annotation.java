@@ -811,6 +811,10 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     private String getMatchingSetFilterIAClassClause(boolean filterIAClass, String iaClass) {
         if (!filterIAClass) return "";
+        
+        //temporarily allow wild dog matching without iaClass
+        if(iaClass.startsWith("wild_dog"))return "";
+        
         String iaClassClause = " && iaClass.equals('"+iaClass+"') ";
         return iaClassClause;
     }
