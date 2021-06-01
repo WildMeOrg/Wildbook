@@ -551,7 +551,7 @@ public class UserConsolidate extends HttpServlet {
       }
       if(queryList!=null && queryList.size()>0){
         for(String currentQuery: queryList){
-          System.out.println("query in getOccurrencesForUser is: " + currentQuery);
+          // System.out.println("query in getOccurrencesForUser is: " + currentQuery);
           Query query=persistenceManager.newQuery(currentQuery);
           Collection c = (Collection) (query.execute());
           if(c!=null){
@@ -627,6 +627,7 @@ public class UserConsolidate extends HttpServlet {
       usernamelessUsers=new ArrayList<User>(c);
     }
     if(usernamelessUsers != null && usernamelessUsers.size()>0){
+      JSONArray consolidatedIncompleteUsers = new JSONArray();
       for(User currentUsernamelessUser: usernamelessUsers){
         //find similar user(s) with same email address but with a username
         List<User> similarUsers = getOtherUsersWithMatchingEmailAddress(currentUsernamelessUser, persistenceManager);
@@ -636,14 +637,23 @@ public class UserConsolidate extends HttpServlet {
           if(highestCredentialedMatch != null){
             //consolidate the currentUser into the found high-credential user
             System.out.println("dedupe about to consolidate usernameless user: " + currentUsernamelessUser.toString() + " with highestCredentialedMatch: " + highestCredentialedMatch.toString());
-            returnJson.put("numEncountersBeforeConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            // returnJson.put("numEncountersBeforeConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            returnJson.put(currentUsernamelessUser.getUUID(), "username: " + currentUsernamelessUser.getUsername() + " being consolidated into user: " + highestCredentialedMatch.getUUID() + " with username: " + highestCredentialedMatch.getUsername());
             consolidateUser(myShepherd, highestCredentialedMatch, currentUsernamelessUser);
-            returnJson.put("numEncountersAfterConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            // returnJson.put("numEncountersAfterConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            JSONObject currentConsolidatedUserJson = new JSONObject();
+            currentConsolidatedUserJson.put("uuid",currentUsernamelessUser.getUUID());
+            currentConsolidatedUserJson.put("username", currentUsernamelessUser.getUsername());
+            currentConsolidatedUserJson.put("into_uuid",highestCredentialedMatch.getUUID());
+            currentConsolidatedUserJson.put("into_username", highestCredentialedMatch.getUsername());
+            consolidatedIncompleteUsers.put(currentConsolidatedUserJson);
           }
         }
       }
+      returnJson.put("conslidatedUsers", consolidatedIncompleteUsers);
     } else{
       System.out.println("dedupe ack there were no users in this list");
+      returnJson.put("success", true);
       return returnJson;
     }
     returnJson.put("success", true);
@@ -699,11 +709,9 @@ public class UserConsolidate extends HttpServlet {
     roleHierarchy.add("machinelearning");
     for(String currentRoleBeingChecked: roleHierarchy){
       if(aRoleNames.contains(currentRoleBeingChecked) && !bRoleNames.contains(currentRoleBeingChecked)){
-        // System.out.println("deleteMe user " + userA.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userB.getUsername() + " does not!");
         return true;
       }
       if(bRoleNames.contains(currentRoleBeingChecked) && !aRoleNames.contains(currentRoleBeingChecked)){
-        // System.out.println("deleteMe user " + userB.getUsername() + " has role " + currentRoleBeingChecked + " that user " + userA.getUsername() + " does not!");
         return false;
       }
     }
@@ -714,7 +722,6 @@ public class UserConsolidate extends HttpServlet {
     int sizeA = -1;
     int sizeB = -1;
     if(userA == null || userB == null || (userA.getUsername() == null && userB.getUsername() == null)){
-      // System.out.println("deleteMe hasMoreEncountersThan returning false because something is wrong with one of the users or usernames");
       return false; //if it's indeterminable, it's false
     }
     if(userA.getUsername() != null){
@@ -724,17 +731,14 @@ public class UserConsolidate extends HttpServlet {
       sizeB = getNumberEncountersUsingSubmitterId(userB, persistenceManager);
     }
     if(sizeA > sizeB){
-      System.out.println("deleteMe " + userA.getUsername() + " has " + sizeA + " encounters, while " + userB.getUsername() + " has " + sizeB + " encounters. Returning true");
       return true;
-    } 
-    // System.out.println("deleteMe " + userA.getUsername() + " has " + sizeA + " encounters, while " + userB.getUsername() + " has " + sizeB + " encounters. Returning false");
+    }
     return false;
   }
 
   public static int getNumberEncountersUsingSubmitterId(User user, PersistenceManager persistenceManager){
     int size = -1;
     if(user == null || user.getUsername() == null){
-      // System.out.println("deleteMe getNumberEncounters returning -1 because something is wrong with the user or username");
       return size; //if it's indeterminable, it's false
     } else{
       String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"" + user.getUsername() + "\""; //don't check using email address because you are using this in an effort to deduplicate accounts with matching email addresses.
@@ -749,7 +753,6 @@ public class UserConsolidate extends HttpServlet {
       }
       query.closeAll();
     }
-    // System.out.println("deleteMe " + user.getUsername() + " has " + size + " encounters");
     return size;
   }
 
@@ -762,10 +765,8 @@ public class UserConsolidate extends HttpServlet {
     DateTime lastLoginADate = new DateTime(lastLoginA);
     DateTime lastLoginBDate = new DateTime(lastLoginB);
     if(lastLoginADate.compareTo(lastLoginBDate) >0){
-      // System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is more recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
       return true;
     }else{
-      // System.out.println("deleteMe " + lastLoginADate.toString() + " for user " + userA.getUsername() + " is LESS recent than " + lastLoginBDate.toString() + " for user " + userB.getUsername());
       return false;
     }
   }
@@ -917,9 +918,11 @@ public class UserConsolidate extends HttpServlet {
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or consolidating users with less complete accounts.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        returnJson.put("success", false);
     } finally {
         System.out.println("dedupe closing ajax call for user consolidate with less complete accounts transaction.....");
         myShepherd.updateDBTransaction();
+        returnJson.put("success", true);
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -929,6 +932,7 @@ public class UserConsolidate extends HttpServlet {
 
     //suspend lower-credentialed acccounts with matching email addresses and non-null usernames
     try{
+      int suspendedUserCount = 0;
       Boolean suspendLessCredentialedDesired = jsonRes.optBoolean("suspendLessCredentialedDesired", false);
       if(suspendLessCredentialedDesired){
         returnJson = suspendLessCredentialedAccounts(myShepherd, returnJson);
@@ -938,9 +942,11 @@ public class UserConsolidate extends HttpServlet {
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while suspending less-credentialed user accounts.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        returnJson.put("success", false);
     } finally {
         System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
         myShepherd.updateDBTransaction();
+        returnJson.put("success", true);
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -962,7 +968,7 @@ public class UserConsolidate extends HttpServlet {
           String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt); //admins can change this later
           publicUser = new User(publicUserName, hashedPassword, salt);
           publicUser.setEmailAddress(publicUserEmail);
-          myShepherd.updateDBTransaction();  
+          myShepherd.updateDBTransaction();
         }
         //find all encounters where submitterID is null or "N/A" and change to Public
         EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
@@ -977,6 +983,7 @@ public class UserConsolidate extends HttpServlet {
         System.out.println("dedupe closing ajax call for assigning encounters with submitterIDs of null or N/A to the public user.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+        returnJson.put("success", true);
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -987,6 +994,7 @@ public class UserConsolidate extends HttpServlet {
 
     //assign usernameless users to Anonymous
     try{
+      int usernamelessCount = 0;
       Boolean renameUsernamelessToAnonymousDesired = jsonRes.optBoolean("renameUsernamelessToAnonymousDesired", false);
       if(renameUsernamelessToAnonymousDesired){
         List<User> usernamelessUsers = new ArrayList<User>();
@@ -996,8 +1004,10 @@ public class UserConsolidate extends HttpServlet {
           for(User currentUser: usernamelessUsers){
             System.out.println("dedupe assigning Anonymous_+uuid to user: " + currentUser.getUUID());
             currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            usernamelessCount ++;
             myShepherd.updateDBTransaction();
           }
+          returnJson.put("usernamelessCount", usernamelessCount);
         }
       }
     } catch (Exception e) {
@@ -1009,6 +1019,7 @@ public class UserConsolidate extends HttpServlet {
         System.out.println("dedupe closing ajax call for renaming usernameless non null email users to anonymous_+uuid.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+        returnJson.put("success", true);
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -1018,6 +1029,7 @@ public class UserConsolidate extends HttpServlet {
 
     //assign emailless or invalid emails to uuid@localhost
     try{
+      int emailProblemUserCount = 0;
       Boolean suspendEmaillessOrInvalidEmailDesired = jsonRes.optBoolean("suspendEmaillessOrInvalidEmailDesired", false);
       if(suspendEmaillessOrInvalidEmailDesired){
         List<User> emailProblemUsers = new ArrayList<User>();
@@ -1026,8 +1038,10 @@ public class UserConsolidate extends HttpServlet {
           for(User currentUser: emailProblemUsers){
             System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " to user: " + currentUser.getUUID());
             currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
+            emailProblemUserCount ++;
             myShepherd.updateDBTransaction();
           }
+          returnJson.put("emailProblemUserCount", emailProblemUserCount);
         }
       }
     } catch (Exception e) {
@@ -1039,6 +1053,7 @@ public class UserConsolidate extends HttpServlet {
         System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+        returnJson.put("success", true);
         if (out!=null) {
             out.println(returnJson);
             out.close();
@@ -1048,6 +1063,7 @@ public class UserConsolidate extends HttpServlet {
 
     //assign emailless and usernameless anonymous_uuid uuid@localhost
     try{
+      int renameCounter = 0;
       Boolean suspendUsersMissingEmailAndUsernameDesired = jsonRes.optBoolean("suspendUsersMissingEmailAndUsernameDesired", false);
       if(suspendUsersMissingEmailAndUsernameDesired){
         List<User> worldsWorstUsers = new ArrayList<User>();
@@ -1057,15 +1073,19 @@ public class UserConsolidate extends HttpServlet {
             System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " and username: Anonymous_" + currentUser.getUUID() + " to user: " + currentUser.getUUID());
             currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
             currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            renameCounter ++;
             myShepherd.updateDBTransaction();
           }
+          returnJson.put("emaillessUsernamelessCount", renameCounter);
         }
+        returnJson.put("success", true);
       }
     } catch (Exception e) {
         System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        returnJson.put("success", false);
     } finally {
         System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
         myShepherd.commitDBTransaction();
@@ -1226,7 +1246,6 @@ public class UserConsolidate extends HttpServlet {
     //only add users with invalid email addresses or missing ones to the returnUsers list
     for(User currentUserCandidate: nonNullUsernameUsers){
       if(currentUserCandidate.getEmailAddress() == null || !Util.isValidEmailAddress(currentUserCandidate.getEmailAddress())){
-        System.out.println("deleteMe adding " + currentUserCandidate.getEmailAddress() + " from user " + currentUserCandidate.getUUID() + " to the invalid or missing email list");
         returnUsers.add(currentUserCandidate);
       }
     }
