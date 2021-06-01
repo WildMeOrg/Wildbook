@@ -37,6 +37,8 @@ try{
   currentUser = AccessControl.getUser(request, myShepherd);
   %>
   <div class="container maincontent">
+    <div id="originalCounts"></div>
+    <div id="updateCounts"></div>
     <div id="content-container">
       <!-- js-generated html goes here -->
     </div>
@@ -44,28 +46,106 @@ try{
     let txt = getText("myUsers.properties");
     displayProgressBar("Loading");
     let headerTxt = getText("header.properties");
-    let dedupeLessCompleteJson = {};
-    dedupeLessCompleteJson['dedupeLessCompleteDesired'] = true;
-    let suspendLessCredentialedJson = {};
-    suspendLessCredentialedJson['suspendLessCredentialedDesired'] = true;
-    let assignOrphanedEncountersToPublicJson = {};
-    assignOrphanedEncountersToPublicJson['assignOrphanedEncountersToPublicDesired'] = true;
-    let renameUsernamelessToAnonymousJson = {};
-    renameUsernamelessToAnonymousJson['renameUsernamelessToAnonymousDesired'] = true;
-    let suspendEmaillessOrInvalidEmailJson = {};
-    suspendEmaillessOrInvalidEmailJson['suspendEmaillessOrInvalidEmailDesired'] = true;
-    let suspendUsersMissingEmailAndUsernameJson = {};
-    suspendUsersMissingEmailAndUsernameJson['suspendUsersMissingEmailAndUsernameDesired'] = true;
     $(document).ready(function() {
-        doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
-        doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
-        doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
-        doAjaxCallForRenamingUsernamelessToAnonymous(renameUsernamelessToAnonymousJson);
-        doAjaxCallForSuspendingEmaillessOrInvalidEmails(suspendEmaillessOrInvalidEmailJson);
-        doAjaxCallForSuspendingEmaillessAndUsernameless(suspendUsersMissingEmailAndUsernameJson);
+      populateNewButtonAndDisplay(null, '<h4>Step 1. Deduplicate Less Complete Accounts</h4>', '<button onclick="ajaxDedupeLessCompleteWrapper()">Do It</button>');
+      populateCounts("User counts", "originalCounts", false);
     });
 
+    function populateCounts(label, divId, includeUpdateButton){
+      let theHtml = '';
+      theHtml += '<h2>' + label + '</h2>';
+      let totalUserCount = '<%= myShepherd.getAllUsers().size()%>';
+      theHtml += '<p>Total # Users: ' + totalUserCount + '</p>';
+      <%
+        List < User > usersWithNullEmail=new ArrayList < User > ();
+        String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == null";
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection)(query.execute());
+        if (c != null) usersWithNullEmail = new ArrayList < User > (c);
+        query.closeAll();
+      %>
+      let usersWithNullEmail = '<%= usersWithNullEmail.size() %>';
+      <%
+        ArrayList < User > usersWithNullUsername=new ArrayList < User > ();
+        filter = "SELECT FROM org.ecocean.User WHERE username == null";
+        query = myShepherd.getPM().newQuery(filter);
+        c = (Collection)(query.execute());
+        if (c != null) usersWithNullUsername = new ArrayList < User > (c);
+        query.closeAll();
+      %>
+      let usersWithNullUsername = '<%= usersWithNullUsername.size() %>';
+      theHtml += '<p>Total # Users with null email addresses: ' + usersWithNullEmail + '</p>';
+      theHtml += '<p>Total # Users with null usernames: ' + usersWithNullUsername + '</p>';
+
+      if(includeUpdateButton){
+        theHtml += '<button onclick="updateCounts()">Update</button>';
+      }
+      $("#" + divId).empty();
+      $("#" + divId).append(theHtml);
+    }
+
+    function updateCounts(){
+      populateCounts("Current counts", 'updateCounts', true);
+    }
+
+    function populateNewButtonAndDisplay(data, headerText, buttonText){
+      //TODO figure out what to do with with data
+      let theHtml = '';
+      if(data && !data.success){
+        theHtml += '<p> Something went wrong with that step</p>';
+      } else{
+        theHtml += headerText;
+        theHtml += buttonText;
+      }
+      $('#content-container').empty();
+      $('#content-container').append(theHtml);
+    }
+
+    function populateFinal(data){
+      let theHtml = '';
+      theHtml += '<p> You\'re done!</p>';
+      $('#content-container').empty();
+      $('#content-container').append(theHtml);
+    }
+
+    function ajaxDedupeLessCompleteWrapper(){
+      let dedupeLessCompleteJson = {};
+      dedupeLessCompleteJson['dedupeLessCompleteDesired'] = true;
+      doAjaxCallForDedupeLessCompleteAccounts(dedupeLessCompleteJson);
+    }
+
+    function ajaxSuspendLowerCredentialedWrapper() {
+      let suspendLessCredentialedJson = {};
+      suspendLessCredentialedJson['suspendLessCredentialedDesired'] = true;
+      doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(suspendLessCredentialedJson);
+    }
+
+    function ajaxOrphanEncountersToPublicWrapper() {
+      let assignOrphanedEncountersToPublicJson = {};
+      assignOrphanedEncountersToPublicJson['assignOrphanedEncountersToPublicDesired'] = true;
+      doAjaxCallForAssigningOrphanEncountersToPublic(assignOrphanedEncountersToPublicJson);
+    }
+
+    function ajaxRenameUsernamelessAnonymousWrapper() {
+      let renameUsernamelessToAnonymousJson = {};
+      renameUsernamelessToAnonymousJson['renameUsernamelessToAnonymousDesired'] = true;
+      doAjaxCallForRenamingUsernamelessToAnonymous(renameUsernamelessToAnonymousJson);
+    }
+
+    function ajaxSuspendEmaillessOrInvalidWrapper() {
+      let suspendEmaillessOrInvalidEmailJson = {};
+      suspendEmaillessOrInvalidEmailJson['suspendEmaillessOrInvalidEmailDesired'] = true;
+      doAjaxCallForSuspendingEmaillessOrInvalidEmails(suspendEmaillessOrInvalidEmailJson);
+    }
+
+    function ajaxSuspendEmaillessAndUsernamelessWrapper() {
+      let suspendUsersMissingEmailAndUsernameJson = {};
+      suspendUsersMissingEmailAndUsernameJson['suspendUsersMissingEmailAndUsernameDesired'] = true;
+      doAjaxCallForSuspendingEmaillessAndUsernameless(suspendUsersMissingEmailAndUsernameJson);
+    }
+
     function doAjaxCallForDedupeLessCompleteAccounts(jsonRequest){
+      displayProgressBar("De-duplicating less complete users (this step can take a VERY long time)...");
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
       type: 'POST',
@@ -73,11 +153,8 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        console.log("deleteMe data coming back from doAjaxCallForDedupeLessCompleteAccounts is: ");
-        console.log(data);
           if(data.success){
-            console.log("deleteMe got here a1");
-            //TODO display how many there are now vs how many there were
+            populateNewButtonAndDisplay(data, '<h4>Step 2. Suspend Lower-credentialed Accounts</h4>', '<button onclick="ajaxSuspendLowerCredentialedWrapper()">Do It</button>');
           }
         },
           error: function(x,y,z) {
@@ -94,12 +171,7 @@ try{
           dataType: 'json',
           contentType: 'application/json',
           success: function (data) {
-            console.log("deleteMe data coming back from doAjaxCallForSuspendingLowerCredentialedSimilarAccounts is: ");
-            console.log(data);
-            if (data.success) {
-              console.log("deleteMe got here a2");
-              //TODO display how many there are now vs how many there were
-            }
+            populateNewButtonAndDisplay(null, '<h4>Step 3. Assign Orphan Encounters to a Public Account</h4>', '<button onclick="ajaxOrphanEncountersToPublicWrapper()">Do It</button>');
           },
             error: function(x, y, z) {
               console.warn('%o %o %o', x, y, z);
@@ -115,12 +187,7 @@ try{
             dataType: 'json',
             contentType: 'application/json',
             success: function (data) {
-              console.log("deleteMe data coming back from doAjaxCallForAssigningOrphanEncountersToPublic is: ");
-              console.log(data);
-              if (data.success) {
-                console.log("deleteMe got here a3");
-                //TODO display how many there are now vs how many there were
-              }
+              populateNewButtonAndDisplay(null, '<h4>Step 4. Rename Usernameless Accounts To Anonymous_uuid</h4>', '<button onclick="ajaxRenameUsernamelessAnonymousWrapper()">Do It</button>');
             },
             error: function (x, y, z) {
               console.warn('%o %o %o', x, y, z);
@@ -136,12 +203,7 @@ try{
               dataType: 'json',
               contentType: 'application/json',
               success: function (data) {
-                console.log("deleteMe data coming back from doAjaxCallForRenamingUsernamelessToAnonymous is: ");
-                console.log(data);
-                if (data.success) {
-                  console.log("deleteMe got here a4");
-                  //TODO display how many there are now vs how many there were
-                }
+                populateNewButtonAndDisplay(null, '<h4>Step 5. "Suspend" emailless or invalid emails</h4>', '<button onclick="ajaxSuspendEmaillessOrInvalidWrapper()">Do It</button>');
               },
               error: function (x, y, z) {
                 console.warn('%o %o %o', x, y, z);
@@ -157,12 +219,7 @@ try{
                 dataType: 'json',
                 contentType: 'application/json',
                 success: function (data) {
-                  console.log("deleteMe data coming back from doAjaxCallForSuspendingEmaillessOrInvalidEmails is: ");
-                  console.log(data);
-                  if (data.success) {
-                    console.log("deleteMe got here a5");
-                    //TODO display how many there are now vs how many there were
-                  }
+                  populateNewButtonAndDisplay(null, '<h4>Step 6. "Suspend" emailless and usernameless</h4>', '<button onclick="ajaxSuspendEmaillessAndUsernamelessWrapper()">Do It</button>');
                 },
                 error: function (x, y, z) {
                   console.warn('%o %o %o', x, y, z);
@@ -178,12 +235,7 @@ try{
                   dataType: 'json',
                   contentType: 'application/json',
                   success: function (data) {
-                    console.log("deleteMe data coming back from doAjaxCallForSuspendingEmaillessAndUsernameless is: ");
-                    console.log(data);
-                    if (data.success) {
-                      console.log("deleteMe got here a6");
-                      //TODO display how many there are now vs how many there were
-                    }
+                    populateFinal(data);
                   },
                   error: function (x, y, z) {
                     console.warn('%o %o %o', x, y, z);
