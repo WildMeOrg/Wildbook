@@ -3,6 +3,8 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -22,6 +24,7 @@
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
+         org.apache.commons.codec.net.URLCodec,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -97,7 +100,7 @@
     }
   }
 
-
+	/*
 	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
 		if ((request == null) || (enc == null)) return false;
 		JSONObject jobj = new JSONObject();
@@ -110,6 +113,7 @@
 		}
 		return true;
 	}
+	*/
 
 	private String escapeSpecialRegexChars(String str) {
 		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
@@ -151,8 +155,8 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-
-
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
@@ -380,8 +384,6 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
-
 
           function placeMarker(location) {
 
@@ -412,9 +414,10 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                //if (taxString && (item.species != taxString)) return null;
+                if (item.species != taxString) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -437,10 +440,18 @@ function setIndivAutocomplete(el) {
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = null;
+                mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	              var center = null;
+                let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+                let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                if (centerLat && centerLong) {
+                  center = new google.maps.LatLng(centerLat, centerLong);
+                } else {
+                  center = new google.maps.LatLng(10.8, 160.8);
+                }
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -475,9 +486,6 @@ function setIndivAutocomplete(el) {
 
 
         }
-
-
-
 
 var encounterNumber = '<%=num%>';
 
@@ -566,50 +574,50 @@ var encounterNumber = '<%=num%>';
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
-            	System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
+            	//System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
             	String encNum = enc.getCatalogNumber();
-						boolean visible = enc.canUserAccess(request);
-						if (!visible) visible = checkAccessKey(request, enc);
-						if (!visible) {
+				boolean visible = enc.canUserAccess(request);
+				System.out.println("visible: "+visible);
+				//if (!visible) visible = checkAccessKey(request, enc);
+				if (!visible) {
 
 
-              // remove any potentially-sensitive data, labeled with the secure-field class
-              %>
-              <script type="text/javascript">
-                $(document).ready(function() {
-                  $('.secure-field').remove();
-                });
-              </script>
-              <%
+	              // remove any potentially-sensitive data, labeled with the secure-field class
+	              %>
+	              <script type="text/javascript">
+	                $(document).ready(function() {
+	                  $('.secure-field').remove();
+	                });
+	              </script>
+	              <%
 
+					String blocker = "";
+					List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+					Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
+					String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+					String uid = null;
+					String name = null;
+            				String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
+					if (request.getUserPrincipal() == null) {
+						cmsg = "<p>Access limited.</p>";
+					} if ((c == null) || (c.getState() == null)) {
+						uid = enc.getAssignedUsername();
+						name = enc.getSubmitterName();
+						if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
+					} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
+					} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
+						cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
+					}
 
-							String blocker = "";
-							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
-							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
-							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-							String uid = null;
-							String name = null;
-              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
-							if (request.getUserPrincipal() == null) {
-								cmsg = "<p>Access limited.</p>";
-							} if ((c == null) || (c.getState() == null)) {
-								uid = enc.getAssignedUsername();
-								name = enc.getSubmitterName();
-								if ((name == null) || name.equals("N/A")) name = enc.getAssignedUsername();
-							} else if (c.getState().equals(Collaboration.STATE_INITIALIZED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessagePending") + "</p>";
-							} else if (c.getState().equals(Collaboration.STATE_REJECTED)) {
-								cmsg += "<p>" + collabProps.getProperty("deniedMessageRejected") + "</p>";
-							}
-
-							cmsg = cmsg.replace("'", "\\'");
-							if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
-							} else {
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
-							}
-							out.println(blocker);
-						}
+					cmsg = cmsg.replace("'", "\\'");
+					if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+					} else {
+						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+					}
+					out.println(blocker);
+				} //end if !visible
 
 
       			pageContext.setAttribute("enc", enc);
@@ -618,12 +626,12 @@ var encounterNumber = '<%=num%>';
         			livingStatus = " (deceased)";
       			}
 
-if (request.getParameter("refreshImages") != null) {
-	System.out.println("refreshing images!!! ==========");
-	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
-	enc.refreshAssetFormats(myShepherd);
-	System.out.println("============ out ==============");
-}
+				if (request.getParameter("refreshImages") != null) {
+					System.out.println("refreshing images!!! ==========");
+					//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+					enc.refreshAssetFormats(myShepherd);
+					System.out.println("============ out ==============");
+				}
 
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
@@ -1299,18 +1307,52 @@ if(enc.getLocation()!=null){
  	<%
  	}
  	%>
- 	<!-- adding ne submit GPS-->
+
+  <!-- Display GPS to researchers if configured in commonConfiguration.properties-->
+
+<%
+  String longy="";
+  String laty="";
+  if(enc.getLatitudeAsDouble()!=null){
+    laty=enc.getLatitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal latBD = new BigDecimal(laty);
+      latBD = latBD.setScale(1, RoundingMode.HALF_UP);
+      laty = latBD.toString();
+      laty += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+  if(enc.getLongitudeAsDouble()!=null){
+    longy=enc.getLongitudeAsDouble().toString();
+    if (!isOwner) {
+      BigDecimal lonBD = new BigDecimal(longy);
+      lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
+      longy = lonBD.toString();
+      longy += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+
+  String uName = null;
+  User gpsUser = null;
+  if (request.getUserPrincipal()!=null) {
+    uName = request.getUserPrincipal().getName();
+    gpsUser = myShepherd.getUser(uName);
+  }
+  if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
+    if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
+      longy = encprops.getProperty("noGPS");
+      laty = encprops.getProperty("noGPS");
+    }
+%>
+    <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
+<%
+  }
+%>
 
 
-
- 	<%
+<%
  	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
-     	%>
+%>
 
       <script type="text/javascript">
         $(document).ready(function() {
@@ -1326,6 +1368,9 @@ if(enc.getLocation()!=null){
             $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
             function() {
               $("#latCheck, #longCheck").show();
+              console.log('tryyna set GPS!');
+              $("#latitudeSpan").text($('#lat').val());
+              $("#longitudeSpan").text($('#longitude').val());
             })
             .fail(function(response) {
               $("#gpsErrorDiv").show();
@@ -1345,12 +1390,10 @@ if(enc.getLocation()!=null){
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
                   $("#setGPSbutton").removeAttr("disabled");
-                  //alert("here 1!");
                   emptyMarkers();
               }
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
-                  //alert("here 2!");
               }
               else{
               	//alert("Trying to validate!");
@@ -1496,7 +1539,7 @@ if(enc.getLocation()!=null){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
@@ -1593,7 +1636,7 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-console.info('resetIdButtons()');
+//console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
@@ -1707,7 +1750,15 @@ console.info('resetIdButtons()');
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          String locationIdPrefix = enc.getPrefixForLocationID();
+                          int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          if(enc.getLocationID() != null && nextID == null){
+                            nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          } 
+                          if(enc.getLocationID() == null && nextID == null){
+                            nextID = encprops.getProperty("noLocationID");
+                          } 
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -1956,7 +2007,7 @@ function checkIdDisplay() {
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
+								<a href="../occurrence.jsp?number=<%=urlCodec.encode(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID()) %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
@@ -3844,7 +3895,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>
@@ -4892,6 +4943,9 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    if(file && file.name){
+      file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+    }
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
@@ -4899,6 +4953,10 @@ button#upload-button {
     var p = ((file._prevUploadedSize / file.size) * 100) + '%';
     updateProgress(el, p, 'uploading');
     console.log('progress %o %o', file._prevUploadedSize, file);
+    let progressBarHtml = '<div id="progress-div"><h4><%= encprops.getProperty("Loading") %></h4>';
+    progressBarHtml += '<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only"><%= encprops.getProperty("PercentComplete")%></span>';
+    progressBarHtml += '</div></div></div>';
+    document.getElementById('updone').innerHTML = progressBarHtml;
   });
   flow.on('fileSuccess', function(file,message){
     var el = findElement(file.name, file.size);
@@ -4988,12 +5046,12 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
-  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
-    console.log("upload finished.");
-    console.log('upload finished. Files added: '+filenames);
-
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5006,7 +5064,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
@@ -5026,6 +5085,10 @@ button#upload-button {
             data: ajaxDataString,
             success: function(d) {
               console.info("I attached MediaAsset "+maId+" to encounter <%=encNum%>");
+              $('#progress-div').hide();
+              document.getElementById('updone').innerHTML = '<i>Processing complete. Refresh page to see new image.</i>';
+              console.log("upload finished.");
+              console.log('upload finished. Files added: ' + filenames);
             },
             error: function(x,y,z) {
               console.warn("failed to MediaAssetAttach");

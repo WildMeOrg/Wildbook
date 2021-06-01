@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Membership;
@@ -43,6 +45,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import java.util.regex.*;
+import org.ecocean.LocationID;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -601,16 +604,6 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
 
-    Properties localesProps = new Properties();
-    if(useLocales){
-      try {
-        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-      }
-      catch (Exception ioe) {
-        ioe.printStackTrace();
-      }
-    }
-
     for(int c=0;c<myEncs.length;c++) {
       String catalogNumber="";
       try {
@@ -619,7 +612,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
           if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
             haveData.add(temp);
           }
-          else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+          else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
             haveData.add(temp);
           }
         }
@@ -1176,6 +1169,15 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
     return lastSize;
   }
+
+    public String getLastLifeStage() {
+        Encounter[] encs = this.getDateSortedEncounters();
+        if ((encs == null) || (encs.length < 1)) return null;
+        for (int i = 0 ; i < encs.length ; i++) {
+            if (encs[i].getLifeStage() != null) return encs[i].getLifeStage();
+        }
+        return null;
+    }
 
   public boolean wasSightedInLocationCode(String locationCode) {
 
@@ -2603,6 +2605,29 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         }
         return nameIds;
     }
+
+    //returns next integer-based value that follows pattern PREnnn (where 'nnn' is one-or-more digits!)
+    // cache-key is lowercase, but we return respecting case of original prefix
+    // in a perfect world, this would use a sequence in db to prevent race-conditions.   :/
+    public static String nextNameByPrefix(String prefix) {
+        return nextNameByPrefix(prefix, 0);  //0 means guess at length of zeroes
+    }
+    public static String nextNameByPrefix(String prefix, int zeroPadding) {
+        if (NAMES_CACHE == null) return null;  //snh
+        if (NAMES_CACHE.size() < 1) return null;  //on the off chance has not been init'ed  (snh?)
+        if (prefix == null) return null;
+        Pattern pat = Pattern.compile("(^|.*;)" + prefix.toLowerCase() + "(\\d+)(;.*|$)");
+        int val = 0;  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
+        for (String c : NAMES_CACHE.values()) {
+            Matcher mat = pat.matcher(c);
+            if (!mat.find()) continue;
+            if (zeroPadding < 1) zeroPadding = mat.group(2).length();
+            int num = Integer.parseInt(mat.group(2));  //snh!? blame regex if exception thrown here.  :)
+            if (num > val) val = num;
+        }
+        if (zeroPadding < 1) zeroPadding = 4;  //if we had no guess (e.g. new?) lets be optimistic!
+        return String.format("%s%0" + zeroPadding + "d", prefix, val + 1);
+      }
 
     public static List<String> findNames(String regex) {
         List<String> names = new ArrayList<String>();

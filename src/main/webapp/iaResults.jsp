@@ -2,12 +2,45 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+org.ecocean.CommonConfiguration,
 java.util.HashMap,
+org.ecocean.security.Collaboration,
 org.ecocean.identity.IdentityServiceLog,
+org.ecocean.servlet.IndividualAddEncounter,
+org.ecocean.servlet.importer.ImportTask,
+org.ecocean.SystemValue,
+org.ecocean.ia.Task,
+java.util.HashMap,
+javax.jdo.Query,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
 <%!
+//try to see if encounter was part of ImportTask so we can mark complete
+//  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
+private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
+    if ((enc == null) || (enc.numAnnotations() < 1)) return;
+    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering("created desc");
+    List results = (List)query.execute();
+    ImportTask itask = null;
+    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
+    query.closeAll();
+System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+    if (itask == null) return;
+    String svKey = "rapid_completed_" + itask.getId();
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    for (Annotation ann : enc.getAnnotations()) {
+        m.put(ann.getId(), true);
+System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+    }
+    SystemValue.set(myShepherd, svKey, m);
+    myShepherd.commitDBTransaction();
+}
+
 String rotationInfo(MediaAsset ma) {
     if ((ma == null) || (ma.getMetadata() == null)) return null;
     HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
@@ -23,6 +56,8 @@ String rotationInfo(MediaAsset ma) {
 <%
 
 String context = ServletUtilities.getContext(request);
+String langCode = ServletUtilities.getLanguageCode(request);
+
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
 String scoreType = request.getParameter("scoreType");
@@ -103,11 +138,24 @@ if (request.getParameter("acmId") != null) {
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 		}
+		String locationIdPrefix = null;
+		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
 				jann.put("id", ann.getId());
 				jann.put("acmId", ann.getAcmId());
+				Encounter enc = ann.findEncounter(myShepherd);
+	 			if (enc != null) {
+	 				jann.put("encounterId", enc.getCatalogNumber());
+	 				jann.put("encounterLocationId", enc.getLocationID());
+					locationIdPrefix = enc.getPrefixForLocationID();
+					jann.put("encounterLocationIdPrefix", locationIdPrefix);
+					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
+					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
+
+	 			}
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
@@ -117,11 +165,6 @@ if (request.getParameter("acmId") != null) {
 				}
 				if (project!=null) {
 					try {
-						Encounter enc = ann.findEncounter(myShepherd);
-
-						if (enc!=null) {;
-							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
-						}
 
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 							System.out.println("num encounters in project: "+project.getEncounters().size());
@@ -159,11 +202,13 @@ if (request.getParameter("acmId") != null) {
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
-if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+boolean useLocation = Util.requestParameterSet(request.getParameter("useLocation"));
+if ((request.getParameter("number") != null) && ((request.getParameter("individualID") != null) || useLocation)) {
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
+        res.put("useLocation", useLocation);
 	res.put("taskId", taskId);
 	String projectId = null; 
 	if (Util.stringExists(request.getParameter("projectId"))) {
@@ -183,6 +228,19 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.closeDBTransaction();
 		return;
 	}
+	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	} else if (useLocation && !Util.stringExists(enc.getLocationID())) {
+		res.put("error", "Empty locationID with useLocation=true for encounter: " + request.getParameter("number"));
+		out.println(res.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
 
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
@@ -196,11 +254,20 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			myShepherd.closeDBTransaction();
 			return;
 		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
+			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
 	}
 	/* now, making an assumption here (and the UI does as well):
 	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
 	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
 	   use an *existing* indiv in those cases (but allow a new one in the other)
+
+            addendum via WB-1216: the NEW INDIVIDUAL case can now allow for useLocation=true option.
 	*/
 
 	// once you assign an id to one, it will still ask for input on another.
@@ -250,11 +317,19 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		try {
 
-			enc.setState("approved");
-			enc2.setState("approved");
+
+			//enc.setState("approved");
+			//enc2.setState("approved");
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
+                                //note that useLocation flavor has slight race condition possible here...
+                                // might be better to have way to *create* indiv with new loc-based name
+                                if (useLocation) {
+                                    String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
+									int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
+                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
+                                }
 				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
 					if (Util.isUUID(individualID)) {
@@ -263,6 +338,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
 					}
+					
+					
 
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
@@ -283,8 +360,16 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
+					
 					myShepherd.updateDBTransaction();
+                                        setImportTaskComplete(myShepherd, enc);
+                                        setImportTaskComplete(myShepherd, enc2);
                     indiv.refreshNamesCache();
+                    
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
+                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    
+                    
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -297,8 +382,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
+                                setImportTaskComplete(myShepherd, enc2);
 			} 	
-
+			
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
@@ -306,6 +393,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
+				
+				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
+                                setImportTaskComplete(myShepherd, enc);
 			} 
 
 
@@ -318,8 +408,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
-			enc.setState("unapproved");
-			enc2.setState("unapproved");
+			//enc.setState("unapproved");
+			//enc2.setState("unapproved");
 			e.printStackTrace();
 			res.put("error", "Please enter a different Individual ID.");
 		}
@@ -366,6 +456,13 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			myShepherd.closeDBTransaction();
 			return;
 		}
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+			out.println(rtn.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
 
 		String useNextProjectId = request.getParameter("useNextProjectId");
 		boolean validToName = false;
@@ -390,6 +487,8 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
+			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
+             
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -503,8 +602,8 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 
-	<div id="result_settings">
-
+	<div id="result_settings" style="display: inline-block;">
+      <div>
 		<span id="scoreTypeSettings">
 		<%
 
@@ -531,7 +630,8 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-		<div id="projectDropdownDiv">
+	</div>	
+		<div id="projectDropdownDiv" style="padding: 0px 0px 0px 50px;">
 			<span hidden class="control-label" id="projectDropdownSpan">
 				<label>Project Selection</label>
 				<select name="projectDropdown" id="projectDropdown">
@@ -539,12 +639,25 @@ h4.intro.accordion .rotate-chevron.down {
 			</span> 
 		</div>
 
-		<style>
-		div#result_settings {
-			text-align: center;
+
+
+		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
+		<!-- need to add javascript to update the link href on  -->
+		<div id="scoreNumSettings">
+				<span id="scoreNumInput">
+					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
+				</span>
+				<button class="nResults" onclick="nResultsClicker()">set</button>
+		</div>
+
+	</div>
+	
+	<style>
+		div#result_settings, div#projectDropdownDiv {
+			
 		}
-		div#result_settings button:last-child {
-			margin-right: 0;
+		div#result_settings button:last-child, div#projectDropdownDiv {
+			margin-right: 15px 15px 15px 15px;
 		}
 		div#result_settings span#scoreTypeSettings {
 			float: left;
@@ -566,17 +679,6 @@ h4.intro.accordion .rotate-chevron.down {
 				}
 			}
 		</script>
-
-		<!--TODO fix so that this isn't a form that submits but a link that gets pressed -->
-		<!-- need to add javascript to update the link href on  -->
-		<span id="scoreNumSettings">
-				<span id="scoreNumInput">
-					Num Results: <input type="text" name="nResults" id = "nResultsPicker" value=<%=RESMAX%> >
-				</span>
-				<button class="nResults" onclick="nResultsClicker()">set</button>
-		</span>
-
-	</div>
 
 
 
@@ -605,6 +707,9 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.location-based-checkbox {
+	margin: 0 15px 0 5px !important;
+}
 .annot-summary-phantom {
 	display: none;
 }
@@ -671,9 +776,13 @@ var INDIVIDUAL_SCORES = <%=individualScores%>;
 
 var projectIdPrefix = '<%=projectIdPrefix%>';
 var researchProjectName = '<%=researchProjectName%>';
+var researchProjectUUID = '<%=researchProjectUUID%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
+var projectAnnotIds = [];
+var queryAnnotId;
+var annotData = {};
 
 function toggleScoreType() {
 	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
@@ -735,7 +844,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    // console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -791,13 +900,14 @@ function grabTaskResult(tid) {
 //	$("#initial-waiter").remove();
         alreadyGrabbed[tid] = true;
 	var mostRecent = false;
+        var mostRecentObj = false;
 	var gotResult = false;
 //console.warn('------------------- grabTaskResult(%s)', tid);
 
 	let paramStr = 'iaLogs.jsp?taskId=' + tid;
 	console.log("do i have a projectId in grabTaskResult()????? "+projectIdPrefix);
 	if (projectIdPrefix!=null&&projectIdPrefix.length>0) {
-		paramStr += "&projectId="+projectIdPrefix;
+		paramStr += "&projectId="+researchProjectUUID;
 	}
 
 	$.ajax({
@@ -818,6 +928,9 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					if (d[i].projectACMIds) {
 						projectACMIds = d[i].projectACMIds;
 					}
+					if (d[i].projectAnnotIds) {
+						projectAnnotIds = d[i].projectAnnotIds;
+					}
 				}
 
 				if (d[i].status && d[i].status._action == 'getJobResult') {
@@ -829,10 +942,23 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					$("#initial-waiter").remove();
 
 				} else {
-					if (!mostRecent && d[i].status && d[i].status._action) mostRecent = d[i].status._action;
+					if (!mostRecent && d[i].status && d[i].status._action) {
+                                            mostRecent = d[i].status._action;
+                                            mostRecentObj = d[i];
+                                        }
 				}
 			}
-			if (!gotResult) {
+                        if (mostRecent == 'error') {
+				if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
+                                let errorMsg = 'unknown error';
+                                if (mostRecentObj.status && mostRecentObj.status.error && mostRecentObj.status.error.emptyTargetAnnotations) {
+                                    errorMsg = 'No data to match against, please refine your matching parameters.';
+                                }
+				$('#initial-waiter').remove();
+			        $('#task-' + tid).append('<p class="error">there was an error with task ' + tid + ': <b>' + errorMsg + '</b></p>');
+                                console.log('ERROR DATA: %o %s', mostRecentObj);
+
+			} else if (!gotResult) {
 				//console.log("Element length: "+$('#task-' + tid).length+" Element contents: "+document.getElementsByClassName("elementa")[0].innerHTML);
 				if ($('#task-' + tid).length) {
 					$('#initial-waiter').remove();
@@ -977,22 +1103,36 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
 		//console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
+		queryAnnotId = qannotId;  //global context
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-								var algoDesc = 'match results'; // default display description if no algo info given
-                if (algoInfo == 'CurvRankFluke') {
-                    algoDesc = 'trailing edge (CurvRank)';
-                } else if (algoInfo == 'OC_WDTW') {
+				var algoDesc = 'texture (HotSpotter match results)'; // default display description if no algo info given
+                if (algoInfo == 'CurvRankTwoFluke') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'CurvRankTwoDorsal') {
+                    algoDesc = 'trailing edge (CurvRank v2)';
+                } 
+                else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
-                } else if (algoInfo == 'Deepsense') {
+                } 
+                else if (algoInfo == 'Deepsense') {
                     algoDesc = 'Deepsense AI\'s Right Whale Matcher';
-                } else if (algoInfo == 'CurvRankDorsal') {
+                } 
+                else if (algoInfo == 'CurvRankDorsal') {
                     algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
-                } else if (algoInfo == 'Finfindr') {
+                } 
+                else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
+                }
+                else if (algoInfo == 'Pie') {
+                    algoDesc = 'PIE (Pose Invariant Embeddings)';
+                }
+				else if (algoInfo == 'PieTwo') {
+                    algoDesc = 'PIE v2 (Pose Invariant Embeddings)';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
@@ -1050,31 +1190,33 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var extern_reference = resJSON.dannot_extern_reference;
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
-
+		
 
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
 			
 			var d = sorted[i].split(/\s/);
 			if (!d) break;
+			
+			
 			var acmId = d[1];
+			
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
-			
-			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+acmId);
+
+			//console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+annotId);
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
 
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
-				console.log("Project ACM Ids : "+projectACMIds);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
 
-				console.log("has_illustration = "+has_illustration);
-				
+				//console.log("has_illustration = "+has_illustration);
+
 				var illustUrl;
 				if (has_illustration) {
 					illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
@@ -1126,7 +1268,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
-	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
+	let dataInd = parseInt(num) + 1;
+	var h = '<div data-index="' + dataInd + '" data-acmid="' + acmId + '" class="has-data-index annot-summary annot-summary-' + acmId + '">';
 	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
@@ -1189,6 +1332,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
+		annotData[acmId] = res.responseJSON.annotations;
             console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
                 //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
@@ -1375,22 +1519,27 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					}
 				}
 				
-				if (indivId&&(incrementalProjectId!=displayName)) {
+				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
                 }
-
+				<%
+				if(request.getUserPrincipal()!=null){
+				%>
                 if (encId || indivId) {
 					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
+                <%
+            	}
+                %>
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
-                    if (imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
                     var qdata = {
                         annotId: mainAnnId,
                         encId: encId,
@@ -1399,8 +1548,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     }
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
-                } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
+                } 
+                else {
+                    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1409,9 +1559,12 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	// TODO: generify
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
-            	var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
-            	//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
-            	$(selector).append(illustrationHtml);
+				let resultIndex = $(selector).closest(".has-data-index").data("index");
+				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
+					var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+					//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
+					$(selector).append(illustrationHtml);
+				}
             }
 
         }  //end if (mainAsset)
@@ -1436,7 +1589,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
         imgInfo += '</ul></div>';
     }
 
-    if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
+    if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
 function getSelectedProjectIdPrefix() {
@@ -1510,7 +1663,9 @@ function annotCheckbox(el) {
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
-		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
+		h = '';
+		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
+		h += '<input id="new-name-input" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
@@ -1523,6 +1678,17 @@ function annotCheckbox(el) {
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
 		return true;
 	}
+}
+
+function locationBasedCheckbox(el, qann) {
+	if (!el.checked) {  //reset
+		$('#new-name-input').attr('placeholder', $('#new-name-input').data('placeholder-orig')).removeAttr('disabled');
+		return true;
+	}
+	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
+	if (!loc) return;
+	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
+	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationNextValue).attr('disabled', 'disabled');
 }
 
 var nameUUIDCache = {};
@@ -1778,7 +1944,10 @@ console.warn(inds);
 
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
-function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
+function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLocation) {
+console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
+	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
+	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
@@ -1787,12 +1956,13 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	}
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
-	if (!indivID || !encID) {
+	if ((!indivID || !encID) && !useLocation) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+        if (useLocation) url += '&useLocation=true';
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
@@ -1836,7 +2006,7 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
@@ -1962,11 +2132,12 @@ $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
+	// replace reserved pound sign in incremental ID's
+	selectedProject = selectedProject.replaceAll("#", "%23");
 	if (selectedProject&&selectedProject.length) {
 		reloadURL += "&projectIdPrefix="+selectedProject;
 	}
 	window.location.href = reloadURL;
-	//applyResearchProjectLinks()
 });
 
 // this is messy, but i'm avoiding another database hit

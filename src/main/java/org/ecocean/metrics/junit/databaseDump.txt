@@ -1,0 +1,11 @@
+NumberOfUsers
+31
+22
+9
+-999
+
+NumberOfEncounters
+
+NumberOfIndividuals
+
+NumberOfMediaAssets

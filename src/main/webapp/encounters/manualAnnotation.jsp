@@ -2,6 +2,7 @@
      import="org.ecocean.*,
 		org.ecocean.servlet.ServletUtilities,
 		javax.jdo.Query,
+    java.util.Arrays,
 		java.util.Iterator,
 		java.util.List,
 		org.json.JSONObject,
@@ -20,7 +21,7 @@
 private static String encodeValue(String value) {
     try {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-    } 
+    }
     catch (UnsupportedEncodingException ex) {
         ex.printStackTrace();
     }
@@ -30,7 +31,7 @@ private static String encodeValue(String value) {
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<% int imgHeight = 500; %>
+<%int imgHeight = 500;%>
 
 <%
 
@@ -39,7 +40,7 @@ String aidparam = request.getParameter("assetId");
 int assetId = -1;
 try {
     assetId = Integer.parseInt(aidparam);
-} 
+}
 catch (NumberFormatException nex) {}
 
 String iaClass = request.getParameter("iaClass");
@@ -63,22 +64,22 @@ String clist = "";
 	body {
 	    font-family: "src/main/webapp/encounters/manualAnnotation.jsp"arial, sans;
 	}
-	
+
 	.error {
 	    color: red;
 	}
-	
+
 	#img-wrapper {
 	    overflow: hidden;
-	    height: <%=imgHeight%>px;
+      height: <%=imgHeight%>px;
 	    xfloat: right;
 	    position: relative;
 	}
 	img.asset {
-	    height: <%=imgHeight%>px;
-	    xposition: absolute;
+      height: <%=imgHeight%>px;
+      xposition: absolute;
 	}
-	
+
 	#bbox {
 	    outline: dotted blue 3px;
 	    border: solid 3px rgba(255,255,0,0.5);
@@ -96,14 +97,14 @@ String clist = "";
 	    position: absolute;
 	    display: none;
 	}
-	
+
 	#x-axis {
 	    border-left: dotted 1px yellow;
 	}
 	#y-axis {
 	    border-top: dotted 1px yellow;
 	}
-	
+
 	.axis, #bbox {
 	    pointer-events: none;
 	}
@@ -119,11 +120,10 @@ $(document).ready(function() {
         width: $('#bbox').css('width'),
         height: $('#bbox').css('height')
     };
-    
+
     <%
     if(iaClass!=null){
     %>
-
     $('#img-wrapper').on('mousemove', function(ev) {
         if (boxStart) {
             var w = Math.abs(ev.offsetX - boxStart[0]);
@@ -147,16 +147,19 @@ $(document).ready(function() {
         boxStart = false;
         $('.axis').hide();
     }).on('click', function(ev) {
+      let mainImgWidth = $('#main-img').width();
+      let widthScale = maWidth/mainImgWidth;
         if (boxStart) {
             var w = Math.abs(ev.offsetX - boxStart[0]);
             var h = Math.abs(ev.offsetY - boxStart[1]);
             var x = Math.min(boxStart[0], ev.offsetX);
             var y = Math.min(boxStart[1], ev.offsetY);
             var bbox = [
-                Math.floor(x / scale),
+                Math.floor(x * widthScale),
                 Math.floor(y / scale),
-                Math.floor(w / scale),
-                Math.floor(h / scale)
+                Math.floor(w * widthScale),
+                Math.floor(h / scale),
+                mainImgWidth
             ].join(',');
             document.location.href = 'manualAnnotation.jsp' + document.location.search.replace(/bbox=[^&]+/, '') + '&bbox=' + bbox;
         } else {
@@ -167,11 +170,11 @@ $(document).ready(function() {
             $('#bbox').css('height', 10);
         }
     });
-    
+
     <%
 	}
     %>
-    
+
 });
 </script>
 <div class="container maincontent">
@@ -197,10 +200,10 @@ try{
 	}
 	vlist += "</select></p>";
 	q.closeAll();
-	
+
 	//ok, we now know that we have a MediaAsset
 	//now let's check if we need to force Encounter cloning
-	
+
 	Encounter enc = null;
 	if (encounterId != null) {
 	    enc = myShepherd.getEncounter(encounterId);
@@ -211,33 +214,33 @@ try{
 	        return;
 	    }
 	}
-	
+
 	if(viewpoint!=null){
 		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
 		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
 		//results = (List)q2.execute();
 		IAJsonProperties iaj=new IAJsonProperties();
-		List<String> results2=iaj.getValidIAClasses(enc.getTaxonomy(myShepherd));
-		
+		List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
+
 		Iterator<String> it2 = results2.iterator();
 		while (it2.hasNext()) {
 		    String v = (String)it2.next();
 		    //System.out.println("Encooded v: "+v);
 		    if (!Util.stringExists(v)) continue;
-		    if(IBEISIA.validIAClassForIdentification(v, context)){
+		    //if(IBEISIA.validIAClassForIdentification(v, context)){
 		    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
 		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
-		    }
+		    //}
 		}
 		clist += "</select></p>";
 		//q2.closeAll();
 	}
-	
-	
+
+
 	Feature ft = null;
 	MediaAsset ma = null;
 	int[] xywh = null;
-	
+
 	if (featureId != null) {
 	    try {
 	        ft = ((Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, featureId), true)));
@@ -252,14 +255,15 @@ try{
 	    ma = ft.getMediaAsset();
 	    ft.getParametersAsString();
 	    if (ft.getParameters() != null) {
-	        xywh = new int[4];
+	        xywh = new int[5];
 	        xywh[0] = (int)Math.round(ft.getParameters().optDouble("x", 10.0));
 	        xywh[1] = (int)Math.round(ft.getParameters().optDouble("y", 10.0));
 	        xywh[2] = (int)Math.round(ft.getParameters().optDouble("width", 100.0));
 	        xywh[3] = (int)Math.round(ft.getParameters().optDouble("height", 100.0));
+          xywh[4] = (int)Math.round(ft.getParameters().optDouble("totalWidth", 700));
 	    }
 	}
-	
+
 	if (ma == null) ma = MediaAssetFactory.load(assetId, myShepherd);
 	if (ma == null) {
 	    out.println("<p class=\"error\">Invalid <b>assetId=" + assetId + "</b></p>");
@@ -267,14 +271,14 @@ try{
 	    myShepherd.closeDBTransaction();
 	    return;
 	}
-	
 
-	
-	
+
+
+
 	//ok, we now know that we have a MediaAsset
 	//now let's check if we need to force Encounter cloning
 	List<Annotation> annots=ma.getAnnotations();
-	
+
 	//we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
 	//also don't clone if this is a part
 	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
@@ -285,13 +289,13 @@ try{
 	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
 	}
-	
-	
-	
+
+
+
 	if (bbox != null) {
 	    String[] parts = bbox.split(",");
-	    if (parts.length == 4) {
-	        xywh = new int[4];
+	    if (parts.length >= 4) {
+	        xywh = new int[5];
 	        try {
 	            for (int i = 0 ; i < parts.length ; i++) {
 	                int n = Integer.parseInt(parts[i]);
@@ -304,22 +308,27 @@ try{
 	        }
 	    }
 	}
-	
+
 	if ((bbox == null) && (xywh == null)) {
 	    xywh = new int[]{-10,-10,1,1};
 	    //out.println("<p class=\"error\">Invalid <b>bbox=" + bbox + "</b> (should be <i>x,y,w,h</i>)</p>");
 	    //return;
 	}
 	double scale = imgHeight / ma.getHeight();
-	
+        if (ma.isRotated90Or270()) scale = imgHeight / ma.getWidth();
+
+  double maWidth = ma.getWidth();
+
 	%>
-	
-	
-	
-	
+
+
+
+
 	<p>
-	MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
+	MediaAsset <b><a title="<%=ma.toString()%><%=(ma.isRotated90Or270() ? " -- adjusted for ROTATION &#128257;" : "")%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
+
 	<script>scale = <%=scale%>;
+        maWidth = <%=maWidth%>;
         var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
 
 	function pulldownUpdate(el) {
@@ -346,21 +355,22 @@ try{
 
         function drawFeature(imgEl, ft) {
             if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
-            var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
-            var scale = imgEl.height / imgEl.naturalHeight;
-//console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
-            if (scale == 1) return;
+            let f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+            let scale = imgEl.height / imgEl.naturalHeight;
+            let widthScale = imgEl.width / imgEl.naturalWidth;
+            // console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
             imgEl.setAttribute('data-feature-drawn', true);
-            f.css('width', (ft.parameters.width * scale) + 'px');
+            f.css('width', (ft.parameters.width * widthScale) + 'px');
             f.css('height', (ft.parameters.height * scale) + 'px');
-            f.css('left', (ft.parameters.x * scale) + 'px');
+            f.css('left', (ft.parameters.x * widthScale) + 'px');
             f.css('top', (ft.parameters.y * scale) + 'px');
             if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
             $(imgEl).parent().append(f);
+            // $('bbox').css('width', <%=xywh[2]%> * widthScale);
         }
 	</script></p>
-	
+
 	<p>
 	<%
 	if(!save){
@@ -375,9 +385,9 @@ try{
 	}
 	%>
 	</p>
-	
 
-	
+
+
 
 	<%
 	if (save) {
@@ -387,13 +397,14 @@ try{
 		    myShepherd.closeDBTransaction();
 	        return;
 	    }
-	
+
 	    FeatureType.initAll(myShepherd);
 	    JSONObject fparams = new JSONObject();
 	    fparams.put("x", xywh[0]);
 	    fparams.put("y", xywh[1]);
 	    fparams.put("width", xywh[2]);
 	    fparams.put("height", xywh[3]);
+      fparams.put("totalWidth", xywh[4]);
 	    fparams.put("_manualAnnotation", System.currentTimeMillis());
 	    ft = new Feature("org.ecocean.boundingBox", fparams);
 	    ma.addFeature(ft);
@@ -412,7 +423,7 @@ try{
 	            encMsg = clone.toString() + " cloned from " + enc.toString();
 	            added2enc=clone.getCatalogNumber();
 	            try {
-	  
+
 	                Occurrence occ = myShepherd.getOccurrence(enc);
 	                if (occ!=null) {
 	                	occ.addEncounterAndUpdateIt(clone);
@@ -421,20 +432,20 @@ try{
 	                }
 	                //let's create an occurrence to link these two Encounters
 	                else{
-	                	
+
 	                	occ = new Occurrence(Util.generateUUID(), clone);
 	                	occ.addEncounter(enc);
 	                	myShepherd.getPM().makePersistent(occ);
 	                	myShepherd.updateDBTransaction();
-	                	
+
 	                }
 	            } catch (Exception e) {
 	                e.printStackTrace();
 	                myShepherd.rollbackDBTransaction();
 	            }
-	            
-	            
-	            
+
+
+
 	        } else {
 	            enc.addAnnotation(ann);
 	            added2enc=enc.getCatalogNumber();
@@ -445,7 +456,7 @@ try{
 	    System.out.println("manualAnnotation: added " + ann + " and " + ft + " to enc=" + encMsg);
 	    myShepherd.getPM().makePersistent(ft);
 	    myShepherd.getPM().makePersistent(ann);
-	
+
 	    if (removeTrivial) {
 	        //note this will only remove (at most) ONE
 	        Annotation foundTrivial = null;
@@ -464,21 +475,21 @@ try{
 	            }
 	        }
 	    }
-	
+
 	    myShepherd.commitDBTransaction();
 		%><hr />
-		
-		<h2>Success!</h2> 
+
+		<h2>Success!</h2>
 		<p>
 		<b>Created <a href="../obrowse.jsp?type=Annotation&id=<%=ann.getId()%>" target="_new">Annotation <%=ann.getId()%></a> on Encounter <a href="encounter.jsp?number=<%=added2enc %>"><%=added2enc %></a>.
 		</p>
-		
+
 		<%
-	} 
+	}
 	else {
 	    myShepherd.rollbackDBTransaction();
 		%>
-		
+
 	<%
 	if(iaClass!=null){
 	%>
@@ -486,14 +497,24 @@ try{
 	<%
 	}
 	%>
-		
+
 		<div id="img-wrapper">
 		    <div class="axis" id="x-axis"></div>
 		    <div class="axis" id="y-axis"></div>
 		    <img class="asset" src="<%=ma.webURL()%>" id="main-img" onLoad="drawFeatures()" />
-		    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
+        <%
+        if(xywh.length>4){ //it's the new flavor of xywh that has a secret fifth parameter that records the width of the image
+        %>
+          <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * (xywh[4]/maWidth))%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
+        <%
+      }else{ //then it's the old flavor of xywh with no secrete extra parameters; just scale width by the same thing you're scaling height by
+          %>
+            <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
+          <%
+        }
+        %>
 		</div>
-		
+
 	<%
 	if(bbox!=null){
 	%>
@@ -502,11 +523,11 @@ try{
 		<%=xywh[1]%>)
 		<%=xywh[2]%>x<%=xywh[3]%>
 		</p>
-		
+
 
 		<p><b>4. Click SAVE below to complete the annotation.</b></p>
-				
-				
+
+
 	<p>
 	<% if (ft != null) { %>
 	This will edit/alter <b>Feature <%=ft.getId()%>.</b>
@@ -518,21 +539,21 @@ try{
 	This will attach to <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">encounter <%=enc.getCatalogNumber()%></a>.</b>
 	<% } %>
 	</p>
-	
+
 	<p>
 	<% if (enc != null) { %>
 	This will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> the trivial annotation.
 	<% } %>
 	</p>
-				
+
 				<h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
-		
-		
-		
+
+
+
 	<%
 	}
-	
-	
+
+
 	} //end else
 }
 catch(Exception ue){

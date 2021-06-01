@@ -433,7 +433,17 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void addLabel(String s) {
         if (labels == null) labels = new ArrayList<String>();
-        if (!labels.contains(s)) labels.add(s);
+        if (!labels.contains(s)){
+            ArrayList<String> dup = new ArrayList<String>(labels);
+            dup.add(s);
+            labels = dup;
+        }
+    }
+    public void removeLabel(String s){
+        if (labels == null) return;
+        ArrayList<String> dup = new ArrayList<String>(labels);
+        dup.remove(s);
+        labels = dup;
     }
     public boolean hasLabel(String s) {
         if (labels == null) return false;
@@ -470,6 +480,20 @@ public class MediaAsset implements java.io.Serializable {
             }
         }
         return false;
+    }
+
+    public String getRotationInfo() {
+        if (this.getMetadata() == null) return null;
+        HashMap<String,String> orient = this.getMetadata().findRecurse(".*orient.*");
+        if (orient == null) return null;
+        for (String k : orient.keySet()) {
+            if (orient.get(k).matches(".*90.*")) return orient.get(k);
+            if (orient.get(k).matches(".*270.*")) return orient.get(k);
+        }
+        return null;
+    }
+    public boolean isRotated90Or270() {
+        return (this.getRotationInfo() != null);
     }
 
     public Path localPath()
@@ -1008,6 +1032,7 @@ public class MediaAsset implements java.io.Serializable {
                     Annotation ann = ft.getAnnotation();
                     if (ann != null) {
                         jf.put("annotationAcmId", ann.getAcmId());
+                        jf.put("iaClass", ann.getIAClass());
                         jf.put("annotationId", ann.getId());
                         jf.put("annotationIsOfInterest", ann.getIsOfInterest());
                         Encounter enc = ann.findEncounter(myShepherd);
