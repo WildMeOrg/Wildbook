@@ -552,7 +552,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 }
 
     public void setContext(String c) {
-        if ((c == null) || c.equals("")) throw new ApiValueException("context must not be empty", "context");
         context = c;
     }
     public String getContext() {
@@ -1481,9 +1480,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setFromJSONObject("distance", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
-        occ.setFromJSONObject("behavior", String.class, jsonIn);
         occ.setFromJSONObject("comments", String.class, jsonIn);
-        occ.setFromJSONObject("context", String.class, jsonIn, true);
         occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
         occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
         occ._validateLocations();
@@ -1558,7 +1555,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
-        obj.put("context", this.getContext());
         obj.put("comments", this.getComments());
         obj.put("createdEDM", this.getDateTimeCreated());
         //ComplexDateTime st = getStartTimeSomehow();
@@ -1571,7 +1567,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
             org.json.JSONObject encCounts = new org.json.JSONObject();
             encCounts.put("sex", new org.json.JSONObject());
-            encCounts.put("behavior", new org.json.JSONObject());
+            //encCounts.put("behavior", new org.json.JSONObject());
             encCounts.put("lifeStage", new org.json.JSONObject());
             encCounts.put("individuals", 0);
             org.json.JSONArray jarr = new org.json.JSONArray();
@@ -1589,8 +1585,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     if (v != null) encCounts.getJSONObject("sex").put(v, encCounts.getJSONObject("sex").optInt(v, 0) + 1); 
                     v = enc.getLifeStage();
                     if (v != null) encCounts.getJSONObject("lifeStage").put(v, encCounts.getJSONObject("lifeStage").optInt(v, 0) + 1); 
-                    v = enc.getBehavior();
-                    if (v != null) encCounts.getJSONObject("behavior").put(v, encCounts.getJSONObject("behavior").optInt(v, 0) + 1); 
+                    //v = enc.getBehavior();
+                    //if (v != null) encCounts.getJSONObject("behavior").put(v, encCounts.getJSONObject("behavior").optInt(v, 0) + 1); 
                     if (enc.hasMarkedIndividual()) encCounts.put("individuals", encCounts.getInt("individuals") + 1);
                 }
             }
@@ -1610,7 +1606,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         }
 */
 
-        obj.put("behavior", getGroupBehavior());
         obj.put("distance", getDistance());
         obj.put("bearing", getBearing());
         obj.put("customFields", this.getCustomFieldJSONObject());
@@ -1688,14 +1683,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "distance":
                     this.setDistance( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
-                case "context":
-                    this.setContext((String)valueObj);
-                    break;
                 case "comments":
                     this.addComments((String)valueObj);
-                    break;
-                case "behavior":
-                    this.setBehavior((String)valueObj);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality((String)valueObj);
@@ -1769,11 +1758,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "endTime":
                 case "bearing":
                 case "distance":
-                case "context":
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "locationId":
-                case "behavior":
                 case "verbatimLocality":
                     rtn.put("_chainedAdd", true);
                     this.apiPatchAdd(myShepherd, jsonIn);
@@ -1836,9 +1823,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "distance":
                     this.setDistance(null);
-                    break;
-                case "behavior":
-                    this.setBehavior(null);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality(null);
