@@ -320,16 +320,12 @@ finally{
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
                         String flagLang = myLang;
-                        if(myLang.equals("gr")){
-                          flagLang = "de";
-                        }
             					%>
             						<img style="cursor: pointer" id="flag_<%=flagLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=flagLang %>.gif" />
             						<script type="text/javascript">
 
-            							$( "#flag_<%=myLang%>" ).click(function() {
-
-            								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
+            							$( "#flag_<%=flagLang%>" ).click(function() {
+            								// alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
             								$.cookie("wildbookLangCode", "<%=myLang%>", {
             			   						path    : '/',          //The value of the path attribute of the cookie
             			                           //(default: path of page that created the cookie).
@@ -339,7 +335,7 @@ finally{
             			                           //require a secure protocol (defaults to false).
             								});
 
-            								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+            								// alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
             								location.reload(true);
 
             							});

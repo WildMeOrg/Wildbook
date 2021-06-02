@@ -634,7 +634,9 @@ public static String getLanguageCode(HttpServletRequest request){
   if(cookies!=null){
     for(Cookie cookie : cookies){
       if("wildbookLangCode".equals(cookie.getName())){
-        if(supportedLanguages.contains(cookie.getValue())){return cookie.getValue();}
+        if(supportedLanguages.contains(cookie.getValue())){
+          return cookie.getValue();
+        }
       }
     }
   }
