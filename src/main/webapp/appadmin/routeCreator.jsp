@@ -185,7 +185,6 @@ console.log('data=%o', data);
         url: "../RouteList?action=save",
         data: JSON.stringify(data),
         contentType: 'application/javascript',
-        dataType: 'json',
         type: 'POST',
         complete: function(x) {
             console.log(x);

@@ -88,6 +88,7 @@ public class RouteList extends HttpServlet {
         myShepherd.getPM().makePersistent(route);
         rtn.put("success", true);
         rtn.put("routeId", route.getId());
+        System.out.println("=========== " + rtn.toString(4));
         out.println(rtn.toString(4));
     }
     myShepherd.commitDBTransaction();
