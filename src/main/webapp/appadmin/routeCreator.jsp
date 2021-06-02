@@ -69,6 +69,19 @@ if (request.getParameter("save") != null) {
 </script>
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script>
+//delete a record
+function deleteRoute(id){
+	if(confirm("Are you sure you want Delete ?")){
+	 $.ajax({
+   	  url: "../RouteList?action=delete&id="+id,
+   	  cache: false,
+   	  success: function(html){
+   	    $("#results").append(html);
+   	  }
+   	});
+	}
+}
+
 var map;
 var drawingManager;
 
@@ -107,18 +120,7 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 
 	
 $(document).ready(function() {
-	// delete a record
-    function deleteRoute(id){
-    	if(confirm("Are you sure you want Delete ?")){
-    	 $.ajax({
-       	  url: "../RouteList?action=delete&id="+id,
-       	  cache: false,
-       	  success: function(html){
-       	    $("#results").append(html);
-       	  }
-       	});
-    	}
-	}
+	
 	
 	
 	$("#route-list").DataTable({
