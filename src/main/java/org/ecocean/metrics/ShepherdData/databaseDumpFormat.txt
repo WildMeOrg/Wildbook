@@ -1,0 +1,16 @@
+NumberOfUsers
+<number of users in wildbook>
+<w/ login privileges>
+<w/ out login privileges>
+<active>
+
+NumberOfEncounters
+<number of encounters in wildbook>
+<by species>
+<by submission date>
+
+NumberOfIndividuals
+<number of individuals in wildbook>
+
+NumberOfMediaAssets
+<number of media assets in wildbook>
