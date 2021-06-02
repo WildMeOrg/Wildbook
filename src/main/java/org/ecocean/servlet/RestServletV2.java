@@ -912,7 +912,7 @@ rtn.put("_payload", payload);
                 rtn.put("success", true);
                 rtn.put("result", occ.asApiJSONObject());   //TODO what detail to pass?
             } else if (cls.equals("org.ecocean.Encounter")) {
-                throw new IOException("Encounter cannot be created via POST, only as part of Sightings POST or PATCH");
+                throw new IOException("Encounter cannot be created via POST, only as part of Sightings POST or PATCH");  //DEX-286
                 /*
                 Encounter enc = Encounter.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(enc);
