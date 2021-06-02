@@ -28,7 +28,7 @@ public class RouteList extends HttpServlet {
   @Override
   public void doGet(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
-    System.out.println("------------------- get ");
+    System.out.println("------------------- get " + request.getParameter("action"));
     doPost(request, response);
   }
 
@@ -36,7 +36,7 @@ public class RouteList extends HttpServlet {
   public void doPost(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");
-    
+    System.out.println("------------------- get " + );
     // init variables
     PrintWriter out = response.getWriter();
     String context = ServletUtilities.getContext(request);
@@ -68,8 +68,11 @@ public class RouteList extends HttpServlet {
       }
       q.closeAll();
       rtn.put("data", jarr);
-    } else if (request.getParameter("action").equals("archive")){
-      Query q = myShepherd.getPM().newQuery("Update FROM org.ecocean.Route");
+    } else if (request.getParameter("action").equals("delete")){
+      String routeId = request.getParameter("routeId");
+      Query q = myShepherd.getPM().newQuery("Delete FROM org.ecocean.Route where id=" + routeId);
+      q.execute();
+      q.closeAll();
     }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();

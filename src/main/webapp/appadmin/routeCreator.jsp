@@ -107,11 +107,11 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 
 	
 $(document).ready(function() {
-	// Archive a record
-    function archiveRoute(id){
-    	if(confirm("Are you sure you want archive ?")){
+	// delete a record
+    function deleteRoute(id){
+    	if(confirm("Are you sure you want Delete ?")){
     	 $.ajax({
-       	  url: "../RouteList?action=archive&id="+id,
+       	  url: "../RouteList?action=delete&id="+id,
        	  cache: false,
        	  success: function(html){
        	    $("#results").append(html);
@@ -162,7 +162,7 @@ $(document).ready(function() {
 				data : "id", 
 				render : function ( data, type, row, meta ) {
 					var a = data;
-					return '<a href = "#" onClick = "archiveRoute('+ data +');"><i class="el el-remove-sign"></i></a>';
+					return '<a href = "#" onClick = "deleteRoute('+ data +');"><i class="el el-remove-sign"></i></a>';
 				}
 			},
 		]
