@@ -54,7 +54,7 @@ public class MetricsBot {
     //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { //throws IOException {
         collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
-        long interval = 60; //number minutes between metrics refreshes of data in the CSV
+        long interval = 15; //number minutes between metrics refreshes of data in the CSV
         long initialDelay = 1; //number minutes before first execution occurs
         System.out.println("+ MetricsBot.startCollector(" + context + ") starting.");
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
@@ -234,13 +234,13 @@ public class MetricsBot {
         StringTokenizer str4=new StringTokenizer(yearLabel,",");
         userLabels+="login_"+str4.nextToken()+":"+str4.nextToken()+",";
         
-        String userLabelTemp=buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "*","Number of users",context);
+        String userLabelTemp=buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null && lastLogin > 0", "*","Number of users",context);
         StringTokenizer str5=new StringTokenizer(userLabelTemp,",");
         userLabels+="login_"+str5.nextToken()+":"+str5.nextToken()+",";
         
         if(userLabels.equals(""))userLabels=null;
         else if(userLabels.endsWith(",")) {userLabels="\""+userLabels.substring(0,(userLabels.length()-1))+"\"";}
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null", "wildbook_users_total","Number of users",context, userLabels));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username != null && lastLogin > 0", "wildbook_users_total","Number of users",context, userLabels));
        
         //data contributors
         String contributorsLabels="";
