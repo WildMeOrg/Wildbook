@@ -162,6 +162,7 @@ $(document).ready(function() {
 				data : "id", 
 				render : function ( data, type, row, meta ) {
 					var a = data;
+					
 					return '<a href = "#" onClick = "deleteRoute('+ data +');"><i class="el el-remove-sign"></i></a>';
 				}
 			},
