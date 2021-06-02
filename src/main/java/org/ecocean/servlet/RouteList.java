@@ -70,10 +70,12 @@ public class RouteList extends HttpServlet {
       rtn.put("data", jarr);
     } else if (request.getParameter("action").equals("delete")){
       String routeId = request.getParameter("routeId");
+      System.out.println("-- " + routeId);
       Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
+      System.out.println("-- after" + route.getId());
       myShepherd.getPM().deletePersistent(route);
     }
-    myShepherd.rollbackDBTransaction();
+    myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     response.setContentType("text/json");
     out.println(rtn.toString(4));
