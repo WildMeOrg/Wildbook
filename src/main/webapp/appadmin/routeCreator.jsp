@@ -23,28 +23,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-if (request.getParameter("save") != null) {
-    JSONObject rtn = new JSONObject();
-    JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("routeCreator-save");
-    myShepherd.beginDBTransaction();
-    Route route = new Route();
-    route.setName(jsonIn.optString("name", null));
-    route.setStartTime(new DateTime(jsonIn.optString("startTime", null)));
-    route.setEndTime(new DateTime(jsonIn.optString("endTime", null)));
-    route.setLocationId(jsonIn.optString("locationId", null));
-    route.setPath(Path.fromJSONArray(jsonIn.optJSONArray("path")));
-    myShepherd.getPM().makePersistent(route);
-    myShepherd.commitDBTransaction();
-    rtn.put("success", true);
-    rtn.put("routeId", route.getId());
-    out.println(rtn.toString(4));
-    return;
-}
-
 
     request.setAttribute("pageTitle", "Route Creator");
 
@@ -204,7 +182,7 @@ function saveData() {
     };
 console.log('data=%o', data);
     $.ajax({
-        url: 'routeCreator.jsp?save',
+        url: "../RouteList?action=save",
         data: JSON.stringify(data),
         contentType: 'application/javascript',
         dataType: 'json',

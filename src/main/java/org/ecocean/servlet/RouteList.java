@@ -17,6 +17,7 @@ import org.ecocean.Route;
 import org.ecocean.Shepherd;
 import org.ecocean.media.Feature;
 import org.ecocean.movement.Path;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -74,6 +75,20 @@ public class RouteList extends HttpServlet {
       Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
       System.out.println("-- after" + route.getId());
       myShepherd.getPM().deletePersistent(route);
+    } else if (request.getParameter("save").equals("save")) {
+        JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
+        myShepherd.setAction("routeCreator-save");
+        myShepherd.beginDBTransaction();
+        Route route = new Route();
+        route.setName(jsonIn.optString("name", null));
+        route.setStartTime(new DateTime(jsonIn.optString("startTime", null)));
+        route.setEndTime(new DateTime(jsonIn.optString("endTime", null)));
+        route.setLocationId(jsonIn.optString("locationId", null));
+        route.setPath(Path.fromJSONArray(jsonIn.optJSONArray("path")));
+        myShepherd.getPM().makePersistent(route);
+        rtn.put("success", true);
+        rtn.put("routeId", route.getId());
+        out.println(rtn.toString(4));
     }
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
