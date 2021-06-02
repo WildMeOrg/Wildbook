@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Route;
 import org.ecocean.Shepherd;
+import org.ecocean.media.Feature;
 import org.ecocean.movement.Path;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -69,9 +70,8 @@ public class RouteList extends HttpServlet {
       rtn.put("data", jarr);
     } else if (request.getParameter("action").equals("delete")){
       String routeId = request.getParameter("routeId");
-      Query q = myShepherd.getPM().newQuery("Delete FROM org.ecocean.Route where id=" + routeId);
-      q.execute();
-      q.closeAll();
+      Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
+      myShepherd.getPM().deletePersistent(route);
     }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
