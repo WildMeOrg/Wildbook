@@ -69,7 +69,7 @@ public class RouteList extends HttpServlet {
       q.closeAll();
       rtn.put("data", jarr);
     } else if (request.getParameter("action").equals("delete")){
-      String routeId = request.getParameter("routeId");
+      String routeId = request.getParameter("id");
       System.out.println("-- " + routeId);
       Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
       System.out.println("-- after" + route.getId());
