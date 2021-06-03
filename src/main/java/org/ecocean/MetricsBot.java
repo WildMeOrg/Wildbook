@@ -31,7 +31,7 @@ public class MetricsBot {
     
     static String context="context0";
 
-
+/*
     private static RateLimitation outgoingRL = new RateLimitation(48 * 60 * 60 * 1000);  //only care about last 48 hrs
 
 
@@ -39,6 +39,7 @@ public class MetricsBot {
         return outgoingRL.toString();
     }
 
+    */
   
 
     //background workers
@@ -128,8 +129,8 @@ public class MetricsBot {
       }
       finally {
         
-        myShepherd.rollbackAndClose();
-        
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
       }
       System.out.println("   -- Done: "+ line);
       return line;
