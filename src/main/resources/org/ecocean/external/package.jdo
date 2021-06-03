@@ -23,13 +23,6 @@
 	<class name="ExternalSubmission" identity-type="application">
 	</class>
 
-	<class name="ExternalAnnotation" identity-type="application">
-		<field name="keywords" persistence-modifier="persistent">
-			<collection element-type="org.ecocean.KeywordNG" allow-null="true"/>
-			<join />
-		</field>
-	</class>
-
 	<class name="ExternalOrganization" identity-type="application">
 	</class>
 
