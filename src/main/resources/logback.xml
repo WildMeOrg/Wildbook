@@ -64,10 +64,7 @@
   <logger name="org.ecocean" level="INFO">
     <appender-ref ref="GENERICLOG"/>
   </logger>
-  <logger name="org.apache.jsp" level="INFO">
-    <appender-ref ref="GENERICLOG"/>
-    <appender-ref ref="MULTIPLEX"/>
-  </logger>
+
 
   <logger name="org.ecocean.servlet.EncounterForm" level="INFO">
     <appender-ref ref="SUBMISSIONFILE"/>

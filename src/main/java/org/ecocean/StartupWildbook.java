@@ -161,6 +161,7 @@ public class StartupWildbook implements ServletContextListener {
             }
             System.out.println("==== schedExec.shutdown() called, apparently");
         }
+        MetricsBot.startServices("context0");
 
     }
 
@@ -168,6 +169,7 @@ public class StartupWildbook implements ServletContextListener {
         System.out.println("* StartupWildbook destroyed called");
         schedExec.shutdown();
         schedFuture.cancel(true);
+        MetricsBot.cleanup();
     }
 
 
