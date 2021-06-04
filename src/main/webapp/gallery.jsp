@@ -51,6 +51,14 @@ if(request.getParameter("locationCodeField")!=null){
 	locationCodeFieldString="&locationCodeField="+request.getParameter("locationCodeField");
 }
 
+//params from donorbox
+String donorboxId = Util.getRequestParamIfExists(request, "id");
+String donorboxFirstName = Util.getRequestParamIfExists(request, "first_name");
+String donorboxLastName = Util.getRequestParamIfExists(request, "last_name");
+String donorboxAmnt = Util.getRequestParamIfExists(request, "amount");
+String donorboxCurrency = Util.getRequestParamIfExists(request, "currency");
+String donorboxDuration = Util.getRequestParamIfExists(request, "duration");
+
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
@@ -102,11 +110,11 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
 myShepherd.beginDBTransaction();
 try{
-	
+
 	int count = myShepherd.getNumAdoptions();
 	int allSharks = myShepherd.getNumMarkedIndividuals();
 	int countAdoptable = allSharks - count;
-	
+
 	if(request.getParameter("adoptableSharks")!=null){
 		//get current time minus two years
 		Long twoYears=new Long("63072000000");
@@ -122,43 +130,43 @@ try{
 	}
 	else{
 		String order ="nickName ASC NULLS LAST";
-	
+
 		request.setAttribute("rangeStart", startNum);
 		request.setAttribute("rangeEnd", endNum);
 		MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-	
+
 		rIndividuals = result.getResult();
-	
+
 		//handle any null errors better
 		if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
-	
+
 	}
-	
+
 	// security
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
 		rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
 	}
-	
+
 	if (rIndividuals.size() < listNum) {
 	  listNum = rIndividuals.size();
 	}
-	
+
 	%>
-	
-	
-	
-	
+
+
+
+
 	<style>
 	  section.main-section.galleria div.row.gunit-row {
 	    background:#e1e1e1;
 	    padding-top:15px;
 	  }
-	
+
 	  .gunit-row {
 	    position: relative;
 	  }
-	
+
 	  .gallery-info {
 	    background: #4a494a;
 	    padding: 15px;
@@ -172,12 +180,12 @@ try{
 	  .gallery-info td {
 	    width:50%;
 	  }
-	
+
 	  .gallery-unit .crop, .gallery-inner .crop {
 	    text-align: center;
 	    overflow: hidden;
 	  }
-	
+
 	  // seal-scrolling css
 	  .gallery-inner {
 	    position: relative;
@@ -193,14 +201,14 @@ try{
 	  .seal-scroll.scroll-back {
 	    left: 10%;
 	  }
-	
+
 	  .super-crop.seal-gallery-pic {
 	    display: none;
 	  }
 	  .super-crop.seal-gallery-pic.active {
 	    display: block;
 	  }
-	
+
 	  p.image-copyright {
 	    	text-align: right;
 	    	position: absolute;
@@ -221,8 +229,8 @@ try{
 	      right: 35px;
 	    }
 	  }
-	
-	
+
+
 	  .galleryh2 {
 	    color: #16696d !important;
 	    font-weight: 700 !important;
@@ -231,20 +239,20 @@ try{
 	    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
 	    padding: 27px;
 	  }
-	
-	
+
+
 	  .gallery-inner {
 	    background: #fff;
 	    padding: 10px;
 	  }
-	
+
 	  @media(min-width: 768px) {
 	    .gallery-inner {
 	      margin-left: 75px;
 	      margin-right: 75px;
 	    }
 	  }
-	
+
 	  .gallery-inner img {
 	    display: block;
 	    margin: auto;
@@ -269,39 +277,39 @@ try{
 	  div.arrow-up.right {
 	    left: 75%;
 	  }
-	
-	
+
+
 	  .gallery-unit {
 	    cursor: pointer;
 	    cursor: hand;
 	  }
-	
+
 	</style>
-	
-	
-	
+
+
+
 	<%
-	
-	
+
+
 	//let's quickly get the data we need from Shepherd
-	
+
 	int numMarkedIndividuals=0;
 	int numEncounters=0;
 	int numDataContributors=0;
-	
-	
+
+
 	%>
-	
+
 	<div class="container maincontent">
 	<h1><%=props.getProperty("gallery") %></h1>
 	<nav class="navbar navbar-default gallery-nav">
 	  <div class="container-fluid">
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
-	
+
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
-	
+
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
-	
+
 		<%
 		if(CommonConfiguration.allowAdoptions(context)){
 		%>
@@ -309,20 +317,20 @@ try{
 		<%
 		}
 		%>
-	
+
 	  </div>
 	</nav>
-	
+
 	<div class="container-fluid">
 	  <section class="container-fluid main-section front-gallery galleria">
-	
+
 	  <% if (request.getParameter("adoptableSharks")!=null) { %>
 	    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
 	    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
 	  <% } %>
-	
+
 	    <% if(request.getParameter("locationCodeField")!=null) {%>
-	
+
 	      <style>
 	        .row#location-header {
 	          padding: 15px 15px 0px 15px;
@@ -332,7 +340,7 @@ try{
 	          margin-bottom: 0px;
 	        }
 	      </style>
-	
+
 	      <div class="row" id="location-header">
 	      <%
 	      String locCode=request.getParameter("locationCodeField")
@@ -347,11 +355,11 @@ try{
 				.replaceAll("LL","Luonteri – Lietvesi")
 				.replaceAll("ES","Etel&auml;-Saimaa");
 	      %>
-	
+
 	        <h2><%=locCode %></h2>
 	      </div>
 	    <% } %>
-	
+
 	      <%
 	      int maxRows=(int)numIndividualsOnPage/2;
 	      for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
@@ -366,7 +374,7 @@ try{
 	        if(rIndividuals.get(i*2)!=null){
 	        	pair[1]=rIndividuals.get(i*2+1);
 	        }
-	
+
 	        String[] pairUrl = new String[2];
 	        String[] pairName = new String[2];
 	        String[] pairIndividualID = new String[2];
@@ -426,8 +434,8 @@ try{
 	        for (int j=0; j<2; j++) {
 	          %>
 	          <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
-	
-	
+
+
 	            <div class="gallery-inner">
 	              <div class="super-crop seal-gallery-pic active">
 	                <div class="crop">
@@ -449,14 +457,14 @@ try{
 	                JSONObject newMaJson = new JSONObject();
 	                newMaJson = al.get(extraImgNo);
 	                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-	
+
 	                String copyright = newMaJson.optString("photographer");
 	                if ((copyright!=null)&&!copyright.equals("")) {
 	                  copyright =  "&copy; " +copyright;
-	                } 
-	
-	
-	
+	                }
+
+
+
 	                %>
 	                <div class="super-crop seal-gallery-pic">
 	                  <div class="crop">
@@ -468,16 +476,16 @@ try{
 	                <%
 	              }
 	              %>
-	
+
 	              <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
-	
+
 	              <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	              <span class="galleryh2"><%=pairNickname[j]%></span>
 	              <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
 	                <%
@@ -485,11 +493,11 @@ try{
 	                String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
 	                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
 	                %>
-	
+
 	                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=urlLoc %>/gallery.jsp&title=<%=shareTitle %>&endorseimage=<%=urlLoc %>/images/image_for_sharing_individual.jpg" title="Wildbook" class="btnx" target="_blank" rel="external" >
 	                	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
 	                </a>
-	
+
 	                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=urlLoc %>/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
 	                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=urlLoc %>/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
 	              </span>
@@ -517,10 +525,10 @@ try{
 	                  <%
 	                  if(CommonConfiguration.allowAdoptions(context)){
 	                  %>
-	                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+	                    <a href="<%=urlLoc%>/adoptionform.jsp?number=<%=pairIndividualID[j]%>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  <%
 	                  }
-	                  %>  
+	                  %>
 	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  </div>
 	                </td>
@@ -533,32 +541,55 @@ try{
 	        </div>
 	        <%
 	      }
-	
+
 	      %>
 	      <div class="row" style="background:#e1e1e1;">
-	
+
 	        <p style="text-align:center">
-	
+
 	          <%
 	          if (startNum>0) {
 	            int newStart = Math.max(startNum-numIndividualsOnPage,0);
-	            %>
-	            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
-	            <%
+				if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				  %>
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+				  <%
+				}else{
+					%>
+						<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+						<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+						&nbsp;&nbsp;&nbsp;&nbsp;
+					<%
+				}
 	          }
+			  if(donorboxId!=null && CommonConfiguration.allowAdoptions(context)){
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?adoptableSharks=true&startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>&id=<%=donorboxId%>&first_name=<%=donorboxFirstName%>&last_name=<%=donorboxLastName%>&amount=<%=donorboxAmnt%>&currency=<%=donorboxCurrency%>&duration=<%=donorboxDuration%>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  } else{
+				%>
+					<%=props.getProperty("seeMore") %>
+					&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>">
+					<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png" /></a>
+				<%
+			  }
 	          %>
-	
-	          <%=props.getProperty("seeMore") %>
-	
-	&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+
+	          
 	        </p>
-	
+
 	      </row>
-	
+
 	  </section>
 	</div>
 	</div>
-	
+
 	<%
 }
 catch(Exception e){

@@ -21,102 +21,105 @@
   Project project = null;
   User currentUser = null;
   myShepherd.beginDBTransaction();
-  String projId = request.getParameter("id").replaceAll("\\+", "").trim();
-  String rootWebappPath = getServletContext().getRealPath("/");
-  File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  File projectsDir=new File(shepherdDataDir.getAbsolutePath()+"/projects");
-  File projectDir = new File(projectsDir, projId);
 
+  String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+  Properties projectProps = new Properties();
+  
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
   String langCode=ServletUtilities.getLanguageCode(request);
-  pageContext.setAttribute("projId", projId);
-  boolean proceed = true;
-  boolean haveRendered = false;
-  Properties projectProps = new Properties();
-  String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+  
   projectProps=ShepherdProperties.getProperties("project.properties", langCode, context);
-
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
   <%
   try{
-    currentUser = AccessControl.getUser(request, myShepherd);
-    project = myShepherd.getProject(projId);
-    if(project != null){
-      List<Encounter> encounters = project.getEncounters();
-    // }
+	  
+	  String projId = request.getParameter("id").replaceAll("\\+", "").trim();
+	  String rootWebappPath = getServletContext().getRealPath("/");
+	  File webappsDir = new File(rootWebappPath).getParentFile();
+	  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+	  File projectsDir=new File(shepherdDataDir.getAbsolutePath()+"/projects");
+	  File projectDir = new File(projectsDir, projId);
 
-  %>
-    <title><%= projectProps.getProperty("Project")%> <%=projId%></title>
-    <div class="container maincontent">
-      <div class="row">
-        <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
-          <h3><%= projectProps.getProperty("ProjectColon")%> <%=project.getResearchProjectName()%></h3>
-          <p><%= projectProps.getProperty("EncounterDirectionsPt1")%><a target="_new" href="../encounters/encounterSearch.jsp"> <%= projectProps.getProperty("EncounterDirectionsPt2")%></a><%= projectProps.getProperty("EncounterDirectionsPt3")%></p>
-        </div>
-        <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
-          <span id="editButtonSpan"></span>
-        </div>
-      </div>
-          <%
 
-            if(currentUser != null){
-              if(encounters == null || encounters.size()<1){
-                %>
-                  <h4><%= projectProps.getProperty("NoEncountersInProj")%></h4>
-                <%
-              }else{
-                %>
-                <div align="center">
-                  <div id="progress-div">
-                    <h4><%= projectProps.getProperty("EncountersLoading")%></h4>
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
-                        <span class="sr-only"><%= projectProps.getProperty("PercentComplete")%></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div id="table-div" style="display: none;">
-                    <table class="row project-style">
-                      <thead>
-                        <tr>
-                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("ProjectIdTableHeader")%></th>
-                          <th class="project-style"><%= projectProps.getProperty("ActionTableHeader")%></th>
-                        </tr>
-                      </thead>
-                      <tbody id="encounterList">
-                        <!--populated by JS after page load-->
-                      </tbody>
-          <%
-              } // end if encounters + else
-            } // end if currentUser
-          } // end if project
-          } catch (Exception e) {
-            e.printStackTrace();
-          } // end try block
-          finally{
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-          }
-          %>
-              </table>
+	  pageContext.setAttribute("projId", projId);
+	  boolean proceed = true;
+	  boolean haveRendered = false;
+
+	  
+	  
+	    currentUser = AccessControl.getUser(request, myShepherd);
+	    project = myShepherd.getProject(projId);
+	    
+	    if(project != null){
+	      List<Encounter> encounters = project.getEncounters();
+	
+	
+	  	%>
+	    	<title><%= projectProps.getProperty("Project")%> <%=projId%></title>
+	    	<div class="container maincontent">
+	      		<div class="row">
+	        		<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
+	          			<h3><%= projectProps.getProperty("ProjectColon")%> <%=project.getResearchProjectName()%></h3>
+	          			<p><%= projectProps.getProperty("EncounterDirectionsPt1")%><a target="_new" href="../encounters/encounterSearch.jsp"> <%= projectProps.getProperty("EncounterDirectionsPt2")%></a><%= projectProps.getProperty("EncounterDirectionsPt3")%></p>
+	        		</div>
+	        	<div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
+	          	<span id="editButtonSpan"></span>
+	        	</div>
+	      	</div>
+	          <%
+	
+	            if(currentUser != null){
+	              if(encounters == null || encounters.size()<1){
+	                %>
+	                  <h4><%= projectProps.getProperty("NoEncountersInProj")%></h4>
+	                <%
+	              }
+	              else{
+	                %>
+	                <div align="center">
+	                  <div id="progress-div">
+	                    <h4><%= projectProps.getProperty("EncountersLoading")%></h4>
+	                    <div class="progress">
+	                      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+	                        <span class="sr-only"><%= projectProps.getProperty("PercentComplete")%></span>
+	                      </div>
+	                    </div>
+	                  </div>
+	                  <div id="table-div" style="display: none;">
+	                              <p>Total encounters: <%=encounters.size() %></p>
+	                    <table class="row project-style">
+	                      <thead>
+	                        <tr>
+	                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("ProjectIdTableHeader")%></th>
+	                          <th class="project-style"><%= projectProps.getProperty("ActionTableHeader")%></th>
+	                        </tr>
+	                      </thead>
+	                      <tbody id="encounterList">
+	                        <!--populated by JS after page load-->
+	                      </tbody>
+	          <%
+	              } // end if encounters + else
+	            } // end if currentUser
+	            
+	            %>
+	            
+	            </table>
+	
             </div>
           </div>
-    </div>
-<jsp:include page="../footer.jsp" flush="true"/>
-
+	            
 <script type="text/javascript">
 
 var txt = getText("project.properties");
@@ -571,3 +574,32 @@ $(document).ready( function() {
   getEncounterJSON();
 });
 </script>
+	            <%
+	            
+	          } // end if project
+	    	else{
+	    	
+	    		//if no project by this ID
+	    		%>
+	    		
+	    		<title>No Project Found</title>
+	    	    <div class="container maincontent">
+	    		
+	    		<%
+	    		
+	    	
+	    	}	
+    
+    
+          } 
+  		catch (Exception e) {
+            e.printStackTrace();
+          } // end try block
+          finally{
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
+          %>
+              
+    </div>
+<jsp:include page="../footer.jsp" flush="true"/>

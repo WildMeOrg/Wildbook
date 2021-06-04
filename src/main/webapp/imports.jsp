@@ -11,6 +11,7 @@ java.util.List,
 java.util.Collection,
 java.util.ArrayList,
 org.ecocean.security.Collaboration,
+java.util.HashMap,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -201,8 +202,10 @@ if (itask == null) {
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<br>Status: "+itask.getStatus());
-    out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-	out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    if(itask.getParameters()!=null){
+    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+    }	
+    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
     if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
     for (int i = 0 ; i < headers.length ; i++) {
@@ -236,9 +239,11 @@ if (itask == null) {
     int numIA = 0;
     boolean foundChildren = false;
 
-    JSONArray jarr = new JSONArray();
+    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
-        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
+       
+    	JSONArray jarr=new JSONArray();
+    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -281,31 +286,71 @@ if (itask == null) {
         }
 
         out.println("</tr>");
+        
+        jarrs.put(enc.getCatalogNumber(), jarr);
+        
     }
     int percent = -1;
     if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
 %>
 </tbody></table>
 <p>
-Total images: <b><%=allAssets.size()%></b>
+Total MediAssets: <b><%=allAssets.size()%></b><br>
+<ul>
+<%
+int numWithACMID=0;
+int numDetectionComplete=0;
+for(MediaAsset asset:allAssets){
+	if(asset.getAcmId()!=null)numWithACMID++;
+	if(asset.getDetectionStatus()!=null && asset.getDetectionStatus().equals("complete")) numDetectionComplete++;
+}
+%>
+<li>Number with acmIDs: <%=numWithACMID %></li>
+<li>Number that have completed detection: <%=numDetectionComplete %></li>
+</ul>
+
 <script>
-var allAssetIds = <%=jarr.toString(4)%>;
+let js_jarrs = new Map();
+<%
+for(String key:jarrs.keySet()){
+%>
+	js_jarrs.set('<%=key %>',<%=jarrs.get(key).toString() %>);
+<%
+}
+%>
 
 function sendToIA(skipIdent) {
     if (!confirmCommit()) return;
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-    var locIds = $('#id-locationids').val();
-    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
-        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
-        } else {
-            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+    var locationIds = $('#id-locationids').val();
+
+    // some of this borrowed from core.js sendMediaAssetsToIA()
+    // but now we send bulkImport as the entire js_jarrs value
+    var data = {
+        taskParameters: { skipIdent: skipIdent || false },
+        bulkImport: {}
+    };
+    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
+    if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+
+    console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/ia',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: 'application/javascript',
+        complete: function(x) {
+            console.log('sendToIA() response: %o', x);
+	    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+	        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+	    } else {
+	        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+	    }
         }
     });
 }
  
-
-
 </script>
 </p>
 
@@ -339,7 +384,7 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
  } //end if admin mode
 
 //who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
-if("complete".equals(itask.getStatus()) && (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
+if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 	    %>
 	    	<div style="margin-bottom: 20px;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">

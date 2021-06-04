@@ -141,6 +141,9 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
   }
   intoElem.append(fig);
+  if(maJson && maJson.features && maJson.features.length>1){
+    updateWithAnnotationDisambiguator(intoElem, maJson.id, maJson.annotation.id);
+  }
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
@@ -150,6 +153,77 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   );*/
   maLib.testExtraction(maJson);
   return;
+}
+
+updateWithAnnotationDisambiguator = function(inputHtml, mediaAssetId, maAnnotationId){
+  let annotationDisambiguatorHtml = '';
+  let left = "left";
+  let right = "right";
+  annotationDisambiguatorHtml += '<div id="annotation-disambiguator" data-media-asset-id="' + mediaAssetId + '-' + maAnnotationId + '">';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId +'\')"> </span>';
+  annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation </span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId + '\')"> </span>';
+  annotationDisambiguatorHtml += '<div id="go-to-encounter-wrapper"></div>';
+  annotationDisambiguatorHtml += '</div>';
+  inputHtml.append(annotationDisambiguatorHtml);
+}
+
+toggleFocalAnnotationChange = function (direction, mediaAssetId, annotationId){
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + '-' + annotationId + "']");
+  let currentFocalId = '';
+  try{
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-toggled').attr('id');
+  } catch(error){
+  }
+  if(!currentFocalId){
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
+  }
+  let allEnhancerFeatureElements = $(parentElement).find('.image-enhancer-feature');
+  let enhancerFeatureIdArray = [];
+  Array.prototype.forEach.call(allEnhancerFeatureElements, enhancerFeatureElement =>{ //forEach wasn't working
+    let currentId = '';
+    try{
+      currentId = $(enhancerFeatureElement).attr('id');
+    } catch(error){
+    }
+    if (currentId){
+      let currentXaxis = parseFloat($(enhancerFeatureElement).css('left').replace('px', ''));
+      let currentIdArrayEntry = {};
+      currentIdArrayEntry['id'] = currentId;
+      currentIdArrayEntry['xAxis'] = currentXaxis;
+      enhancerFeatureIdArray.push(currentIdArrayEntry);
+    }
+  });
+  enhancerFeatureIdArray = enhancerFeatureIdArray.sort((a,b)=>a.xAxis > b.xAxis? 1:-1);
+  let indexOfCurrentFocal = enhancerFeatureIdArray.findIndex(elem => elem['id'] == currentFocalId);
+  let indexOfTargetEnhancerFeature = getCorrectIndexOfTargetEnhancerFeature(direction, enhancerFeatureIdArray, indexOfCurrentFocal);
+  let idOfTargetEnhancerFeature = enhancerFeatureIdArray[indexOfTargetEnhancerFeature].id;
+  $(parentElement).find('#' + currentFocalId).removeClass('image-enhancer-feature-toggled');
+  $(parentElement).find('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-toggled');
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  let newLinkHtml = '<a class="go el el-circle-arrow-right" href="encounter.jsp?number=' + currentFocalEncounterId + '" onclick="goToEncounterHighlighted(\'' + mediaAssetId + '\',\'' + annotationId + '\')"> Go To Highlighted Encounter</a>';
+  $('#go-to-encounter-wrapper').empty();
+  $('#go-to-encounter-wrapper').html(newLinkHtml);
+}
+
+getCorrectIndexOfTargetEnhancerFeature = function(direction, enhancerFeatureIdArray, indexOfCurrentFocal){
+  let indexOfTargetEnhancerFeature = direction === "right" ? indexOfCurrentFocal + 1 : indexOfCurrentFocal - 1;
+  if (indexOfTargetEnhancerFeature > enhancerFeatureIdArray.length - 1) { //handle case where going right of end of array is reached
+    indexOfTargetEnhancerFeature = 0;
+  }
+  if (indexOfTargetEnhancerFeature < 0) { //handle case where going left of beginning of array is reached
+    indexOfTargetEnhancerFeature = enhancerFeatureIdArray.length - 1;
+  }
+  return indexOfTargetEnhancerFeature;
+}
+
+goToEncounterHighlighted = function (mediaAssetId, maAnnotationId){
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + '-' + maAnnotationId + "']");
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  if (!currentFocalEncounterId) {
+    currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  }
+  window.open('encounter.jsp?number=' + currentFocalEncounterId, '_self');
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {

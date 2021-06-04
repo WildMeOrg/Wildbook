@@ -448,14 +448,37 @@ function FSControl(controlDiv, map) {
   </tr>
 
   <tr id="fieldsContentRow">
+
     <td>
         <div id="tags" style="display:none;">
             <p><%=occProps.getProperty("fieldsInstructions") %></p>
 
-
             <%
-            // here we'll programatically create divs that allow for searching through metadata fields
-
+            if(CommonConfiguration.showProperty("showTaxonomy",context)){
+            %>
+                  <strong><%=props.getProperty("genusSpecies")%></strong>: <select name="genusSpeciesField" id="genusSpeciesField">
+                        <%
+                        Iterator<Taxonomy> allTaxonomies = myShepherd.getAllTaxonomies();
+                        if (allTaxonomies.hasNext()) {
+                          while (allTaxonomies.hasNext()) {
+                            Taxonomy tax = allTaxonomies.next();
+                            String optionStr = tax.getScientificName();
+                            if (tax.getCommonName()!=null&&!"".equals(tax.getCommonName())) {
+                              optionStr += " ("+tax.getCommonName()+")";
+                            }
+                            %>
+                              <option value="<%=tax.getScientificName()%>"><%=optionStr%></option>
+                            <%
+                          }
+                        } else {
+                          %>
+                            <option value=""> </option>
+                          <%
+                        }
+                        %>
+                  </select>
+            <%
+            }
             %>
 
               <table>
@@ -499,10 +522,6 @@ function FSControl(controlDiv, map) {
                 if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 FormUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
-
-              List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
-              FormUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
-
 
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
