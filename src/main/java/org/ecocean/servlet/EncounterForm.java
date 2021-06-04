@@ -1312,8 +1312,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
   }
 
   private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
-    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    String sanitizedItemName = ServletUtilities.cleanFileName(item.getName());
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + sanitizedItemName));
+    sp.put("key", Util.hashDirectories(encID) + "/" + sanitizedItemName);
     MediaAsset ma = new MediaAsset(astore, sp);
     File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
     File tmpDir = tmpFile.getParentFile();
