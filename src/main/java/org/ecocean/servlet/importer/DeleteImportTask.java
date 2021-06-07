@@ -11,6 +11,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ia.Task;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.social.SocialUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -92,6 +93,16 @@ public class DeleteImportTask extends HttpServlet {
              mark.removeEncounter(enc);
              myShepherd.updateDBTransaction();
              if(mark.getEncounters().size()==0) {
+               
+               //check for social unit membership and remove
+               List<SocialUnit> units=myShepherd.getAllSocialUnitsForMarkedIndividual(mark);
+               if(units!=null && units.size()>0) {
+                 for(SocialUnit unit:units) {
+                   boolean worked=unit.removeMember(mark, myShepherd);
+                   if(worked)myShepherd.updateDBTransaction();
+                 }
+               }
+               
                myShepherd.throwAwayMarkedIndividual(mark);
                myShepherd.updateDBTransaction();
              }
