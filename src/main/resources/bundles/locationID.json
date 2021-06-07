@@ -2,6 +2,25 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
+		
+		{
+			"name": "Kruppwald Essen",
+			"id": "KE",
+			"geospatialInfo": {
+				"lat": 51.4076079,
+				"long": 7.0024334
+			},
+			"locationID": []
+		},
+		{
+			"name": "Kottenforst",
+			"id": "KF",
+			"geospatialInfo": {
+				"lat": 50.6593069,
+				"long": 7.0555518
+			},
+			"locationID": []
+		},
 		{
 			"name": "Klufterbach",
 			"id": "KB",
@@ -98,6 +117,15 @@
 			"geospatialInfo": {
 				"lat": 51.923413,
 				"long": 8.872099
+			},
+			"locationID": []
+		},
+		{
+			"name": "Freilichtmuseum Detmold",
+			"id": "FrD",
+			"geospatialInfo": {
+				"lat": 51.9234574,
+				"long": 8.865981
 			},
 			"locationID": []
 		},
