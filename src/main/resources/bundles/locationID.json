@@ -59,6 +59,8 @@
 	"name": "Guyana", "id": "Guyana" },
 	{
 	"name": "Haiti", "id": "Haiti" },
+  {
+	"name": "Honduras", "id": "Honduras" },
 	{
 		"name": "Jamaica",
 		"id": "Jamaica"
@@ -122,7 +124,6 @@
 	{
 		"name": "Venezuela",
 		"id": "Venezuela"
-	}	
+	}
 	]
 }
-
