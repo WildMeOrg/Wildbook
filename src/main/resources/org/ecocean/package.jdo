@@ -211,7 +211,8 @@
 	<field name="endTime" persistence-modifier="persistent" element-type="org.ecocean.ComplexDateTime" default-fetch-group="true" />
 
       <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Encounter"/>
+        <collection element-type="org.ecocean.Encounter" dependent-element="false" />
+	<foreign-key delete-action="cascade" />
         <join/>
       </field>
 
