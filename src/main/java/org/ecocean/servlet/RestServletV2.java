@@ -1273,7 +1273,7 @@ rtn.put("_payload", payload);
             out.close();
             return;
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             SystemLog.error("RestServlet.handleDelete() failed on {}", obj, ex);
