@@ -280,6 +280,12 @@
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 	
 	{ "name":"Australia", "id":"Australia", "locationID":[
+		{ "name":"New South Wales", "id":"New South Wales", "locationID":[
+				{ "name":"Byron Bay", "id":"Byron Bay", "locationID":[] }
+		] },
+		{ "name":"Southern Queensland", "id":"Southern Queensland", "locationID":[		
+				{ "name":"Sunshine Coast", "id":"Sunshine Coast", "locationID":[] }
+		] }
 	] },
 
 	{ "name":"Hawaii", "id":"Hawaii", "locationID":[
