@@ -907,7 +907,7 @@ public class CommonConfiguration {
 
   public static String getDataDirectoryName(String context) {
     initialize(context);
-    String dataDirectoryName="shepherd_data_dir";
+    String dataDirectoryName="wildbook_data_dir";
 
     //new context code here
 

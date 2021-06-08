@@ -47,9 +47,9 @@ public class ShepherdPMF {
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
     //public static PersistenceManagerFactory getPMF(String dbLocation) {
-    
+
     if(pmfs==null){pmfs=new TreeMap<String,PersistenceManagerFactory>();}
-    
+
     try {
       if ((!pmfs.containsKey(context))||(pmfs.get(context).isClosed())) {
 
@@ -59,32 +59,32 @@ public class ShepherdPMF {
         dnProperties.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
 
         Properties props = new Properties();
-        String shepherdDataDir="shepherd_data_dir";
-        
+        String shepherdDataDir="wildbook_data_dir";
+
         //System.out.println("     Let's find the corresponding dataDir for context: "+context);
         if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){
           //System.out.println("     Looking up corresponding contextDir...");
           shepherdDataDir=ContextConfiguration.getDataDirForContext(context);
-          
+
         }
         //System.out.println("ShepherdPMF: Data directory for context "+context+" is: "+shepherdDataDir);
         Properties overrideProps=loadOverrideProps(shepherdDataDir);
         //System.out.println(overrideProps);
-        
+
         if(overrideProps.size()>0){props=overrideProps;}
         else {
           //otherwise load the embedded commonConfig
-          
+
           try {
             //props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
             props=ShepherdProperties.getProperties("jdoconfig.properties", "");
-          } 
+          }
           catch (Exception ioe) {
             ioe.printStackTrace();
           }
         }
-        
-        
+
+
         Enumeration<Object> propsNames = props.keys();
         while (propsNames.hasMoreElements()) {
           String name = (String) propsNames.nextElement();
@@ -96,7 +96,7 @@ public class ShepherdPMF {
         /*****************************************************************************************************************************************************/
         /* This code below allows you to define the Database Connection parameters (user, password, driver name and connection URL in environment variables  */
         /* and also Docker or Kubernetes secrets.                                                                                                            */
-        /*                                                                                                                                                   */ 
+        /*                                                                                                                                                   */
         /* You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin directory.          */
         /* The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.                                                   */
         /* This allows you specify the Database Connection parameters: user, password, driver name and connection URL at run time instead of hardcoding      */
@@ -114,9 +114,9 @@ public class ShepherdPMF {
         /* export DB_PASSWORD="Passw0rd#"                                                                                      # Example from env variable   */
         /* # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                         # Example from secret         */
         /* export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                       # Example from env variable   */
-        /* # export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                   # Example from secret         */                      
+        /* # export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                   # Example from secret         */
         /* export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"      # Example for MySQL           */
-        /* # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                             # Example from secret         */        
+        /* # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                             # Example from secret         */
         /*****************************************************************************************************************************************************/
         /*                                                                                                                                                   */
         /* Example docker-compose.yml file below.                                                                                                            */
@@ -138,7 +138,7 @@ public class ShepherdPMF {
         /*         gid: '0'                                                                                                                                  */
         /*         mode: 0700                                                                                                                                */
         /*                                                                                                                                                   */
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* To use Docker secrets.                                                                                                                            */
         /*****************************************************************************************************************************************************/
         /* Example setenv.sh file                                                                                                                            */
@@ -159,12 +159,12 @@ public class ShepherdPMF {
         /* # export DB_DRIVER_NAME="org.postgresql.Driver"                                                                     # For PostgreSQL              */
         /* # export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                     # For MySQL                   */
         /* export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                     # Example from secret         */
-        /*                                                                                                                                                   */          
+        /*                                                                                                                                                   */
         /* Create the Docker secrets                                                                                                                         */
         /*                                                                                                                                                   */
         /* $ echo "wildbook" | docker secret create wildbook-db-user -                                                                                       */
         /* yhma28514l3spyj6033ym155y                                                                                                                         */
-        /*                                                                                                                                                   */     
+        /*                                                                                                                                                   */
         /* $ echo "Passw0rd#" | docker secret create wildbook-db-password -                                                                                  */
         /* 6q3gew26hvv3x314ahzxgfceb                                                                                                                         */
         /*                                                                                                                                                   */
@@ -211,9 +211,9 @@ public class ShepherdPMF {
         /* # Note the same wildbook-db-user and wildbook-db-passord secrets can be specified to a MySQL docker database container.                           */
         /*****************************************************************************************************************************************************/
 
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database user from an environment Variable                                                                                           */
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         System.out.println("Checking for the DB_USER environment variable.");
         String dbUser = System.getenv("DB_USER");
         if (dbUser != null && !dbUser.isEmpty()) {
@@ -221,9 +221,9 @@ public class ShepherdPMF {
             // System.out.println("The database user retrieved from environment variable was " + dbUser);
             dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
         } else {
-        /*****************************************************************************************************************************************************/             
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database User from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                             */
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
             String dbUserSecretFile = System.getenv("DB_USER_FILE");
             if (dbUserSecretFile != null && !dbUserSecretFile.isEmpty()) {
                 System.out.println("The DB_USER_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
@@ -239,19 +239,19 @@ public class ShepherdPMF {
             }
         }
 
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database password from an environment Variable                                                                                       */
-        /*****************************************************************************************************************************************************/  
+        /*****************************************************************************************************************************************************/
         System.out.println("Checking for the DB_PASSWORD environment variable.");
-        String dbPassword = System.getenv("DB_PASSWORD");    
+        String dbPassword = System.getenv("DB_PASSWORD");
         if (dbPassword != null && !dbPassword.isEmpty()) {
             System.out.println("The DB_PASSWORD environment variable was specified, will use it to connect to the Database.");
             // System.out.println("The database password retrieved from the environment variable was " + dbPassword);
             dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
         } else {
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database Password from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                         */
-        /*****************************************************************************************************************************************************/  
+        /*****************************************************************************************************************************************************/
             String dbPasswordSecretFile = System.getenv("DB_PASSWORD_FILE");
             if (dbPasswordSecretFile != null && !dbPasswordSecretFile.isEmpty()) {
                 System.out.println("The DB_PASSWORD_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
@@ -267,9 +267,9 @@ public class ShepherdPMF {
             }
         }
 
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database Connection Driver Name from an environment Variable                                                                         */
-        /*****************************************************************************************************************************************************/  
+        /*****************************************************************************************************************************************************/
         System.out.println("Checking for the DB_DRIVER_NAME environment variable.");
         String dbDriverName = System.getenv("DB_DRIVER_NAME");
         if (dbDriverName != null && !dbDriverName.isEmpty()) {
@@ -277,9 +277,9 @@ public class ShepherdPMF {
             // System.out.println("The database connection driver name retrieved from the environment variable was " + dbDriverName);
             dnProperties.setProperty("datanucleus.ConnectionDriverName", dbDriverName.trim());
         } else {
-            /*****************************************************************************************************************************************************/ 
+            /*****************************************************************************************************************************************************/
             /* Retrieve the Database Connection Driver Name from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                         */
-            /*****************************************************************************************************************************************************/  
+            /*****************************************************************************************************************************************************/
                 String dbDriverNameFile = System.getenv("DB_DRIVER_NAME_FILE");
                 if (dbDriverNameFile != null && !dbDriverNameFile.isEmpty()) {
                     System.out.println("The DB_DRIVER_NAME_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
@@ -295,9 +295,9 @@ public class ShepherdPMF {
                 }
             }
 
-        /*****************************************************************************************************************************************************/ 
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database Connection URL from an environment Variable                                                                                 */
-        /*****************************************************************************************************************************************************/  
+        /*****************************************************************************************************************************************************/
         System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
         String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
         if (dbConnectionURL != null && !dbConnectionURL.isEmpty()) {
@@ -305,9 +305,9 @@ public class ShepherdPMF {
             // System.out.println("The database connection URL retrieved from the environment variable was " + dbConnectionURL);
             dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
         } else {
-        /*****************************************************************************************************************************************************/            
+        /*****************************************************************************************************************************************************/
         /* Retrieve the Database Connection URL from a file. This allows the use of Docker Secrets and Kubernetes Secrets!                                   */
-        /*****************************************************************************************************************************************************/         
+        /*****************************************************************************************************************************************************/
             String dbConnectionURLFile = System.getenv("DB_CONNECTION_URL_FILE");
             if (dbConnectionURLFile != null && !dbConnectionURLFile.isEmpty()) {
                 System.out.println("The DB_CONNECTION_URL_FILE environment variable was specified, will retrieve the value from the file and use it to connect to the Database.");
@@ -321,8 +321,8 @@ public class ShepherdPMF {
                     return null;
                 }
             }
-        }    
-        
+        }
+
         //make sure to close an old PMF if switching
         //if(pmf!=null){pmf.close();}
 
@@ -331,18 +331,18 @@ public class ShepherdPMF {
 
       }
       else{
-        
+
         return pmfs.get(context);
-        
+
       }
-      
+
     } catch (JDOException jdo) {
       jdo.printStackTrace();
       System.out.println("I couldn't instantiate a PMF.");
       return null;
     }
   }
-  
+
   public static Properties loadOverrideProps(String shepherdDataDir) {
     //System.out.println("     Starting loadOverrideProps");
     Properties myProps=new Properties();
@@ -380,29 +380,29 @@ public class ShepherdPMF {
     }
     return myProps;
   }
-  
+
   public static void setShepherdState(String shepherdID, String state){
     if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
 
     shepherds.put(shepherdID, state);
   }
-  
+
   public static void removeShepherdState(String shepherdID){
     if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
 
     shepherds.remove(shepherdID);
   }
-  
+
   public static String getShepherdState(String shepherdID){
     if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
 
     return shepherds.get(shepherdID);
   }
-  
+
   public static ConcurrentHashMap<String,String> getAllShepherdStates(){
     if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
     return shepherds;
   }
-  
+
 
 }
