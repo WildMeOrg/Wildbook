@@ -65,12 +65,12 @@ System.out.println("Starting mmaResults.jsp.");
 	  Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
 	  // Get set of all LocationIDs.
 	  Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedPropertyValues("locationID", context));
-	
+
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 		response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 		response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 		response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-	
+
 	  MantaMatcherScan scan = (MantaMatcherScan)request.getSession().getAttribute(MantaMatcher.REQUEST_KEY_SCAN);
 	  MMAResultsProcessor.MMAResult results = (MMAResultsProcessor.MMAResult)request.getSession().getAttribute(MantaMatcher.REQUEST_KEY_RESULTS);
 	  if (results == null) {
@@ -89,7 +89,7 @@ System.out.println("Starting mmaResults.jsp.");
 	  catch(Exception e){
 		  e.printStackTrace();
 	  }
-	  	
+
 	  DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
 	  // Derive data folder info.
 	//  String rootDir = getServletContext().getRealPath("/");
@@ -101,16 +101,16 @@ System.out.println("Starting mmaResults.jsp.");
 	  String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=%s";
 	  String pageUrlFormatInd = "//" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=%s";
 	%>
-	
+
 	<jsp:include page="../header.jsp" flush="true">
 	  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
 	</jsp:include>
-	
+
 	  <div class="container maincontent">
-	
-	
+
+
 	<!------------------------------------------------------------------------->
-	
+
 	<%
 	  if (results.getMapTests().isEmpty()) {
 	    String encUrl = String.format(pageUrlFormatEnc, results.getTestEncounterNumber());
@@ -147,12 +147,12 @@ System.out.println("Starting mmaResults.jsp.");
 			    boolean encIsAssigned = (enc.getIndividual() != null);
 			    System.out.println("encIsAssigned: "+encIsAssigned);
 			%>
-			
+
 			<div id="mma-queryImage">
-			  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a>
+			  <a href="<% out.print(encUrl); %>" target="_blank"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "")); %>" class="mma-queryImg"/></a>
 			  <p><% out.print(name); %></p>
 			</div>
-			
+
 			<div id="mma-desc">
 			  <table>
 			    <tr>
@@ -207,7 +207,7 @@ System.out.println("Starting mmaResults.jsp.");
 			      }
 			      String keyPig = findKeyFromValue(encMatch.getPatterningCode(), mapPig);
 			      String pigMatch = keyPig == null ? keyPig : bundle.getProperty(keyPig);
-			
+
 			      Map<String, File> mmMap = MantaMatcherUtilities.getMatcherFilesMap(match.getFileRef());
 			      File match_fCR = mmMap.get("CR");
 			      String match_encId = match_fCR.getParentFile().getName();
@@ -244,8 +244,8 @@ System.out.println("Starting mmaResults.jsp.");
 			<%      } %>
 			        </table>
 			      </td>
-			      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
-			      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "")); %>" class="mma-queryImg"/></a></td>
+			      <td class="matchedImage"><a href="<% out.print(match_encUrl); %>" target="_blank"><img src="<% out.print(match_linkEH.replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "")); %>" class="mma-matchImg"/></a></td>
+			      <td class="queryImage"><a href="<% out.print(encUrl); %>"><img src="<% out.print(linkEH.replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "")); %>" class="mma-queryImg"/></a></td>
 			    </tr>
 			<%
 			    }
@@ -263,7 +263,7 @@ System.out.println("Starting mmaResults.jsp.");
 		  }
 	  }
 	%>
-	
+
 	<%
 	  if (!results.getMapTests().isEmpty()) {
 	%>
@@ -273,10 +273,10 @@ System.out.println("Starting mmaResults.jsp.");
 	<%
 	  }
 	%>
-	
-	
+
+
 	<!------------------------------------------------------------------------->
-	
+
 	<%
   }
   catch(Exception e){e.printStackTrace();}

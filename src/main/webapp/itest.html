@@ -156,7 +156,7 @@ if (t.spots.length == 3) doEdge();
 				//t.rotate(t._originalRotation);
 			},
 */
-				
+
 		}
 	};
 
@@ -237,7 +237,7 @@ console.log('%d,%d -> %o', t.spots[i][0], t.spots[i][1], p);
 */
 		drawSpot(t.ctx, t.spots[i], t.spots[i][2]);
 /*
-		contextSetStyles(t.ctx, 
+		contextSetStyles(t.ctx,
 		t.ctx.beginPath();
 		var p = t.toCanvasPoint(t.spots[i]);
 		t.ctx.arc(p[0], p[1], 20, 0, 2 * Math.PI);
@@ -301,7 +301,7 @@ function doEdge() {
 			var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
 			ctx.putImageData(imageData, 0, 0);
 		});
-		
+
 	}
 	var ctx = edgeCanvas.getContext('2d');
 fctx = ctx;
@@ -671,7 +671,7 @@ function edgeDetect(ctx) {
                     jsfeat.imgproc.canny(img_u8, img_u8, options.low_threshold|0, options.high_threshold|0);
                     stat.stop("canny edge");
 
-                    
+
 ///////////////
 */
                     // render result back to canvas
@@ -742,7 +742,7 @@ function edgeDetect(ctx) {
 <li>yellowish line should be left fluke, blueish is right
 </ul>
 </div>
-	<ximg xid="fluke-img" src="/shepherd_data_dir/encounters/1/d/1d29894f-50f4-47df-b444-a7619394aa28/test-pattern-mid.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img" src="/wildbook_data_dir/encounters/1/d/1d29894f-50f4-47df-b444-a7619394aa28/test-pattern-mid.jpg" onLoad="setTool()" />
 	<ximg xid="fluke-img" src="images/test-fluke-mid.jpg" onLoad="setTool()" />
 	<img id="fluke-img" src="images/test-fluke-B.jpg" onLoad="setTool()" />
 	<ximg xid="fluke-img2" src="images/test-fluke-C.jpg" onLoad="setTool()" />

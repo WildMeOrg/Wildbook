@@ -80,7 +80,7 @@ public class PatterningPassport implements java.io.Serializable {
       String encounterUrlString = "foo/" + this.encounterId; // TODO -- generate URL
       String mediaSourceUrlString = "foo/" + this.mediaId; // TODO -- generate URL
       String passportXmlUrlString = "foo"; // TODO -- generate URL
-      String encounterDir = this.webappsDir + "/shepherd_data_dir/encounters/" + this.encounterId;
+      String encounterDir = this.webappsDir + "/wildbook_data_dir/encounters/" + this.encounterId;
       String xmlFilePathString = encounterDir + "/" + mediaId + "_pp.xml";
 
       Element metaElement = doc.createElement(NODE_NAME_ID);
