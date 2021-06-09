@@ -10,7 +10,7 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 <%!
 
 public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String crPath, String context){
-    
+
 	try{
 		//this is making some big assumptions about the parent only having one annot to the encounter!
 	    String iaClass = "mantaCR";
@@ -23,8 +23,8 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	        enc = ann.findEncounter(myShepherd);
 	        if (enc != null) break;
 	    }
-	
-	
+
+
 	    JSONObject params = new JSONObject();
 	    params.put("path", crPath);
 	    MediaAsset ma = new MediaAsset(astore, params);
@@ -34,7 +34,7 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	    ma.addKeyword(crKeyword);
 	    ma.updateMinimalMetadata();
 	    ma.setDetectionStatus("complete");
-	
+
 	    MediaAssetFactory.save(ma, myShepherd);
 	    //System.out.println(count+" saved annots");
 	    /*Annotation ann = new Annotation(iaClass, ma);
@@ -44,7 +44,7 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	    System.out.println(" modified annot");
 	    enc.addAnnotation(ann);
 	    */
-	    
+
 	    Feature ft = null;
 	    FeatureType.initAll(myShepherd);
 	    JSONObject fparams = new JSONObject();
@@ -58,8 +58,8 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	    Annotation ann = new Annotation(null, ft, iaClass);
 	    ann.setMatchAgainst(true);
 	    ann.setIAClass(iaClass);
-	    
-	
+
+
 	    //System.out.println(" added annot to enc");
 	    myShepherd.getPM().makePersistent(ann);
 	    //System.out.println(" made persistent");
@@ -67,7 +67,7 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	    enc.addAnnotation(ann);
 	    ma.updateStandardChildren(myShepherd);
 	    myShepherd.updateDBTransaction();
-	    
+
         // we need to intake mediaassets so they get acmIds and are matchable
         ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
         maList.add(ma);
@@ -85,14 +85,14 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
         }
         System.out.println("    + done processing new CR annot");
 
-	    
+
 	    return true;
 	}
 	catch(Exception e){
 		e.printStackTrace();
 	}
 	return false;
-	
+
 }
 
 
@@ -144,13 +144,13 @@ try{
 	q.closeAll();
 	%>
 	<p>Num encs: <%=encs.size() %></p>
-	<%  
+	<%
     for (Encounter enc:encs) {
     	try{
 	    	//temp
 	    	 //if(enc.getCatalogNumber().equals("b76ac30f-abb9-4cf3-9bfb-14f144883ffe")){
-		    	  
-	    	
+
+
 	    	if(enc.getMmaCompatible())mmaCompatible++;
 	    	boolean hasMatchAgainst=false;
 	    	boolean hasMismatch=false;
@@ -158,12 +158,12 @@ try{
 	    	for(Annotation annot:annots){
 	    		File file=annot.getMediaAsset().localPath().toFile();
 				if(MediaUtilities.isAcceptableImageFile(file)){
-			      
+
 			      boolean matcherFilesExist=MantaMatcherUtilities.checkMatcherFilesExist(file);
 			      if (matcherFilesExist){
 			    	  crCount++;
-	
-	
+
+
 			      }
 				  if(annot.getMatchAgainst() && annot.getIAClass() !=null && annot.getIAClass().equals("mantaCR")){
 					  matchAgainst++;
@@ -172,13 +172,13 @@ try{
 				  if(matcherFilesExist && enc.getMmaCompatible() && (annot.getIAClass()==null || annot.getIAClass().equals("manta_ray_giant") ||  (annot.getIAClass().equals("mantaCR") && !annot.getMatchAgainst()))){
 					  mismatch++;
 					  hasMismatch=true;
-					  
+
 					  //let's convert!
 					  Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(annot.getMediaAsset());
 				    	   if (mmFiles.get("CR")!=null && mmFiles.get("CR").exists()) {
 				    	        File crFile=mmFiles.get("CR");
 				    	        //System.out.println(crFile.getAbsolutePath());
-				    	        String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "");
+				    	        String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "");
 								  %>
 								  <p>Converting encounter <a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a>...
 								  <%
@@ -194,10 +194,10 @@ try{
 								  	 ...FAILED!</p>
 								  	 <%
 				    	    }
-	
+
 					  	 }
 					  //}
-					  
+
 					}
 	    		}
 	    	} //end for annots
@@ -206,9 +206,9 @@ try{
 	    	}
 	    	if(enc.getMmaCompatible() && !hasMatchAgainst){
 	    		 misMatchEncArray.add(enc.getCatalogNumber());
-				  
+
 	    	}
-    	
+
 	    }
 		catch(Exception ce){
 			ce.printStackTrace();
@@ -216,10 +216,10 @@ try{
 			myShepherd.beginDBTransaction();
 		}
 	}//end for encs
-    
-    
+
+
 	myShepherd.rollbackDBTransaction();
-	
+
 }
 catch(Exception e){
 	e.printStackTrace();
@@ -243,7 +243,7 @@ finally{
 		<%
 		}
 		%>
-	
+
 	</ul>
 </p>
 <p>mmaCompatible Encs: <%=mmaCompatible %></p>
