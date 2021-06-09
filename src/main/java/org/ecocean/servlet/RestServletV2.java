@@ -1213,10 +1213,12 @@ rtn.put("_payload", payload);
         myShepherd.setAction("RestServletV2.handleDelete");
         myShepherd.beginDBTransaction();
 
+        Occurrence parentOcc = null;
         ApiCustomFields obj = null;  //takes care of *most* cases
         switch (cls) {
             case "org.ecocean.Encounter":
                 obj = myShepherd.getEncounter(id);
+                parentOcc = myShepherd.getOccurrence((Encounter)obj);
                 break;
             case "org.ecocean.Occurrence":
                 obj = myShepherd.getOccurrence(id);
@@ -1280,6 +1282,12 @@ rtn.put("_payload", payload);
             throw ex;
         }
         SystemLog.info("RestServlet.handleDelete() deleted {} id={}, instance={}", cls, id, instanceId);
+
+        if ((parentOcc != null) && parentOcc.isJDODeleted()) {
+            JSONObject del = new JSONObject();
+            del.put("deletedSighting", parentOcc.getId());
+            rtn.put("result", del);
+        }
 
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
