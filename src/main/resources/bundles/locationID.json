@@ -140,7 +140,10 @@
 
               {"name": "Palos Verdes- Malaga Cove", "id": "Palos Verdes- Malaga Cove"},
 
-              {"name": "Palos Verdes- Rocky Point", "id": "Palos Verdes- Rocky Point"}
+              {"name": "Palos Verdes- Rocky Point", "id": "Palos Verdes- Rocky Point"},
+                
+              {"name": "Palos Verdes- Terranea Resort", "id": "Palos Verdes- Terranea Resort"}
+                
               ] },
 
             {"name": "Point Loma", "id": "Point Loma", "locationID":[
