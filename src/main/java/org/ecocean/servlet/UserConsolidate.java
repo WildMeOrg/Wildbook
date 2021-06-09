@@ -583,7 +583,8 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public static JSONObject suspendLessCredentialedAccounts(Shepherd myShepherd, final JSONObject returnJson){
+  public static JSONObject suspendLessCredentialedAccounts(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
     returnJson.put("success", false);
     int suspensionCount = 0;
     List<User> allUsers = myShepherd.getAllUsers();
@@ -591,21 +592,20 @@ public class UserConsolidate extends HttpServlet {
     PersistenceManager persistenceManager = myShepherd.getPM();
     List<User> matchingUserCohort = new ArrayList<User>();
     for(User currentUser: allUsers){
-      //for each user, find other users with matching email addresses but non-matching, non-null usernames
-      matchingUserCohort = getAllUsersWithEmailAddressWithOptAdditionalFilter(currentUser.getEmailAddress(), persistenceManager, " && username!=null && uuid!=\"" + currentUser.getUUID() + "\"");
-      //including the currentUser, find highestCredentialedUser from the list
-      matchingUserCohort.add(currentUser);
-      User highestCredentialedMatch = getHighestCredentialedUserInList(matchingUserCohort, myShepherd);
-      //for the others on the list without that uuid, change their email address to uuid@localhost
-      for(User currentMatchingUserCohortMember: matchingUserCohort){
-        if(currentMatchingUserCohortMember.getUUID() != highestCredentialedMatch.getUUID()){
-          currentMatchingUserCohortMember.setEmailAddress(currentMatchingUserCohortMember.getUUID() + "@localhost");
-          //TODO decide if you need to update db transactions here
-          myShepherd.updateDBTransaction();
-          System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
-          suspensionCount ++;
-        }else{
-          System.out.println("dedupe the one not getting suspended is: " + currentMatchingUserCohortMember.toString());
+      if(currentUser!=null && currentUser.getEmailAddress()!=null){
+        //for each user, find other users with matching email addresses but non-matching, non-null usernames
+        matchingUserCohort = getAllUsersWithEmailAddressWithOptAdditionalFilter(currentUser.getEmailAddress(), persistenceManager, " && username!=null && uuid!=\'" + currentUser.getUUID() + "\'");
+        //including the currentUser, find highestCredentialedUser from the list
+        matchingUserCohort.add(currentUser);
+        User highestCredentialedMatch = getHighestCredentialedUserInList(matchingUserCohort, myShepherd);
+        //for the others on the list without that uuid, change their email address to uuid@localhost
+        for(User currentMatchingUserCohortMember: matchingUserCohort){
+          if(currentMatchingUserCohortMember.getUUID() != highestCredentialedMatch.getUUID()){
+            currentMatchingUserCohortMember.setEmailAddress(currentMatchingUserCohortMember.getUUID() + "@localhost");
+            System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
+            System.out.println("dedupe the one not getting suspended is: " + highestCredentialedMatch.toString());
+            suspensionCount ++;
+          }
         }
       }
     }
@@ -615,7 +615,8 @@ public class UserConsolidate extends HttpServlet {
     return returnJson;
   }
 
-  public static JSONObject consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(Shepherd myShepherd, final JSONObject returnJson){
+  public static JSONObject consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
     returnJson.put("success", false);
     //find users with email addresses but no usernames
     List<User> usernamelessUsers = new ArrayList<User>();
@@ -661,8 +662,8 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static List<User> getOtherUsersWithMatchingEmailAddress(User focalUser, PersistenceManager persistenceManager){ // now a wrapper method
-    if(focalUser == null || focalUser.getUUID() == null) return null;
-    return getAllUsersWithEmailAddressWithOptAdditionalFilter(focalUser.getEmailAddress(), persistenceManager, "&& this.uuid!=\"" + focalUser.getUUID() + "\"");
+    if(focalUser == null || focalUser.getUUID() == null || focalUser.getEmailAddress() == null) return null;
+    return getAllUsersWithEmailAddressWithOptAdditionalFilter(focalUser.getEmailAddress(), persistenceManager, "&& this.uuid!=\'" + focalUser.getUUID() + "\'");
   }
 
   public static User getHighestCredentialedUserInList(List<User> candidateUsers, Shepherd myShepherd){
@@ -776,12 +777,12 @@ public class UserConsolidate extends HttpServlet {
     if(!"".equals(emailAddress) && emailAddress!=null){
       String filter = null;
       if(additionalFilter != null){
-        filter="SELECT FROM org.ecocean.User where \"" + emailAddress.toLowerCase() + "\"==this.emailAddress.toLowerCase() " + additionalFilter;
+        filter="SELECT FROM org.ecocean.User where this.emailAddress.toLowerCase()==emailVal " + additionalFilter + " PARAMETERS String emailVal";
       }else{
-        filter="SELECT FROM org.ecocean.User where \"" + emailAddress.toLowerCase() + "\"==this.emailAddress.toLowerCase()";
+        filter="SELECT FROM org.ecocean.User where this.emailAddress.toLowerCase()==emailVal  PARAMETERS String emailVal";
       }
-      Query query=persistenceManager.newQuery(filter);
-      Collection c = (Collection) (query.execute());
+      Query query = persistenceManager.newQuery(filter);
+      Collection c = (Collection) (query.execute(emailAddress.toLowerCase())); //note for posterity: trying this query with ?1 variables or named variables was not successful.
       if(c!=null){
         returnUsers=new ArrayList<User>(c);
       }
@@ -908,53 +909,47 @@ public class UserConsolidate extends HttpServlet {
 
     //for automated user reconciliation
     //consolidate less complete accounts
+    JSONObject consolidateLessCompleteAccountsResultsJson = new JSONObject();
+    consolidateLessCompleteAccountsResultsJson.put("success", false);
     try{
       Boolean dedupeLessCompleteDesired = jsonRes.optBoolean("dedupeLessCompleteDesired", false);
       if(dedupeLessCompleteDesired){
-        returnJson = consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(myShepherd, returnJson);
+        consolidateLessCompleteAccountsResultsJson = consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(myShepherd);
       }
+      consolidateLessCompleteAccountsResultsJson.put("success", true);
     } catch (Exception e) {
         System.out.println("dedupe exception e while getting or consolidating users with less complete accounts.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or consolidating users with less complete accounts.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        returnJson.put("success", false);
     } finally {
         System.out.println("dedupe closing ajax call for user consolidate with less complete accounts transaction.....");
         myShepherd.updateDBTransaction();
-        returnJson.put("success", true);
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+        returnJson.put("consolidateLessCompleteAccountsResultsJson", consolidateLessCompleteAccountsResultsJson);
     }
 
     //suspend lower-credentialed acccounts with matching email addresses and non-null usernames
+    JSONObject suspendLowerCredAccountsResultsJson = new JSONObject();
+    suspendLowerCredAccountsResultsJson.put("success", false);
     try{
       int suspendedUserCount = 0;
       Boolean suspendLessCredentialedDesired = jsonRes.optBoolean("suspendLessCredentialedDesired", false);
       if(suspendLessCredentialedDesired){
-        returnJson = suspendLessCredentialedAccounts(myShepherd, returnJson);
+        suspendLowerCredAccountsResultsJson = suspendLessCredentialedAccounts(myShepherd);
       }
+      suspendLowerCredAccountsResultsJson.put("success", true);
     } catch (Exception e) {
-        System.out.println("dedupe exception while suspending less-credentialed user accounts.");
-        e.printStackTrace();
-        addErrorMessage(returnJson, "UserConsolidate: Exception while suspending less-credentialed user accounts.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        returnJson.put("success", false);
+      System.out.println("dedupe exception while suspending less-credentialed user accounts.");
+      e.printStackTrace();
+      addErrorMessage(returnJson, "UserConsolidate: Exception while suspending less-credentialed user accounts.");
     } finally {
-        System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
-        myShepherd.updateDBTransaction();
-        returnJson.put("success", true);
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+      System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
+      myShepherd.updateDBTransaction();
+      returnJson.put("suspendLowerCredAccountsResultsJson", suspendLowerCredAccountsResultsJson);
     }
 
     //assign orphaned encounters to Public user
+    JSONObject makeEncountersMissingSubmittersPublicJsonResults = new JSONObject();
+    makeEncountersMissingSubmittersPublicJsonResults.put("success", false);
     try{
       Boolean assignOrphanedEncountersToPublicDesired = jsonRes.optBoolean("assignOrphanedEncountersToPublicDesired", false);
       if(assignOrphanedEncountersToPublicDesired){
@@ -971,28 +966,24 @@ public class UserConsolidate extends HttpServlet {
           myShepherd.updateDBTransaction();
         }
         //find all encounters where submitterID is null or "N/A" and change to Public
-        EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
+        makeEncountersMissingSubmittersPublicJsonResults = EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
         myShepherd.updateDBTransaction();
       }
+      makeEncountersMissingSubmittersPublicJsonResults.put("success", true);
     } catch (Exception e) {
         System.out.println("dedupe exception while assigning encounters with submitterIDs of null or N/A to the public user");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while assigning encounters with submitterIDs of null or N/A to the public user.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for assigning encounters with submitterIDs of null or N/A to the public user.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        returnJson.put("success", true);
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+        myShepherd.updateDBTransaction();
+        returnJson.put("makeEncountersMissingSubmittersPublicJsonResults", makeEncountersMissingSubmittersPublicJsonResults);
     }
 
 
     //assign usernameless users to Anonymous
+    JSONObject assignUsernamelessToAnonymousJsonResults = new JSONObject();
+    assignUsernamelessToAnonymousJsonResults.put("success", false);
     try{
       int usernamelessCount = 0;
       Boolean renameUsernamelessToAnonymousDesired = jsonRes.optBoolean("renameUsernamelessToAnonymousDesired", false);
@@ -1007,27 +998,23 @@ public class UserConsolidate extends HttpServlet {
             usernamelessCount ++;
             myShepherd.updateDBTransaction();
           }
-          returnJson.put("usernamelessCount", usernamelessCount);
         }
       }
+      assignUsernamelessToAnonymousJsonResults.put("usernamelessCount", usernamelessCount);
+      assignUsernamelessToAnonymousJsonResults.put("success", true);
     } catch (Exception e) {
         System.out.println("dedupe exception while renaming usernameless non null email users to anonymous_+uuid.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while renaming usernameless non null email users to anonymous_+uuid.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for renaming usernameless non null email users to anonymous_+uuid.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        returnJson.put("success", true);
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignUsernamelessToAnonymousJsonResults", assignUsernamelessToAnonymousJsonResults);
     }
 
     //assign emailless or invalid emails to uuid@localhost
+    JSONObject assignEmaillessOrInvalidEmailAddressesJsonResults = new JSONObject();
+    assignEmaillessOrInvalidEmailAddressesJsonResults.put("success", false);
     try{
       int emailProblemUserCount = 0;
       Boolean suspendEmaillessOrInvalidEmailDesired = jsonRes.optBoolean("suspendEmaillessOrInvalidEmailDesired", false);
@@ -1041,27 +1028,23 @@ public class UserConsolidate extends HttpServlet {
             emailProblemUserCount ++;
             myShepherd.updateDBTransaction();
           }
-          returnJson.put("emailProblemUserCount", emailProblemUserCount);
+          assignEmaillessOrInvalidEmailAddressesJsonResults.put("emailProblemUserCount", emailProblemUserCount);
         }
       }
+      assignEmaillessOrInvalidEmailAddressesJsonResults.put("success", true);
     } catch (Exception e) {
         System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } finally {
         System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        returnJson.put("success", true);
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignEmaillessOrInvalidEmailAddressesJsonResults", assignEmaillessOrInvalidEmailAddressesJsonResults);
     }
 
     //assign emailless and usernameless anonymous_uuid uuid@localhost
+    JSONObject assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults = new JSONObject();
+    assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("success", false);
     try{
       int renameCounter = 0;
       Boolean suspendUsersMissingEmailAndUsernameDesired = jsonRes.optBoolean("suspendUsersMissingEmailAndUsernameDesired", false);
@@ -1076,25 +1059,18 @@ public class UserConsolidate extends HttpServlet {
             renameCounter ++;
             myShepherd.updateDBTransaction();
           }
-          returnJson.put("emaillessUsernamelessCount", renameCounter);
         }
-        returnJson.put("success", true);
       }
+      assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("renameCounter", renameCounter);
+      assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("success", true);
     } catch (Exception e) {
         System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        returnJson.put("success", false);
     } finally {
         System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
-        myShepherd.beginDBTransaction();
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults", assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults);
     }
 
     try{
@@ -1125,8 +1101,6 @@ public class UserConsolidate extends HttpServlet {
           returnJson.put("success",true);
           returnJson.put("users", userJsonArr);
         }
-        out.println(returnJson);
-        out.close();
       }
 
       //consolidate the user duplicates indicated by user
@@ -1168,8 +1142,6 @@ public class UserConsolidate extends HttpServlet {
           }
           returnJson.put("success",successStatus);
         }
-        out.println(returnJson);
-        out.close();
       }
 
     }catch (NullPointerException npe) {
@@ -1179,7 +1151,7 @@ public class UserConsolidate extends HttpServlet {
     } catch (JSONException je) {
         je.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: JSONException je while getting or merging users.");
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (Exception e) {
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or merging users.");

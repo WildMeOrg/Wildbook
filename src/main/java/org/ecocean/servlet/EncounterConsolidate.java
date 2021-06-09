@@ -27,9 +27,13 @@
  import org.ecocean.servlet.*;
  // import javax.jdo.Query;
  import javax.jdo.*;
+ import org.json.JSONObject;
 
 public class EncounterConsolidate{
-  public static void makeEncountersMissingSubmittersPublic(Shepherd myShepherd){
+  public static JSONObject makeEncountersMissingSubmittersPublic(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
+    returnJson.put("success", false);
+    int encountersMadePublicCount = 0;
   	String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"N/A\" || this.submitterID==null"; //.contains(null)" //&& submitters.isEmpty()
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
@@ -40,9 +44,13 @@ public class EncounterConsolidate{
       for(int i=0; i<encs.size(); i++){
         Encounter currentEncounter = encs.get(i);
         renameEncounterSubmitterID(myShepherd, currentEncounter, "Public");
+        encountersMadePublicCount ++;
       }
     }
     query.closeAll();
+    returnJson.put("encountersMadePublicCount", encountersMadePublicCount);
+    returnJson.put("success", true);
+    return returnJson;
   }
 
   public static void renameEncounterSubmitterID(Shepherd myShepherd, Encounter enc, String newSubmitterId){
