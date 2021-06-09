@@ -64,6 +64,7 @@ https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/com
 
 Add **new location ID coordinates** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
 
+Also add new locationIDs to this json file: https://github.com/WildMeOrg/Wildbook/blob/bass/src/main/resources/bundles/locationID.json
 
 <h2>Emails</h2>
 
