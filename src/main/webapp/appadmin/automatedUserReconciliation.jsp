@@ -89,17 +89,19 @@ try{
     }
 
     function populateNewButtonAndDisplay(data, headerText, buttonText){
-      //TODO figure out what to do with with data
       let theHtml = '';
-      if(data && !data.success){
-        theHtml += '<p> Something went wrong with that step</p>';
-      } else{
         theHtml += headerText;
         theHtml += buttonText;
-      }
       $('#content-container').empty();
       $('#content-container').append(theHtml);
     }
+
+    function populateErrorAndDisplay(errorMsg) {
+        let theHtml = '';
+        theHtml += '<p>' + errorMsg + '</p>';
+        $('#content-container').empty();
+        $('#content-container').append(theHtml);
+      }
 
     function populateFinal(data){
       let theHtml = '';
@@ -153,8 +155,12 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          if(data.success){
+        console.log("data from doAjaxCallForDedupeLessCompleteAccounts:");
+        console.log(data);
+          if(data && data.consolidateLessCompleteAccountsResultsJson && data.consolidateLessCompleteAccountsResultsJson.success){
             populateNewButtonAndDisplay(data, '<h4>Step 2. Suspend Lower-credentialed Accounts</h4>', '<button onclick="ajaxSuspendLowerCredentialedWrapper()">Do It</button>');
+          }else{
+            populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
           }
         },
           error: function(x,y,z) {
@@ -164,6 +170,7 @@ try{
     }
 
     function doAjaxCallForSuspendingLowerCredentialedSimilarAccounts(jsonRequest) {
+      displayProgressBar("Suspending lower credentialed similar accounts (this step also takes some time)...");
         $.ajax({
           url: wildbookGlobals.baseUrl + '../UserConsolidate',
           type: 'POST',
@@ -171,7 +178,13 @@ try{
           dataType: 'json',
           contentType: 'application/json',
           success: function (data) {
-            populateNewButtonAndDisplay(null, '<h4>Step 3. Assign Orphan Encounters to a Public Account</h4>', '<button onclick="ajaxOrphanEncountersToPublicWrapper()">Do It</button>');
+            console.log("data from doAjaxCallForSuspendingLowerCredentialedSimilarAccounts:");
+            console.log(data);
+            if (data && data.suspendLowerCredAccountsResultsJson && data.suspendLowerCredAccountsResultsJson.success) {
+              populateNewButtonAndDisplay(null, '<h4>Step 3. Assign Orphan Encounters to a Public Account</h4>', '<button onclick="ajaxOrphanEncountersToPublicWrapper()">Do It</button>');
+            } else {
+              populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
+            }
           },
             error: function(x, y, z) {
               console.warn('%o %o %o', x, y, z);
@@ -180,6 +193,7 @@ try{
       }
 
       function doAjaxCallForAssigningOrphanEncountersToPublic(jsonRequest) {
+        displayProgressBar("Assigning orphaned encounters to Public user...");
           $.ajax({
             url: wildbookGlobals.baseUrl + '../UserConsolidate',
             type: 'POST',
@@ -187,7 +201,13 @@ try{
             dataType: 'json',
             contentType: 'application/json',
             success: function (data) {
-              populateNewButtonAndDisplay(null, '<h4>Step 4. Rename Usernameless Accounts To Anonymous_uuid</h4>', '<button onclick="ajaxRenameUsernamelessAnonymousWrapper()">Do It</button>');
+              console.log("data from doAjaxCallForAssigningOrphanEncountersToPublic:");
+              console.log(data);
+              if (data && data.makeEncountersMissingSubmittersPublicJsonResults && data.makeEncountersMissingSubmittersPublicJsonResults.success) {
+                populateNewButtonAndDisplay(null, '<h4>Step 4. Rename Usernameless Accounts To Anonymous_uuid</h4>', '<button onclick="ajaxRenameUsernamelessAnonymousWrapper()">Do It</button>');
+              } else {
+                populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
+              }
             },
             error: function (x, y, z) {
               console.warn('%o %o %o', x, y, z);
@@ -196,6 +216,7 @@ try{
         }
 
         function doAjaxCallForRenamingUsernamelessToAnonymous(jsonRequest) {
+          displayProgressBar("Renaming usernameless users to anonymous...");
             $.ajax({
               url: wildbookGlobals.baseUrl + '../UserConsolidate',
               type: 'POST',
@@ -203,7 +224,13 @@ try{
               dataType: 'json',
               contentType: 'application/json',
               success: function (data) {
-                populateNewButtonAndDisplay(null, '<h4>Step 5. "Suspend" emailless or invalid emails</h4>', '<button onclick="ajaxSuspendEmaillessOrInvalidWrapper()">Do It</button>');
+                console.log("data from doAjaxCallForRenamingUsernamelessToAnonymous");
+                console.log(data);
+                if (data && data.assignUsernamelessToAnonymousJsonResults && data.assignUsernamelessToAnonymousJsonResults.success) {
+                  populateNewButtonAndDisplay(null, '<h4>Step 5. "Suspend" emailless or invalid emails</h4>', '<button onclick="ajaxSuspendEmaillessOrInvalidWrapper()">Do It</button>');
+                } else {
+                  populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
+                }
               },
               error: function (x, y, z) {
                 console.warn('%o %o %o', x, y, z);
@@ -212,6 +239,7 @@ try{
           }
 
           function doAjaxCallForSuspendingEmaillessOrInvalidEmails(jsonRequest) {
+            displayProgressBar("Suspending emailless or invalid email accounts...");
               $.ajax({
                 url: wildbookGlobals.baseUrl + '../UserConsolidate',
                 type: 'POST',
@@ -219,7 +247,13 @@ try{
                 dataType: 'json',
                 contentType: 'application/json',
                 success: function (data) {
-                  populateNewButtonAndDisplay(null, '<h4>Step 6. "Suspend" emailless and usernameless</h4>', '<button onclick="ajaxSuspendEmaillessAndUsernamelessWrapper()">Do It</button>');
+                  console.log("data from doAjaxCallForSuspendingEmaillessOrInvalidEmails");
+                  console.log(data);
+                  if (data && data.assignEmaillessOrInvalidEmailAddressesJsonResults && data.assignEmaillessOrInvalidEmailAddressesJsonResults.success) {
+                    populateNewButtonAndDisplay(null, '<h4>Step 6. "Suspend" emailless and usernameless</h4>', '<button onclick="ajaxSuspendEmaillessAndUsernamelessWrapper()">Do It</button>');
+                  } else {
+                    populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
+                  }
                 },
                 error: function (x, y, z) {
                   console.warn('%o %o %o', x, y, z);
@@ -228,6 +262,7 @@ try{
             }
 
             function doAjaxCallForSuspendingEmaillessAndUsernameless(jsonRequest) {
+              displayProgressBar("Suspending emailless and usernameless accounts...");
                 $.ajax({
                   url: wildbookGlobals.baseUrl + '../UserConsolidate',
                   type: 'POST',
@@ -235,7 +270,13 @@ try{
                   dataType: 'json',
                   contentType: 'application/json',
                   success: function (data) {
-                    populateFinal(data);
+                    console.log("data from doAjaxCallForSuspendingEmaillessAndUsernameless");
+                    console.log(data);
+                    if (data && data.assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults && data.assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.success) {
+                      populateFinal(data);
+                    } else {
+                      populateErrorAndDisplay("Whoops. That step was not successful. Please refer to the logs for more detail.");
+                    }
                   },
                   error: function (x, y, z) {
                     console.warn('%o %o %o', x, y, z);
