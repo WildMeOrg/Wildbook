@@ -75,7 +75,7 @@ public class RouteList extends HttpServlet {
       Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
       System.out.println("-- after" + route.getId());
       myShepherd.getPM().deletePersistent(route);
-    } else if (request.getParameter("save").equals("save")) {
+    } else if (request.getParameter("action").equals("save")) {
       System.out.println("action " + request.getParameter("name"));
       System.out.println("locationId " + request.getParameter("locationId"));
       System.out.println("startTime " + request.getParameter("startTime"));
