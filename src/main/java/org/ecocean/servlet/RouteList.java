@@ -76,6 +76,12 @@ public class RouteList extends HttpServlet {
       System.out.println("-- after" + route.getId());
       myShepherd.getPM().deletePersistent(route);
     } else if (request.getParameter("save").equals("save")) {
+      System.out.println("action " + request.getParameter("name"));
+      System.out.println("locationId " + request.getParameter("locationId"));
+      System.out.println("startTime " + request.getParameter("startTime"));
+      System.out.println("endTime " + request.getParameter("endTime"));
+      System.out.println("path " + request.getParameter("path"));
+      
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         myShepherd.setAction("routeCreator-save");
         myShepherd.beginDBTransaction();
