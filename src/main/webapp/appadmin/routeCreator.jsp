@@ -188,7 +188,7 @@ console.log('data=%o', data);
         type: 'POST',
         dataType: "json",
         contentType: 'application/json',
-        complete: function(x) {
+        success : function(x) {
             console.log(x);
             if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.routeId) {
                 $('#save-status').html('saved Route id=<b>' + x.responseJSON.routeId + '</b>');
