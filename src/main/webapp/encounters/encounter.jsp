@@ -6706,8 +6706,7 @@ $('.ia-match-filter-dialog input').each(function(i, el) {
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
 console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
-        var windowRef = window.open(url, '_blank');
-        wildbook.openInTabV2('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId, windowRef)
+        wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
     iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
     //TODO uncheck everything????
