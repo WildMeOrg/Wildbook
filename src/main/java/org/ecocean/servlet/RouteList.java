@@ -97,6 +97,7 @@ public class RouteList extends HttpServlet {
         System.out.println("=========== " + rtn.toString(4));
         out.println(rtn.toString(4));
     }
+    rtn.put("success", true);
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     response.setContentType("text/json");
