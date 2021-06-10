@@ -30,7 +30,6 @@ public class RouteList extends HttpServlet {
   @Override
   public void doGet(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
-    System.out.println("------------------- get " + request.getParameter("action"));
     doPost(request, response);
   }
 
@@ -38,13 +37,12 @@ public class RouteList extends HttpServlet {
   public void doPost(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");
-    System.out.println("------------------- post " + request.getParameter("action"));
+    System.out.println("RouteList.java Action to be perform " + request.getParameter("action"));
     // init variables
     PrintWriter out = response.getWriter();
     String context = ServletUtilities.getContext(request);
     JSONObject rtn = new JSONObject();
     Shepherd myShepherd = new Shepherd(context);
-    
     
     myShepherd.beginDBTransaction();
     if(request.getParameter("action").equals("getList")){
@@ -71,20 +69,11 @@ public class RouteList extends HttpServlet {
       rtn.put("data", jarr);
     } else if (request.getParameter("action").equals("delete")){
       String routeId = request.getParameter("id");
-      System.out.println("-- " + routeId);
       Route route = (Route) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Route.class, routeId), true));
-      System.out.println("-- after" + route.getId());
       myShepherd.getPM().deletePersistent(route);
+      myShepherd.commitDBTransaction();
     } else if (request.getParameter("action").equals("save")) {
-      System.out.println("action " + request.getParameter("name"));
-      System.out.println("locationId " + request.getParameter("locationId"));
-      System.out.println("startTime " + request.getParameter("startTime"));
-      System.out.println("endTime " + request.getParameter("endTime"));
-      System.out.println("path " + request.getParameter("path"));
-      
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
-        System.out.println("jsonIn " + jsonIn.toString());
-        myShepherd.setAction("routeCreator-save");
         myShepherd.beginDBTransaction();
         Route route = new Route();
         route.setName(jsonIn.optString("name", null));
@@ -95,11 +84,9 @@ public class RouteList extends HttpServlet {
         myShepherd.getPM().makePersistent(route);
         rtn.put("success", true);
         rtn.put("routeId", route.getId());
-        System.out.println("=========== " + rtn.toString(4));
         out.println(rtn.toString(4));
+        myShepherd.commitDBTransaction();
     }
-    rtn.put("success", true);
-    myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
     response.setContentType("text/json");
     out.println(rtn.toString(4));
