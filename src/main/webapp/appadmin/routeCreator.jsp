@@ -48,14 +48,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script>
 var s = [];
+var drawingManager;
 //delete a record
 function deleteAllShape() {
 	$("#pt-data").val("");
-  for (var i=0; i < s.length; i++)
-  {
-    s[i].overlay.setMap(null);
-  }
-  s = [];
+  drawingManager.setMap(null);
 }
 
 function deleteRoute(id){
@@ -71,7 +68,7 @@ function deleteRoute(id){
 }
 
 var map;
-var drawingManager;
+
 
 var data;
 
@@ -101,7 +98,7 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 	});
 	updatePoints(s);
 });
-google.maps.event.addDomListener(document.getElementById('delete-all-button'), 'click', deleteAllShape);
+google.maps.event.addDomListener($('#clear-routes'), 'click', deleteAllShape);
 }
 
 
@@ -252,7 +249,7 @@ margin: 10px;
 
 <p id="save-status"></p>
 <input type="button" value="save" onclick="saveData()" />
-<input type="button" value="clear" onclick="deleteAllShape()">
+<input type="button" value="clear" id="clear-routes" onclick="deleteAllShape()">
 </body>
 </html>
 
