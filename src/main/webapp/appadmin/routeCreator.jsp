@@ -47,7 +47,17 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 </script>
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script>
+var s = [];
 //delete a record
+function deleteAllShape() {
+	$("#pt-data").val("");
+  for (var i=0; i < s.length; i++)
+  {
+    s[i].overlay.setMap(null);
+  }
+  s = [];
+}
+
 function deleteRoute(id){
 	if(confirm("Are you sure you want Delete ?")){
 	 $.ajax({
@@ -83,7 +93,6 @@ drawingManager.setMap(map);
 google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 	data = ev;
 	console.log(ev);
-	var s = [];
 	ev.latLngs.forEach(function(arr) {
 		arr.forEach(function(ll) {
 			console.log(ll);
@@ -92,7 +101,7 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 	});
 	updatePoints(s);
 });
-
+google.maps.event.addDomListener(document.getElementById('delete-all-button'), 'click', deleteAllShape);
 }
 
 
@@ -191,7 +200,7 @@ console.log('data=%o', data);
         success : function(data) {
             console.log(data);
             if (data && data.success && data.routeId) {
-            	$("#pt-data,#name ").val("")
+            	$("#pt-data,#name ").val("");
                 $('#save-status').html('saved Route id=<b>' + data.routeId + '</b>');
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
@@ -243,6 +252,7 @@ margin: 10px;
 
 <p id="save-status"></p>
 <input type="button" value="save" onclick="saveData()" />
+<input type="button" value="clear" onclick="deleteAllShape()">
 </body>
 </html>
 
