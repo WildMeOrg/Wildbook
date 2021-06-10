@@ -191,6 +191,7 @@ console.log('data=%o', data);
         success : function(data) {
             console.log(data);
             if (data && data.success && data.routeId) {
+            	$("#pt-data,#name ").val("")
                 $('#save-status').html('saved Route id=<b>' + data.routeId + '</b>');
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
@@ -240,10 +241,8 @@ margin: 10px;
 <textarea id="pt-data" style="padding-top: 20px; width: 700px; height: 20em;"></textarea>
 </div>
 
-<p id="save-status">
+<p id="save-status"></p>
 <input type="button" value="save" onclick="saveData()" />
-</p>
-
 </body>
 </html>
 
