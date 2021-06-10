@@ -188,10 +188,10 @@ console.log('data=%o', data);
         type: 'POST',
         dataType: "json",
         contentType: 'application/json',
-        success : function(x) {
-            console.log(x);
-            if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.routeId) {
-                $('#save-status').html('saved Route id=<b>' + x.responseJSON.routeId + '</b>');
+        success : function(data) {
+            console.log(data);
+            if (data && data.responseJSON && data.responseJSON.success && data.responseJSON.routeId) {
+                $('#save-status').html('saved Route id=<b>' + data.responseJSON.routeId + '</b>');
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
             }
