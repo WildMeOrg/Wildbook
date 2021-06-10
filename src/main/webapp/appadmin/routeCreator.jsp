@@ -190,8 +190,8 @@ console.log('data=%o', data);
         contentType: 'application/json',
         success : function(data) {
             console.log(data);
-            if (data && data.responseJSON && data.responseJSON.success && data.responseJSON.routeId) {
-                $('#save-status').html('saved Route id=<b>' + data.responseJSON.routeId + '</b>');
+            if (data && data.success && data.routeId) {
+                $('#save-status').html('saved Route id=<b>' + data.routeId + '</b>');
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
             }
