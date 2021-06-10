@@ -38,7 +38,7 @@ public class RouteList extends HttpServlet {
   public void doPost(final HttpServletRequest request,
       final HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");
-    System.out.println("------------------- get " + request.getParameter("action"));
+    System.out.println("------------------- post " + request.getParameter("action"));
     // init variables
     PrintWriter out = response.getWriter();
     String context = ServletUtilities.getContext(request);
