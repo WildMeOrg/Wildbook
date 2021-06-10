@@ -84,12 +84,11 @@ public class RouteList extends HttpServlet {
         myShepherd.getPM().makePersistent(route);
         rtn.put("success", true);
         rtn.put("routeId", route.getId());
-        out.println(rtn.toString(4));
         myShepherd.commitDBTransaction();
     }
     myShepherd.closeDBTransaction();
     response.setContentType("text/json");
-    out.println(rtn.toString(4));
+    out.print(rtn.toString());
     out.close();
   }
 
