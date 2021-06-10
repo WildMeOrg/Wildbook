@@ -385,14 +385,25 @@ System.out.println("*** trying redirect?");
                 }
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
-                if(projectIdSelection != null){
-                  for(String projectId: projectIdSelection){
-                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
-                    if(currentProject!=null){
-                      projects.add(currentProject);
+                
+                //Adding to a project should not generate an error that blocks data capture
+                //throw exception and move on
+                try {
+                  if(projectIdSelection != null){
+                    for(String projectId: projectIdSelection){
+                      Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
+                      if(currentProject!=null){
+                        projects.add(currentProject);
+                      }
                     }
                   }
                 }
+                catch(Exception e) {
+                  e.printStackTrace();
+                }
+                
+                
+                
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
@@ -616,13 +627,20 @@ System.out.println("about to do enc()");
             }
             enc.setEncounterNumber(encID);
 
+            //Adding to a project should not generate an error that blocks data capture
+            //throw exception and move on
             //add encounter to projects
-            if(projects!=null){
-              for(Project currentProject: projects){
-                if(currentProject!=null && enc!=null){
-                  currentProject.addEncounter(enc);
+            try {
+              if(projects!=null){
+                for(Project currentProject: projects){
+                  if(currentProject!=null && enc!=null){
+                    currentProject.addEncounter(enc);
+                  }
                 }
               }
+            }
+            catch(Exception g) {
+              g.printStackTrace();
             }
 
 
