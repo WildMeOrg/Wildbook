@@ -83,6 +83,7 @@ public class RouteList extends HttpServlet {
       System.out.println("path " + request.getParameter("path"));
       
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
+        System.out.println("jsonIn " + jsonIn.toString());
         myShepherd.setAction("routeCreator-save");
         myShepherd.beginDBTransaction();
         Route route = new Route();
