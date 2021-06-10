@@ -227,10 +227,6 @@ console.log('is %o', ajax);
         var win = window.open(url, '_blank');
         if (win) win.focus();
     },
-    openInTabV2: function (url, windowRef) { //fix for safari bug with window.open: https://stackoverflow.com/questions/20696041/window-openurl-blank-not-working-on-imac-safari
-        windowRef.location=url;
-        if (windowRef) windowRef.focus();
-    },
 
     //this is its own mess of stuff related to the logged in user
     user: {
@@ -288,7 +284,7 @@ console.log('is %o', ajax);
                 var label = item.label;
                 if (item.type == 'user') {
                     label = 'User: ' + label;
-                } 
+                }
                 return { label: label, type: item.type, value: item.value };
             });
             return res;
