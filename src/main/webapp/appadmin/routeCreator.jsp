@@ -178,12 +178,12 @@ function saveData() {
         name: $('#name').val(),
         startTime: $('#startTime').val(),
         endTime: $('#endTime').val(),
-        path: pathArr,
-        action : "save"
+        path: pathArr
+        
     };
 console.log('data=%o', data);
     $.ajax({
-        url: "../RouteList",
+        url: "../RouteList?action=save",
         data: JSON.stringify(data),
         type: 'POST',
         dataType: "json",
