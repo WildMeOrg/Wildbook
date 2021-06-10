@@ -186,6 +186,7 @@ console.log('data=%o', data);
         url: "../RouteList",
         data: JSON.stringify(data),
         type: 'POST',
+        dataType: "text",
         complete: function(x) {
             console.log(x);
             if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.routeId) {
