@@ -185,7 +185,6 @@ console.log('data=%o', data);
     $.ajax({
         url: "../RouteList",
         data: JSON.stringify(data),
-        contentType: 'application/javascript',
         type: 'POST',
         complete: function(x) {
             console.log(x);
