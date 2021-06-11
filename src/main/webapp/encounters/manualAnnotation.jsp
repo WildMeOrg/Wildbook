@@ -11,7 +11,8 @@
 		java.net.URLEncoder,
 		java.nio.charset.StandardCharsets,
 		java.io.UnsupportedEncodingException,
-		org.ecocean.identity.IBEISIA
+		org.ecocean.identity.IBEISIA,
+		java.util.ArrayList
 		"
 %>
 
@@ -279,11 +280,21 @@ try{
 	//also don't clone if this is a part
 	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
+		
 	}
 	//also don't clone if this is a part
 	//if the one annot isn't trivial, then we have to clone the encounter as well
 	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
+		
+		//exception case - if there is only one annotation and it is a part
+		if(annots.size()==1){
+			Annotation annot1 = annots.get(0);
+			if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+				cloneEncounter=false;
+			}
+		}
+		
 	}
 	
 	
@@ -467,7 +478,24 @@ try{
 	        }
 	    }
 	
+	    myShepherd.updateDBTransaction();
+	    
+	    //register media asset for acmId
+	    if(ma.getAcmId()==null){
+	    	ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+	    	mas.add(ma);
+	    	IBEISIA.sendMediaAssetsNew(mas, context);
+	    	myShepherd.updateDBTransaction();
+	    }
+	    
+	    //register annotation for acmId
+	    if(ann.getAcmId()==null){
+	    	ArrayList<Annotation> anns = new ArrayList<Annotation>();
+	    	anns.add(ann);
+	    	IBEISIA.sendAnnotationsNew(anns,context, myShepherd);
+	    }
 	    myShepherd.commitDBTransaction();
+	    
 		%><hr />
 		
 		<h2>Success!</h2> 
