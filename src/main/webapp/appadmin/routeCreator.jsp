@@ -52,6 +52,7 @@ var selectedShape;
 var map;
 var data;
 var s = [];
+var dataTable = "";
 function clearSelection() {
   if (selectedShape) {
     selectedShape.setEditable(false);
@@ -65,6 +66,7 @@ function setSelection(shape) {
 
 }
 function deleteSelectedShape() {
+	$("#pt-data").val("");
   if (selectedShape) {
     selectedShape.setMap(null);
   }
@@ -134,26 +136,14 @@ function deleteRoute(id){
 	}
 }
 
-
-
-$(document).ready(function() {
-	$("#route-list").DataTable({
+function getRouteList(){
+	if(dataTable !== ""){
+		dataTable.destroy();
+	}
+	dataTable = $("#route-list").DataTable({
 		"processing" : true,
 		"serverside" : false,
 		dom: 'Bfrtip',
-		 "buttons": [
-		            {
-		                text: 'Add new button',
-		                action: function ( e, dt, node, config ) {
-		                    dt.button().add( 1, {
-		                        text: 'Button '+(counter++),
-		                        action: function () {
-		                            this.remove();
-		                        }
-		                    } );
-		                }
-		            }
-		        ],
 		"ajax" : "../RouteList?action=getList",
 		"columns" : [
 			{
@@ -183,8 +173,10 @@ $(document).ready(function() {
 			},
 		]
 	});
-	
-	
+}
+
+
+$(document).ready(function() {
 	google.maps.event.addDomListener(window, 'load', initialize);
     $('#startTime').val(new Date().toISOString());
     $('#endTime').val(new Date(new Date().getTime() + 600000).toISOString());
@@ -229,6 +221,7 @@ console.log('data=%o', data);
             if (data && data.success && data.routeId) {
             	$("#pt-data,#name ").val("");
                 $('#save-status').html('saved Route id=<b>' + data.routeId + '</b>');
+                getRouteList();
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
             }
