@@ -105,7 +105,7 @@ function initialize() {
   	// map is clicked.
   	google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
   	google.maps.event.addListener(map, 'click', clearSelection);
-  	google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
+  	google.maps.event.addDomListener(document.getElementById('clear-routes'), 'click', deleteSelectedShape);
 }
 
 function deleteRoute(id){
@@ -277,7 +277,7 @@ margin: 10px;
 
 <p id="save-status"></p>
 <input type="button" value="save" onclick="saveData()" />
-<input type="button" value="clear" id="clear-routes" onclick="deleteAllShape()">
+<input type="button" value="clear" id="clear-routes">
 </body>
 </html>
 
