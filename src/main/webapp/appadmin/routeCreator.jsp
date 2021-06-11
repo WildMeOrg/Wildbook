@@ -49,10 +49,15 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script>
 var s = [];
 var drawingManager;
+var selectedShape;
 //delete a record
 function deleteAllShape() {
 	$("#pt-data").val("");
-  drawingManager.setMap(null);
+	selectedShape.setEditable(false);
+    selectedShape = null;
+}
+function setSelection(shape) {
+	selectedShape = shape;
 }
 
 function deleteRoute(id){
@@ -97,6 +102,9 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 		});
 	});
 	updatePoints(s);
+	if (ev.type != google.maps.drawing.OverlayType.POLYLINE) {
+		setSelection(e.overlay);
+	}
 });
 google.maps.event.addDomListener($('#clear-routes'), 'click', deleteAllShape);
 }
