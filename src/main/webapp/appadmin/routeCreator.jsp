@@ -36,7 +36,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
                 <th>Location Id</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Path</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -158,12 +157,6 @@ function getRouteList(){
 			},
 			{
 				data : "endTime"
-			},
-			{
-				data : "path", 
-				render : function ( data, type, row, meta ) {
-					return '';
-				}
 			},
 			{
 				data : "id", 
