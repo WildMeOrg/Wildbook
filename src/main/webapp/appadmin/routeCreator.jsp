@@ -49,6 +49,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script>
 var drawingManager;
 var selectedShape;
+var map;
+var data;
 function clearSelection() {
   if (selectedShape) {
     selectedShape.setEditable(false);
@@ -106,6 +108,17 @@ function initialize() {
   	google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
   	google.maps.event.addListener(map, 'click', clearSelection);
   	google.maps.event.addDomListener(document.getElementById('clear-routes'), 'click', deleteSelectedShape);
+  	google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
+  		data = ev;
+  		console.log(ev);
+  		ev.latLngs.forEach(function(arr) {
+  			arr.forEach(function(ll) {
+  				console.log(ll);
+  				s.push( [ll.lat(), ll.lng()] );
+  			});
+  		});
+  		updatePoints(s);
+  	});
 }
 
 function deleteRoute(id){
@@ -120,19 +133,7 @@ function deleteRoute(id){
 	}
 }
 
-var map;
-var data;
-google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
-	data = ev;
-	console.log(ev);
-	ev.latLngs.forEach(function(arr) {
-		arr.forEach(function(ll) {
-			console.log(ll);
-			s.push( [ll.lat(), ll.lng()] );
-		});
-	});
-	updatePoints(s);
-});
+
 
 $(document).ready(function() {
 	$("#route-list").DataTable({
