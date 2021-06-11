@@ -51,6 +51,7 @@ var drawingManager;
 var selectedShape;
 var map;
 var data;
+var s = [];
 function clearSelection() {
   if (selectedShape) {
     selectedShape.setEditable(false);
@@ -70,7 +71,7 @@ function deleteSelectedShape() {
 }
 function initialize() {
 	var map = new google.maps.Map(document.getElementById('map'), {
-		zoom: 7,
+		zoom: 8,
 		center: new google.maps.LatLng(47.609722, -122.333056)
 	});
 
