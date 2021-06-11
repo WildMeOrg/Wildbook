@@ -131,6 +131,7 @@ function deleteRoute(id){
    	  cache: false,
    	  success: function(html){
    	    $("#results").append(html);
+   	 	getRouteList();
    	  }
    	});
 	}
@@ -180,6 +181,7 @@ $(document).ready(function() {
 	google.maps.event.addDomListener(window, 'load', initialize);
     $('#startTime').val(new Date().toISOString());
     $('#endTime').val(new Date(new Date().getTime() + 600000).toISOString());
+    getRouteList();
 });
 
 function updatePoints(pts) {
@@ -222,6 +224,7 @@ console.log('data=%o', data);
             	$("#pt-data,#name ").val("");
                 $('#save-status').html('saved Route id=<b>' + data.routeId + '</b>');
                 getRouteList();
+                document.getElementById('clear-routes').click();
             } else {
                 $('#save-status').html('<div class="error">error saving</div>');
             }
