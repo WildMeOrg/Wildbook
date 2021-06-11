@@ -47,17 +47,65 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 </script>
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script>
-var s = [];
 var drawingManager;
 var selectedShape;
-//delete a record
-function deleteAllShape() {
-	$("#pt-data").val("");
-	selectedShape.setEditable(false);
+function clearSelection() {
+  if (selectedShape) {
+    selectedShape.setEditable(false);
     selectedShape = null;
+  }
 }
 function setSelection(shape) {
-	selectedShape = shape;
+  clearSelection();
+  selectedShape = shape;
+  shape.setEditable(true);
+
+}
+function deleteSelectedShape() {
+  if (selectedShape) {
+    selectedShape.setMap(null);
+  }
+}
+function initialize() {
+	var map = new google.maps.Map(document.getElementById('map'), {
+		zoom: 7,
+		center: new google.maps.LatLng(47.609722, -122.333056)
+	});
+
+	// Creates a drawing manager attached to the map that allows the user to draw
+	// markers, lines, and shapes.
+	drawingManager = new google.maps.drawing.DrawingManager({
+		drawingMode: google.maps.drawing.OverlayType.POLYLINE,
+		map: map
+	});
+	drawingManager.setOptions({
+		drawingControlOptions: {
+			position: google.maps.ControlPosition.TOP_CENTER,
+			drawingModes: ['polyline'],
+		}
+	});
+
+  	google.maps.event.addListener(drawingManager, 'overlaycomplete', function(e) {
+		if (e.type != google.maps.drawing.OverlayType.MARKER) {
+			// Switch back to non-drawing mode after drawing a shape.
+			drawingManager.setDrawingMode(null);
+	
+			// Add an event listener that selects the newly-drawn shape when the user
+			// mouses down on it.
+			var newShape = e.overlay;
+			newShape.type = e.type;
+		      google.maps.event.addListener(newShape, 'click', function() {
+		        setSelection(newShape);
+		      });
+			setSelection(newShape);
+    	}
+  	});
+
+  	// Clear the current selection when the drawing mode is changed, or when the
+  	// map is clicked.
+  	google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
+  	google.maps.event.addListener(map, 'click', clearSelection);
+  	google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
 }
 
 function deleteRoute(id){
@@ -73,25 +121,7 @@ function deleteRoute(id){
 }
 
 var map;
-
-
 var data;
-
-function mapSetup() {
-	map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 47.609722, lng: -122.333056 },  //TODO center based on pulldown of locationId
-    zoom: 8
-  });
-
-drawingManager = new google.maps.drawing.DrawingManager({
-	drawingMode: google.maps.drawing.OverlayType.POLYLINE,
-	drawingControlOptions: {
-      position: google.maps.ControlPosition.TOP_CENTER,
-      drawingModes: ['polyline'],
-    },
-});
-drawingManager.setMap(map);
-
 google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 	data = ev;
 	console.log(ev);
@@ -102,19 +132,9 @@ google.maps.event.addListener(drawingManager, 'polylinecomplete', function(ev) {
 		});
 	});
 	updatePoints(s);
-	if (ev.type != google.maps.drawing.OverlayType.POLYLINE) {
-		setSelection(e.overlay);
-	}
 });
-google.maps.event.addDomListener($('#clear-routes'), 'click', deleteAllShape);
-}
 
-
-	
 $(document).ready(function() {
-	
-	
-	
 	$("#route-list").DataTable({
 		"processing" : true,
 		"serverside" : false,
@@ -163,7 +183,7 @@ $(document).ready(function() {
 	});
 	
 	
-    mapSetup();
+	google.maps.event.addDomListener(window, 'load', initialize);
     $('#startTime').val(new Date().toISOString());
     $('#endTime').val(new Date(new Date().getTime() + 600000).toISOString());
 });
