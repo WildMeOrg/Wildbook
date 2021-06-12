@@ -82,7 +82,13 @@
 					"name": "North-western Namibia",
 					"id": "North-western Namibia",
 					"defaultLatitude": -20.902437, "defaultLongitude": 15.864258
+				},
+				{
+					"name": "Kuzikus Wildlife Reserve",
+					"id": "Kuzikus Wildlife Reserve"
 				}
+				
+				
 			]
 		},
 		{
