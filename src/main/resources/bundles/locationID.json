@@ -137,6 +137,16 @@
 					"defaultLatitude": 3.9, "defaultLongitude": 33.85
 				}
 			]
+		},
+		{
+			"name": "Zambia",
+			"id": "Zambia",
+			"locationID": [
+				{
+					"name": "Luambe",
+					"id": "Luambe"
+				}
+			]
 		}
 	]
 }
