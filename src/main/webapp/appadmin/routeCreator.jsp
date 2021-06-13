@@ -138,11 +138,11 @@ function deleteRoute(id){
 }
 
 function showPreview(e){
-	$(e).closest("td").not("span:visible").css( "display", "block" );
+	$(e).parent().find("span").show();
 }
 
 function hidePreview(e){
-	$(e).closest("td span").css( "display", "none" );
+	$(e).parent().find("span").hide();
 }
 
 function getRouteList(){
