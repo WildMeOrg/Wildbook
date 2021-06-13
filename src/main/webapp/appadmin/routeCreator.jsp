@@ -138,13 +138,11 @@ function deleteRoute(id){
 }
 
 function showPreview(e){
-	$(e).closest("td").not("span:visible").show();
-	
-	
+	$(e).closest("td").not("span:visible").css( "display", "block" );
 }
 
 function hidePreview(e){
-	$(e).closest("td").not("span:visible").hide();
+	$(e).closest("td span").css( "display", "none" );
 }
 
 function getRouteList(){
@@ -174,7 +172,7 @@ function getRouteList(){
 				render : function ( data, type, row, meta ) {
 					var a = data;
 					var previewURL = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=AIzaSyDTXMFUMTbIRCo905mxcPGPP1RNBnfCkQw&path=47.678969535962956,-122.28155758691406|47.51969336834902,-122.27057125878906|47.471444639572866,-122.29803707910156';
-						return '<span style="position: absolute; display:none;" ><img src="'+previewURL+'" /></span> <a href="#" onmouseover="showPreview(this);" onmouseover="hidePreview(this);"><i class="el el-picture"></i></a>';
+						return '<span style="position: absolute; display:none; z-index:1" ><img src="'+previewURL+'" /></span> <a href="#" onmouseover="showPreview(this);" onmouseover="hidePreview(this);"><i class="el el-picture"></i></a>';
 				}
 			},
 			{
