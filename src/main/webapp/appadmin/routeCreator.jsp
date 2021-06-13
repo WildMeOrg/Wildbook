@@ -145,7 +145,7 @@ function showPreview(e){
 function hidePreview(e){
 	$(e).parent().find("span").hide();
 }
-
+var coordinates = "";
 function getRouteList(){
 	if(dataTable !== ""){
 		dataTable.destroy();
@@ -171,9 +171,11 @@ function getRouteList(){
 			{
 				data : "path", 
 				render : function ( data, type, row, meta ) {
-					var a = data;
-					var previewURL = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=AIzaSyDTXMFUMTbIRCo905mxcPGPP1RNBnfCkQw&path=47.678969535962956,-122.28155758691406|47.51969336834902,-122.27057125878906|47.471444639572866,-122.29803707910156';
-						return '<span style="position: absolute; display:none; z-index:1" ><img src="'+previewURL+'" /></span> <a href="#" data-preview-image="'+previewURL+'"><i class="el el-picture"></i></a>';
+					coordinates = ""
+					data.forEach(function(r) {
+						coordinates = coordinates+ r.latitude + "," +r.longitude + "|";
+					})
+					return '<span style="position: absolute; display:none; z-index:1" ><img src="'+previewURL+'" /></span> <a href="#" data-preview-image="'+previewURL+'"><i class="el el-picture"></i></a>';
 				}
 			},
 			{
