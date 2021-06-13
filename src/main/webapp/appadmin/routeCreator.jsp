@@ -138,12 +138,12 @@ function deleteRoute(id){
 }
 
 function showPreview(e){
-	var a = e;
+	e.closest("td span").show();
 	
 }
 
 function hidePreview(e){
-	var a = e;	
+	e.closest("td span").hide();
 }
 
 function getRouteList(){
