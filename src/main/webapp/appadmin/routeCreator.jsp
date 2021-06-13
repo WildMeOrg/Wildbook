@@ -175,7 +175,7 @@ function getRouteList(){
 					data.forEach(function(r) {
 						coordinates = coordinates+ r.latitude + "," +r.longitude + "|";
 					})
-					var previewURL = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=AIzaSyDTXMFUMTbIRCo905mxcPGPP1RNBnfCkQw&path='coordinates.slice(0, -1);
+					var previewURL = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=AIzaSyDTXMFUMTbIRCo905mxcPGPP1RNBnfCkQw&path='+coordinates.slice(0, -1);
 					return '<a href="#" data-preview-image="'+previewURL+'"><i class="el el-picture"></i></a>';
 				}
 			},
