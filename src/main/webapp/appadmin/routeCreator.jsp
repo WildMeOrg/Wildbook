@@ -36,7 +36,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
                 <th>Location Id</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Path</th>
+                <th>Preview</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -46,6 +46,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   src="https://maps.googleapis.com/maps/api/js?key=<%=mapKey%>&libraries=drawing">
 </script>
 <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="cust/preview-image.js"></script>
 <script>
 var drawingManager;
 var selectedShape;
@@ -172,7 +173,7 @@ function getRouteList(){
 				render : function ( data, type, row, meta ) {
 					var a = data;
 					var previewURL = 'https://maps.googleapis.com/maps/api/staticmap?size=400x400&key=AIzaSyDTXMFUMTbIRCo905mxcPGPP1RNBnfCkQw&path=47.678969535962956,-122.28155758691406|47.51969336834902,-122.27057125878906|47.471444639572866,-122.29803707910156';
-						return '<span style="position: absolute; display:none; z-index:1" ><img src="'+previewURL+'" /></span> <a href="#" onClick="showPreview(this);" onmouseout="hidePreview(this);"><i class="el el-picture"></i></a>';
+						return '<span style="position: absolute; display:none; z-index:1" ><img src="'+previewURL+'" /></span> <a href="#" data-preview-image="'+previewURL+'"><i class="el el-picture"></i></a>';
 				}
 			},
 			{
