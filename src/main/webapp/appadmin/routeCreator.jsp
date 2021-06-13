@@ -137,6 +137,10 @@ function deleteRoute(id){
 	}
 }
 
+function showPreview(){
+	
+}
+
 function getRouteList(){
 	if(dataTable !== ""){
 		dataTable.destroy();
@@ -162,7 +166,8 @@ function getRouteList(){
 			{
 				data : "path", 
 				render : function ( data, type, row, meta ) {
-					return 'http://maps.googleapis.com/maps/api/staticmap?size=400x400&key=<%=mapKey%>&path=40.737102,-73.990318|40.749825,-73.987963|40.752946,-73.987384|40.755823,-73.986397';
+					var a = data;
+						return '<span style="position: absolute; display:none;" ><img src="image1.jpg" /></span> <a href="#" onmouseover="showPreview();"><i class="el el-picture"></i></a>';
 				}
 			},
 			{
