@@ -91,6 +91,7 @@ public class Shepherd {
    */
   public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
+      System.out.println(" ------------- Going to create new");
       //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
       localContext=context;
       try {
