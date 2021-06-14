@@ -3964,6 +3964,21 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return ann.findEncounter(this);
   }
 
+  //Added in for media assets by specie - Sarah Schibel
+  public Long countMediaAssetsBySpecies(String genus, String specificEpithet, Shepherd myShepherd){
+	Long myValue=new Long(0);
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	return myValue;
+}
+public Long countMediaAssets(Shepherd myShepherd){
+	Long myValue=new Long(0);
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	return myValue;
+}
 
   /**
    * Opens the database up for information retrieval, storage, and removal
