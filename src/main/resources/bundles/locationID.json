@@ -2,6 +2,285 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
+		{"name": "Afghanistan", "id": "Afghanistan", "locationID":[
+		
+			{ "name":"C10_Avgarch", "id":"C10_Avgarch", "locationID":[] },
+
+			{ "name":"C12_Sast", "id":"C12_Sast", "locationID":[] },
+
+			{ "name":"C14_Pikut", "id":"C14_Pikut", "locationID":[] },
+
+			{ "name":"C15_Pigish", "id":"C15_Pigish", "locationID":[] },
+
+			{ "name":"C16_Ishmorgh", "id":"C16_Ishmorgh", "locationID":[] },
+
+			{ "name":"C17_Yzirk", "id":"C17_Yzirk", "locationID":[] },
+
+			{ "name":"C18_Khundud", "id":"C18_Khundud", "locationID":[] },
+
+			{ "name":"C19_Khundud", "id":"C19_Khundud", "locationID":[] },
+
+			{ "name":"C1_Avgarch", "id":"C1_Avgarch", "locationID":[] },
+
+			{ "name":"C20_Yamit", "id":"C20_Yamit", "locationID":[] },
+
+			{ "name":"C21_Yamit", "id":"C21_Yamit", "locationID":[] },
+
+			{ "name":"C22_Pigish", "id":"C22_Pigish", "locationID":[] },
+
+			{ "name":"C23_Pigish", "id":"C23_Pigish", "locationID":[] },
+
+			{ "name":"C24_Ragi_Jurem", "id":"C24_Ragi_Jurem", "locationID":[] },
+
+			{ "name":"C25_Pigish", "id":"C25_Pigish", "locationID":[] },
+
+			{ "name":"C26_Pak", "id":"C26_Pak", "locationID":[] },
+
+			{ "name":"C26_Wargand_Payan", "id":"C26_Wargand_Payan", "locationID":[] },
+
+			{ "name":"C27_Ragi_Jurem", "id":"C27_Ragi_Jurem", "locationID":[] },
+
+			{ "name":"C28_Ragi_Jurem", "id":"C28_Ragi_Jurem", "locationID":[] },
+
+			{ "name":"C28_Wargand", "id":"C28_Wargand", "locationID":[] },
+
+			{ "name":"C29_Ragi_Jurem", "id":"C29_Ragi_Jurem", "locationID":[] },
+
+			{ "name":"C2_Sast", "id":"C2_Sast", "locationID":[] },
+
+			{ "name":"C30_Wargand_Payan", "id":"C30_Wargand_Payan", "locationID":[] },
+
+			{ "name":"C31_Wargand_Payan", "id":"C31_Wargand_Payan", "locationID":[] },
+
+			{ "name":"C32_Wargand_Bala", "id":"C32_Wargand_Bala", "locationID":[] },
+
+			{ "name":"C33_Wargand_Bala", "id":"C33_Wargand_Bala", "locationID":[] },
+
+			{ "name":"C35_Avgarch", "id":"C35_Avgarch", "locationID":[] },
+
+			{ "name":"C38_Paquoy", "id":"C38_Paquoy", "locationID":[] },
+
+			{ "name":"C3_Sarkand", "id":"C3_Sarkand", "locationID":[] },
+
+			{ "name":"C40_Ragi_Jurem", "id":"C40_Ragi_Jurem", "locationID":[] },
+
+			{ "name":"C41_Pak", "id":"C41_Pak", "locationID":[] },
+
+			{ "name":"C42_Pikut", "id":"C42_Pikut", "locationID":[] },
+
+			{ "name":"C45_Avgach", "id":"C45_Avgach", "locationID":[] },
+
+			{ "name":"C46_Pak", "id":"C46_Pak", "locationID":[] },
+
+			{ "name":"C4_Paquoy", "id":"C4_Paquoy", "locationID":[] },
+
+			{ "name":"C4_Paquoy_Shoopk", "id":"C4_Paquoy_Shoopk", "locationID":[] },
+
+			{ "name":"C5_Ishmorgh", "id":"C5_Ishmorgh", "locationID":[] },
+
+			{ "name":"C6_Sast", "id":"C6_Sast", "locationID":[] },
+
+			{ "name":"C7_Ishmorgh", "id":"C7_Ishmorgh", "locationID":[] },
+
+			{ "name":"C8_Ishmorgh", "id":"C8_Ishmorgh", "locationID":[] },
+
+			{ "name":"CT01", "id":"CT01", "locationID":[] },
+
+			{ "name":"CT02", "id":"CT02", "locationID":[] },
+
+			{ "name":"CT05", "id":"CT05", "locationID":[] },
+
+			{ "name":"CT06", "id":"CT06", "locationID":[] },
+
+			{ "name":"CT07", "id":"CT07", "locationID":[] },
+
+			{ "name":"CT08", "id":"CT08", "locationID":[] },
+
+			{ "name":"CT09", "id":"CT09", "locationID":[] },
+
+			{ "name":"CT10", "id":"CT10", "locationID":[] },
+
+			{ "name":"CT13", "id":"CT13", "locationID":[] },
+
+			{ "name":"CT14", "id":"CT14", "locationID":[] },
+
+			{ "name":"CT15", "id":"CT15", "locationID":[] },
+
+			{ "name":"CT16", "id":"CT16", "locationID":[] },
+
+			{ "name":"CT19", "id":"CT19", "locationID":[] },
+
+			{ "name":"CT20", "id":"CT20", "locationID":[] },
+
+			{ "name":"CT21", "id":"CT21", "locationID":[] },
+
+			{ "name":"CT22", "id":"CT22", "locationID":[] },
+
+			{ "name":"CT23", "id":"CT23", "locationID":[] },
+
+			{ "name":"CT24", "id":"CT24", "locationID":[] },
+
+			{ "name":"CT25", "id":"CT25", "locationID":[] },
+
+			{ "name":"CT26", "id":"CT26", "locationID":[] },
+
+			{ "name":"CT27", "id":"CT27", "locationID":[] },
+
+			{ "name":"CT31", "id":"CT31", "locationID":[] },
+
+			{ "name":"CT36", "id":"CT36", "locationID":[] },
+
+			{ "name":"CT38", "id":"CT38", "locationID":[] },
+
+			{ "name":"CT41", "id":"CT41", "locationID":[] },
+
+			{ "name":"CT43", "id":"CT43", "locationID":[] },
+
+			{ "name":"CT44", "id":"CT44", "locationID":[] },
+
+			{ "name":"CT45", "id":"CT45", "locationID":[] },
+
+			{ "name":"CT46_157_Yokshkut", "id":"CT46_157_Yokshkut", "locationID":[] },
+
+			{ "name":"CT47", "id":"CT47", "locationID":[] },
+
+			{ "name":"CT48", "id":"CT48", "locationID":[] },
+
+			{ "name":"CT53", "id":"CT53", "locationID":[] },
+
+			{ "name":"CT63", "id":"CT63", "locationID":[] },
+
+			{ "name":"CT67", "id":"CT67", "locationID":[] },
+
+			{ "name":"CT68", "id":"CT68", "locationID":[] },
+
+			{ "name":"CT70", "id":"CT70", "locationID":[] },
+
+			{ "name":"CT_104_Shew Praga", "id":"CT_104_Shew Praga", "locationID":[] },
+
+			{ "name":"CT_105_Ayloc Sokhtah", "id":"CT_105_Ayloc Sokhtah", "locationID":[] },
+
+			{ "name":"CT_106_Jungle Sar", "id":"CT_106_Jungle Sar", "locationID":[] },
+
+			{ "name":"CT_10_Avgarch Sar", "id":"CT_10_Avgarch Sar", "locationID":[] },
+
+			{ "name":"CT_12_Coompeer Kook", "id":"CT_12_Coompeer Kook", "locationID":[] },
+
+			{ "name":"CT_14_Ayloc Sar", "id":"CT_14_Ayloc Sar", "locationID":[] },
+
+			{ "name":"CT_14_Pikut Jerav Kishtgah", "id":"CT_14_Pikut Jerav Kishtgah", "locationID":[] },
+
+			{ "name":"CT_152_Zhighargag", "id":"CT_152_Zhighargag", "locationID":[] },
+
+			{ "name":"CT_154_Pikut Sar", "id":"CT_154_Pikut Sar", "locationID":[] },
+
+			{ "name":"CT_16_Koi Rahmat", "id":"CT_16_Koi Rahmat", "locationID":[] },
+
+			{ "name":"CT_16_Yarzif", "id":"CT_16_Yarzif", "locationID":[] },
+
+			{ "name":"CT_17_Pikut Jerav", "id":"CT_17_Pikut Jerav", "locationID":[] },
+
+			{ "name":"CT_197_Chat Wooduk", "id":"CT_197_Chat Wooduk", "locationID":[] },
+
+			{ "name":"CT_198_Shach", "id":"CT_198_Shach", "locationID":[] },
+
+			{ "name":"CT_19_Teer Gash", "id":"CT_19_Teer Gash", "locationID":[] },
+
+			{ "name":"CT_200_Oh Jera Jerav", "id":"CT_200_Oh Jera Jerav", "locationID":[] },
+
+			{ "name":"CT_201_Shoni Midiganz", "id":"CT_201_Shoni Midiganz", "locationID":[] },
+
+			{ "name":"CT_20_Shoni Midiganz Thoor", "id":"CT_20_Shoni Midiganz Thoor", "locationID":[] },
+
+			{ "name":"CT_212_48_Sar Jungle Sokhtah", "id":"CT_212_48_Sar Jungle Sokhtah", "locationID":[] },
+
+			{ "name":"CT_218_6_Kishtgah Sar", "id":"CT_218_6_Kishtgah Sar", "locationID":[] },
+
+			{ "name":"CT_23_Singow Thoor", "id":"CT_23_Singow Thoor", "locationID":[] },
+
+			{ "name":"CT_25_Shergah Kook", "id":"CT_25_Shergah Kook", "locationID":[] },
+
+			{ "name":"CT_268_Qalachah", "id":"CT_268_Qalachah", "locationID":[] },
+
+			{ "name":"CT_27_Amal Wurdth", "id":"CT_27_Amal Wurdth", "locationID":[] },
+
+			{ "name":"CT_28_Khundud Jerav", "id":"CT_28_Khundud Jerav", "locationID":[] },
+
+			{ "name":"CT_2_Wust Koo", "id":"CT_2_Wust Koo", "locationID":[] },
+
+			{ "name":"CT_30_Gharf Ghets", "id":"CT_30_Gharf Ghets", "locationID":[] },
+
+			{ "name":"CT_318_Qalat Sar", "id":"CT_318_Qalat Sar", "locationID":[] },
+
+			{ "name":"CT_33_Khadog Sar", "id":"CT_33_Khadog Sar", "locationID":[] },
+
+			{ "name":"CT_34_Saman", "id":"CT_34_Saman", "locationID":[] },
+
+			{ "name":"CT_35_Rukhun Sil", "id":"CT_35_Rukhun Sil", "locationID":[] },
+
+			{ "name":"CT_37_Bajgardan", "id":"CT_37_Bajgardan", "locationID":[] },
+
+			{ "name":"CT_38_Chat Wooduk", "id":"CT_38_Chat Wooduk", "locationID":[] },
+
+			{ "name":"CT_3_Arak Door", "id":"CT_3_Arak Door", "locationID":[] },
+
+			{ "name":"CT_42_Hascht Bund", "id":"CT_42_Hascht Bund", "locationID":[] },
+
+			{ "name":"CT_44_Kalacha", "id":"CT_44_Kalacha", "locationID":[] },
+
+			{ "name":"CT_44_Teer Gash", "id":"CT_44_Teer Gash", "locationID":[] },
+
+			{ "name":"CT_46_Sheer Goz", "id":"CT_46_Sheer Goz", "locationID":[] },
+
+			{ "name":"CT_46_Yenj Sar", "id":"CT_46_Yenj Sar", "locationID":[] },
+
+			{ "name":"CT_48_49_Wust Koo", "id":"CT_48_49_Wust Koo", "locationID":[] },
+
+			{ "name":"CT_49_51_Qalat Sar", "id":"CT_49_51_Qalat Sar", "locationID":[] },
+
+			{ "name":"CT_4_Sast Jerav", "id":"CT_4_Sast Jerav", "locationID":[] },
+
+			{ "name":"CT_50_Pagish Sar", "id":"CT_50_Pagish Sar", "locationID":[] },
+
+			{ "name":"CT_51_Chockoristan", "id":"CT_51_Chockoristan", "locationID":[] },
+
+			{ "name":"CT_52_196_Shah Sar", "id":"CT_52_196_Shah Sar", "locationID":[] },
+
+			{ "name":"CT_52_Shabt Yakt", "id":"CT_52_Shabt Yakt", "locationID":[] },
+
+			{ "name":"CT_52_Sheld Hill Sar", "id":"CT_52_Sheld Hill Sar", "locationID":[] },
+
+			{ "name":"CT_53_Ghalbil Gaz", "id":"CT_53_Ghalbil Gaz", "locationID":[] },
+
+			{ "name":"CT_54_Arak Door", "id":"CT_54_Arak Door", "locationID":[] },
+
+			{ "name":"CT_54_Sheer Goz", "id":"CT_54_Sheer Goz", "locationID":[] },
+
+			{ "name":"CT_55_Pak Saman", "id":"CT_55_Pak Saman", "locationID":[] },
+
+			{ "name":"CT_56_153_Chokoristan", "id":"CT_56_153_Chokoristan", "locationID":[] },
+
+			{ "name":"CT_56_Kook Serv Sar", "id":"CT_56_Kook Serv Sar", "locationID":[] },
+
+			{ "name":"CT_57_Dasht Sar", "id":"CT_57_Dasht Sar", "locationID":[] },
+
+			{ "name":"CT_57_Pagish Sar", "id":"CT_57_Pagish Sar", "locationID":[] },
+
+			{ "name":"CT_58_Devfk", "id":"CT_58_Devfk", "locationID":[] },
+
+			{ "name":"CT_59_ Singaw Sar", "id":"CT_59_ Singaw Sar", "locationID":[] },
+
+			{ "name":"CT_5_Yoopk Nearsk Hill", "id":"CT_5_Yoopk Nearsk Hill", "locationID":[] },
+
+			{ "name":"CT_65_Ghabil Gaz", "id":"CT_65_Ghabil Gaz", "locationID":[] },
+
+			{ "name":"CT_66_Koi Rahmat", "id":"CT_66_Koi Rahmat", "locationID":[] },
+
+			{ "name":"CT_67_Devfk", "id":"CT_67_Devfk", "locationID":[] },
+
+			{ "name":"CT_7_Singow", "id":"CT_7_Singow", "locationID":[] }
+		
+		] } ,
 		{"name": "Brazil", "id": "Brazil", "locationID":[
 		
 			{"name": "Pará", "id": "Para" }
