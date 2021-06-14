@@ -27,7 +27,7 @@ import org.ecocean.metrics.Prometheus;
 public class MetricsBot {
     private static long collectorStartTime = 0l;
 
-    public static String csvFile = "/data/metrics/metrics.csv";
+    public static String csvFile = "/data/metrics/metrics_nc.csv";
     
     static String context="context0";
 
