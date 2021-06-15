@@ -237,8 +237,7 @@ function forceLink(el) {
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (tasks.contains(t)) continue;
-                                                    if (t.deepContains(ann)) tasks.add(t);
+                                                    if (!tasks.contains(t)) tasks.add(t);
                                                     //System.out.println("Task ID: "+t.getId());
                                                 }
 
