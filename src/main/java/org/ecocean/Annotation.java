@@ -1290,21 +1290,6 @@ System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         return null;
     }
 
-    // checks a bunch of class values and if any of them differ, return false
-    public boolean equals(Annotation ann) {
-        if (ann == null) return false;
-        int thisMaId = (this.getMediaAsset() != null) ? this.getMediaAsset().getId() : -1;
-        int thatMaId = (ann.getMediaAsset() != null) ? ann.getMediaAsset().getId() : -1;
-        return (
-            thisMaId == thatMaId &&
-            Util.nullSafeEquals(ann.getAcmId(), this.getAcmId()) &&
-            Util.nullSafeEquals(ann.getIAClass(), this.getIAClass()) &&
-            Util.nullSafeEquals(ann.getQuality(), this.getQuality()) &&
-            Util.nullSafeEquals(ann.getViewpoint(), this.getViewpoint()) &&
-            Util.nullSafeEquals(ann.getAcmId(), this.getAcmId()) &&
-            Arrays.equals(ann.getBbox(), this.getBbox())
-        );
-    }
 
     // doesn't care about the order of the lists
     public static boolean listsEqual(List<Annotation> anns1, List<Annotation> anns2) {
@@ -1325,6 +1310,21 @@ System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
             }
         }
         return (unequalAnns1.size() == 0 && unequalAnns2.size() == 0);
+	}
+
+    // need these two so we can use things like List.contains()
+    //  note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof Annotation)) return false;
+        Annotation two = (Annotation)o2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
+
     }
 
 }
