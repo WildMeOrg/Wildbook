@@ -1287,4 +1287,19 @@ System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
         return null;
     }
 
+
+    // need these two so we can use things like List.contains()
+    //  note: this basically is "id-equivalence" rather than *content* equivalence, so will not compare semantic similarity of 2 annots
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof Annotation)) return false;
+        Annotation two = (Annotation)o2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
+    }
+
 }
