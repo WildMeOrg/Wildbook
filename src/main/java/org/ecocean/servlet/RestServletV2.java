@@ -1035,13 +1035,13 @@ rtn.put("_payload", payload);
             } else {
                 try {
                     JSONArray patchRes = occ.apiPatch(myShepherd, payload);  //this means *all* patches must succeed
+                    JSONObject resJson = new JSONObject();
                     if (occ.isJDODeleted()) {
-                        JSONObject del = new JSONObject();
-                        del.put("deletedSighting", id);
-                        rtn.put("result", del);
+                        resJson.put("deletedSighting", id);  //cannot use occ.asApiJSONObject() cuz occ is out of here!
                     } else {
-                        rtn.put("result", occ.asApiJSONObject());
+                        resJson = occ.asApiJSONObject();
                     }
+                    rtn.put("result", resJson);
                     rtn.put("patchResults", patchRes);
                 } catch (ApiValueException ex) {
                     SystemLog.error("RestServlet.handlePatch() invalid value {}", ex.toString(), ex);
@@ -1214,14 +1214,19 @@ rtn.put("_payload", payload);
         myShepherd.beginDBTransaction();
 
         Occurrence parentOcc = null;
+        List<MarkedIndividual> indivs = new ArrayList<MarkedIndividual>();  //might be many, cuz of occ -> encS -> indivS
         ApiCustomFields obj = null;  //takes care of *most* cases
         switch (cls) {
             case "org.ecocean.Encounter":
                 obj = myShepherd.getEncounter(id);
-                parentOcc = myShepherd.getOccurrence((Encounter)obj);
+                Encounter enc = (Encounter)obj;
+                parentOcc = myShepherd.getOccurrence(enc);
+                MarkedIndividual indiv = enc.getIndividual();
+                if (indiv != null) indivs.add(indiv);
                 break;
             case "org.ecocean.Occurrence":
                 obj = myShepherd.getOccurrence(id);
+                //TODO FIXME collect indivs from encs deleted
                 break;
             case "org.ecocean.MarkedIndividual":
                 obj = myShepherd.getMarkedIndividual(id);
@@ -1268,8 +1273,17 @@ rtn.put("_payload", payload);
             jerr.put("class", cls);
             rtn.put("message", _rtnMessage("cascade", jerr));
             rtn.put("details", casc.toString());
+            ApiCustomFields vul = casc.getObject();
+            if (vul instanceof Occurrence) {
+                rtn.put("vulnerableSighting", vul.getId());
+                response.setStatus(604);
+            } else if (vul instanceof MarkedIndividual) {
+                rtn.put("vulnerableIndividual", vul.getId());
+                response.setStatus(605);
+            } else {
+                response.setStatus(699);
+            }
             String rtnS = rtn.toString();
-            response.setStatus(603);
             response.setContentLength(rtnS.getBytes("UTF-8").length);
             out.println(rtnS);
             out.close();
@@ -1283,14 +1297,25 @@ rtn.put("_payload", payload);
         }
         SystemLog.info("RestServlet.handleDelete() deleted {} id={}, instance={}", cls, id, instanceId);
 
+        JSONObject resJson = new JSONObject();
         if ((parentOcc != null) && parentOcc.isJDODeleted()) {
-            JSONObject del = new JSONObject();
-            del.put("deletedSighting", parentOcc.getId());
-            rtn.put("result", del);
+            SystemLog.info("RestServlet.handleDelete() deleted {} id={}, cascade-deleted Occurrence {}", cls, id, parentOcc.getId());
+            resJson.put("deletedSighting", parentOcc.getId());
+        }
+
+        if (indivs.size() > 0) {
+            JSONArray arr = new JSONArray();
+            for (MarkedIndividual indiv : indivs) {
+                if (!indiv.isJDODeleted()) continue;
+                arr.put(indiv.getId());
+                SystemLog.info("RestServlet.handleDelete() deleted {} id={}, cascade-deleted MarkedIndividual {}", cls, id, indiv.getId());
+            }
+            if (arr.length() > 0) resJson.put("deletedIndividuals", arr);
         }
 
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+        rtn.put("result", resJson);
         rtn.put("success", true);
         String rtnS = rtn.toString();
         response.setContentLength(rtnS.getBytes("UTF-8").length);

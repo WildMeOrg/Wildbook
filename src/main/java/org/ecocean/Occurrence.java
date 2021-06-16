@@ -1862,6 +1862,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     rtn.put("value", id);
                     // we delete the encounter, but accommodate possible cascading implications
                     String occId = this.getId();
+                    MarkedIndividual indiv = found.getIndividual();
+                    String indivId = (indiv == null) ? null : indiv.getId();
                     found.delete(myShepherd,
                         jsonIn.optBoolean(KEY_DELETE_CASCADE_SIGHTING, false),
                         jsonIn.optBoolean(KEY_DELETE_CASCADE_INDIVIDUAL, false)
@@ -1870,6 +1872,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                         SystemLog.warn("looks like enc id={} delete cascaded to delete occurrence id={}", id, occId);
                     } else {
                         this.removeEncounter(found);
+                    }
+                    if ((indiv != null) && indiv.isJDODeleted()) {
+                        SystemLog.warn("looks like enc id={} delete cascaded to delete individual id={}", id, indivId);
+                        rtn.put("deletedIndividual", indivId);
                     }
                     break;
                 default:

@@ -4274,22 +4274,26 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             myShepherd.getPM().deletePersistent(this);
             return;
         }
+        String occStr = occ.toString();
         int numOccEncs = occ.getNumEncounters();
-        if ((numOccEncs < 2) && !cascadeOccurrence) throw new ApiDeleteCascadeException(occ + " will be removed via cascade; aborting"); 
+        if ((numOccEncs < 2) && !cascadeOccurrence) throw new ApiDeleteCascadeException(occ + " will be removed via cascade; aborting", occ); 
         int numIndivEncs = -1;
-        if (individual != null) {
-            numIndivEncs = individual.getNumEncounters();
-            if (numIndivEncs == 0) throw new IOException("danger: zero Encounters reported on " + individual);  //snh
-            if ((numIndivEncs == 1) && !cascadeMarkedIndividual) throw new ApiDeleteCascadeException(individual + " will be removed via cascade; aborting"); 
+        String indivStr = null;
+        MarkedIndividual indiv = this.individual;
+        if (indiv != null) {
+            indivStr = indiv.toString();
+            numIndivEncs = indiv.getNumEncounters();
+            if (numIndivEncs == 0) throw new IOException("danger: zero Encounters reported on " + indiv);  //snh
+            if ((numIndivEncs == 1) && !cascadeMarkedIndividual) throw new ApiDeleteCascadeException(indiv + " will be removed via cascade; aborting", indiv); 
         }
         myShepherd.getPM().deletePersistent(this);
         if (numOccEncs < 2) {
-            SystemLog.warn("cascade delete of {} via Encounter {}", occ, encStr);
+            SystemLog.warn("cascade delete of {} via {}", occStr, encStr);
             myShepherd.getPM().deletePersistent(occ);
         }
         if (numIndivEncs == 1) {
-            SystemLog.warn("cascade delete of {} via {}", individual, encStr);
-            myShepherd.getPM().deletePersistent(individual);
+            SystemLog.warn("cascade delete of {} via {}", indivStr, encStr);
+            myShepherd.getPM().deletePersistent(indiv);
         }
     }
 
