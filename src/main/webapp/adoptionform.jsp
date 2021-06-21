@@ -193,7 +193,6 @@
             </form>
             <% } %>
                 <% 
-                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 1");
                 myShepherd.rollbackDBTransaction(); 
                 myShepherd.closeDBTransaction(); 
                 %>
@@ -203,7 +202,6 @@
         <%
             }
             else{
-                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 2");
                 myShepherd.rollbackDBTransaction(); 
                 myShepherd.closeDBTransaction();
                 %>

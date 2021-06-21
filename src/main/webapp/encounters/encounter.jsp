@@ -2791,7 +2791,6 @@ else {
      									<td>
                          				<%
                          				if(enc.getAssignedUsername()!=null){
-
                         	 				String username=enc.getAssignedUsername();
                          					if(myShepherd.getUser(username)!=null){
                          					%>
@@ -2822,10 +2821,10 @@ else {
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
 
+                                  <p><strong><%=displayName %></strong></p>
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
-					                        <p><strong><%=displayName %></strong></p>
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
