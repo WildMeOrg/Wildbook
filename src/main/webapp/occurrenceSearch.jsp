@@ -456,7 +456,8 @@ function FSControl(controlDiv, map) {
             <%
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
             %>
-                  <strong><%=props.getProperty("genusSpecies")%></strong>: <select name="genusSpeciesField" id="genusSpeciesField">
+                  <span><%=props.getProperty("genusSpecies")%>:</span> <select name="genusSpeciesField" id="genusSpeciesField">
+                        <option value="" selected> </option>
                         <%
                         Iterator<Taxonomy> allTaxonomies = myShepherd.getAllTaxonomies();
                         if (allTaxonomies.hasNext()) {
@@ -470,10 +471,6 @@ function FSControl(controlDiv, map) {
                               <option value="<%=tax.getScientificName()%>"><%=optionStr%></option>
                             <%
                           }
-                        } else {
-                          %>
-                            <option value=""> </option>
-                          <%
                         }
                         %>
                   </select>
