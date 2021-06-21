@@ -201,7 +201,6 @@ context=ServletUtilities.getContext(request);
 	}
 	%>
 	<%
-	  System.out.println("deleteMe db transaction being closed in createadoptionform.jsp 1");
 	  myShepherd.rollbackDBTransaction();
 	  myShepherd.closeDBTransaction();
 	%>

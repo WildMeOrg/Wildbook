@@ -54,9 +54,12 @@ public class EncounterConsolidate{
   }
 
   public static void renameEncounterSubmitterID(Shepherd myShepherd, Encounter enc, String newSubmitterId){
-    if(newSubmitterId == null || newSubmitterId.equals("") || enc == null) return;
+    if(newSubmitterId == null || newSubmitterId.equals("") || enc == null){
+      return;
+    }
     System.out.println("dedupe a reassigning encounter " + enc.getCatalogNumber() + " to submitter " + newSubmitterId);
     enc.setSubmitterID(newSubmitterId.toLowerCase().trim());
+    myShepherd.getPM().makePersistent(enc);
     myShepherd.updateDBTransaction();
   }
 }

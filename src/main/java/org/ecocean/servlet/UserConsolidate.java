@@ -954,16 +954,20 @@ public class UserConsolidate extends HttpServlet {
       Boolean assignOrphanedEncountersToPublicDesired = jsonRes.optBoolean("assignOrphanedEncountersToPublicDesired", false);
       if(assignOrphanedEncountersToPublicDesired){
         //if there's not a user named Public with email address public@wildme.org, create one
-        User publicUser = myShepherd.getUser("Public");
+        User publicUser = myShepherd.getUser("public");
         if(publicUser == null){
           //make it
-          String publicUserName = "Public";
+          String publicUserName = "public";
           String publicUserEmail = "public@wildme.org";
+          String publicFullName = "Public";
           String salt = ServletUtilities.getSalt().toHex();
           String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt); //admins can change this later
           publicUser = new User(publicUserName, hashedPassword, salt);
           publicUser.setEmailAddress(publicUserEmail);
+          publicUser.setFullName(publicFullName);
+          myShepherd.getPM().makePersistent(publicUser);
           myShepherd.updateDBTransaction();
+
         }
         //find all encounters where submitterID is null or "N/A" and change to Public
         makeEncountersMissingSubmittersPublicJsonResults = EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
