@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Properties;
+import org.json.JSONObject;
 
 
 public class UserCreate extends HttpServlet {
@@ -53,11 +54,17 @@ public class UserCreate extends HttpServlet {
     doPost(request, response);
   }
 
+  private void addErrorMessage(JSONObject res, String error) {
+        res.put("error", error);
+  }
+
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     request.setCharacterEncoding("UTF-8");
     String context="context0";
-    //context=ServletUtilities.getContext(request);
+    // context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserCreate.class");
     
     //set up the user directory
     //setup data dir
@@ -80,12 +87,76 @@ public class UserCreate extends HttpServlet {
       //System.out.println("isEdit is TRUE in UserCreate!");
     }
 
-    //create a new Role from an encounter
+    
+    //check for an existing user
+    JSONObject returnJson = new JSONObject();
+    returnJson.put("success", false);
+    JSONObject jsonRes = new JSONObject();
+    try{
+      jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
+    }catch(Exception e){
+      System.out.println("create user exception");
+      e.printStackTrace();
+    }
+    JSONObject existingUserResultsJson = new JSONObject();
+    existingUserResultsJson.put("success", false);
+    existingUserResultsJson.put("doesUserExistAlready", false);
+    try{
+      Boolean checkForExistingUsernameDesired = jsonRes.optBoolean("checkForExistingUsernameDesired", false);
+      String targetUsername = jsonRes.optString("username", null);
+      if(checkForExistingUsernameDesired && targetUsername!=null && !targetUsername.equals("")){
+        List<User> allUsers = myShepherd.getAllUsers();
+        for(User currentUser: allUsers){
+          if(currentUser != null && currentUser.getUsername()!=null && !currentUser.getUsername().equals("") && currentUser.getUsername().equals(targetUsername)){
+            existingUserResultsJson.put("doesUserExistAlready", true);
+          }
+        }
+      }
+      existingUserResultsJson.put("success", true);
+    } catch (Exception e) {
+        System.out.println("userCreate exception while checking for an existing user.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
+    } finally {
+        System.out.println("userCreate closing ajax call for user checking for an existing user....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("success", true);
+        returnJson.put("existingUserResultsJson", existingUserResultsJson);
+    }
 
+
+    //check for an existing email address
+    returnJson.put("success", false);
+    JSONObject existingEmailAddressResultsJson = new JSONObject();
+    existingEmailAddressResultsJson.put("success", false);
+    existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", false);
+    try{
+      Boolean checkForExistingEmailDesired = jsonRes.optBoolean("checkForExistingEmailDesired", false);
+      String targetEmailAddress = jsonRes.optString("emailAddress", null);
+      if(checkForExistingEmailDesired && targetEmailAddress!=null && !targetEmailAddress.equals("")){
+        List<User> allUsers = myShepherd.getAllUsers();
+        for(User currentUser: allUsers){
+          if(currentUser != null && currentUser.getEmailAddress()!=null && !currentUser.getEmailAddress().equals("") && currentUser.getEmailAddress().equals(targetEmailAddress)){
+            existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", true);
+          }
+        }
+      }
+      existingEmailAddressResultsJson.put("success", true);
+    } catch (Exception e) {
+        System.out.println("userCreate exception while checking for an existing user.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
+    } finally {
+        System.out.println("userCreate closing ajax call for user checking for an existing user....");
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        returnJson.put("success", true);
+        returnJson.put("existingEmailAddressResultsJson", existingEmailAddressResultsJson);
+    }
+
+    //create a new Role from an encounter
     if (  (request.getParameter("uuid") != null) && (!request.getParameter("uuid").trim().equals("") )) {
-      
       String uuid=request.getParameter("uuid");
-      
       String username=null;
       if(request.getParameter("username")!=null) {
         username=request.getParameter("username");
@@ -94,19 +165,12 @@ public class UserCreate extends HttpServlet {
       if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
         email=request.getParameter("emailAddress").trim();
       };
-      
       String password="";
       if((request.getParameter("password")!=null)&&(!request.getParameter("password").trim().equals("")))password=request.getParameter("password").trim();
       String password2="";
       if((request.getParameter("password2")!=null)&&(!request.getParameter("password2").trim().equals("")))password2=request.getParameter("password2").trim();
-      
       if((password.equals(password2))||(isEdit)){
-        
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("UserCreate.class");
-        
         User newUser=null;
-        
         try{
           myShepherd.beginDBTransaction();
           if(myShepherd.getUserByUUID(uuid)!=null){
@@ -313,7 +377,10 @@ public class UserCreate extends HttpServlet {
         e.printStackTrace();
       }  
       finally{
-            
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        } 
         myShepherd.closeDBTransaction();
         myShepherd=null;
       }
@@ -334,19 +401,21 @@ public class UserCreate extends HttpServlet {
 }
 else{
   //output failure statement
-  out.println(ServletUtilities.getHeader(request));
-  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
-  out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
-  out.println(ServletUtilities.getFooter(context));
+  if(returnJson != null){ // a little hacky, sorry. Just checking username or email existence fails on a lot of the other stuff, but I don't want the request to fail, so capturing that behavior here. 
+    if (out!=null) {
+        out.println(returnJson);
+        out.close();
+      }
+      myShepherd.closeDBTransaction();
+  }else{
+    out.println(ServletUtilities.getHeader(request));
+    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
+    out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+    out.println(ServletUtilities.getFooter(context));
+  }
   
 }
-
-
-   
-
-
-
     out.close();
     
   }
