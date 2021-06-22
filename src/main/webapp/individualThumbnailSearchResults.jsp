@@ -64,7 +64,7 @@
 	int numThumbnails=0;
 	List<SinglePhotoVideo> tempLocs=new ArrayList<SinglePhotoVideo>();
 	tempLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
-  List<String> spvFilenames = new List<>();
+  List<String> spvFilenames = new ArrayList<>();
   List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 
   for (SinglePhotoVideo thumbLoc : tempLocs) {
