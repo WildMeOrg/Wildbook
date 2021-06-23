@@ -105,11 +105,9 @@ public class UserCreate extends HttpServlet {
       Boolean checkForExistingUsernameDesired = jsonRes.optBoolean("checkForExistingUsernameDesired", false);
       String targetUsername = jsonRes.optString("username", null);
       if(checkForExistingUsernameDesired && targetUsername!=null && !targetUsername.equals("")){
-        List<User> allUsers = myShepherd.getAllUsers();
-        for(User currentUser: allUsers){
-          if(currentUser != null && currentUser.getUsername()!=null && !currentUser.getUsername().equals("") && currentUser.getUsername().equals(targetUsername)){
-            existingUserResultsJson.put("doesUserExistAlready", true);
-          }
+        User targetUser = myShepherd.getUser(targetUsername);
+        if(targetUser != null){
+          existingUserResultsJson.put("doesUserExistAlready", true);
         }
       }
       existingUserResultsJson.put("success", true);
@@ -119,7 +117,7 @@ public class UserCreate extends HttpServlet {
         addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
     } finally {
         System.out.println("userCreate closing ajax call for user checking for an existing user....");
-        myShepherd.updateDBTransaction();
+        myShepherd.rollbackDBTransaction();
         returnJson.put("success", true);
         returnJson.put("existingUserResultsJson", existingUserResultsJson);
     }
@@ -134,21 +132,19 @@ public class UserCreate extends HttpServlet {
       Boolean checkForExistingEmailDesired = jsonRes.optBoolean("checkForExistingEmailDesired", false);
       String targetEmailAddress = jsonRes.optString("emailAddress", null);
       if(checkForExistingEmailDesired && targetEmailAddress!=null && !targetEmailAddress.equals("")){
-        List<User> allUsers = myShepherd.getAllUsers();
-        for(User currentUser: allUsers){
-          if(currentUser != null && currentUser.getEmailAddress()!=null && !currentUser.getEmailAddress().equals("") && currentUser.getEmailAddress().equals(targetEmailAddress)){
-            existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", true);
-          }
+        User targetUserForEmail = myShepherd.getUserByEmailAddress(targetEmailAddress);
+        if(targetUserForEmail != null){
+          existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", true);
         }
       }
       existingEmailAddressResultsJson.put("success", true);
-    } catch (Exception e) {
+    }catch (Exception e) {
         System.out.println("userCreate exception while checking for an existing user.");
         e.printStackTrace();
         addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
     } finally {
         System.out.println("userCreate closing ajax call for user checking for an existing user....");
-        myShepherd.commitDBTransaction();
+        myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         returnJson.put("success", true);
         returnJson.put("existingEmailAddressResultsJson", existingEmailAddressResultsJson);

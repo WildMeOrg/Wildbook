@@ -842,6 +842,9 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 		if (emailVal != localEmail && userNameVal == localUsername) { // only check for its existence if it doesn't match what the user's username/email address already is
 			doAjaxForExistingEmailAddress(emailVal);
 		}
+		if(emailVal == localEmail && userNameVal == localUsername){ //handle case where the user edits other things besides username and email
+			submitForm();
+		}
 	}
 
 	function doAjaxForExistingUsername(username, emailAddress, checkBoth) {
