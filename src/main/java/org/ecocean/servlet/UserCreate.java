@@ -64,6 +64,9 @@ public class UserCreate extends HttpServlet {
     request.setCharacterEncoding("UTF-8");
     String context="context0";
 
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserCreate.class");
+
     //set up the user directory
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
