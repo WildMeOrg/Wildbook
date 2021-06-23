@@ -128,15 +128,32 @@ public class Task implements java.io.Serializable {
         return false;
     }
 
+    public boolean contains(Annotation ann) {
+        if (objectAnnotations == null) return false;
+        return objectAnnotations.contains(ann);
+    }
+    public boolean contains(MediaAsset ma) {
+        if (objectMediaAssets == null) return false;
+        return objectMediaAssets.contains(ma);
+    }
+
     public List<Task> getChildren() {
         return children;
     }
     public void setChildren(List<Task> kids) {
-        children = kids;
+        if (kids == null) {
+            children = null;
+            return;
+        }
+        children = new ArrayList<Task>();
+        for (Task kid : kids) {
+            this.addChild(kid);  //let this do the work
+        }
     }
     public List<Task> addChild(Task kid) {
         if (children == null) children = new ArrayList<Task>();
         if (kid == null) return children;
+        if (kid.getId().equals(this.getId())) return children;  //dont add ourself to children
         if (!children.contains(kid)) children.add(kid);
         return children;
     }
@@ -171,6 +188,25 @@ public class Task implements java.io.Serializable {
     public Task getRootTask() {
         if (parent == null) return this;
         return parent.getRootTask();
+    }
+
+    public Task deepContains(Annotation ann) {
+        if (this.contains(ann)) return this;
+        if (!this.hasChildren()) return null;
+        for (Task kid : children) {
+            Task found = kid.deepContains(ann);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    public Task deepContains(MediaAsset ma) {
+        if (this.contains(ma)) return this;
+        if (!this.hasChildren()) return null;
+        for (Task kid : children) {
+            Task found = kid.deepContains(ma);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     public JSONObject getParameters() {  //only return as JSONObject!  TODO probably validate content below?
@@ -237,6 +273,19 @@ public class Task implements java.io.Serializable {
             j.put("children", jc);
         }
         return j;
+    }
+
+    // need these two so we can use things like List.contains() on tasks
+    public boolean equals(final Object t2) {
+        if (t2 == null) return false;
+        if (!(t2 instanceof Task)) return false;
+        Task two = (Task)t2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
     }
 
     public String toString() {
