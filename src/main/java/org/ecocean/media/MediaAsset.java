@@ -1682,4 +1682,17 @@ System.out.println(">>>>> assignEncounters() EXIT ; size=" + newEncs.size() + " 
         return newEncs;
     }
 
+    // need these two so we can use things like List.contains()
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof MediaAsset)) return false;
+        MediaAsset two = (MediaAsset)o2;
+        if ((this.uuid == null) || (two == null) || (two.getUUID() == null)) return false;
+        return this.uuid.equals(two.getUUID());
+    }
+    public int hashCode() {
+        if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return uuid.hashCode();
+    }
+
 }
