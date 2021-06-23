@@ -1027,7 +1027,7 @@ public class UserConsolidate extends HttpServlet {
         emailProblemUsers = findUsersWithMissingOrInvalidEmailsButNonNullUsernames(myShepherd);
         if(emailProblemUsers != null && emailProblemUsers.size() > 0){
           for(User currentUser: emailProblemUsers){
-            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " to user: " + currentUser.getUUID());
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " to user: " + currentUser.toString());
             currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
             emailProblemUserCount ++;
             myShepherd.updateDBTransaction();
@@ -1057,7 +1057,7 @@ public class UserConsolidate extends HttpServlet {
         worldsWorstUsers = findUsersWithMissingEmailAndUsername(myShepherd);
         if(worldsWorstUsers != null && worldsWorstUsers.size() > 0){
           for(User currentUser: worldsWorstUsers){
-            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " and username: Anonymous_" + currentUser.getUUID() + " to user: " + currentUser.getUUID());
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " and username: Anonymous_" + currentUser.getUUID() + " to user: " + currentUser.toString());
             currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
             currentUser.setUsername("Anonymous_" + currentUser.getUUID());
             renameCounter ++;
