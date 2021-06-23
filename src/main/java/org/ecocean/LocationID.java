@@ -108,7 +108,7 @@ public class LocationID {
     //System.out.println("jsonMaps: "+jsonMaps.toString());
   }
 
-  public static String findParameterInLocationIdTree(String parameterName, JSONObject tree, String nodeId, String parentParameter) {
+  public static String findParameterInLocationIdTreeDefaultUpTreeNodes(String parameterName, JSONObject tree, String nodeId, String parentParameter) {
     if ((nodeId == null) || (tree == null))
       return null; // handle blech data
     String parameter = tree.optString(parameterName, null);
@@ -123,7 +123,7 @@ public class LocationID {
       JSONObject subTree = kids.optJSONObject(i);
       if (subTree == null)
         continue; // ith element had non-json child; ignore
-      String kidParameter = findParameterInLocationIdTree(parameterName, subTree, nodeId, parentParameter);
+      String kidParameter = findParameterInLocationIdTreeDefaultUpTreeNodes(parameterName, subTree, nodeId, parentParameter);
       if (kidParameter != null)
         return kidParameter; // recursion ftw!
     }
@@ -131,11 +131,48 @@ public class LocationID {
   }
 
   public static String findPrefix(JSONObject tree, String nodeId, String parentPrefix) {
-    return findParameterInLocationIdTree("prefix", tree, nodeId, parentPrefix);
+    return findParameterInLocationIdTreeDefaultUpTreeNodes("prefix", tree, nodeId, parentPrefix);
   }
 
   public static String findPrefixPadding(JSONObject tree, String nodeId, String parentPadding) {
-    return findParameterInLocationIdTree("prefixDigitPadding", tree, nodeId, parentPadding);
+    return findParameterInLocationIdTreeDefaultUpTreeNodes("prefixDigitPadding", tree, nodeId, parentPadding);
+  }
+
+  public static String findGeospatialParameterInIdTree(String parameterName, String nodeId, JSONObject tree) {
+    if ((nodeId == null) || (tree == null)){
+      return null;
+    }
+    JSONObject geospatialObj = tree.optJSONObject("geospatialInfo");
+    if(geospatialObj != null){
+      String returnVal = geospatialObj.optString(parameterName, null);
+      if (nodeId.equals(tree.optString("id", null)) && returnVal != null){
+        return returnVal;
+      }
+    }
+    JSONArray kids = tree.optJSONArray("locationID");
+    if ((kids == null) || (kids.length() < 1)){
+      return null;
+    } else{
+      for (int i = 0; i < kids.length(); i++) {
+        JSONObject subTree = kids.optJSONObject(i);
+        if (subTree == null){
+          continue;
+        }
+        String kidReturnVal = findGeospatialParameterInIdTree(parameterName, nodeId, subTree);
+        if (kidReturnVal != null){
+          return kidReturnVal;
+        }
+      }
+    }
+    return null;
+  }
+
+  public static String getLatitude(String locationId, JSONObject tree) {
+    return findGeospatialParameterInIdTree("lat", locationId, tree);
+  }
+
+  public static String getLongitude(String locationId, JSONObject tree) {
+    return findGeospatialParameterInIdTree("long", locationId, tree);
   }
   
   private static JSONObject recurseToFindID(String id,JSONObject jsonobj) {

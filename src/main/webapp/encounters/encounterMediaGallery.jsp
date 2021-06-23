@@ -194,27 +194,27 @@ function forceLink(el) {
 		      }
 		      	//System.out.println("    EMG: got indID element "+individualID);
 
-		      
+
                 //Start caption render JSP side
                 String[] capos=new String[1];
                 capos[0]= "<p class=\"capos-individual-filename\" style=\"color: white;\"><em>"+filename+"</em><br>";
-                
+
                 capos[0]+=individualID;
-                
- 
+
+
                 capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a></span><br>";
-                
+
                 capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
-                
+
                 if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
                     capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
                 }
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
-                
+
               // place to retreive current mid from photoswipe to refresh keyword UI
               capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\">";
 
-               
+
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a><br>"+encprops.getProperty("detectionStatus")+" "+ma.getDetectionStatus()+"</span><br>";
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("annotationID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></span></p>";
                 capos[0] += "</div>";
@@ -237,7 +237,8 @@ function forceLink(el) {
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                    if (tasks.contains(t)) continue;
+                                                    if (t.deepContains(ann)!=null) tasks.add(t);
                                                     //System.out.println("Task ID: "+t.getId());
                                                 }
 
@@ -655,7 +656,7 @@ if(request.getParameter("encounterNumber")!=null){
   }
 
 
-  
+
   var removeAnnotation = function(maId, aid) {
 	    if (confirm("Are you sure you want to remove this Annotation from the encounter?")) {
 	      $.ajax({
@@ -681,8 +682,8 @@ if(request.getParameter("encounterNumber")!=null){
 	      });
 	    }
 	  }
-  
-  
+
+
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
@@ -883,21 +884,21 @@ function doImageEnhancer(sel) {
            <%
            if(!encNum.equals("")){
         	%>
-        	
-	            
+
+
 	            ['remove this image', function(enh) {
 	        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 	        		removeAsset(mid);
 	            }]
-	            
+
             <%
     		}
             %>
 
-            
-          
+
+
 	];
-        
+
 			//remove annotation option for non-trivial annots
         	opt.menu.push(
 	        	[
@@ -911,7 +912,7 @@ function doImageEnhancer(sel) {
 	        				}
 	        				return false;
 	        		}
-	        		, 
+	        		,
 	        		function(enh) {
 					var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 		           	var aid = imageEnhancer.annotationIdFromElement(enh.imgEl.context);
@@ -919,8 +920,8 @@ function doImageEnhancer(sel) {
 	            	}
 	        	]
         	);
-        	
-     
+
+
         	// opt.menu.push(['create optional feature region', function(enh) {
             //     var mid = enh.imgEl.data('enh-mediaassetid');
             //     window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
@@ -1083,6 +1084,9 @@ function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId)
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
+    let widthScale = el; //.width;// / el.naturalWidth;
+    console.log("widthScale is: ");
+    console.log(widthScale);
     var focused = (feat.annotationId == focusAnnId);
     var fel = $('<div data-encid="' + feat.encounterId + '" title="Annot" style="z-index: ' + (31 + (zdelta || 0)) + ';" class="image-enhancer-feature" />');
 
@@ -1111,7 +1115,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     }
     if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
     if (feat.iaClass) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">IA class: <b>' + feat.iaClass + '</b></i>';
-    
+
     if (focused) {
     	fel.addClass('image-enhancer-feature-focused');
     }
@@ -1427,7 +1431,7 @@ console.info("############## mid=%s -> %o", mid, ma);
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
       h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span>';
-      
+
       <%
       if(isOwner){
       %>
@@ -1435,12 +1439,12 @@ console.info("############## mid=%s -> %o", mid, ma);
       <%
     	}
       %>
-      
+
       h+='</div>';
-    } 
+    }
     else {
-      
-    	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName; 
+
+    	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName;
     	<%
     	if(isOwner){
     	%>
@@ -1451,9 +1455,9 @@ console.info("############## mid=%s -> %o", mid, ma);
     	h+='</div>';
 
     }
-    
-    
-    
+
+
+
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
@@ -1493,10 +1497,10 @@ console.info("############## mid=%s -> %o", mid, ma);
     console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
-  
+
   <%
 	}
-  
+
   if(isOwner){
   %>
 
@@ -1795,7 +1799,7 @@ console.log("isUserLoggedIn = "+isUserLoggedIn);
 $(document).ready(function() {
     if ("false"==isUserLoggedIn) {
         let vidEl = $(".video-element");
-        vidEl.attr("controlsList", "nodownload"); 
+        vidEl.attr("controlsList", "nodownload");
         vidEl.bind("contextmenu",function(e){
             return false;
         });

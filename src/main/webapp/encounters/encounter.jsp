@@ -384,8 +384,6 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
-
 
           function placeMarker(location) {
 
@@ -442,10 +440,18 @@ function setIndivAutocomplete(el) {
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = null;
+                mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	              var center = null;
+                let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+                let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                if (centerLat && centerLong) {
+                  center = new google.maps.LatLng(centerLat, centerLong);
+                } else {
+                  center = new google.maps.LatLng(10.8, 160.8);
+                }
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -480,9 +486,6 @@ function setIndivAutocomplete(el) {
 
 
         }
-
-
-
 
 var encounterNumber = '<%=num%>';
 

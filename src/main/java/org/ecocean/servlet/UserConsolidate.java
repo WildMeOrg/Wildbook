@@ -94,6 +94,62 @@ public class UserConsolidate extends HttpServlet {
     System.out.println("dedupe ......consolidation complete");
   }
 
+  public static void consolidateUserForUserEdit(Shepherd myShepherd, User userToRetain,
+      User userToBeConsolidated) { //same as consolidateUser, except it doesn't change roles
+    System.out
+        .println("dedupe consolidateUserForUserEdit user " + userToBeConsolidated.toString()
+            + " into user " + userToRetain.toString());
+
+    List<Encounter> photographerEncounters = getPhotographerEncountersForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (photographerEncounters != null && photographerEncounters.size() > 0) {
+      for (int j = 0; j < photographerEncounters.size(); j++) {
+        Encounter currentEncounter = photographerEncounters.get(j);
+        consolidatePhotographers(myShepherd, currentEncounter, userToRetain,
+            userToBeConsolidated);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+    List<Encounter> submitterEncounters = getSubmitterEncountersForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (submitterEncounters != null && submitterEncounters.size() > 0) {
+      for (int k = 0; k < submitterEncounters.size(); k++) {
+        Encounter currentEncounter = submitterEncounters.get(k);
+        consolidateEncounterSubmitters(myShepherd, currentEncounter,
+            userToRetain, userToBeConsolidated);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+    List<Occurrence> submitterOccurrences = getOccurrencesForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (submitterOccurrences != null && submitterOccurrences.size() > 0) {
+      for (int j = 0; j < submitterOccurrences.size(); j++) {
+        Occurrence currentOccurrence = submitterOccurrences.get(j);
+        if (currentOccurrence != null) {
+          consolidateOccurrenceData(myShepherd, currentOccurrence, userToRetain,
+              userToBeConsolidated);
+        }
+      }
+    }
+    consolidateEncounterSubmitterIds(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateEncounterInformOthers(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateImportTaskCreator(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateCollaborations(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateProjects(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
+    // Note: we made the executive decision to not include AccessControl. Might
+    // affect just a handfull of flukebook uers. JVO agrees. -MF
+
+    myShepherd.getPM().deletePersistent(userToBeConsolidated);
+    myShepherd.updateDBTransaction();
+    System.out.println("dedupe ......consolidateUserForUserEdit complete");
+  }
+
   public static void consolidateOrganizations(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
     if(userToBeConsolidated!=null){
       List<Organization> organizationsOfUserToBeConsolidated = userToBeConsolidated.getOrganizations();
