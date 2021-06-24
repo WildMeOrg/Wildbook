@@ -1402,6 +1402,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 	   	
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        if (mainAsset.rotation && ft.metadata && ft.metadata.width) scale = viewer.world.getItemAt(0).getContentSize().x / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
