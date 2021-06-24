@@ -598,7 +598,12 @@
 
 	{"name":"Atlantic Ocean (South)","id":"South Atlantic","locationID":[
 
-			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
+			{ "name":"Argentina", "id":"Argentina", "locationID":[
+			
+				{ "name":"Beagle Channel", "id":"Beagle Channel", "locationID":[] }
+			
+			
+			] },
 			{ "name":"Brazil", "id":"Brazil", "locationID":[
 
 				{ "name":"Brazil-Northeast", "id":"Brazil-Northeast", "locationID":[] }
