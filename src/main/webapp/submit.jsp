@@ -51,6 +51,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <style type="text/css">
+		.required-missing{
+			outline: solid 4px rgba(255,0,0,0.5);
+			background-color: #FF0;
+		}
+
     .full_screen_map {
     position: absolute !important;
     top: 0px !important;
@@ -256,6 +261,9 @@ function placeMarker(location) {
     }
 
   function initialize() {
+		//make the checkbox unchecked
+		$('input[id=code-of-conduct-checkbox]').removeAttr('checked');
+
     var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
@@ -685,7 +693,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                 %>
                   <option value="<%=currentCountry %>"><%=currentCountry%></option>
                 <%
-                } 
+                }
             }
                               %>
                 </select>
@@ -900,7 +908,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             List<String> behaviors = CommonConfiguration.getSequentialPropertyValues("behavior", context);
             if (behaviors.size()>0) {
             %>
-              <select class="form-control" name="lifeStage" id="lifeStage"> 
+              <select class="form-control" name="lifeStage" id="lifeStage">
                 <option value="" selected="selected"></option>
             <%
             for (int i=0;i<behaviors.size();i++) {
@@ -910,7 +918,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <%
             }
             %>
-              </select> 
+              </select>
             <%
             } else {
             //if nothing is defined just give regualr string input
@@ -1067,6 +1075,12 @@ function sendButtonClicked() {
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 
+	let codeOfConductCheckBoxChecked = $('#code-of-conduct-checkbox').prop("checked");
+	if(!codeOfConductCheckBoxChecked){
+		$('#code-of-conduct-checkbox').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must indicate that you have read and understand the code of conduct and completed the participation survey.'); }, 100);
+		return false;
+	}
     <%
     if(request.getUserPrincipal()!=null){
     %>
@@ -1099,8 +1113,11 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
-
+		<div class="form-group required">
+			<label class="radio-inline">
+				<input name="code-of-conduct-checkbox" id="code-of-conduct-checkbox" type="checkbox" value="unknown" checked="unchecked"> <%=props.getProperty("codeOfConductAndSurvey") %>
+			</label>
+		</div>
       <p class="text-center">
         <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
