@@ -24,15 +24,6 @@ String context=ServletUtilities.getContext(request);
 
 //set up our Shepherd
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
-myShepherd.setAction("index.jsp");
-
-PersistenceManager pm=myShepherd.getPM();
-PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
-javax.jdo.FetchGroup grp = pmf.getFetchGroup(Encounter.class, "encounterIndex");
-grp.addMember("individual").addMember("submitterID").addMember("catalogNumber").addMember("dwcDateAddedLong");
-myShepherd.getPM().getFetchPlan().setGroup("encounterIndex");
 
 
 
@@ -51,7 +42,7 @@ int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
-myShepherd.beginDBTransaction();
+
 //QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 //String url = "login.jsp";
@@ -268,262 +259,283 @@ h2.vidcap {
 
 </section>
 
-<div class="container-fluid relative data-section">
-
-    <aside class="container main-section">
-        <div class="row">
-
-            <!-- Random user profile to select -->
-            <%
-            //myShepherd.beginDBTransaction();
-            try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/user-profile-white-transparent.png";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
-
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	//myShepherd.rollbackDBTransaction();
-            }
-            %>
-
-
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
-                    <ul class="encounter-list list-unstyled">
-
-                       <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
-                       try{
-	                       for(int i=0;i<numResults;i++){
-	                           Encounter thisEnc=latestIndividuals.get(i);
-	                           %>
-	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
-	                                <small>
-	                                    <time>
-	                                        <%=thisEnc.getDate() %>
-	                                        <%
-	                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
-	                                        %>/ <%=thisEnc.getLocationID() %>
-	                                        <%
-	                                           }
-	                                        %>
-	                                    </time>
-	                                </small>
-	                                <p><%=thisEnc.getDisplayName() %></p>
-
-
-	                            </li>
-	                        <%
-	                        }
-						}
-                       catch(Exception e){e.printStackTrace();}
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
-
-                       }
-
-                        %>
-
-                    </ul>
-                  </div>
-            </section>
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("topSpotters")%></h2>
-                    <ul class="encounter-list list-unstyled">
-                    <%
-                    //myShepherd.beginDBTransaction();
-                    try{
-	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
-
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
-	                    int numUsersToDisplay=3;
-	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
-	                    Iterator<String> keys=spotters.keySet().iterator();
-	                    Iterator<Integer> values=spotters.values().iterator();
-	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
-	                          String spotter=keys.next();
-	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
-	                              User thisUser=myShepherd.getUser(spotter);
-	                              if(thisUser.getUserImage()!=null){
-	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	                              }
-	                              //System.out.println(spotters.values().toString());
-	                            Integer myInt=spotters.get(spotter);
-	                            //System.out.println(spotters);
-
-	                          %>
-	                                <li>
-	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-	                                    <%
-	                                    if(thisUser.getAffiliation()!=null){
-	                                    %>
-	                                    <small><%=thisUser.getAffiliation() %></small>
-	                                    <%
-	                                      }
-	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
-	                                </li>
-
-	                           <%
-	                           numUsersToDisplay--;
-	                    }
-	                   } //end while
-                    }
-                    catch(Exception e){e.printStackTrace();}
-                    //finally{myShepherd.rollbackDBTransaction();}
-
-                   %>
-
-                    </ul>
-                    
-                </div>
-            </section>
-        </div>
-    </aside>
-</div>
-
-<div class="container-fluid">
-    <section class="container text-center  main-section">
-       <div class="row">
-       		<section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p  class="brand-primary" ><i><span style="font-size: 4.5em" class="massive">2M+</span> <%=props.getProperty("numPhotos") %></i></p>
-            </section>
-                        <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary" ><i><span  style="font-size: 4.5em"class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary" ><i><span style="font-size: 4.5em" class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
-            </section>
-
-           </section>
-        </div>
-
-        <hr/>
-
-        <main class="container">
-            <article class="text-center">
-                <div class="row">
-                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
-                   
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
-                        
-                    </div>
-                </div>
-            </article>
-        <main>
-
-    </section>
-</div>
-
-
 <%
-if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
-%>
-<div class="container-fluid">
-    <section class="container main-section">
 
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
-        <section class="adopt-section row">
+Shepherd myShepherd=null;
+myShepherd=new Shepherd(context);
+myShepherd.setAction("index.jsp");
 
-            <!-- Complete text body for adoption section in index properties file -->
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+PersistenceManager pm=myShepherd.getPM();
+PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+javax.jdo.FetchGroup grp = pmf.getFetchGroup(Encounter.class, "encounterIndex");
+grp.addMember("individual").addMember("submitterID").addMember("catalogNumber").addMember("dwcDateAddedLong");
+myShepherd.getPM().getFetchPlan().setGroup("encounterIndex");
 
-		                	%>
-		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
+myShepherd.beginDBTransaction();
 
+try{
+	%>
+	
+	<div class="container-fluid relative data-section">
+	
+	    <aside class="container main-section">
+	        <div class="row">
+	
+	            <!-- Random user profile to select -->
 	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
-            %>
-
-
-        </section>
-
-        <hr/>
-        <%= props.getProperty("donationText") %>
-    </section>
-</div>
-<%
+	            
+	            try{
+					User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+	            	if(featuredUser!=null){
+	                	String profilePhotoURL="images/user-profile-white-transparent.png";
+	                	if(featuredUser.getUserImage()!=null){
+	                		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+	                	}
+		
+		            	%>
+		                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+		                    <div class="focusbox-inner opec">
+		                        <h2><%=props.getProperty("ourContributors") %></h2>
+		                        <div>
+		                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+		                            <p><%=featuredUser.getFullName() %>
+		                                <%
+		                                if(featuredUser.getAffiliation()!=null){
+		                                %>
+		                                <i><%=featuredUser.getAffiliation() %></i>
+		                                <%
+		                                }
+		                                %>
+		                            </p>
+		                            <p><%=featuredUser.getUserStatement() %></p>
+		                        </div>
+		                        </div>
+		                </section>
+		            <%
+	            } // end if
+	
+	            }
+	            catch(Exception e){e.printStackTrace();}
+	            finally{
+	
+	            	
+	            }
+	            %>
+	
+	
+	            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+	                <div class="focusbox-inner opec">
+	                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
+	                    <ul class="encounter-list list-unstyled">
+	
+	                       <%
+	                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+	                       int numResults=latestIndividuals.size();
+	                       myShepherd.beginDBTransaction();
+	                       try{
+		                       for(int i=0;i<numResults;i++){
+		                           Encounter thisEnc=latestIndividuals.get(i);
+		                           %>
+		                            <li>
+		                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+		                                <small>
+		                                    <time>
+		                                        <%=thisEnc.getDate() %>
+		                                        <%
+		                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
+		                                        %>/ <%=thisEnc.getLocationID() %>
+		                                        <%
+		                                           }
+		                                        %>
+		                                    </time>
+		                                </small>
+		                                <p><%=thisEnc.getDisplayName() %></p>
+	
+	
+		                            </li>
+		                        <%
+		                        }
+							}
+	                       catch(Exception e){e.printStackTrace();}
+	                       finally{
+	                    	  
+	
+	                       }
+	
+	                        %>
+	
+	                    </ul>
+	                  </div>
+	            </section>
+	            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+	                <div class="focusbox-inner opec">
+	                    <h2><%=props.getProperty("topSpotters")%></h2>
+	                    <ul class="encounter-list list-unstyled">
+	                    <%
+	                    //myShepherd.beginDBTransaction();
+	                    try{
+		                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
+	                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+	
+		                    System.out.println("  I think my startTime is: "+startTime);
+	
+		                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+		                    int numUsersToDisplay=3;
+		                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
+		                    Iterator<String> keys=spotters.keySet().iterator();
+		                    Iterator<Integer> values=spotters.values().iterator();
+		                    while((keys.hasNext())&&(numUsersToDisplay>0)){
+		                          String spotter=keys.next();
+		                          int numUserEncs=values.next().intValue();
+		                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+		                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
+		                              User thisUser=myShepherd.getUser(spotter);
+		                              if(thisUser.getUserImage()!=null){
+		                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+		                              }
+		                              //System.out.println(spotters.values().toString());
+		                            Integer myInt=spotters.get(spotter);
+		                            //System.out.println(spotters);
+	
+		                          %>
+		                                <li>
+		                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+		                                    <%
+		                                    if(thisUser.getAffiliation()!=null){
+		                                    %>
+		                                    <small><%=thisUser.getAffiliation() %></small>
+		                                    <%
+		                                      }
+		                                    %>
+		                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+		                                </li>
+	
+		                           <%
+		                           numUsersToDisplay--;
+		                    }
+		                   } //end while
+	                    }
+	                    catch(Exception e){e.printStackTrace();}
+	                    //finally{myShepherd.rollbackDBTransaction();}
+	
+	                   %>
+	
+	                    </ul>
+	                    
+	                </div>
+	            </section>
+	        </div>
+	    </aside>
+	</div>
+	
+	<div class="container-fluid">
+	    <section class="container text-center  main-section">
+	       <div class="row">
+	       		<section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+	                <p  class="brand-primary" ><i><span style="font-size: 4.5em" class="massive">2M+</span> <%=props.getProperty("numPhotos") %></i></p>
+	            </section>
+	                        <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+	                <p class="brand-primary" ><i><span  style="font-size: 4.5em"class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
+	            </section>
+	            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+	                <p class="brand-primary" ><i><span style="font-size: 4.5em" class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
+	            </section>
+	
+	           </section>
+	        </div>
+	
+	        <hr/>
+	
+	        <main class="container">
+	            <article class="text-center">
+	                <div class="row">
+	                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
+	                   
+	<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+	                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
+	                        <p class="lead">
+	                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+	                        
+	                    </div>
+	                </div>
+	            </article>
+	        </main>
+	
+	    </section>
+	</div>
+	
+	
+	<%
+	if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
+	%>
+	<div class="container-fluid">
+	    <section class="container main-section">
+	
+	        <!-- Complete header for adoption section in index properties file -->
+	        <%=props.getProperty("adoptionHeader") %>
+	        <section class="adopt-section row">
+	
+	            <!-- Complete text body for adoption section in index properties file -->
+	            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+	              <%=props.getProperty("adoptionBody") %>
+	            </div>
+	            <%
+	
+	            try{
+		            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+		            if(adopt!=null){
+		            %>
+		            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			                <div class="focusbox-inner" style="overflow: hidden;">
+			                	<%
+			                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+	
+			                	%>
+			                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
+			                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+			                    <%
+			                    if(adopt.getAdopterQuote()!=null){
+			                    %>
+				                    <blockquote>
+				                        <%=adopt.getAdopterQuote() %>
+				                    </blockquote>
+			                    <%
+			                    }
+			                    %>
+			                </div>
+			            </div>
+	
+		            <%
+					}
+	            }
+	            catch(Exception e){e.printStackTrace();}
+	            finally{}
+	
+	            %>
+	
+	
+	        </section>
+	
+	        <hr/>
+	        <%= props.getProperty("donationText") %>
+	    </section>
+	</div>
+	<%
+	}
 }
+
+catch(Exception et){
+	et.printStackTrace();
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	myShepherd=null;
+}
+
 %>
 
-</main>
-</main>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
 
-
-<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-myShepherd=null;
-%>
