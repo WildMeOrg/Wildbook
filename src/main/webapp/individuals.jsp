@@ -842,7 +842,7 @@ if (sharky.getNames() != null) {
 
           <div class="highlight" id="sexErrorDiv"></div>
           <form name="setxsexshark" class="editForm">
-            <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
+            <input name="individual" type="hidden" value="<%=request.getParameter("id")%>"/>
             <div class="form-group row" id="selectSex">
               <div class="col-sm-4">
                 <label><%=sex %>: </label>
@@ -937,7 +937,7 @@ if (sharky.getNames() != null) {
             <p class="clickDateText birthDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_birthdate">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
+              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>"/>
               <div class="form-group has-feedback row" id="birthDiv">
                 <div class="col-sm-4">
                   <label><%=props.getProperty("birthdate")  %>:</label>
@@ -1009,7 +1009,7 @@ if (sharky.getNames() != null) {
             <p class="clickDateText deathDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_deathdate">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>" />
               <div class="form-group has-feedback row" id="deathDiv">
                 <div class="col-sm-4">
                   <label><%=props.getProperty("deathdate")  %>:</label>
@@ -1073,7 +1073,7 @@ if (sharky.getNames() != null) {
             <%-- Start alt id form --%>
             <div class="highlight" id="altIdErrorDiv"></div>
             <form name="set_alternateid" class="editForm">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <input name="individual" type="hidden" value="<%=request.getParameter("id")%>" />
               <div class="form-group has-feedback row" id="altIdDiv">
                 <div class="col-sm-4">
                   <label><%=alternateID %>:</label>

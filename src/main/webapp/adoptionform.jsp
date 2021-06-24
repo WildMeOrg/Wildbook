@@ -2,45 +2,45 @@
     import="org.ecocean.servlet.*, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException"
     %>
 <jsp:include page="header.jsp" flush="true" />
-    <% 
-    //handle some cache-related security 
-    response.setHeader("Cache-Control", "no-cache" ); 
-    //Forces caches to obtain a new copy of the page from the origin server 
-    response.setHeader("Cache-Control", "no-store" ); 
-    //Directs caches not to store the page under any circumstance 
-    response.setDateHeader("Expires", 0); 
-    //Causes the proxy cache to see the page as "stale" 
-    response.setHeader("Pragma", "no-cache" ); 
-    //HTTP 1.0 backward compatibility 
-    String context="context0" ; 
-    context=ServletUtilities.getContext(request); 
-    //language setup 
+    <%
+    //handle some cache-related security
+    response.setHeader("Cache-Control", "no-cache" );
+    //Forces caches to obtain a new copy of the page from the origin server
+    response.setHeader("Cache-Control", "no-store" );
+    //Directs caches not to store the page under any circumstance
+    response.setDateHeader("Expires", 0);
+    //Causes the proxy cache to see the page as "stale"
+    response.setHeader("Pragma", "no-cache" );
+    //HTTP 1.0 backward compatibility
+    String context="context0" ;
+    context=ServletUtilities.getContext(request);
+    //language setup
     String langCode="en" ;
     if(session.getAttribute("langCode")!=null){
         langCode=(String)session.getAttribute("langCode");
-    } 
-    Properties props=new Properties(); 
+    }
+    Properties props=new Properties();
     props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
-    Properties stripeProps=ShepherdProperties.getProperties("stripeKeys.properties", "" , context); 
-    if(stripeProps==null) { 
-        System.out.println("There are no available API keys for Stripe!"); 
-    } 
-    String stripePublicKey=stripeProps.getProperty("publicKey"); 
+    Properties stripeProps=ShepherdProperties.getProperties("stripeKeys.properties", "" , context);
+    if(stripeProps==null) {
+        System.out.println("There are no available API keys for Stripe!");
+    }
+    String stripePublicKey=stripeProps.getProperty("publicKey");
     Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction ("adoptionform.jsp"); 
-    myShepherd.beginDBTransaction(); 
+    myShepherd.setAction ("adoptionform.jsp");
+    myShepherd.beginDBTransaction();
     try{
-        String shark="" ; 
-    if(request.getParameter("number") !=null) { 
-        shark=request.getParameter("number"); 
-    } // Necessary to persist your selected shark across multiple form submissions. // Payment status is also stored in session. 
-    if(request.getParameter("number") !=null) { 
+        String shark="" ;
+    if(request.getParameter("number") !=null) {
+        shark=request.getParameter("number");
+    } // Necessary to persist your selected shark across multiple form submissions. // Payment status is also stored in session.
+    if(request.getParameter("number") !=null) {
         session.setAttribute( "queryShark" , request.getParameter("number") );
-    } 
-    String sessionShark=null; 
+    }
+    String sessionShark=null;
     if (session.getAttribute( "queryShark" ) !=null) {
-        sessionShark=((String)session.getAttribute( "queryShark" )).trim(); 
-    } 
+        sessionShark=((String)session.getAttribute( "queryShark" )).trim();
+    }
 
     //params from donorbox
     String donorboxId = "";
@@ -68,17 +68,17 @@
         donorboxDuration=request.getParameter("duration");
     }
 
-        session.setAttribute( "emailEdit" , false ); 
-        boolean hasNickName=true; 
-        String nick="" ; 
-        try { 
-            if ((sessionShark!=null)&&(myShepherd.getMarkedIndividual(sessionShark)!=null)) { 
-                MarkedIndividual mi=myShepherd.getMarkedIndividual(sessionShark); 
-                nick=mi.getNickName(); 
-                if (((nick==null) || nick.equals("Unassigned"))||(nick.equals(""))) { 
-                    hasNickName=false; 
-                } 
-            } 
+        session.setAttribute( "emailEdit" , false );
+        boolean hasNickName=true;
+        String nick="" ;
+        try {
+            if ((sessionShark!=null)&&(myShepherd.getMarkedIndividual(sessionShark)!=null)) {
+                MarkedIndividual mi=myShepherd.getMarkedIndividual(sessionShark);
+                nick=mi.getNickName();
+                if (((nick==null) || nick.equals("Unassigned"))||(nick.equals(""))) {
+                    hasNickName=false;
+                }
+            }
         } catch (Exception e) {
         System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
@@ -109,7 +109,7 @@
 	String servletURL = " ../AdoptionAction"; %>
 
         <link rel="stylesheet" href="css/createadoption.css">
-        <% 
+        <%
             if(Util.stringExists(donorboxId) && Util.stringExists(shark)){ //TODO I could cross check this against the donorbox api (for an additional $17/month), but I don't think warranted. As is, an evil user could just but an id in the url and pass this check. But, let's not over-engineer. Who is trying to hoodwink a non-profit just to be able to nickname an animal?
         %>
         <div class="container maincontent">
@@ -142,7 +142,7 @@
                             <% } %>
                                 <input class="input-m-width adoptionStartDate" name="adoptionStartDate" type="hidden"
                                     value="<%=adoptionStartDate%>">
-    
+
                                 <div class="input-group">
                                     <span class="input-group-addon">Adopter Name (optional)</span>
                                     <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
@@ -178,10 +178,10 @@
                                 placeholder="Enter a personal or gift message here. (e.g. Why is research and conservation of this species important?) here."><%=adopterQuote%>
                   </textarea>
                         </div>
-    
+
                         <%-- Recaptcha widget --%>
                             <%= ServletUtilities.captchaWidget(request) %>
-    
+
                                 <!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
                                 <% if (acceptedPayment) { %>
                                     <button class="large" type="submit" name="Submit" value="Submit">Finish Adoption<span
@@ -192,23 +192,15 @@
                 <!-- </div> -->
             </form>
             <% } %>
-                <% 
-                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 1");
-                myShepherd.rollbackDBTransaction(); 
-                myShepherd.closeDBTransaction(); 
-                %>
 
             </section>
         </div>
         <%
             }
             else{
-                System.out.println("deleteMe db transaction being closed in adoptionform.jsp 2");
-                myShepherd.rollbackDBTransaction(); 
-                myShepherd.closeDBTransaction();
                 %>
                 <script type="text/javascript">
-                    //redirect to payment page 
+                    //redirect to payment page
                     window.location.href = "/createadoption.jsp";
                 </script>
                 <%
