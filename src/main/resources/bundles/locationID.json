@@ -132,7 +132,8 @@
 
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA-Perth-Ocean Reef", "id":"WA-Perth-Ocean Reef", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+{ "name":"WA-Perth-Ocean Reef", "id":"WA-Perth-Ocean Reef", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":50.686688,"long":7.127002}
+},
 
 { "name":"WA-Perth-Point Peron", "id":"WA-Perth-Point Peron", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -152,10 +153,3 @@
 
   ]
 }
-
-
-
-
-
-
-
