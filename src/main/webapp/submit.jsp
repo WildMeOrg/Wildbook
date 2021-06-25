@@ -1078,7 +1078,7 @@ function sendButtonClicked() {
 	let codeOfConductCheckBoxChecked = $('#code-of-conduct-checkbox').prop("checked");
 	if(!codeOfConductCheckBoxChecked){
 		$('#code-of-conduct-checkbox').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must indicate that you have read and understand the code of conduct and completed the participation survey.'); }, 100);
+		window.setTimeout(function() { alert('You must indicate that you have read and understand the code of conduct.'); }, 100);
 		return false;
 	}
     <%
