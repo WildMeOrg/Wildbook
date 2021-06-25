@@ -83,77 +83,86 @@ public class TwitterBot {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("TwitterBot.processIncomingTweet");
         myShepherd.beginDBTransaction();
-        TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
-        if (tas == null) {
-            System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            return;
-        }
-        Task task = new Task();
-        myShepherd.getPM().makePersistent(task);
-        JSONObject p = new JSONObject();
-        p.put("id", tweet.getId());
-        MediaAsset tweetMA = tas.find(p, myShepherd);
-        List<MediaAsset> entities = null;
-        if (tweetMA == null) {
-            tweetMA = tas.create(p);
-            tweetMA.addLabel("_original");
-            try {
-                tweetMA.updateMetadata();
-            } catch (IOException ex) {
-                System.out.println("WARNING: TwitterBot.processIncomingTweet() tweetMA.updateMetadata() threw " + ex.toString());
-            }
-            MediaAssetFactory.save(tweetMA, myShepherd);
-            entities = tas.entitiesAsMediaAssets(tweetMA);
-            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
-            if ((entities != null) && (entities.size() > 0)) {
-                for (MediaAsset ema : entities) {
-                    MediaAssetFactory.save(ema, myShepherd);
-                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
-                }
-            }
-        }
-        else {
-            ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
-            System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            return;
-            //entities = (load the children from retrieved tweetMA)
-        }
-        System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
-        sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-
-        String taxonomyString = taxonomyStringFromTweet(tweet, context);
-        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
-
-        Encounter enc=new Encounter(false);
-        if(taxy!=null)enc.setTaxonomy(taxy);
-        myShepherd.getPM().makePersistent(enc);
-        myShepherd.updateDBTransaction();
-        for(MediaAsset ma:entities) {
-          enc.addMediaAsset(ma);
-          myShepherd.updateDBTransaction();
-        }
-
-        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
-        // compare this to prev. logic in detectionQueueJob method below
-        IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-
-        //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
-        String baseUrl = IA.getBaseURL(context);
-        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
-        qj.put("tweetAssetId", tweetMA.getId());
         try {
-            org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
-            System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
-        } catch (IOException ioe) {
-            System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
-        }
+          TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
+          if (tas == null) {
+              System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+              return;
+          }
+          Task task = new Task();
+          myShepherd.getPM().makePersistent(task);
+          JSONObject p = new JSONObject();
+          p.put("id", tweet.getId());
+          MediaAsset tweetMA = tas.find(p, myShepherd);
+          List<MediaAsset> entities = null;
+          if (tweetMA == null) {
+              tweetMA = tas.create(p);
+              tweetMA.addLabel("_original");
+              try {
+                  tweetMA.updateMetadata();
+              } catch (IOException ex) {
+                  System.out.println("WARNING: TwitterBot.processIncomingTweet() tweetMA.updateMetadata() threw " + ex.toString());
+              }
+              MediaAssetFactory.save(tweetMA, myShepherd);
+              entities = tas.entitiesAsMediaAssets(tweetMA);
+              System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
+              if ((entities != null) && (entities.size() > 0)) {
+                  for (MediaAsset ema : entities) {
+                      MediaAssetFactory.save(ema, myShepherd);
+                      System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
+                  }
+              }
+          }
+          else {
+              ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
+              System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+              return;
+              //entities = (load the children from retrieved tweetMA)
+          }
+          System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
+          sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
+          if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
+  
+          String taxonomyString = taxonomyStringFromTweet(tweet, context);
+          Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+  
+          Encounter enc=new Encounter(false);
+          if(taxy!=null)enc.setTaxonomy(taxy);
+          myShepherd.getPM().makePersistent(enc);
+          myShepherd.updateDBTransaction();
+          for(MediaAsset ma:entities) {
+            enc.addMediaAsset(ma);
+            myShepherd.updateDBTransaction();
+          }
+  
+          System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
+          // compare this to prev. logic in detectionQueueJob method below
+          IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
+          myShepherd.commitDBTransaction();
+          
+  
+          //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+          String baseUrl = IA.getBaseURL(context);
+          JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
+          qj.put("tweetAssetId", tweetMA.getId());
+          try {
+              org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
+              System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
+          } catch (IOException ioe) {
+              System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
+          }
+       }
+       catch(Exception twittere) {
+         twittere.printStackTrace();
+         myShepherd.rollbackDBTransaction();
+       }
+       finally {
+         myShepherd.closeDBTransaction();
+       }
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?

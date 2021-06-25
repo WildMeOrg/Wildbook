@@ -6,35 +6,88 @@
           "name": "Pacific Ocean",
           "locationID":[
 
-           {"name": "Anacapa Island", "id": "Anacapa Island", "locationID":[
+           {"name": "Anacapa Island", "id": "Anacapa Island",
+             "geospatialInfo":{
+             			 	"lat":34.004546,
+             			 	"long":-119.398734
+             			 },
+             "locationID":[
 
-               {"name": "Anacapa Island- Admiral's Reef", "id": "Anacapa Island- Admiral's Reef"},
+               {"name": "Anacapa Island- Admiral's Reef", "id": "Anacapa Island- Admiral's Reef",
+                 "geospatialInfo":{
+                 			 	"lat":34.007750,
+                 			 	"long":-119.434383
+                 			 }},
 
-               {"name": "Anacapa Island- Black Seabass Reef", "id": "Anacapa Island- Black Seabass Reef"},
+               {"name": "Anacapa Island- Black Seabass Reef", "id": "Anacapa Island- Black Seabass Reef",
+             "geospatialInfo":{
+             			 	"lat":34.012600,
+             			 	"long":-119.389183
+             			 }},
 
-               {"name": "Anacapa Island- Brickyard", "id": "Anacapa Island- Brickyard"},
+               {"name": "Anacapa Island- Brickyard", "id": "Anacapa Island- Brickyard",
+             "geospatialInfo":{
+             			 	"lat":34.01241,
+             			 	"long":-119.39236
+             			 }},
 
-               {"name": "Anacapa Island- Canyons", "id": "Anacapa Island- Canyons"},
+               {"name": "Anacapa Island- Canyons", "id": "Anacapa Island- Canyons",
+             "geospatialInfo":{
+             			 	"lat":34.004546,
+             			 	"long":-119.398734
+             			 }},
 
-               {"name": "Anacapa Island- Cathedral Cove", "id": "Anacapa Island- Cathedral Cove"},
+               {"name": "Anacapa Island- Cathedral Cove", "id": "Anacapa Island- Cathedral Cove",
+             "geospatialInfo":{
+             			 	"lat":34.0165,
+             			 	"long":-119.3701
+             			 }},
 
-               {"name": "Anacapa Island- Cathedral Point", "id": "Anacapa Island- Cathedral Point"},
+               {"name": "Anacapa Island- Cathedral Point", "id": "Anacapa Island- Cathedral Point",
+             "geospatialInfo":{
+             			 	"lat":34.01588,
+             			 	"long":-119.37378
+             			 }},
 
-               {"name": "Anacapa Island- East Fish Camp", "id": "Anacapa Island- East Fish Camp"},
+               {"name": "Anacapa Island- East Fish Camp", "id": "Anacapa Island- East Fish Camp",
+             "geospatialInfo":{
+             			 	"lat":34.004500,
+             			 	"long":-119.385783
+             			 }},
 
-               {"name": "Anacapa Island- Garden Spot", "id": "Anacapa Island- Garden Spot"},
+               {"name": "Anacapa Island- Garden Spot", "id": "Anacapa Island- Garden Spot",
+             "geospatialInfo":{
+             			 	"lat":34.017350,
+             			 	"long":-119.366817
+             			 }},
 
-               {"name": "Anacapa Island- Goldfish Bowl", "id": "Anacapa Island- Goldfish Bowl"},
+               {"name": "Anacapa Island- Goldfish Bowl", "id": "Anacapa Island- Goldfish Bowl",
+             "geospatialInfo":{
+             			 	"lat":34.0149186,
+             			 	"long":-119.437711
+             			 }},
 
-               {"name": "Anacapa Island- Landing Cove", "id": "Anacapa Island- Landing Cove"},
+               {"name": "Anacapa Island- Landing Cove", "id": "Anacapa Island- Landing Cove",
+             "geospatialInfo":{
+             			 	"lat":34.016842,
+             			 	"long":-119.361890
+             			 }},
 
-               {"name": "Anacapa Island- Lighthouse Reef", "id": "Anacapa Island- Lighthouse Reef"},
+               {"name": "Anacapa Island- Lighthouse Reef", "id": "Anacapa Island- Lighthouse Reef",
+             "geospatialInfo":{
+             			 	"lat":34.016889,
+             			 	"long":-119.358266
+             			 }},
 
                {"name": "Anacapa Island- Northeast Side", "id": "Anacapa Island- Northeast Side"},
 
                {"name": "Anacapa Island- Northwest Side", "id": "Anacapa Island- Northwest Side"},
 
-               {"name": "Anacapa Island- Parallel Reefs", "id": "Anacapa Island- Parallel Reefs"},
+               {"name": "Anacapa Island- Parallel Reefs", "id": "Anacapa Island- Parallel Reefs",
+             "geospatialInfo":{
+             			 	"lat":33.999883,
+             			 	"long":-119.413733
+             			 }},
 
                {"name": "Anacapa Island- Rat Rock", "id": "Anacapa Island- Rat Rock"},
 
@@ -42,165 +95,441 @@
 
                {"name": "Anacapa Island- Southwest Side", "id": "Anacapa Island- Southwest Side"},
 
-               {"name": "Anacapa Island- Surveyor's Rock", "id": "Anacapa Island- Surveyor's Rock"},
+               {"name": "Anacapa Island- Surveyor's Rock", "id": "Anacapa Island- Surveyor's Rock",
+             "geospatialInfo":{
+             			 	"lat":34.01007,
+             			 	"long":-119.37240
+             			 }},
 
-               {"name": "Anacapa Island- Underwater Island", "id": "Anacapa Island- Underwater Island"},
+               {"name": "Anacapa Island- Underwater Island", "id": "Anacapa Island- Underwater Island",
+             "geospatialInfo":{
+             			 	"lat":34.002955,
+             			 	"long":-119.414778
+             			 }},
 
-               {"name": "Anacapa Island- Winfield Scott Wreck", "id": "Anacapa Island- Winfield Scott Wreck"}
+               {"name": "Anacapa Island- Winfield Scott Wreck", "id": "Anacapa Island- Winfield Scott Wreck",
+             "geospatialInfo":{
+             			 	"lat":34.008971,
+             			 	"long":-119.386976
+             			 }}
 
            ] },
 
-           {"name": "Aquarium of the Pacific", "id": "Aquarium of the Pacific"},
-              
-           {"name": "Birch Aquarium", "id": "Birch Aquarium"},
+           {"name": "Aquarium of the Pacific", "id": "Aquarium of the Pacific",
+             "geospatialInfo":{
+             			 	"lat":33.762637,
+             			 	"long":-118.196683
+             			 }},
 
-           {"name": "Barn Kelp, SONGS site", "id": "Barn Kelp, SONGS site"},
+           {"name": "Birch Aquarium", "id": "Birch Aquarium",
+             "geospatialInfo":{
+             			 	"lat":32.865783,
+             			 	"long":-117.250626
+             			 }},
 
-           {"name": "Cabrillo Marine Aquarium", "id": "Cabrillo Marine Aquarium"},
+           {"name": "Barn Kelp, SONGS site", "id": "Barn Kelp, SONGS site",
+             "geospatialInfo":{
+             			 	"lat":33.314521,
+             			 	"long":-117.496542
+             			 }},
 
-           {"name": "Cabrillo National Monument", "id": "Cabrillo National Monument"},
+           {"name": "Cabrillo Marine Aquarium", "id": "Cabrillo Marine Aquarium",
+             "geospatialInfo":{
+             			 	"lat":33.7110,
+             			 	"long":-118.2853
+             			 }},
+
+           {"name": "Cabrillo National Monument", "id": "Cabrillo National Monument",
+             "geospatialInfo":{
+             			 	"lat":32.667304,
+             			 	"long":-117.247518
+             			 }},
 
            {"name": "Carpinteria Reef", "id": "Carpinteria Reef"},
 
-           {"name": "Catalina Island", "id": "Catalina Island", "locationID":[
+           {"name": "Catalina Island", "id": "Catalina Island",
+             "geospatialInfo":{
+             			 	"lat":33.3879,
+             			 	"long":-118.4163
+             			 }, "locationID":[
 
-               {"name": "Catalina Island- Big Fisherman's Cove", "id": "Catalina Island- Big Fisherman's Cove"},
+               {"name": "Catalina Island- Big Fisherman's Cove", "id": "Catalina Island- Big Fisherman's Cove",
+             "geospatialInfo":{
+             			 	"lat":33.445056,
+             			 	"long":-118.485667
+             			 }},
 
-               {"name": "Catalina Island- Bird Rock", "id": "Catalina Island- Bird Rock"},
+               {"name": "Catalina Island- Bird Rock", "id": "Catalina Island- Bird Rock",
+             "geospatialInfo":{
+             			 	"lat":33.4524,
+             			 	"long":-118.4887
+             			 }},
 
-               {"name": "Catalina Island- Casino Point", "id": "Catalina Island- Casino Point"},
+               {"name": "Catalina Island- Casino Point", "id": "Catalina Island- Casino Point",
+             "geospatialInfo":{
+             			 	"lat":33.349055,
+             			 	"long":-118.324805
+             			 }},
 
-               {"name": "Catalina Island- China Point", "id": "Catalina Island- China Point"},
+               {"name": "Catalina Island- China Point", "id": "Catalina Island- China Point",
+             "geospatialInfo":{
+             			 	"lat":33.3272,
+             			 	"long":-118.4676
+             			 }},
 
-               {"name": "Catalina Island- Eagle Reef", "id": "Catalina Island- Eagle Reef"},
+               {"name": "Catalina Island- Eagle Reef", "id": "Catalina Island- Eagle Reef",
+             "geospatialInfo":{
+             			 	"lat":33.461908,
+             			 	"long":-118.505058
+             			 }},
 
-               {"name": "Catalina Island- frontside", "id": "Catalina Island- frontside"},
+               {"name": "Catalina Island- frontside", "id": "Catalina Island- frontside",
+             "geospatialInfo":{
+             			 	"lat":33.426334,
+             			 	"long":-118.382424
+             			 }},
 
-               {"name": "Catalina Island- Goat Harbor", "id": "Catalina Island- Goat Harbor"},
+               {"name": "Catalina Island- Goat Harbor", "id": "Catalina Island- Goat Harbor",
+             "geospatialInfo":{
+             			 	"lat":33.417167,
+             			 	"long":-118.396223
+             			 }},
 
-               {"name": "Catalina Island- Hen Rock", "id": "Catalina Island- Hen Rock"},
+               {"name": "Catalina Island- Hen Rock", "id": "Catalina Island- Hen Rock",
+             "geospatialInfo":{
+             			 	"lat":33.400565,
+             			 	"long":-118.366537
+             			 }},
 
-               {"name": "Catalina Island- Howland's Landing", "id": "Catalina Island- Howland's Landing"},
+               {"name": "Catalina Island- Howland's Landing", "id": "Catalina Island- Howland's Landing",
+             "geospatialInfo":{
+             			 	"lat":33.46581,
+             			 	"long":-118.52033
+             			 }},
 
-               {"name": "Catalina Island- Isthmus Cove", "id": "Catalina Island- Isthmus Cove"},
+               {"name": "Catalina Island- Isthmus Cove", "id": "Catalina Island- Isthmus Cove",
+             "geospatialInfo":{
+             			 	"lat":33.443780,
+             			 	"long":-118.495192
+             			 }},
 
-               {"name": "Catalina Island- Italian Gardens", "id": "Catalina Island- Italian Gardens"},
+               {"name": "Catalina Island- Italian Gardens", "id": "Catalina Island- Italian Gardens",
+             "geospatialInfo":{
+             			 	"lat":33.413620,
+             			 	"long":-118.380270
+             			 }},
 
-               {"name": "Catalina Island- Johnson's Rock", "id": "Catalina Island- Johnson's Rock"},
+               {"name": "Catalina Island- Johnson's Rock", "id": "Catalina Island- Johnson's Rock"
+                 ,
+               "geospatialInfo":{
+               			 	"lat":33.476883,
+               			 	"long":-118.589233
+               			 }},
 
-               {"name": "Catalina Island- Little Farnsworth", "id": "Catalina Island- Little Farnsworth"},
+               {"name": "Catalina Island- Little Farnsworth", "id": "Catalina Island- Little Farnsworth",
+             "geospatialInfo":{
+             			 	"lat":33.33366,
+             			 	"long":-118.30745
+             			 }},
 
-               {"name": "Catalina Island- Long Point", "id": "Catalina Island- Long Point"},
+               {"name": "Catalina Island- Long Point", "id": "Catalina Island- Long Point",
+             "geospatialInfo":{
+             			 	"lat":33.4055,
+             			 	"long":-118.3666
+             			 }},
 
                { "name":"Catalina Island - off Great Escape", "id":"Catalina Island - off Great Escape", "locationID":[] },
 
-               {"name": "Catalina Island- Rock Quarry", "id": "Catalina Island- Rock Quarry"},
+               {"name": "Catalina Island- Rock Quarry", "id": "Catalina Island- Rock Quarry",
+             "geospatialInfo":{
+             			 	"lat":33.4409,
+             			 	"long":-118.4625
+             			 }},
 
-               {"name": "Catalina Island- Twin Rocks", "id": "Catalina Island- Twin Rocks"}
-
+               {"name": "Catalina Island- Twin Rocks", "id": "Catalina Island- Twin Rocks",
+             "geospatialInfo":{
+             			 	"lat":33.41833,
+             			 	"long":-118.3901
+             			 }}
             ]},
 
-            {"name": "Channel Islands", "id": "Channel Islands"},
+            {"name": "Channel Islands", "id": "Channel Islands",
+             "geospatialInfo":{
+             			 	"lat":34.004171,
+             			 	"long":-119.397338
+             			 }},
 
-            {"name": "Goleta- Campus Point", "id": "Goleta- Campus Point"},
+            {"name": "Goleta- Campus Point", "id": "Goleta- Campus Point",
+             "geospatialInfo":{
+             			 	"lat":34.404306,
+             			 	"long":-119.841103
+             			 }},
 
-            {"name": "Goleta- Coal Oil Point", "id": "Goleta- Coal Oil Point"},
+            {"name": "Goleta- Coal Oil Point", "id": "Goleta- Coal Oil Point",
+             "geospatialInfo":{
+             			 	"lat":34.402883,
+             			 	"long":-119.878067
+             			 }},
 
-            {"name": "Goleta- Sands", "id": "Goleta- Sands"},
+            {"name": "Goleta- Sands", "id": "Goleta- Sands",
+             "geospatialInfo":{
+             			 	"lat":34.406441,
+             			 	"long":-119.882967
+             			 }},
 
-            {"name": "Half Moon Bay", "id": "Half Moon Bay"},
+            {"name": "Half Moon Bay", "id": "Half Moon Bay",
+             "geospatialInfo":{
+             			 	"lat":37.463959,
+             			 	"long":-122.470853
+             			 }},
 
-            {"name": "Heal the Bay Aquarium", "id": "Heal the Bay Aquarium"},
+            {"name": "Heal the Bay Aquarium", "id": "Heal the Bay Aquarium",
+             "geospatialInfo":{
+             			 	"lat":34.0104,
+             			 	"long":-118.4960
+             			 }},
 
-            {"name": "Hermosa Artificial Reef", "id": "Hermosa Artificial Reef"},
-              
-            {"name": "Huntington Beach", "id": "Huntington Beach"},
+            {"name": "Hermosa Artificial Reef", "id": "Hermosa Artificial Reef",
+             "geospatialInfo":{
+             			 	"lat":33.853667,
+             			 	"long":-118.413333
+             			 }},
 
-            {"name": "Isla Vista- IV Reef", "id": "Isla Vista- IV Reef"},
+            {"name": "Huntington Beach", "id": "Huntington Beach",
+             "geospatialInfo":{
+             			 	"lat":33.647389,
+             			 	"long":-118.037611
+             			 }},
 
-            {"name": "Laguna Beach- Shaw's Cove", "id": "Laguna Beach- Shaw's Cove"},
+            {"name": "Isla Vista- IV Reef", "id": "Isla Vista- IV Reef"
+              ,
+               "geospatialInfo":{
+               			 	"lat":34.402821,
+               			 	"long":-119.861150
+               			 }},
 
-            {"name": "La Jolla", "id": "La Jolla", "locationID":[
+            {"name": "Laguna Beach- Shaw's Cove", "id": "Laguna Beach- Shaw's Cove",
+             "geospatialInfo":{
+             			 	"lat":33.544080,
+             			 	"long":-117.799331
+             			 }},
 
-                {"name": "La Jolla Cove", "id": "La Jolla Cove"},
+            {"name": "La Jolla", "id": "La Jolla",
+             "geospatialInfo":{
+             			 	"lat":32.849477,
+             			 	"long":-117.291943
+             			 }, "locationID":[
 
-                {"name": "La Jolla Shores", "id": "La Jolla Shores"},
+                {"name": "La Jolla Cove", "id": "La Jolla Cove",
+             "geospatialInfo":{
+             			 	"lat":32.851022,
+             			 	"long":-117.272260
+             			 }},
 
-                {"name": "La Jolla- Marine Room", "id": "La Jolla- Marine Room"}
+                {"name": "La Jolla Shores", "id": "La Jolla Shores",
+             "geospatialInfo":{
+             			 	"lat":32.859660,
+             			 	"long":-117.259567
+             			 }},
+
+                {"name": "La Jolla- Marine Room", "id": "La Jolla- Marine Room",
+             "geospatialInfo":{
+             			 	"lat":32.852914,
+             			 	"long":-117.261952
+             			 }}
 
             ]},
 
             {"name": "Naples", "id": "Naples"},
 
-            {"name": "New Brighton Beach", "id": "New Brighton Beach"},
+            {"name": "New Brighton Beach", "id": "New Brighton Beach",
+             "geospatialInfo":{
+             			 	"lat":36.974837,
+             			 	"long":-121.929437
+             			 }},
 
             { "name":"Palos Verdes", "id":"Palos Verdes", "locationID":[
 
-              {"name": "Palos Verdes Peninsula- Ridges", "id": "Palos Verdes Peninsula- Ridges"},
+              {"name": "Palos Verdes Peninsula- Ridges", "id": "Palos Verdes Peninsula- Ridges",
+             "geospatialInfo":{
+             			 	"lat":33.789972,
+             			 	"long":-118.427250
+             			 }},
 
-              {"name": "Palos Verdes- Malaga Cove", "id": "Palos Verdes- Malaga Cove"},
+              {"name": "Palos Verdes- Malaga Cove", "id": "Palos Verdes- Malaga Cove",
+             "geospatialInfo":{
+             			 	"lat":33.805378,
+             			 	"long":-118.398840
+             			 }},
 
-              {"name": "Palos Verdes- Rocky Point", "id": "Palos Verdes- Rocky Point"},
-                
-              {"name": "Palos Verdes- Terranea Resort", "id": "Palos Verdes- Terranea Resort"}
-                
+              {"name": "Palos Verdes- Rocky Point", "id": "Palos Verdes- Rocky Point",
+             "geospatialInfo":{
+             			 	"lat":33.774042,
+             			 	"long":-118.429739
+             			 }},
+
+              {"name": "Palos Verdes- Terranea Resort", "id": "Palos Verdes- Terranea Resort",
+             "geospatialInfo":{
+             			 	"lat":33.735507,
+             			 	"long":-118.397619
+             			 }}
+
               ] },
 
-            {"name": "Point Loma", "id": "Point Loma", "locationID":[
+            {"name": "Point Loma", "id": "Point Loma",
+             "geospatialInfo":{
+             			 	"lat":32.700860,
+             			 	"long":-117.266730
+             			 }, "locationID":[
 
-                { "name":"Point Loma, Three Fingers", "id":"Point Loma, Three Fingers", "locationID":[] }
+                { "name":"Point Loma, Three Fingers", "id":"Point Loma, Three Fingers",
+             "geospatialInfo":{
+             			 	"lat":32.709400,
+             			 	"long":-117.277217
+             			 }, "locationID":[] }
             ]},
 
-            {"name": "Redondo Beach", "id": "Redondo Beach", "locationID":[
-                {"name": "Redondo- Landing Craft", "id": "Redondo- Landing Craft"}
+            {"name": "Redondo Beach", "id": "Redondo Beach",
+             "geospatialInfo":{
+             			 	"lat":33.837588,
+             			 	"long":-118.396620
+             			 }, "locationID":[
+                {"name": "Redondo- Landing Craft", "id": "Redondo- Landing Craft",
+             "geospatialInfo":{
+             			 	"lat":33.809367,
+             			 	"long":-118.405517
+             			 }}
             ]},
 
 
-            {"name": "Refugio State Beach", "id": "Refugio State Beach"},
+            {"name": "Refugio State Beach", "id": "Refugio State Beach",
+             "geospatialInfo":{
+             			 	"lat":34.461453,
+             			 	"long":-120.071146
+             			 }},
 
-            {"name": "San Clemente Island", "id": "San Clemente Island", "locationID":[
+            {"name": "San Clemente Island", "id": "San Clemente Island",
+             "geospatialInfo":{
+             			 	"lat":32.897589,
+             			 	"long":-118.496071
+             			 }, "locationID":[
 
-                {"name": "San Clemente Island- China Hat", "id": "San Clemente Island- China Hat"},
+                {"name": "San Clemente Island- China Hat", "id": "San Clemente Island- China Hat",
+             "geospatialInfo":{
+             			 	"lat":32.81502,
+             			 	"long":-118.35612
+             			 }},
 
-                {"name": "San Clemente Island- Fish Hook", "id": "San Clemente Island- Fish Hook"},
+                {"name": "San Clemente Island- Fish Hook", "id": "San Clemente Island- Fish Hook",
+             "geospatialInfo":{
+             			 	"lat":32.83035,
+             			 	"long":-118.3901
+             			 }},
 
-                {"name": "San Clemente Island- Little Flower", "id": "San Clemente Island- Little Flower"},
+                {"name": "San Clemente Island- Little Flower", "id": "San Clemente Island- Little Flower",
+             "geospatialInfo":{
+             			 	"lat":32.83949,
+             			 	"long":-118.36815
+             			 }},
 
-                {"name": "San Clemente Island- Nine Fathom Reef", "id": "San Clemente Island- Nine Fathom Reef"},
+                {"name": "San Clemente Island- Nine Fathom Reef", "id": "San Clemente Island- Nine Fathom Reef",
+             "geospatialInfo":{
+             			 	"lat":33.036502,
+             			 	"long":-118.620159
+             			 }},
 
-                {"name": "San Clemente Island- Wilson Cove", "id": "San Clemente Island- Wilson Cove"}
+                {"name": "San Clemente Island- Wilson Cove", "id": "San Clemente Island- Wilson Cove",
+             "geospatialInfo":{
+             			 	"lat":33.0072,
+             			 	"long":-118.5571
+             			 }}
+            ]},
+
+            {"name": "San Diego- HMCS Yukon", "id": "San Diego- HMCS Yukon",
+             "geospatialInfo":{
+             			 	"lat":32.78,
+             			 	"long":-117.2853
+             			 }},
+
+            {"name": "San Diego Bay", "id": "San Diego Bay",
+             "geospatialInfo":{
+             			 	"lat":32.72096,
+             			 	"long":-117.183473
+             			 }},
+
+            {"name": "San Diego Kelp", "id": "San Diego Kelp",
+             "geospatialInfo":{
+             			 	"lat":32.728317,
+             			 	"long":-117.262420
+             			 }},
+
+            {"name": "San Mateo Kelp, SONGS site", "id": "San Mateo Kelp, SONGS site",
+             "geospatialInfo":{
+             			 	"lat":33.379200,
+             			 	"long":-117.600000
+             			 }},
+
+            {"name": "San Nicolas Island", "id": "San Nicolas Island",
+             "geospatialInfo":{
+             			 	"lat":33.246510,
+             			 	"long":-119.501447
+             			 }},
+
+            {"name": "San Onofre", "id": "San Onofre",
+             "geospatialInfo":{
+             			 	"lat":33.375451,
+             			 	"long":-117.570123
+             			 }},
+
+            {"name": "Santa Barbara Island", "id": "Santa Barbara Island",
+             "geospatialInfo":{
+             			 	"lat":33.4769828,
+             			 	"long":-119.0473013
+             			 }, "locationID":[
+
+                {"name": "Santa Barbara Island- Arch Point", "id": "Santa Barbara Island- Arch Point",
+             "geospatialInfo":{
+             			 	"lat":33.489254,
+             			 	"long":-119.027990
+             			 }},
+
+                {"name": "Santa Barbara Island- Shag Rock", "id": "Santa Barbara Island- Shag Rock",
+             "geospatialInfo":{
+             			 	"lat":33.486721,
+             			 	"long":-119.036538
+             			 }},
+
+                {"name": "Santa Barbara Island- Sutil Island", "id": "Santa Barbara Island- Sutil Island",
+             "geospatialInfo":{
+             			 	"lat":33.4640,
+             			 	"long":-119.0457
+             			 }},
+
+                {"name": "Santa Barbara Island- The Rookery", "id": "Santa Barbara Island- The Rookery",
+             "geospatialInfo":{
+             			 	"lat": 33.470983,
+             			 	"long":-119.030067
+             			 }}
 
             ]},
 
-            {"name": "San Diego- HMCS Yukon", "id": "San Diego- HMCS Yukon"},
+            {"name": "Santa Cruz Island", "id": "Santa Cruz Island",
+             "geospatialInfo":{
+             			 	"lat":34.030471,
+             			 	"long":-119.765982
+             			 }, "locationID":[
 
-            {"name": "San Diego Bay", "id": "San Diego Bay"},
+                {"name": "Santa Cruz Island- Blue Banks", "id": "Santa Cruz Island- Blue Banks",
+             "geospatialInfo":{
+             			 	"lat":33.978946,
+             			 	"long":-119.673035
+             			 }},
 
-            {"name": "San Diego Kelp", "id": "San Diego Kelp"},
-
-            {"name": "San Mateo Kelp, SONGS site", "id": "San Mateo Kelp, SONGS site"},
-
-            {"name": "San Nicolas Island", "id": "San Nicolas Island"},
-
-            {"name": "San Onofre", "id": "San Onofre"},
-
-            {"name": "Santa Barbara Island", "id": "Santa Barbara Island", "locationID":[
-
-                {"name": "Santa Barbara Island- Arch Point", "id": "Santa Barbara Island- Arch Point"},
-
-                {"name": "Santa Barbara Island- Shag Rock", "id": "Santa Barbara Island- Shag Rock"},
-
-                {"name": "Santa Barbara Island- Sutil Island", "id": "Santa Barbara Island- Sutil Island"},
-
-                {"name": "Santa Barbara Island- The Rookery", "id": "Santa Barbara Island- The Rookery"}
-
-            ]},
-
-            {"name": "Santa Cruz Island", "id": "Santa Cruz Island", "locationID":[
-
-                {"name": "Santa Cruz Island- Blue Banks", "id": "Santa Cruz Island- Blue Banks"},
-
-                {"name": "Santa Cruz Island- Yellow Banks", "id": "Santa Cruz Island- Yellow Banks"}
+                {"name": "Santa Cruz Island- Yellow Banks", "id": "Santa Cruz Island- Yellow Banks",
+             "geospatialInfo":{
+             			 	"lat":33.9872,
+             			 	"long":-119.560717
+             			 }}
 
             ]},
 
@@ -210,21 +539,41 @@
 
             ]},
 
-            {"name": "Santa Monica- Wreck of the Star of Scotland", "id": "Santa Monica- Wreck of the Star of Scotland"},
+            {"name": "Santa Monica- Wreck of the Star of Scotland", "id": "Santa Monica- Wreck of the Star of Scotland",
+             "geospatialInfo":{
+             			 	"lat":33.992000,
+             			 	"long":-118.521167
+             			 }},
 
-            {"name": "Solana Beach", "id": "Solana Beach"},
+            {"name": "Solana Beach", "id": "Solana Beach",
+             "geospatialInfo":{
+             			 	"lat":32.9893,
+             			 	"long":-117.2812
+             			 }},
 
-            {"name": "Topanga Beach", "id": "Topanga Beach"},
+            {"name": "Topanga Beach", "id": "Topanga Beach",
+             "geospatialInfo":{
+             			 	"lat":34.036934,
+             			 	"long":-118.582829
+             			 }},
 
-            {"name": "Torrey Pines State Beach", "id": "Torrey Pines State Beach"},
+            {"name": "Torrey Pines State Beach", "id": "Torrey Pines State Beach",
+             "geospatialInfo":{
+             			 	"lat":32.92736,
+             			 	"long":-117.260446
+             			 }},
 
-            {"name": "Wheeler North Reef, SONGS site", "id": "Wheeler North Reef, SONGS site"},
+            {"name": "Wheeler North Reef, SONGS site", "id": "Wheeler North Reef, SONGS site",
+             "geospatialInfo":{
+             			 	"lat":33.407924,
+             			 	"long":-119.398734
+             			 }},
 
             {"name":"None", "id":"None", "locationID":[] }
 
           ],
 
-          "id": "3",
+          "id": "Pacific Ocean",
           "defaultLatitude": 34.0,
           "defaultLongitude": -120.0
       }

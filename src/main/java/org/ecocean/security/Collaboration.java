@@ -9,6 +9,7 @@ import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.regexp.recompile;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -362,21 +363,28 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
-		String context = ServletUtilities.getContext(request);
+
+	  String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
+
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
-		if (request.getUserPrincipal() == null) return false;
-		String username = request.getUserPrincipal().getName();
-//System.out.println("username->"+username);
+
 		if (User.isUsernameAnonymous(ownerName)) return true;  //anon-owned is "fair game" to anyone
-//System.out.println("owner->" + owner);
-//System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+
+		if (request.getUserPrincipal() == null) {
+		  return canCollaborate(context, ownerName, "public");
+		};
+
+		String username = request.getUserPrincipal().getName();
+
 		return canCollaborate(context, ownerName, username);
 
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
-		return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+	  if(enc!=null && enc.getSubmitterID()==null) return true;
+
+	  return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
@@ -419,6 +427,17 @@ public class Collaboration implements java.io.Serializable {
 		return false;
 	}
 
+	//Check if User (via request) has edit access to every Encounter in this Individual
+	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+	   if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+	   Vector<Encounter> all = mi.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return false;
+	    for (Encounter enc : all) {
+	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return true;
+	  }
+
 	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
 	    List<MarkedIndividual> all = su.getMarkedIndividuals();
 	    if ((all == null) || (all.size() < 1)) return true;
@@ -428,32 +447,33 @@ public class Collaboration implements java.io.Serializable {
 	    return false;
 	  }
 
-  public String toString() {
-      return new ToStringBuilder(this)
-              .append("username1", getUsername1())
-              .append("username2", getUsername2())
-              .append("state", getState())
-              .append("dateTimeCreated", getDateStringCreated())
-              .toString();
-  }
+	public String toString() {
+		return new ToStringBuilder(this)
+				.append("username1", getUsername1())
+				.append("username2", getUsername2())
+				.append("state", getState())
+				.append("dateTimeCreated", getDateStringCreated())
+				.toString();
+	}
 
-	//Check if User (via request) has edit access to every Encounter in this Individual
-	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
-	    Vector<Encounter> all = mi.getEncounters();
-	    if ((all == null) || (all.size() < 1)) return false;
-	    for (Encounter enc : all) {
-	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
-	    }
-	    return true;
-	  }
+	public String getEditInitiator() {
+		if (editInitiator!=null&&!"".equals(editInitiator)) {
+			return editInitiator;
+		} else if (this.getState().equals(STATE_REJECTED)) {
+			return null;
+		} else {
+			this.editInitiator = this.username1; // probably old collaboration request where position 1 is always initiator
+			return editInitiator;
+		}
+	}
 
-  public String getEditInitiator() {return editInitiator;}
-  public void setEditInitiator(String username) {
-    if(username==null) {this.editInitiator=null;}
-    else {
-      this.editInitiator = username;
-    }
-  }
+
+	public void setEditInitiator(String username) {
+		if(username==null) {this.editInitiator=null;}
+		else {
+		this.editInitiator = username;
+		}
+	}
 
 
 

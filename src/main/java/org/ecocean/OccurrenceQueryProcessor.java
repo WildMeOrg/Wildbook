@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Vector;
+import java.util.StringTokenizer;
 import java.io.*;
 import org.joda.time.format.*;
 
@@ -100,12 +101,25 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       }
       //end submitterOrganization filter--------------------------------------------------------------------------------------
 
-    //Taxonomies
-    List<String> scientificNames = getScientificNames(request);
-    int numTaxonomies = scientificNames.size();
-    if (numTaxonomies>0) {
-      filter = filterTaxonomies(filter, request, prettyPrint, scientificNames);
-      jdoqlVariableDeclaration = addTaxonomyVars(jdoqlVariableDeclaration, numTaxonomies);
+    //filter for genus------------------------------------------
+    if((request.getParameter("genusSpeciesField")!=null)&&(!request.getParameter("genusSpeciesField").equals(""))) {
+      String genusSpecies=request.getParameter("genusSpeciesField").replaceAll("%20", " ").trim();
+      String genus="";
+      String specificEpithet = "";
+
+      StringTokenizer tokenizer=new StringTokenizer(genusSpecies," ");
+      if(tokenizer.countTokens()==2){
+
+        genus=tokenizer.nextToken();
+        specificEpithet=tokenizer.nextToken();
+
+        filter=filterWithCondition(filter," enc.genus == '"+genus+"' ");
+        filter=filterWithCondition(filter," enc.specificEpithet == '"+specificEpithet+"' ");
+
+        prettyPrint.append("genus and species are \""+genusSpecies+"\".<br />");
+
+      }
+
     }
 
     // make sure no trailing ampersands
@@ -114,51 +128,6 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     filter += parameterDeclaration;
     System.out.println("OccurrenceQueryProcessor filter: "+filter);
     return filter;
-  }
-
-  public static int getNumTaxonomies(HttpServletRequest request) {
-    int numTaxonomies = 0;
-    while(request.getParameter("taxonomy"+numTaxonomies)!=null) {
-      numTaxonomies++;
-    }
-    return numTaxonomies;
-  }
-  public static List<String> getScientificNames(HttpServletRequest request) {
-    List<String> names = new ArrayList<String>();
-    int numTaxonomies = 0;
-    String currentName = request.getParameter("taxonomy0");
-    while(Util.stringExists(currentName)) {
-      names.add(Util.basicSanitize(currentName));
-      numTaxonomies++;
-      currentName = request.getParameter("taxonomy"+numTaxonomies);
-    }
-    return names;
-
-  }
-
-  private static String filterTaxonomies(String filter, HttpServletRequest request, StringBuffer prettyPrint, List<String> scientificNames) {
-    int numTaxonomies = scientificNames.size();
-    StringBuilder taxQuery = new StringBuilder();
-    for (int i=0;i<numTaxonomies;i++) {
-      String thisTitle = "taxonomy"+i;
-      String taxName = scientificNames.get(i);
-      if (!Util.stringExists(taxName)) continue;
-      if (i>0) {
-        taxQuery.append(" && "); // OR??
-        prettyPrint.append(" and ");
-      }
-      taxQuery.append("(taxonomies.contains("+thisTitle+") && "+thisTitle+".scientificName == \""+taxName+"\")");
-      prettyPrint.append("taxonomy "+i+" equals");
-    }
-    prettyPrint.append(".</br>");
-    filter = filterWithCondition(filter, taxQuery.toString()); // is this ok??? should fix w jdo subfilter method
-    return filter;
-  }
-  private static String addTaxonomyVars(String jdoqlVariableDeclaration, int numTaxonomies) {
-    for (int i = 0; i < numTaxonomies; i++) {
-      QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Taxonomy taxonomy" + i);
-    }
-    return jdoqlVariableDeclaration;
   }
 
   private static String addVariables(String jdoqlVariableDeclaration, String orgs) {

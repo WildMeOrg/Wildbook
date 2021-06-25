@@ -520,22 +520,12 @@ public class Occurrence implements java.io.Serializable {
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
 
-    Properties localesProps = new Properties();
-    if(useLocales){
-      try {
-        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-      }
-      catch (Exception ioe) {
-        ioe.printStackTrace();
-      }
-    }
-
     for(int c=0;c<myEncs.length;c++) {
       Encounter temp=myEncs[c];
       if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
         haveData.add(temp);
       }
-      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+      else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
         haveData.add(temp);
       }
 
