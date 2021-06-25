@@ -171,6 +171,7 @@ System.out.println("######>>>>>> payload=" + payload);
                 rtn.put("success", true);
             }
         } catch (Exception ex) {
+            response.setStatus(500);  //this is not ok
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));
         }
 /*
