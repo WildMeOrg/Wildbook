@@ -4286,6 +4286,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             if (numIndivEncs == 0) throw new IOException("danger: zero Encounters reported on " + indiv);  //snh
             if ((numIndivEncs == 1) && !cascadeMarkedIndividual) throw new ApiDeleteCascadeException(indiv + " will be removed via cascade; aborting", indiv); 
         }
+        occ.removeEncounter(this);
         myShepherd.getPM().deletePersistent(this);
         if (numOccEncs < 2) {
             SystemLog.warn("cascade delete of {} via {}", occStr, encStr);
