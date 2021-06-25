@@ -454,33 +454,49 @@ context=ServletUtilities.getContext(request);
 	        <div id="tags" style="display:none;">
 	            <p><%=occProps.getProperty("fieldsInstructions") %></p>
 	
-	            <%
-	            if(CommonConfiguration.showProperty("showTaxonomy",context)){
-	            %>
-	                  <span><%=props.getProperty("genusSpecies")%>:</span> <select name="genusSpeciesField" id="genusSpeciesField">
-	                        <option value="" selected> </option>
-	                        <%
-	                        Iterator<Taxonomy> allTaxonomies = myShepherd.getAllTaxonomies();
-	                        if (allTaxonomies.hasNext()) {
-	                          while (allTaxonomies.hasNext()) {
-	                            Taxonomy tax = allTaxonomies.next();
-	                            String optionStr = tax.getScientificName();
-	                            if (tax.getCommonName()!=null&&!"".equals(tax.getCommonName())) {
-	                              optionStr += " ("+tax.getCommonName()+")";
-	                            }
-	                            %>
-	                              <option value="<%=tax.getScientificName()%>"><%=optionStr%></option>
-	                            <%
-	                          }
-	                        }
-	                        %>
-	                  </select>
-	            <%
-	            }
-	            %>
+
 	
-	              <table>
 	
+	             
+	             <p> <table>
+	             		<%
+				        if(CommonConfiguration.showProperty("showTaxonomy",context)){
+				        %>
+						<tr>
+							<td>
+				         		<%=props.getProperty("genusSpecies")%> 
+				         	</td>
+				         	<td>
+					         <select name="genusSpeciesField" id="genusSpeciesField">
+							<option value=""></option>
+				
+									       <%
+									       boolean hasMoreTax=true;
+									       int taxNum=0;
+									       while(hasMoreTax){
+									       	  String currentGenuSpecies = "genusSpecies"+taxNum;
+									       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+									       	  	%>
+				
+									       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
+									       	  	<%
+									       		taxNum++;
+									          }
+									          else{
+									             hasMoreTax=false;
+									          }
+				
+									       }
+									       %>
+				
+				
+								      </select>
+							</td>
+							</tr>
+					<%
+					}
+					%>
+				
 	              <%
 	              // should make listVals logic contingent on if user is logged in
 	              List<String> categoricalFields = new ArrayList<String>();
@@ -527,7 +543,8 @@ context=ServletUtilities.getContext(request);
 	              }
 	              %>
 	              </table>
-	              </table>
+	              </p>
+	            
 	           </div>
 	           </td>
 	           </tr>
