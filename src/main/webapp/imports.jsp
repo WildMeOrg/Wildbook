@@ -10,6 +10,7 @@ java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
+java.util.Iterator,
 org.ecocean.security.Collaboration,
 java.util.HashMap,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
@@ -236,7 +237,10 @@ if (itask == null) {
     }
 
     List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
+    HashMap<HashMap<String,String>,Integer> annotsMap=new HashMap<HashMap<String,String>,Integer>();
+    List<String> allIndies = new ArrayList<String>();
     int numIA = 0;
+    int numAnnotations=0;
     boolean foundChildren = false;
 
     HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
@@ -264,12 +268,14 @@ if (itask == null) {
         } else {
             out.println("<td><a title=\"" + enc.getOccurrenceID() + "\" href=\"occurrence.jsp?number=" + enc.getOccurrenceID() + "\">" + (Util.isUUID(enc.getOccurrenceID()) ? enc.getOccurrenceID().substring(0,8) : enc.getOccurrenceID()) + "</a></td>");
         }
-        if (enc.hasMarkedIndividual()) {
-            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividual().getDisplayName(request, myShepherd) + "</a></td>");
+        if (enc.getIndividual()!=null) {
+            out.println("<td><a title=\"" + enc.getIndividual().getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividual().getIndividualID() + "\">" + enc.getIndividual().getDisplayName(request, myShepherd) + "</a></td>");
+            if(!allIndies.contains(enc.getIndividual().getIndividualID()))allIndies.add(enc.getIndividual().getIndividualID());
         } else {
             out.println("<td class=\"dim\">-</td>");
         }
 
+        //MediaAssets
         ArrayList<MediaAsset> mas = enc.getMedia();
         if (Util.collectionSize(mas) < 1) {
             out.println("<td class=\"dim\">0</td>");
@@ -284,6 +290,26 @@ if (itask == null) {
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
             }
         }
+        
+        //let's do some annotation tabulation
+        for(Annotation annot:enc.getAnnotations()){
+        	String viewpoint="null";
+        	String iaClass="null";
+        	if(annot.getViewpoint()!=null)viewpoint=annot.getViewpoint();
+        	if(annot.getIAClass()!=null)iaClass=annot.getIAClass();
+        	HashMap<String,String> thisMap=new HashMap<String,String>();
+        	thisMap.put(iaClass,viewpoint);
+        	if(!annotsMap.containsKey(thisMap)){
+        		annotsMap.put(thisMap,Integer.parseInt("1"));
+        		numAnnotations++;
+        	}
+        	else{
+        		Integer numInts = annotsMap.get(thisMap);
+        		numInts = new Integer(numInts.intValue() + 1);
+        		annotsMap.put(thisMap,numInts);
+        		numAnnotations++;
+        	}
+        }
 
         out.println("</tr>");
         
@@ -295,19 +321,50 @@ if (itask == null) {
 %>
 </tbody></table>
 <p>
-Total MediAssets: <b><%=allAssets.size()%></b><br>
-<ul>
+<strong>Summary</strong><br>
+	Total marked individuals: <%=allIndies.size() %><br>
+	Total encounters: <%=itask.getEncounters().size() %>
+</p>
+
 <%
-int numWithACMID=0;
-int numDetectionComplete=0;
-for(MediaAsset asset:allAssets){
-	if(asset.getAcmId()!=null)numWithACMID++;
-	if(asset.getDetectionStatus()!=null && asset.getDetectionStatus().equals("complete")) numDetectionComplete++;
+try{
+	int numWithACMID=0;
+	int numDetectionComplete=0;
+	for(MediaAsset asset:allAssets){
+		if(asset.getAcmId()!=null)numWithACMID++;
+		if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete"))||asset.getDetectionStatus().equals("pending")) numDetectionComplete++;
+	}
+	%>
+	<p>
+	Total media assets: <%=allAssets.size()%><br>
+	<ul>
+		<li>Number with acmIDs: <%=numWithACMID %></li>
+		<li>Number that have completed detection: <%=numDetectionComplete %></li>
+	</ul>
+</p>
+<p>Total annotations: <%=numAnnotations %>
+	<ul>
+		<%
+		Set<HashMap<String,String>> annotSet=annotsMap.keySet();
+		Iterator<HashMap<String,String>> iterAnnots=annotSet.iterator();
+		while(iterAnnots.hasNext()){
+			HashMap<String,String> mapHere = iterAnnots.next();
+			%>
+			<li><%=mapHere.toString() %>: <%=annotsMap.get(mapHere) %></li>
+			<%
+		}
+		%>
+		
+	</ul>
+	</p>
+<%
+}
+catch(Exception n){
+	n.printStackTrace();
 }
 %>
-<li>Number with acmIDs: <%=numWithACMID %></li>
-<li>Number that have completed detection: <%=numDetectionComplete %></li>
-</ul>
+
+
 
 <script>
 let js_jarrs = new Map();
