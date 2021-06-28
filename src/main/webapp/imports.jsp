@@ -11,6 +11,7 @@ java.util.List,
 java.util.Collection,
 java.util.ArrayList,
 org.ecocean.security.Collaboration,
+java.util.HashMap,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -74,17 +75,6 @@ function confirmDelete() {
 }
 .no {
     color: #F20;
-}
-
-.smaller {
-    font-size: 0.84em;
-}
-.fname-toggle-true {
-    background-color: rgba(255,255,0,0.2);
-}
-.has-trivial {
-    font-style: oblique;
-    color: #A80;
 }
 
 a.button {
@@ -212,10 +202,12 @@ if (itask == null) {
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<br>Status: "+itask.getStatus());
-    out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+    if(itask.getParameters()!=null){
+    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+    }	
     out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images", "Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images", "Images"};
+    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
+    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -247,11 +239,11 @@ if (itask == null) {
     int numIA = 0;
     boolean foundChildren = false;
 
-    JSONArray jarr = new JSONArray();
-    String fnameBlockPrev = "";
-    boolean fnameToggle = true;
+    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
-        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
+       
+    	JSONArray jarr=new JSONArray();
+    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -278,20 +270,12 @@ if (itask == null) {
             out.println("<td class=\"dim\">-</td>");
         }
 
-        ArrayList<Annotation> anns = enc.getAnnotations();
-        String fnameBlock = "";
-        List<String> fnames = new ArrayList<String>();
-        if (Util.collectionSize(anns) < 1) {
+        ArrayList<MediaAsset> mas = enc.getMedia();
+        if (Util.collectionSize(mas) < 1) {
             out.println("<td class=\"dim\">0</td>");
-            out.println("<td class=\"dim\">-</td>");
         } else {
-            out.println("<td>" + Util.collectionSize(anns) + "</td>");
-            for (Annotation ann : anns) {
-                MediaAsset ma = ann.getMediaAsset();
-                if (ma == null) continue;
-                boolean isTroubleTrivial = ann.isTrivial();  // && (ma.getFeatures().size() != 1);
-                fnames.add("<span " + (isTroubleTrivial ? "class=\"has-trivial\"" : "") + " title=\"MediaAsset id " + ma.getId() + (isTroubleTrivial ? " | UNDETECTED" : "") + "\">" + ma.getFilename() + "</span>");
-                fnameBlock += ma.getFilename();
+            out.println("<td>" + Util.collectionSize(mas) + "</td>");
+            for (MediaAsset ma : mas) {
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
                     jarr.put(ma.getId());
@@ -299,55 +283,79 @@ if (itask == null) {
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
             }
-            if (!fnameBlock.equals(fnameBlockPrev)) fnameToggle = !fnameToggle;
-            out.println("<td class=\"fname-toggle-" + fnameToggle + " smaller\">" + String.join(", ", fnames) + "</td>");
-            fnameBlockPrev = fnameBlock;
         }
 
         out.println("</tr>");
+        
+        jarrs.put(enc.getCatalogNumber(), jarr);
+        
     }
     int percent = -1;
     if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
 %>
 </tbody></table>
 <p>
-Total images: <b><%=allAssets.size()%></b>
+Total MediAssets: <b><%=allAssets.size()%></b><br>
+<ul>
+<%
+int numWithACMID=0;
+int numDetectionComplete=0;
+for(MediaAsset asset:allAssets){
+	if(asset.getAcmId()!=null)numWithACMID++;
+	if(asset.getDetectionStatus()!=null && asset.getDetectionStatus().equals("complete")) numDetectionComplete++;
+}
+%>
+<li>Number with acmIDs: <%=numWithACMID %></li>
+<li>Number that have completed detection: <%=numDetectionComplete %></li>
+</ul>
+
 <script>
-var allAssetIds = <%=jarr.toString(4)%>;
+let js_jarrs = new Map();
+<%
+for(String key:jarrs.keySet()){
+%>
+	js_jarrs.set('<%=key %>',<%=jarrs.get(key).toString() %>);
+<%
+}
+%>
 
 function sendToIA(skipIdent) {
     if (!confirmCommit()) return;
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-    var locIds = $('#id-locationids').val();
-    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
-        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-            $('#ia-send-wait').html('<i>sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
-        } else {
-            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+    var locationIds = $('#id-locationids').val();
+
+    // some of this borrowed from core.js sendMediaAssetsToIA()
+    // but now we send bulkImport as the entire js_jarrs value
+    var data = {
+        taskParameters: { skipIdent: skipIdent || false },
+        bulkImport: {}
+    };
+    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
+    if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+
+    console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/ia',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: 'application/javascript',
+        complete: function(x) {
+            console.log('sendToIA() response: %o', x);
+	    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+	        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+	    } else {
+	        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+	    }
         }
     });
 }
-
+ 
 </script>
 </p>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-<% if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
-    <div id="ia-send-div">
-    <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
-
-    <a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
-    <select multiple id="id-locationids" style="vertical-align: top;">
-        <option selected><%= String.join("</option><option>", locationIds) %></option>
-        <option value="">ALL locations</option>
-    </select>
-    </div>
-<% } else { %>
-    <p id="rap-link"><a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">View Rapid Assessment</a></p>
-<script>$(document).ready(function() { $('.bootstrap-table').before('<div style="padding: 10px;">' + $('#rap-link').html() + '</div>'); });</script>
-<% } %>
-</p>
 
 <p>
 Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
@@ -357,8 +365,6 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 </p>
 
 <% if (adminMode) { 
-
-// if (adminMode || user.equals(itask.getCreator()))
 %>
     <div id="ia-send-div">
     
@@ -377,10 +383,8 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	    }
  } //end if admin mode
 
-
 //who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
-
-if("complete".equals(itask.getStatus()) && (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
+if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 	    %>
 	    	<div style="margin-bottom: 20px;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
