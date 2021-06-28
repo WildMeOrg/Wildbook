@@ -7,9 +7,6 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrenceSearch.jsp");
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 
@@ -620,7 +617,6 @@ context=ServletUtilities.getContext(request);
 	finally{
 		  myShepherd.rollbackDBTransaction();
 		  myShepherd.closeDBTransaction();
-		  kwQuery = null;
 		  myShepherd = null;
 	}
 %>
