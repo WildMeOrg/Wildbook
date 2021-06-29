@@ -62,14 +62,22 @@
 
     //int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
 	int numThumbnails=0;
-	List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-	thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
-	
-    
-    String queryString = "";
-    if (request.getQueryString() != null) {
-      queryString = request.getQueryString();
+	List<SinglePhotoVideo> tempLocs=new ArrayList<SinglePhotoVideo>();
+	tempLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
+  List<String> spvFilenames = new ArrayList<>();
+  List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+
+  for (SinglePhotoVideo thumbLoc : tempLocs) {
+    if (!spvFilenames.contains(thumbLoc.getFilename())) {
+      spvFilenames.add(thumbLoc.getFilename());
+      thumbLocs.add(thumbLoc);
     }
+  }
+
+  String queryString = "";
+  if (request.getQueryString() != null) {
+    queryString = request.getQueryString();
+  }
 
   %>
  
@@ -419,7 +427,7 @@
 
                       <tr>
                         <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividualID() %>
+                          href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividual().getDisplayName() %>
                         </a></span></td>
                       </tr>
                       
@@ -530,7 +538,7 @@
 </tr>
 <tr>
   <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-    href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividualID() %>
+    href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank"><%=thisEnc.getIndividual().getDisplayName() %>
   </a></span></td>
 </tr>
                       <%

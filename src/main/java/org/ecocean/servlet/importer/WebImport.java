@@ -110,7 +110,6 @@ public class WebImport extends HttpServlet {
     System.out.println("WebImport got subdir "+subdir);
     if (Util.stringExists(subdir)) uploadDirectory = fileInDir(subdir, uploadDirectory); // need slash
     String filename = request.getParameter("filename");
-    System.out.println("WebImport got uploadDirectory "+uploadDirectory);
     String fullPath = fileInDir(filename, uploadDirectory);
     File dataFile = new File(fullPath);
     boolean dataFound = (dataFile!=null && dataFile.exists());

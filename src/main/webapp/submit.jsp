@@ -85,12 +85,14 @@ $(document).ready( function() {
 	<%
 	if(user != null){
 		%>
-		let userId = '<%= user.getId()%>';
+		let userId = '<%= user.getUsername()%>';
 		let requestForProjectNames = {};
-		requestForProjectNames['ownerId'] = userId;
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
 		doAjaxForProject(requestForProjectNames,userId);
 		<%
-	}else{
+	}
+	else{
 		%>
 
 		<%
@@ -392,13 +394,24 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
-var gmapLat = 32.6104;
-var gmapLon = -117.3712;
-var center = new google.maps.LatLng(gmapLat,gmapLon);
+
+var center = null;
+centerMap();
+
 var map;
 var marker;
 var newCenter;
 var mapzoom;
+
+function centerMap(){
+  let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+  let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+  if (centerLat && centerLong) {
+    center = new google.maps.LatLng(centerLat, centerLong);
+  } else {
+    center = new google.maps.LatLng(10.8, 160.8);
+  }
+}
 
 function updateMap() {
     var latVal = $('#lat').val();
@@ -443,7 +456,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(gmapLat,gmapLon);
+        centerMap();
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
