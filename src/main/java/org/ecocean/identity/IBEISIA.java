@@ -332,9 +332,6 @@ Util.mark("sendIdentify-A", startTime);
 System.out.println("--- sendIdentify() passed null tanns..... why???");
 System.out.println("     gotta compute :(");
             tanns = qanns.get(0).getMatchingSet(myShepherd);
-            if (!queryAnnotationTaxonomyCheck(myShepherd, qanns.get(0), tanns)) {
-                return new JSONObject("{\"success\": false, \"error\": \"query annotation lacked taxonomy\"}");
-            }
         }
 Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
@@ -1125,9 +1122,6 @@ Util.mark("bia 2", tt);
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
-                if (!queryAnnotationTaxonomyCheck(myShepherd, qanns.get(0), tanns)) {
-                    return new JSONObject("{\"success\": false, \"error\": \"query annotation lacked taxonomy\"}");
-                }
                 curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
 Util.mark("bia 3", tt);

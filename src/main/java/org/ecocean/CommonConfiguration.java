@@ -413,14 +413,6 @@ public class CommonConfiguration {
     return getProperty("defaultProjId", context).trim();
   }
 
-  public static String getShepherdDataDir(String context) {
-    if(Util.stringExists(getProperty("shepherdDataDir", context))){
-      return getProperty("shepherdDataDir", context).trim();  
-    } else{
-      return null;
-    }
-  }
-
   public static boolean getLoggedOutDefaultDesired(String context){
     return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
   }
