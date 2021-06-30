@@ -215,8 +215,6 @@ function forceLink(el) {
                 capos[0] += "</div>";
 
 
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
-*/
 		      captionLinks.add(capos);
 		      //end caption render JSP side
 
