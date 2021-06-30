@@ -4,7 +4,10 @@
 		{
 			"name": "Cameroon",
 			"id": "Cameroon",
-			"defaultLatitude": 5.3, "defaultLongitude": 12.5,
+       "geospatialInfo":{
+	 			 	"lat":5.3,
+	 			 	"long":12.5
+ 			 },
 			"locationID": [
 				{
 					"name": "BeNP",
@@ -12,35 +15,53 @@
 					"description": "Bénoué National Park",
 					"prefix": "BeNP",
 					"prefixDigitPadding": 4,
-					"defaultLatitude": 1.270203, "defaultLongitude": 37.382723
+					"geospatialInfo":{
+		 			 	"lat":1.270203,
+		 			 	"long":37.382723
+		 			 }
 				}
 			]
 		},
 		{
 			"name": "Kenya",
 			"id": "Kenya",
-			"defaultLatitude": 0.0, "defaultLongitude": 38.0,
+			"geospatialInfo":{
+	 			 	"lat":0.0,
+	 			 	"long":38.0
+ 			 },
 			"locationID": [
 				{
 					"name": "Namunyak",
 					"id": "Namunyak",
 					"description": "Namunyak Wildlife Conservancy",
-					"defaultLatitude": 1.270203, "defaultLongitude": 37.382723
+					"geospatialInfo":{
+		 			 	"lat":1.270203,
+		 			 	"long":37.382723
+ 			 		},
 				},
 				{
 					"name": "Loisaba",
 					"id": "Loisaba",
-					"defaultLatitude": 0.612208, "defaultLongitude": 36.802823
+					"geospatialInfo":{
+		 			 	"lat":0.612208,
+		 			 	"long":36.802823
+		 			 },
 				},
 				{
 					"name": "Lewa",
 					"id": "Lewa",
-					"defaultLatitude": 0.2, "defaultLongitude": 37.41
+					"geospatialInfo":{
+		 			 	"lat":0.2,
+		 			 	"long":37.41
+		 			 },
 				},
 				{
 					"name": "Mugie",
 					"id": "Mugie",
-					"defaultLatitude": 0.2, "defaultLongitude": 37.41
+					"geospatialInfo":{
+		 			 	"lat":0.2,
+		 			 	"long":37.41
+		 			 },
 				},
 				{
 					"name": "Ol Jogi",
@@ -48,19 +69,28 @@
 					"description": "Ol Jogi Conservancy",
 					"prefix": "OlJo",
 					"prefixDigitPadding": 4,
-					"defaultLatitude": 0.3, "defaultLongitude": 37
+					"geospatialInfo":{
+		 			 	"lat":0.3,
+		 			 	"long":37
+		 			 },
 				},
 				{
 					"name": "Ol Pejeta",
 					"id": "Ol Pejeta",
-					"defaultLatitude": 0.0, "defaultLongitude": 37
+					"geospatialInfo":{
+		 			 	"lat":0.0,
+		 			 	"long":37
+		 			 },
 				}
 			]
 		},
 		{
 			"name": "Niger",
 			"id": "Niger",
-			"defaultLatitude": 17.638133, "defaultLongitude": 9.766846
+			"geospatialInfo":{
+	 			 	"lat":17.638133,
+	 			 	"long":9.766846
+ 			 },
 		},
 		{
 			"name": "Chad",
@@ -69,33 +99,45 @@
 				{
 					"name": "Zakouma",
 					"id": "Zakouma",
-					"defaultLatitude": 10.847778, "defaultLongitude": 19.647778
+					"geospatialInfo":{
+		 			 	"lat":10.847778,
+		 			 	"long":19.647778
+		 			 },
 				}
 			]
 		},
 		{
 			"name": "Namibia",
 			"id": "Namibia",
-			"defaultLatitude": -22, "defaultLongitude": 17,
+			"geospatialInfo":{
+	 			 	"lat":-22,
+	 			 	"long":17
+ 			 },
 			"locationID": [
 				{
 					"name": "North-western Namibia",
 					"id": "North-western Namibia",
-					"defaultLatitude": -20.902437, "defaultLongitude": 15.864258
+					"geospatialInfo":{
+		 			 	"lat":-20.902437,
+		 			 	"long":15.864258
+		 			 },
 				},
 				{
 					"name": "Kuzikus Wildlife Reserve",
 					"id": "Kuzikus Wildlife Reserve"
 				}
-				
-				
+
+
 			]
 		},
 		{
 			"name": "South Africa",
 			"id": "South Africa",
-			"defaultLatitude": -30, "defaultLongitude": 25
-		},
+			"geospatialInfo":{
+	 			 	"lat":-30,
+	 			 	"long":25
+ 			 },
+			},
 		{
 			"name": "Tanzania",
 			"id": "Tanzania",
@@ -104,19 +146,28 @@
 					"name": "RNP",
 					"id": "RNP",
 					"description": "Ruaha National Park",
-					"defaultLatitude": -7.5, "defaultLongitude": 35.0
+					"geospatialInfo":{
+		 			 	"lat":-7.5,
+		 			 	"long":35.0
+	 			 },
 				},
 				{
 					"name": "SGR",
 					"id": "SGR",
 					"description": "Selous Game Reserve",
-					"defaultLatitude": -9.0, "defaultLongitude": 37.5
+					"geospatialInfo":{
+		 			 	"lat":-9.0,
+		 			 	"long":37.5
+		 			 },
 				},
 				{
 					"name": "ANP",
 					"id": "ANP",
 					"description": "Arusha National Park",
-					"defaultLatitude": -3.2, "defaultLongitude": 36.8
+					"geospatialInfo":{
+		 			 	"lat":-3.2,
+		 			 	"long":36.8
+		 			 },
 				}
 			]
 		},
@@ -127,7 +178,10 @@
 				{
 					"name": "Lake Mburo",
 					"id": "Lake Mburo",
-					"defaultLatitude": -0.627778, "defaultLongitude": 30.966667
+					"geospatialInfo":{
+		 			 	"lat":-0.627778,
+		 			 	"long":30.966667
+		 			 },
 				},
 				{
 					"name": "Murchison Falls South",
@@ -140,7 +194,10 @@
 				{
 					"name": "Kidepo",
 					"id": "Kidepo",
-					"defaultLatitude": 3.9, "defaultLongitude": 33.85
+					"geospatialInfo":{
+		 			 	"lat":3.9,
+		 			 	"long":33.85
+		 			 },
 				}
 			]
 		},
