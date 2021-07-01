@@ -153,6 +153,7 @@ public class IA {
             task.setParameters(topTask.getParameters());
 
             JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, i);
+            System.out.println("intakeMediaAssetsOneSpecies(): taskId=" + topTask.getId() + "; algo i=" + i + ", taxy=" + taxy + " => detectArgs=" + detectArgs);
             task.addParameter("detectArgs", detectArgs);
 
             String detectionUrl = iaConfig.getDetectionUrl(taxy, i);

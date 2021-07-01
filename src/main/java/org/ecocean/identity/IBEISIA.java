@@ -436,6 +436,9 @@ Util.mark("identify process pre-post end");
         Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
         IAJsonProperties iaConfig = new IAJsonProperties();
 
+        System.out.println("sendDetect passed detectArgs=" + detectArgs + ", mas-size=" + Util.collectionSize(mas) + " and found taxy=" + taxy);
+        if ((detectArgs == null) || (detectUrl == null)) throw new IOException("detectArgs and/or detectUrl == null");
+
         JSONObject detectArgsWithMas = Util.copy(detectArgs);
         detectArgsWithMas.put("image_uuid_list", imageUUIDList(mas));
         System.out.println("sendDetect got detectArgs "+detectArgsWithMas.toString());
