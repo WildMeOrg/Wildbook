@@ -3,43 +3,94 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-	{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
+	{ "name":"Mozambique", "id":"Mozambique","geospatialInfo":{
+	 			 	"lat":-23.44811,
+	 			 	"long":35.752483
+ 			 }, "locationID":[] },
 
-	{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[] },
+	{ "name":"Costa Rica", "id":"Costa Rica","geospatialInfo":{
+	 			 	"lat":9.748917,
+	 			 	"long":-83.753428
+ 			 }, "locationID":[] },
+  { "name":"Guam", "id":"Guam","geospatialInfo":{
+	 			 	"lat":13.444302,
+	 			 	"long":144.793744
+ 			 }, "locationID":[] },
+	{ "name":"Hawaii", "id":"Hawaii","geospatialInfo":{
+	 			 	"lat":20.567226,
+	 			 	"long":-157.290055
+ 			 }, "locationID":[] },
 
-	{ "name":"Hawaii", "id":"Hawaii", "locationID":[] },
-
-	{ "name":"India", "id":"India", "locationID":[] },
-
+	{ "name":"India", "id":"India","geospatialInfo":{
+	 			 	"lat":20.593684,
+	 			 	"long":78.962883
+ 			 }, "locationID":[] },
+  { "name":"Kenya", "id":"Kenya", "geospatialInfo":{
+	 			 	"lat":-3.355527,
+	 			 	"long":40.183471
+ 			 },"locationID":[] },
 	{ "name":"Madagascar", "id":"Madagascar", "locationID":[] },
 
 
-	{ "name":"Red Sea", "id":"Red Sea", "locationID":[] },
+	{ "name":"Red Sea", "id":"Red Sea","geospatialInfo":{
+	 			 	"lat":27.418486,
+	 			 	"long":34.367960
+ 			 }, "locationID":[] },
 
-	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
+	{ "name":"South Africa", "id":"South Africa","geospatialInfo":{
+	 			 	"lat":-31.236612,
+	 			 	"long":35.817209
+ 			 }, "locationID":[] },
 
-		{ "name":"Australia (East)", "id":"Australia (East)", "locationID":[] },
+		{ "name":"Australia (East)", "id":"Australia (East)","geospatialInfo":{
+	 			 	"lat":-22.52645,
+	 			 	"long":149.057815
+ 			 }, "locationID":[] },
 
-		{ "name":"Australia (West)", "id":"Australia (West)", "locationID":[] },
+		{ "name":"Australia (West)", "id":"Australia (West)","geospatialInfo":{
+	 			 	"lat":-23.792647,
+	 			 	"long":113.233848
+ 			 }, "locationID":[] },
 
-		{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+		{ "name":"Brazil", "id":"Brazil","geospatialInfo":{
+	 			 	"lat":-10.662449,
+	 			 	"long":-32.286059
+ 			 }, "locationID":[] },
 
-		{ "name":"Ecuador", "id":"Ecuador", "locationID":[] },
+		{ "name":"Ecuador", "id":"Ecuador","geospatialInfo":{
+	 			 	"lat":-2.031343,
+	 			 	"long":-81.795796
+ 			 }, "locationID":[] },
 
-		{ "name":"Fiji", "id":"Fiji", "locationID":[] },
+		{ "name":"Fiji", "id":"Fiji", "geospatialInfo":{
+	 			 	"lat":-17.885661,
+	 			 	"long":179.414822
+ 			 }, "locationID":[] },
 
-		{ "name":"French Polynesia", "id":"French Polynesia", "locationID":[] },
+		{ "name":"French Polynesia", "id":"French Polynesia","geospatialInfo":{
+	 			 	"lat":-17.679718,
+	 			 	"long":-149.406834
+ 			 }, "locationID":[] },
 
-		{ "name":"Indonesia", "id":"Indonesia", "locationID":[
+		{ "name":"Indonesia", "id":"Indonesia","geospatialInfo":{
+	 			 	"lat":-7.789575,
+	 			 	"long":116.040826
+ 			 }, "locationID":[
 			{ "name":"Komodo", "id":"Indonesia-Komodo", "locationID":[] },
 			{ "name":"Nusa Penida", "id":"Indonesia-Nusa Penida", "locationID":[] },
 		  { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
       { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] }
 		] },
 
-		{ "name":"Japan", "id":"Japan", "locationID":[] },
+		{ "name":"Japan", "id":"Japan","geospatialInfo":{
+	 			 	"lat":27.748823,
+	 			 	"long":129.138706
+ 			 }, "locationID":[] },
 
-		{ "name":"Maldives", "id":"Maldives", "locationID":[] },
+		{ "name":"Maldives", "id":"Maldives","geospatialInfo":{
+	 			 	"lat":1.977229,
+	 			 	"long":73.526154
+ 			 }, "locationID":[] },
 
 		{ "name":"Malta", "id":"Malta", "locationID":[
 			{"name": "Coral Beach", "id": "Coral Beach", "locationID": []},
@@ -71,31 +122,67 @@
 			{"name": "Ghar Lapsi", "id": "Ghar Lapsi", "locationID": []}
 		] },
 
-		{ "name":"Mexico (Revillagigedos)", "id":"Mexico (Revillagigedos)", "locationID":[] },
+		{ "name":"Mexico (Revillagigedos)", "id":"Mexico (Revillagigedos)","geospatialInfo":{
+	 			 	"lat":18.826848,
+	 			 	"long":-112.76657
+ 			 }, "locationID":[] },
 
-		{ "name":"Mexico (Yucatan)", "id":"Mexico (Yucatan)", "locationID":[] },
+		{ "name":"Mexico (Yucatan)", "id":"Mexico (Yucatan)","geospatialInfo":{
+	 			 	"lat":22.664003,
+	 			 	"long":-89.461295
+ 			 }, "locationID":[] },
 
 		{ "name":"Micronesia", "id":"Micronesia", "locationID":[] },
 
-		{ "name":"Myanmar", "id":"Myanmar", "locationID":[] },
+		{ "name":"Myanmar", "id":"Myanmar","geospatialInfo":{
+	 			 	"lat":10.926491,
+	 			 	"long":97.645667
+ 			 }, "locationID":[] },
 
-		{ "name":"New Caledonia", "id":"New Caledonia", "locationID":[] },
+		{ "name":"New Caledonia", "id":"New Caledonia","geospatialInfo":{
+	 			 	"lat":-20.705767,
+	 			 	"long":166.623619
+ 			 }, "locationID":[] },
 
-		{ "name":"New Zealand", "id":"New Zealand", "locationID":[] },
+		{ "name":"New Zealand", "id":"New Zealand","geospatialInfo":{
+	 			 	"lat":-38.057089,
+	 			 	"long":174.486222
+ 			 }, "locationID":[] },
 
-		{ "name":"Palau", "id":"Palau", "locationID":[] },
+		{ "name":"Palau", "id":"Palau","geospatialInfo":{
+	 			 	"lat":7.51498,
+	 			 	"long":134.58252
+ 			 }, "locationID":[] },
 
-		{ "name":"Papua New Guinea", "id":"Papua New Guinea", "locationID":[] },
+		{ "name":"Papua New Guinea", "id":"Papua New Guinea","geospatialInfo":{
+	 			 	"lat":-6.72092,
+	 			 	"long":150.521972
+ 			 }, "locationID":[] },
 
-		{ "name":"Peru", "id":"Peru", "locationID":[] },
+		{ "name":"Peru", "id":"Peru","geospatialInfo":{
+	 			 	"lat":-9.189966,
+	 			 	"long":-75.015151
+ 			 }, "locationID":[] },
 
-		{ "name":"Philippines", "id":"Philippines", "locationID":[] },
+		{ "name":"Philippines", "id":"Philippines","geospatialInfo":{
+	 			 	"lat":11.091084,
+	 			 	"long":123.319457
+ 			 }, "locationID":[] },
 
-		{ "name":"Portugal (Azores)", "id":"Portugal (Azores)", "locationID":[] },
+		{ "name":"Portugal (Azores)", "id":"Portugal (Azores)","geospatialInfo":{
+	 			 	"lat":37.74125,
+	 			 	"long":-25.675602
+ 			 }, "locationID":[] },
 
-		{ "name":"Saudi Arabia", "id":"Saudi Arabia", "locationID":[] },
+		{ "name":"Saudi Arabia", "id":"Saudi Arabia","geospatialInfo":{
+	 			 	"lat":20.280233,
+	 			 	"long":38.512568
+ 			 }, "locationID":[] },
 
-		{ "name":"Seychelles", "id":"Seychelles", "locationID":[] },
+		{ "name":"Seychelles", "id":"Seychelles","geospatialInfo":{
+	 			 	"lat":-4.679574,
+	 			 	"long":55.491977
+ 			 }, "locationID":[] },
 
 		{ "name":"Teneriffe", "id":"Teneriffe", "locationID":[
 			{"name": "Los Cristianos", "id": "Los Cristianos", "locationID": []},
@@ -105,14 +192,29 @@
 			{"name": "El Palmar", "id": "El Palmar", "locationID": []}
 		] },
 
-		{ "name":"Thailand", "id":"Thailand", "locationID":[] },
+		{ "name":"Thailand", "id":"Thailand","geospatialInfo":{
+	 			 	"lat":8.620039,
+	 			 	"long":97.585318
+ 			 }, "locationID":[] },
 
-		{ "name":"USA (East coast)", "id":"USA (East coast)", "locationID":[] },
+		{ "name":"USA (East coast)", "id":"USA (East coast)","geospatialInfo":{
+	 			 	"lat":31.211243,
+	 			 	"long":-76.019455
+ 			 }, "locationID":[] },
 
-		{ "name":"USA (Flower Gardens)", "id":"USA (Flower Gardens)", "locationID":[] },
+		{ "name":"USA (Flower Gardens)", "id":"USA (Flower Gardens)","geospatialInfo":{
+	 			 	"lat":28.129099,
+	 			 	"long":-94.049766
+ 			 }, "locationID":[] },
 
-		{ "name":"Venezuela", "id":"Venezuela", "locationID":[] },
+		{ "name":"Venezuela", "id":"Venezuela","geospatialInfo":{
+	 			 	"lat":10.831085,
+	 			 	"long":-65.679195
+ 			 }, "locationID":[] },
 
-		{ "name":"Yap", "id":"Yap", "locationID":[] }
+		{ "name":"Yap", "id":"Yap","geospatialInfo":{
+	 			 	"lat":8.825742,
+	 			 	"long":137.907574
+ 			 }, "locationID":[] }
 		]
     }
