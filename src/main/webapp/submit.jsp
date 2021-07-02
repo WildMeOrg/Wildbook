@@ -90,12 +90,14 @@ $(document).ready( function() {
 	<%
 	if(user != null){
 		%>
-		let userId = '<%= user.getId()%>';
+		let userId = '<%= user.getUsername()%>';
 		let requestForProjectNames = {};
-		requestForProjectNames['ownerId'] = userId;
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
 		doAjaxForProject(requestForProjectNames,userId);
 		<%
-	}else{
+	}
+	else{
 		%>
 
 		<%
@@ -385,11 +387,22 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(0.6811362994451233, 36.551513671875);
+var center = null;
+centerMap();
 
 var map;
 
 var marker;
+
+function centerMap(){
+  let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+  let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+  if (centerLat && centerLong) {
+    center = new google.maps.LatLng(centerLat, centerLong);
+  } else {
+    center = new google.maps.LatLng(10.8, 160.8);
+  }
+}
 
 function updateMap() {
     var latVal = $('#lat').val();
@@ -434,7 +447,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        centerMap();
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -831,6 +844,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 <!--
     <h3><%=props.getProperty("submit_location")%></h3>
 -->
+
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
 
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">

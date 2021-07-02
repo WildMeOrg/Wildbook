@@ -3206,7 +3206,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	//convenience function to Collaboration permissions
 	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessEncounter(this, request);
+	  return Collaboration.canUserAccessEncounter(this, request);
 	}
         public boolean canUserEdit(User user) {
             return isUserOwner(user);
@@ -3607,6 +3607,9 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
+        if (this.getCountry()!=null&&!"".equals(this.getCountry())) {
+          enc.setCountry(this.getCountry());
+        }
 
         Occurrence occ = myShepherd.getOccurrence(this);
         if (occ != null) {

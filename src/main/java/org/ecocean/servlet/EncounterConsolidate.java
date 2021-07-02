@@ -27,39 +27,39 @@
  import org.ecocean.servlet.*;
  // import javax.jdo.Query;
  import javax.jdo.*;
+ import org.json.JSONObject;
 
 public class EncounterConsolidate{
-  public static void makeEncountersMissingSubmittersPublic(Shepherd myShepherd){
-    System.out.println("makeEncountersMissingSubmitterIdsPublic entered");
-  	String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"N/A\" || this.submitterID==null && submitters.isEmpty()"; //.contains(null)"
-  	ArrayList<Encounter> encs=new ArrayList<Encounter>();
+  public static JSONObject makeEncountersMissingSubmittersPublic(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
+    returnJson.put("success", false);
+    int encountersMadePublicCount = 0;
+  	String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"N/A\" || this.submitterID==null"; //.contains(null)" //&& submitters.isEmpty()
+  	List<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
-    System.out.println(c.size() + " encounters found with missing submitterIds");
+    System.out.println("dedupe: " + c.size() + " encounters found with missing submitterIds");
     if(c!=null){
       encs=new ArrayList<Encounter>(c);
       for(int i=0; i<encs.size(); i++){
         Encounter currentEncounter = encs.get(i);
-        List<User> submitters = currentEncounter.getSubmitters();
-        // if(i==0 || i==encs.size()-1){ //TODO temporary just to streamline printing
-        //   System.out.println("adding public as submitter id to encounter: " + currentEncounter.getCatalogNumber() + " with submitterId " + currentEncounter.getSubmitterID());
-        //   System.out.println("submitters in encounter include the likes of:");
-        //   for(int j=0; j<submitters.size(); j++){
-        //     if(j==0 || j==submitters.size()-1){
-        //       System.out.println(submitters.get(j).getUsername());
-        //     }
-        //   }
-        // }
         renameEncounterSubmitterID(myShepherd, currentEncounter, "Public");
+        encountersMadePublicCount ++;
       }
     }
     query.closeAll();
+    returnJson.put("encountersMadePublicCount", encountersMadePublicCount);
+    returnJson.put("success", true);
+    return returnJson;
   }
 
   public static void renameEncounterSubmitterID(Shepherd myShepherd, Encounter enc, String newSubmitterId){
-    // System.out.println("renameEncounterSubmitterID entered");
-    enc.setSubmitterID(newSubmitterId.toLowerCase().trim()); //TODO comment me in when you want this live
-    myShepherd.commitDBTransaction(); //TODO comment me in when you want this live
-    myShepherd.beginDBTransaction(); //TODO comment me in when you want this live
+    if(newSubmitterId == null || newSubmitterId.equals("") || enc == null){
+      return;
+    }
+    System.out.println("dedupe a reassigning encounter " + enc.getCatalogNumber() + " to submitter " + newSubmitterId);
+    enc.setSubmitterID(newSubmitterId.toLowerCase().trim());
+    myShepherd.getPM().makePersistent(enc);
+    myShepherd.updateDBTransaction();
   }
 }
