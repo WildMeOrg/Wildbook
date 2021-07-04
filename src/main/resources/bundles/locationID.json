@@ -28,12 +28,13 @@
 		{
 		"name": "Cayman Brac",
 		"id": "Cayman Brac"
-	},
-	{
+		},
+		{
 		"name": "Grand Cayman",
 		"id": "Grand Cayman"
+		}
+	] 
 	},
-	] },
 	{
 	"name": "Colombia","id":"Colombia" },
 	{
@@ -59,8 +60,6 @@
 	"name": "Guyana", "id": "Guyana" },
 	{
 	"name": "Haiti", "id": "Haiti" },
-  {
-	"name": "Honduras", "id": "Honduras" },
 	{
 		"name": "Jamaica",
 		"id": "Jamaica"
@@ -94,6 +93,10 @@
 		"id": "Saint Martin"
 	},
 	{
+		"name": "South Africa",
+		"id": "South Africa"
+	},
+	{
 		"name": "St. Kitts and Nevis",
 		"id": "St. Kitts and Nevis"
 	},
@@ -124,6 +127,7 @@
 	{
 		"name": "Venezuela",
 		"id": "Venezuela"
-	}
+	}	
 	]
 }
+
