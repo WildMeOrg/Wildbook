@@ -9,6 +9,7 @@ import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.regexp.recompile;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
@@ -426,7 +427,8 @@ public class Collaboration implements java.io.Serializable {
 
 	//Check if User (via request) has edit access to every Encounter in this Individual
 	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
-	    Vector<Encounter> all = mi.getEncounters();
+	   if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+	   Vector<Encounter> all = mi.getEncounters();
 	    if ((all == null) || (all.size() < 1)) return false;
 	    for (Encounter enc : all) {
 	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
@@ -463,12 +465,14 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
+
 	public void setEditInitiator(String username) {
 		if(username==null) {this.editInitiator=null;}
 		else {
 		this.editInitiator = username;
 		}
 	}
+
 
 /*   CURRENTLY NOT USED
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {

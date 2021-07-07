@@ -400,6 +400,14 @@ public class ServletUtilities {
     // return isOwner;
   }
 
+  public static boolean isEncounterOwnedByPublic(Encounter enc) {
+    boolean isPublic = false;
+      if (enc.getSubmitterID() != null && enc.getSubmitterID().toLowerCase().trim().equals("public")) {
+        isPublic = true;
+      }
+    return isPublic;
+  }
+
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
     //if (request.isUserInRole("admin")) {
     if (request.getUserPrincipal()!=null) {
@@ -742,10 +750,15 @@ public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) 
     while ((line = reader.readLine()) != null) {
       sb.append(line).append('\n');
     }
-  } finally {
-    reader.close();
   }
   //ParseException
+  catch(Exception e) {
+    e.printStackTrace();
+    System.out.println("Errored state of sb is: "+sb.toString());
+  }
+  finally {
+    reader.close();
+  }
   return new JSONObject(sb.toString());
 }
 

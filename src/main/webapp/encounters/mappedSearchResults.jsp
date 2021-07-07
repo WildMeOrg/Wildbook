@@ -22,11 +22,6 @@
 	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
 	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
 
-
-    Properties localeprops = new Properties();
-    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-
-
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("mappedSearchResults.jsp");

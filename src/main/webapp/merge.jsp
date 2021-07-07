@@ -478,7 +478,6 @@ table.compareZone tr th {
           let deprecatedIncrementIdConsolidated = '';
           let currentDeprecatedIncrementalID  = "";
           let currentOptionElems = [];
-          debugger;
           for(let i=0; i<projIdElems.length; i++){
             let currentElem = projIdElems[i];
             let currentProjUuid = $(currentElem).attr('name');

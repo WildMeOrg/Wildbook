@@ -32,6 +32,18 @@ int numFixes=0;
     <%
     myShepherd.beginDBTransaction();
     try{
+        String genusSpecies = "Balaenoptera physalus";
+        Taxonomy taxy = myShepherd.getTaxonomy(genusSpecies);
+        String theBaseUrl = "http://www.flukebook.org";
+        int i = 0; //TODO ???
+        if(taxy != null){
+            JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, 0);
+        }else{
+          System.out.println("deleteMe got here a1 taxy is null");
+        }
+
+
+
         // User mfisher1 = myShepherd.getUserByUUID("411704e5-045e-45c7-a14c-53d8ada46bc7");
         // if(mfisher1!=null){
         //   System.out.println("mfisher1 is: " + mfisher1.toString());
@@ -77,8 +89,8 @@ int numFixes=0;
         //   }
         // }
 
-        User mfisher1 = myShepherd.getUserByUUID("b9cf74d7-f630-46fd-92d4-5209c247e20f");
-        User mfisher1_only_collaborator = myShepherd.getUserByUUID("07271b48-2d8d-4c93-a195-678204eb33b5");
+        // User mfisher1 = myShepherd.getUserByUUID("b9cf74d7-f630-46fd-92d4-5209c247e20f");
+        // User mfisher1_only_collaborator = myShepherd.getUserByUUID("07271b48-2d8d-4c93-a195-678204eb33b5");
         // if(targetEncounter!=null && mfisher1_only_collaborator!=null){
         //   System.out.println("targetEncounter is: " + targetEncounter.toString());
         //   System.out.println("mfisher1_only_collaborator is: " + mfisher1_only_collaborator.toString());
@@ -96,8 +108,8 @@ int numFixes=0;
         //   targetOccurrence.setSubmitters(newUsersToAdd);
         //   targetOccurrence.setInformOthers(newUsersToAdd);
         // }
-        myShepherd.commitDBTransaction();
-      	myShepherd.beginDBTransaction();
+        // myShepherd.commitDBTransaction();
+      	// myShepherd.beginDBTransaction();
 
 
         // User userToRetain = myShepherd.getUserByUUID("702df060-0151-49f3-834a-4c3cd383c961");//"702df060-0151-49f3-834a-4c3cd383c961");

@@ -551,13 +551,6 @@ public class Encounter implements java.io.Serializable {
 
     }
 
-    //need to get ALL project id's from db, there is no single. methods reside on shepherd
-    @Deprecated
-    public String getProjectId(){
-      return "Bloop";
-    }
-
-
     public String getZebraClass() {
         return zebraClass;
     }
@@ -3676,6 +3669,13 @@ throw new Exception();
             }
             return returnEncs;
         }
+        public String getPrefixForLocationID(){ //convenience function
+          return LocationID.getPrefixForLocationID(this.getLocationID(), null);
+        }
+        
+        public int getPrefixDigitPaddingForLocationID() { // convenience function
+          return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
+        }
 
 
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
@@ -3790,6 +3790,9 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
+        if (this.getCountry()!=null&&!"".equals(this.getCountry())) {
+          enc.setCountry(this.getCountry());
+        }
 
         Occurrence occ = myShepherd.getOccurrence(this);
         if (occ != null) {

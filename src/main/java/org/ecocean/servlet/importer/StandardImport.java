@@ -50,6 +50,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 //import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
@@ -159,8 +161,9 @@ public class StandardImport extends HttpServlet {
 
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
-
-    System.out.println("Filename? = "+filename);
+    if(Util.stringExists(filename)){
+      System.out.println("Filename? = "+filename);
+    }
 
     if (isUserUpload&&filename!=null&&filename.length()>0) {
       filename = uploadDirectory+"/"+filename;
@@ -226,8 +229,6 @@ public class StandardImport extends HttpServlet {
   }
 
   public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response) {
-
-
     missingColumns = new HashSet<String>();
     numFolderRows = 0;
     boolean dataFound = (dataFile!=null && dataFile.exists());
@@ -256,12 +257,9 @@ public class StandardImport extends HttpServlet {
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
-
     initColIndexVariables(firstRow); // IMPORTANT: this initializes the TabularFeedback
-
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
-
 
     if(committing) {
       Shepherd myShepherd = new Shepherd(context);
@@ -427,13 +425,12 @@ public class StandardImport extends HttpServlet {
       try {
         myShepherd.beginDBTransaction();
 
-        creator = AccessControl.getUser(request, myShepherd);
-        itask = new ImportTask(creator);
-        itask.setPassedParameters(request);
+        //User creator = AccessControl.getUser(request, myShepherd);
+        //ImportTask itask = new ImportTask(creator);
+        //itask.setPassedParameters(request);
 
-        myShepherd.getPM().makePersistent(itask);
-        myShepherd.updateDBTransaction();
-
+        //myShepherd.getPM().makePersistent(itask);
+        //myShepherd.updateDBTransaction();
         if(taskID!=null)itask=myShepherd.getImportTask(taskID);
         if(itask!=null)System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
 
@@ -693,8 +690,8 @@ public class StandardImport extends HttpServlet {
     if (millis==null) millis = getLong(row, "Occurrence.millis");
   	if (millis!=null) occ.setDateTimeLong(millis);
 
-    String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
-    if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
+    //String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
+    //if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
 
   	if (enc!=null) {
       occ.addEncounter(enc);
@@ -1052,7 +1049,7 @@ public class StandardImport extends HttpServlet {
             Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
             if (project==null) {
 
-              
+
               if (Util.stringExists(ownerName)) {
                 ownerName = ownerName.trim();
                 User owner = myShepherd.getUser(ownerName);
@@ -1110,6 +1107,8 @@ public class StandardImport extends HttpServlet {
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
   	}
 
+  	//genotype
+  	/*
     String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // we need to add uniqueness to the parsed string bc it's a primary key
     // but adding full encID is too long of a string.
@@ -1122,7 +1121,51 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(microMark);
       } // if microMark was grabbed from Shepherd correctly there is no further data to store.
     }
+    */
 
+  	MicrosatelliteMarkersAnalysis markers = null;
+  	String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames");
+  	String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0");
+  	String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1");
+    if(sample!=null
+        && alleleNames!=null && !alleleNames.trim().equals("")
+            && alleleZeroes!=null && !alleleZeroes.trim().equals("")
+                && alleleOnes!=null && !alleleOnes.trim().equals("")
+      ) {
+
+          ArrayList<Locus> loci=new ArrayList<Locus>();
+
+          //iterate the names and allele0 and allele1 values
+          StringTokenizer namesSTR = new StringTokenizer(alleleNames,",");
+          StringTokenizer namesAllele0 = new StringTokenizer(alleleZeroes,",");
+          StringTokenizer namesAllele1 = new StringTokenizer(alleleOnes,",");
+          int numNames=namesSTR.countTokens();
+          if(numNames>0 && namesSTR.countTokens()==namesAllele0.countTokens() && namesSTR.countTokens()==namesAllele1.countTokens()) {
+
+            //OK, names and alleles are the same size
+            for(int i=0;i<numNames;i++) {
+              int all0 = (Integer.parseInt(namesAllele0.nextToken()));
+              int all1 = (Integer.parseInt(namesAllele1.nextToken()));
+              Locus locus=new Locus(namesSTR.nextToken(),all0,all1);
+              loci.add(locus);
+            }
+
+            markers = new MicrosatelliteMarkersAnalysis(Util.generateUUID(),tissueSampleID, encID, loci);
+
+              if(committing && loci.size()>0) {
+                myShepherd.getPM().makePersistent(markers);
+              }
+              sample.addGeneticAnalysis(markers);
+          }
+          else {
+            System.out.println("names and alleles sizes don't match!");
+          }
+    }
+
+
+
+    //Sex Analysis import
+    /*
     String sexAnalID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
     String sexAnalSex = getString(row, "SexAnalysis.sex");
     if (sexAnalID!=null) {
@@ -1138,6 +1181,28 @@ public class StandardImport extends HttpServlet {
         if (sample!=null) sample.addGeneticAnalysis(sexAnal);
       } else sexAnal.setSex(sexAnalSex);
     }
+    */
+  	SexAnalysis sexAnal=null;
+  	String sexAnalSex = getString(row, "SexAnalysis.sex");
+  	if(sample!=null && sexAnalSex!=null && !sexAnalSex.trim().equals("")) {
+  	  sexAnal = new SexAnalysis(Util.generateUUID(), sexAnalSex, encID, tissueSampleID);
+  	  if(committing) {
+  	    myShepherd.getPM().makePersistent(sexAnal);
+  	  }
+  	  sample.addGeneticAnalysis(sexAnal);
+  	}
+
+  	//add haplotype
+  	MitochondrialDNAAnalysis haplo=null;
+    String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype");
+    if(sample!=null && haplotype!=null && !haplotype.trim().equals("")) {
+      haplo = new MitochondrialDNAAnalysis(Util.generateUUID(), haplotype, encID, tissueSampleID);
+      if(committing) {
+        myShepherd.getPM().makePersistent(haplo);
+      }
+      sample.addGeneticAnalysis(haplo);
+    }
+
 
     if (sample!=null) enc.addTissueSample(sample);
     // END SAMPLES
@@ -1177,7 +1242,6 @@ public class StandardImport extends HttpServlet {
   }
 
   public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
-
     AssetStore astore = getAssetStore(myShepherd);
 
   	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
@@ -1326,6 +1390,9 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i);
+    if (Util.stringExists(localPath)){
+      localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
+    }
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -1351,7 +1418,7 @@ public class StandardImport extends HttpServlet {
 
       localPath = Util.windowsFileStringToLinux(localPath).trim();
       fullPath = photoDirectory+"/"+localPath;
-      fullPath = fullPath.replace("//","/"); 
+      fullPath = fullPath.replace("//","/");
       resolvedPath = resolveHumanEnteredFilename(fullPath);
 
       if (resolvedPath!=null) {
@@ -1368,6 +1435,8 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
+
+        //feedback.addMissingPhoto(localPath);
         if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) {
           String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
           feedback.addMissingPhoto(locInFile);
@@ -1758,12 +1827,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) mark.setNickName(nickname);
-  	
+
   	//let's support importing name labels from columns
   	//MarkedIndividual.nameX.label and MarkedIndividual.nameX.value
   	int t=0;
   	while(getStringOrInt(row,"MarkedIndividual.name"+t+".label")!=null && getStringOrInt(row,"MarkedIndividual.name"+t+".value")!=null && !getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim().equals("")) {
-  	  
+
   	  String label=getStringOrInt(row,"MarkedIndividual.name"+t+".label").trim();
   	  String value=getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim();
   	  if(mark.getName(label)!=null) {
@@ -1776,8 +1845,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	  mark.refreshNamesCache();
   	  t++;
   	}
-  	
-  	
+
+
   	return mark;
 
   }

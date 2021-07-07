@@ -21,8 +21,11 @@
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
+         org.apache.commons.codec.net.URLCodec,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -180,6 +183,7 @@ File encounterDir = new File(encountersDir, num);
 //handle translation
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
+URLCodec urlCodec = new URLCodec();
 
 
 
@@ -410,8 +414,6 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
-
 
           function placeMarker(location) {
 
@@ -444,7 +446,7 @@ function setIndivAutocomplete(el) {
             var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                //if (taxString && (item.species != taxString)) return null;
+                if (item.species != taxString) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -466,11 +468,18 @@ function setIndivAutocomplete(el) {
   <script>
             function initialize() {
 	            //alert("Initializing map!");
-	              //var mapZoom = 1;
-	              var mapZoom = 1;
+              var mapZoom = null;
+              mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	              var center = null;
+                let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+                let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                if (centerLat && centerLong) {
+                  center = new google.maps.LatLng(centerLat, centerLong);
+                } else {
+                  center = new google.maps.LatLng(10.8, 160.8);
+                }
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -659,7 +668,8 @@ var encounterNumber = '<%=num%>';
 
   //let's see if this user has ownership and can make edits
   boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-  pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
+  boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
+  pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
   boolean loggedIn = false;
   try{
   	if(request.getUserPrincipal()!=null){loggedIn=true;}
@@ -908,7 +918,7 @@ $(function() {
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 <%-- START LOCATION --%>
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
 	<img src="../images/2globe_128.gif" width="20px" height="20px" align="absmiddle"/>
   <%=encprops.getProperty("location") %>
@@ -1421,17 +1431,52 @@ if(enc.getLocation()!=null){
  	<%
  	}
  	%>
- 	<!-- adding ne submit GPS-->
+
+  <!-- Display GPS to researchers if configured in commonConfiguration.properties-->
+
+<%
+  String longy="";
+  String laty="";
+  if(enc.getLatitudeAsDouble()!=null){
+    laty=enc.getLatitudeAsDouble().toString();
+    if (!isOwner && !isPublic) {
+      BigDecimal latBD = new BigDecimal(laty);
+      latBD = latBD.setScale(1, RoundingMode.HALF_UP);
+      laty = latBD.toString();
+      laty += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+  if(enc.getLongitudeAsDouble()!=null){
+    longy=enc.getLongitudeAsDouble().toString();
+    if (!isOwner && !isPublic) {
+      BigDecimal lonBD = new BigDecimal(longy);
+      lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
+      longy = lonBD.toString();
+      longy += " ("+encprops.getProperty("truncated")+")";
+    }
+  }
+
+  String uName = null;
+  User gpsUser = null;
+  if (request.getUserPrincipal()!=null) {
+    uName = request.getUserPrincipal().getName();
+    gpsUser = myShepherd.getUser(uName);
+  }
+  if(gpsUser!=null&&CommonConfiguration.showProperty("showGPSToResearchers",context)&&gpsUser.hasRoleByName("researcher", myShepherd)){
+    if (longy==null||"".equals(longy)||laty==null||"".equals(laty)) {
+      longy = encprops.getProperty("noGPS");
+      laty = encprops.getProperty("noGPS");
+    }
+%>
+    <p><em><strong>Latitude:&nbsp;</strong></em><span id="latitudeSpan"><%=laty%></span>,&nbsp;&nbsp;<em><strong>Longitude:&nbsp;</strong></em><span id="longitudeSpan"><%=longy%></span></p>
+<%
+  }
+%>
 
 
 
  	<%
- 	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
+ 	if(isOwner || isPublic){
      	%>
 
       <script type="text/javascript">
@@ -1448,6 +1493,9 @@ if(enc.getLocation()!=null){
             $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
             function() {
               $("#latCheck, #longCheck").show();
+              console.log('tryyna set GPS!');
+              $("#latitudeSpan").text($('#lat').val());
+              $("#longitudeSpan").text($('#longitude').val());
             })
             .fail(function(response) {
               $("#gpsErrorDiv").show();
@@ -1467,12 +1515,10 @@ if(enc.getLocation()!=null){
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
                   $("#setGPSbutton").removeAttr("disabled");
-                  //alert("here 1!");
                   emptyMarkers();
               }
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
-                  //alert("here 2!");
               }
               else{
               	//alert("Trying to validate!");
@@ -1551,7 +1597,7 @@ if(enc.getLocation()!=null){
 
 <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
-        <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+        <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 	        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
@@ -1618,7 +1664,7 @@ if(enc.getLocation()!=null){
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-                      
+
     									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
@@ -1772,13 +1818,13 @@ console.info('resetIdButtons()');
                           //change the display in the Encounter page nearby link
                           $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $('#displayIndividualID').closest('a').text(data.displayName);
-                          
+
                           $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").html(individual);
-          			      	  $(".add2shark").hide();               
-        			        	  $(".removeFromShark").show();      
+          			      	  $(".add2shark").hide();
+        			        	  $(".removeFromShark").show();
                           //add topid update here
-                          
+
 
                           //change the name in the topbar
                           //$('#topid').text(data.displayName);
@@ -1791,7 +1837,7 @@ console.info('resetIdButtons()');
 
                           $("#displayMatchedBy").html(matchType);
                           $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
-                          
+
                         })
                         .fail(function(response) {
                         	$("#addSuccessDiv").hide();
@@ -1836,6 +1882,22 @@ console.info('resetIdButtons()');
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
                           String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          // TODO not including the below which comes from master because it causes an error:
+                          // java.lang.NumberFormatException: For input string: "4135682370"
+                          //         at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+                          //         at java.base/java.lang.Integer.parseInt(Integer.java:652)
+                          //         at java.base/java.lang.Integer.parseInt(Integer.java:770)
+                          //         at org.ecocean.MarkedIndividual.nextNameByPrefix(MarkedIndividual.java:2626)
+                          //         at org.apache.jsp.encounters.encounter_jsp._jspService(encounter_jsp.java:1092)
+                          // String locationIdPrefix = enc.getPrefixForLocationID();
+                          // int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          // String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          // if(enc.getLocationID() != null && nextID == null){
+                          //   nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          // }
+                          // if(enc.getLocationID() == null && nextID == null){
+                          //   nextID = encprops.getProperty("noLocationID");
+                          // }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -2084,7 +2146,7 @@ function checkIdDisplay() {
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
+								<a href="../occurrence.jsp?number=<%=urlCodec.encode(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID()) %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
@@ -2097,7 +2159,7 @@ function checkIdDisplay() {
 
               <%
                 //Remove from occurrence if assigned
-                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && (isOwner || isPublic)) {
               %>
               <script type="text/javascript">
                 $(document).ready(function() {
@@ -2157,7 +2219,7 @@ function checkIdDisplay() {
                 }
                 //create new Occurrence with name
 
-                if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                if((isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
                 <script type="text/javascript">
                   $(document).ready(function() {
@@ -2285,7 +2347,7 @@ function checkIdDisplay() {
         <div>
 
 
-          <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+          <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
           <h2>
             <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
             <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
@@ -2352,7 +2414,7 @@ function checkIdDisplay() {
 				            <span id="displaySubmitName"><%=name %></span>
 				            <%
 
-				          if (isOwner) {
+				          if (isOwner || isPublic) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2414,7 +2476,7 @@ function checkIdDisplay() {
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
          int numPhotographers = 0;
-	       if(enc.getPhotographers()!=null){   
+	       if(enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
@@ -2438,7 +2500,7 @@ function checkIdDisplay() {
 				            <span id="displaySubmitName"><%=name%></span>
 				            <%
 
-				          if (isOwner) {
+				          if (isOwner || isPublic) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2538,21 +2600,21 @@ function checkIdDisplay() {
             } else {
               $("#editPhotographerSuccess").text("Photographers data set.");
             }
-            // Did you make a new photographer/user? Sigh,,, I guess we will populate a bunch of html for it. 
+            // Did you make a new photographer/user? Sigh,,, I guess we will populate a bunch of html for it.
 
             //Show success messages?
           })
           .fail(function(response) {
-            //Give em the fail whale? 
+            //Give em the fail whale?
             $("#editPhotographerFail").text("Error: Unable to modify photographers.");
           });
         });
       });
-      
+
 
 
     </script>
-      
+
 
 
   </div>
@@ -2615,7 +2677,7 @@ function checkIdDisplay() {
 				            	<%
 			   				}
 
-				          if (isOwner) {
+				          if (isOwner || isPublic) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2795,7 +2857,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
@@ -3050,6 +3112,8 @@ else {
 
 
 <!-- start set username -->
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+   %>
 <div>
   <div class="highlight resultMessageDiv" id="assignErrorDiv"></div>
 
@@ -3081,6 +3145,7 @@ else {
     </div>
   </form>
 </div>
+<% } %>
 
 
                    		<%
@@ -3258,7 +3323,7 @@ itq.closeAll();
   pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
 %>
 
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
   <c:out value="${measurementTitle}"></c:out>
@@ -3425,7 +3490,7 @@ else {
 
 
 
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
   <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
@@ -3672,7 +3737,7 @@ else {
     <tr>
     <td width="560px" style="vertical-align:top;">
 
-      <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+      <% if ((isOwner ||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
       <h2>
         <img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
         <button class="btn btn-md" type="button" name="button" id="editDate">Edit</button>
@@ -4005,7 +4070,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
-  <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+  <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
   <h2>
     <img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %>
     <button class="btn btn-md" type="button" name="button" id="editObservation">Edit</button>
@@ -4840,7 +4905,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 <!-- START DYNAMIC PROPERTIES -->
 
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
    <%=encprops.getProperty("dynamicProperties") %>
@@ -5103,6 +5168,9 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    if(file && file.name){
+      file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+    }
     console.log('added %o %o', file, event);
   });
   flow.on('fileProgress', function(file, chunk){
@@ -5110,6 +5178,10 @@ button#upload-button {
     var p = ((file._prevUploadedSize / file.size) * 100) + '%';
     updateProgress(el, p, 'uploading');
     console.log('progress %o %o', file._prevUploadedSize, file);
+    let progressBarHtml = '<div id="progress-div"><h4><%= encprops.getProperty("Loading") %></h4>';
+    progressBarHtml += '<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only"><%= encprops.getProperty("PercentComplete")%></span>';
+    progressBarHtml += '</div></div></div>';
+    document.getElementById('updone').innerHTML = progressBarHtml;
   });
   flow.on('fileSuccess', function(file,message){
     var el = findElement(file.name, file.size);
@@ -5205,6 +5277,8 @@ button#upload-button {
 
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+      let locationID = '<%=enc.getLocationID()%>';
+      console.log("locationID for new asset: "+locationID);
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5237,6 +5311,10 @@ button#upload-button {
             data: ajaxDataString,
             success: function(d) {
               console.info("I attached MediaAsset "+maId+" to encounter <%=encNum%>");
+              $('#progress-div').hide();
+              document.getElementById('updone').innerHTML = '<i>Processing complete. Refresh page to see new image.</i>';
+              console.log("upload finished.");
+              console.log('upload finished. Files added: ' + filenames);
             },
             error: function(x,y,z) {
               console.warn("failed to MediaAssetAttach");
@@ -5312,7 +5390,7 @@ if(loggedIn){
     </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <div id="dialogSample" title="<%=encprops.getProperty("setTissueSample")%>" style="display:none">
 
@@ -5566,7 +5644,7 @@ for(int j=0;j<numTissueSamples;j++){
 
 
 							<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
@@ -5693,7 +5771,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
         </a>
 
 				<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex popup -->
 <script type="text/javascript">
@@ -5843,7 +5921,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 															<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 <!-- start ms marker popup -->
@@ -5993,7 +6071,7 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 				</span></td><td style="border-style: none;"><a class="launchPopup toggleBtn" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
 						<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start biomeasure popup -->
 <div id="dialogSetBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setBiologicalMeasurement")%>" style="display:none">
@@ -6204,7 +6282,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
     </span>
   </p>
 		<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
@@ -6308,7 +6386,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       </span>
     </p>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start sat tag metadata -->
 <script type="text/javascript">
@@ -6434,7 +6512,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 <!-- start genetic sex popup -->
@@ -6558,7 +6636,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   </p>
 
 		<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex -->
 <script type="text/javascript">
