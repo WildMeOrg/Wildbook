@@ -94,15 +94,6 @@ public class SOCPROGExport extends HttpServlet{
 
        //business logic start here
 
-        //load the optional locales
-        Properties props = new Properties();
-        try {
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-        } catch (Exception e) {
-          //System.out.println("     Could not load locationIDGPS.properties in class GenalexExportCodominantMSDataBySize.");
-          e.printStackTrace();
-        }
-
       //let's set up some cell formats
         WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
         WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
@@ -188,7 +179,7 @@ public class SOCPROGExport extends HttpServlet{
             Vector iterateMe=query2Individuals;
             HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(iterateMe, request, myShepherd);
             hiddenData.writeHiddenDataReport(workbookOBIS,2); // since 0 and 1 are in use above;
-            
+
             for(int k=0;k<iterateMe.size();k++){
 
               MarkedIndividual indy=(MarkedIndividual)iterateMe.get(k);
@@ -260,7 +251,7 @@ public class SOCPROGExport extends HttpServlet{
                     if(enc.getIndividual()!=null){
                       Label popLabel4a1 = new Label(5, count, enc.getIndividual().getDefaultName().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
-                      
+
                       Label popLabel4a2 = new Label(0, count, enc.getIndividual().getDefaultName());
                       sheet2.addCell(popLabel4a2);
 

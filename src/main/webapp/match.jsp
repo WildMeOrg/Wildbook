@@ -920,7 +920,10 @@ console.warn('pendingUpload -> %o', pendingUpload);
 		//flow.assignDrop(document.getElementById('dropTarget'));
 
 		flow.on('fileAdded', function(file, event){
-    			console.log('added %o %o', file, event);
+      if(file && file.name){
+        file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
+      }
+			console.log('added %o %o', file, event);
 			pendingUpload++;
 			$('#file-input').hide();
 			$('#file-activity').show();
@@ -1101,7 +1104,7 @@ myShepherd.setAction("match.jsp");
 String[] sources = request.getParameterValues("sources");
 boolean valid = validateSources(sources);
 if ((sources != null) && valid) {
-  
+
 } else {  //show a form
 
 %>
@@ -1174,7 +1177,7 @@ if ((tax == null) || (tax.values() == null) || (tax.values().size() < 1)) {
 	<div style="margin-top: 100px; padding: 5px; display: none;" >upload method being used: <b><span id="uptype"></span></b></div>
 
 	<div id="file-input">
-		<input style="display: inline-block;" type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+		<input style="display: inline-block;" type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
 	</div>
 	<div id="file-activity">
 	</div>
@@ -1248,4 +1251,3 @@ Data will be removed after 7 days unless you take further action to incorporate 
 <div style="clear: both; margin-bottom: 100px;"></div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-

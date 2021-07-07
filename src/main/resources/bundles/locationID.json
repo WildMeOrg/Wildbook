@@ -25,7 +25,7 @@
 			  "name": "Coral Sea", "id": "Coral Sea"  },
 			 {
 			  "name": "East China Sea", "id": "East China Sea"  },
-			 
+
 			 {
 			  "name": "Gulf of Thailand", "id": "Gulf of Thailand" },
 			 {
@@ -34,9 +34,9 @@
 			  "name": "Mar de Grau", "id": "Mar de Grau" },
 			 {
 			  "name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
-				
+
 				{"name":"Mexico","id":"Mexico","locationID":[
-			
+
 					{ "name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[] },
 					{ "name":"Guamilule", "id":"Guamilule", "locationID":[] },
 					{ "name":"Ixtapa", "id":"Ixtapa", "locationID":[] },
@@ -58,7 +58,7 @@
 					{ "name":"Playa Viva", "id":"Playa Viva", "locationID":[] },
 
 					{
-					"name": "Sea of Cortés", "id":"sea of cortes", 
+					"name": "Sea of Cortés", "id":"sea of cortes",
 					"locationID":[
 						{
 						"name": "Baja California", "id":"Baja California" }
@@ -68,7 +68,7 @@
 					{ "name":"Valentin", "id":"Valentin", "locationID":[] },
 					{ "name":"Yucatan", "id":"Yucatan", "locationID":[] },
 					{ "name":"Zihuatanejo", "id":"Zihuatanejo", "locationID":[] }
-					  
+
 			]},
 			{ "name":"Central America", "id":"Central America", "locationID":[
 
@@ -127,7 +127,7 @@
 			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
 
 				  { "name":"2h", "id":"2h", "locationID":[] },
-				  
+
 				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
 				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
 				{ "name":"Dominica", "id":"Dominica", "locationID":[
@@ -139,24 +139,24 @@
 				] },
 				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
 				{ "name":"Panama", "id":"Panama", "locationID":[] }
-			  ] 
+			  ]
 			  },
-			
+
               {"name":"South Atlantic","id":"South Atlantic","locationID":[
-			  
+
 				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
 				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
 				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
-			  ]}, 
+			  ]},
 
-			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[ 
+			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[
 				{ "name":"Florida", "id":"Florida", "locationID":[] }
 			  ]},
 
-			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[ 
+			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[
 				{ "name":"Maho", "id":"Maho", "locationID":[] }
 			  ]}
-			  
+
 		],
 		"id": "AtlanticOcean",
 		"defaultLatitude": 0.0,
@@ -188,7 +188,7 @@
 				{ "name":"Shaviyani", "id":"Shaviyani", "locationID":[] },
 				{ "name":"Thaa", "id":"Thaa", "locationID":[] },
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
-				
+
 		] },
 
 		{
@@ -217,15 +217,15 @@
 					"name": "Philippine Sea", "id": "Philippine Sea" }
 
 		] },
-		
+
 		 { "name":"Bangladesh", "id":"BANGLADESH - West", "locationID":[] },
-		
+
 		 {"name":"India","id":"India","locationID":[]},
 		 {"name":"Pakistan","id":"Pakistan","locationID":[
 			{ "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
 		 ]},
-		 
-		
+
+
 		 {
 		  "name": "Andaman Sea", "id": "Andaman Sea" },
 		 {
@@ -235,17 +235,17 @@
 		  "name": "Laccadive Sea", "id": "Laccadive Sea" },
 		 {
 		  "name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
-		  
+
 			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] }
-		  
+
 		  ] },
 		 {
 		  "name": "Persian Gulf", "id": "Persian Gulf" },
 		 {
-		  "name": "Red Sea", "id":"Red Sea", 
+		  "name": "Red Sea", "id":"Red Sea",
 		  "locationID":[
 		    {"name":"Israel","id":"Israel"}
-		  ] 
+		  ]
 		  },
           {"name": "Seychelles", "id": "Seychelles" },
 		 {
@@ -254,11 +254,11 @@
 		  {"name":"Madagascar","id":"Madagascar",
 		  "locationID":[
 				  {
-				  "name": "Nosy Be" ,"id": "Nosy Be" 
+				  "name": "Nosy Be" ,"id": "Nosy Be"
 				  },
 				  {
-				  "name": "Nosy Iranja" ,"id": "Nosy Iranja" 
-				  },		  
+				  "name": "Nosy Iranja" ,"id": "Nosy Iranja"
+				  },
 				  {
 				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
 				  }
@@ -274,16 +274,16 @@
 		"defaultLatitude": -20.0,
 		"defaultLongitude": 80.0
 	},
-	
+
 	{ "name":"Brazil", "id":"Brazil", "locationID":[] },
 
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
-	
+
 	{ "name":"Australia", "id":"Australia", "locationID":[
 		{ "name":"New South Wales", "id":"New South Wales", "locationID":[
 				{ "name":"Byron Bay", "id":"Byron Bay", "locationID":[] }
 		] },
-		{ "name":"Southern Queensland", "id":"Southern Queensland", "locationID":[		
+		{ "name":"Southern Queensland", "id":"Southern Queensland", "locationID":[
 				{ "name":"Sunshine Coast", "id":"Sunshine Coast", "locationID":[] }
 		] }
 	] },
@@ -313,69 +313,69 @@
 			  "name": "1a2", "id": "1a2" },
 			  {
 			  "name": "1a4", "id": "1a3" },
-			  
+
 			  {
 			  "name": "ChristmasIsland", "id": "ChristmasIsland" },
-			  
+
 			  {
 			  "name": "Malaysia", "id": "Malaysia" },
-			  
+
 			  {
 			  "name": "Thailand", "id": "Thailand" },
-			  
+
 			  {
 			  "name": "Myanmar", "id": "Myanmar" },
-			  
+
 			  {
 			  "name": "1g", "id": "1g" },
-			  
+
 			  {
 			  "name": "2", "id": "2" },
-			  
+
 			  {
 			  "name": "2a", "id": "2a" },
-			 
+
 			{
 			  "name": "2b", "id": "2b" },
 			{
 			  "name": "2c", "id": "2c" },
-			  
+
 			  {
 			  "name": "2d", "id": "2d" },
-			  
+
 			  {
 			  "name": "2e", "id": "2e" },
-			  
+
 			  {
 			  "name": "2e1", "id": "2e1" },
-			  
+
 			  {
 			  "name": "2f", "id": "2f" },
-			  
+
 			  {
 			  "name": "2g", "id": "2g" },
-			  
+
 			  {
 			  "name": "2h", "id": "2h" },
-			  
+
 			  {
 			  "name": "2h1", "id": "2h1" },
-			  
+
 			  {
 			  "name": "2h2", "id": "2h2" },
-			  
+
 			  {
 			  "name": "2h3", "id": "2h3" },
-			  
+
 			  {
 			  "name": "4a", "id": "4a" },
-			  
+
 			  			  {
 			  "name": "4a1", "id": "4a1" },
-			  
+
 			  			  {
 			  "name": "4a2", "id": "4a2" },
-			  
+
 			  			  {
 			  "name": "Tanzania", "id": "Tanzania" },
 
@@ -395,68 +395,68 @@
 				{"name": "Mwanamochi", "id": "Mwanamochi" },
 				{"name": "Tiwi Reef", "id": "Tiwi Reef" }
 			  ]},
-			  
+
 			  			  {
 			  "name": "SouthAfrica", "id": "SouthAfrica" },
-			  
+
 			  			  {
 			  "name": "Djibouti", "id": "Djibouti" },
-			  
+
 			  			  {
 			  "name": "RedSea", "id": "RedSea" },
 
 
 			   {
 			  "name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" },
-			  
+
 			   {
 			  "name": "4h", "id": "4h" },
-			  
+
 			   {
 			  "name": "4h1", "id": "4h1" },
-			  
+
 			   {
 			  "name": "4h1a", "id": "4h1a" },
-			  
+
 			   {
 			  "name": "4h2", "id": "4h2" },
-			  
+
 			   {
 			  "name": "4h2a", "id": "4h2a" },
-			  
+
 			  			   {
 			  "name": "4h2b", "id": "4h2b" },
-			  
+
 			  {
 			  "name": "4h2c", "id": "4h2c" },
-			  
+
 			  {
 			  "name": "4h3", "id": "4h3" },
-			  
+
 			  {
 			  "name": "4h4", "id": "4h4" },
-			  
+
 			  {
 			  "name": "6a", "id": "6a" },
-			  
+
 			  {
 			  "name": "6a1", "id": "6a1" },
-			  
+
 			  {
 			  "name": "6a2", "id": "6a2" },
-			  
+
 			  {
 			  "name": "6a3", "id": "6a3" },
-			  
+
 			  {
 			  "name": "6b", "id": "6b" },
-			  
+
 			  {
 			  "name": "7", "id": "7" },
-			  
+
 			  {
 			  "name": "7a", "id": "7a" },
-			  
+
 			  {
 			  "name": "7b", "id": "7b" },
 			  {
@@ -466,6 +466,6 @@
 			   {
 			  "name": "8a", "id": "8a" }
 	] }
-	
+
   ]
 }

@@ -172,8 +172,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
 }
 %>
 
-<h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+<h1 class="intro">
   <%=titleString%>
 </h1>
 </p>
@@ -1455,7 +1454,6 @@ function addIncrementalIdsToUrlParams(){
   console.log("addIncrementalIdsToUrlParams entered. incrementalIdsOnSearchList is: ");
   console.log(incrementalIdsOnSearchList);
   $('#hiddenIncrementId').val(incrementalIdsOnSearchList.join(";")); // only way I could figure out to pass these as part of the URL. $('#individualIncrementalIds').val(incrementalIdsOnSearchList.join(";")); didn't work
-  debugger;
 }
 
 function populateIncrementalIdHtml(){

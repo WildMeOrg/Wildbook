@@ -143,7 +143,7 @@ public class StartupWildbook implements ServletContextListener {
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
-		MetricsBot.startServices(context);
+        MetricsBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
 
@@ -151,7 +151,7 @@ public class StartupWildbook implements ServletContextListener {
             startWildbookScheduledTaskThread(context);
         } catch (Exception e) {
             e.printStackTrace();
-        } 
+        }
     }
 
 
@@ -239,7 +239,7 @@ public class StartupWildbook implements ServletContextListener {
                 }
                 myShepherd.closeDBTransaction();
             }
-            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
             }, 0, 1, TimeUnit.HOURS);
     }
 
@@ -252,8 +252,7 @@ public class StartupWildbook implements ServletContextListener {
         AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         TwitterBot.cleanup();
-		MetricsBot.cleanup();
-		
+        MetricsBot.cleanup();
     }
 
 
@@ -279,11 +278,11 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
     //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
     private static boolean properStartupResource(ServletContextEvent sce) {
         if (sce == null) return false;
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
         if (context == null) return false;
         URL res = null;
         try {
@@ -310,4 +309,3 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 
 }
-
