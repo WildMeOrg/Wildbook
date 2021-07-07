@@ -3,8 +3,6 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
-         java.math.BigDecimal,
-         java.math.RoundingMode,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -23,6 +21,8 @@
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
@@ -183,9 +183,10 @@ File encounterDir = new File(encountersDir, num);
 //handle translation
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
-
-// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
+
+
+
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
@@ -443,7 +444,6 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
-
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
                 if (item.species != taxString) return null;
@@ -468,9 +468,8 @@ function setIndivAutocomplete(el) {
   <script>
             function initialize() {
 	            //alert("Initializing map!");
-	              //var mapZoom = 1;
-	              var mapZoom = null;
-                mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
+              var mapZoom = null;
+              mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = null;
@@ -515,6 +514,9 @@ function setIndivAutocomplete(el) {
 
 
         }
+
+
+
 
 var encounterNumber = '<%=num%>';
 
@@ -667,7 +669,7 @@ var encounterNumber = '<%=num%>';
   //let's see if this user has ownership and can make edits
   boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
   boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
-  pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
+  pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
   boolean loggedIn = false;
   try{
   	if(request.getUserPrincipal()!=null){loggedIn=true;}
@@ -1472,9 +1474,10 @@ if(enc.getLocation()!=null){
 %>
 
 
-<%
+
+ 	<%
  	if(isOwner || isPublic){
-%>
+     	%>
 
       <script type="text/javascript">
         $(document).ready(function() {
@@ -1758,7 +1761,7 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-//console.info('resetIdButtons()');
+console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
@@ -1878,15 +1881,23 @@ function resetIdButtons() {
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          String locationIdPrefix = enc.getPrefixForLocationID();
-                          int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
-                          String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
-                          if(enc.getLocationID() != null && nextID == null){
-                            nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          }
-                          if(enc.getLocationID() == null && nextID == null){
-                            nextID = encprops.getProperty("noLocationID");
-                          }
+                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          // TODO not including the below which comes from master because it causes an error:
+                          // java.lang.NumberFormatException: For input string: "4135682370"
+                          //         at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
+                          //         at java.base/java.lang.Integer.parseInt(Integer.java:652)
+                          //         at java.base/java.lang.Integer.parseInt(Integer.java:770)
+                          //         at org.ecocean.MarkedIndividual.nextNameByPrefix(MarkedIndividual.java:2626)
+                          //         at org.apache.jsp.encounters.encounter_jsp._jspService(encounter_jsp.java:1092)
+                          // String locationIdPrefix = enc.getPrefixForLocationID();
+                          // int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          // String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          // if(enc.getLocationID() != null && nextID == null){
+                          //   nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          // }
+                          // if(enc.getLocationID() == null && nextID == null){
+                          //   nextID = encprops.getProperty("noLocationID");
+                          // }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -2208,7 +2219,7 @@ function checkIdDisplay() {
                 }
                 //create new Occurrence with name
 
-                if( (isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                if((isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
                 <script type="text/javascript">
                   $(document).ready(function() {
@@ -2336,7 +2347,7 @@ function checkIdDisplay() {
         <div>
 
 
-          <% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+          <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
           <h2>
             <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
             <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
@@ -2425,7 +2436,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic) {
+					         if(isOwner){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2451,7 +2462,7 @@ function checkIdDisplay() {
 
 			</p> <!--  End submitters paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2511,7 +2522,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic){
+					         if(isOwner){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2617,7 +2628,7 @@ function checkIdDisplay() {
 
 			</p> <!--  End photographers paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2635,7 +2646,7 @@ function checkIdDisplay() {
 
 
 							<%
-		                    if(isOwner || isPublic){
+		                    if(isOwner){
 
 		                    %>
 
@@ -2688,7 +2699,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic){
+					         if(isOwner){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2711,7 +2722,7 @@ function checkIdDisplay() {
 			%>
 			</p> <!--  End informOthers paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2846,7 +2857,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
@@ -3002,6 +3013,7 @@ else {
      									<td>
                          				<%
                          				if(enc.getAssignedUsername()!=null){
+
                         	 				String username=enc.getAssignedUsername();
                          					if(myShepherd.getUser(username)!=null){
                          					%>
@@ -3032,10 +3044,10 @@ else {
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
 
-                                  <p><strong><%=displayName %></strong></p>
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
+					                        <p><strong><%=displayName %></strong></p>
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
@@ -3100,7 +3112,7 @@ else {
 
 
 <!-- start set username -->
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
    %>
 <div>
   <div class="highlight resultMessageDiv" id="assignErrorDiv"></div>
@@ -3311,7 +3323,7 @@ itq.closeAll();
   pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
 %>
 
-<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
   <c:out value="${measurementTitle}"></c:out>
@@ -3478,7 +3490,7 @@ else {
 
 
 
-<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
   <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
@@ -3725,7 +3737,7 @@ else {
     <tr>
     <td width="560px" style="vertical-align:top;">
 
-      <% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+      <% if ((isOwner ||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
       <h2>
         <img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
         <button class="btn btn-md" type="button" name="button" id="editDate">Edit</button>
@@ -4004,7 +4016,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
       	</jsp:include>
 
 		<%
-		if(isOwner || isPublic){
+		if(isOwner){
 		%>
           <br/>
           <br>
@@ -4107,7 +4119,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>
@@ -4925,17 +4937,7 @@ else {
  %>
  <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
 
- <%}%>
-
-
-
-
-<%
-if(isOwner || isPublic){
-%>
-
-<%
-}
+ <%}
 
 
   if (enc.getDynamicProperties() != null) {
@@ -5269,12 +5271,14 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
+  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
+    console.log("upload finished.");
+    console.log('upload finished. Files added: '+filenames);
+
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
-
       let locationID = '<%=enc.getLocationID()%>';
       console.log("locationID for new asset: "+locationID);
-
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5287,8 +5291,7 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>",
-          "locationID":locationID
+          "taxonomy":"<%=enc.getTaxonomyString() %>"
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
