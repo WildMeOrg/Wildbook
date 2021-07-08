@@ -388,11 +388,22 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = null;
+centerMap();
 
 var map;
 
 var marker;
+
+function centerMap(){
+  let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+  let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+  if (centerLat && centerLong) {
+    center = new google.maps.LatLng(centerLat, centerLong);
+  } else {
+    center = new google.maps.LatLng(10.8, 160.8);
+  }
+}
 
 function updateMap() {
     var latVal = $('#lat').val();
@@ -437,7 +448,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        centerMap();
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {

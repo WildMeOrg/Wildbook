@@ -15,12 +15,12 @@
 			{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 			{ "name":"Zambia", "id":"Zambia", "locationID":[] },
 			{ "name":"Zimbabwe", "id":"Zimbabwe", "locationID":[] }
-			
-			
-			]}, 
-			
+
+
+			]},
+
 			{"name":"Africa - East","id":"Africa - East","locationID":[
-				
+
 				{ "name":"Kenya", "id":"Kenya", "locationID":[] },
 				{ "name":"Malawi", "id":"Malawi", "locationID":[] },
 				{ "name":"Somalia", "id":"Somalia", "locationID":[] },
@@ -35,4 +35,4 @@
 
 	]}
   ]
-}	
+}

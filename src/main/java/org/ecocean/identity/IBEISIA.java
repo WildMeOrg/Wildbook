@@ -365,6 +365,23 @@ Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
 Util.mark("sendIdentify-C", startTime);
+
+        // WB-1665 now wants us to bail upon empty target annots:
+	if (Util.collectionIsEmptyOrNull(tlist)) {
+            System.out.println("WARNING: bailing on empty target list");
+            JSONObject emptyRtn = new JSONObject();
+            JSONObject status = new JSONObject();
+            status.put("message", "rejected");
+            status.put("error", "Empty target annotation list");
+            status.put("emptyTargetAnnotations", true);
+            emptyRtn.put("status", status);
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
+            return emptyRtn;
+        }
+
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing..
@@ -1737,6 +1754,7 @@ System.out.println("updateSpeciesOnIA(): " + species);
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        iaClass = iaConf.convertIAClassForTaxonomy(iaClass, taxonomyBeforeDetection);
 
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
@@ -2556,12 +2574,11 @@ System.out.println("identification most recent action found is " + action);
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species for iaClass");
 
             // iaClass... not your scientific name species
-            String iaClass = rtn.getJSONArray("response").optString(0, null);
 
-            // String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
-            // IAJsonProperties iaConf = IAJsonProperties.iaConfig();
-            // Taxonomy taxy = ma.getTaxonomy(myShepherd);
-            // String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
+            String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
+            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            Taxonomy taxy = ma.getTaxonomy(myShepherd);
+            String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
 
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
             ann.setIAExtractedKeywords(myShepherd, originalTaxy);

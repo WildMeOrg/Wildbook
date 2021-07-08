@@ -385,14 +385,25 @@ System.out.println("*** trying redirect?");
                 }
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
-                if(projectIdSelection != null){
-                  for(String projectId: projectIdSelection){
-                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
-                    if(currentProject!=null){
-                      projects.add(currentProject);
+                
+                //Adding to a project should not generate an error that blocks data capture
+                //throw exception and move on
+                try {
+                  if(projectIdSelection != null){
+                    for(String projectId: projectIdSelection){
+                      Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
+                      if(currentProject!=null){
+                        projects.add(currentProject);
+                      }
                     }
                   }
                 }
+                catch(Exception e) {
+                  e.printStackTrace();
+                }
+                
+                
+                
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
@@ -616,13 +627,20 @@ System.out.println("about to do enc()");
             }
             enc.setEncounterNumber(encID);
 
+            //Adding to a project should not generate an error that blocks data capture
+            //throw exception and move on
             //add encounter to projects
-            if(projects!=null){
-              for(Project currentProject: projects){
-                if(currentProject!=null && enc!=null){
-                  currentProject.addEncounter(enc);
+            try {
+              if(projects!=null){
+                for(Project currentProject: projects){
+                  if(currentProject!=null && enc!=null){
+                    currentProject.addEncounter(enc);
+                  }
                 }
               }
+            }
+            catch(Exception g) {
+              g.printStackTrace();
             }
 
 
@@ -1312,8 +1330,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
   }
 
   private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
-    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+    String sanitizedItemName = ServletUtilities.cleanFileName(item.getName());
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + sanitizedItemName));
+    sp.put("key", Util.hashDirectories(encID) + "/" + sanitizedItemName);
     MediaAsset ma = new MediaAsset(astore, sp);
     File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
     File tmpDir = tmpFile.getParentFile();
