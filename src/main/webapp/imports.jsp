@@ -343,7 +343,7 @@ function sendToIA(skipIdent) {
         complete: function(x) {
             console.log('sendToIA() response: %o', x);
 	    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-	        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+                $('#ia-send-wait').html('<i>Images sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
 	    } else {
 	        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
 	    }
@@ -356,6 +356,10 @@ function sendToIA(skipIdent) {
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
+
+<% if (numIA > 0) { %>
+    <p><a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">View Rapid Assessment</a></p>
+<% } %>
 
 <p>
 Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
