@@ -472,6 +472,7 @@ public class User implements Serializable {
                 .append("uuid", uuid)
                 .append("username", username)
                 .append("fullName", fullName)
+                .append("emailAddress", emailAddress)
                 .toString();
     }
 

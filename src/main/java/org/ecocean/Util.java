@@ -1088,6 +1088,7 @@ public class Util {
     }
 
   public static JSONObject copy(JSONObject original) {
+    if (original == null) return null;
     return new JSONObject(original, JSONObject.getNames(original));
   }
 

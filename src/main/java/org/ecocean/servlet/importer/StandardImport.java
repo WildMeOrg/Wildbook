@@ -1125,26 +1125,26 @@ public class StandardImport extends HttpServlet {
       } // if microMark was grabbed from Shepherd correctly there is no further data to store.
     }
     */
-  	
+
   	MicrosatelliteMarkersAnalysis markers = null;
   	String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames");
   	String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0");
   	String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1");
-    if(sample!=null 
+    if(sample!=null
         && alleleNames!=null && !alleleNames.trim().equals("")
             && alleleZeroes!=null && !alleleZeroes.trim().equals("")
                 && alleleOnes!=null && !alleleOnes.trim().equals("")
       ) {
-      
-          ArrayList<Locus> loci=new ArrayList<Locus>();  
-          
+
+          ArrayList<Locus> loci=new ArrayList<Locus>();
+
           //iterate the names and allele0 and allele1 values
           StringTokenizer namesSTR = new StringTokenizer(alleleNames,",");
           StringTokenizer namesAllele0 = new StringTokenizer(alleleZeroes,",");
           StringTokenizer namesAllele1 = new StringTokenizer(alleleOnes,",");
           int numNames=namesSTR.countTokens();
           if(numNames>0 && namesSTR.countTokens()==namesAllele0.countTokens() && namesSTR.countTokens()==namesAllele1.countTokens()) {
-            
+
             //OK, names and alleles are the same size
             for(int i=0;i<numNames;i++) {
               int all0 = (Integer.parseInt(namesAllele0.nextToken()));
@@ -1152,7 +1152,7 @@ public class StandardImport extends HttpServlet {
               Locus locus=new Locus(namesSTR.nextToken(),all0,all1);
               loci.add(locus);
             }
-            
+
             markers = new MicrosatelliteMarkersAnalysis(Util.generateUUID(),tissueSampleID, encID, loci);
 
               if(committing && loci.size()>0) {
@@ -1164,8 +1164,8 @@ public class StandardImport extends HttpServlet {
             System.out.println("names and alleles sizes don't match!");
           }
     }
-  	
- 	
+
+
 
     //Sex Analysis import
     /*
@@ -1194,7 +1194,7 @@ public class StandardImport extends HttpServlet {
   	  }
   	  sample.addGeneticAnalysis(sexAnal);
   	}
-  	
+
   	//add haplotype
   	MitochondrialDNAAnalysis haplo=null;
     String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype");
@@ -1205,7 +1205,7 @@ public class StandardImport extends HttpServlet {
       }
       sample.addGeneticAnalysis(haplo);
     }
-  	
+
 
     if (sample!=null) enc.addTissueSample(sample);
     // END SAMPLES
