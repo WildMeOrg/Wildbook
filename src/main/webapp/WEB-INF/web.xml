@@ -1215,19 +1215,6 @@
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
-  
-  
-        <servlet>
-    <servlet-name>WildbookMetrics</servlet-name>
-    <servlet-class>org.ecocean.metrics.WildbookMetrics</servlet-class>
-  </servlet>
-
-      <servlet-mapping>
-    <servlet-name>WildbookMetrics</servlet-name>
-    <url-pattern>/metrics</url-pattern>
-  </servlet-mapping>
-  
-  
 
 
         <servlet>
@@ -1239,7 +1226,6 @@
     <servlet-name>WildbookMetrics</servlet-name>
     <url-pattern>/metrics</url-pattern>
   </servlet-mapping>
-
 
 
       <servlet>
