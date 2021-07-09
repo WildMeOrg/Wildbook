@@ -155,7 +155,7 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
@@ -1639,14 +1639,18 @@ function switchIdMode(bid) {
 function resetIdButtons() {
 //console.info('resetIdButtons()');
     $('.id-action').hide();
+    $('#AddNewDisabled').show();
+    $('#AddToExistingDisabled').show();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
 //console.log('newId=%s / existId=%s', newId, existId);
     if (newId) {
+        $('#AddNewDisabled').hide();
         $('#AddNew').show();
     } else if (existId) {
 //console.log('existId=%s', existId);
         if (lastIndivAutoData[existId]) {
+            $('#AddToExistingDisabled').hide();
             $('#Add').show();
         } else {
             console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
@@ -1655,68 +1659,9 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
-
-
-                      $(".id-action").click(function(event) {
-                        event.preventDefault();
-                        var forceNew = false;
-                        var individual = $("#individualAddEncounterInput").val();
-                        if (!individual) {
-                            individual = $("#individualNewAddEncounterInput").val();
-                            forceNew = true;
-                        }
-                        if (!individual) return false;  //both blank, i guess
-
-                        $(".id-action").hide();
-
-                        var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
-                        var matchType = $("#matchType").val();
-
-                        var noemail = false;
-                        if ($("#noEmailCheckbox").is(":checked")) {
-                          noemail = true;
-                        }
-
-                        var action = $("#individualAddEncounterAction").val();
-                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
-                        console.info('sendData=%o', sendData);
-
-                        $.post("../IndividualAddEncounter", sendData,
-                        function(data) {
-
-
-                          $("#individualErrorDiv").hide();
-                          $("#individualDiv").addClass("has-success");
-                          $("#individualCheck, #matchedByCheck").show();
-                          $("#displayIndividualID").html(individual);
-
-                          //change the display in the Encounter page nearby link
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $('#displayIndividualID').closest('a').text(data.displayName);
-
-                          //change the name in the topbar
-                          //$('#topid').text(data.displayName);
-                          //$("#topid").html(data.displayName);
-                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $("#topid").text(data.displayName);
-
-                          $(".add2shark").hide();
-        				  $(".removeFromShark").show();
-
-                          $("#displayMatchedBy").html(matchType);
-                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
-
-
-                        })
-                        .fail(function(response) {
-                        	$("#addSuccessDiv").hide();
-                          	$("#individualDiv").addClass("has-error");
-                          	$("#individualErrorDiv").html(response.responseText);
-                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
-
-                        });
-                      });
+                      populateNewIndWithDisabledButton();
+                      populateAddToExistingIndWithDisabledButton();
+                      setUpIdActionOnClick();
 
                       $("#individualAddEncounterInput, #matchType").click(function() {
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
@@ -1756,10 +1701,10 @@ function resetIdButtons() {
                           String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
                           if(enc.getLocationID() != null && nextID == null){
                             nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          } 
+                          }
                           if(enc.getLocationID() == null && nextID == null){
                             nextID = encprops.getProperty("noLocationID");
-                          } 
+                          }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -1769,8 +1714,8 @@ function resetIdButtons() {
                           <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
-                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
-
+                        <div id="new-ind-button-section">
+                        </div>
                       </div>
 
                     <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
@@ -1783,8 +1728,8 @@ function resetIdButtons() {
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
                           <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
                         </div>
-
-                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          <div id="add-to-existing-ind-section">
+                          </div>
                       </div>
 
                       <div class="form-group row" id="matchedByDiv">
@@ -1883,6 +1828,10 @@ function checkIdDisplay() {
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
 
+                            populateNewIndWithDisabledButton();
+                            populateAddToExistingIndWithDisabledButton();
+                            setUpIdActionOnClick();
+
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1936,6 +1885,84 @@ function checkIdDisplay() {
 
 
           <script type="text/javascript">
+            function populateNewIndWithDisabledButton(){
+              let newIndHtml = '';
+              newIndHtml += '<input disabled="true" name="AddNewDisabled" type="button" id="AddNewDisabled" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              newIndHtml += '<input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#new-ind-button-section').empty();
+              $('#new-ind-button-section').append(newIndHtml);
+            }
+            function populateAddToExistingIndWithDisabledButton(){
+              let addToExistingHtml = '';
+              addToExistingHtml += '<input disabled="true" name="AddToExistingDisabled" type="button" id="AddToExistingDisabled" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              addToExistingHtml += '<input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#add-to-existing-ind-section').empty();
+              $('#add-to-existing-ind-section').append(addToExistingHtml);
+            }
+            function setUpIdActionOnClick(){
+              $(".id-action").click(function(event) {
+                        event.preventDefault();
+                        if(globalEncSpecies === notAvailable || !globalEncSpecies){
+                          window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
+                      		return false;
+                        }
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
+                        $(".id-action").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
+                        var matchType = $("#matchType").val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
+                        var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
+
+                        $.post("../IndividualAddEncounter", sendData,
+                        function(data) {
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+                          $("#displayIndividualID").html(individual);
+
+                          //change the display in the Encounter page nearby link
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $('#displayIndividualID').closest('a').text(data.displayName);
+
+                          //change the name in the topbar
+                          //$('#topid').text(data.displayName);
+                          //$("#topid").html(data.displayName);
+                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $("#topid").text(data.displayName);
+
+                          $(".add2shark").hide();
+        				  $(".removeFromShark").show();
+
+                          $("#displayMatchedBy").html(matchType);
+                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
+
+
+                        })
+                        .fail(function(response) {
+                        	$("#addSuccessDiv").hide();
+                          	$("#individualDiv").addClass("has-error");
+                          	$("#individualErrorDiv").html(response.responseText);
+                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
+
+                        });
+                      });
+            }
+
             $(document).ready(function() {
               $("#setAltIDbtn").click(function(event) {
                 event.preventDefault();
@@ -3895,6 +3922,12 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
+    %>
+    <script type="text/javascript">
+      var globalEncSpecies = '<%=genusSpeciesFound%>';
+      var notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+    </script>
+    <%
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
