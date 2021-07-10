@@ -269,13 +269,17 @@ public class CustomFieldDefinition implements java.io.Serializable {
                 .toString();
     }
 
-    public static CustomFieldDefinition migrateProperty(Field field) {
-        String className = field.getDeclaringClass().getCanonicalName();
-        String name = field.getName();
-        Class<?> clsType = field.getType();
-        String type = clsType.getName();
-        SystemLog.debug("CustomFieldDefinition.migrateProperty() using className={}, name={}, type={}", className, name, type);
-    //public CustomFieldDefinition(String className, String type, String name, boolean mult) throws CustomFieldException {
+    // will look for similar persisted -- basically matches all but id
+    public static CustomFieldDefinition find(Shepherd myShepherd, CustomFieldDefinition find) {
+        CustomFieldDefinition cfd = load(myShepherd, find.getId());  //first try exact
+        if (cfd != null) return cfd;
+        List<CustomFieldDefinition> all = myShepherd.getCustomFieldDefinitionsForClassName(find.getClassName());
+        for (CustomFieldDefinition c : all) {
+            if (c.getName().equals(find.getName()) && c.getType().equals(find.getType()) && (c.getMultiple() == find.getMultiple())) return c;
+            if (c.getName().equals(find.getName())) {
+                SystemLog.warn("CustomFieldDefinition.find() matched a query by name but not other fields! c={}, find={}", c, find);
+            }
+        }
         return null;
     }
 }
