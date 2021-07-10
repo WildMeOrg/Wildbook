@@ -10,6 +10,9 @@ import org.json.JSONArray;
 import java.util.List;
 import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.Class;
 
 public class CustomFieldDefinition implements java.io.Serializable {
     private String id = null;
@@ -32,6 +35,28 @@ public class CustomFieldDefinition implements java.io.Serializable {
     }
     public CustomFieldDefinition(String className, String type, String name, boolean mult) throws CustomFieldException {
         this();
+        if (!validClassName(className)) throw new CustomFieldException("CustomFieldDefinition() invalid className in constructor");
+        if (!DataDefinition.isValidType(type)) throw new CustomFieldException("CustomFieldDefinition() invalid type in constructor");
+        this.className = className;
+        this.name = name;
+        this.type = type;
+        this.multiple = mult;
+    }
+    public CustomFieldDefinition(Field field) throws CustomFieldException {
+        this();
+        boolean mult = false;
+        String className = field.getDeclaringClass().getCanonicalName();
+        String name = field.getName();
+        Class<?> clsType = field.getType();
+        String type = clsType.getName();
+        if (type.equals("java.util.List")) {  // h/t https://stackoverflow.com/a/1942680
+            mult = true;
+            ParameterizedType ltype = (ParameterizedType)field.getGenericType();
+            Class<?> lclass = (Class<?>)ltype.getActualTypeArguments()[0];
+            type = lclass.getName();
+        }
+        if (type.startsWith("java.lang.")) type = type.substring(10).toLowerCase();
+        SystemLog.debug("CustomFieldDefinition from Field using className={}, name={}, type={}, mult={}", className, name, type, mult);
         if (!validClassName(className)) throw new CustomFieldException("CustomFieldDefinition() invalid className in constructor");
         if (!DataDefinition.isValidType(type)) throw new CustomFieldException("CustomFieldDefinition() invalid type in constructor");
         this.className = className;
@@ -242,6 +267,16 @@ public class CustomFieldDefinition implements java.io.Serializable {
                 .append("type", type)
                 .append("multiple", multiple)
                 .toString();
+    }
+
+    public static CustomFieldDefinition migrateProperty(Field field) {
+        String className = field.getDeclaringClass().getCanonicalName();
+        String name = field.getName();
+        Class<?> clsType = field.getType();
+        String type = clsType.getName();
+        SystemLog.debug("CustomFieldDefinition.migrateProperty() using className={}, name={}, type={}", className, name, type);
+    //public CustomFieldDefinition(String className, String type, String name, boolean mult) throws CustomFieldException {
+        return null;
     }
 }
 
