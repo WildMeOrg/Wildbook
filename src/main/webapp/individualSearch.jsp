@@ -172,8 +172,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
 }
 %>
 
-<h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+<h1 class="intro">
   <%=titleString%>
 </h1>
 </p>

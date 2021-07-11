@@ -7,6 +7,13 @@
          org.datanucleus.ExecutionContext, org.datanucleus.PersistenceNucleusContext,
          org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
 
+
+<style type="text/css">
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
+</style>
   <%
 
 String context="context0";
@@ -15,6 +22,8 @@ context=ServletUtilities.getContext(request);
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("users.properties", langCode,context);
+String localUsername="";
+String localEmail="";
 
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("users.jsp");
@@ -528,9 +537,7 @@ try {
     
     <%
     //let's set up any pre-defined values if appropriate
-    String localUsername="";
     String localAffiliation="";
-    String localEmail="";
     String localFullName="";
     String profilePhotoURL="../images/user-profile-grey-grey.png";
     String userProject="";
@@ -622,8 +629,11 @@ try {
         }
     		%>
    	 		<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />       												
+		
+		<div class="form-group required">
+			<td><%=props.getProperty("username")%> <input autocomplete="off" name="username" id="username_input" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
+		</div>
    		
-        <td><%=props.getProperty("username")%> <input autocomplete="off" name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
         
         <td><%=props.getProperty("password")%> <input name="password" type="password" size="15" maxlength="90" autocomplete="new-password"></input></td>
         <td><%=props.getProperty("confirm")%> <input autocomplete="off" name="password2" type="password" size="15" maxlength="90"></input></td>
@@ -632,7 +642,10 @@ try {
 
       <tr><td colspan="3"><%=props.getProperty("fullname")%> <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
 
-      <tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+	<div class="form-group required">
+		<tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" id="emailAddress_input" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+	</div>
+
         
       <tr><td colspan="3"><%=props.getProperty("affiliation")%> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
         
@@ -644,7 +657,7 @@ try {
             
       <tr>
 				<td colspan="3">
-					<input class="btn btn-sm btn-block" name="Create" type="submit" id="Create" value="<%=props.getProperty("save")%>" />
+					<input class="btn btn-sm btn-block" type="button" name="Create"  id="Create" value="<%=props.getProperty("save")%>" onclick="sendButtonClicked();" />
 				</td>
 			</tr>
     </table>
@@ -790,6 +803,116 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
   </table>
 	<%
 }%>
+<script>
+	function sendButtonClicked() {
+		//check for nulls
+		let userNameVal = $('#username_input').val();
+		if (!userNameVal) {
+			$('#username_input').closest('.form-group').addClass('required-missing');
+			window.setTimeout(function () { alert('Username cannot be empty.'); }, 100);
+			return false;
+		}
 
+		let emailVal = $('#emailAddress_input').val();
+		const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+		if (!emailVal) {
+			$('#emailAddress_input').closest('.form-group').addClass('required-missing');
+			window.setTimeout(function () { alert('Email address cannot be empty.'); }, 100);
+			return false;
+		}
+
+		if (!re.test(emailVal.toLowerCase())) {
+			$('#emailAddress_input').closest('.form-group').addClass('required-missing');
+			window.setTimeout(function () { alert('Please provide a valid email address.'); }, 100);
+			return false;
+		}
+
+		//check for existing username and email address (the latter nested in the ajax of the former)
+		let localUsername = '<%=localUsername%>';
+		let localEmail = '<%=localEmail%>';
+		let checkBoth = false;
+		if(emailVal != localEmail && userNameVal != localUsername){
+			checkBoth = true;
+			doAjaxForExistingUsername(userNameVal, emailVal, checkBoth);
+		}
+		if(userNameVal != localUsername && emailVal == localEmail){// only check for its existence if it doesn't match what the user's username/email address already is
+			doAjaxForExistingUsername(userNameVal, emailVal, checkBoth);
+		}
+		if (emailVal != localEmail && userNameVal == localUsername) { // only check for its existence if it doesn't match what the user's username/email address already is
+			doAjaxForExistingEmailAddress(emailVal);
+		}
+		if(emailVal == localEmail && userNameVal == localUsername){ //handle case where the user edits other things besides username and email
+			submitForm();
+		}
+	}
+
+	function doAjaxForExistingUsername(username, emailAddress, checkBoth) {
+		let jsonRequest = {};
+		jsonRequest['checkForExistingUsernameDesired'] = true;
+		jsonRequest['username'] = username;
+		$.ajax({
+			url: wildbookGlobals.baseUrl + '../UserCreate',
+			type: 'POST',
+			data: JSON.stringify(jsonRequest),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function (data) {
+				console.log("data from doAjaxForExistingUsername:");
+				console.log(data);
+				if (data && data.existingUserResultsJson && data.existingUserResultsJson.doesUserExistAlready) {
+					window.setTimeout(function () { alert('Username already claimed by another user. Please try another unique username.'); }, 100);
+				}
+				if (data && data.existingUserResultsJson && !data.existingUserResultsJson.doesUserExistAlready) {
+					if(checkBoth){
+						doAjaxForExistingEmailAddress(emailAddress);
+					}else{
+						submitForm();
+					}
+				}
+				if (!data || !data.existingUserResultsJson) {
+					window.setTimeout(function () { alert('Updating user information was not successful. Please refresh the page and try again.'); }, 100);
+				}
+			},
+			error: function (x, y, z) {
+				console.warn('%o %o %o', x, y, z);
+			}
+		});
+	}
+
+	function doAjaxForExistingEmailAddress(emailAddress) {
+			let jsonRequest = {};
+			jsonRequest['checkForExistingEmailDesired'] = true;
+			jsonRequest['emailAddress'] = emailAddress;
+			$.ajax({
+				url: wildbookGlobals.baseUrl + '../UserCreate',
+				type: 'POST',
+				data: JSON.stringify(jsonRequest),
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (data) {
+					console.log("data from doAjaxForExistingEmailAddress:");
+					console.log(data);
+					if (data && data.existingEmailAddressResultsJson && data.existingEmailAddressResultsJson.doesEmailAddressExistAlready) {
+						window.setTimeout(function () { alert('Email address already claimed by another user. Please try another unique email address.'); }, 100);
+					}
+					if (data && data.existingEmailAddressResultsJson && !data.existingEmailAddressResultsJson.doesEmailAddressExistAlready) {
+						submitForm();
+					}
+					if (!data || !data.existingEmailAddressResultsJson) {
+						window.setTimeout(function () { alert('Updating user information was not successful. Please refresh the page and try again.'); }, 100);
+					}
+				},
+				error: function (x, y, z) {
+					console.warn('%o %o %o', x, y, z);
+				}
+			});
+		}
+
+	function submitForm() {
+		document.forms['newUser'].submit();
+	}
+</script>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
+
