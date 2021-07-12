@@ -66,7 +66,6 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
 String notifications="";
-myShepherd.beginDBTransaction();
 try {
 
 	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
@@ -85,11 +84,6 @@ try {
 catch(Exception e){
   System.out.println("Exception on indocetCheck in header.jsp:");
   e.printStackTrace();
-  myShepherd.closeDBTransaction();
-}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
 }
 
 

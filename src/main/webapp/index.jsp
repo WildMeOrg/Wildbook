@@ -64,7 +64,7 @@ margin-bottom: 8px !important;
   var map;
   var mapZoom = 8;
   var center;
-  var newCenter;	
+  var newCenter;
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -102,7 +102,7 @@ margin-bottom: 8px !important;
      google.maps.event.removeListener(this.listeners_[i]);
    }
   };
-  
+
   // Implement draw
   Label.prototype.draw = function() {
    var projection = this.getProjection();
@@ -121,7 +121,7 @@ margin-bottom: 8px !important;
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-		
+
     	if (center == null) {
 	    	center = new google.maps.LatLng(0,0);
     	} else {
@@ -158,13 +158,12 @@ margin-bottom: 8px !important;
  			    	}
  			    }
  		});
- 		
+
  		// let's add map points for our locationIDs
  		<%
  		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
- 		myShepherd.beginDBTransaction();
  		try{
 	 		for(int i=0;i<numLocationIDs;i++){
 	 			String locID = locs.get(i);
@@ -198,9 +197,6 @@ margin-bottom: 8px !important;
  		catch(Exception e){
  			e.printStackTrace();
  		}
- 		finally{
- 			myShepherd.rollbackDBTransaction();
- 		}
  	 	%>
     	 google.maps.event.addListener(map, 'dragend', function() {
     		var idleListener = google.maps.event.addListener(map, 'idle', function() {
@@ -211,20 +207,20 @@ margin-bottom: 8px !important;
     			center = newCenter;
     			map.setCenter(map.getCenter());
     		});
-    		 
- 	     }); 	 
-    	 
-    	 google.maps.event.addDomListener(window, "resize", function() {	 
+
+ 	     });
+
+    	 google.maps.event.addDomListener(window, "resize", function() {
  	    	console.log("Resize Center : "+center);
  	    	google.maps.event.trigger(map, "resize");
  	  	    console.log("Resize : "+newCenter);
  	  	    map.setCenter(center);
- 	     });    
+ 	     });
  	 } // end initialize function
- 	  	  
- 	  	 
- 	 
- 	 
+
+
+
+
       function fullScreen(){
   		$("#map_canvas").addClass('full_screen_map');
   		$('html, body').animate({scrollTop:0}, 'slow');
@@ -282,11 +278,11 @@ margin-bottom: 8px !important;
  	  	  fullScreen();
  	  	}
  	  });
-  	  
+
   	  // Setup the click event listeners: toggle the full screen
   	}
     google.maps.event.addDomListener(window, 'load', initialize);
-  	
+
   </script>
 <%
 
@@ -302,8 +298,6 @@ int numUsersWithRoles=0;
 int numUsers=0;
 
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
-
-myShepherd.beginDBTransaction();
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -332,10 +326,6 @@ catch(Exception e){
     System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
     System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
-}
-finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
 }
 %>
 
@@ -368,7 +358,7 @@ finally{
 
 <div class="carousel-inner text-left">
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 			<h3><%=props.getProperty("innerPhotoH3") %></h3>
 			<p class="lead">
@@ -382,7 +372,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
 			<img  src="images/how_it_works_submit.jpg" alt=""  />
 		</div>
@@ -396,7 +386,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerVerifyH3") %></h3>
 			<p class="lead">
@@ -410,7 +400,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
 			<img  src="images/how_it_works_matching_process.jpg" alt=""  />
 		</div>
@@ -424,7 +414,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerResultH3") %></h3>
 			<p class="lead">
@@ -447,7 +437,6 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -481,10 +470,6 @@ finally{
 
             }
             catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	myShepherd.rollbackDBTransaction();
-            }
             %>
 
 
@@ -496,7 +481,6 @@ finally{
                        <%
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
                        try{
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
@@ -515,17 +499,11 @@ finally{
 	                                    </time>
 	                                </small>
 	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividual().getDisplayName() %></a></p>
-
-
 	                            </li>
 	                        <%
 	                        }
 						}
                        catch(Exception e){e.printStackTrace();}
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
-
-                       }
 
                         %>
 
@@ -538,7 +516,6 @@ finally{
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
@@ -580,8 +557,6 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
-
                    %>
 
                     </ul>
@@ -615,12 +590,12 @@ finally{
         <hr/>
 
         <main class="container">
-        
+
             <article class="text-center">
                 <div class="row">
-                    
+
                     <div>
-                       
+
                         <p class="lead"><img src="cust/mantamatcher/img/turtleWhy.png" alt="" class="pull-left" width="50%" height="50%" /> <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">"The 'gold standard' for sea turtle population monitoring programs are long-term capture-mark-recapture (CMR) studies on nesting
 beaches as well as foraging areas for populations. Comprehensive CMR studies facilitate
@@ -629,7 +604,7 @@ effective conservation management efforts."
 <br>
 -<a href="https://static1.squarespace.com/static/5b80290bee1759a50e3a86b3/t/5baba504104c7bbff39ac4ad/1537975557038/SWOT_MinimumDataStandards_TechReport.pdf" target=""_blank>State of the World's Sea Turtles(SWOT) Minimum Data Standards for Nesting Beach Monitoring Technical Report</a>
 </p>
-                        
+
                     </div>
                 </div>
             </article>
@@ -649,9 +624,9 @@ effective conservation management efforts."
     <section class="container main-section">
 					<article class="text-center">
                 <div class="row">
-                    
+
                     <div>
-                       
+
 						<h1>Created with Support From</h1>
 						<p><img src="cust/mantamatcher/img/Nouv_logoABF-web.png" height="50%" width="*"  />
 						<img width="25%" height="*"  src="cust/mantamatcher/img/cedtm--20180418-124741.png" />
@@ -659,14 +634,14 @@ effective conservation management efforts."
 						<img width="10%" height="*"  src="cust/mantamatcher/img/1200px-WWF_logo.svg.png" />
 						<img width="20%" height="*"  src="cust/mantamatcher/img/awi_logo.svg" />
 						</p>
-						
-                        
+
+
                     </div>
                 </div>
             </article>
 			</section>
 			</div>
-<% 
+<%
 if (CommonConfiguration.allowAdoptions(context)) {
 %>
 
@@ -682,7 +657,6 @@ if (CommonConfiguration.allowAdoptions(context)) {
               <%=props.getProperty("adoptionBody") %>
             </div>
             <%
-            myShepherd.beginDBTransaction();
             try{
 	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
 	            if(adopt!=null){
@@ -711,22 +685,20 @@ if (CommonConfiguration.allowAdoptions(context)) {
 				}
             }
             catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
             %>
 
 
 
-			
+
         </section>
 
 
         <hr/>
         <%= props.getProperty("donationText") %>
-		
 
-		
-		
+
+
+
     </section>
 </div>
 
@@ -746,6 +718,5 @@ google.maps.event.addDomListener(window, "resize", function() {
 </script>
 
 <%
-myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
