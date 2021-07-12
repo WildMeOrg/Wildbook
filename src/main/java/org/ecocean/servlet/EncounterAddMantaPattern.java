@@ -513,34 +513,34 @@ System.out.println("A: write2me -> " + write2me.toString());
                 resultComment.append("Successfully saved the new feature image: "+write2me.getAbsolutePath()+"<br />");
 
                 // Run 'mmprocess' for image enhancement & to create feature files.
-                List<String> procArg = ListHelper.create("/usr/bin/mmprocess")
-                    .add(mmFiles.get("O").getAbsolutePath())
-                    .add("4").add("1").add("2").asList();
-                ProcessBuilder pb = new ProcessBuilder(procArg);
-                pb.redirectErrorStream();
+                // List<String> procArg = ListHelper.create("/usr/bin/mmprocess")
+                //     .add(mmFiles.get("O").getAbsolutePath())
+                //     .add("4").add("1").add("2").asList();
+                // ProcessBuilder pb = new ProcessBuilder(procArg);
+                // pb.redirectErrorStream();
 
-                String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
-                System.out.println("I am trying to execute the command: " + procArgStr);
-                resultComment.append("I am trying to execute the command:<br/>").append(procArgStr).append("<br />");
+                // String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
+                // System.out.println("I am trying to execute the command: " + procArgStr);
+                // resultComment.append("I am trying to execute the command:<br/>").append(procArgStr).append("<br />");
 
-                Process process = pb.start();
+                // Process process = pb.start();
                 // Read ouput from process.
-                resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
-                BufferedReader brProc = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                try {
-                  String temp = null;
-                  while ((temp = brProc.readLine()) != null) {
-                    resultComment.append(temp).append("<br />");
-                  }
-                }
-                catch (IOException iox) {
-                    iox.printStackTrace();
-                    locked = true;
-                    resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
-                    resultComment.append(iox.getStackTrace().toString());
-                }
-                process.waitFor();
-System.out.println("B: write2me -> " + write2me.toString());
+                // resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
+                // BufferedReader brProc = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                // try {
+                //   String temp = null;
+                //   while ((temp = brProc.readLine()) != null) {
+                //     resultComment.append(temp).append("<br />");
+                //   }
+                // }
+                // catch (IOException iox) {
+                //     iox.printStackTrace();
+                //     locked = true;
+                //     resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+                //     resultComment.append(iox.getStackTrace().toString());
+                // }
+//                 process.waitFor();
+// System.out.println("B: write2me -> " + write2me.toString());
 
                 // Set MMA-compatible flag if appropriate.
                 if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
