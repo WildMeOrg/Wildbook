@@ -116,7 +116,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-        
+
         JSONObject res=new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class_nonum");
@@ -157,7 +157,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                     System.out.println("Starting IA.intakeMediaAssets");
                     final Task parentTask = new Task();
                     String locationID = "";
-                    if(j.getString("locationID")!=null && !j.getString("locationID").equals("null")) {
+                    if(j.optString("locationID", null)!=null && !j.optString("locationID", null).equals("null")) {
                         locationID = j.getString("locationID");
                         JSONObject tp = new JSONObject();
                         JSONObject mf = new JSONObject();
@@ -168,13 +168,11 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 
                     Task task = null;
                     Taxonomy taxy=null;
-                    if(j.getString("taxonomy")!=null && !j.getString("taxonomy").equals("null")) {
+                    if(j.optString("taxonomy")!=null && !j.optString("taxonomy", null).equals("null")) {
                         taxy=new Taxonomy(j.getString("taxonomy"));
                     }
-
-
                     if(taxy!=null) {
-                        task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask); 
+                        task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
                     }
                     else {
                         task = IA.intakeMediaAssets(myShepherd, allMAs);
@@ -289,7 +287,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                         targetMA = urlStore.create(params);
                     }
 
-                } 
+                }
 
                 if (success) {
 /*
@@ -416,5 +414,3 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
-  
-  
