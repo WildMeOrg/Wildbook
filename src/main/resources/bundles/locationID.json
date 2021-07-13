@@ -10,6 +10,7 @@
 	{
 		"name": "North Stradbroke Island",
 		"id": "North Stradbroke Island",
+    "geospatialInfo":{"lat":-27.423971,"long":153.547871},
 		"locationID": []
 	}
 ] },
@@ -45,4 +46,3 @@
 
   ]
 }
-
