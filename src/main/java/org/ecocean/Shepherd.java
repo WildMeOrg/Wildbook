@@ -4520,12 +4520,12 @@ public Long countMediaAssets(Shepherd myShepherd){
             String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
             if(!nameString.equals(imageName)){hasKeyword=false;}
         }
-        if (hasKeyword && isAcceptableVideoFile(imageName)) {
+        if (hasKeyword && isAcceptableVideoFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
         }
-        else if (hasKeyword && isAcceptableImageFile(imageName)) {
+        else if (hasKeyword && isAcceptableImageFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
