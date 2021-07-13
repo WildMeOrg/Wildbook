@@ -421,7 +421,32 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
+
+        // case where we are just assigning new location-based indiv to single enc
+	} else if ((indiv == null || indiv2 == null) && (enc != null) && useLocation) {
+            System.out.println("CASE 4: new location-based indiv to " + enc);
+            String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
+            int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
+            individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
+            indiv = new MarkedIndividual(individualID, enc);
+            myShepherd.getPM().makePersistent(indiv);
+            res.put("individualName", indiv.getDisplayName(request, myShepherd));
+            res.put("individualId", indiv.getId());
+            enc.setIndividual(indiv);
+            myShepherd.updateDBTransaction();
+            setImportTaskComplete(myShepherd, enc);
+            indiv.refreshNamesCache();
+            IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+            String matchMsg = enc.getMatchedBy();
+            if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+            matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+            enc.setMatchedBy(matchMsg);
+            res.put("success", true);
+            out.println(res.toString());
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
+            return;
+        }
 
 	if (indiv == null && indiv2 == null) {
 		res.put("error", "No valid record could be found or created for name: " + individualID);
@@ -1493,6 +1518,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
 
                 if (encId) {
+                    if (isQueryAnnot) {
+	                let loc = annotData[acmIdPassed] && annotData[acmIdPassed][0] && annotData[acmIdPassed][0].encounterLocationId;
+                        if (loc) {
+	                    let nextVal = annotData[acmIdPassed][0].encounterLocationNextValue;
+                            h += '<input style="position: absolute; left: -20px; top: 230px; transform: scale(0.7);" type="button" value="Set new name (' + nextVal + ') for just this Encounter" onClick="$(this).hide(); return approvalButtonClick(\'' + encId + '\', \'\', \'\', \'' + taskId + '\', \'\', true);" />';
+                        }
+                    }
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
@@ -1948,8 +1980,8 @@ console.warn(inds);
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
 function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLocation) {
-console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
+console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o, loc=%o)', encID, indivID, encID2, taskId, displayName, useLocation, loc);
 	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
