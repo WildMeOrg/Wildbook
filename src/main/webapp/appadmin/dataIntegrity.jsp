@@ -38,6 +38,9 @@ props = ShepherdProperties.getProperties("dataIntegrity.properties", langCode, c
 <p>Look for URLs in Wildbook that should or should not be accessible to the public or users with certain roles.</p>
 <p><a target="_blank" href="urlSecurityCheck.jsp">Click here to check</a></p>      
 
+<h3>Questionable (Data) Values</h3>
+<p>Look for data values in Wildbook that may contain errors.</p>
+<p><a target="_blank" href="dataValuesCheck.jsp">Click here to check</a></p>  
 
 	</div>
 
