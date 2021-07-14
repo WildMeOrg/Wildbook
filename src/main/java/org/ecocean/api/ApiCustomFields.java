@@ -521,6 +521,20 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         return val;
     }
 
+    public Object migrateFieldValue(CustomFieldDefinition cfd, Field field) throws java.lang.ReflectiveOperationException, IOException {
+        field.setAccessible(true);
+        Object value = field.get(this);
+        field.setAccessible(false);
+        if (cfd.getMultiple()) {
+            //TODO handle Collection of stuff, i guess?
+        } else {
+            CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
+            addCustomFieldValue(cfv);
+            SystemLog.debug("migrateFieldValue() adding " + cfv + " to field " + field.getName() + " on " + this);
+        }
+        return value;
+    }
+
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 
     public void delete(Shepherd myShepherd) throws IOException {
