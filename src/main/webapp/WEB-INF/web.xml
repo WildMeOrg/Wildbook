@@ -2429,5 +2429,14 @@
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+  
+   <servlet>
+    <servlet-name>ValidateUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ValidateUser</servlet-class>
+  </servlet>
 
+    <servlet-mapping>
+      <servlet-name>ValidateUser</servlet-name>
+      <url-pattern>/ValidateUser</url-pattern>
+  </servlet-mapping>
 </web-app>
