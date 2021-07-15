@@ -45,6 +45,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import java.util.regex.*;
+import org.ecocean.LocationID;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -604,16 +605,6 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
 
-    Properties localesProps = new Properties();
-    if(useLocales){
-      try {
-        localesProps=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-      }
-      catch (Exception ioe) {
-        ioe.printStackTrace();
-      }
-    }
-
     for(int c=0;c<myEncs.length;c++) {
       String catalogNumber="";
       try {
@@ -622,7 +613,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
           if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
             haveData.add(temp);
           }
-          else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+          else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
             haveData.add(temp);
           }
         }

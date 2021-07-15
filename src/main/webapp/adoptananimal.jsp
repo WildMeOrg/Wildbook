@@ -32,8 +32,14 @@ context=ServletUtilities.getContext(request);
 	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>
+<<<<<<< HEAD
 		By adopting a(n) <%=CommonConfiguration.getAnimalSingular(context)%>, you can give it a nickname and receive updates each time it is spotted by citizen scientists.
 		Funds raised through <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional <%=CommonConfiguration.getAnimalSingular(context)%> research and conservation.
+=======
+			Adopt a <%=CommonConfiguration.getAnimalSingular(context)%>, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by <%=CommonConfiguration.getAnimalSingular(context)%> adoptions are used to offset the costs of maintaining this global library and
+			to support new and existing research projects for <%=CommonConfiguration.getAnimalPlural(context)%>.
+>>>>>>> master
 		</p>
 		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Begin Adoption<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>

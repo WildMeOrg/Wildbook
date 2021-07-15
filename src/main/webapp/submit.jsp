@@ -51,8 +51,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
-    
-    
+
+
     //let's pre-populate default values
     String default_date="";
     String default_releaseDate="";
@@ -87,7 +87,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     }
     String photographerName="";
     String photographerEmail="";
-    
+
     //if there's a mimic encounter, set those parameters now
     if(request.getParameter("mimicEncounter")!=null){
     	String mimicEnc=request.getParameter("mimicEncounter");
@@ -95,7 +95,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     	mimicShepherd.setAction("submit.jsp_mimicShepherd");
     	if(mimicShepherd.isEncounter(mimicEnc)){
     		Encounter enc=mimicShepherd.getEncounter(mimicEnc);
-    		
+
     		if(enc.getSubmitterName()!=null)submitterName=enc.getSubmitterName();
     		if(enc.getSubmitterEmail()!=null)submitterEmail=enc.getSubmitterEmail();
     		if(enc.getPhotographerName()!=null)photographerName=enc.getPhotographerName();
@@ -111,33 +111,33 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
         if(enc.getCharterOperator()!=null)default_charter_operator=enc.getCharterOperator();
 
         if(enc.getMeasurement("temperature")!=null) {
-          //Got to convert the temp back to F, so it can be left alone for repeated submit. 
+          //Got to convert the temp back to F, so it can be left alone for repeated submit.
           double temp = enc.getMeasurement("temperature").getValue()*1.8+32;
           default_measurement_temperature=String.valueOf(temp);
         }
 
         if(enc.getDepthAsDouble()!=null) {
-          //Got to conver the depth back to feet 
-          double depth = enc.getDepthAsDouble()*3.2808; 
+          //Got to conver the depth back to feet
+          double depth = enc.getDepthAsDouble()*3.2808;
           default_measurement_depth=String.valueOf(depth);
         }
 
-        if(enc.getMeasurement("measurement(underwater")!=null) { 
+        if(enc.getMeasurement("measurement(underwater")!=null) {
           default_measurement_underwater=enc.getMeasurement("underwater").getValue().toString();
-        }  
+        }
 
     	}
     	mimicShepherd.rollbackDBTransaction();
     	mimicShepherd.closeDBTransaction();
     }
-    
-    
-    
-    
-    
- 
-    
-    
+
+
+
+
+
+
+
+
 %>
 
 <script>
@@ -146,12 +146,14 @@ $(document).ready( function() {
 	<%
 	if(user != null){
 		%>
-		let userId = '<%= user.getId()%>';
+		let userId = '<%= user.getUsername()%>';
 		let requestForProjectNames = {};
-		requestForProjectNames['ownerId'] = userId;
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
 		doAjaxForProject(requestForProjectNames,userId);
 		<%
-	}else{
+	}
+	else{
 		%>
 
 		<%
@@ -441,11 +443,22 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(34.38, -76.64);
+var center = null;
+centerMap();
 
 var map;
 
 var marker;
+
+function centerMap(){
+  let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+  let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+  if (centerLat && centerLong) {
+    center = new google.maps.LatLng(centerLat, centerLong);
+  } else {
+    center = new google.maps.LatLng(10.8, 160.8);
+  }
+}
 
 function updateMap() {
     var latVal = $('#lat').val();
@@ -490,7 +503,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(34.38, -76.64);
+        centerMap();
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -854,7 +867,7 @@ function showUploadBox() {
                 }
               }
               %>
-            </select> 
+            </select>
           </div>
         </div>
       </div>
@@ -913,6 +926,10 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3 class="text-danger"><%=props.getProperty("submit_location")%></h3>
 <p class="help-block"><%=props.getProperty("where") %></p>
+    <h3><%=props.getProperty("submit_location")%></h3>
+
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
+
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label">Location description:</label>
@@ -957,9 +974,9 @@ if(CommonConfiguration.showReleaseDate(context)){
                                String currentLocationID = "locationID"+locNum;
                                String selected="";
                                if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                            	   
+
                             	   if(default_locationID.equals(CommonConfiguration.getProperty(currentLocationID,context))) {selected="selected=\"selected\"";}
-                                   
+
                                    %>
 
                                      <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
@@ -977,7 +994,7 @@ if(CommonConfiguration.showReleaseDate(context)){
       </select>
       </div>
     </div>
-    
+
     <script type="text/javascript">
 		// This script updates the lat/lang fields when the dropdown is changed
 		// I love JS objects!
@@ -1053,7 +1070,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 		});
 
 	</script>
-    
+
 	<div class="col-xs-12 col-lg-12">
 		<h4>Enter geographic coordinates</h4>
     <p class="help-block"><%=props.getProperty("gpsSummary") %> Link:(<a href="http://www.csgnetwork.com/gpscoordconv.html">http://www.csgnetwork.com/gpscoordconv.html</a>)</p>
@@ -1156,7 +1173,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <label>Abovewater</label>
     </div>
   </div>
-  
+
   <div id="depthDiv" style="display:none;" class="form-group form-inline">
     <div class="col-xs-12 col-lg-6">
       <label class="control-label" style="text-align:left;"><%=props.getProperty("submit_depth") %></label>
@@ -1171,7 +1188,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	  <div class="col-xs-12 col-md-6">
       <label class="control-label" style="text-align:left;"><%=props.getProperty("waterTemperature") %></label>
       <p class="help-block"><%=props.getProperty("waterUnits") %></p>
-      <input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="24" value="<%=default_measurement_temperature  %>">				
+      <input class="form-control" name="measurement(temperature)" type="text" id="temperature" size="24" value="<%=default_measurement_temperature  %>">
       <input type="hidden" name="measurement(temperatureunits)" value="celsius">
       <br>
 		</div>
@@ -1244,11 +1261,11 @@ function tookPhoto() {
 }
 
 </script>
-  
+
 <hr/>
 
 <!-- About  the Shark -->
-<fieldset>			
+<fieldset>
 	<div class="row">
 
     <div class="col-xs-12 col-lg-12">
@@ -1390,7 +1407,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           </div>
         </div>
 
-        
+
 
 
 
@@ -1399,7 +1416,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="radio-inline">
               <input type="checkbox" name="hookmark" value="FishingHook">Fishing Hook</input>
             </label>
-            
+
             <label class="radio-inline">
               <input type="checkbox" name="hookmark" value="FishingGear">Fishing Gear</input>
             </label>
@@ -1549,26 +1566,26 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
                         <td>centimeters</td>
                         <td>
                           <select name="measurement(precaudallengthsamplingProtocol)">
-                          
+
                             <option value="samplingProtocol1">Tape measured length qualifiers</option>
                             <option value="samplingProtocol0">Laser measured</option>
-                          
+
                           </select>
                         </td>
                       </tr>
-                      
+
                       <tr>
                         <td>Length</td>
                         <td><input name="measurement(length)" id="length"/><input type="hidden" name="measurement(lengthunits)" value="centimeters"/></td>
                         <td>centimeters</td>
                         <td>
                           <select name="measurement(lengthsamplingProtocol)">
-                          
+
                             <option value="samplingProtocol1">Tape measured length qualifiers</option>
                             <option value="samplingProtocol0">Laser measured</option>
-                          
+
                           </select>
-                        </td>      
+                        </td>
                       </tr>
 
                       <tr>
@@ -1577,12 +1594,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
                         <td>centimeters</td>
                         <td>
                           <select name="measurement(forklengthsamplingProtocol)">
-                          
+
                             <option value="samplingProtocol1">Tape measured length qualifiers</option>
                             <option value="samplingProtocol0">Laser measured</option>
-                          
+
                           </select>
-                        </td>      
+                        </td>
                       </tr>
 
                     </table>
@@ -1756,7 +1773,7 @@ function locationEntered() {
     gpsData = true;
     console.log("GPS yes!");
   }
-  var locID = false; 
+  var locID = false;
   if ($("#locationID").val().length>0) {
     locID = true;
     console.log("Loc ID yes!");

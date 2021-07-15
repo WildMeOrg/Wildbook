@@ -16,6 +16,7 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import java.lang.Boolean;
 
 
 public class EncounterSearchExportExcelFile extends HttpServlet{
@@ -83,15 +84,6 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
 
        //business logic start here
 
-        //load the optional locales
-        Properties props = new Properties();
-        try {
-          props=ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-
-        } catch (Exception e) {
-          System.out.println("     Could not load locales.properties EncounterSearchExportExcelFile.");
-          e.printStackTrace();
-        }
 
       //let's set up some cell formats
         WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
@@ -193,83 +185,43 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               sheet.addCell(lLocation);
             }
 
-            int year = enc.getYear();
-            if (year > 2000) {
-              year-=2000;
-            }
-            Label lYear = new Label(4, count, Integer.toString(year));
-            sheet.addCell(lYear);
+            Label lNumberx23 = new Label(22, count, enc.getLocation());
+            sheet.addCell(lNumberx23);
 
-            int month = enc.getMonth();
-            if (month > -1) {
-              String monthStr = "";
-              switch (month) {
-                case 1:
-                  monthStr = "JAN";
-                  break;
-                case 2:
-                  monthStr = "FEB";
-                  break;
-                case 3:
-                  monthStr = "MAR";
-                  break;
-                case 4:
-                  monthStr = "APR";
-                  break;
-                case 5:
-                  monthStr = "MAY";
-                  break;
-                case 6:
-                  monthStr = "JUN";
-                  break;
-                case 7:
-                  monthStr = "JUL";
-                  break;
-                case 8:
-                  monthStr = "AUG";
-                  break;
-                case 9:
-                  monthStr = "SEP";
-                  break;
-                case 10:
-                  monthStr = "OCT";
-                  break;
-                case 11:
-                  monthStr = "NOV";
-                  break;
-                case 12:
-                  monthStr = "DEC";
-                  break;
-                default:
-                  monthStr = Integer.toString(month);
+            //check for available locale coordinates
+            //this functionality is primarily used for data export to iobis.org
+            Boolean defaultGpsDesired = false;
+            defaultGpsDesired = Boolean.parseBoolean(request.getParameter("locales"));
+            if (defaultGpsDesired && (enc.getLocationCode() != null) && (!enc.getLocationCode().equals(""))) {
+              try {
+                String lc = enc.getLocationCode();
+                if (lc != null && LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) != null && LocationID.getLongitude(lc, LocationID.getLocationIDStructure()) != null) {
+                  String gps = LocationID.getLatitude(lc, LocationID.getLocationIDStructure()) + "," + LocationID.getLongitude(lc, LocationID.getLocationIDStructure());
+                  StringTokenizer st = new StringTokenizer(gps, ",");
+                  Label lNumberx25 = new Label(24, count, st.nextToken());
+                  sheet.addCell(lNumberx25);
+                  Label lNumberx24 = new Label(23, count, st.nextToken());
+                  sheet.addCell(lNumberx24);
+                }
+              } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("     I hit an error getting locales in searchResults.jsp.");
               }
               Label lMonth = new Label(5, count, monthStr);
               sheet.addCell(lMonth);
             }
 
-            Label lSex = new Label(6, count, enc.getSex());
-            sheet.addCell(lSex);
+            //overwrite with explicit gps coordinates AFTER populating with regional ones above
+            if ((enc.getDWCDecimalLatitude() != null) && (enc.getDWCDecimalLongitude() != null)) {
+              Label lNumberx24 = new Label(23, count, enc.getDWCDecimalLongitude());
+              sheet.addCell(lNumberx24);
+              Label lNumberx25 = new Label(24, count, enc.getDWCDecimalLatitude());
+              sheet.addCell(lNumberx25);
+            }
 
-            Label lFlank = new Label(7, count, enc.getDynamicPropertyValue("flank"));
-            sheet.addCell(lFlank);
-
-            Label lPhotog = new Label(8, count, enc.getPhotographerName());
-            sheet.addCell(lPhotog);
-
-            Label lMigration = new Label(10, count, enc.getDynamicPropertyValue("Migration"));
-            sheet.addCell(lMigration);
-
-            Label lHook = new Label(11, count, enc.getDynamicPropertyValue("Hookmark"));
-            sheet.addCell(lHook);
-
-            Label lLaser = new Label(12, count, enc.getDynamicPropertyValue("Laser"));
-            sheet.addCell(lLaser);
-
-
-            Measurement pcLength = enc.getMeasurement("precaudallength");
-            if (pcLength!=null) {
-              Label lPCLength = new Label(13, count, Double.toString(pcLength.getValue()));
-              sheet.addCell(lPCLength);
+            if ((enc.getSex()!=null)&&(!enc.getSex().equals("unknown"))) {
+              Label lSex = new Label(25, count, enc.getSex());
+              sheet.addCell(lSex);
             }
 
             Double size = enc.getSizeAsDouble();
@@ -294,8 +246,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               sheet.addCell(lNumberx28);
             }
 
-         } //end for loop iterating encounters   
-         
+         } //end for loop iterating encounters
+
          hiddenData.writeHiddenDataReport(workbookOBIS);
 
          workbookOBIS.write();
