@@ -2432,7 +2432,7 @@
   
    <servlet>
     <servlet-name>ValidateUser</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.ValidateUser</servlet-class>
+    <servlet-class>org.ecocean.servlet.ValidateUser</servlet-class>
   </servlet>
 
     <servlet-mapping>

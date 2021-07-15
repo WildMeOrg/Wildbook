@@ -23,7 +23,9 @@ public class ValidateUser extends HttpServlet {
   
   @Override
   public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+    System.out.print("Testing for username");
     System.out.print(request.getParameter("username"));
+    
   }
     
 
