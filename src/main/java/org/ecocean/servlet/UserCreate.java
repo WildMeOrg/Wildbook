@@ -86,7 +86,7 @@ public class UserCreate extends HttpServlet {
       
       String uuid=request.getParameter("uuid");
       
-      String username=null; 
+      String username=null;  
       if(request.getParameter("username")!=null) {
         username=request.getParameter("username");
       }
