@@ -93,7 +93,7 @@ public class Survey implements java.io.Serializable{
   }
 
   public void setDateTimeCreated() {
-        dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new java.util.Date());
   }
   
   public String getDWCDateLastModified() {
@@ -105,7 +105,7 @@ public class Survey implements java.io.Serializable{
   }
 
   public void setDWCDateLastModified() {
-    dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+    dateTimeModified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new java.util.Date());
   }
     
   public String getComments() {
@@ -328,7 +328,7 @@ public class Survey implements java.io.Serializable{
     if (millis!=null) {
       try {
         DateTime dt = new DateTime(millis);
-        DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
+        DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a, z");
         return dtf.print(dt);       
       } catch (Exception e) {
         e.printStackTrace();
