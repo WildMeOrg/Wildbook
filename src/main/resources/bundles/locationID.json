@@ -328,7 +328,7 @@
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
-				{ "name":"New Zealand", "id":"NewZealand", "locationID":[
+				{ "name":"New Zealand", "id":"New Zealand", "locationID":[
 
 					{"name":"Cloudy Bay", "id":"Cloudy Bay", "locationID":[]}
 
