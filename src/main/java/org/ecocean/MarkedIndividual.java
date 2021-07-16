@@ -24,6 +24,7 @@ import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 
+import org.ecocean.api.ApiValueException;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.security.Collaboration;
@@ -2717,4 +2718,64 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return obj;
     }
 
+
+    public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
+        return rtn;
+    }
+
+
+    public org.json.JSONObject apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+      String opName = jsonIn.optString("op", null);  //valuable cuz apiPatchAdd is recycled by apiPatchReplace below
+      String path = jsonIn.optString("path", null);
+      if (path == null) throw new IOException("apiPatch op=" + opName + " has null path");
+      if (path.startsWith("/")) path = path.substring(1);
+      boolean hasValue = jsonIn.has("value");
+      if (!hasValue) throw new IOException("apiPatch op=" + opName + " has no value - use op=remove");
+      org.json.JSONObject rtn = new org.json.JSONObject();
+      SystemLog.debug("apiPatch op={} on {}, with path={}, jsonIn={}", opName, this, path, jsonIn);
+      // We are gonna need to allow for a couple things here, so generic string
+      try {
+          switch (path) {
+              // Even though only encounters are added for now, lets keep the switch pattern to make it easy to add other cases 
+              case "encounters":
+                  //Unpack and validate encounters. Since this is a PATCH, they should already exist
+                  org.json.JSONArray jsonEncArr = jsonIn.getJSONArray("value");
+                  for (int i=0; i<jsonEncArr.length(); i++) {
+                    String id = jsonEncArr.getString(i);
+                    if (myShepherd.isEncounter(id)) {
+                      Encounter enc = myShepherd.getEncounter(id);
+                      myShepherd.beginDBTransaction();
+                      this.addEncounter(enc);
+                      myShepherd.commitDBTransaction();
+                    } else {
+                      throw new ApiValueException("you can only add existing encounters to an individual through patch. encounter id="+id+" does not exist.", "encounters");
+                    }
+                  }
+                  break;
+
+              case "customFields":
+                  org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                  if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                  //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
+                  this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                  break;
+              default:
+                  throw new Exception("apiPatch op=" + opName + " unknown path " + path);
+          }
+      } catch (ApiValueException ex) {
+          myShepherd.rollbackDBTransaction();
+          throw ex;
+      } catch (Exception ex) {
+          myShepherd.rollbackDBTransaction();
+          throw new IOException("apiPatch op=" + opName + " unable to modify " + this + " due to " + ex.toString());
+      }
+      rtn.put("op", opName);
+      rtn.put("path", path);
+      rtn.put("value", jsonIn.get("value"));
+      return rtn;
+  }
+
 }
+
+

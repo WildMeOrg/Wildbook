@@ -1137,6 +1137,49 @@ rtn.put("_payload", payload);
                 }
             }
 
+        } else if (cls.equals("org.ecocean.MarkedIndividual")) {
+            MarkedIndividual individual = myShepherd.getMarkedIndividual(id);
+            if (individual == null) {
+                SystemLog.warn("RestServlet.handlePatch() instance={} invalid individual with payload={}", instanceId, payload);
+                rtn.put("message", _rtnMessage("not_found"));
+                response.setStatus(404);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                out.println(rtn.toString());
+                out.close();
+                return;
+            } else {
+                try {
+                    JSONArray patchRes = individual.apiPatch(myShepherd, payload);  //this means *all* patches must succeed
+                    rtn.put("result", individual.asApiJSONObject());
+                    rtn.put("patchResults", patchRes);
+                } catch (ApiValueException ex) {
+                    SystemLog.error("RestServlet.handlePatch() invalid value {}", ex.toString(), ex);
+                    rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                    rtn.put("errorFields", new JSONArray(ex.getFields()));
+                    response.setStatus(601);
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    String rtnS = rtn.toString();
+                    response.setContentLength(rtnS.getBytes("UTF-8").length);
+                    out.println(rtnS);
+                    out.close();
+                    return;
+
+                } catch (Exception ex) {
+                    SystemLog.error("RestServlet.handlePatch() generic exception {}", ex.toString(), ex);
+                    rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+                    response.setStatus(500);
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
+                    String rtnS = rtn.toString();
+                    response.setContentLength(rtnS.getBytes("UTF-8").length);
+                    out.println(rtnS);
+                    out.close();
+                    return;
+                }
+            }
+
         } else {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
