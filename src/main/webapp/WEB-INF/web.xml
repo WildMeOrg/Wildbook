@@ -459,13 +459,9 @@
 		/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
-			</param-value>
-        </init-param>
-    </filter>
-
-        #lockdown Keyword handling
-        /appadmin/kwAdmin.jsp = authc, roles[admin]
-        /KeywordHandler = authc, roles[admin]
+    #lockdown Keyword handling
+    /appadmin/kwAdmin.jsp = authc, roles[admin]
+    /KeywordHandler = authc, roles[admin]
 
 
       </param-value>
