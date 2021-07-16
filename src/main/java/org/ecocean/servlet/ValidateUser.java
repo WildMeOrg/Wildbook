@@ -5,6 +5,7 @@
 package org.ecocean.servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -16,6 +17,7 @@ import org.ecocean.Role;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
+import org.json.JSONObject;
 
 public class ValidateUser extends HttpServlet {
   
@@ -32,18 +34,33 @@ public class ValidateUser extends HttpServlet {
   
   @Override
   public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+    PrintWriter out = response.getWriter();
     String username = request.getParameter("username");
-    System.out.println("Validate User name" + username);
+    System.out.println("Validate User name " + username);
     
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     
     username = username.trim();
-    if (!Util.stringExists(username) || username.equals("admin")) throw new IOException("Invalid username");
     
-    User exists = myShepherd.getUser(username);
-    if (exists != null) throw new IOException("Username is already exists");
-   
+    JSONObject rtn = new JSONObject();
+    boolean isValidUser = (!Util.stringExists(username)) || username.equals("admin");
+    if (isValidUser) {
+      rtn.put("error", "Invalid username");
+    }
+    
+    if (!isValidUser) {
+      User exists = myShepherd.getUser(username);
+      if(exists == null)
+        rtn.put("error", "Username is already exists");
+    }
+    
+    if(rtn.has("error")) {
+      rtn.put("success", false);
+    } else {
+      rtn.put("success", true);
+    }
+    out.println(rtn.toString());
     
   }
   
