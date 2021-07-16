@@ -1387,7 +1387,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
                         constrainDuringPan: true,
-                        animationTime: 0,
+                        animationTime: 0.01,
 
                 	});
                 	
@@ -1406,6 +1406,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
+                        if(ft.parameters.theta)elt.setAttribute("theta", ft.parameters.theta);
+                        
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
                        
@@ -1415,6 +1417,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                             checkResize: true,
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
+                        
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+                        
                 	
                 	});
     
@@ -1425,6 +1434,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
+                	    	
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.01
+                      		);
                 	    	
                 	    }
                 	});
@@ -1443,13 +1458,38 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
+                	   	
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+                	   	
                 	});
                 	
+                	  viewer.addHandler("update-viewport", function(){
+                		   
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.1
+                      		);
+                      });
+                	  
+                	  viewer.addHandler("animation", function(){
+                  	   	//rotate annots
+                  	   	setTimeout(
+                    				updateFeatureTheta(viewer)
+                    				, 0.01
+                    		);
+                      });
+                	  
 
-                	
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
+
+                	
             	
             	
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
@@ -1795,6 +1835,14 @@ function findMyFeature(annotAcmId, asset) {
 function imageLoaded(imgEl, ft, asset) {
     if (imgEl.getAttribute('data-feature-drawn')) return;
     drawFeature(imgEl, ft, asset);
+}
+
+function updateFeatureTheta(viewer){
+	    viewer.currentOverlays.forEach(overlay => {
+			if(overlay.element.hasAttribute("theta")){
+					overlay.element.style.transform = 'rotate('+overlay.element.getAttribute("theta")+'rad)';
+			}
+	    });
 }
 
 function drawFeature(imgEl, ft, asset) {
