@@ -51,7 +51,7 @@ public class ValidateUser extends HttpServlet {
     
     if (!isValidUser) {
       User exists = myShepherd.getUser(username);
-      if(exists == null)
+      if(exists != null)
         rtn.put("error", "Username is already exists");
     }
     
