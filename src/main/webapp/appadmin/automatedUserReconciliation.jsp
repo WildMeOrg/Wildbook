@@ -43,7 +43,6 @@ try{
       <!-- js-generated html goes here -->
     </div>
     <script>
-    let txt = getText("myUsers.properties");
     displayProgressBar("Loading");
     let headerTxt = getText("header.properties");
     $(document).ready(function() {
