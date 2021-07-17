@@ -2,129 +2,199 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-	{ "name":"Advance II (AR-145)", "id":"Advance II (AR-145)", "locationID":[] },
+	{ "name":"Advance II (AR-145)", "id":"Advance II (AR-145)",
+     "geospatialInfo":{
+       "lat":35.8999,
+       "long":-75.3976
+     },
+      "locationID":[] },
 
-	{ "name":"Aeolus (AR-305)", "id":"Aeolus (AR-305)", "locationID":[] },
-	
-	{ "name":"Atlas", "id":"Atlas", "locationID":[] },
-	
+	{ "name":"Aeolus (AR-305)", "id":"Aeolus (AR-305)","geospatialInfo":{
+       "lat":34.2783,
+       "long":-76.6432
+     }, "locationID":[] },
+
+	{ "name":"Atlas", "id":"Atlas","geospatialInfo":{
+       "lat":34.5283,
+       "long":-76.2421
+     }, "locationID":[] },
+
 	{ "name":"Australia (East)", "id":"Australia (East)", "locationID":[] },
-	
+
 	{ "name":"BI - Broughton Island", "id":"BI - Broughton Island", "locationID":[] },
-	
-	{ "name":"British Splendour", "id":"British Splendour", "locationID":[] },
-	
+
+	{ "name":"British Splendour", "id":"British Splendour","geospatialInfo":{
+       "lat":34.8188,
+       "long":-75.9030
+     }, "locationID":[] },
+
 	{ "name":"BS - Big Seal", "id":"BS - Big Seal", "locationID":[] },
-	
+
 	{ "name":"BT -	Bait Grounds, Forster", "id":"BT -	Bait Grounds, Forster", "locationID":[] },
-	
-	{ "name":"Caribsea", "id":"Caribsea", "locationID":[] },
-	
-	{ "name":"Catherine M. Monahan", "id":"Catherine M. Monahan", "locationID":[] },
-	
+
+	{ "name":"Caribsea", "id":"Caribsea","geospatialInfo":{
+       "lat":34.6069,
+       "long":-76.3141
+     }, "locationID":[] },
+
+	{ "name":"Catherine M. Monahan", "id":"Catherine M. Monahan","geospatialInfo":{
+       "lat":35.0527,
+       "long":-75.3865
+     }, "locationID":[] },
+
 	{ "name":"CC -	Cherubs Cave", "id":"CC -	Cherubs Cave", "locationID":[] },
-	
+
 	{ "name":"CG -	Cod Grounds, Laurieton", "id":"CG -	Cod Grounds, Laurieton", "locationID":[] },
-	
+
 	{ "name":"CK", "id":"CK", "locationID":[] },
-	
-	{ "name":"Dixie Arrow", "id":"Dixie Arrow", "locationID":[] },
-	
+
+	{ "name":"Dixie Arrow", "id":"Dixie Arrow","geospatialInfo":{
+       "lat":34.9002,
+       "long":-75.7505
+     }, "locationID":[] },
+
 	{ "name":"DP -	Dalmeny Point", "id":"DP -	Dalmeny Point", "locationID":[] },
-	
-	{ "name":"E.M. Clark", "id":"E.M. Clark", "locationID":[] },
-	
+
+	{ "name":"E.M. Clark", "id":"E.M. Clark","geospatialInfo":{
+       "lat":34.8428,
+       "long":-75.5377
+     }, "locationID":[] },
+
 	{ "name":"FB -	Fairy Bower", "id":"FB -	Fairy Bower", "locationID":[] },
-	
+
 	{ "name":"FB - Fairy Bower", "id":"FB - Fairy Bower", "locationID":[] },
-	
+
 	{ "name":"FC -	Foggy Cave, Terrigal", "id":"FC -	Foggy Cave, Terrigal", "locationID":[] },
-	
+
 	{ "name":"FL -	Flinders Reef", "id":"FL -	Flinders Reef", "locationID":[] },
-	
+
 	{ "name":"FO - Forster", "id":"FO - Forster", "locationID":[] },
-	
+
 	{ "name":"FR - Fish Rock", "id":"FR - Fish Rock", "locationID":[] },
-	
-	{ "name":"Frying Pan Tower", "id":"Frying Pan Tower", "locationID":[] },
-	
+
+	{ "name":"Frying Pan Tower", "id":"Frying Pan Tower","geospatialInfo":{
+       "lat":33.4833,
+       "long":-77.5833
+     }, "locationID":[] },
+
 	{ "name":"GI -	Green Island", "id":"GI -	Green Island", "locationID":[] },
-	
-	{ "name":"Hesperides", "id":"Hesperides", "locationID":[] },
-	
-	{ "name":"Hyde (AR-386)", "id":"Hyde (AR-386)", "locationID":[] },
-	
-	{ "name":"Indra", "id":"Indra", "locationID":[] },
-	
-	{ "name":"John D. Gill", "id":"John D. Gill", "locationID":[] },
-	
+
+	{ "name":"Hesperides", "id":"Hesperides","geospatialInfo":{
+       "lat":35.0640,
+       "long":-75.4368
+     }, "locationID":[] },
+
+	{ "name":"Hyde (AR-386)", "id":"Hyde (AR-386)","geospatialInfo":{
+       "lat":33.9575,
+       "long":-77.5572
+     }, "locationID":[] },
+
+	{ "name":"Indra", "id":"Indra","geospatialInfo":{
+       "lat":34.5623,
+       "long":-76.8515
+     }, "locationID":[] },
+
+	{ "name":"John D. Gill", "id":"John D. Gill","geospatialInfo":{
+       "lat":33.8663,
+       "long":-77.4817
+     }, "locationID":[] },
+
 	{ "name":"JR - Julian Rocks", "id":"JR - Julian Rocks", "locationID":[] },
-	
+
 	{ "name":"LF -	Long Reef, Sydney", "id":"LF -	Long Reef, Sydney", "locationID":[] },
-	
+
 	{ "name":"LF - Long Reef, Sydney", "id":"LF - Long Reef, Sydney", "locationID":[] },
-	
+
 	{ "name":"LR - Latitude Reef, Forster", "id":"LR - Latitude Reef, Forster", "locationID":[] },
-	
+
 	{ "name":"LS - Little Seal", "id":"LS - Little Seal", "locationID":[] },
-	
-	{ "name":"Markham (AR-386)", "id":"Markham (AR-386)", "locationID":[] },
-	
+
+	{ "name":"Markham (AR-386)", "id":"Markham (AR-386)","geospatialInfo":{
+       "lat":33.9614,
+       "long":-77.5535
+     }, "locationID":[] },
+
 	{ "name":"MI - Montague Island", "id":"MI - Montague Island", "locationID":[] },
-	
+
 	{ "name":"MP - Magic Point", "id":"MP - Magic Point", "locationID":[] },
-	
+
 	{ "name":"MR -	Mermaid Reef", "id":"MR -	Mermaid Reef", "locationID":[] },
-	
+
 	{ "name":"NB -	North Bondi", "id":"NB -	North Bondi", "locationID":[] },
-	
+
 	{ "name":"NB - North Bondi", "id":"NB - North Bondi", "locationID":[] },
-	
-	{ "name":"Northeastern", "id":"Northeastern", "locationID":[] },
-	
-	{ "name":"Papoose", "id":"Papoose", "locationID":[] },
-	
+
+	{ "name":"Northeastern", "id":"Northeastern","geospatialInfo":{
+       "lat":35.0918,
+       "long":-75.5579
+     }, "locationID":[] },
+
+	{ "name":"Papoose", "id":"Papoose","geospatialInfo":{
+       "lat":35.6260,
+       "long":-74.8911
+     }, "locationID":[] },
+
 	{ "name":"PF -	Pinnacle Forster", "id":"PF -	Pinnacle Forster", "locationID":[] },
-	
-	{ "name":"Proteus", "id":"Proteus", "locationID":[] },
-	
+
+	{ "name":"Proteus", "id":"Proteus","geospatialInfo":{
+       "lat":34.7642,
+       "long":-75.7830
+     }, "locationID":[] },
+
 	{ "name":"SF -	Status Reef, Forster", "id":"SF -	Status Reef, Forster", "locationID":[] },
-	
+
 	{ "name":"SI", "id":"SI", "locationID":[] },
-	
+
 	{ "name":"SK -	Skeleton Reef, Forster", "id":"SK -	Skeleton Reef, Forster", "locationID":[] },
-	
+
 	{ "name":"Spar", "id":"Spar", "locationID":[] },
-	
-	{ "name":"Spar (AR-305)", "id":"Spar (AR-305)", "locationID":[] },
-	
+
+	{ "name":"Spar (AR-305)", "id":"Spar (AR-305)","geospatialInfo":{
+       "lat":34.2771,
+       "long":-76.6455
+     }, "locationID":[] },
+
 	{ "name":"SR -	Seal Rocks", "id":"SR -	Seal Rocks", "locationID":[] },
-	
+
 	{ "name":"SR - Seal Rocks", "id":"SR - Seal Rocks", "locationID":[] },
-	
+
 	{ "name":"SS -	South Solitary Island", "id":"SS -	South Solitary Island", "locationID":[] },
-	
+
 	{ "name":"TB -	The Barge", "id":"TB -	The Barge", "locationID":[] },
-	
+
 	{ "name":"TG -	Tollgate", "id":"TG -	Tollgate", "locationID":[] },
-	
-	{ "name":"U-352", "id":"U-352", "locationID":[] },
-	
-	{ "name":"USS Schurz", "id":"USS Schurz", "locationID":[] },
-	
-	{ "name":"USS Tarpon", "id":"USS Tarpon", "locationID":[] },
-	
-	{ "name":"Veturia", "id":"Veturia", "locationID":[] },
-	
+
+	{ "name":"U-352", "id":"U-352","geospatialInfo":{
+       "lat":34.2281,
+       "long":-76.5649
+     }, "locationID":[] },
+
+	{ "name":"USS Schurz", "id":"USS Schurz","geospatialInfo":{
+       "lat":34.1872,
+       "long":-76.6021
+     }, "locationID":[] },
+
+	{ "name":"USS Tarpon", "id":"USS Tarpon","geospatialInfo":{
+       "lat":34.7532,
+       "long":-75.7666
+     }, "locationID":[] },
+
+	{ "name":"Veturia", "id":"Veturia","geospatialInfo":{
+       "lat":35.1238,
+       "long":-75.3220
+     }, "locationID":[] },
+
 	{ "name":"WB", "id":"WB", "locationID":[] },
-	
-	{ "name":"W.E. Hutton", "id":"W.E. Hutton", "locationID":[] },
-	
+
+	{ "name":"W.E. Hutton", "id":"W.E. Hutton","geospatialInfo":{
+       "lat":34.1437,
+       "long":-76.6524
+     }, "locationID":[] },
+
 	{ "name":"WR -	Wolf Rock", "id":"WR -	Wolf Rock", "locationID":[] },
-	
+
 	{ "name":"WR - Wolf Rock", "id":"WR - Wolf Rock", "locationID":[] },
-	
+
 	{ "name":"null", "id":"null", "locationID":[] }
   ]
 }
-

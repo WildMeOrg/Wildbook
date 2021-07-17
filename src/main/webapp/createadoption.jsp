@@ -56,7 +56,7 @@ context=ServletUtilities.getContext(request);
 				hasNickName = false;
 			}
 		}
-	} 
+	}
 	catch (Exception e) {
 		System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
@@ -104,20 +104,20 @@ context=ServletUtilities.getContext(request);
 
 	});
 </script>
+
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
     <h4>After filling out the financial information, you will be able to create your profile and choose and nickname your animal.</h4>
-    
+
      <h3>Financial Information</h3>
 		<img id="circle-divider" src="cust/mantamatcher/img/circle-divider.png"/><br><br>
- 
+
   </section>
 
-<section class="centered" id="adoption-html-wrapper">
+  <section class="centered" id="adoption-html-wrapper">
 
-</section>
-
+  </section>
 
 	<form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 		<div class="form-header">
@@ -199,11 +199,6 @@ context=ServletUtilities.getContext(request);
 	</form>
 	<%
 	}
-	%>
-	<%
-	  System.out.println("deleteMe db transaction being closed in createadoptionform.jsp 1");
-	  myShepherd.rollbackDBTransaction();
-	  myShepherd.closeDBTransaction();
 	%>
 </div>
 

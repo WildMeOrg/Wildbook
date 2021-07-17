@@ -25,8 +25,6 @@ context=ServletUtilities.getContext(request);
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
-Properties localesProps = new Properties();
-localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("individualMapEmbed.jsp");
 myShepherd.beginDBTransaction();

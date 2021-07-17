@@ -427,7 +427,8 @@ public class Collaboration implements java.io.Serializable {
 
 	//Check if User (via request) has edit access to every Encounter in this Individual
 	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
-	    Vector<Encounter> all = mi.getEncounters();
+	   if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+	   Vector<Encounter> all = mi.getEncounters();
 	    if ((all == null) || (all.size() < 1)) return false;
 	    for (Encounter enc : all) {
 	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)

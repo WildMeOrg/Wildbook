@@ -144,7 +144,7 @@ public class CommonConfiguration {
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
     int port = request.getServerPort();
-    return ("ncaquariums.wildbook.org" + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath()); 
+    return ("ncaquariums.wildbook.org" + (((port == 80)||(port == 443)) ? "" : ":" + port) + request.getContextPath());
   }
 
   /**
@@ -327,24 +327,12 @@ public class CommonConfiguration {
     return getProperty("autoEmailAddress", context).trim();
   }
 
-  public static String getNewSubmissionEmail(String context) {
-    return getProperty("newSubmissionEmail",context).trim();
-  }
-
-  public static String getDefaultSelectedProject(String context){
-    return getProperty("defaultProjName", context).trim();
-  }
-
-  public static String getDefaultProjectOrganizationParameter(String context){
-    return getProperty("defaultProjectOrganizationParameter", context).trim();
-  }
-
-  public static String getAdoptionCampaignUrl(String context) {
-    try {
-      return getProperty("adoptionCampaignUrl", context).trim();
-    } catch (NullPointerException e) {
-      System.out.println("NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
-      return "";
+  public static String getNumIaResultsUserCanInspect(String context) {
+    try{
+      return getProperty("numIaResultsUserCanInspect", context).trim();
+    } catch(Exception e){
+      System.out.println("Error in getNumIaResultsUserCanInspect. Returning default of 16.");
+      return "16";
     }
   }
 
@@ -372,8 +360,8 @@ public class CommonConfiguration {
     try {
       return getProperty("animalPlural", context).trim();
     } catch (Exception e) {
-      System.out
-          .println("Error in getAnimalPlural. Returning nothing as a default.");
+      System.out.println(
+          "Error in getAnimalPlural. Returning nothing as a default.");
       return "animals";
     }
   }
@@ -382,9 +370,40 @@ public class CommonConfiguration {
     try {
       return getProperty("animalPlural", context).trim();
     } catch (Exception e) {
-      System.out.println(
-          "Error in getAnimalPluralCapitalized. Returning nothing as a default.");
+      System.out
+          .println("Error in getAnimalPluralCapitalized. Returning nothing as a default.");
       return "Animals";
+    }
+  }
+
+
+
+  public static String getShepherdDataDir(String context) {
+    if (Util.stringExists(getProperty("shepherdDataDir", context))) {
+      return getProperty("shepherdDataDir", context).trim();
+    } else {
+      return "wildbook_data_dir";
+    }
+  }
+
+  public static String getNewSubmissionEmail(String context) {
+    return getProperty("newSubmissionEmail",context).trim();
+  }
+
+  public static String getDefaultSelectedProject(String context){
+    return getProperty("defaultProjName", context).trim();
+  }
+
+  public static String getDefaultProjectOrganizationParameter(String context){
+    return getProperty("defaultProjectOrganizationParameter", context).trim();
+  }
+
+  public static String getAdoptionCampaignUrl(String context) {
+    try {
+      return getProperty("adoptionCampaignUrl", context).trim();
+    } catch (NullPointerException e) {
+      System.out.println("NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
+      return "";
     }
   }
 
@@ -572,6 +591,39 @@ public class CommonConfiguration {
       canAdopt = false;
     }
     return canAdopt;
+  }
+
+  public static Double getCenterLat(String context) {
+    double returnVal = 10.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLat", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Double getCenterLong(String context) {
+    double returnVal = 160.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLong", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " +  returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Integer getMapZoom(String context) {
+    Integer returnVal = 1;
+    try {
+      returnVal = Integer.parseInt(getProperty("mapZoom", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getMapZoom. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
   }
 
 
