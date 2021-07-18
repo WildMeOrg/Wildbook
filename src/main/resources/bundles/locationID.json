@@ -317,7 +317,12 @@
 			 {
 			  "name": "Solomon Sea", "id": "Solomon Sea" },
 			 {
-			  "name": "South China Sea", "id": "South China Sea" },
+			  "name": "South China Sea", "id": "South China Sea", "locationID":[
+			  
+				
+					{"name": "Hong Kong", "id": "Hong Kong" }
+			  
+			  ] },
 			 {
 			  "name": "Sulu Sea", "id": "Sulu Sea" },
 			 {
