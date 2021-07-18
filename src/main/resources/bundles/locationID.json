@@ -54,12 +54,12 @@
 			"name": "South Africa",
 			"id": "South Africa",
 			"locationID": [
-				
+
 				{
 					"name": "Elandsberg Nature Reserve",
 					"id": "Elandsberg Nature Reserve",
 					"locationID": [
-						
+
 					]
 				},
 				{
@@ -67,19 +67,19 @@
 					"id": "Kosierskraal",
 					"locationID": []
 				},
-				
+
 				{
 					"name": "Nelson Mandela University Nature Reserve",
 					"id": "Nelson Mandela University Nature Reserve",
 					"locationID": []
 				},
-				
+
 				{
 					"name": "Nuwejaars Wetland SMA",
 					"id": "Nuwejaars Wetland SMA",
 					"locationID": []
 				},
-				
+
 				{
 					"name": "Pampoenvlei",
 					"id": "Pampoenvlei",
@@ -98,7 +98,7 @@
 				}
 			]
 		}
-		
+
 
 
 

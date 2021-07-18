@@ -237,7 +237,8 @@ function forceLink(el) {
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                    if (tasks.contains(t)) continue;
+                                                    if (t.deepContains(ann)!=null) tasks.add(t);
                                                     //System.out.println("Task ID: "+t.getId());
                                                 }
 
@@ -1083,6 +1084,9 @@ function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId)
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
+    let widthScale = el; //.width;// / el.naturalWidth;
+    console.log("widthScale is: ");
+    console.log(widthScale);
     var focused = (feat.annotationId == focusAnnId);
     var fel = $('<div data-encid="' + feat.encounterId + '" title="Annot" style="z-index: ' + (31 + (zdelta || 0)) + ';" class="image-enhancer-feature" />');
 
