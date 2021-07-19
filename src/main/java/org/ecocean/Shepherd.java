@@ -77,7 +77,7 @@ import org.ecocean.scheduled.ScheduledIndividualMerge;
  */
 public class Shepherd {
 
-  private static PersistenceManager pm;
+  private PersistenceManager pm;
   public static Vector matches = new Vector();
   //private PersistenceManagerFactory pmf;
   private String localContext;
@@ -91,7 +91,6 @@ public class Shepherd {
    */
   public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
-      System.out.println(" ------------- Going to create new with Rutvik");
       //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
       localContext=context;
       try {
