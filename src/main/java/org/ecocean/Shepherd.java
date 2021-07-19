@@ -90,6 +90,7 @@ public class Shepherd {
    * Constructor to create a new shepherd thread object
    */
   public Shepherd(String context) {
+    System.out.println("------------------------- 1st call------------------");
     if (pm == null || pm.isClosed()) {
       System.out.println("1 :In if, Going to create new with Rutvik is not null");
       //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
