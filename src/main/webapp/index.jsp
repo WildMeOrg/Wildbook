@@ -570,6 +570,7 @@ finally{
                     ignoreThese.add("siowamteam");
                     ignoreThese.add("Chrissy");
                     ignoreThese.add("admin");
+                    ignoreThese.add("Nerida Wilson");
                     
                     
                     myShepherd.beginDBTransaction();
