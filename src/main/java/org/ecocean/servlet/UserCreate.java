@@ -77,7 +77,7 @@ public class UserCreate extends HttpServlet {
     boolean isEdit=false;
     if(request.getParameter("isEdit")!=null){
       isEdit=true;
-      //System.out.println("isEdit is TRUE in UserCreate!");
+      //System.out.println("isEdit is TRUE in UserCreate!"); 
     }
 
     //create a new Role from an encounter
@@ -86,7 +86,7 @@ public class UserCreate extends HttpServlet {
       
       String uuid=request.getParameter("uuid");
       
-      String username=null;
+      String username=null;  
       if(request.getParameter("username")!=null) {
         username=request.getParameter("username");
       }
