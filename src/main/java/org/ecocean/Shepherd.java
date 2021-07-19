@@ -3417,11 +3417,14 @@ public class Shepherd {
   public void beginDBTransaction() {
     //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     try {
+      System.out.println("1. beginDBTransaction ");
       if (pm == null || pm.isClosed()) {
+        System.out.println("2. beginDBTransaction ");
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         pm.currentTransaction().begin();
+        System.out.println("3. beginDBTransaction ");
       } else if (!pm.currentTransaction().isActive()) {
-
+        System.out.println("4. beginDBTransaction ");
         pm.currentTransaction().begin();
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
