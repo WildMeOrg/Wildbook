@@ -91,6 +91,7 @@ public class Shepherd {
    */
   public Shepherd(String context) {
     if (pm == null || pm.isClosed()) {
+      System.out.println("1 :In if, Going to create new with Rutvik is not null");
       //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
       localContext=context;
       try {
@@ -105,6 +106,7 @@ public class Shepherd {
       }
       //pmf=null;
     } else {
+      System.out.println("1 :In Else, Going to create new with Rutvik is not null");
       System.out.println(" ------------- Going to create new with Rutvik is not null");
     }
   }
