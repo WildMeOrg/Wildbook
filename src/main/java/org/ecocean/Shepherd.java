@@ -3425,7 +3425,7 @@ public class Shepherd {
         System.out.println("3. beginDBTransaction ");
       } else if (!pm.currentTransaction().isActive()) {
         System.out.println("4. beginDBTransaction ");
-        pm.close();
+        pm.currentTransaction().begin();
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
 
