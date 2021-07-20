@@ -375,6 +375,10 @@ Util.mark("sendIdentify-C", startTime);
             status.put("error", "Empty target annotation list");
             status.put("emptyTargetAnnotations", true);
             emptyRtn.put("status", status);
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
             return emptyRtn;
         }
 
