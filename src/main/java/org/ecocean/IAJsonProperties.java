@@ -126,11 +126,16 @@ public class IAJsonProperties extends JsonProperties {
 
 	// e.g. if a humpback whale detection returns ia class sperm_whale_fluke this will return humpback_fluke or whatever
 	public String convertIAClassForTaxonomy(String returnedIAClass, Taxonomy taxy) {
-		String detKey = detectionKey(taxy);
-		String lookupKey = detKey + "." + "_save_as";
+		String taxKey = taxonomyKey(taxy);
+		String lookupKey = taxKey + "." + returnedIAClass + "._save_as";
 		String ans = (String) get(lookupKey);
 		System.out.println("IAJsonProperties.convertIAClassForTaxonomy called on "+returnedIAClass+" for taxonomy "+taxy.toString());
-		System.out.println(".....convertIAClassForTaxonomy made lookupKey "+lookupKey+" and found "+ans);
+		System.out.println(".................convertIAClassForTaxonomy made lookupKey "+lookupKey+" and found "+ans);
+		if (!Util.stringExists(ans)) {
+			String defaultLookupKey = taxKey+"._default._save_as";
+			ans = (String) get(defaultLookupKey);
+		  System.out.println("........fallback convertIAClassForTaxonomy made defaulLookupKey "+defaultLookupKey+" and found "+ans);
+		}
 		if (!Util.stringExists(ans)) ans = returnedIAClass;
 		return ans;
 	}

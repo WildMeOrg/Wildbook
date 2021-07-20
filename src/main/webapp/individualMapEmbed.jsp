@@ -29,8 +29,6 @@ context=ServletUtilities.getContext(request);
   //load our variables for the submit page
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
   props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
-  Properties localesProps = new Properties();
-  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
@@ -141,12 +139,12 @@ String lastLatLong="";
 					  Encounter indieEnc=(Encounter)encsWithGPS.get(j);
 					  //we now have an Encounter that is external to this occurrence but part of a MarkedIndividual participating in this occurrence
 					  String thisLatLong="999,999";
+            String indieEncLocId = indieEnc.getLocationID();
 					  if(((indieEnc.getDecimalLatitude())!=null)&&(indieEnc.getDecimalLongitude()!=null)){
 							 thisLatLong=indieEnc.getDecimalLatitude()+","+indieEnc.getDecimalLongitude();
 					  }
-					  //let's try to get this from locationIDGPS.properties
-					  else if(localesProps.getProperty(indieEnc.getLocationID())!=null){
-								 thisLatLong=localesProps.getProperty(indieEnc.getLocationID());
+					  else if(indieEncLocId!=null && LocationID.getLatitude(indieEncLocId, LocationID.getLocationIDStructure()) != null && LocationID.getLongitude(indieEncLocId, LocationID.getLocationIDStructure()) != null){
+								 thisLatLong= LocationID.getLatitude(indieEncLocId, LocationID.getLocationIDStructure()) + "," + LocationID.getLongitude(indieEncLocId, LocationID.getLocationIDStructure());
 					  }
 					 %>
 					          var latLng = new google.maps.LatLng(<%=thisLatLong%>);
@@ -214,13 +212,13 @@ String lastLatLong="";
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)haveGPSData.get(y);
 	 String thisLatLong="999,999";
+   String thisEncLocId = thisEnc.getLocationID();
 	 if(((thisEnc.getDecimalLatitude())!=null)&&(thisEnc.getDecimalLongitude()!=null)){
 		 thisLatLong=thisEnc.getDecimalLatitude()+","+thisEnc.getDecimalLongitude();
 	 }
-	 //let's try to get this from locationIDGPS.properties
 	 else{
-		 if(localesProps.getProperty(thisEnc.getLocationID())!=null){
-			 thisLatLong=localesProps.getProperty(thisEnc.getLocationID());
+		 if(thisEncLocId!=null && LocationID.getLatitude(thisEncLocId, LocationID.getLocationIDStructure()) != null && LocationID.getLongitude(thisEncLocId, LocationID.getLocationIDStructure()) != null){
+			 thisLatLong= LocationID.getLatitude(thisEncLocId, LocationID.getLocationIDStructure()) + "," + LocationID.getLongitude(thisEncLocId, LocationID.getLocationIDStructure());
 		 }
 	 }
  %>

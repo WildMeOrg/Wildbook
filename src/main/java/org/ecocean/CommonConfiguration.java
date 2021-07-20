@@ -595,6 +595,39 @@ public class CommonConfiguration {
     return canAdopt;
   }
 
+  public static Double getCenterLat(String context) {
+    double returnVal = 10.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLat", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Double getCenterLong(String context) {
+    double returnVal = 160.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLong", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " +  returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Integer getMapZoom(String context) {
+    Integer returnVal = 1;
+    try {
+      returnVal = Integer.parseInt(getProperty("mapZoom", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getMapZoom. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
 
   /**
    * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
