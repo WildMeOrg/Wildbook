@@ -23,6 +23,32 @@
 			]
 		},
 		{
+			"name": "Chad",
+			"id": "Chad",
+			"locationID": [
+				{
+					"name": "Zakouma",
+					"id": "Zakouma",
+					"geospatialInfo":{
+		 			 	"lat":10.847778,
+		 			 	"long":19.647778
+		 			 }
+				}
+			]
+		},
+		{
+			"name": "DRC",
+			"id": "DRC",
+			"description": "DRC",
+			"locationID": [
+				{
+					"name": "Garamba",
+					"id": "Garamba",
+					"description": "Garamba"
+				}
+			]
+		},
+		{
 			"name": "Kenya",
 			"id": "Kenya",
 			"geospatialInfo":{
@@ -31,21 +57,9 @@
  			 },
 			"locationID": [
 				{
-					"name": "Namunyak",
-					"id": "Namunyak",
-					"description": "Namunyak Wildlife Conservancy",
-					"geospatialInfo":{
-		 			 	"lat":1.270203,
-		 			 	"long":37.382723
- 			 		},
-				},
-				{
-					"name": "Loisaba",
-					"id": "Loisaba",
-					"geospatialInfo":{
-		 			 	"lat":0.612208,
-		 			 	"long":36.802823
-		 			 },
+					"name": "Lake Nakuru",
+					"id": "Lake Nakuru",
+					"description": "Lake Nakuru"
 				},
 				{
 					"name": "Lewa",
@@ -53,7 +67,42 @@
 					"geospatialInfo":{
 		 			 	"lat":0.2,
 		 			 	"long":37.41
-		 			 },
+		 			 }
+				},
+				{
+					"name": "Loisaba",
+					"id": "Loisaba",
+					"geospatialInfo":{
+		 			 	"lat":0.612208,
+		 			 	"long":36.802823
+		 			 }
+				},
+				{
+					"name": "Mara",
+					"id": "Mara",
+					"description": "Mara",
+					"locationID":[
+						{
+							"name": "Mara North",
+							"id": "Mara North",
+							"description": "Mara North"
+						},
+						{
+							"name": "Naboisho",
+							"id": "Naboisho",
+							"description": "Naboisho"
+						},
+						{
+							"name": "Olarro",
+							"id": "Olarro",
+							"description": "Olarro"
+						},
+						{
+							"name": "Ol Kinyei",
+							"id": "Ol Kinyei",
+							"description": "Ol Kinyei"
+						}
+					]
 				},
 				{
 					"name": "Mugie",
@@ -61,7 +110,21 @@
 					"geospatialInfo":{
 		 			 	"lat":0.2,
 		 			 	"long":37.41
-		 			 },
+		 			 }
+				},
+				{
+					"name": "Mwea NR",
+					"id": "Mwea NR",
+					"description": "Mwea NR"
+				},
+				{
+					"name": "Namunyak",
+					"id": "Namunyak",
+					"description": "Namunyak Wildlife Conservancy",
+					"geospatialInfo":{
+		 			 	"lat":1.270203,
+		 			 	"long":37.382723
+ 			 		}
 				},
 				{
 					"name": "Ol Jogi",
@@ -72,7 +135,7 @@
 					"geospatialInfo":{
 		 			 	"lat":0.3,
 		 			 	"long":37
-		 			 },
+		 			 }
 				},
 				{
 					"name": "Ol Pejeta",
@@ -80,29 +143,12 @@
 					"geospatialInfo":{
 		 			 	"lat":0.0,
 		 			 	"long":37
-		 			 },
-				}
-			]
-		},
-		{
-			"name": "Niger",
-			"id": "Niger",
-			"geospatialInfo":{
-	 			 	"lat":17.638133,
-	 			 	"long":9.766846
- 			 },
-		},
-		{
-			"name": "Chad",
-			"id": "Chad",
-			"locationID": [
+		 			 }
+				},
 				{
-					"name": "Zakouma",
-					"id": "Zakouma",
-					"geospatialInfo":{
-		 			 	"lat":10.847778,
-		 			 	"long":19.647778
-		 			 },
+					"name": "Ruma NP",
+					"id": "Ruma NP",
+					"description": "Ruma NP"
 				}
 			]
 		},
@@ -115,19 +161,37 @@
  			 },
 			"locationID": [
 				{
+					"name": "Kuzikus Wildlife Reserve",
+					"id": "Kuzikus Wildlife Reserve"
+				},
+				{
 					"name": "North-western Namibia",
 					"id": "North-western Namibia",
 					"geospatialInfo":{
 		 			 	"lat":-20.902437,
 		 			 	"long":15.864258
-		 			 },
-				},
-				{
-					"name": "Kuzikus Wildlife Reserve",
-					"id": "Kuzikus Wildlife Reserve"
+		 			 }
 				}
-
-
+			]
+		},
+		{
+			"name": "Niger",
+			"id": "Niger",
+			"geospatialInfo":{
+	 			 	"lat":17.638133,
+	 			 	"long":9.766846
+ 			 }
+		},
+		{
+			"name": "Rwanda",
+			"id": "Rwanda",
+			"description": "Rwanda",
+			"locationID": [
+				{
+					"name": "Akagera",
+					"id": "Akagera",
+					"description": "Akagera"
+				}
 			]
 		},
 		{
@@ -136,12 +200,21 @@
 			"geospatialInfo":{
 	 			 	"lat":-30,
 	 			 	"long":25
- 			 },
+ 			 }
 			},
 		{
 			"name": "Tanzania",
 			"id": "Tanzania",
 			"locationID": [
+				{
+					"name": "ANP",
+					"id": "ANP",
+					"description": "Arusha National Park",
+					"geospatialInfo":{
+		 			 	"lat":-3.2,
+		 			 	"long":36.8
+		 			 }
+				},
 				{
 					"name": "RNP",
 					"id": "RNP",
@@ -149,7 +222,7 @@
 					"geospatialInfo":{
 		 			 	"lat":-7.5,
 		 			 	"long":35.0
-	 			 },
+	 			 }
 				},
 				{
 					"name": "SGR",
@@ -158,16 +231,7 @@
 					"geospatialInfo":{
 		 			 	"lat":-9.0,
 		 			 	"long":37.5
-		 			 },
-				},
-				{
-					"name": "ANP",
-					"id": "ANP",
-					"description": "Arusha National Park",
-					"geospatialInfo":{
-		 			 	"lat":-3.2,
-		 			 	"long":36.8
-		 			 },
+		 			 }
 				}
 			]
 		},
@@ -176,12 +240,20 @@
 			"id": "Uganda",
 			"locationID": [
 				{
+					"name": "Kidepo",
+					"id": "Kidepo",
+					"geospatialInfo":{
+		 			 	"lat":3.9,
+		 			 	"long":33.85
+		 			 }
+				},
+				{
 					"name": "Lake Mburo",
 					"id": "Lake Mburo",
 					"geospatialInfo":{
 		 			 	"lat":-0.627778,
 		 			 	"long":30.966667
-		 			 },
+		 			 }
 				},
 				{
 					"name": "Murchison Falls South",
@@ -190,14 +262,6 @@
 				{
 					"name": "Pian Upe",
 					"id": "Pian Upe"
-				},
-				{
-					"name": "Kidepo",
-					"id": "Kidepo",
-					"geospatialInfo":{
-		 			 	"lat":3.9,
-		 			 	"long":33.85
-		 			 },
 				}
 			]
 		},
@@ -206,8 +270,32 @@
 			"id": "Zambia",
 			"locationID": [
 				{
-					"name": "Luambe",
-					"id": "Luambe"
+					"name": "Luangwa",
+					"id": "Luangwa",
+					"description": "Luangwa",
+					"locationID": [
+						{
+							"name": "Luambe",
+							"id": "Luambe"
+						},
+						{
+							"name": "Luangwa North",
+							"id": "Luangwa North",
+							"description": "Luangwa North"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Zimbabwe",
+			"id": "Zimbabwe",
+			"description": "Zimbabwe",
+			"locationID": [
+				{
+					"name": "Save Valley",
+					"id": "Save Valley",
+					"description": "Save Valley"
 				}
 			]
 		}
