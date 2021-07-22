@@ -41,11 +41,9 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
+
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
 if (pageTitle == null) {
@@ -66,25 +64,37 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
 String notifications="";
-try {
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("header.jsp");
 
-	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+if(request.getUserPrincipal()!=null){
+	myShepherd.beginDBTransaction();
+	if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+		try {
 
-  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
-    user = myShepherd.getUser(request);
-    username = (user!=null) ? user.getUsername() : null;
-    String orgName = "indocet";
-    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
-  	if(user.getUserImage()!=null){
-  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-  	}
-  }
+			notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+
+		  if(!indocetUser && !loggingOut){
+		    user = myShepherd.getUser(request);
+		    username = (user!=null) ? user.getUsername() : null;
+		    String orgName = "indocet";
+		    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
+		    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
+		  	if(user.getUserImage()!=null){
+		  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+		  	}
+		  }
+		}
+		catch(Exception e){
+		  System.out.println("Exception on indocetCheck in header.jsp:");
+		  e.printStackTrace();
+		}
+		finally{
+		  myShepherd.rollbackDBTransaction();
+
+		}
 }
-catch(Exception e){
-  System.out.println("Exception on indocetCheck in header.jsp:");
-  e.printStackTrace();
-}
+myShepherd.closeDBTransaction();
 
 
 %>
