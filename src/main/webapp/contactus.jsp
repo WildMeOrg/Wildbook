@@ -30,8 +30,8 @@
 
 <p>
 Questions about GiraffeSpotter accounts, techincal problems, or generally about the
-open source <a target="_new" href="https://www.wildme.org/#/wildbook">Wildbook software</a>, please contact
-<i>jon AT wildme.org</i>
+open source <a target="_new" href="https://www.wildme.org/#/wildbook">Wildbook software</a>, please visit
+<a href="https://community.wildme.org/">the Wild Me Community Forums</a>
 </p>
 
       <!-- end maintext -->
