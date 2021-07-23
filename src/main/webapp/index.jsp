@@ -58,7 +58,7 @@ try{
     //numNests=myShepherd.getNumNests();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     
-    numDataContributors = (new Double(Prometheus.getValue("wildbook_datacontributors_total"))).intValue();
+    numDataContributors = (new Double(Prometheus.getValue("wildbook_users_total"))).intValue();
     
     
     //numUsersWithRoles = myShepherd.getNumUsers()-numDataContributors;
