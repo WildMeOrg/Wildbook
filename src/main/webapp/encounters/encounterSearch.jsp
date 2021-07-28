@@ -403,7 +403,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  zoom: mapZoom,
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.TERRAIN,
-		  fullscreenControl: true
+		  fullscreenControl: true,
+		  icon: "../images/favicon.ico"
 		});
 
    map.enableKeyDragZoom({
