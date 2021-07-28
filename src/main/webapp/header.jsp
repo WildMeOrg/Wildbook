@@ -210,13 +210,14 @@ catch(Exception e){
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd2 = new Shepherd(context);
-	                    	  myShepherd2.setAction("header.jsp_usernames");
+	                    	  // Shepherd myShepherd2 = new Shepherd(context);
+	                    	  // myShepherd2.setAction("header.jsp_usernames");
+                          myShepherd.setAction("header.jsp_usernames");
 
 	                          try{
-	                        	  myShepherd2.beginDBTransaction();
 		                    	  username = request.getUserPrincipal().toString();
-		                    	  user = myShepherd2.getUser(username);
+		                    	  user = myShepherd.getUser(username);
+                            // user = myShepherd2.getUser(username);
 		                    	  String fullname=username;
 		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
 		                    	  profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
@@ -232,10 +233,6 @@ catch(Exception e){
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd2.rollbackDBTransaction();
-	                        	  myShepherd2.closeDBTransaction();
-	                          }
 	                      }
 	                      else{
 	                      %>

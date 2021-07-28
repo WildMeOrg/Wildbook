@@ -2,7 +2,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,
-java.io.*,java.util.*, java.io.FileInputStream, 
+java.io.*,java.util.*, java.io.FileInputStream,
 
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.datanucleus.api.rest.orgjson.JSONException,
@@ -53,26 +53,44 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
+  System.out.println("deleteMe got here a1.5");
 //System.out.println("??? TRY COMPRESS ??");
     //String s = scrubJson(req, jo).toString();
     String s = jo.toString();
+    System.out.println("deleteMe got here a2");
     if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+        System.out.println("deleteMe got here a3");
         resp.getWriter().write(s);
+        System.out.println("deleteMe got here a4");
     } else {
+      System.out.println("deleteMe got here a5");
         resp.setHeader("Content-Encoding", "gzip");
+        System.out.println("deleteMe got here a6");
     OutputStream o = resp.getOutputStream();
+    System.out.println("deleteMe got here a7");
     GZIPOutputStream gz = new GZIPOutputStream(o);
-        gz.write(s.getBytes());
-        gz.flush();
+    System.out.println("deleteMe got here a8");
+    try{
+      gz.write(s.getBytes());
+      gz.flush();
+      System.out.println("deleteMe got here a9");
+    }catch(Error e){
+      System.out.println("deleteMe got here a9.5");
+      System.out.println("error writing gz: ");
+      e.printStackTrace();
+    }
+        System.out.println("deleteMe got here a10");
         gz.close();
+        System.out.println("deleteMe got here a11");
         o.close();
+        System.out.println("deleteMe got here a12");
     }
 }
 
 %>
 <%
 
-response.setHeader("Access-Control-Allow-Origin", "*"); 
+response.setHeader("Access-Control-Allow-Origin", "*");
 
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -103,10 +121,10 @@ Query query=null;
 
 
 try {
-	
+
 	JSONObject jsonobj = new JSONObject();
 
-	
+
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
 	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
@@ -115,39 +133,40 @@ try {
 	else{
 		System.out.println("Refreshing socialJson cache!");
 		PersistenceManagerFactory pmf = myShepherd.getPM().getPersistenceManagerFactory();
-	
+
 		//individual
 		javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
 		grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("timeOfBirth").addMember("timeOfDeath").addMember("dateFirstIdentified").addMember("dateTimeLatestSighting").addMember("encounters");
-	
+
 		//encounter
 		javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encounterSearchResults");
 		grp2.addMember("lifeStage").addMember("dateInMilliseconds").addMember("decimalLatitude").addMember("decimalLongitude");
-	
+
 		query=myShepherd.getPM().newQuery(filter);
-	
+
 		myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
 		myShepherd.getPM().getFetchPlan().addGroup("encounterSearchResults");
-	
-		
+
+
 		myShepherd.beginDBTransaction();
-	
+
 		Collection result = (Collection)query.execute();
 		ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>(result);
-		
+
 		JSONArray jarray=new JSONArray();
-	        
+
 	        for(MarkedIndividual indy:indies){
 	        	jarray.put(uiJson(indy,request));
 	        }
-	        
-	        
-	      jsonobj.put("results",jarray);  
-	        		
+
+
+	      jsonobj.put("results",jarray);
+
 		}
 
-        
+        System.out.println("deleteMe got here a12");
         tryCompress(request, response, jsonobj.getJSONArray("results"), true);
+        System.out.println("deleteMe got here a1");
         CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(jsonobj), false, myShepherd);
         cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
         qc.addCachedQuery(cq);

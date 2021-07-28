@@ -69,7 +69,6 @@ String nResultsStr = request.getParameter("nResults");
 // some logic related to generating names for individuals
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("matchResults nameKey getter");
-myShepherd.beginDBTransaction();
 User user = myShepherd.getUser(request);
 String currentUsername = "";
 if (user!=null){
@@ -106,8 +105,6 @@ if (Util.stringExists(projectIdPrefix)) {
 	}
 }
 
-myShepherd.rollbackAndClose();
-//myShepherd.closeDBTransaction();
 //System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
 
 try {
@@ -122,7 +119,6 @@ if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("iaResults.jsp1");
-	myShepherd.beginDBTransaction();
     ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	try {
@@ -192,7 +188,6 @@ if (request.getParameter("acmId") != null) {
 		num = enc.getCatalogNumber();
 	}
 */
-	myShepherd.rollbackAndClose();
 	out.println(rtn.toString());
 	return;
 }
@@ -443,21 +438,16 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		String encId = request.getParameter("encId");
 		myShepherd = new Shepherd(request);
 		myShepherd.setAction("iaResults.jsp - no match case");
-		myShepherd.beginDBTransaction();
 		JSONObject rtn = new JSONObject("{\"success\": false}");
 		Encounter enc = myShepherd.getEncounter(encId);
 		if (enc==null) {
 			rtn.put("error", "could not find Encounter "+encId+" in the database.");
 			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
 			return;
 		}
 		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
 			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
 			return;
 		}
 
@@ -473,8 +463,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		if (!validToName) {
 			rtn.put("error", "Was unable to set the next automatic name. Got key="+nextNameKey+" and val="+nextName);
 			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
 			return;
 		}
 
@@ -482,8 +470,9 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 		if (mark==null) {
 			mark = new MarkedIndividual(enc);
+      myShepherd.beginDBTransaction();
 			myShepherd.getPM().makePersistent(mark);
-			myShepherd.updateDBTransaction();
+			myShepherd.closeDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
 
 		}
@@ -502,8 +491,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 		rtn.put("success",true);
 		out.println(rtn.toString());
-		myShepherd.commitDBTransaction();
-		myShepherd.closeDBTransaction();
 		return;
 
 	} catch (Exception e) {
