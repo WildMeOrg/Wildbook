@@ -902,12 +902,17 @@ rtn.put("_payload", payload);
             throw new IOException("RestServlet.handlePost() passed null class");
         }
 
-
         try {
             final String LOG_POST_SUCCESS = "RestServlet.handlePost() instance={} created={}";  
             if (cls.equals("org.ecocean.Occurrence")) {
                 Occurrence occ = Occurrence.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(occ);
+                // trust me
+                for (Encounter enc : occ.getEncounters()) {
+                    if (!myShepherd.isEncounter(enc.getId())) {
+                        myShepherd.storeNewEncounter(enc);
+                    }
+                }
                 SystemLog.info(LOG_POST_SUCCESS, instanceId, occ);
                 myShepherd.commitDBTransaction();
                 rtn.put("success", true);

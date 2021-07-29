@@ -389,7 +389,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   }
 
   public void removeEncounter(Encounter enc){
-    if(encounters!=null){
+    if(encounters!=null&&encounters.contains(enc)){
       encounters.remove(enc);
       //updateNumberOfEncounters();
     }
@@ -1497,7 +1497,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 Encounter enc = null;
                 if (id == null) {
                     enc = Encounter.fromApiJSONObject(myShepherd, jenc);
-                    //if (enc == null) throw new IOException("failed to make Encounter from " + jenc);  //or maybe try/catch this call above?
                 } else {
                     enc = myShepherd.getEncounter(id);
                     if (enc == null) throw new IOException("failed to load Encounter with id=" + id);

@@ -24,6 +24,7 @@ import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 
+import org.ecocean.api.ApiDeleteCascadeException;
 import org.ecocean.api.ApiValueException;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -2774,6 +2775,84 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       rtn.put("path", path);
       rtn.put("value", jsonIn.get("value"));
       return rtn;
+  }
+
+
+  public org.json.JSONObject apiPatchRemove(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+    if (jsonIn == null) throw new IOException("apiPatchRemove has null json");
+    String path = jsonIn.optString("path", null);
+    if (path == null) throw new IOException("apiPatchRemove has null path");
+    if (path.startsWith("/")) path = path.substring(1);
+    org.json.JSONObject rtn = new org.json.JSONObject();
+    SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
+    try {
+      switch (path) {
+        case "encounters":
+        
+                org.json.JSONArray jsonEncArr = jsonIn.getJSONArray("value");
+
+                for (int i=0;i<jsonEncArr.length();i++) {
+                  String id = jsonEncArr.getString(i);
+                  if (id == null) throw new ApiValueException("must pass value=id with encounter id", "encounters");
+                  if (this.getNumEncounters() < 1) throw new ApiValueException("no encounters; which is bad", "encounters");  //snh
+  
+                  Encounter found = null;
+                  for (Encounter enc : this.getEncounterList()) {
+                      if (enc.getId().equals(id)) {
+                          found = enc;
+                          break;
+                      }
+                  }
+  
+                  if (found == null) throw new ApiValueException("invalid encounter id=" + id, "encounters");
+
+                  try {
+                    myShepherd.beginDBTransaction();
+                    this.removeEncounter(found);
+                    myShepherd.commitDBTransaction();
+                  } catch (Exception e) {
+                    myShepherd.rollbackDBTransaction();
+                    throw new ApiValueException("an error occurred removing encounter id=" + id +" from MarkedIndividual id="+this.getId(), "encounters");
+                  }
+
+                  try {
+                    if (this.encounters.size()==0&&jsonIn.optBoolean(KEY_DELETE_CASCADE_INDIVIDUAL, false)) {
+                      rtn.put("deletedIndividual", this.getId());
+                      myShepherd.beginDBTransaction();
+                      myShepherd.throwAwayMarkedIndividual(this);
+                      myShepherd.commitDBTransaction();
+                    }
+                  } catch (Exception e) {
+                    myShepherd.rollbackDBTransaction();
+                    throw new ApiValueException("an error occurred cascade deleting MarkedIndividual id=" + id, "encounters");
+                  }
+                  rtn.put("value", id);
+                }
+                break;
+                  
+
+            case "customFields":
+                org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
+                if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
+                this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                break;
+            default:
+                throw new Exception("apiPatch remove unknown path=" + path);
+        }
+    } catch (ApiValueException ex) {
+        ex.printStackTrace();
+        throw ex;
+    } catch (ApiDeleteCascadeException ex) {
+        ex.printStackTrace();
+        throw ex;
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        throw new IOException("apiPatchRemove unable to modify " + this + " due to " + ex.toString());
+    }
+    rtn.put("op", "remove");
+    rtn.put("path", path);
+    return rtn;
   }
 
 }
