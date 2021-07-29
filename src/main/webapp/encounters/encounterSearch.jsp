@@ -404,8 +404,15 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.TERRAIN,
 		  fullscreenControl: true,
-		  icon: "../images/favicon.ico"
+		  
 		});
+	  
+	  const image = "../Image/favicon.ico"
+	  const kitizenmarker = new google.maps.Marker({
+		  position: {center}
+	  map,
+	  icon: image,
+	  })
 
    map.enableKeyDragZoom({
           visualEnabled: true,
