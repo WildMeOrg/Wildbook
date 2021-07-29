@@ -331,6 +331,12 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
+	  var image = "../Image/favicon.ico"
+		  var kitizenmarker = new google.maps.Marker({
+			  position: {center}
+		  map,
+		  icon: image,
+		  })
 
 	  //adding the fullscreen control to exit fullscreen
 	  var fsControlDiv = document.createElement('DIV');

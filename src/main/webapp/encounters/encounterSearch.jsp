@@ -407,8 +407,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  
 		});
 	  
-	  const image = "../Image/favicon.ico"
-	  const kitizenmarker = new google.maps.Marker({
+	  var image = "../Image/favicon.ico"
+	  var kitizenmarker = new google.maps.Marker({
 		  position: {center}
 	  map,
 	  icon: image,
