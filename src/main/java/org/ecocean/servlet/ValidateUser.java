@@ -44,7 +44,7 @@ public class ValidateUser extends HttpServlet {
     username = username.trim();
     
     JSONObject rtn = new JSONObject();
-    boolean isValidUser = (!Util.stringExists(username)) || username.equals("admin");
+    boolean isValidUser = (!Util.stringExists(username)) || username.equals("admin") || username.contains(" ");
     if (isValidUser) {
       rtn.put("error", "Invalid username");
     }

@@ -412,7 +412,13 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  position: {center}
 	  map,
 	  icon: image,
-	  })
+	  url: "encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"
+	  });
+	  
+	  google.maps.event.addListener(marker, 'click', function() {
+	      window.location.href = marker.url;
+	      window.open(this.url, '_blank');
+	    });
 
    map.enableKeyDragZoom({
           visualEnabled: true,
