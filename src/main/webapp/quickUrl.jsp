@@ -420,7 +420,7 @@ function checkStatus(aid, maxTries) {
 	} else {
 		$('#' + aid).append('<span class="ctdiv">' + niceCount(annMap[aid]._matchTask) + '</span>');
 	}
-	
+
 	annMap[aid]._matchTask.count++;
 	$.ajax({
 		url: 'ia?getJobResultFromTaskID=' + annMap[aid]._matchTask.taskId,

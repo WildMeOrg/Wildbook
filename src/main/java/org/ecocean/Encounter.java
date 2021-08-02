@@ -3341,7 +3341,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
   }
 
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
     jobj=decorateJsonNoAnnots(request,jobj);
 
     jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
@@ -3564,7 +3563,7 @@ throw new Exception();
         public String getPrefixForLocationID(){ //convenience function
           return LocationID.getPrefixForLocationID(this.getLocationID(), null);
         }
-        
+
         public int getPrefixDigitPaddingForLocationID() { // convenience function
           return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
         }

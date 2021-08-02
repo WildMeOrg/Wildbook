@@ -43,7 +43,6 @@ public JSONObject getExemplarImage(MarkedIndividual indie, HttpServletRequest re
       if (!ann.isTrivial()) continue;
       MediaAsset ma = ann.getMediaAsset();
       if (ma != null) {
-        //JSONObject j = new JSONObject();
         JSONObject j = ma.sanitizeJson(req, new JSONObject());
         if (j!=null) return j;
       }

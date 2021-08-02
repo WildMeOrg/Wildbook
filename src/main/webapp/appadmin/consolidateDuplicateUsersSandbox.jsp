@@ -38,8 +38,6 @@ int numFixes=0;
         int i = 0; //TODO ???
         if(taxy != null){
             JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, 0);
-        }else{
-          System.out.println("deleteMe got here a1 taxy is null");
         }
 
 
