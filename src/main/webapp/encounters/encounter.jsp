@@ -155,7 +155,7 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
@@ -1756,10 +1756,10 @@ function resetIdButtons() {
                           String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
                           if(enc.getLocationID() != null && nextID == null){
                             nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          } 
+                          }
                           if(enc.getLocationID() == null && nextID == null){
                             nextID = encprops.getProperty("noLocationID");
-                          } 
+                          }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
