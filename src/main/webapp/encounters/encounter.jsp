@@ -1881,7 +1881,7 @@ console.info('resetIdButtons()');
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          String nextID=getNextIndividualNumber(enc, myShepherd, context);
+                          // String nextID=getNextIndividualNumber(enc, myShepherd, context);
                           // TODO not including the below which comes from master because it causes an error:
                           // java.lang.NumberFormatException: For input string: "4135682370"
                           //         at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
@@ -1889,15 +1889,15 @@ console.info('resetIdButtons()');
                           //         at java.base/java.lang.Integer.parseInt(Integer.java:770)
                           //         at org.ecocean.MarkedIndividual.nextNameByPrefix(MarkedIndividual.java:2626)
                           //         at org.apache.jsp.encounters.encounter_jsp._jspService(encounter_jsp.java:1092)
-                          // String locationIdPrefix = enc.getPrefixForLocationID();
-                          // int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
-                          // String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
-                          // if(enc.getLocationID() != null && nextID == null){
-                          //   nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          // }
-                          // if(enc.getLocationID() == null && nextID == null){
-                          //   nextID = encprops.getProperty("noLocationID");
-                          // }
+                          String locationIdPrefix = enc.getPrefixForLocationID();
+                          int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+                          String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+                          if(enc.getLocationID() != null && nextID == null){
+                            nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
+                          }
+                          if(enc.getLocationID() == null && nextID == null){
+                            nextID = encprops.getProperty("noLocationID");
+                          }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
