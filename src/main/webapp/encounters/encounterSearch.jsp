@@ -409,16 +409,16 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  
 	  var image = "../Image/favicon.ico"
 	  var kitizenmarker = new google.maps.Marker({
-		  position: {center}
-	  map,
-	  icon: image,
-	  url: "encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"
+		  	position: center,
+		  	map: map,
+	  		icon: image<%-- ,
+	  		url: "encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" --%>
 	  });
 	  
-	  google.maps.event.addListener(marker, 'click', function() {
+	 /* google.maps.event.addListener(marker, 'click', function() {
 	      window.location.href = marker.url;
 	      window.open(this.url, '_blank');
-	    });
+	    });*/
 
    map.enableKeyDragZoom({
           visualEnabled: true,
