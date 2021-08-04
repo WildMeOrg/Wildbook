@@ -551,10 +551,7 @@ if (sharky.getNames() != null) {
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
         MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
         List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
-        if(nameKey.trim().equals("Merged")){ // We ended up tacking "Merged" to the individual nameKey, so this seems no longer useful
-          continue;
-        }
-        if((projects == null||projects.size()<1) && (nameKey.trim().contains("Merged")||nameKey.equals(" ") || nameKey.trim()==null)){ //skip the project merge
+        if(nameKey.trim().contains("Merged") && (sharky.getName(nameKey) == null || sharky.getName(nameKey).equals(""))){ //skip the "merged" nameKeys if they're empty
           continue;
         }
         if (projects!=null&&projects.size()>0) {
