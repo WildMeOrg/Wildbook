@@ -25,6 +25,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
+         java.util.Collections,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -155,7 +156,7 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
@@ -1012,6 +1013,7 @@ if(enc.getLocation()!=null){
           <%
           if (useCustomProperties) {
             List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+            Collections.sort(countries);
             for (String country: countries) {
               %>
               <option value="<%=country%>"><%=country%></option>
@@ -1019,10 +1021,15 @@ if(enc.getLocation()!=null){
             }
           } else {
             String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
+            List<String> countriesFromLocales = new ArrayList<String>();
+            for (String countryCode : locales) { //implementing a java analog to js's .map here is not worth the pain for such a small for loop; just populating a new List with just country names herein
               Locale obj = new Locale("", countryCode);
+              countriesFromLocales.add(obj.getDisplayCountry());
+            }
+            Collections.sort(countriesFromLocales);
+            for (String countryFromLocale : countriesFromLocales) {
               %>
-              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+              <option value="<%=countryFromLocale %>"><%=countryFromLocale %></option>
               <%
             }
           }
@@ -1763,10 +1770,10 @@ function resetIdButtons() {
                           String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
                           if(enc.getLocationID() != null && nextID == null){
                             nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          } 
+                          }
                           if(enc.getLocationID() == null && nextID == null){
                             nextID = encprops.getProperty("noLocationID");
-                          } 
+                          }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
