@@ -160,6 +160,15 @@
 
 	{ "name":"SS -	South Solitary Island", "id":"SS -	South Solitary Island", "locationID":[] },
 
+  { "name":"TAURACAVOR",
+    "description": "The excavating dredge TAURACAVOR, and barge has sunk in approximate position 33-16.65N 077-49.94W in 105 feet of water, 30 NM south of the entrance to Cape Fear River, NC. The dredge and barge is marked with a white buoy (Fl W 2.5s) with orange diamond shape.",
+     "id":"TAURACAVOR",
+     "geospatialInfo":{
+       "lat":32.7225,
+       "long":-76.167667
+     },
+     "locationID":[] },
+
 	{ "name":"TB -	The Barge", "id":"TB -	The Barge", "locationID":[] },
 
 	{ "name":"TG -	Tollgate", "id":"TG -	Tollgate", "locationID":[] },
