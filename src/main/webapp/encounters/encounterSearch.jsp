@@ -407,7 +407,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  
 		});
 	  
-	  var image = "../Image/favicon.ico"
+<%-- 	  var image = "../Image/favicon.ico"
 	  var kitizenmarker = new google.maps.Marker({
 		  position: {center}
 	  map,
@@ -418,7 +418,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	  google.maps.event.addListener(marker, 'click', function() {
 	      window.location.href = marker.url;
 	      window.open(this.url, '_blank');
-	    });
+	    }); --%>
 
    map.enableKeyDragZoom({
           visualEnabled: true,
@@ -459,7 +459,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		//read in the KML
 		 geoXml = new geoXML3.parser({
                     map: map,
-                    markerOptions: {flat:true,clickable:false},
+                    markerOptions: {
+                    	flat:true,
+                    	clickable:true
+                    	icon:"../Image/favicon.ico" },
 
          });
 
