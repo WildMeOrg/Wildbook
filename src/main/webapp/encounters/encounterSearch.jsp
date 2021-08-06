@@ -461,8 +461,9 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     map: map,
                     markerOptions: {
                     	flat:true,
-                    	clickable:true
-                    	icon:"../images/favicon.ico" }, 
+                    	clickable:true,
+                    	icon:"../images/favicon.ico" 
+                    }
 
          });
 
