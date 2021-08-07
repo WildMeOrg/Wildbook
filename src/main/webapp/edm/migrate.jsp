@@ -13,8 +13,11 @@ org.ecocean.customfield.*,
 
 org.ecocean.media.*
               "
-%>
-
+%><html>
+<head>
+    <title>Codex CustomField Migration Helper</title>
+</head>
+<body>
 
 
 
@@ -26,7 +29,23 @@ myShepherd.beginDBTransaction();
 String fieldName = request.getParameter("fieldName");
 String className = request.getParameter("className");
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
-if ((className == null) || (fieldName == null)) throw new RuntimeException("must pass className= and fieldName=");
+if ((className == null) || (fieldName == null)) {
+%>
+<form method="GET">
+<select name="className">
+<option>Encounter</option>
+<option>Occurrence</option>
+<option>MarkedIndividual</option>
+</select>
+
+<input name="fieldName" placeholder="field (property) name" />
+<p>
+    <input type="submit" value="Validate" />
+</p>
+
+<%
+    return;
+}
 
 Class cls = null;
 switch (className) {
@@ -54,8 +73,11 @@ if (found != null) {
 }
 
 if (!commit) {
-    out.println("<hr /><p><b>commit=false</b>, not modifying anything</p>");
     myShepherd.rollbackDBTransaction();
+%>
+<hr /><p><b>commit=false</b>, not modifying anything</p>
+<p><a href="?className=<%=className%>&fieldName=<%=fieldName%>&commit=true">Create CustomField</a></p>
+<%
     return;
 }
 
@@ -65,9 +87,9 @@ if (cfd.getMultiple()) {
 } else {
     jdoql += fieldName + " != null";
 }
-jdoql += " RANGE 0,10";
+//jdoql += " RANGE 0,10";  //debugging only
 
-out.println("<p>jdoql = <b>" + jdoql + "</b></p><hr />");
+out.println("<p>jdoql = <b>" + jdoql + "</b></p><hr /><h1>Migrating field values:</h1>");
 
 myShepherd.getPM().makePersistent(cfd);
 
@@ -86,4 +108,4 @@ myShepherd.commitDBTransaction();
 %>
 
 
-
+</body></html>
