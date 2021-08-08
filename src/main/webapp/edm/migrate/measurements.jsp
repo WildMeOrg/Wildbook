@@ -113,7 +113,7 @@ for (Encounter enc : all) {
             ct++;
         }
     }
-    System.out.println("migrateMeasurements.jsp: [" + ect + "/" + all.size() + "] migrated " + ct + " Measurements on " + enc);
+    System.out.println("measurements.jsp: [" + ect + "/" + all.size() + "] migrated " + ct + " Measurements on " + enc);
     ect++;
 }
 

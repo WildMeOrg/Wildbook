@@ -107,7 +107,7 @@ int ct = 1;
 for (ApiCustomFields obj : all) {
     Object val = obj.migrateFieldValue(cfd, field);
     out.println("<p>" + obj + "</p>");
-    System.out.println("migrate.jsp: [" + ct + "/" + all.size() + "] migrated " + cfd + " on " + obj);
+    System.out.println("customFields.jsp: [" + ct + "/" + all.size() + "] migrated " + cfd + " on " + obj);
     ct++;
 }
 

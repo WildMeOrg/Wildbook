@@ -45,8 +45,9 @@ Default time zone is <b><%=tz%></b> (can be overridden with <i>?timeZone=xxx</i>
 <hr />
 <%
 
-String jdoql = "SELECT FROM org.ecocean.Encounter";
+String jdoql = "SELECT FROM org.ecocean.Encounter WHERE time == null ORDER BY id";
 if (!commit) jdoql += " RANGE 0,25";
+
 
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
@@ -54,10 +55,16 @@ List<Encounter> all = new ArrayList<Encounter>(c);
 query.closeAll();
 
 out.println("<ul>");
+int ct = 0;
 for (Encounter enc : all) {
+    ct++;
     ComplexDateTime cdt = enc.deriveComplexDateTime(tz);
     if (cdt == null) continue;
     out.println("<li>" + enc.getCatalogNumber() + " " + enc.getDate() + " => <b>" + cdt + "</b></li>");
+    if (commit) {
+        enc.setTime(cdt);
+        System.out.println("datetime.jsp: [" + ct + "/" + all.size() + "] migrated " + cdt + " on " + enc);
+    }
 }
 out.println("</ul>");
 
@@ -70,9 +77,47 @@ if (!commit) {
     return;
 }
 
-//myShepherd.commitDBTransaction();
+myShepherd.commitDBTransaction();  //persists all encounter data
 
+
+myShepherd.beginDBTransaction();
+
+jdoql = "SELECT FROM org.ecocean.Occurrence WHERE encounters.size() > 0 ORDER BY id";
+//jdoql += " RANGE 0,15";  //debug only
+
+
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<Occurrence> occs = new ArrayList<Occurrence>(c);
+query.closeAll();
+
+out.println("<ul>");
+ct = 0;
+for (Occurrence occ : occs) {
+    ct++;
+    ComplexDateTime st = null;
+    ComplexDateTime et = null;
+    int encNum = 0;
+    for (Encounter enc : occ.getEncounters()) {
+        encNum++;
+        ComplexDateTime enct = enc.getTime();
+        if (enct == null) continue;
+        if ((st == null) || (st.gmtLong() > enct.gmtLong())) st = enct;
+        if ((et == null) || (et.gmtLong() < enct.gmtLong())) et = enct;
+    }
+    if ((st == null) && (et == null)) continue;
+    out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
+    occ.setStartTime(st);
+    occ.setEndTime(et);
+    System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
+}
+
+
+myShepherd.commitDBTransaction();  //persists all occurrence data
+
+myShepherd.closeDBTransaction();
 %>
 
 
+<p>done.</p>
 </body></html>
