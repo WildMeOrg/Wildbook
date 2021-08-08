@@ -275,13 +275,17 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
         time = deriveComplexDateTime();
     }
 
-    public ComplexDateTime deriveComplexDateTime() {  //this attempts to get local timezone, oof!
+    public ComplexDateTime deriveComplexDateTime() {
+        return deriveComplexDateTime(null);
+    }
+
+    public ComplexDateTime deriveComplexDateTime(String fallbackTZ) {  //this attempts to get local timezone, oof!
         Long ms = computeDateInMilliseconds();
         if (ms == null) ms = dateInMilliseconds;  //last-ditch?
         if (ms == null) return null;  //sorry
         String t = Util.millisToIso8601StringNoTimezone(ms);
-        String tz = guessTimeZone();
-System.out.println("deriveComplexDateTime => " + t + " | tz => " + tz);
+        String tz = guessTimeZone(fallbackTZ);
+        SystemLog.debug(this.getId() + ": deriveComplexDateTime => " + t + " | tz => " + tz);
         try {
             return new ComplexDateTime(t, tz);
         } catch (Exception ex) {
@@ -294,17 +298,18 @@ System.out.println("deriveComplexDateTime => " + t + " | tz => " + tz);
     this is available from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     see also:  ZoneId.getAvailableZoneIds()
 */
-    public String guessTimeZone() {
+    public String guessTimeZone(String fallback) {
+        if (fallback == null) fallback = "Z";
         if (locationID == null) locationID = country;  //hail mary
-        if (locationID == null) return "Z";
+        if (locationID == null) return fallback;
         org.json.JSONObject loc = null;
         try {
             loc = LocationID.find(locationID);
         } catch (Exception ex) {
             SystemLog.warn("exception thrown finding LocationID for " + locationID + ": " + ex.toString());
         }
-        if (loc == null) return "Z";
-        return loc.optString("timeZone", "Z");
+        if (loc == null) return fallback;
+        return loc.optString("timeZone", fallback);
     }
     public boolean hasIncompleteTime() {
         return ((day < 1) || (month < 0) || (year < 1000) || (hour < 0) || (minutes == null) || minutes.equals(""));
