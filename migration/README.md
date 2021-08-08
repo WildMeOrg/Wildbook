@@ -29,17 +29,28 @@ Adjust actual postgresql user/hostname/db arguments accordingly for your configu
 Now the EDM can be started, so run tomcat with the appropriate database configuration.  You can confirm the correct EDM is running at the url
 `/edm/json/git-info.json` at the host/port for your EDM.
 
-## Migrating to CustomFields
+## Migrating data
+
+Once the EDM is up, migrating data can be done from the `/edm/migrate/` url.  It will list links to the following:
+
+### DateTime
+
+The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
+[ComplexDateTime](https://github.com/WildMeOrg/Wildbook/blob/next-gen/src/main/java/org/ecocean/ComplexDateTime.java) data type.
+
+### CustomFields
 
 The three major new-world EDM classes (Encounters, Sightings, Individuals) only carry a basic set of properties.  Codex allows for additional
 properties via _CustomFields_ on the EDM objects.  To decide what these will be requires knowledge of what is needed to carry over from
 old world to new.   In this example, we will use a
 [property](https://github.com/WildMeOrg/Wildbook/blob/master/src/main/java/org/ecocean/Occurrence.java#L51)
-on EDM **Occurrence** (new world: _Sighting_) called **individualCount** (an int value).
+on EDM **Occurrence** (new world: _Sighting_) called `individualCount` (an int value).
 
-Go to `/edm/migrate.jsp` and choose the appropriate _class_ and _field_, in this case **Occurrence** and type `individualCount`.
+The link to `/edm/migrate/customFields.jsp` and choose the appropriate _class_ and _field_, in this case **Occurrence** and type `individualCount`.
 Hit _Validate_ button.  You should see output with the suggested contents for the new CustomField.  Verify that its properties are correct,
 especially type ("integer" in this case).
 
-Similarly, use `/edm/migrateMeasurements.jsp` in order to migrate **Measurement** values on **Encounter** data.
+### Measurements
+
+Similarly, use `/edm/migrate/measurements.jsp` in order to migrate **Measurement** values on **Encounter** data to CustomFields.
 

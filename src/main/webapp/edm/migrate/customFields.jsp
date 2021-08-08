@@ -21,7 +21,7 @@ org.ecocean.media.*
 <p>
 This will help migrate non-supported fields to Codex <i>CustomFields</i>.
 <br />
-If you wish to migrate <b>Encounter measurements</b>, please see <a href="migrateMeasurements.jsp">migrateMeasurements</a>.
+If you wish to migrate <b>Encounter measurements</b>, please see <a href="measurements.jsp">measurements.jsp</a>.
 </p>
 <hr />
 
