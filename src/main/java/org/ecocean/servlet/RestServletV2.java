@@ -223,6 +223,7 @@ System.out.println("######>>>>>> payload=" + payload);
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
+                        SystemLog.error("RestServlet.handleGetObject() instance={}", instanceId, ex);
                         throw new IOException("JSONConversion - " + ex.toString());
                     }
                 }
@@ -236,6 +237,7 @@ System.out.println("######>>>>>> payload=" + payload);
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
+                        SystemLog.error("RestServlet.handleGetObject() instance={}", instanceId, ex);
                         throw new IOException("JSONConversion - " + ex.toString());
                     }
                 }
@@ -249,6 +251,7 @@ System.out.println("######>>>>>> payload=" + payload);
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
+                        SystemLog.error("RestServlet.handleGetObject() instance={}", instanceId, ex);
                         throw new IOException("JSONConversion - " + ex.toString());
                     }
                 }
@@ -283,6 +286,7 @@ System.out.println("######>>>>>> payload=" + payload);
                     } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
+                        SystemLog.error("RestServlet.handleGetObject() instance={}", instanceId, ex);
                         throw new IOException("JSONConversion - " + ex.toString());
                     }
                 }

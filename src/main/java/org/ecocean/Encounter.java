@@ -297,7 +297,12 @@ System.out.println("deriveComplexDateTime => " + t + " | tz => " + tz);
     public String guessTimeZone() {
         if (locationID == null) locationID = country;  //hail mary
         if (locationID == null) return "Z";
-        org.json.JSONObject loc = LocationID.find(locationID);
+        org.json.JSONObject loc = null;
+        try {
+            loc = LocationID.find(locationID);
+        } catch (Exception ex) {
+            SystemLog.warn("exception thrown finding LocationID for " + locationID + ": " + ex.toString());
+        }
         if (loc == null) return "Z";
         return loc.optString("timeZone", "Z");
     }
