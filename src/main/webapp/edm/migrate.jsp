@@ -18,6 +18,12 @@ org.ecocean.media.*
     <title>Codex CustomField Migration Helper</title>
 </head>
 <body>
+<p>
+This will help migrate non-supported fields to Codex <i>CustomFields</i>.
+<br />
+If you wish to migrate <b>Encounter measurements</b>, please see <a href="migrateMeasurements.jsp">migrateMeasurements</a>.
+</p>
+<hr />
 
 
 
@@ -76,7 +82,7 @@ if (!commit) {
     myShepherd.rollbackDBTransaction();
 %>
 <hr /><p><b>commit=false</b>, not modifying anything</p>
-<p><a href="?className=<%=className%>&fieldName=<%=fieldName%>&commit=true">Create CustomField</a></p>
+<p><a href="?className=<%=className%>&fieldName=<%=fieldName%>&commit=true">Create CustomField and migrate data</a></p>
 <%
     return;
 }
@@ -97,9 +103,12 @@ Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
 List<ApiCustomFields> all = new ArrayList<ApiCustomFields>(c);
 query.closeAll();
+int ct = 1;
 for (ApiCustomFields obj : all) {
     Object val = obj.migrateFieldValue(cfd, field);
     out.println("<p>" + obj + "</p>");
+    System.out.println("migrate.jsp: [" + ct + "/" + all.size() + "] migrated " + cfd + " on " + obj);
+    ct++;
 }
 
 

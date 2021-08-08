@@ -57,6 +57,14 @@ public class CommonConfiguration {
     return props;
   }
 
+  private static Properties initializeLEGACY(String context) {  //needed for migration  :(
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadPropsLEGACY(context);
+    contextToPropsCache.put(context, props);
+    return props;
+  }
+
+
   // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
   private static Properties initialize(HttpServletRequest request) {
     //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
@@ -91,6 +99,22 @@ public class CommonConfiguration {
         //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
         //props.load(resourceAsStream);
         props=ShepherdProperties.getProperties(COMMON_CONFIGURATION_PROPERTIES, "",context);
+
+      } catch (Exception ioe) {
+        ioe.printStackTrace();
+        //return null;
+      }
+
+    return props;
+  }
+
+  public static synchronized Properties loadPropsLEGACY(String context) {
+      InputStream resourceAsStream = null;
+      Properties props=new Properties();
+      try {
+        //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+        //props.load(resourceAsStream);
+        props=ShepherdProperties.getPropertiesLEGACY(COMMON_CONFIGURATION_PROPERTIES, "",context, null);
 
       } catch (Exception ioe) {
         ioe.printStackTrace();
@@ -662,7 +686,7 @@ public class CommonConfiguration {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;
-    Properties props = initialize(context);
+    Properties props = initializeLEGACY(context);
     while (hasMore) {
       String key = baseKey + index++;
       String value = props.getProperty(key);

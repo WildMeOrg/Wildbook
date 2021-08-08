@@ -24,7 +24,7 @@ Adjust actual postgresql user/hostname/db arguments accordingly for your configu
 
 1. `cat all-in-one.sql | psql -U wildbook -h localhost nextgen`
 
-## EDM Start
+## Start up EDM
 
 Now the EDM can be started, so run tomcat with the appropriate database configuration.  You can confirm the correct EDM is running at the url
 `/edm/json/git-info.json` at the host/port for your EDM.
@@ -40,4 +40,6 @@ on EDM **Occurrence** (new world: _Sighting_) called **individualCount** (an int
 Go to `/edm/migrate.jsp` and choose the appropriate _class_ and _field_, in this case **Occurrence** and type `individualCount`.
 Hit _Validate_ button.  You should see output with the suggested contents for the new CustomField.  Verify that its properties are correct,
 especially type ("integer" in this case).
+
+Similarly, use `/edm/migrateMeasurements.jsp` in order to migrate **Measurement** values on **Encounter** data.
 

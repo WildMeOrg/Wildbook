@@ -267,7 +267,7 @@ public class Util {
     }
     return key;*/
 
-    Properties myProps = ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
+    Properties myProps = ShepherdProperties.getPropertiesLEGACY("commonConfigurationLabels.properties", langCode, context, null);
     return myProps.getProperty(key+".label");
 
 
