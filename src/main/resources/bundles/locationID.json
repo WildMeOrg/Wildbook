@@ -413,7 +413,14 @@
 			 {
 			  "name": "Argentine Sea", "id": "Argentine Sea"  },
 			 {
-			  "name": "Bay of Biscay", "id": "Bay of Biscay" },
+			  "name": "Bay of Biscay", "id": "Bay of Biscay","locationID":[
+			  
+			  
+				{"name": "Cap Breton", "id": "Cap Breton"  }
+			  
+			  
+			  
+			  ] },
 			 {
 			  "name": "Bay of Campeche", "id": "Bay of Campeche" },
 			 {
@@ -478,7 +485,11 @@
 
 			  		{ "name":"Gully MPA", "id":"3", "locationID":[] },
 			 {
-			  "name": "Irish Sea", "id": "Irish Sea" },
+			  "name": "Irish Sea", "id": "Irish Sea", "locationID":[
+			  
+				{"name": "Cardigan Bay", "id": "Cardigan Bay" }
+			  
+			  ] },
 			 {
 			  "name": "Labrador Sea", "id": "Labrador Sea" },
 			 {
