@@ -548,5 +548,19 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
     public boolean isJDODeleted() {
         return JDOHelper.getObjectState(this).equals(ObjectState.PERSISTENT_DELETED);
     }
+
+
+    //basically mean id-equivalent, so deal
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof ApiCustomFields)) return false;
+        ApiCustomFields two = (ApiCustomFields)o2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
+    }
 }
 

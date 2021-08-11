@@ -3165,6 +3165,19 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
       removeAnnotation(indexOfMediaAsset(ma.getId()));
     }
 
+
+    public List<Encounter> findSiblingsFromMediaAssets(Shepherd myShepherd) {
+        List<Encounter> sibs = new ArrayList<Encounter>();
+        for (MediaAsset ma : this.getMedia()) {
+            for (Annotation ann : ma.getAnnotations()) {
+                Encounter enc = ann.findEncounter(myShepherd);
+                if (!this.equals(enc) && !sibs.contains(enc)) sibs.add(enc);
+            }
+        }
+        return sibs;
+    }
+
+
     //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
     public ArrayList<MediaAsset> findAllMediaByFeatureId(Shepherd myShepherd, String[] featureIds) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();

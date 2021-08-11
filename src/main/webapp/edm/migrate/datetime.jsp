@@ -96,20 +96,11 @@ out.println("<ul>");
 ct = 0;
 for (Occurrence occ : occs) {
     ct++;
-    ComplexDateTime st = null;
-    ComplexDateTime et = null;
-    int encNum = 0;
-    for (Encounter enc : occ.getEncounters()) {
-        encNum++;
-        ComplexDateTime enct = enc.getTime();
-        if (enct == null) continue;
-        if ((st == null) || (st.gmtLong() > enct.gmtLong())) st = enct;
-        if ((et == null) || (et.gmtLong() < enct.gmtLong())) et = enct;
-    }
-    if ((st == null) && (et == null)) continue;
+    boolean changed = occ.setTimesFromEncounters();  //no override so wont touch existing values, which would be weird to exist, but...
+    if (!changed) continue;  //nothing to report really
+    ComplexDateTime st = occ.getStartTime();
+    ComplexDateTime et = occ.getEndTime();
     out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
-    occ.setStartTime(st);
-    occ.setEndTime(et);
     System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
 }
 
