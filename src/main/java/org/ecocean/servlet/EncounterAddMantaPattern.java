@@ -26,6 +26,7 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
 import org.ecocean.ActionResult_Encounter;
@@ -474,6 +475,12 @@ public class EncounterAddMantaPattern extends HttpServlet {
 								targetFormat = extension.toUpperCase();  //hope for the best?
 							}
 							write2me = mmFiles.get("CR");
+							
+				            //randomize write2me filename so we support successive writes of CR files from a single MediaAsset (but why?)
+				            File parentFile=write2me.getParentFile();
+				            File crFile=new File(parentFile,Util.generateUUID()+"_"+write2me.getName());
+				            write2me=crFile;
+							
 System.out.println("write2me -> " + write2me.toString());
 
 							if (!crImageFormat.equalsIgnoreCase(targetFormat)) {
@@ -488,10 +495,13 @@ System.out.println("cr format (" + crImageFormat + ") differs from target format
 										g2.drawImage(image, null, null);  //might need bgcolor if ever transparency a problem?   http://stackoverflow.com/a/1545417
 										ImageIO.write(bufferedImage, targetFormat, write2me);
 									} catch (Exception e) {
+										e.printStackTrace();
 										errorMessage = "problem converting/saving image: " + e.toString();
+										System.out.println(errorMessage);
 									}
 								} else {
 									errorMessage = "did not have a valid image reader or image stream";
+									System.out.println(errorMessage);
 								}
 
 							} else {  //formats the same, easy
@@ -506,6 +516,7 @@ System.out.println("A: write2me -> " + write2me.toString());
 
 						if (errorMessage != null) {  //had a problem
 							resultComment.append("error: " + errorMessage);
+							System.out.println("Error message: "+errorMessage);
 
 						} else {
                 //myShepherd.commitDBTransaction();
@@ -543,8 +554,11 @@ System.out.println("A: write2me -> " + write2me.toString());
 // System.out.println("B: write2me -> " + write2me.toString());
 
                 // Set MMA-compatible flag if appropriate.
-                if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
-                  enc.setMmaCompatible(true);
+                //if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+                if (enc != null ) {
+                    
+                
+                enc.setMmaCompatible(true);
 /*
 
 [WB-285]
@@ -577,8 +591,9 @@ System.out.println("D: write2me -> " + write2me.toString());
                     JSONObject params = astore.createParameters(write2me);
 System.out.println("params.get(\"path\") -> " + params.get("path"));
 
-                    boolean alreadyExists = (astore.find(params, myShepherd) != null);
-                    if (!alreadyExists) {
+                  //  boolean alreadyExists = (astore.find(params, myShepherd) != null);
+                   // System.out.println("!!!!!alreadyExists: "+alreadyExists);
+                 //   if (!alreadyExists) {
 
                       MediaAsset crMa = new MediaAsset(astore, params);
                       System.out.println("    + just made media asset w fpath "+crMa.getFilename());
@@ -624,7 +639,7 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       }
                       System.out.println("    + done processing new CR annot");
 
-                    }
+                  //  }
 
                   }
                   myShepherd.commitDBTransaction();
