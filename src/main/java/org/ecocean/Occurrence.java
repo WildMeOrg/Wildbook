@@ -589,6 +589,33 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public String getLocationId() {
         return locationId;
     }
+
+    public boolean setLocationIdFromEncounters() {
+        return setLocationIdFromEncounters(false);
+    }
+    //override means set even if already has a value
+    public boolean setLocationIdFromEncounters(boolean override) {
+        if (!override && (this.locationId != null)) {
+            SystemLog.debug("setLocationIdFromEncounters() not setting due to existing value and no override");
+            return false;
+        }
+        if (Util.collectionIsEmptyOrNull(this.encounters)) return false;
+        String common = null;
+        for (Encounter enc : this.encounters) {
+            String loc = enc.getLocationId();
+            if (loc == null) continue;
+            if (common == null) {
+                common = loc;
+            } else if (!loc.equals(common)) {
+                SystemLog.debug("setLocationIdFromEncounters() non-consistent locationIds found: " + loc + ", " + common + "; giving up");
+                return false;
+            }
+        }
+        if (common == null) return false;
+        this.setLocationId(common);
+        return true;
+    }
+
     public void setVerbatimLocality(String vl) {
         verbatimLocality = vl;
     }
