@@ -209,6 +209,30 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return endTime;
     }
 
+    public void setTimesFromEncounters() {
+        return setTimesFromEncounters(false);
+    }
+    //override means set even if already has values
+    public boolean setTimesFromEncounters(boolean override) {
+        if (!override && ((this.startTime != null) || (this.endTime != null))) {
+            SystemLog.debug("setTimesFromEncounters() not setting due to existing value(s) and no override");
+            return false;
+        }
+        if (Util.collectionIsEmptyOrNull(this.encounters)) return false;
+        ComplexDateTime st = null;
+        ComplexDateTime et = null;
+        for (Encounter enc : this.encounters) {
+            ComplexDateTime enct = enc.getTime();
+            if (enct == null) continue;
+            if ((st == null) || (st.gmtLong() > enct.gmtLong())) st = enct;
+            if ((et == null) || (et.gmtLong() < enct.gmtLong())) et = enct;
+        }
+        if ((st == null) && (et == null)) return false;
+        occ.setStartTime(st);
+        occ.setEndTime(et);
+        return true;
+    }
+
     private void _validateStartEndTimes() {
         if (this.startTime == null) throw new ApiValueException("startTime must have a value", "startTime");
         if (this.endTime == null) return;
