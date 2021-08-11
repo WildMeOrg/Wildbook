@@ -47,6 +47,10 @@ Using the EDM, migrating data can be done from the `/edm/migrate/` url.  It will
 The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
 [ComplexDateTime](https://github.com/WildMeOrg/Wildbook/blob/next-gen/src/main/java/org/ecocean/ComplexDateTime.java) data type.
 
+### Occurrence / Sightings
+
+`/edm/migrate/occurs.jsp` will generate Sightings for Encounters that have none.
+
 ### CustomFields
 
 The three major new-world EDM classes (Encounters, Sightings, Individuals) only carry a basic set of properties.  Codex allows for additional

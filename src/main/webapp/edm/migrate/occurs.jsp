@@ -33,7 +33,7 @@ public static String showOcc(Occurrence occ) {
 </head>
 <body>
 <p>
-This will build out Occurrence (Sightings) for Encounters which do not have any.
+This will build out Occurrences (Sightings) for Encounters which do not have any.
 </p>
 <hr />
 
@@ -41,7 +41,7 @@ This will build out Occurrence (Sightings) for Encounters which do not have any.
 <%
 
 
-String sql = "SELECT * FROM \"ENCOUNTER\" WHERE \"ID\" NOT IN (SELECT \"ID_EID\" FROM \"OCCURRENCE_ENCOUNTERS\") ORDER BY \"ID\" LIMIT 50;";
+String sql = "SELECT * FROM \"ENCOUNTER\" WHERE \"ID\" NOT IN (SELECT \"ID_EID\" FROM \"OCCURRENCE_ENCOUNTERS\") ORDER BY \"ID\";";
 
 String context = "context0";
 Shepherd myShepherd = new Shepherd(context);
@@ -64,7 +64,9 @@ if (!commit) {
     return;
 }
 
+int ct = 0;
 for (Encounter enc : all) {
+    ct++;
     Occurrence existOcc = myShepherd.getOccurrence(enc);
     if (existOcc != null) {
         out.println("<p class=\"muted\">" + enc + " already has " + existOcc + "</p>");
@@ -83,9 +85,10 @@ for (Encounter enc : all) {
     myShepherd.getPM().makePersistent(occ);
 
     out.println("<p>" + enc.getId() + ": <b>" + showOcc(occ) + "</b>" + ((sibs.size() == 0) ? "" : " (+ " + sibs.size() + " sib encs)") + "</p>");
+    System.out.println("occurs.jsp [" + ct + "/" + all.size()+ "] created: " + occ + " via " + enc);
 }
 
-myShepherd.rollbackDBTransaction();
+myShepherd.commitDBTransaction();
 
 %>
 
