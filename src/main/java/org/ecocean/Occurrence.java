@@ -209,7 +209,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return endTime;
     }
 
-    public void setTimesFromEncounters() {
+    public boolean setTimesFromEncounters() {
         return setTimesFromEncounters(false);
     }
     //override means set even if already has values
@@ -228,8 +228,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             if ((et == null) || (et.gmtLong() < enct.gmtLong())) et = enct;
         }
         if ((st == null) && (et == null)) return false;
-        occ.setStartTime(st);
-        occ.setEndTime(et);
+        this.setStartTime(st);
+        this.setEndTime(et);
         return true;
     }
 
