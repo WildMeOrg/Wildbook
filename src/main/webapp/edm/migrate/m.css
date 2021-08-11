@@ -1,0 +1,21 @@
+.code, .code-block {
+    font-family: fixed, courier;
+    font-weight: none !important;
+    font-style: normal !important;
+    font-size: 0.8em;
+    padding: 1px 3px;
+    background-color: rgba(0,0,0,0.1);
+}
+
+div.code-block {
+    margin: 1.5em 3em;
+    padding: 0.5em 1em;
+    display: inline-block;
+}
+
+.error {
+    color: #F20;
+}
+
+.important {
+}

@@ -29,9 +29,18 @@ Adjust actual postgresql user/hostname/db arguments accordingly for your configu
 Now the EDM can be started, so run tomcat with the appropriate database configuration.  You can confirm the correct EDM is running at the url
 `/edm/json/git-info.json` at the host/port for your EDM.
 
-## Migrating data
+## Migrating data (via houston tasks)
 
-Once the EDM is up, migrating data can be done from the `/edm/migrate/` url.  It will list links to the following:
+Once the EDM is up, some data can be migrated using houston tasks.  The first should be migrating users.
+
+### Users
+
+`# invoke app.users.sync-edm` should migrate all historical users from EDM to houston.
+
+
+## Migrating data (via EDM urls)
+
+Using the EDM, migrating data can be done from the `/edm/migrate/` url.  It will list links to the following:
 
 ### DateTime
 

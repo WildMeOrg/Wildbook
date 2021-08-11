@@ -16,6 +16,7 @@ org.ecocean.media.*
 %><html>
 <head>
     <title>Codex CustomField Migration Helper</title>
+    <link rel="stylesheet" href="m.css" />
 </head>
 <body>
 <p>

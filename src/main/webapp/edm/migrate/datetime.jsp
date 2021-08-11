@@ -16,6 +16,7 @@ org.ecocean.media.*
 %><html>
 <head>
     <title>Codex Date/Time Migration Helper</title>
+    <link rel="stylesheet" href="m.css" />
 </head>
 <body>
 <p>
@@ -36,11 +37,11 @@ myShepherd.beginDBTransaction();
 
 %>
 <p>
-Note: in order to best support <b>time zones</b>, you should have added <i>timeZone</i> values to <b>LocationID.json</b> data,
+Note: in order to best support <b>time zones</b>, you should have added <i class="code">timeZone</i> values to <b>LocationID.json</b> data,
 otherwise all times will be converted using a universal time zone.
 </p>
 <p>
-Default time zone is <b><%=tz%></b> (can be overridden with <i>?timeZone=xxx</i> in url).
+Default time zone is <b><%=tz%></b> (can be overridden with <i class="code">?timeZone=xxx</i> in url).
 </p>
 <hr />
 <%
