@@ -465,7 +465,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	icon:"../images/favicon.png" 
                     }
 
-         });
+         }); 
 
 		
 	
