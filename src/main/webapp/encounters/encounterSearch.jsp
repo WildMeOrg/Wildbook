@@ -462,7 +462,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     markerOptions: {
                     	flat:true,
                     	clickable:true,
-                    	icon:"../images/favicon.ico" 
+                    	icon:"../images/favicon.png" 
                     }
 
          });
