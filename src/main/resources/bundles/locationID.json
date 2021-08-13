@@ -200,7 +200,14 @@
 			"geospatialInfo":{
 	 			 	"lat":-30,
 	 			 	"long":25
- 			 }
+ 			 },
+			 "locationID":[
+				 {
+ 					"name": "Kariega Game Reserve",
+ 					"id": "Kariega Game Reserve",
+ 					"description": "Kariega Game Reserve",
+ 				}
+			 ]
 			},
 		{
 			"name": "Tanzania",
