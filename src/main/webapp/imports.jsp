@@ -332,7 +332,7 @@ try{
 	int numDetectionComplete=0;
 	for(MediaAsset asset:allAssets){
 		if(asset.getAcmId()!=null)numWithACMID++;
-		if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete"))||asset.getDetectionStatus().equals("pending")) numDetectionComplete++;
+		if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 	}
 	%>
 	<p>
