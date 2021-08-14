@@ -13,6 +13,7 @@ java.util.ArrayList,
 java.util.Iterator,
 org.ecocean.security.Collaboration,
 java.util.HashMap,
+org.ecocean.ia.Task,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -208,7 +209,7 @@ if (itask == null) {
     }	
     out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
+    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images","Match Results"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -241,6 +242,7 @@ if (itask == null) {
     List<String> allIndies = new ArrayList<String>();
     int numIA = 0;
     int numAnnotations=0;
+    int numMatchAgainst=0;
     boolean foundChildren = false;
 
     HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
@@ -292,6 +294,7 @@ if (itask == null) {
         }
         
         //let's do some annotation tabulation
+        ArrayList<Task> tasks=new ArrayList<Task>();
         for(Annotation annot:enc.getAnnotations()){
         	String viewpoint="null";
         	String iaClass="null";
@@ -309,7 +312,28 @@ if (itask == null) {
         		annotsMap.put(thisMap,numInts);
         		numAnnotations++;
         	}
+        	if(annot.getMatchAgainst())numMatchAgainst++;
+        	
+        	//let's look for match results we can easily link for the user
+        	List<Task> relatedTasks = Task.getRootTasksFor(annot, myShepherd);
+        	if(relatedTasks!=null && relatedTasks.size()>0){
+        		for(Task task:relatedTasks){
+        			if(!tasks.contains(task)){tasks.add(task);}
+        		}
+        	}		
+        	
         }
+        
+        out.println("<td>");
+        if(tasks.size()>0){
+        	out.println("     <ul>");
+        	for(Task task:tasks){
+        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >link</a></ul>");
+        	}
+        	out.println("     </ul>");
+        	
+        }			
+        out.println("</td>");
 
         out.println("</tr>");
         
@@ -342,7 +366,7 @@ try{
 		<li>Number that have completed detection: <%=numDetectionComplete %></li>
 	</ul>
 </p>
-<p>Total annotations: <%=numAnnotations %>
+<p>Total annotations: <%=numAnnotations %> (<%=numMatchAgainst %> matchable)
 	<ul>
 		<%
 		Set<HashMap<String,String>> annotSet=annotsMap.keySet();
