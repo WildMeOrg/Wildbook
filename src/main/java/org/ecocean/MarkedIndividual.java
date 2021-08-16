@@ -174,7 +174,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getId() {
         return individualID;
     }
-    
+
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
@@ -201,7 +201,7 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getDisplayName(Object keyHint, HttpServletRequest request, Shepherd myShepherd) {
         if (names == null) return null;
 
-        //if you have a specific preferred context and have a request/shepherd, we look for that first 
+        //if you have a specific preferred context and have a request/shepherd, we look for that first
         if (request!=null&&request.getUserPrincipal()!=null) {
           String context = ServletUtilities.getContext(request);
           // hopefully the call was able to provide an existing shepherd, but we have to make one if not
@@ -225,10 +225,10 @@ public class MarkedIndividual implements java.io.Serializable {
                   return getDisplayName(project.getProjectIdPrefix());
                 }
               }
-            } 
+            }
           } catch (Exception e) {
             if (nameShepherd!=null) {
-              nameShepherd.rollbackAndClose();            
+              nameShepherd.rollbackAndClose();
             }
           } finally {
             if (newShepherd) nameShepherd.rollbackAndClose();
@@ -2430,8 +2430,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords, Shepherd myShepherd) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    //Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    //myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
@@ -2690,7 +2688,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       }
       this.names.merge(other.getNames());
       this.setComments(getMergedComments(other, username));
-      
+
       //WB-951: merge relationships
       ArrayList<Relationship> rels=myShepherd.getAllRelationshipsForMarkedIndividual(other.getIndividualID());
       if(rels!=null && rels.size()>0) {
@@ -2707,7 +2705,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           }
         }
       }
-      
+
       //WB-951: merge social units
       List<SocialUnit> units=myShepherd.getAllSocialUnitsForMarkedIndividual(other);
       if(units!=null && units.size()>0) {
@@ -2718,7 +2716,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           myShepherd.updateDBTransaction();
         }
       }
-      
+
       //check for a ScheduledIndividualMerge that may have other
       String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
       Query q=myShepherd.getPM().newQuery(filter);
@@ -2729,8 +2727,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         myShepherd.getPM().deletePersistent(merge);
         myShepherd.updateDBTransaction();
       }
-      
-      
+
+
       refreshDependentProperties();
     }
 
@@ -2751,7 +2749,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       mergedComments += "</ul>]";
 
       mergedComments += "Merged on "+Util.prettyTimeStamp();
-      
+
       if (username!=null) mergedComments += " by "+ username;
       else mergedComments += " No user was logged in.";
 
