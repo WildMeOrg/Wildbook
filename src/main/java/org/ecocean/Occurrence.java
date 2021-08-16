@@ -243,13 +243,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     if(encounters==null){encounters=new ArrayList<Encounter>();}
 
     //prevent duplicate addition
+    if (this.encounters.contains(enc)) return false;
     boolean isNew=true;
-    for(int i=0;i<encounters.size();i++) {
-      Encounter tempEnc=(Encounter)encounters.get(i);
-      if(tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
-        return false;
-      }
-    }
     setVersion();
     if(isNew){
       encounters.add(enc);
@@ -268,6 +263,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
   // like addEncounter but adds backwards link to this enc
   public void addEncounterAndUpdateIt(Encounter enc){
+    if (enc == null) return;
     addEncounter(enc);
     enc.setOccurrenceID(this.getOccurrenceID());
     setVersion();
