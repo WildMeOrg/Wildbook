@@ -155,6 +155,7 @@ public class StartupWildbook implements ServletContextListener {
         initAdminUser(context);
         if (context != null) {
             System.out.println("- SKIPPED initialization because of next-gen");
+            System.out.println("- SystemInfo: " + Util.getSystemInfoJSONObject(null).toString());
             return;
         }
         if (skipInit(sce, null)) {
