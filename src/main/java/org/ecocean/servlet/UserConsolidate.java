@@ -29,11 +29,13 @@
  import java.util.Random;
  import org.ecocean.*;
  import org.ecocean.servlet.*;
+ import java.util.LinkedList;
  // import javax.jdo.Query;
  import javax.jdo.*;
  import org.json.JSONArray;
  import org.json.JSONObject;
  import org.json.JSONException;
+ import org.joda.time.DateTime;
 
 public class UserConsolidate extends HttpServlet {
 
@@ -90,6 +92,62 @@ public class UserConsolidate extends HttpServlet {
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
     System.out.println("dedupe ......consolidation complete");
+  }
+
+  public static void consolidateUserForUserEdit(Shepherd myShepherd, User userToRetain,
+      User userToBeConsolidated) { //same as consolidateUser, except it doesn't change roles
+    System.out
+        .println("dedupe consolidateUserForUserEdit user " + userToBeConsolidated.toString()
+            + " into user " + userToRetain.toString());
+
+    List<Encounter> photographerEncounters = getPhotographerEncountersForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (photographerEncounters != null && photographerEncounters.size() > 0) {
+      for (int j = 0; j < photographerEncounters.size(); j++) {
+        Encounter currentEncounter = photographerEncounters.get(j);
+        consolidatePhotographers(myShepherd, currentEncounter, userToRetain,
+            userToBeConsolidated);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+    List<Encounter> submitterEncounters = getSubmitterEncountersForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (submitterEncounters != null && submitterEncounters.size() > 0) {
+      for (int k = 0; k < submitterEncounters.size(); k++) {
+        Encounter currentEncounter = submitterEncounters.get(k);
+        consolidateEncounterSubmitters(myShepherd, currentEncounter,
+            userToRetain, userToBeConsolidated);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
+    List<Occurrence> submitterOccurrences = getOccurrencesForUser(
+        myShepherd.getPM(), userToBeConsolidated);
+    if (submitterOccurrences != null && submitterOccurrences.size() > 0) {
+      for (int j = 0; j < submitterOccurrences.size(); j++) {
+        Occurrence currentOccurrence = submitterOccurrences.get(j);
+        if (currentOccurrence != null) {
+          consolidateOccurrenceData(myShepherd, currentOccurrence, userToRetain,
+              userToBeConsolidated);
+        }
+      }
+    }
+    consolidateEncounterSubmitterIds(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateEncounterInformOthers(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateImportTaskCreator(myShepherd, userToRetain,
+        userToBeConsolidated);
+    consolidateCollaborations(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateProjects(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
+    // Note: we made the executive decision to not include AccessControl. Might
+    // affect just a handfull of flukebook uers. JVO agrees. -MF
+
+    myShepherd.getPM().deletePersistent(userToBeConsolidated);
+    myShepherd.updateDBTransaction();
+    System.out.println("dedupe ......consolidateUserForUserEdit complete");
   }
 
   public static void consolidateOrganizations(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
@@ -549,7 +607,7 @@ public class UserConsolidate extends HttpServlet {
       }
       if(queryList!=null && queryList.size()>0){
         for(String currentQuery: queryList){
-          System.out.println("query in getOccurrencesForUser is: " + currentQuery);
+          // System.out.println("query in getOccurrencesForUser is: " + currentQuery);
           Query query=persistenceManager.newQuery(currentQuery);
           Collection c = (Collection) (query.execute());
           if(c!=null){
@@ -581,21 +639,212 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public static List<User> getUsersWithMissingUsernamesWhoMatchEmail(PersistenceManager persistenceManager, String emailAddress){
-    List<User> usernamelessUsers=new ArrayList<User>();
-    if(!"".equals(emailAddress) && emailAddress!=null){
-      String filter="SELECT FROM org.ecocean.User where \"" + emailAddress + "\"==this.emailAddress && this.username==null || this.username==\"N/A\" ";
-      Query query=persistenceManager.newQuery(filter);
+  public static JSONObject suspendLessCredentialedAccounts(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
+    returnJson.put("success", false);
+    int suspensionCount = 0;
+    List<User> allUsers = myShepherd.getAllUsers();
+    int totalNumberOfUsers = allUsers.size();
+    PersistenceManager persistenceManager = myShepherd.getPM();
+    List<User> matchingUserCohort = new ArrayList<User>();
+    for(User currentUser: allUsers){
+      if(currentUser!=null && currentUser.getEmailAddress()!=null){
+        //for each user, find other users with matching email addresses but non-matching, non-null usernames
+        matchingUserCohort = getAllUsersWithEmailAddressWithOptAdditionalFilter(currentUser.getEmailAddress(), persistenceManager, " && username!=null && uuid!=\'" + currentUser.getUUID() + "\'");
+        //including the currentUser, find highestCredentialedUser from the list
+        matchingUserCohort.add(currentUser);
+        User highestCredentialedMatch = getHighestCredentialedUserInList(matchingUserCohort, myShepherd);
+        //for the others on the list without that uuid, change their email address to uuid@localhost
+        for(User currentMatchingUserCohortMember: matchingUserCohort){
+          if(currentMatchingUserCohortMember.getUUID() != highestCredentialedMatch.getUUID()){
+            currentMatchingUserCohortMember.setEmailAddress(currentMatchingUserCohortMember.getUUID() + "@localhost");
+            System.out.println("dedupe suspending user " + currentMatchingUserCohortMember.toString() + " by setting their email address to " + currentMatchingUserCohortMember.getUUID() + "@localhost");
+            System.out.println("dedupe the one not getting suspended is: " + highestCredentialedMatch.toString());
+            suspensionCount ++;
+          }
+        }
+      }
+    }
+    returnJson.put("totalNumberOfUsers", totalNumberOfUsers);
+    returnJson.put("numberOfAccountsSuspended", suspensionCount);
+    returnJson.put("success", true);
+    return returnJson;
+  }
+
+  public static JSONObject consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(Shepherd myShepherd){
+    JSONObject returnJson = new JSONObject();
+    returnJson.put("success", false);
+    //find users with email addresses but no usernames
+    List<User> usernamelessUsers = new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE emailAddress!=null && username==null";
+    PersistenceManager persistenceManager = myShepherd.getPM();
+    Query query = persistenceManager.newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      usernamelessUsers=new ArrayList<User>(c);
+    }
+    if(usernamelessUsers != null && usernamelessUsers.size()>0){
+      JSONArray consolidatedIncompleteUsers = new JSONArray();
+      for(User currentUsernamelessUser: usernamelessUsers){
+        //find similar user(s) with same email address but with a username
+        List<User> similarUsers = getOtherUsersWithMatchingEmailAddress(currentUsernamelessUser, persistenceManager);
+        if(similarUsers != null && similarUsers.size()>0){
+          //find the user in that list with the highest credentials
+          User highestCredentialedMatch = getHighestCredentialedUserInList(similarUsers, myShepherd);
+          if(highestCredentialedMatch != null){
+            //consolidate the currentUser into the found high-credential user
+            System.out.println("dedupe about to consolidate usernameless user: " + currentUsernamelessUser.toString() + " with highestCredentialedMatch: " + highestCredentialedMatch.toString());
+            // returnJson.put("numEncountersBeforeConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            returnJson.put(currentUsernamelessUser.getUUID(), "username: " + currentUsernamelessUser.getUsername() + " being consolidated into user: " + highestCredentialedMatch.getUUID() + " with username: " + highestCredentialedMatch.getUsername());
+            consolidateUser(myShepherd, highestCredentialedMatch, currentUsernamelessUser);
+            // returnJson.put("numEncountersAfterConsolidation", getNumberEncountersUsingSubmitterId(currentUsernamelessUser, persistenceManager));
+            JSONObject currentConsolidatedUserJson = new JSONObject();
+            currentConsolidatedUserJson.put("uuid",currentUsernamelessUser.getUUID());
+            currentConsolidatedUserJson.put("username", currentUsernamelessUser.getUsername());
+            currentConsolidatedUserJson.put("into_uuid",highestCredentialedMatch.getUUID());
+            currentConsolidatedUserJson.put("into_username", highestCredentialedMatch.getUsername());
+            consolidatedIncompleteUsers.put(currentConsolidatedUserJson);
+          }
+        }
+      }
+      returnJson.put("conslidatedUsers", consolidatedIncompleteUsers);
+    } else{
+      System.out.println("dedupe ack there were no users in this list");
+      returnJson.put("success", true);
+      return returnJson;
+    }
+    returnJson.put("success", true);
+    return returnJson;
+  }
+
+  public static List<User> getOtherUsersWithMatchingEmailAddress(User focalUser, PersistenceManager persistenceManager){ // now a wrapper method
+    if(focalUser == null || focalUser.getUUID() == null || focalUser.getEmailAddress() == null) return null;
+    return getAllUsersWithEmailAddressWithOptAdditionalFilter(focalUser.getEmailAddress(), persistenceManager, "&& this.uuid!=\'" + focalUser.getUUID() + "\'");
+  }
+
+  public static User getHighestCredentialedUserInList(List<User> candidateUsers, Shepherd myShepherd){
+    if(candidateUsers == null) return null;
+    if(candidateUsers.size() <1 ) return null;
+    User currentBestCandidate = candidateUsers.get(0);
+    PersistenceManager persistenceManager = myShepherd.getPM();
+    for (User currentCandidate: candidateUsers){
+      if(hasHigherRoleThan(currentCandidate,currentBestCandidate, myShepherd)){
+        currentBestCandidate = currentCandidate;
+        continue;
+      } else{
+        if(hasMoreEncountersThan(currentCandidate, currentBestCandidate, persistenceManager)){
+          currentBestCandidate = currentCandidate;
+          continue;
+        }else{
+          if(hasSignedInMoreRecentlyThan(currentCandidate, currentBestCandidate)){
+            currentBestCandidate = currentCandidate;
+            continue;
+          }
+        }
+      }
+    }
+    return currentBestCandidate;
+  }
+
+  public static boolean hasHigherRoleThan(User userA, User userB, Shepherd myShepherd){ //note this will return true for instance if user a has roles[admin, orgAdmin, researcher] and user b only has roles [admin, orgAdmin].
+    if(userA == null || userB == null || userA.getUsername() == null || userB.getUsername() == null) return false;
+    List<Role> aRoles = myShepherd.getAllRolesForUserInContext(userA.getUsername(), myShepherd.getContext());
+    List<String> aRoleNames = new ArrayList<String>();
+    for(Role currentRole: aRoles){
+      aRoleNames.add(currentRole.getRolename());
+    }
+    List<Role> bRoles = myShepherd.getAllRolesForUserInContext(userB.getUsername(), myShepherd.getContext());
+    List<String> bRoleNames = new ArrayList<String>();
+    for(Role currentRole: bRoles){
+      bRoleNames.add(currentRole.getRolename());
+    }
+    List<String> roleHierarchy = new LinkedList<String>(); //ArrayBlockingQueue because of enforce FIFO structure
+    roleHierarchy.add("admin"); //don't know how to make this anything but hard-coded, highest-in-hierarchy first
+    roleHierarchy.add("orgAdmin");
+    roleHierarchy.add("researcher");
+    roleHierarchy.add("rest");
+    roleHierarchy.add("machinelearning");
+    for(String currentRoleBeingChecked: roleHierarchy){
+      if(aRoleNames.contains(currentRoleBeingChecked) && !bRoleNames.contains(currentRoleBeingChecked)){
+        return true;
+      }
+      if(bRoleNames.contains(currentRoleBeingChecked) && !aRoleNames.contains(currentRoleBeingChecked)){
+        return false;
+      }
+    }
+    return false;
+  }
+
+  public static boolean hasMoreEncountersThan(User userA, User userB, PersistenceManager persistenceManager){
+    int sizeA = -1;
+    int sizeB = -1;
+    if(userA == null || userB == null || (userA.getUsername() == null && userB.getUsername() == null)){
+      return false; //if it's indeterminable, it's false
+    }
+    if(userA.getUsername() != null){
+      sizeA = getNumberEncountersUsingSubmitterId(userA, persistenceManager);
+    }
+    if(userB.getUsername() != null){
+      sizeB = getNumberEncountersUsingSubmitterId(userB, persistenceManager);
+    }
+    if(sizeA > sizeB){
+      return true;
+    }
+    return false;
+  }
+
+  public static int getNumberEncountersUsingSubmitterId(User user, PersistenceManager persistenceManager){
+    int size = -1;
+    if(user == null || user.getUsername() == null){
+      return size; //if it's indeterminable, it's false
+    } else{
+      String filter="SELECT FROM org.ecocean.Encounter where this.submitterID==\"" + user.getUsername() + "\""; //don't check using email address because you are using this in an effort to deduplicate accounts with matching email addresses.
+      List<Encounter> encs=new ArrayList<Encounter>();
+      Query query = persistenceManager.newQuery(filter);
       Collection c = (Collection) (query.execute());
       if(c!=null){
-        usernamelessUsers=new ArrayList<User>(c);
-        for(int i=0; i<usernamelessUsers.size(); i++){
-          User currentUser = usernamelessUsers.get(i);
+        encs=new ArrayList<Encounter>(c);
+        if(encs != null){
+          size = encs.size();
         }
       }
       query.closeAll();
     }
-    return usernamelessUsers;
+    return size;
+  }
+
+  public static boolean hasSignedInMoreRecentlyThan(User userA, User userB){
+    long lastLoginA = -1;
+    long lastLoginB = -1;
+    if(userA == null || userB == null || (userA.getUsername() == null && userB.getUsername() == null)) return false;
+    lastLoginA = userA.getLastLogin();
+    lastLoginB = userB.getLastLogin();
+    DateTime lastLoginADate = new DateTime(lastLoginA);
+    DateTime lastLoginBDate = new DateTime(lastLoginB);
+    if(lastLoginADate.compareTo(lastLoginBDate) >0){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  public static List<User> getAllUsersWithEmailAddressWithOptAdditionalFilter(String emailAddress, PersistenceManager persistenceManager, String additionalFilter){
+    List<User> returnUsers=new ArrayList<User>();
+    if(!"".equals(emailAddress) && emailAddress!=null){
+      String filter = null;
+      if(additionalFilter != null){
+        filter="SELECT FROM org.ecocean.User where this.emailAddress.toLowerCase()==emailVal " + additionalFilter + " PARAMETERS String emailVal";
+      }else{
+        filter="SELECT FROM org.ecocean.User where this.emailAddress.toLowerCase()==emailVal  PARAMETERS String emailVal";
+      }
+      Query query = persistenceManager.newQuery(filter);
+      Collection c = (Collection) (query.execute(emailAddress.toLowerCase())); //note for posterity: trying this query with ?1 variables or named variables was not successful.
+      if(c!=null){
+        returnUsers=new ArrayList<User>(c);
+      }
+      query.closeAll();
+    }
+    return returnUsers;
   }
 
 
@@ -713,6 +962,177 @@ public class UserConsolidate extends HttpServlet {
     JSONObject returnJson = new JSONObject();
     JSONArray userJsonArr = new JSONArray();
     JSONObject jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
+
+    //for automated user reconciliation
+    //consolidate less complete accounts
+    JSONObject consolidateLessCompleteAccountsResultsJson = new JSONObject();
+    consolidateLessCompleteAccountsResultsJson.put("success", false);
+    try{
+      Boolean dedupeLessCompleteDesired = jsonRes.optBoolean("dedupeLessCompleteDesired", false);
+      if(dedupeLessCompleteDesired){
+        consolidateLessCompleteAccountsResultsJson = consolidateLessCompleteUsersWithTheirMoreCompleteCounterParts(myShepherd);
+      }
+      consolidateLessCompleteAccountsResultsJson.put("success", true);
+    } catch (Exception e) {
+        System.out.println("dedupe exception e while getting or consolidating users with less complete accounts.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or consolidating users with less complete accounts.");
+    } finally {
+        System.out.println("dedupe closing ajax call for user consolidate with less complete accounts transaction.....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("consolidateLessCompleteAccountsResultsJson", consolidateLessCompleteAccountsResultsJson);
+    }
+
+    //suspend lower-credentialed acccounts with matching email addresses and non-null usernames
+    JSONObject suspendLowerCredAccountsResultsJson = new JSONObject();
+    suspendLowerCredAccountsResultsJson.put("success", false);
+    try{
+      int suspendedUserCount = 0;
+      Boolean suspendLessCredentialedDesired = jsonRes.optBoolean("suspendLessCredentialedDesired", false);
+      if(suspendLessCredentialedDesired){
+        suspendLowerCredAccountsResultsJson = suspendLessCredentialedAccounts(myShepherd);
+      }
+      suspendLowerCredAccountsResultsJson.put("success", true);
+    } catch (Exception e) {
+      System.out.println("dedupe exception while suspending less-credentialed user accounts.");
+      e.printStackTrace();
+      addErrorMessage(returnJson, "UserConsolidate: Exception while suspending less-credentialed user accounts.");
+    } finally {
+      System.out.println("dedupe closing ajax call for suspending less-credentialed user accounts transaction.....");
+      myShepherd.updateDBTransaction();
+      returnJson.put("suspendLowerCredAccountsResultsJson", suspendLowerCredAccountsResultsJson);
+    }
+
+    //assign orphaned encounters to Public user
+    JSONObject makeEncountersMissingSubmittersPublicJsonResults = new JSONObject();
+    makeEncountersMissingSubmittersPublicJsonResults.put("success", false);
+    try{
+      Boolean assignOrphanedEncountersToPublicDesired = jsonRes.optBoolean("assignOrphanedEncountersToPublicDesired", false);
+      if(assignOrphanedEncountersToPublicDesired){
+        //if there's not a user named Public with email address public@wildme.org, create one
+        User publicUser = myShepherd.getUser("public");
+        if(publicUser == null){
+          //make it
+          String publicUserName = "public";
+          String publicUserEmail = "public@wildme.org";
+          String publicFullName = "Public";
+          String salt = ServletUtilities.getSalt().toHex();
+          String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt); //admins can change this later
+          publicUser = new User(publicUserName, hashedPassword, salt);
+          publicUser.setEmailAddress(publicUserEmail);
+          publicUser.setFullName(publicFullName);
+          myShepherd.getPM().makePersistent(publicUser);
+          myShepherd.updateDBTransaction();
+
+        }
+        //find all encounters where submitterID is null or "N/A" and change to Public
+        makeEncountersMissingSubmittersPublicJsonResults = EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
+        myShepherd.updateDBTransaction();
+      }
+      makeEncountersMissingSubmittersPublicJsonResults.put("success", true);
+    } catch (Exception e) {
+        System.out.println("dedupe exception while assigning encounters with submitterIDs of null or N/A to the public user");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning encounters with submitterIDs of null or N/A to the public user.");
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning encounters with submitterIDs of null or N/A to the public user.....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("makeEncountersMissingSubmittersPublicJsonResults", makeEncountersMissingSubmittersPublicJsonResults);
+    }
+
+
+    //assign usernameless users to Anonymous
+    JSONObject assignUsernamelessToAnonymousJsonResults = new JSONObject();
+    assignUsernamelessToAnonymousJsonResults.put("success", false);
+    try{
+      int usernamelessCount = 0;
+      Boolean renameUsernamelessToAnonymousDesired = jsonRes.optBoolean("renameUsernamelessToAnonymousDesired", false);
+      if(renameUsernamelessToAnonymousDesired){
+        List<User> usernamelessUsers = new ArrayList<User>();
+        usernamelessUsers = findUsersWithNonNullEmailAddressesAndNoUsername(myShepherd);
+        if(usernamelessUsers != null && usernamelessUsers.size() > 0){
+          //for each of them, change the username and update
+          for(User currentUser: usernamelessUsers){
+            System.out.println("dedupe assigning Anonymous_+uuid to user: " + currentUser.getUUID());
+            currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            usernamelessCount ++;
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+      assignUsernamelessToAnonymousJsonResults.put("usernamelessCount", usernamelessCount);
+      assignUsernamelessToAnonymousJsonResults.put("success", true);
+    } catch (Exception e) {
+        System.out.println("dedupe exception while renaming usernameless non null email users to anonymous_+uuid.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while renaming usernameless non null email users to anonymous_+uuid.");
+    } finally {
+        System.out.println("dedupe closing ajax call for renaming usernameless non null email users to anonymous_+uuid.....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignUsernamelessToAnonymousJsonResults", assignUsernamelessToAnonymousJsonResults);
+    }
+
+    //assign emailless or invalid emails to uuid@localhost
+    JSONObject assignEmaillessOrInvalidEmailAddressesJsonResults = new JSONObject();
+    assignEmaillessOrInvalidEmailAddressesJsonResults.put("success", false);
+    try{
+      int emailProblemUserCount = 0;
+      Boolean suspendEmaillessOrInvalidEmailDesired = jsonRes.optBoolean("suspendEmaillessOrInvalidEmailDesired", false);
+      if(suspendEmaillessOrInvalidEmailDesired){
+        List<User> emailProblemUsers = new ArrayList<User>();
+        emailProblemUsers = findUsersWithMissingOrInvalidEmailsButNonNullUsernames(myShepherd);
+        if(emailProblemUsers != null && emailProblemUsers.size() > 0){
+          for(User currentUser: emailProblemUsers){
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " to user: " + currentUser.toString());
+            currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
+            emailProblemUserCount ++;
+            myShepherd.updateDBTransaction();
+          }
+          assignEmaillessOrInvalidEmailAddressesJsonResults.put("emailProblemUserCount", emailProblemUserCount);
+        }
+      }
+      assignEmaillessOrInvalidEmailAddressesJsonResults.put("success", true);
+    } catch (Exception e) {
+        System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignEmaillessOrInvalidEmailAddressesJsonResults", assignEmaillessOrInvalidEmailAddressesJsonResults);
+    }
+
+    //assign emailless and usernameless anonymous_uuid uuid@localhost
+    JSONObject assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults = new JSONObject();
+    assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("success", false);
+    try{
+      int renameCounter = 0;
+      Boolean suspendUsersMissingEmailAndUsernameDesired = jsonRes.optBoolean("suspendUsersMissingEmailAndUsernameDesired", false);
+      if(suspendUsersMissingEmailAndUsernameDesired){
+        List<User> worldsWorstUsers = new ArrayList<User>();
+        worldsWorstUsers = findUsersWithMissingEmailAndUsername(myShepherd);
+        if(worldsWorstUsers != null && worldsWorstUsers.size() > 0){
+          for(User currentUser: worldsWorstUsers){
+            System.out.println("dedupe assigning email address " + currentUser.getUUID()+"@localhost" + " and username: Anonymous_" + currentUser.getUUID() + " to user: " + currentUser.toString());
+            currentUser.setEmailAddress(currentUser.getUUID() + "@localhost");
+            currentUser.setUsername("Anonymous_" + currentUser.getUUID());
+            renameCounter ++;
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+      assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("renameCounter", renameCounter);
+      assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults.put("success", true);
+    } catch (Exception e) {
+        System.out.println("dedupe exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception while assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.");
+    } finally {
+        System.out.println("dedupe closing ajax call for assigning email address uuid@localhost to emailless or invalid emailed but nonnull username users.....");
+        myShepherd.updateDBTransaction();
+        returnJson.put("assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults", assignEmaillessAndUsernamelessEmailAddressesAndUsernamesJsonResults);
+    }
+
     try{
       //get info from servlet request, if it exsists
       String userName = jsonRes.optString("username", null);
@@ -741,8 +1161,6 @@ public class UserConsolidate extends HttpServlet {
           returnJson.put("success",true);
           returnJson.put("users", userJsonArr);
         }
-        out.println(returnJson);
-        out.close();
       }
 
       //consolidate the user duplicates indicated by user
@@ -784,8 +1202,6 @@ public class UserConsolidate extends HttpServlet {
           }
           returnJson.put("success",successStatus);
         }
-        out.println(returnJson);
-        out.close();
       }
 
     }catch (NullPointerException npe) {
@@ -795,7 +1211,7 @@ public class UserConsolidate extends HttpServlet {
     } catch (JSONException je) {
         je.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: JSONException je while getting or merging users.");
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (Exception e) {
         e.printStackTrace();
         addErrorMessage(returnJson, "UserConsolidate: Exception e while getting or merging users.");
@@ -836,4 +1252,48 @@ public class UserConsolidate extends HttpServlet {
     int randIndex = randVar.nextInt(maxInd); //maxInd itself is excluded from nextInt
     return users.get(randIndex);
   }
+
+  public static List<User> findUsersWithNonNullEmailAddressesAndNoUsername(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE this.username==null && this.emailAddress!=null";
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      returnUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
+    return returnUsers;
+  }
+
+  public static List<User> findUsersWithMissingOrInvalidEmailsButNonNullUsernames(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE this.username!=null";
+    List<User> nonNullUsernameUsers=new ArrayList<User>();
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      nonNullUsernameUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
+    //only add users with invalid email addresses or missing ones to the returnUsers list
+    for(User currentUserCandidate: nonNullUsernameUsers){
+      if(currentUserCandidate.getEmailAddress() == null || !Util.isValidEmailAddress(currentUserCandidate.getEmailAddress())){
+        returnUsers.add(currentUserCandidate);
+      }
+    }
+    return returnUsers;
+  }
+
+  public static List<User> findUsersWithMissingEmailAndUsername(Shepherd myShepherd){
+    String filter="SELECT FROM org.ecocean.User WHERE (this.username==null || this.username==\"N/A\" ) && this.emailAddress==null";
+    List<User> returnUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      returnUsers=new ArrayList<User>(c);
+    }
+    query.closeAll();
+    return returnUsers;
+  }
+
 }

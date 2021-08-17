@@ -328,6 +328,75 @@ public class CommonConfiguration {
     return getProperty("autoEmailAddress", context).trim();
   }
 
+  public static String getNumIaResultsUserCanInspect(String context) {
+    try{
+      return getProperty("numIaResultsUserCanInspect", context).trim();
+    } catch(Exception e){
+      System.out.println("Error in getNumIaResultsUserCanInspect. Returning default of 16.");
+      return "16";
+    }
+  }
+
+  public static String getAdoptionCampaignUrl(String context) {
+    try {
+      return getProperty("adoptionCampaignUrl", context).trim();
+    } catch (NullPointerException e) {
+      System.out.println(
+          "NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
+      return "";
+    }
+  }
+
+  public static String getAnimalSingular(String context) {
+    try {
+      return getProperty("animalSingular", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalSingular. Returning nothing as a default.");
+      return "animal";
+    }
+  }
+
+  public static String getAnimalSingularCapitalized(String context) {
+    try {
+      return getProperty("animalSingularCapitalized", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalSingularCapitalized. Returning nothing as a default.");
+      return "Animal";
+    }
+  }
+
+  public static String getAnimalPlural(String context) {
+    try {
+      return getProperty("animalPlural", context).trim();
+    } catch (Exception e) {
+      System.out.println(
+          "Error in getAnimalPlural. Returning nothing as a default.");
+      return "animals";
+    }
+  }
+
+  public static String animalPluralCapitalized(String context) {
+    try {
+      return getProperty("animalPlural", context).trim();
+    } catch (Exception e) {
+      System.out
+          .println("Error in getAnimalPluralCapitalized. Returning nothing as a default.");
+      return "Animals";
+    }
+  }
+
+
+
+  public static String getShepherdDataDir(String context) {
+    if (Util.stringExists(getProperty("shepherdDataDir", context))) {
+      return getProperty("shepherdDataDir", context).trim();
+    } else {
+      return "wildbook_data_dir";
+    }
+  }
+
   public static String getNewSubmissionEmail(String context) {
     return getProperty("newSubmissionEmail",context).trim();
   }
@@ -524,6 +593,39 @@ public class CommonConfiguration {
       canAdopt = false;
     }
     return canAdopt;
+  }
+
+  public static Double getCenterLat(String context) {
+    double returnVal = 10.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLat", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Double getCenterLong(String context) {
+    double returnVal = 160.8;
+    try {
+      returnVal = Double.parseDouble(getProperty("centerLong", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getCenterLat. Returning " +  returnVal + " as the default.");
+      return returnVal;
+    }
+  }
+
+  public static Integer getMapZoom(String context) {
+    Integer returnVal = 1;
+    try {
+      returnVal = Integer.parseInt(getProperty("mapZoom", context).trim());
+      return returnVal;
+    } catch (Exception e) {
+      System.out.println("Error in getMapZoom. Returning " + returnVal + " as the default.");
+      return returnVal;
+    }
   }
 
 

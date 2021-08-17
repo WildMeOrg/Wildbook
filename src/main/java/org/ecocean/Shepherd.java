@@ -46,6 +46,7 @@ import java.text.SimpleDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
@@ -4474,12 +4475,12 @@ public Long countMediaAssets(Shepherd myShepherd){
             String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
             if(!nameString.equals(imageName)){hasKeyword=false;}
         }
-        if (hasKeyword && isAcceptableVideoFile(imageName)) {
+        if (hasKeyword && isAcceptableVideoFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
         }
-        else if (hasKeyword && isAcceptableImageFile(imageName)) {
+        else if (hasKeyword && isAcceptableImageFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
@@ -5292,7 +5293,7 @@ public Long countMediaAssets(Shepherd myShepherd){
 
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
@@ -5309,10 +5310,10 @@ public Long countMediaAssets(Shepherd myShepherd){
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-        
+
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-        
+
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5334,7 +5335,7 @@ public Long countMediaAssets(Shepherd myShepherd){
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
-  
+
   public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
@@ -5354,7 +5355,7 @@ public Long countMediaAssets(Shepherd myShepherd){
 
         //skip if this is on our ignore list
         if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
-      
+
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5564,8 +5565,8 @@ public Long countMediaAssets(Shepherd myShepherd){
         if (u != null) return u;
         return getUserByEmailAddress(value);  //see note below about uniqueness, alas
     }
-    
-    
+
+
     public int getNumEncountersMatching(String filter) {
       pm.getFetchPlan().setGroup("count");
       Extent encClass = pm.getExtent(Encounter.class, true);
@@ -5585,13 +5586,13 @@ public Long countMediaAssets(Shepherd myShepherd){
         return 0;
       }
     }
-    
+
     //Start Spotashark customizations
     public int getNumEncountersLeftFlank() {
       String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
       return getNumEncountersMatching(lFlankFilter);
     }
-    
+
     // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
     public int getNumMarkedIndividualsWithEncMatching(String filter) {
       System.out.println("filter in getNumMarkedIndividualsWithEncMatching method is: " + filter);
@@ -5614,6 +5615,21 @@ public Long countMediaAssets(Shepherd myShepherd){
       return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
     }
   //End Spotashark customizations
+    public JSONArray getAllProjectACMIdsJSON(String projectId) {
+      JSONArray allAnnotIds = new JSONArray();
+      String filter="SELECT FROM org.ecocean.Annotation WHERE acmId!=null && enc.annotations.contains(this) && project.id=='"+projectId+"' && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc;org.ecocean.Project project";
+      Query q = pm.newQuery(filter);
+      q.setResult("distinct acmId");
+      Collection results = (Collection) q.execute();
+      ArrayList<String> al=new ArrayList<String>(results);
+      q.closeAll();
+      for (String ann :al) {
+            allAnnotIds.put(ann);
+    }
+
+      return allAnnotIds;
+    }
+
 
 
 } //end Shepherd class

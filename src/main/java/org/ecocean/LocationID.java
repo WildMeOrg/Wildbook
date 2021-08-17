@@ -75,7 +75,7 @@ public class LocationID {
       filename="locationID_"+qualifier+".json";
     } 
     
-    String shepherdDataDir="wildbook_data_dir";
+    String shepherdDataDir=CommonConfiguration.getShepherdDataDir("context0");
     Properties contextsProps=ShepherdProperties.getContextsProperties();
     if(contextsProps.getProperty("context0"+"DataDir")!=null){
       shepherdDataDir=contextsProps.getProperty("context0"+"DataDir");
@@ -106,6 +106,73 @@ public class LocationID {
     if(qualifier!=null)key=qualifier;
     jsonMaps.put(key,new JSONObject(tokener));
     //System.out.println("jsonMaps: "+jsonMaps.toString());
+  }
+
+  public static String findParameterInLocationIdTreeDefaultUpTreeNodes(String parameterName, JSONObject tree, String nodeId, String parentParameter) {
+    if ((nodeId == null) || (tree == null))
+      return null; // handle blech data
+    String parameter = tree.optString(parameterName, null);
+    if (parameter != null)
+      parentParameter = parameter; // basically, parentParameter is the best we have at this point
+    if (nodeId.equals(tree.optString("id", null)))
+      return parentParameter; // we hit target node - we *must* return with our best we found now we keep trying if we can
+    JSONArray kids = tree.optJSONArray("locationID");
+    if ((kids == null) || (kids.length() < 1))
+      return null; // no more depth here
+    for (int i = 0; i < kids.length(); i++) {
+      JSONObject subTree = kids.optJSONObject(i);
+      if (subTree == null)
+        continue; // ith element had non-json child; ignore
+      String kidParameter = findParameterInLocationIdTreeDefaultUpTreeNodes(parameterName, subTree, nodeId, parentParameter);
+      if (kidParameter != null)
+        return kidParameter; // recursion ftw!
+    }
+    return null; // got nothing from any of the kid-trees, so we are out of luck at this point (basically never found nodeId)
+  }
+
+  public static String findPrefix(JSONObject tree, String nodeId, String parentPrefix) {
+    return findParameterInLocationIdTreeDefaultUpTreeNodes("prefix", tree, nodeId, parentPrefix);
+  }
+
+  public static String findPrefixPadding(JSONObject tree, String nodeId, String parentPadding) {
+    return findParameterInLocationIdTreeDefaultUpTreeNodes("prefixDigitPadding", tree, nodeId, parentPadding);
+  }
+
+  public static String findGeospatialParameterInIdTree(String parameterName, String nodeId, JSONObject tree) {
+    if ((nodeId == null) || (tree == null)){
+      return null;
+    }
+    JSONObject geospatialObj = tree.optJSONObject("geospatialInfo");
+    if(geospatialObj != null){
+      String returnVal = geospatialObj.optString(parameterName, null);
+      if (nodeId.equals(tree.optString("id", null)) && returnVal != null){
+        return returnVal;
+      }
+    }
+    JSONArray kids = tree.optJSONArray("locationID");
+    if ((kids == null) || (kids.length() < 1)){
+      return null;
+    } else{
+      for (int i = 0; i < kids.length(); i++) {
+        JSONObject subTree = kids.optJSONObject(i);
+        if (subTree == null){
+          continue;
+        }
+        String kidReturnVal = findGeospatialParameterInIdTree(parameterName, nodeId, subTree);
+        if (kidReturnVal != null){
+          return kidReturnVal;
+        }
+      }
+    }
+    return null;
+  }
+
+  public static String getLatitude(String locationId, JSONObject tree) {
+    return findGeospatialParameterInIdTree("lat", locationId, tree);
+  }
+
+  public static String getLongitude(String locationId, JSONObject tree) {
+    return findGeospatialParameterInIdTree("long", locationId, tree);
   }
   
   private static JSONObject recurseToFindID(String id,JSONObject jsonobj) {
@@ -148,6 +215,23 @@ public class LocationID {
     return null;
   }
   
+  public static String getPrefixForLocationID(String locationID, String qualifier) { //now a wrapper method
+    if(locationID == null) return ""; //"" here for improved cosmetics on front end?
+    String locPrefix = "";
+    if(findPrefix(getLocationIDStructure(qualifier), locationID, null) != null){
+      locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
+    }
+    return locPrefix;
+  }
+
+  public static int getPrefixDigitPaddingForLocationID(String locationID, String qualifier) { //now a wrapper method
+    if (locationID == null) return 3;
+    int digitPadding = 3;
+    if(findPrefixPadding(getLocationIDStructure(qualifier), locationID, null) != null){
+      digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier), locationID, null));
+    }
+    return digitPadding;
+  }
   
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
