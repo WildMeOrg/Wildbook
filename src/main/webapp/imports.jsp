@@ -373,9 +373,16 @@ try{
 		Iterator<HashMap<String,String>> iterAnnots=annotSet.iterator();
 		while(iterAnnots.hasNext()){
 			HashMap<String,String> mapHere = iterAnnots.next();
-			%>
-			<li><%=mapHere.toString() %>: <%=annotsMap.get(mapHere) %></li>
-			<%
+			if(mapHere.toString().equals("{null=null}") ){
+				%>
+				<li>No annotations found: <%=annotsMap.get(mapHere) %></li>
+				<%
+			}
+			else{
+				%>
+				<li><%=mapHere.toString() %>: <%=annotsMap.get(mapHere) %></li>
+				<%
+			}
 		}
 		%>
 		
