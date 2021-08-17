@@ -118,7 +118,7 @@ public class Project implements java.io.Serializable {
     }
 
     public void addUser(User user) {
-        List<User> userArr = new ArrayList<>();
+        List<User> userArr = new ArrayList<User>();
         if (user!=null) {
             userArr.add(user);
             addUsers(userArr);
@@ -273,6 +273,8 @@ public class Project implements java.io.Serializable {
     }
 
     private JSONObject asJSONObject(String modifier, Shepherd myShepherd, HttpServletRequest request) {
+        //System.out.println("Here json1");  
+      
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("ownerId", ownerId);
@@ -281,18 +283,23 @@ public class Project implements java.io.Serializable {
         j.put("dateCreatedLong", dateCreatedLong);
         j.put("dateLastModifiedLong", dateLastModifiedLong);
         JSONArray usersJSONArr = new JSONArray();
-        for (User user : users) {
-            JSONObject userJSON = new JSONObject();
-            userJSON.put("username", user.getUsername());
-            userJSON.put("id", user.getId());
-            usersJSONArr.put(userJSON);
+        if(users!=null) {
+          //System.out.println("Here json2");
+          for (User user : users) {
+              JSONObject userJSON = new JSONObject();
+              userJSON.put("username", user.getUsername());
+              userJSON.put("id", user.getId());
+              usersJSONArr.put(userJSON);
+          }
         }
         j.put("users", usersJSONArr);
         JSONArray encArr = new JSONArray();
         if (encounters!=null) {
+          //System.out.println("Here json3");
             for (final Encounter enc : encounters) {
                 if (modifier!=null&&"addEncounterMetadata".equals(modifier)) {
-                    JSONObject encMetadata = new JSONObject();
+                  //System.out.println("Here json3a");  
+                  JSONObject encMetadata = new JSONObject();
                     String individualName = "";
                     String individualUUID = "";
                     String individualProjectId = "";
@@ -310,6 +317,7 @@ public class Project implements java.io.Serializable {
                             individualProjectId = individual.getDisplayName(projectIdPrefix);
                         }
                     }
+                    //System.out.println("Here json3b");
                     encMetadata.put("individualUUID", individualUUID);
                     encMetadata.put("individualDisplayName", individualName);
                     encMetadata.put("hasNameKeyMatchingProject", hasNameKeyMatchingProject);
@@ -319,24 +327,32 @@ public class Project implements java.io.Serializable {
                     encMetadata.put("encounterId", enc.getID());
                     encMetadata.put("individualProjectId", individualProjectId);
                     JSONArray allProjectIds = new JSONArray();
-                    for (String projectId : myShepherd.getProjectIdPrefixsForEncounter(enc)) {
-                        allProjectIds.put(projectId);
+                    //WB-1615 turn off due to poor performance
+                    /*
+                    if(myShepherd.getProjectIdPrefixsForEncounter(enc)!=null) {
+                      System.out.println("Here json4");
+                      for (String projectId : myShepherd.getProjectIdPrefixsForEncounter(enc)) {
+                          allProjectIds.put(projectId);
+                      }
                     }
+                    */
                     encMetadata.put("allProjectIds", allProjectIds);
-
+                    //System.out.println("Here json5");
                     encArr.put(encMetadata);
                 } else {
+                  //System.out.println("Here json6");
                     encArr.put(enc.getID());
                 }
             }
         }
         j.put("encounters", encArr);
+        //System.out.println("Here json7");
         return j;
     }
 
     public JSONArray getAllACMIdsJSON() {
         JSONArray allACMIds = new JSONArray();
-        List<String> allACMIDsStr = new ArrayList<>();
+        List<String> allACMIDsStr = new ArrayList<String>();
         for (Encounter enc : encounters) {
             if (enc.hasAnnotations()) {
                 List<Annotation> anns = enc.getAnnotations();
@@ -350,6 +366,22 @@ public class Project implements java.io.Serializable {
         }
         return allACMIds;
     }
+    public JSONArray getAllAnnotIdsJSON() {
+      JSONArray allAnnotIds = new JSONArray();
+      List<String> allAnnotIDsStr = new ArrayList<String>();
+      for (Encounter enc : encounters) {
+          if (enc.hasAnnotations()) {
+              List<Annotation> anns = enc.getAnnotations();
+              for (Annotation ann : anns) {
+                  if (!ann.isTrivial()&&!allAnnotIDsStr.contains(ann.getId())){
+                      allAnnotIDsStr.add(ann.getId());
+                      allAnnotIds.put(ann.getId());
+                  }
+              }
+          }
+      }
+      return allAnnotIds;
+  }
 
     public String toString() {
         return this.asJSONObject().toString();

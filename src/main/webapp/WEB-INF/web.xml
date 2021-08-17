@@ -75,6 +75,7 @@
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/users.jsp = authc, roles[admin]
+				/appadmin/automatedUserReconciliation.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
 
@@ -445,7 +446,13 @@
         /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
-            </param-value>
+
+		/ProjectCreate = authc
+		/ProjectDelete = authc
+		/ProjectGet = authc
+		/ProjectUpdate = authc
+		/ProjectIA = authc
+			</param-value>
         </init-param>
     </filter>
 
@@ -1208,8 +1215,8 @@
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
-  
-  
+
+
         <servlet>
     <servlet-name>WildbookMetrics</servlet-name>
     <servlet-class>org.ecocean.metrics.WildbookMetrics</servlet-class>
@@ -1219,8 +1226,6 @@
     <servlet-name>WildbookMetrics</servlet-name>
     <url-pattern>/metrics</url-pattern>
   </servlet-mapping>
-  
-  
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>

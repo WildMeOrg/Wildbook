@@ -24,14 +24,13 @@ async function sendAndRedirect(link, uuid){
     $.ajax({
         url: link,
         success: function(data) {
-            cosole.log("finished task");
-        }
+            console.log("finished task");
+				}
     });
     $("body").css("cursor", "progress");
     await new Promise(r => setTimeout(r, 3000));
     $("body").css("cursor", "default");
     window.location.href = "../imports.jsp?taskId="+uuid;
-	
 }
 
 

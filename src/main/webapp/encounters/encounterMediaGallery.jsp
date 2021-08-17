@@ -194,27 +194,27 @@ function forceLink(el) {
 		      }
 		      	//System.out.println("    EMG: got indID element "+individualID);
 
-		      
+
                 //Start caption render JSP side
                 String[] capos=new String[1];
                 capos[0]= "<p class=\"capos-individual-filename\" style=\"color: white;\"><em>"+filename+"</em><br>";
-                
+
                 capos[0]+=individualID;
-                
- 
+
+
                 capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a></span><br>";
-                
+
                 capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
-                
+
                 if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
                     capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
                 }
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
-                
+
               // place to retreive current mid from photoswipe to refresh keyword UI
               capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\">";
 
-               
+
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a><br>"+encprops.getProperty("detectionStatus")+" "+ma.getDetectionStatus()+"</span><br>";
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("annotationID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></span></p>";
                 capos[0] += "</div>";
@@ -237,7 +237,8 @@ function forceLink(el) {
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                    if (tasks.contains(t)) continue;
+                                                    if (t.deepContains(ann)!=null) tasks.add(t);
                                                     //System.out.println("Task ID: "+t.getId());
                                                 }
 
@@ -494,6 +495,11 @@ figcaption div {
     outline: solid black 2px;
     background-color: rgba(120,255,0,0.3) !important;
 }
+.image-enhancer-feature-toggled {
+    z-index: 30;
+    outline: solid black 2px;
+    background-color: rgba(120,255,0,0.3) !important;
+}
 
 	.match-tools {
 		padding: 5px 15px;
@@ -650,7 +656,7 @@ if(request.getParameter("encounterNumber")!=null){
   }
 
 
-  
+
   var removeAnnotation = function(maId, aid) {
 	    if (confirm("Are you sure you want to remove this Annotation from the encounter?")) {
 	      $.ajax({
@@ -676,8 +682,8 @@ if(request.getParameter("encounterNumber")!=null){
 	      });
 	    }
 	  }
-  
-  
+
+
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
@@ -830,6 +836,7 @@ function niceId(id) {
 }
 
 //initializes image enhancement (layers)
+var featureWrapperCounter = 0;
 jQuery(document).ready(function() {
     doImageEnhancer('figure img');
     $('.image-enhancer-feature').bind('dblclick', function(ev) { featureDblClick(ev); });
@@ -877,21 +884,21 @@ function doImageEnhancer(sel) {
            <%
            if(!encNum.equals("")){
         	%>
-        	
-	            
+
+
 	            ['remove this image', function(enh) {
 	        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 	        		removeAsset(mid);
 	            }]
-	            
+
             <%
     		}
             %>
 
-            
-          
+
+
 	];
-        
+
 			//remove annotation option for non-trivial annots
         	opt.menu.push(
 	        	[
@@ -905,7 +912,7 @@ function doImageEnhancer(sel) {
 	        				}
 	        				return false;
 	        		}
-	        		, 
+	        		,
 	        		function(enh) {
 					var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
 		           	var aid = imageEnhancer.annotationIdFromElement(enh.imgEl.context);
@@ -913,8 +920,8 @@ function doImageEnhancer(sel) {
 	            	}
 	        	]
         	);
-        	
-     
+
+
         	// opt.menu.push(['create optional feature region', function(enh) {
             //     var mid = enh.imgEl.data('enh-mediaassetid');
             //     window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
@@ -1039,7 +1046,8 @@ function enhancerDisplayAnnots(el, opt) {
     var ma = assetByAnnotationId(aid);
 //console.warn("====== enhancerDisplayAnnots %o ", ma);
     if (!ma || !ma.features || !ma.annotation || !ma.annotation.id) return;
-    var featwrap = $('<div class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    var featwrap = $('<div data-media-asset-id="' + ma.id + '-' + ma.annotation.id + '" data-count="' + featureWrapperCounter + '"class="image-enhancer-feature-wrapper" onclick="showKeywordList(this)"/>');
+    featureWrapperCounter ++;
     featwrap.data('enhancerScale', el.data('enhancerScale'));
     el.append(featwrap);
     var featzoom = $('<div class="image-enhancer-feature-zoom" />');
@@ -1047,7 +1055,7 @@ function enhancerDisplayAnnots(el, opt) {
     el.append(featzoom);
     var ord = featureSortOrder(ma.features);
     for (var i = 0 ; i < ord.length ; i++) {
-        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i);
+        enhancerDisplayFeature(featwrap, opt, ma.annotation.id, ma.features[ord[i]], i, ma.id);
     }
 }
 
@@ -1070,14 +1078,17 @@ function featureSortOrder(feat) {
     return rtn;
 }
 
-function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
+function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta, mediaAssetId) {
     if (!feat.type) return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;
 console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
+    let widthScale = el; //.width;// / el.naturalWidth;
+    console.log("widthScale is: ");
+    console.log(widthScale);
     var focused = (feat.annotationId == focusAnnId);
-    var fel = $('<div title="Annot" style="z-index: ' + (31 + (zdelta||0)) + ';" class="image-enhancer-feature" />');
+    var fel = $('<div data-encid="' + feat.encounterId + '" title="Annot" style="z-index: ' + (31 + (zdelta || 0)) + ';" class="image-enhancer-feature" />');
 
     var tooltip;
     if (feat.individualId) {
@@ -1090,10 +1101,12 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
+    /*
     for (var i = 0 ; i < assets.length ; i++) {
-    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;}
+    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+feat.iaClass;}
     	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.viewpoint){tooltip=tooltip+'<br>Viewpoint: '+assets[i].annotation.viewpoint;}
     }
+    */
 
     fel.prop('id', feat.id);
     if (feat.annotationIsOfInterest) {
@@ -1101,6 +1114,8 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
     if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
+    if (feat.iaClass) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">IA class: <b>' + feat.iaClass + '</b></i>';
+
     if (focused) {
     	fel.addClass('image-enhancer-feature-focused');
     }
@@ -1416,7 +1431,7 @@ console.info("############## mid=%s -> %o", mid, ma);
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
       h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span>';
-      
+
       <%
       if(isOwner){
       %>
@@ -1424,12 +1439,12 @@ console.info("############## mid=%s -> %o", mid, ma);
       <%
     	}
       %>
-      
+
       h+='</div>';
-    } 
+    }
     else {
-      
-    	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName; 
+
+    	h+= '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName;
     	<%
     	if(isOwner){
     	%>
@@ -1440,9 +1455,9 @@ console.info("############## mid=%s -> %o", mid, ma);
     	h+='</div>';
 
     }
-    
-    
-    
+
+
+
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
@@ -1482,10 +1497,10 @@ console.info("############## mid=%s -> %o", mid, ma);
     console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
-  
+
   <%
 	}
-  
+
   if(isOwner){
   %>
 
@@ -1784,7 +1799,7 @@ console.log("isUserLoggedIn = "+isUserLoggedIn);
 $(document).ready(function() {
     if ("false"==isUserLoggedIn) {
         let vidEl = $(".video-element");
-        vidEl.attr("controlsList", "nodownload"); 
+        vidEl.attr("controlsList", "nodownload");
         vidEl.bind("contextmenu",function(e){
             return false;
         });
@@ -1807,6 +1822,11 @@ $(document).ready(function() {
 		cursor: pointer;
 		display: block;
 	}
+    .go{
+        color: #0C1;
+        margin-bottom: 1.2em;
+        cursor: pointer;
+    }
 </style>
 <%
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);

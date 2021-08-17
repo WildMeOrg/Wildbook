@@ -13,9 +13,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 props = ShepherdProperties.getProperties("survey.properties", langCode, context);
 
-Properties locationProps = new Properties();
-locationProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-
 String mapUrlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String occLocation = mapUrlLoc + "/occurrence.jsp?number=";
 Shepherd myShepherd = new Shepherd(context);
