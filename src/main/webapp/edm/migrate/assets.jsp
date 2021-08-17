@@ -161,13 +161,13 @@ for (Occurrence occ : agMap.keySet()) {
     out.println("\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group");
     out.println("mkdir $TARGET_DIR/" + subdir + "/_assets");
 
-    String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '{}');";
+    String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '\"{}\"');";
     String userId = "88c3f1da-179b-40be-b186-5bd33ef7dc16";
     agSql = sqlSub(agSql, occ.getId());
     agSql = sqlSub(agSql, userId);
     allSql += agSql + "\n";
 
-    String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?);";
+    String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
     for (MediaAsset ma : agMap.get(occ)) {
         String path = getRelPath(ma);
         //out.println(ma);
@@ -178,12 +178,13 @@ for (Occurrence occ : agMap.keySet()) {
         out.println("ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext);
         String s = sqlIns;
         s = sqlSub(s, ma.getUUID());
-        s = sqlSub(s, ext);
+        s = sqlSub(s, ext.substring(1));
         s = sqlSub(s, fname);
         s = sqlSub(s, "MIME");
         s = sqlSub(s, -1);
+        s = sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
         s = sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
-        s = sqlSub(s, "{ \"faked\": true }");
+        s = sqlSub(s, "\"{}\"");  //meta (should include dimensions)
         s = sqlSub(s, occ.getId());
         allSql += s + "\n\n";
     }
