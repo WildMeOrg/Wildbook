@@ -2,6 +2,7 @@
      import="org.ecocean.*,
 java.util.Collection,
 java.util.List,
+java.util.Iterator,
 java.nio.file.Path,
 java.util.ArrayList,
 javax.jdo.*,
@@ -9,8 +10,10 @@ java.util.Arrays,
 java.util.Map,
 java.util.HashMap,
 java.util.Set,
+java.util.UUID,
 java.util.HashSet,
 org.json.JSONObject,
+org.json.JSONArray,
 java.sql.Connection,
 java.sql.PreparedStatement,
 java.sql.DriverManager,
@@ -43,6 +46,90 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
     return occ;
 }
 
+private String toUUID(String s) {  // h/t https://stackoverflow.com/a/19399768
+    return UUID.fromString(
+        s.replaceFirst( 
+            "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5" 
+        )
+    ).toString();
+}
+
+
+private String jsonQuote(JSONObject j) {
+    if (j == null) return "\"{}\"";
+    String s = j.toString();
+    return "\"" + s.replaceAll("\"", "\\\\\\\\\"") + "\"";  // gimme a effin break java
+}
+
+/*
+created        | 2021-08-10 18:27:46.077475
+updated        | 2021-08-10 18:27:46.077588
+viewed         | 2021-08-10 18:27:46.077628
+guid           | 2b272728-f132-42cd-9347-559a74188347
+version        | 
+asset_guid     | e01f9cb2-0442-4f42-9068-244351e4b207
+encounter_guid | 
+jobs           | "null"
+ia_class       | TEST
+bounds         | "{\"rect\": [0, 2, 2170, 7120]}"
+
+
+annotation_keywords
+ created         | timestamp without time zone |           | not null | 
+ updated         | timestamp without time zone |           | not null | 
+ viewed          | timestamp without time zone |           | not null | 
+ annotation_guid | uuid                        |           | not null | 
+ keyword_guid    | uuid                        |           | not null | 
+
+*/
+private String annotSql(MediaAsset ma, Map<String,String> kmap) {
+    if (!ma.hasAnnotations()) {
+        return "-- no annots on " + ma + "\n";
+    }
+    String s = "";
+    for (Annotation ann : ma.getAnnotations()) {
+        s += annotSingleSql(ann, ma) + "\n";
+        s += annotKeywords(ann, ma, kmap);
+        s += "\n";
+    }
+    return s;
+}
+
+private String annotSingleSql(Annotation ann, MediaAsset ma) {
+    String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?);";
+    sqlIns = sqlSub(sqlIns, ann.getId());
+    sqlIns = sqlSub(sqlIns, ma.getUUID());
+    String iac = ann.getIAClass();
+    if (iac == null) iac = "";
+    sqlIns = sqlSub(sqlIns, iac);
+    JSONObject bounds = new JSONObject();
+    int[] bb = ann.getBbox();
+    if (bb == null) {
+        bounds.put("migrateBbox", false);
+    } else {
+        bounds.put("rect", new JSONArray(bb));
+    }
+    sqlIns = sqlSub(sqlIns, jsonQuote(bounds));
+    return sqlIns;
+}
+
+//*every* annot gets all asset keywords -- long live next-gen
+private String annotKeywords(Annotation ann, MediaAsset ma, Map<String,String> kmap) {
+    String s = "";
+    if (!ma.hasKeywords()) return s;
+    for (Keyword kw : ma.getKeywords()) {
+        String kid = kmap.get(kw.getReadableName());
+        if (kid == null) {
+            s += "-- WARNING: no kmap id for " + kw.getReadableName() + " on " + ann + "\n";
+            continue;
+        }
+        String sqlIns = "INSERT INTO annotation_keywords (created, updated, viewed, annotation_guid, keyword_guid) VALUES (now(), now(), now(), ?, ?);";
+        sqlIns = sqlSub(sqlIns, ann.getId());
+        sqlIns = sqlSub(sqlIns, kid);
+        s += sqlIns + "\n";
+    }
+    return s;
+}
 
 private String getRelPath(MediaAsset ma) {
     String prefix = ((LocalAssetStore)ma.getStore()).root().toString();
@@ -120,13 +207,13 @@ myShepherd.beginDBTransaction();
 Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 query.setClass(MediaAsset.class);
 Collection c = (Collection)query.execute();
-List<MediaAsset> all = new ArrayList<MediaAsset>(c);
+List<MediaAsset> allMA = new ArrayList<MediaAsset>(c);
 query.closeAll();
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
 %><textarea><%
-for (MediaAsset ma : all) {
+for (MediaAsset ma : allMA) {
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
     String path = getRelPath(ma);
     //out.println(ma.getId() + " - " + path);
@@ -232,9 +319,42 @@ Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 <textarea>
 <%=allSql%>
 </textarea><%
-myShepherd.rollbackDBTransaction();
+
 
 %>
+<p>
+SQL to create the keywords in houston:
+</p>
+<textarea>
+<%
+Map<String,String> kmap = new HashMap<String,String>();
+List<Keyword> kws = myShepherd.getAllKeywordsList();
+//TODO should we order by indexname to keep consistent?
+for (Keyword kw : kws) {
+    if (kmap.containsKey(kw.getReadableName())) continue;
+    kmap.put(kw.getReadableName(), toUUID(kw.getIndexname()));
+}
+
+String sqlIns = "INSERT INTO keyword (created, updated, viewed, guid, value, source) VALUES (now(), now(), now(), ?, ?, 'user');";
+for (String k : kmap.keySet()) {
+    String s = sqlIns;
+    s = sqlSub(s, kmap.get(k));
+    s = sqlSub(s, k);
+    out.println(s);
+}
+
+%>
+</textarea>
+<p>Annotations</p>
+<textarea>
+
+<%
+for (MediaAsset ma : allMA) {
+    out.println(annotSql(ma, kmap));
+}
+myShepherd.rollbackDBTransaction();
+%>
+</textarea>
 
 
 </body></html>
