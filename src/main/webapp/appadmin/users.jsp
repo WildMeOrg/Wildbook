@@ -545,6 +545,7 @@ try {
     String userURL="";
     String uuid="";
     String receiveEmails="checked=\"checked\"";
+    String localTwitterHandle="";
     boolean hasProfilePhoto=false;
     
     if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)){
@@ -557,6 +558,9 @@ try {
     	}
     	if(thisUser.getEmailAddress()!=null){
     		localEmail=thisUser.getEmailAddress();
+    	}
+    	if(thisUser.getTwitterHandle()!=null){
+    		localTwitterHandle=thisUser.getTwitterHandle();
     	}
     	if(!thisUser.getReceiveEmails()){receiveEmails="";}
     	if(thisUser.getFullName()!=null){
@@ -646,7 +650,8 @@ try {
 		<tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" id="emailAddress_input" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
 	</div>
 
-        
+           <tr><td colspan="3">Twitter Handle: @<input name="twitterHandle" type="text" size="15" maxlength="90" value="<%=localTwitterHandle %>"></input></td></tr>
+       
       <tr><td colspan="3"><%=props.getProperty("affiliation")%> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
         
       <tr><td colspan="3"><%=props.getProperty("researchProject")%> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>

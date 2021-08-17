@@ -238,6 +238,13 @@ public class UserCreate extends HttpServlet {
           }
           else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
 
+          //flukebook-only, restore twitter handle
+          if((request.getParameter("twitterHandle")!=null)&&(!request.getParameter("twitterHandle").trim().equals(""))){
+            newUser.setTwitterHandle(request.getParameter("twitterHandle").trim());
+          }
+          else if(isEdit&&(request.getParameter("twitterHandle")!=null)&&(request.getParameter("twitterHandle").trim().equals(""))){newUser.setTwitterHandle(null);}
+
+          
           if((request.getParameter("userProject")!=null)&&(!request.getParameter("userProject").trim().equals(""))){
             newUser.setUserProject(request.getParameter("userProject").trim());
           }
