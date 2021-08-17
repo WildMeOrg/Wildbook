@@ -11,10 +11,14 @@ java.util.HashMap,
 java.util.Set,
 java.util.HashSet,
 org.json.JSONObject,
+java.sql.Connection,
+java.sql.PreparedStatement,
+java.sql.DriverManager,
 java.lang.reflect.*,
 org.ecocean.Util.MeasurementDesc,
 org.ecocean.api.ApiCustomFields,
 org.ecocean.customfield.*,
+org.ecocean.servlet.ServletUtilities,
 
 org.ecocean.media.*
               "
@@ -45,12 +49,29 @@ private String getRelPath(MediaAsset ma) {
     return ma.localPath().toString().substring(prefix.length() + 1);
 }
 
-private String cfdNameFromMeasurementDesc(MeasurementDesc desc) {
-    String cfdName = desc.getType();
-    String units = desc.getUnits();
-    if ((units != null) && !units.equals("nounits") && !units.equals("")) cfdName = cfdName + "_" + units.toLowerCase();
-    return cfdName;
+public static Connection getConnection(Shepherd myShepherd) throws java.sql.SQLException {
+    //PersistenceManagerFactory pmf = myShepherd.getPMF("context0");
+    //Connection con=DriverManager.getConnection(pmf.getConnectionURL(), pmf.getConnectionUserName()
+    Connection conn = null;
+    //java.util.Properties connectionProps = new java.util.Properties();
+    //connectionProps.put("user", CommonConfiguration.getPropertyLEGACY("datanucleus.ConnectionUserName","context0"));
+    //connectionProps.put("user", "wildbook");
+    //connectionProps.put("password", CommonConfiguration.getPropertyLEGACY("datanucleus.ConnectionPassword","context0"));
+    //connectionProps.put("password", "wildbook");
+    //conn = DriverManager.getConnection(CommonConfiguration.getPropertyLEGACY("datanucleus.ConnectionURL","context0"), connectionProps);
+    conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/mig_after");
+    return conn;
 }
+
+private static String sqlSub(String inSql, String rep) {
+    rep = rep.replaceAll("'", "''");
+    return inSql.replaceFirst("\\?", "'" + rep + "'");
+}
+
+private static String sqlSub(String inSql, Integer rep) {
+    return inSql.replaceFirst("\\?", rep.toString());
+}
+
 
 %><html>
 <head>
@@ -104,7 +125,7 @@ query.closeAll();
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
-%><textarea style="width: 100%; height: 10em;"><%
+%><textarea><%
 for (MediaAsset ma : all) {
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
     String path = getRelPath(ma);
@@ -130,19 +151,86 @@ This shell script will need the <b>directories</b> at the top modified to have t
 which were rsync'ed (above) into the proper final location for the houston assets.
 </p>
 
-<textarea style="width: 100%; height: 10em;"><%
-out.println("### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/houston/asset_root\n");
+<textarea><%
+///Connection con = getConnection(myShepherd);
+
+out.println("### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n");
+String allSql = "";
 for (Occurrence occ : agMap.keySet()) {
-    String subdir = "foo/" + occ.getId();
-    out.println("\nmkdir -p $TARGET_DIR/" + subdir);
+    String subdir = occ.getId();
+    out.println("\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group");
+    out.println("mkdir $TARGET_DIR/" + subdir + "/_assets");
+
+    String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '{}');";
+    String userId = "88c3f1da-179b-40be-b186-5bd33ef7dc16";
+    agSql = sqlSub(agSql, occ.getId());
+    agSql = sqlSub(agSql, userId);
+    allSql += agSql + "\n";
+
+    String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?);";
     for (MediaAsset ma : agMap.get(occ)) {
         String path = getRelPath(ma);
         //out.println(ma);
-        out.println("cp -a $TMP_ASSET_DIR/" + path + " $TARGET_DIR/" + subdir + "/");
+        out.println("cp -a $TMP_ASSET_DIR'/" + path + "' $TARGET_DIR/" + subdir + "/_asset_group/");
+        String fname = ma.getFilename();
+        int dot = fname.lastIndexOf(".");
+        String ext = (dot < 0) ? "" : "." + fname.substring(dot + 1);
+        out.println("ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext);
+        String s = sqlIns;
+        s = sqlSub(s, ma.getUUID());
+        s = sqlSub(s, ext);
+        s = sqlSub(s, fname);
+        s = sqlSub(s, "MIME");
+        s = sqlSub(s, -1);
+        s = sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
+        s = sqlSub(s, "{ \"faked\": true }");
+        s = sqlSub(s, occ.getId());
+        allSql += s + "\n\n";
     }
 }
-%></textarea><%
+/*
+created                    | 2021-08-10 18:14:16.553598
+updated                    | 2021-08-10 18:14:16.553643
+viewed                     | 2021-08-10 18:14:16.553657
+guid                       | f1bacade-f66b-4e39-9528-8d526bee002e
+major_type                 | filesystem
+commit                     | 
+commit_mime_whitelist_guid | 
+commit_houston_api_version | 
+description                | Sighting.post fd7f02e3-eb37-4fec-8eb3-e129cd9e5d1e
+owner_guid                 | 88c3f1da-179b-40be-b186-5bd33ef7dc16
+submitter_guid             | 
+config                     | "{}"
 
+
+
+created             | 2021-08-16 22:46:38.025156
+updated             | 2021-08-16 22:46:38.085569
+viewed              | 2021-08-16 22:46:38.025208
+guid                | d234bbbd-f536-4c0e-ac10-8f1bcff82171
+extension           | jpg
+path                | test.jpg
+mime_type           | image/jpeg
+magic_signature     | JPEG image data, JFIF standard 1.01, resolution (DPI), density 72x72, segment length 16, comment: "2021 All rights reserved. | wildbook.org | Flukebook.org | parent 78d42b24-02cf-4ef3-a878-a358", baseline, precision 8, 4032x3024, components 3
+size_bytes          | 3618806
+filesystem_xxhash64 | 1882783bb57fa8b9
+filesystem_guid     | 3eb744e7-3ad7-e129-ed62-bee20fb27e4e
+semantic_guid       | 929bd3cf-1ca4-aeaf-f496-0c0bce462a36
+content_guid        | 
+title               | 
+description         | 
+meta                | "{\"derived\": {\"width\": 4032, \"height\": 3024}}"
+asset_group_guid    | e42fe051-9253-4390-abd9-2e7d35483872
+*/
+%></textarea>
+
+<p>
+Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
+</p>
+
+<textarea>
+<%=allSql%>
+</textarea><%
 myShepherd.rollbackDBTransaction();
 
 %>
