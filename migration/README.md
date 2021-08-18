@@ -42,6 +42,10 @@ Once the EDM is up, some data can be migrated using houston tasks.  The first sh
 
 Using the EDM, migrating data can be done from the `/edm/migrate/` url.  It will list links to the following:
 
+### Regions
+
+Manipulate and migrate <b>locationID.json</b> data using `/edm/migrate/locationID.jsp`.
+
 ### DateTime
 
 The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
