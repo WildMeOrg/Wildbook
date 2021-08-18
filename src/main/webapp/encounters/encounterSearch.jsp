@@ -475,7 +475,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
         geoXml.parse(filename);
         
     	var iw = new google.maps.InfoWindow({
-    		content:'<%=encprops.getProperty("loadingMapData") %>',
+    		content:'<%=encprops.getProperty("loadingMapData") %><a href="encounter.jsp?number=+<%=encprops.getProperty("loadingMapData") %>"></a>',
     		position:center});
          
     	iw.open(map);
