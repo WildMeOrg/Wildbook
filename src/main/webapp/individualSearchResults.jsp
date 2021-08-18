@@ -196,7 +196,6 @@
 	<script type="text/javascript">
 
 	var searchResults = <%=indsJson%>;
-
 	/*
 	var testColumns = {
 		//rowNum: { label: '#', val: _colRowNum },
@@ -212,7 +211,6 @@
 	*/
 
 	var resultsTable;
-
 
 	$(document).keydown(function(k) {
 		if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
@@ -295,14 +293,12 @@
 	};
 
 	var sTable = false;
-	//var searchResultsObjects = [];
+	var searchResultsObjects = [];
 
 	function doTable() {
-	/*
 		for (var i = 0 ; i < searchResults.length ; i++) {
 			searchResultsObjects[i] = new wildbook.Model.MarkedIndividual(searchResults[i]);
 		}
-	*/
 
 		sTable = new SortTable({
 			data: searchResults,
@@ -414,6 +410,15 @@
 		$('#results-table td').html('');
 		$('#results-table tbody tr').show();
 		for (var i = 0 ; i < results.length ; i++) {
+      var privateResults = searchResultsObjects[results[i]].get('_sanitized') || false;
+      var title = 'Individual ' + searchResults[results[i]].id;
+  		if (privateResults) {
+  			title += ' [private]';
+  			$($('#results-table tbody tr')[i]).addClass('collab-private');
+  		} else {
+  			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+  		}
+  		$('#results-table tbody tr')[i].title = title;
 			//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].individualID);
 			for (var c = 0 ; c < colDefn.length ; c++) {

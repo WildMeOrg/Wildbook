@@ -758,53 +758,53 @@ public class Occurrence implements java.io.Serializable {
 
     JSONObject encounterInfo = new JSONObject();
     for (Encounter enc : this.encounters) {
-      encounterInfo.put(enc.getOccurrenceID(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
+      JSONObject urlInfo = new JSONObject();
+      urlInfo.put("url", enc.getUrl(request));
+      if(enc.getOccurrenceID()!=null) encounterInfo.put(enc.getOccurrenceID(), urlInfo);
     }
     jobj.put("encounters", encounterInfo);
     jobj.put("assets", this.assets);
 
     jobj.put("groupBehavior", this.getGroupBehavior());
-    return jobj;
-
+    return sanitizeJson(request, decorateJson(request, jobj));
   }
 
-/*  this was messing up the co-occur js (d3?), so lets kill for now?
-  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-            return sanitizeJson(request, jobj, true);
-        }
-
-  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-    jobj.put("ID", this.ID);
-    jobj.put("encounters", this.encounters);
-    if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
-        JSONArray jarr = new JSONArray();
-  ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-        //but for *now* (see note way above) this is all we need for gallery/image display js:
-        for (Encounter enc : this.getEncounters()) {
-            JSONObject je = new JSONObject();
-            je.put("id", enc.getID());
-            if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
-            if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-                JSONArray ja = new JSONArray();
-                for (Annotation ann : enc.getAnnotations()) {
-                    ja.put(ann.getId());
-                }
-                je.put("annotations", ja);
-            }
-            jarr.put(je);
-        }
-        jobj.put("encounters", jarr);
-    }
-    int[] assetIds = new int[this.assets.size()];
-    for (int i=0; i<this.assets.size(); i++) {
-      if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
-    }
-    jobj.put("assets", assetIds);
-    return jobj;
-
-  }
-*/
+// /*  this was messing up the co-occur js (d3?), so lets kill for now?
+  // public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+  //               org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+  //           return sanitizeJson(request, jobj, true);
+  //       }
+  //
+  // public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+  //   jobj.put("ID", this.occurrenceID);
+  //   jobj.put("encounters", this.encounters);
+  //   if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
+  //       JSONArray jarr = new JSONArray();
+  // ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  //       //but for *now* (see note way above) this is all we need for gallery/image display js:
+  //       for (Encounter enc : this.getEncounters()) {
+  //           JSONObject je = new JSONObject();
+  //           je.put("id", enc.getID());
+  //           if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
+  //           if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
+  //               JSONArray ja = new JSONArray();
+  //               for (Annotation ann : enc.getAnnotations()) {
+  //                   ja.put(ann.getId());
+  //               }
+  //               je.put("annotations", ja);
+  //           }
+  //           jarr.put(je);
+  //       }
+  //       jobj.put("encounters", jarr);
+  //   }
+  //   int[] assetIds = new int[this.assets.size()];
+  //   for (int i=0; i<this.assets.size(); i++) {
+  //     if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
+  //   }
+  //   jobj.put("assets", assetIds);
+  //   return jobj;
+  //
+  // }
 
     public String toString() {
         return new ToStringBuilder(this)
@@ -1202,10 +1202,7 @@ public class Occurrence implements java.io.Serializable {
     } 
     
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
-
       jobj.put("_sanitized", true);
-
       return jobj;
   }
     
@@ -1256,6 +1253,7 @@ public class Occurrence implements java.io.Serializable {
       } catch (Exception e) {
         e.printStackTrace();
       }
+      // return sanitizeJson(request, decorateJson(request, json));
       return json;
   }
 
