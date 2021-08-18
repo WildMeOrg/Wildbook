@@ -88,14 +88,19 @@ private String annotSql(MediaAsset ma, Map<String,String> kmap) {
     }
     String s = "";
     for (Annotation ann : ma.getAnnotations()) {
-        s += annotSingleSql(ann, ma) + "\n";
+        String one = annotSingleSql(ann, ma) + "\n";
+        s += one;
+        if (one.contains("already processed")) continue;
         s += annotKeywords(ann, ma, kmap);
         s += "\n";
     }
     return s;
 }
 
+private Set<String> doneAnns = new HashSet<String>();
+
 private String annotSingleSql(Annotation ann, MediaAsset ma) {
+    if (doneAnns.contains(ann.getId())) return "-- already processed " + ann + "\n";
     String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?);";
     sqlIns = sqlSub(sqlIns, ann.getId());
     sqlIns = sqlSub(sqlIns, ma.getUUID());
@@ -110,6 +115,7 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
         bounds.put("rect", new JSONArray(bb));
     }
     sqlIns = sqlSub(sqlIns, jsonQuote(bounds));
+    doneAnns.add(ann.getId());
     return sqlIns;
 }
 
@@ -117,12 +123,15 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
 private String annotKeywords(Annotation ann, MediaAsset ma, Map<String,String> kmap) {
     String s = "";
     if (!ma.hasKeywords()) return s;
+    Set<String> hasKw = new HashSet<String>();
     for (Keyword kw : ma.getKeywords()) {
         String kid = kmap.get(kw.getReadableName());
         if (kid == null) {
             s += "-- WARNING: no kmap id for " + kw.getReadableName() + " on " + ann + "\n";
             continue;
         }
+        if (hasKw.contains(kid)) continue;
+        hasKw.add(kid);
         String sqlIns = "INSERT INTO annotation_keywords (created, updated, viewed, annotation_guid, keyword_guid) VALUES (now(), now(), now(), ?, ?);";
         sqlIns = sqlSub(sqlIns, ann.getId());
         sqlIns = sqlSub(sqlIns, kid);
@@ -212,7 +221,8 @@ query.closeAll();
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
-%><textarea><%
+%><textarea>BEGIN;
+<%
 for (MediaAsset ma : allMA) {
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
     String path = getRelPath(ma);
@@ -231,14 +241,17 @@ for (MediaAsset ma : allMA) {
     }
     occMas.add(ma);
 }
-%></textarea>
+%>
+END;
+</textarea>
 
 <p>
 This shell script will need the <b>directories</b> at the top modified to have the right locations, but will then copy the files
 which were rsync'ed (above) into the proper final location for the houston assets.
 </p>
 
-<textarea><%
+<textarea>BEGIN;
+<%
 ///Connection con = getConnection(myShepherd);
 
 out.println("### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n");
@@ -310,14 +323,18 @@ description         |
 meta                | "{\"derived\": {\"width\": 4032, \"height\": 3024}}"
 asset_group_guid    | e42fe051-9253-4390-abd9-2e7d35483872
 */
-%></textarea>
+%>
+END;
+</textarea>
 
 <p>
 Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 </p>
 
 <textarea>
+BEGIN;
 <%=allSql%>
+END;
 </textarea><%
 
 
@@ -326,6 +343,7 @@ Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 SQL to create the keywords in houston:
 </p>
 <textarea>
+BEGIN;
 <%
 Map<String,String> kmap = new HashMap<String,String>();
 List<Keyword> kws = myShepherd.getAllKeywordsList();
@@ -344,9 +362,11 @@ for (String k : kmap.keySet()) {
 }
 
 %>
+END;
 </textarea>
 <p>Annotations</p>
 <textarea>
+BEGIN;
 
 <%
 for (MediaAsset ma : allMA) {
@@ -354,6 +374,7 @@ for (MediaAsset ma : allMA) {
 }
 myShepherd.rollbackDBTransaction();
 %>
+END;
 </textarea>
 
 
