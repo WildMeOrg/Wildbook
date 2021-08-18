@@ -465,12 +465,12 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	icon:"../images/Kitizensciencelogo.png",
                     	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>'
                     }
-
-         }); 
-
 		 google.maps.event.addListener(marker, 'click', function() {
 		      window.location.href = marker.url;
 		    });
+         }); 
+
+		 
 	
         geoXml.parse(filename);
         
