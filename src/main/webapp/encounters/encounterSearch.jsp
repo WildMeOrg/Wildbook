@@ -463,11 +463,11 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	flat:true,
                     	clickable:true,
                     	icon:"../images/Kitizensciencelogo.png",
-                    	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>'
+                    	<%-- url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>' --%>
                     }
-		 google.maps.event.addListener(marker, 'click', function() {
+		/*  google.maps.event.addListener(marker, 'click', function() {
 		      window.location.href = marker.url;
-		    });
+		    }); */
          }); 
 
 		 
