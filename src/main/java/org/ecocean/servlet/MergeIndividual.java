@@ -146,7 +146,6 @@ public class MergeIndividual extends HttpServlet {
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
         boolean incrementalIdAndProjectNameListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projNamesArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size() && desiredIncrementalIdArr.size()==projNamesArr.size() && projNamesArr.size() == projIdsArr.size();
-        System.out.println("deleteMe incrementalIdAndProjectNameListsAreTheSameSize?: " + incrementalIdAndProjectNameListsAreTheSameSize);
         if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectNameListsAreTheSameSize){
             for (int i=0; i<desiredIncrementalIdArr.size(); i++){
               if(!deprecatedIncrementIdsArr.get(i).equals("_")){

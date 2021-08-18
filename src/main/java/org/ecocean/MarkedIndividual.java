@@ -2431,8 +2431,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords, Shepherd myShepherd) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    //Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    //myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
