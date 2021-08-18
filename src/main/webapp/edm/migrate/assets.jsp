@@ -127,7 +127,7 @@ private String annotKeywords(Annotation ann, MediaAsset ma, Map<String,String> k
     for (Keyword kw : ma.getKeywords()) {
         String kid = kmap.get(kw.getReadableName());
         if (kid == null) {
-            s += "-- WARNING: no kmap id for " + kw.getReadableName() + " on " + ann + "\n";
+            s += "-- WARNING: no kmap id for " + kw.getReadableName() + " on " + ann + " (might be LabeledKeyword)\n";
             continue;
         }
         if (hasKw.contains(kid)) continue;
@@ -347,10 +347,15 @@ SQL to create the keywords in houston:
 BEGIN;
 <%
 Map<String,String> kmap = new HashMap<String,String>();
+List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
 List<Keyword> kws = myShepherd.getAllKeywordsList();
 //TODO should we order by indexname to keep consistent?
 for (Keyword kw : kws) {
     if (kmap.containsKey(kw.getReadableName())) continue;
+    if (lkws.contains(kw)) {
+        System.out.println("skipping LABELED Keyword " + kw);
+        continue;
+    }
     kmap.put(kw.getReadableName(), toUUID(kw.getIndexname()));
 }
 

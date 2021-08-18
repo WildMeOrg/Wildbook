@@ -140,4 +140,18 @@ public class Keyword {
       return false;
     }
 
+
+    //basically mean id-equivalent, so deal
+    public boolean equals(final Object o2) {
+        if (o2 == null) return false;
+        if (!(o2 instanceof Keyword)) return false;
+        Keyword two = (Keyword)o2;
+        if ((this.indexname == null) || (two == null) || (two.getIndexname() == null)) return false;
+        return this.indexname.equals(two.getIndexname());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (indexname == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return indexname.hashCode();
+    }
+
 }
