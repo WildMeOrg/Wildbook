@@ -24,6 +24,10 @@ div.code-block {
     color: #AAA;
 }
 
+.smaller {
+    font-size: 0.8em;
+}
+
 
 textarea {
     width: 100%;
