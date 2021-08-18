@@ -140,13 +140,14 @@ for (MediaAsset ma : allMA) {
         }
         out.println("</ol></li>");
     }
-out.println("</ul><h3>done</h3></p>");
+out.println("</ul></p>");
 }
 
 
 myShepherd.commitDBTransaction();
 
 %>
+<h3>done</h3>
 
 
 </body></html>
