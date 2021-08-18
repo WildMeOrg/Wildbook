@@ -62,6 +62,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     //we are dropping support of .behaviors -- in favor of .groupBehavior ... TODO migration must copy these over
     private List<Instant> behaviors;
     private String context;  // type of sighting
+    private String alternateId;  // type of sighting
 
     //date/time related
     // this can be manually set, otherwise can be derived from Encounters
@@ -577,6 +578,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public String getContext() {
         return context;
+    }
+
+    public void setAlternateId(String c) {
+        alternateId = c;
+    }
+    public String getAlternateId() {
+        return alternateId;
     }
 
     public void setLocationId(String loc) {
