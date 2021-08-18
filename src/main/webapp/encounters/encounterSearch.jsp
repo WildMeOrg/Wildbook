@@ -462,12 +462,15 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     markerOptions: {
                     	flat:true,
                     	clickable:true,
-                    	icon:"../images/Kitizensciencelogo.png" 
+                    	icon:"../images/Kitizensciencelogo.png",
+                    	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>'
                     }
 
          }); 
 
-		
+		 google.maps.event.addListener(marker, 'click', function() {
+		      window.location.href = marker.url;
+		    });
 	
         geoXml.parse(filename);
         
