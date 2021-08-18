@@ -5595,11 +5595,10 @@ public Long countMediaAssets(Shepherd myShepherd){
 
     // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
     public int getNumMarkedIndividualsWithEncMatching(String filter) {
-      System.out.println("filter in getNumMarkedIndividualsWithEncMatching method is: " + filter);
       int num = 0;
       pm.getFetchPlan().setGroup("count");
       Extent encClass = pm.getExtent(Encounter.class, true);
-      Query q = pm.newQuery("SELECT DISTINCT individualID FROM org.ecocean.Encounter WHERE "+filter);
+      Query q = pm.newQuery("SELECT DISTINCT individualID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && "+filter);
       try {
         Collection results = (Collection) q.execute();
         num = results.size();
@@ -5611,7 +5610,7 @@ public Long countMediaAssets(Shepherd myShepherd){
       return num;
     }
     public int getNumMarkedIndividualsLeftFlank() {
-      String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
+      String lFlankFilter = "enc.dynamicProperties.indexOf(\"flank=L\") > -1 VARIABLES org.ecocean.Encounter enc";
       return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
     }
   //End Spotashark customizations
@@ -5629,7 +5628,5 @@ public Long countMediaAssets(Shepherd myShepherd){
 
       return allAnnotIds;
     }
-
-
 
 } //end Shepherd class

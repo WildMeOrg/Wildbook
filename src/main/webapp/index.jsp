@@ -372,7 +372,6 @@ try {
 
     numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
     numMarkedIndividualsLeftFlank = myShepherd.getNumMarkedIndividualsLeftFlank();
-
 }
 catch(Exception e){
     e.printStackTrace();
