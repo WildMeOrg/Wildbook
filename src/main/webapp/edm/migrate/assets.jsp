@@ -176,7 +176,7 @@ private static String sqlSub(String inSql, Integer rep) {
 </head>
 <body>
 <p>
-This will help migrate <b>Assets</b> to Codex.
+<h1>This will help migrate <b>Assets</b> to Codex.</h1>
 </p>
 <hr />
 
@@ -221,7 +221,7 @@ query.closeAll();
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
-%><textarea>BEGIN;
+%><textarea>
 <%
 for (MediaAsset ma : allMA) {
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
@@ -242,15 +242,15 @@ for (MediaAsset ma : allMA) {
     occMas.add(ma);
 }
 %>
-END;
 </textarea>
 
+<h2>Make dirs and copy files</h2>
 <p>
 This shell script will need the <b>directories</b> at the top modified to have the right locations, but will then copy the files
 which were rsync'ed (above) into the proper final location for the houston assets.
 </p>
 
-<textarea>BEGIN;
+<textarea>
 <%
 ///Connection con = getConnection(myShepherd);
 
@@ -324,9 +324,9 @@ meta                | "{\"derived\": {\"width\": 4032, \"height\": 3024}}"
 asset_group_guid    | e42fe051-9253-4390-abd9-2e7d35483872
 */
 %>
-END;
 </textarea>
 
+<h2>Houston sql for AssetGroups and Assets</h2>
 <p>
 Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 </p>
@@ -339,6 +339,7 @@ END;
 
 
 %>
+<h2>Keywords in houston</h2>
 <p>
 SQL to create the keywords in houston:
 </p>
@@ -364,7 +365,8 @@ for (String k : kmap.keySet()) {
 %>
 END;
 </textarea>
-<p>Annotations</p>
+<h2>Annotations/keywords in houston</h2>
+<p>SQL for Annotations and keywords in houston</p>
 <textarea>
 BEGIN;
 
