@@ -47,9 +47,19 @@ Using the EDM, migrating data can be done from the `/edm/migrate/` url.  It will
 The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
 [ComplexDateTime](https://github.com/WildMeOrg/Wildbook/blob/next-gen/src/main/java/org/ecocean/ComplexDateTime.java) data type.
 
+_Note:_ It is very helpful to have your
+[locationID.json](https://github.com/WildMeOrg/Wildbook/blob/next-gen/src/main/resources/bundles/locationID.json) file updated
+_before_ this step to include a `timeZone` [value](https://mkyong.com/java8/java-display-all-zoneid-and-its-utc-offset/) for each locationID.
+
 ### Occurrence / Sightings
 
 `/edm/migrate/occurs.jsp` will generate Sightings for Encounters that have none.
+
+### Assets / Annotations / Keywords
+
+`/edm/migrate/assets.jsp` will assist in migrating Assets, Annotations, and Keywords.
+
+This will involve shell scripts and SQL.  Good luck!
 
 ### CustomFields
 
@@ -66,4 +76,8 @@ especially type ("integer" in this case).
 ### Measurements
 
 Similarly, use `/edm/migrate/measurements.jsp` in order to migrate **Measurement** values on **Encounter** data to CustomFields.
+
+### LabeledKeywords
+
+`/edm/migrate/labeledkeywords.jsp` will migrate **LabeledKeywords** values on MediaAssets to **Encounter** data as CustomFields.
 
