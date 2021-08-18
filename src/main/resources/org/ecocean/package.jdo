@@ -226,6 +226,10 @@
         <join />
       </field>
 
+      <field name="alternateId" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+
 	<field name="context" persistence-modifier="persistent" default-fetch-group="false">
 		<column length="128" default-value="unknown" allows-null="false" />
 	</field>
