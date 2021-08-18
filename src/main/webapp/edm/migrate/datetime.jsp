@@ -100,6 +100,7 @@ for (Occurrence occ : occs) {
     if (!changed) continue;  //nothing to report really
     ComplexDateTime st = occ.getStartTime();
     ComplexDateTime et = occ.getEndTime();
+    int encNum = Util.collectionSize(occ.getEncounters());
     out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
     System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
 }

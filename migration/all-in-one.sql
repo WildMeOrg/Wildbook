@@ -169,6 +169,7 @@ BEGIN;
 ALTER TABLE "OCCURRENCE" ALTER COLUMN "ID" SET DEFAULT uuid_generate_v4();
 
 -- now we "store" legacy values in ALTERNATEID
+ALTER TABLE "OCCURRENCE" ADD COLUMN "ALTERNATEID" TEXT;
 UPDATE "OCCURRENCE" SET "ALTERNATEID" = "ID";
 
 -- this allows us to alter id primary key on occurrence (thanks to added CASCADE)
