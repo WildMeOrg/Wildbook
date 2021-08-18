@@ -2645,6 +2645,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                       enc = Encounter.fromApiJSONObject(myShepherd, jenc);
                       if (enc == null) throw new IOException("Failed to create a new Encounter for recieved ID :" +id);
                       enc.setId(id);
+                    } else if (enc.getIndividual()!=null) {
+                      throw new IOException("MarkedIndividual creation failed. It was attempted with an Encounter that already has an Individual.");
                     } else {
                       System.out.println("Retrieved Existing Encounter for recieved ID : "+id);
                     }
@@ -2671,12 +2673,47 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             indiv.setTaxonomy(tx);
         }
 
+        String jcomments = jsonIn.optString("comments");
+        if (jcomments!=null) {
+          indiv.setComments(jcomments);
+        }
+
+        String jsex = jsonIn.optString("sex");
+        if (jsex!=null) {
+          indiv.setSex(jsex);
+        }
+
+        org.json.JSONObject jnames = jsonIn.optJSONObject("names");
+        Iterator<String> keys = jnames.keys();
+
+        while (keys.hasNext()) {
+          String key = keys.next();
+          String value = jnames.optString(key);
+          indiv.addName(key, value);
+        }
+
+        String jbirthTime= jsonIn.optString("timeOfBirth");
+        String jdeathTime= jsonIn.optString("timeOfDeath");
+
+        try {
+          indiv.setTimeOfBirth(Long.parseLong(jbirthTime));
+        } catch (NumberFormatException nfe) {
+          nfe.printStackTrace();
+        }
+
+        try {
+          indiv.setTimeOfDeath(Long.parseLong(jdeathTime));
+        } catch (NumberFormatException nfe) {
+          nfe.printStackTrace();
+        }
+
         return indiv;
     }
 
     public org.json.JSONObject asApiJSONObject() {
         return asApiJSONObject(null);
     }
+
 
     public org.json.JSONObject asApiJSONObject(org.json.JSONObject arg) {
         String detLvl = getDetailLevel(arg);
@@ -2712,8 +2749,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               JSONnames.put(key, names.getValue(key));
             } catch (Exception e) {}
           }
-        } 
+        }
         obj.put("names", JSONnames);
+        obj.put("sex", this.getSex());
+        obj.put("comments", this.getComments());
+        obj.put("timeOfBirth", String.valueOf(timeOfBirth));
+        obj.put("timeOfDeath", String.valueOf(timeOfDeath));
         if (this.taxonomy != null) obj.put("taxonomy", this.taxonomy.asApiJSONObject());
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
@@ -2761,6 +2802,42 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                   //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
                   this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
                   break;
+              case "sex":
+                  String sex = jsonIn.optString("sex");
+                  this.setSex(sex);
+              case "comments":
+                  String comments = jsonIn.optString("comments");
+                  this.addComments(comments);
+              case "timeOfBirth":
+                  try {
+                    this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfBirth")));
+                  } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                    throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfBirth");
+                  }
+              case "timeOfDeath":
+                  try {
+                    this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfDeath")));
+                  } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                    throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfDeath");
+                  }
+              case "names":
+              throw new ApiValueException("name PATCH is still under construction { id, value }", "names");
+                  // org.json.JSONObject jnames = jsonIn.optJSONObject("names");
+                  // Iterator namesIt = jnames.keys();
+                  // while (namesIt.hasNext()) {
+                  //   String key = (String) namesIt.next();
+                  //   String value = jnames.optString(key);
+                    
+                  //   if (names.getKeyList().contains(key)) {
+                  //     String oldVal = names.getValuesByKey(key)
+                  //     names.removeValuesByKey(key);
+
+                  //   }
+
+                  // }
+                  
               default:
                   throw new Exception("apiPatch op=" + opName + " unknown path " + path);
           }
