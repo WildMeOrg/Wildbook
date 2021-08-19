@@ -5,6 +5,7 @@ java.util.List,
 java.util.Iterator,
 java.nio.file.Path,
 java.util.ArrayList,
+java.io.File,
 javax.jdo.*,
 java.util.Arrays,
 java.util.Map,
@@ -27,6 +28,14 @@ org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*
               "
 %><%!
+
+private String fileWriteAndPreview(String name, String content) throws java.io.IOException {
+    String fname = "assets_" + name;
+    File loc = MigrationUtil.writeFile(fname, content);
+    String rtn = content;
+    if (rtn.length() > 3000) rtn = rtn.substring(0, 3000) + "\n\n   [... preview truncated ...]";
+    return "<div>This file located at: <i class=\"code\">" + loc.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
+}
 
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds
 private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
@@ -100,7 +109,7 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
     } else {
         bounds.put("rect", new JSONArray(bb));
     }
-    sqlIns = sqlSub(sqlIns, MigrationUtils.jsonQuote(bounds));
+    sqlIns = sqlSub(sqlIns, MigrationUtil.jsonQuote(bounds));
     doneAnns.add(ann.getId());
     return sqlIns;
 }
@@ -180,7 +189,13 @@ of below will be copied into a file <i class="code">/tmp/filelist</i>.  Due to t
 rsync -av --files-from=/tmp/filelist oldworld.wildbook.server:/var/lib/tomcat8/webapps/wildbook_data_dir/ /data/migration/assets
 </div>
 
-
+<%
+MigrationUtil.setDir(request.getParameter("migrationDir"));
+String checkDir = MigrationUtil.checkDir();
+%>
+<p>
+migrationDir: <b><%=checkDir%></b>
+</p>
 <%
 
 
@@ -207,16 +222,18 @@ query.closeAll();
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
-%><textarea>
-<%
+String content = "";
+Set<Integer> done = new HashSet<Integer>();
 for (MediaAsset ma : allMA) {
+    if (done.contains(ma.getId())) continue;
+    done.add(ma.getId());
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
     String path = getRelPath(ma);
     //out.println(ma.getId() + " - " + path);
-    out.println(path);
+    content += path + "\n";
     Occurrence occ = getSomeOccurrence(myShepherd, ma);
     if (occ == null) {
-        out.println("#### no occ for " + ma + " (should not happen if you had run occur.jsp)");
+        content += "#### no occ for " + ma + " (should not happen if you had run occur.jsp)\n";
         continue;
     }
 
@@ -227,8 +244,10 @@ for (MediaAsset ma : allMA) {
     }
     occMas.add(ma);
 }
+
+out.println(fileWriteAndPreview("rsync_for_assets.filelist", content));
 %>
-</textarea>
+
 
 <h2>Make dirs and copy files</h2>
 <p>
@@ -236,16 +255,15 @@ This shell script will need the <b>directories</b> at the top modified to have t
 which were rsync'ed (above) into the proper final location for the houston assets.
 </p>
 
-<textarea>
 <%
 ///Connection con = getConnection(myShepherd);
 
-out.println("### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n");
+content = "### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n\n";
 String allSql = "";
 for (Occurrence occ : agMap.keySet()) {
     String subdir = occ.getId();
-    out.println("\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group");
-    out.println("mkdir $TARGET_DIR/" + subdir + "/_assets");
+    content += "\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group\n";
+    content += "mkdir $TARGET_DIR/" + subdir + "/_assets\n";
 
     String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '\"{}\"');";
     String userId = "88c3f1da-179b-40be-b186-5bd33ef7dc16";
@@ -257,11 +275,11 @@ for (Occurrence occ : agMap.keySet()) {
     for (MediaAsset ma : agMap.get(occ)) {
         String path = getRelPath(ma);
         //out.println(ma);
-        out.println("cp -a $TMP_ASSET_DIR'/" + path + "' $TARGET_DIR/" + subdir + "/_asset_group/");
+        content += "cp -a $TMP_ASSET_DIR'/" + path + "' $TARGET_DIR/" + subdir + "/_asset_group/\n";
         String fname = ma.getFilename();
         int dot = fname.lastIndexOf(".");
         String ext = (dot < 0) ? "" : "." + fname.substring(dot + 1);
-        out.println("ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext);
+        content += "ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
         String s = sqlIns;
         s = sqlSub(s, ma.getUUID());
         s = sqlSub(s, ext.substring(1));
@@ -275,6 +293,9 @@ for (Occurrence occ : agMap.keySet()) {
         allSql += s + "\n\n";
     }
 }
+
+out.println(fileWriteAndPreview("dirs_and_copy.sh", content));
+
 /*
 created                    | 2021-08-10 18:14:16.553598
 updated                    | 2021-08-10 18:14:16.553643
@@ -310,28 +331,21 @@ meta                | "{\"derived\": {\"width\": 4032, \"height\": 3024}}"
 asset_group_guid    | e42fe051-9253-4390-abd9-2e7d35483872
 */
 %>
-</textarea>
 
 <h2>Houston sql for AssetGroups and Assets</h2>
 <p>
 Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 </p>
 
-<textarea>
-BEGIN;
-<%=allSql%>
-END;
-</textarea><%
+<%=fileWriteAndPreview("houston_assetgroups_assets.sql", "BEGIN;\n" + allSql + "\nEND;\n")%>
 
-
-%>
 <h2>Keywords in houston</h2>
 <p>
 SQL to create the keywords in houston:
 </p>
-<textarea>
-BEGIN;
+
 <%
+content = "BEGIN;\n";
 Map<String,String> kmap = new HashMap<String,String>();
 List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
 List<Keyword> kws = myShepherd.getAllKeywordsList();
@@ -342,7 +356,7 @@ for (Keyword kw : kws) {
         System.out.println("skipping LABELED Keyword " + kw);
         continue;
     }
-    kmap.put(kw.getReadableName(), MigrationUtils.toUUID(kw.getIndexname()));
+    kmap.put(kw.getReadableName(), MigrationUtil.toUUID(kw.getIndexname()));
 }
 
 String sqlIns = "INSERT INTO keyword (created, updated, viewed, guid, value, source) VALUES (now(), now(), now(), ?, ?, 'user');";
@@ -350,25 +364,28 @@ for (String k : kmap.keySet()) {
     String s = sqlIns;
     s = sqlSub(s, kmap.get(k));
     s = sqlSub(s, k);
-    out.println(s);
+    content += s + "\n";
 }
+content += "\nEND;\n";
+
+out.println(fileWriteAndPreview("houston_keywords.sql", content));
 
 %>
-END;
-</textarea>
+
+
 <h2>Annotations/keywords in houston</h2>
 <p>SQL for Annotations and keywords in houston</p>
-<textarea>
-BEGIN;
 
 <%
+content = "BEGIN;\n";
 for (MediaAsset ma : allMA) {
-    out.println(annotSql(ma, kmap));
+    content += annotSql(ma, kmap) + "\n";
 }
+content += "\nEND;\n";
 myShepherd.rollbackDBTransaction();
+
+out.println(fileWriteAndPreview("houston_annotations.sql", content));
 %>
-END;
-</textarea>
 
 
 </body></html>

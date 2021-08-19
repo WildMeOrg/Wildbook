@@ -83,7 +83,7 @@ String sql = "SELECT DISTINCT(TRIM(\"BEHAVIOR\")) FROM \"ENCOUNTER\" WHERE \"BEH
 Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 Collection c = (Collection)query.execute();
 for (Object o : c) {
-    String b = MigrationUtils.cleanup((String)o);
+    String b = MigrationUtil.cleanup((String)o);
     if (b != null) encMap.put(b, Util.generateUUID());
 }
 query.closeAll();
@@ -93,7 +93,7 @@ sql = "SELECT DISTINCT(TRIM(\"GROUPBEHAVIOR\")) FROM \"OCCURRENCE\" WHERE \"GROU
 query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 c = (Collection)query.execute();
 for (Object o : c) {
-    String b = MigrationUtils.cleanup((String)o);
+    String b = MigrationUtil.cleanup((String)o);
     if (b != null) occMap.put(b, Util.generateUUID());
 }
 query.closeAll();
@@ -105,7 +105,7 @@ List<Occurrence> bOccs = new ArrayList<Occurrence>(c);
 query.closeAll();
 for (Occurrence occ : bOccs) {
     for (Instant ins : occ.getBehaviors()) {
-        String b = MigrationUtils.cleanup(ins.getName());
+        String b = MigrationUtil.cleanup(ins.getName());
         if (b != null) occMap.put(b, Util.generateUUID());
     }
 }
@@ -116,16 +116,18 @@ for (Occurrence occ : bOccs) {
 <h2>Encounters</h2>
 <input type="checkbox" name="enc-dropdown" /> Use list below as dropdown
 <textarea name="enc-choices">
-<%=String.join("\n", MigrationUtils.setSort(encMap.keySet()))%>
+<%=String.join("\n", MigrationUtil.setSort(encMap.keySet()))%>
 </textarea>
 
 <h2>Sightings/Occurrences</h2>
 <input type="checkbox" name="occ-dropdown" /> Use list below as dropdown
 <textarea name="occ-choices">
-<%=String.join("\n", MigrationUtils.setSort(occMap.keySet()))%>
+<%=String.join("\n", MigrationUtil.setSort(occMap.keySet()))%>
 </textarea>
 
 <%
+MigrationUtil.writeFile("behaviors_encounter_choices.txt", String.join("\n", MigrationUtil.setSort(encMap.keySet())));
+MigrationUtil.writeFile("behaviors_occurrence_choices.txt", String.join("\n", MigrationUtil.setSort(occMap.keySet())));
 
 CustomFieldDefinition cfdEnc = new CustomFieldDefinition("org.ecocean.Encounter", "string", "behaviors", true);
 CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfdEnc);
@@ -173,7 +175,7 @@ List<Encounter> encAll = new ArrayList<Encounter>(c);
 query.closeAll();
 int ct = 1;
 for (Encounter enc : encAll) {
-    String value = MigrationUtils.cleanup(enc.getBehavior()); //TODO should this be the uuid of this string instead for choices?
+    String value = MigrationUtil.cleanup(enc.getBehavior()); //TODO should this be the uuid of this string instead for choices?
     if (value == null) continue;
     CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdEnc, value);
     enc.addCustomFieldValue(cfv);
@@ -193,7 +195,7 @@ List<Occurrence> occAll = new ArrayList<Occurrence>(c);
 query.closeAll();
 ct = 1;
 for (Occurrence occ : occAll) {
-    String value = MigrationUtils.cleanup(occ.getGroupBehavior()); //TODO should this be the uuid of this string instead for choices?
+    String value = MigrationUtil.cleanup(occ.getGroupBehavior()); //TODO should this be the uuid of this string instead for choices?
     if (value == null) continue;
     CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdOcc, value);
     occ.addCustomFieldValue(cfv);
@@ -210,7 +212,7 @@ query.closeAll();
 ct = 1;
 for (Occurrence occ : occAll) {
     for (Instant ins : occ.getBehaviors()) {
-        String value = MigrationUtils.cleanup(ins.getName()); //TODO should this be the uuid of this string instead for choices?
+        String value = MigrationUtil.cleanup(ins.getName()); //TODO should this be the uuid of this string instead for choices?
         if (value == null) continue;
         CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdOcc, value);
         occ.addCustomFieldValue(cfv);

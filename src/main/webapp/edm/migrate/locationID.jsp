@@ -92,7 +92,7 @@ if (json_original != null) {
 
 
 if (jsonSave != null) {
-    MigrationUtil.writeFile("locationIdSaved.json", jsonSave);
+    MigrationUtil.writeFile("locationId_saved.json", jsonSave);
     String error = null;
     JSONObject json = null;
     try {
@@ -215,8 +215,8 @@ if (suggestedOverride != null) suggestedString = suggestedOverride;
 <%
 myShepherd.rollbackDBTransaction();
 
-MigrationUtil.writeFile("locationIdSuggested.json", suggestedString);
-MigrationUtil.writeFile("locationIdOriginal.json", origRawJson);
+MigrationUtil.writeFile("locationId_suggested.json", suggestedString);
+MigrationUtil.writeFile("locationId_original.json", origRawJson);
 %>
 
 
