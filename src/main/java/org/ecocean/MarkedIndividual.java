@@ -2663,49 +2663,62 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 }
             }
         }
-        if (indiv.numEncounters() < 1) throw new IOException("to create a new MarkedIndividual, there must be at least one Encounter");
-
-        org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
-        if (jtx != null) {
-            Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
-            if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
-            if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
-            indiv.setTaxonomy(tx);
-        }
-
-        String jcomments = jsonIn.optString("comments");
-        if (jcomments!=null) {
-          indiv.setComments(jcomments);
-        }
-
-        String jsex = jsonIn.optString("sex");
-        if (jsex!=null) {
-          indiv.setSex(jsex);
-        }
-
-        org.json.JSONObject jnames = jsonIn.optJSONObject("names");
-        Iterator<String> keys = jnames.keys();
-
-        while (keys.hasNext()) {
-          String key = keys.next();
-          String value = jnames.optString(key);
-          indiv.addName(key, value);
-        }
-
-        String jbirthTime= jsonIn.optString("timeOfBirth");
-        String jdeathTime= jsonIn.optString("timeOfDeath");
 
         try {
-          indiv.setTimeOfBirth(Long.parseLong(jbirthTime));
-        } catch (NumberFormatException nfe) {
-          nfe.printStackTrace();
-        }
+          if (indiv.numEncounters() < 1) throw new IOException("to create a new MarkedIndividual, there must be at least one Encounter");
+  
+          org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
+          if (jtx != null) {
+              Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
+              if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
+              if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
+              indiv.setTaxonomy(tx);
+          }
+  
+          String jcomments = jsonIn.optString("comments");
+          if (jcomments!=null) {
+            indiv.setComments(jcomments);
+          }
+  
+          String jsex = jsonIn.optString("sex");
+          if (jsex!=null) {
+            indiv.setSex(jsex);
+          }
+  
+          org.json.JSONObject jnames = jsonIn.optJSONObject("names");
+          if (jnames!=null) {
+            Iterator<String> keys = jnames.keys();
+            while (keys.hasNext()) {
+              String key = keys.next();
+              String value = jnames.optString(key);
+              indiv.addName(key, value);
+            }
+          }
+  
+          String jbirthTime= jsonIn.optString("timeOfBirth");
+          String jdeathTime= jsonIn.optString("timeOfDeath");
 
-        try {
-          indiv.setTimeOfDeath(Long.parseLong(jdeathTime));
+          try {
+            if (jbirthTime!=null) {
+              indiv.setTimeOfBirth(Long.parseLong(jbirthTime));
+            }
+          } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+          }
+  
+          try {
+            if (jdeathTime!=null) {
+              indiv.setTimeOfDeath(Long.parseLong(jdeathTime));
+            }
+          } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+          }
+
         } catch (NumberFormatException nfe) {
           nfe.printStackTrace();
-        }
+        } catch (Exception e) {
+          e.printStackTrace();
+        } 
 
         return indiv;
     }
