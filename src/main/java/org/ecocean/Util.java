@@ -527,6 +527,68 @@ public class Util {
         }
     }
 
+    private static String _niceJSONIndent(int tab, String label) {
+        String ind = " ".repeat(tab * 4);
+        if (label != null) ind += "\"" + label + "\": ";
+        return ind;
+    }
+    public static String niceJSON(JSONObject json) {
+        return niceJSON(json, 0, false, null);
+    }
+    public static String niceJSON(JSONObject json, int tab, boolean comma, String label) {
+        if (json == null) return null;
+        String s = _niceJSONIndent(tab, label) + "{\n";
+        List<String> skeys = new ArrayList<String>(json.keySet());
+        Collections.sort(skeys, String.CASE_INSENSITIVE_ORDER);
+        for (int i = 0 ; i < skeys.size() ; i++) {
+            String key = skeys.get(i);
+            JSONObject jo = json.optJSONObject(key);
+            if (jo != null) {
+                s += niceJSON(jo, tab + 1, i < (skeys.size() - 1), key);
+                continue;
+            }
+            JSONArray ja = json.optJSONArray(key);
+            if (ja != null) {
+                s += niceJSON(ja, tab + 1, i < (skeys.size() - 1), key);
+                continue;
+            }
+            //hope for the best with toString()
+            Object j = json.get(key);
+            String svalue = j.toString();
+            if (j instanceof String) svalue = "\"" + svalue + "\"";
+            s += _niceJSONIndent(tab + 1, key) + svalue + (i < (skeys.size() - 1) ? "," : "") + "\n";
+        }
+        s += _niceJSONIndent(tab, null) + "}" + (comma ? "," : "") + "\n";
+        return s;
+    }
+    public static String niceJSON(JSONArray json) {
+        return niceJSON(json, 0, false, null);
+    }
+    public static String niceJSON(JSONArray json, int tab, boolean comma, String label) {
+        if (json == null) return null;
+        String s = _niceJSONIndent(tab, label) + "[\n";
+        for (int i = 0 ; i < json.length() ; i++) {
+            JSONObject jo = json.optJSONObject(i);
+            if (jo != null) {
+                s += niceJSON(jo, tab + 1, i < (json.length() - 1), null);
+                continue;
+            }
+            JSONArray ja = json.optJSONArray(i);
+            if (ja != null) {
+                s += niceJSON(ja, tab + 1, i < (json.length() - 1), null);
+                continue;
+            }
+            //hope for the best with toString()
+            Object j = json.get(i);
+            String svalue = j.toString();
+            if (j instanceof String) svalue = "\"" + svalue + "\"";
+            s += _niceJSONIndent(tab + 1, null) + svalue + (i < (json.length() - 1) ? "," : "") + "\n";
+        }
+        s += _niceJSONIndent(tab, null) + "]" + (comma ? "," : "") + "\n";
+        return s;
+    }
+
+
 
     //these should only be called on the top-level qry, not recursed within
     public static String jsonHashCodeSmall(JSONObject obj) { return jsonHashCodeSmall(obj, false); }
