@@ -37,6 +37,16 @@ private String fileWriteAndPreview(String name, String content) throws java.io.I
     return "<div>This file located at: <i class=\"code\">" + loc.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
 }
 
+private String coerceOwnerId(Occurrence occ, Shepherd myShepherd) {
+    for (Encounter enc : occ.getEncounters()) {
+        String sub = enc.getSubmitterID();
+        User user = myShepherd.getUser(sub);
+        if (user != null) return user.getUUID();
+    }
+    throw new RuntimeException("could not find User for " + occ);
+    //return null;
+}
+
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds
 private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
     Encounter enc = null;
@@ -205,7 +215,7 @@ sql += "join \"ANNOTATION_FEATURES\" using (\"ID_EID\") ";
 sql += "join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") ";
 sql += "join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"ID_OID\" = \"ENCOUNTER\".\"ID\") ";
 sql += "order by \"MEDIAASSET\".\"UUID\" ";
-sql += "limit 30 ";
+//sql += "limit 30 ";
 
 //out.println(sql);
 //if (sql != null) return;
@@ -219,12 +229,15 @@ query.setClass(MediaAsset.class);
 Collection c = (Collection)query.execute();
 List<MediaAsset> allMA = new ArrayList<MediaAsset>(c);
 query.closeAll();
+System.out.println("migration/assets.jsp finished initial query");
 
 Map<Occurrence, Set<MediaAsset>> agMap = new HashMap<Occurrence, Set<MediaAsset>>();
 
 String content = "";
 Set<Integer> done = new HashSet<Integer>();
+int ct = 0;
 for (MediaAsset ma : allMA) {
+    ct++;
     if (done.contains(ma.getId())) continue;
     done.add(ma.getId());
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
@@ -243,9 +256,11 @@ for (MediaAsset ma : allMA) {
         agMap.put(occ, occMas);
     }
     occMas.add(ma);
+    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] assets processed");
 }
 
 out.println(fileWriteAndPreview("rsync_for_assets.filelist", content));
+System.out.println("migration/assets.jsp finished assets");
 %>
 
 
@@ -260,13 +275,16 @@ which were rsync'ed (above) into the proper final location for the houston asset
 
 content = "### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n\n";
 String allSql = "";
+ct = 0;
 for (Occurrence occ : agMap.keySet()) {
+    ct++;
+    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + agMap.keySet().size() + "] asset_groups processed");
     String subdir = occ.getId();
     content += "\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group\n";
     content += "mkdir $TARGET_DIR/" + subdir + "/_assets\n";
 
     String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '\"{}\"');";
-    String userId = "88c3f1da-179b-40be-b186-5bd33ef7dc16";
+    String userId = coerceOwnerId(occ, myShepherd);
     agSql = sqlSub(agSql, occ.getId());
     agSql = sqlSub(agSql, userId);
     allSql += agSql + "\n";
@@ -295,6 +313,7 @@ for (Occurrence occ : agMap.keySet()) {
 }
 
 out.println(fileWriteAndPreview("dirs_and_copy.sh", content));
+System.out.println("migration/assets.jsp dirs assets");
 
 /*
 created                    | 2021-08-10 18:14:16.553598
@@ -338,6 +357,7 @@ Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 </p>
 
 <%=fileWriteAndPreview("houston_assetgroups_assets.sql", "BEGIN;\n" + allSql + "\nEND;\n")%>
+<%System.out.println("migration/assets.jsp dirs asset_groups");%>
 
 <h2>Keywords in houston</h2>
 <p>
@@ -369,6 +389,7 @@ for (String k : kmap.keySet()) {
 content += "\nEND;\n";
 
 out.println(fileWriteAndPreview("houston_keywords.sql", content));
+System.out.println("migration/assets.jsp finished keywords");
 
 %>
 
@@ -378,13 +399,17 @@ out.println(fileWriteAndPreview("houston_keywords.sql", content));
 
 <%
 content = "BEGIN;\n";
+ct = 0;
 for (MediaAsset ma : allMA) {
+    ct++;
     content += annotSql(ma, kmap) + "\n";
+    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] annotations processed");
 }
 content += "\nEND;\n";
 myShepherd.rollbackDBTransaction();
 
 out.println(fileWriteAndPreview("houston_annotations.sql", content));
+System.out.println("migration/assets.jsp finished annotations");
 %>
 
 

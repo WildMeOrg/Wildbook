@@ -77,6 +77,10 @@ The link to `/edm/migrate/customFields.jsp` and choose the appropriate _class_ a
 Hit _Validate_ button.  You should see output with the suggested contents for the new CustomField.  Verify that its properties are correct,
 especially type ("integer" in this case).
 
+### Behaviors
+
+`/edm/migrate/behaviors.jsp` will migrate behavior data to CustomFields on Encounters and Occurrences.
+
 ### Measurements
 
 Similarly, use `/edm/migrate/measurements.jsp` in order to migrate **Measurement** values on **Encounter** data to CustomFields.

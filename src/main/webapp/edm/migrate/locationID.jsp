@@ -169,12 +169,14 @@ JSONObject origJson = new JSONObject(origRawJson);
 <%
 
 List<String> ids = getIds(origJson);
-String sql = "SELECT DISTINCT(\"LOCATIONID\") FROM \"ENCOUNTER\" WHERE \"LOCATIONID\" NOT IN ('" + String.join("', '", ids) + "')";
+//String sql = "SELECT DISTINCT(\"LOCATIONID\") FROM \"ENCOUNTER\" WHERE \"LOCATIONID\" NOT IN ('" + String.join("', '", ids) + "')";
+String sql = "SELECT DISTINCT(\"LOCATIONID\") FROM \"ENCOUNTER\"";
 Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 Collection c = (Collection)query.execute();
 Set<String> missing = new HashSet<String>();
 for (Object o : c) {
     String s = (String)o;
+    if (ids.contains(s)) continue;
     if (Util.stringExists(s)) missing.add(s);
 }
 query.closeAll();

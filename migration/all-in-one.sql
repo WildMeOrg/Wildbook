@@ -204,5 +204,7 @@ UPDATE "OCCURRENCE" SET "ID" = uuid_generate_v4() WHERE LENGTH("ID") != 36 OR "I
 -- blank out alternate id where it is uuid
 UPDATE "OCCURRENCE" SET "ALTERNATEID" = null WHERE LENGTH("ALTERNATEID") = 36 AND "ALTERNATEID" LIKE '%-%-%-%';
 
+-- update encounter.occurrenceID to reflect new occurrence.id
+UPDATE "ENCOUNTER" SET "OCCURRENCEID" = (SELECT "ID" FROM "OCCURRENCE" where "ALTERNATEID" = "ENCOUNTER"."OCCURRENCEID") WHERE LENGTH("OCCURRENCEID") != 36 OR "OCCURRENCEID" NOT LIKE '%-%-%-%';
 
 END;
