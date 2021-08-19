@@ -528,7 +528,7 @@ public class Util {
     }
 
     private static String _niceJSONIndent(int tab, String label) {
-        String ind = " ".repeat(tab * 4);
+        String ind = new String(new char[tab * 4]).replace("\0", " ");   // h/t https://stackoverflow.com/a/4903603
         if (label != null) ind += "\"" + label + "\": ";
         return ind;
     }
