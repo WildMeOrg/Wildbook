@@ -75,16 +75,18 @@ boolean useOccDD = (request.getParameter("occ-dropdown") != null);
 boolean commit = (request.getParameter("commit") != null);
 
 /*
-Occurrence occ = myShepherd.getOccurrence("163d2b79-09b1-4cd7-b4e5-db8e8525c36c");
+Occurrence zocc = myShepherd.getOccurrence("163d2b79-09b1-4cd7-b4e5-db8e8525c36c");
 List<Instant> bs = new ArrayList<Instant>();
-Instant ins = new Instant("fubarr", new DateTime(), null);
-bs.add(ins);
-occ.setBehaviors(bs);
-out.println(occ);
-out.println(occ.getBehaviors());
+Instant zins = new Instant("fuZZZZ", new DateTime(), null);
+bs.add(zins);
+zins = new Instant("fubarr", new DateTime(), null);
+bs.add(zins);
+zocc.setBehaviors(bs);
+out.println(zocc);
+out.println(zocc.getBehaviors());
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
-if (occ != null) return;
+if (zocc != null) return;
 */
 
 Map<String,String> encMap = new HashMap<String,String>();
@@ -158,23 +160,6 @@ if (found != null) {
 <hr />
 <%
 
-/*
-List<MeasurementDesc> descs = Util.findMeasurementDescs("en", context);
-List<CustomFieldDefinition> cfds = new ArrayList<CustomFieldDefinition>();
-for (MeasurementDesc desc : descs) {
-    CustomFieldDefinition cfd = new CustomFieldDefinition("org.ecocean.Encounter", "double", cfdNameFromMeasurementDesc(desc));
-    CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfd);
-    if (found != null) {
-        out.println("<p>collision with existing cfd: <b>" + found + "</b></p>");
-        myShepherd.rollbackDBTransaction();
-        return;
-    }
-    cfds.add(cfd);
-    String show = measDesc(desc);
-}
-*/
-
-
 if (!commit) {
     myShepherd.rollbackDBTransaction();
 %>
@@ -187,50 +172,67 @@ if (!commit) {
 
 out.println("COMMIT");
 
-/*
-String jdoql = "SELECT FROM org.ecocean.Encounter WHERE measurements.size() > 0";
+myShepherd.getPM().makePersistent(cfdEnc);
+myShepherd.getPM().makePersistent(cfdOcc);
+
+jdoql = "SELECT FROM org.ecocean.Encounter WHERE behavior != null";
 //jdoql += " RANGE 0,10";  //debugging only
-
-out.println("<p>jdoql = <b>" + jdoql + "</b></p><hr /><h1>Migrating field values:</h1>");
-
-Map<String, CustomFieldDefinition> cfdMap = new HashMap<String, CustomFieldDefinition>();
-for (CustomFieldDefinition cfd : cfds) {
-    myShepherd.getPM().makePersistent(cfd);
-    cfdMap.put(cfd.getName(), cfd);
-}
-
-Query query = myShepherd.getPM().newQuery(jdoql);
-Collection c = (Collection) (query.execute());
-List<Encounter> all = new ArrayList<Encounter>(c);
+out.println("<p>jdoql = <b>" + jdoql + "</b></p><hr /><h1>Migrating field values on Encounters:</h1>");
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<Encounter> encAll = new ArrayList<Encounter>(c);
 query.closeAll();
-int ect = 1;
-for (Encounter enc : all) {
-    out.println("<hr /><b>" + enc + "</b>");
-    int ct = 0;
-    for (MeasurementDesc desc : descs) {
-        Measurement ms = myShepherd.getMeasurementOfTypeForEncounter(desc.getType(), enc.getCatalogNumber());
-        if (ms != null) {
-            String nm = cfdNameFromMeasurementDesc(desc);
-            CustomFieldDefinition cfd = cfdMap.get(nm);
-            if (cfd == null) {
-                out.println("<p>could not find CustomFieldDefinition that matched name=" + nm + " for " + ms + "</p>");
-                myShepherd.rollbackDBTransaction();
-                return;
-            }
-            out.println("<br />" + cfd + " => " + ms.getValue());
-            CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, ms.getValue());
-            enc.addCustomFieldValue(cfv);
-            ct++;
-        }
-    }
-    System.out.println("measurements.jsp: [" + ect + "/" + all.size() + "] migrated " + ct + " Measurements on " + enc);
-    ect++;
+int ct = 1;
+for (Encounter enc : encAll) {
+    String value = cleanup(enc.getBehavior()); //TODO should this be the uuid of this string instead for choices?
+    if (value == null) continue;
+    CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdEnc, value);
+    enc.addCustomFieldValue(cfv);
+    out.println(enc + ": <b>" + value + "</b><br />");
+    System.out.println("behaviors.jsp: [" + ct + "/" + encAll.size() + "] migrated behaviors on " + enc);
+    ct++;
 }
-*/
+
+out.println("<hr />");
+
+jdoql = "SELECT FROM org.ecocean.Occurrence WHERE groupBehavior != null";
+//jdoql += " RANGE 0,10";  //debugging only
+out.println("<p>jdoql = <b>" + jdoql + "</b></p><hr /><h1>Migrating field values on Occurrences:</h1>");
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<Occurrence> occAll = new ArrayList<Occurrence>(c);
+query.closeAll();
+ct = 1;
+for (Occurrence occ : occAll) {
+    String value = cleanup(occ.getGroupBehavior()); //TODO should this be the uuid of this string instead for choices?
+    if (value == null) continue;
+    CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdOcc, value);
+    occ.addCustomFieldValue(cfv);
+    out.println(occ + ": <b>" + value + "</b><br />");
+    System.out.println("behaviors.jsp: [" + ct + "/" + occAll.size() + "] migrated behaviors on " + occ);
+    ct++;
+}
+out.println("<hr />");
+jdoql = "SELECT FROM org.ecocean.Occurrence WHERE behaviors.size() > 0";
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+occAll = new ArrayList<Occurrence>(c);
+query.closeAll();
+ct = 1;
+for (Occurrence occ : occAll) {
+    for (Instant ins : occ.getBehaviors()) {
+        String value = cleanup(ins.getName()); //TODO should this be the uuid of this string instead for choices?
+        if (value == null) continue;
+        CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfdOcc, value);
+        occ.addCustomFieldValue(cfv);
+        out.println(occ + ": <b>" + value + "</b><br />");
+    }
+    System.out.println("behaviors.jsp: [" + ct + "/" + occAll.size() + "] migrated (Instant) behaviors on " + occ);
+    ct++;
+}
 
 
-//myShepherd.commitDBTransaction();
-myShepherd.rollbackDBTransaction();
+myShepherd.commitDBTransaction();
 
 %>
 
