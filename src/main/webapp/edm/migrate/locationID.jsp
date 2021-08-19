@@ -8,6 +8,7 @@ java.util.HashSet,
 javax.jdo.*,
 java.util.Arrays,
 org.json.JSONObject,
+org.ecocean.MigrationUtil,
 org.json.JSONArray,
 org.json.JSONException,
 java.lang.reflect.*,
@@ -80,21 +81,22 @@ for <b>"regions"</b> (<i class="code"><%=configKey%></i>).
 
 String json_original = request.getParameter("json_original");
 String json_suggested = request.getParameter("json_suggested");
-String json_save = null;
+String jsonSave = null;
 String suggestedOverride = null;
 
 if (json_original != null) {
-    json_save = json_original;
+    jsonSave = json_original;
 } else if (json_suggested != null) {
-    json_save = json_suggested;
+    jsonSave = json_suggested;
 }
 
 
-if (json_save != null) {
+if (jsonSave != null) {
+    MigrationUtil.writeFile("locationIdSaved.json", jsonSave);
     String error = null;
     JSONObject json = null;
     try {
-        json = new JSONObject(json_save);
+        json = new JSONObject(jsonSave);
     } catch (JSONException je) {
         error = "Invalid JSON format: " + je.toString();
     }
@@ -113,7 +115,7 @@ if (json_save != null) {
         out.println("</body></html>");
         return;
     } else {
-        suggestedOverride = json_save;
+        suggestedOverride = jsonSave;
 %>
 <h2 class="error"><%=error%></h2>
 <p>Problematic value now shown in <b>suggested</b> block below.</p>
@@ -133,6 +135,13 @@ if ((currentConf != null) && currentConf.hasValue()) {
 <%
 }
 
+MigrationUtil.setDir(request.getParameter("migrationDir"));
+String checkDir = MigrationUtil.checkDir();
+%>
+<p>
+migrationDir: <b><%=checkDir%></b>
+</p>
+<%
 
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 //String tz = request.getParameter("timeZone");
@@ -190,7 +199,7 @@ if (missing.size() > 0) {
 }
 
 
-String suggestedString = suggested.toString(4);
+String suggestedString = Util.niceJSON(suggested);
 if (suggestedOverride != null) suggestedString = suggestedOverride;
 %>
 
@@ -205,6 +214,9 @@ if (suggestedOverride != null) suggestedString = suggestedOverride;
 </form>
 <%
 myShepherd.rollbackDBTransaction();
+
+MigrationUtil.writeFile("locationIdSuggested.json", suggestedString);
+MigrationUtil.writeFile("locationIdOriginal.json", origRawJson);
 %>
 
 

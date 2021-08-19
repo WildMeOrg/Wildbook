@@ -11,6 +11,7 @@ java.util.HashMap,
 org.json.JSONObject,
 java.lang.reflect.*,
 org.ecocean.Util.MeasurementDesc,
+org.ecocean.MigrationUtil,
 org.ecocean.api.ApiCustomFields,
 org.ecocean.customfield.*,
 

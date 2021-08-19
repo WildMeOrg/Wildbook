@@ -6,6 +6,7 @@ java.util.ArrayList,
 javax.jdo.*,
 java.util.Arrays,
 org.json.JSONObject,
+org.ecocean.MigrationUtil,
 java.lang.reflect.*,
 
 org.ecocean.api.ApiCustomFields,

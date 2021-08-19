@@ -10,6 +10,7 @@ java.lang.reflect.*,
 
 org.ecocean.api.ApiCustomFields,
 org.ecocean.customfield.*,
+org.ecocean.MigrationUtil,
 
 org.ecocean.media.*
               "

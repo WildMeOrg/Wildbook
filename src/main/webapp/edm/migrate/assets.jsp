@@ -18,6 +18,7 @@ java.sql.Connection,
 java.sql.PreparedStatement,
 java.sql.DriverManager,
 java.lang.reflect.*,
+org.ecocean.MigrationUtil,
 org.ecocean.Util.MeasurementDesc,
 org.ecocean.api.ApiCustomFields,
 org.ecocean.customfield.*,
@@ -44,21 +45,6 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
         return null;
     }
     return occ;
-}
-
-private String toUUID(String s) {  // h/t https://stackoverflow.com/a/19399768
-    return UUID.fromString(
-        s.replaceFirst( 
-            "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5" 
-        )
-    ).toString();
-}
-
-
-private String jsonQuote(JSONObject j) {
-    if (j == null) return "\"{}\"";
-    String s = j.toString();
-    return "\"" + s.replaceAll("\"", "\\\\\\\\\"") + "\"";  // gimme a effin break java
 }
 
 /*
@@ -114,7 +100,7 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
     } else {
         bounds.put("rect", new JSONArray(bb));
     }
-    sqlIns = sqlSub(sqlIns, jsonQuote(bounds));
+    sqlIns = sqlSub(sqlIns, MigrationUtils.jsonQuote(bounds));
     doneAnns.add(ann.getId());
     return sqlIns;
 }
@@ -356,7 +342,7 @@ for (Keyword kw : kws) {
         System.out.println("skipping LABELED Keyword " + kw);
         continue;
     }
-    kmap.put(kw.getReadableName(), toUUID(kw.getIndexname()));
+    kmap.put(kw.getReadableName(), MigrationUtils.toUUID(kw.getIndexname()));
 }
 
 String sqlIns = "INSERT INTO keyword (created, updated, viewed, guid, value, source) VALUES (now(), now(), now(), ?, ?, 'user');";
