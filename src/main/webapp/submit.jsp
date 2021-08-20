@@ -1509,21 +1509,21 @@ function sendButtonClicked() {
 	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
 	// 	return false;
 	// }
-	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
-		$('#location').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
-		return false;
-	}
+	// if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+	// 	$('#location').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+	// 	return false;
+	// }
 
-	if ($('#submitterEmail').val()) {
-			var email = $('#submitterEmail').val();
-	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-	    if(!re.test(email.toLowerCase())){
-				$('#submitterEmail').closest('.form-group').addClass('required-missing');
-				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
-				return false;
-			}
-	}
+	// if ($('#submitterEmail').val()) {
+	// 		var email = $('#submitterEmail').val();
+	//     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	//     if(!re.test(email.toLowerCase())){
+	// 			$('#submitterEmail').closest('.form-group').addClass('required-missing');
+	// 			window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+	// 			return false;
+	// 		}
+	// }
 
 	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
 	// 	// console.log("email address not present");
@@ -1541,17 +1541,17 @@ function sendButtonClicked() {
 	// 	}
   // }
 
-	if (!$('#datepicker').val()) {
-		$('#datepicker').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
-		return false;
-	}
-
-	if (!$('#genusSpecies').val()) {
-		$('#genusSpecies').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-		return false;
-	}
+	// if (!$('#datepicker').val()) {
+	// 	$('#datepicker').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+	// 	return false;
+	// }
+	//
+	// if (!$('#genusSpecies').val()) {
+	// 	$('#genusSpecies').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+	// 	return false;
+	// }
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');

@@ -50,7 +50,16 @@ public class IAJsonProperties extends JsonProperties {
 
 	// naming convention: not using 'get' on static methods
 	public static String taxonomyKey(Taxonomy taxy) {
-		return taxy.getScientificName().replace(' ', '.');
+		if(taxy != null){
+			System.out.println("deleteMe taxy is: " + taxy.toString());
+		}
+		try{
+				return taxy.getScientificName().replace(' ', '.');
+		}catch (Error e){
+			e.printStackTrace();
+			return null;
+		}
+
 	}
 
 	public boolean hasIA(Taxonomy taxy) {
@@ -305,7 +314,7 @@ public class IAJsonProperties extends JsonProperties {
 	public static JSONObject copyJobj(JSONObject jobj) {
 		return new JSONObject(jobj, JSONObject.getNames(jobj));
 	}
-	
+
 	private boolean isUserSelectableIAClass(Taxonomy taxy, String key, JSONObject underTaxy){
 	  if(key.startsWith("_")){return false;}
 	  else if(key.equals("common_name")){return false;}
@@ -320,7 +329,7 @@ public class IAJsonProperties extends JsonProperties {
 	  }
 	  return true;
 	}
-	
+
 	public List<String> getValidIAClassesIgnoreRedirects(Taxonomy taxy) {
     List<String> result = new ArrayList<String>();
     if (!hasIA(taxy)) return result;
@@ -336,4 +345,3 @@ public class IAJsonProperties extends JsonProperties {
   }
 
 }
-
