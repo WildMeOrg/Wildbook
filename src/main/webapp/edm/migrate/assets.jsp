@@ -66,6 +66,16 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
     return occ;
 }
 
+private String meta(MediaAsset ma) {
+    JSONObject m = new JSONObject();
+    JSONObject d = new JSONObject();
+    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString();  //nudge to load w/h properly. :sigh: thanks dn
+    d.put("width", ma.getWidth());
+    d.put("height", ma.getHeight());
+    m.put("derived", d);
+    return MigrationUtil.jsonQuote(m);
+}
+
 /*
 created        | 2021-08-10 18:27:46.077475
 updated        | 2021-08-10 18:27:46.077588
@@ -307,7 +317,7 @@ for (Occurrence occ : agMap.keySet()) {
         s = sqlSub(s, -1);
         s = sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
         s = sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
-        s = sqlSub(s, "\"{}\"");  //meta (should include dimensions)
+        s = sqlSub(s, meta(ma));  //meta (should include dimensions)
         s = sqlSub(s, occ.getId());
         allSql += s + "\n\n";
     }
