@@ -1,173 +1,201 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<%@ page contentType="text/xml; charset=utf-8" language="java" import="java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.media.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.*, java.lang.NumberFormatException"%>
+
+<%@ page contentType="text/xml; charset=utf-8" language="java" import="
+	java.util.Properties, 
+	java.io.FileInputStream, 
+	java.io.File, 
+	java.io.FileNotFoundException, 
+	org.ecocean.*,
+	org.ecocean.servlet.*,
+	javax.jdo.*, 
+	java.lang.StringBuffer, 
+	java.util.Vector, 
+	java.util.Iterator, 
+	java.lang.NumberFormatException,
+	java.util.Collection,
+	com.google.gson.*,
+	java.util.ArrayList,
+	org.ecocean.media.*,
+	java.util.Collections
+	"%>
 
 <%
-String context="context0";
-	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("listImages.jsp");
+
+response.setContentType("application/json");
 
 %>
-
-
-
-
-
-<sharks greeting="hello!">						
+{
+"encounters": [
+    
 
 <%
+
+String context="context0";
+	Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("listImages.jsp");
+
+long range=2500;
 
 myShepherd.beginDBTransaction();
 
+String filter = "select from org.ecocean.Encounter where (spots != null || rightSpots!=null)";
+Query q = myShepherd.getPM().newQuery(filter);
+q.setRange(0,range);
+Collection c=(Collection)q.execute();
+ArrayList<Encounter> encounters = new ArrayList<Encounter>(c);
 
-Iterator allSharks=myShepherd.getAllMarkedIndividuals();
+int counter=0;
 
 try{
 
 
-while(allSharks.hasNext()){
-
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	//MarkedIndividual sharky=myShepherd.getMarkedIndividual("A-001");
-
-		%>
+	for(Encounter enc:encounters){
+	
 		
-		<shark number="<%=sharky.getName()%>" href="https://www.whaleshark.org/individuals.jsp?number=<%=sharky.getName()%>">
 		
-		<%
-
-		Vector encounters=sharky.getEncounters();
-		int numEncs=encounters.size();
-		
-		for(int j=0;j<numEncs;j++){
-		
-			Encounter enc=(Encounter)encounters.get(j);
-			
-				String user="";
-				if((enc.getAssignedUsername()!=null)&&(!enc.getAssignedUsername().equals(""))){
-					user=" user=\""+enc.getAssignedUsername()+"\" ";
+				counter++;
+				
+				//kick off a scan
+				MediaAsset spotLeftMA = null;
+				MediaAsset spotRightMA = null;
+				ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
+				////////if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
+				//// warning, hack to get around bug cause by gap in code changes post-migration
+				if (allSpotMAs != null) {
+					Collections.reverse(allSpotMAs);
+					for (MediaAsset maL : allSpotMAs) {
+					if (maL.getFilename().indexOf("extractRight") < 0) {
+					  spotLeftMA = maL;
+					  break;
+					}
+					}
 				}
-			%>
+				allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
+				if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(allSpotMAs.size() - 1);
 
-			<encounter <%=user %> number="<%=enc.getCatalogNumber()%>" href="https://www.whaleshark.org/encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>">
-
-			<%			
-			
-			//process the submitted photos
-			if(request.getParameter("extractOnly")==null){
-				ArrayList<MediaAsset> assets=enc.getMedia();
-				int numPhotos=assets.size();
-				for(int i=0;i<numPhotos; i++){
-					MediaAsset ma=assets.get(i);
-					String imagePath=ma.webURL().toString();
-					%>
+				if((enc.getSpots()!=null && enc.getSpots().size()>3 && spotLeftMA!=null)||(enc.getRightSpots()!=null && enc.getRightSpots().size()>3 && spotRightMA!=null)){
+					
+				
+				String individualID="";
+				if(enc.getIndividual()!=null){individualID=enc.getIndividual().getIndividualID();}
+				
+				if(counter>1){
+				%>
+				,
+				<%	
+				}
+				
+				%>
+				
+				
+				
+		{
 		
-					<img href="<%=imagePath.replaceAll("&","&amp;") %>" />
-		
+		"catalogNumber": "<%=enc.getCatalogNumber() %>",
+		"individualID":	"<%=individualID %>",	
+	
+	    
+	
+	  	
+	 
+	  			<%
+	  			
+	  			boolean hasLeft=false;
+				boolean hasRight=false;
+	  			
+	  			
+	  			if(enc.getSpots()!=null && spotLeftMA!=null){
+	  				hasLeft=true;
+	
+	  				%>
+	  					
+	  			    "leftReferenceImageURL":"<%=spotLeftMA.webURL() %>",
+	  				
+	  	
+	  				 	"leftSpots": [
+	  				<%
+	  				
+		  			ArrayList<SuperSpot> spots=enc.getSpots();
+		  			int numSpots=spots.size();
+		  			
+		  			for(int p=0;p<numSpots;p++){
+		  				SuperSpot theSpot=spots.get(p);
+		  				String comma=",";
+		  				if(p==(numSpots-1)){comma="";}
+		  				%>
+		  				{"x": "<%=theSpot.getCentroidX() %>","y": "<%=theSpot.getCentroidY() %>"}<%=comma %>
+		  				<%
+		  			}
+		  			
+		  		  	%>
+		  		  	]
+		  		  	<%
+		  			
+	  			}
+	
+	
+	  			if(enc.getRightSpots()!=null && spotRightMA!=null){
+	  				
+	  				hasRight=true;
+	  				
+	  				if(hasLeft){
+	  					%>
+	  					,
+	  					<%
+	  				}
+	  						
+	  				
+	  				%>
+	  					"rightReferenceImageURL":"<%=spotRightMA.webURL() %>",
+					 	"rightSpots": [
 					<%
-	
-				}
-			}
-			
-			//process the extracted photos
-			
-			//process left
-			if((request.getParameter("left")!=null)&&(enc.getSpotImageFileName()!=null)&&(!enc.getSpotImageFileName().trim().equals(""))&&(enc.getSpots()!=null)&&(enc.getSpots().size()>0)){
-				String imagePath=enc.getSpotImageFileName();
+					
+	  				
+	  				ArrayList<SuperSpot> spots=enc.getRightSpots();
+		  			int numSpots=spots.size();
+
+		  			for(int p=0;p<numSpots;p++){
+		  				SuperSpot theSpot=spots.get(p);
+		  				String comma=",";
+		  				if(p==(numSpots-1)){comma="";}
+		  				%>
+		  				{"x": "<%=theSpot.getCentroidX() %>","y": "<%=theSpot.getCentroidY() %>"}<%=comma %>
+		  				<%
+		  			}
+		  			
+		  			%>
+		  			]
+		  			<%
+	  			}
+	  			%>
+	  			
+	}			
 				
-				ArrayList<SuperSpot> spots=enc.getSpots();
-				int numSpots=spots.size();
-				%>
-					
-					<img href="https://www.whaleshark.org/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=enc.subdir() %>/<%=enc.getSpotImageFileName() %>" type="left">
-						<%
-						
-						if((enc.getLeftReferenceSpots()!=null)&&(enc.getLeftReferenceSpots().size()==3)){
-							ArrayList<SuperSpot> leftSpots=enc.getLeftReferenceSpots();
-						%>
-						<spot type="ref0" x="<%=leftSpots.get(0).getCentroidX() %>" y="<%=leftSpots.get(0).getCentroidY() %>" />
-						<spot type="ref1" x="<%=leftSpots.get(1).getCentroidX() %>" y="<%=leftSpots.get(1).getCentroidY() %>" />
-						<spot type="ref2" x="<%=leftSpots.get(2).getCentroidX() %>" y="<%=leftSpots.get(2).getCentroidY() %>" />
-						<%
-						}
-						for(int k=0;k<numSpots;k++){
-						%>
-							<spot type="spot" x="<%=spots.get(k).getCentroidX() %>" y="<%=spots.get(k).getCentroidY() %>" />
-						<%
-						}
-						%>
-					
-					</img>
-					
-				<%
-				}
-			
-			
-			//process left
-			if((request.getParameter("right")!=null)&&(enc.getRightSpotImageFileName()!=null)&&(!enc.getRightSpotImageFileName().trim().equals(""))&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
-				String imagePath=enc.getRightSpotImageFileName();
 				
-				ArrayList<SuperSpot> spots=enc.getRightSpots();
-				int numSpots=spots.size();
-				%>
-					
-					<img href="https://www.whaleshark.org/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=enc.subdir() %>/<%=enc.getRightSpotImageFileName() %>" type="right">
-						<%
-						
-						if((enc.getRightReferenceSpots()!=null)&&(enc.getRightReferenceSpots().size()==3)){
-							ArrayList<SuperSpot> leftSpots=enc.getRightReferenceSpots();
-						%>
-						<spot type="ref0" x="<%=leftSpots.get(0).getCentroidX() %>" y="<%=leftSpots.get(0).getCentroidY() %>" />
-						<spot type="ref1" x="<%=leftSpots.get(1).getCentroidX() %>" y="<%=leftSpots.get(1).getCentroidY() %>" />
-						<spot type="ref2" x="<%=leftSpots.get(2).getCentroidX() %>" y="<%=leftSpots.get(2).getCentroidY() %>" />
-						<%
-						}
-						for(int k=0;k<numSpots;k++){
-						%>
-							<spot type="spot" x="<%=spots.get(k).getCentroidX() %>" y="<%=spots.get(k).getCentroidY() %>" />
-						<%
-						}
-						%>
-					
-					</img>
-					
+				
 				<%
-				}
-
 			
 			
-			
-			%>
-			</encounter>
-			<%
-		
-		}
-		%>
-		
-		</shark>
-		<%
+	} //end if
+	
+	} //end for
 	
 
-	
-}
 
-myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-	myShepherd=null;
-%>
-
-
-<%
 } 
 catch(Exception ex) {
 
 	System.out.println("!!!An error occurred on page. The error was:");
 	ex.printStackTrace();
 
+
+
+}
+finally{
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
-
 }
 %>
+]
+}
 
-</sharks>
