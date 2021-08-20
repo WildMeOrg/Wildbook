@@ -137,10 +137,14 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
       maLib.mkImg(maJson)
     )
   );
-  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+  if (!wildbook.user.isAnonymous()) {
 
-
+  	fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+  }
   intoElem.append(fig);
+  if(maJson && maJson.features && maJson.features.length>1){
+    updateWithAnnotationDisambiguator(intoElem, maJson.id, maJson.annotation.id);
+  }
   /*
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
@@ -152,57 +156,75 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   return;
 }
 
-// mainCaption is visible on the main page (ie before entering gallery)
-// taskID is a datum that will sit on the image so that imageEnhancer can later add it to the dropdown
-maLib.maJsonToFigureElemCaption2 = function(maJson, intoElem, caption, mainCaption, taskID) {
-    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
-  //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
-  caption = caption || "";
-  var maCaptionFunction = maLib.blankCaptionFunction;
-  caption = caption || '';
+updateWithAnnotationDisambiguator = function(inputHtml, mediaAssetId, maAnnotationId){
+  let annotationDisambiguatorHtml = '';
+  let left = "left";
+  let right = "right";
+  annotationDisambiguatorHtml += '<div id="annotation-disambiguator" data-media-asset-id="' + mediaAssetId + '-' + maAnnotationId + '">';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-left focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + left + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId +'\')"> </span>';
+  annotationDisambiguatorHtml += '<span> Click arrows to focus on a different annotation </span>';
+  annotationDisambiguatorHtml += '<span class="el el-circle-arrow-right focal-annotation-toggle" onclick="toggleFocalAnnotationChange(\'' + right + '\',\'' + mediaAssetId + '\',\'' + maAnnotationId + '\')"> </span>';
+  annotationDisambiguatorHtml += '<div id="go-to-encounter-wrapper"></div>';
+  annotationDisambiguatorHtml += '</div>';
+  inputHtml.append(annotationDisambiguatorHtml);
+}
 
-  // TODO: copy into html figure element
-  var url = maLib.getUrl(maJson), w, h;
-  console.log("maLib.getUrl(maJson) = "+url);
-
-  // have to check to make sure values exist
-  if ('metadata' in maJson) {
-    w = maJson.metadata.width;
-    h = maJson.metadata.height;
+toggleFocalAnnotationChange = function (direction, mediaAssetId, annotationId){
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + '-' + annotationId + "']");
+  let currentFocalId = '';
+  try{
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-toggled').attr('id');
+  } catch(error){
   }
-  if (!url) {
-    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
-    return;
+  if(!currentFocalId){
+    currentFocalId = $(parentElement).find('.image-enhancer-feature-focused').attr('id');
   }
-  var wxh = w+'x'+h;
-  var watermarkUrl = maLib.getChildUrl('_watermark');
+  let allEnhancerFeatureElements = $(parentElement).find('.image-enhancer-feature');
+  let enhancerFeatureIdArray = [];
+  Array.prototype.forEach.call(allEnhancerFeatureElements, enhancerFeatureElement =>{ //forEach wasn't working
+    let currentId = '';
+    try{
+      currentId = $(enhancerFeatureElement).attr('id');
+    } catch(error){
+    }
+    if (currentId){
+      let currentXaxis = parseFloat($(enhancerFeatureElement).css('left').replace('px', ''));
+      let currentIdArrayEntry = {};
+      currentIdArrayEntry['id'] = currentId;
+      currentIdArrayEntry['xAxis'] = currentXaxis;
+      enhancerFeatureIdArray.push(currentIdArrayEntry);
+    }
+  });
+  enhancerFeatureIdArray = enhancerFeatureIdArray.sort((a,b)=>a.xAxis > b.xAxis? 1:-1);
+  let indexOfCurrentFocal = enhancerFeatureIdArray.findIndex(elem => elem['id'] == currentFocalId);
+  let indexOfTargetEnhancerFeature = getCorrectIndexOfTargetEnhancerFeature(direction, enhancerFeatureIdArray, indexOfCurrentFocal);
+  let idOfTargetEnhancerFeature = enhancerFeatureIdArray[indexOfTargetEnhancerFeature].id;
+  $(parentElement).find('#' + currentFocalId).removeClass('image-enhancer-feature-toggled');
+  $(parentElement).find('#' + idOfTargetEnhancerFeature).addClass('image-enhancer-feature-toggled');
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  let newLinkHtml = '<a class="go el el-circle-arrow-right" href="encounter.jsp?number=' + currentFocalEncounterId + '" onclick="goToEncounterHighlighted(\'' + mediaAssetId + '\',\'' + annotationId + '\')"> Go To Highlighted Encounter</a>';
+  $('#go-to-encounter-wrapper').empty();
+  $('#go-to-encounter-wrapper').html(newLinkHtml);
+}
 
-  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
-  fig.append(
-    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-      mkImgWithTaskID(maJson, taskID)
-    )
-  );
-  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+getCorrectIndexOfTargetEnhancerFeature = function(direction, enhancerFeatureIdArray, indexOfCurrentFocal){
+  let indexOfTargetEnhancerFeature = direction === "right" ? indexOfCurrentFocal + 1 : indexOfCurrentFocal - 1;
+  if (indexOfTargetEnhancerFeature > enhancerFeatureIdArray.length - 1) { //handle case where going right of end of array is reached
+    indexOfTargetEnhancerFeature = 0;
+  }
+  if (indexOfTargetEnhancerFeature < 0) { //handle case where going left of beginning of array is reached
+    indexOfTargetEnhancerFeature = enhancerFeatureIdArray.length - 1;
+  }
+  return indexOfTargetEnhancerFeature;
+}
 
-
-  intoElem.append(fig);
-
-
-  var extraCaption = $('<p class="main-page-caption"><em>'+mainCaption+'<em></p>');
-  intoElem.append(extraCaption);
-
-
-  /*
-    $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
-      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
-      )
-    )
-  );
-  */
-  maLib.testExtraction(maJson);
-  return;
+goToEncounterHighlighted = function (mediaAssetId, maAnnotationId){
+  let parentElement = $("div").find("[data-media-asset-id='" + mediaAssetId + '-' + maAnnotationId + "']");
+  let currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-toggled').data('encid');
+  if (!currentFocalEncounterId) {
+    currentFocalEncounterId = $(parentElement).find('.image-enhancer-feature-focused').data('encid');
+  }
+  window.open('encounter.jsp?number=' + currentFocalEncounterId, '_self');
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
@@ -599,7 +621,7 @@ maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
     if (!maJson.url) return false;
 
     caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
-    
+
     var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
 
     var filename = maJson.url;
@@ -648,6 +670,8 @@ maLib.mkImgPictureBook = function(maJson) {
 // execute above function
 
 $(document).ready(function() {
-  //maLib.initPhotoSwipeFromDOM('.my-gallery');
-  maLib.initPhotoSwipeFromDOM('#enc-gallery');
+  	//maLib.initPhotoSwipeFromDOM('.my-gallery');
+	if (!wildbook.user.isAnonymous()) {
+  		maLib.initPhotoSwipeFromDOM('#enc-gallery');
+	}
 });

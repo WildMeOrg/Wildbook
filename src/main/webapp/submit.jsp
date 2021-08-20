@@ -95,22 +95,19 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 
 $(document).ready( function() {
-
-
-  console.log("doc rdy??????????????");
-	//populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
-	
-	if("false"=="<%=userNull%>"){
-		let userId = '<%=userId%>';
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getUsername()%>';
 		let requestForProjectNames = {};
-    requestForProjectNames['ownerId'] = userId;
-    console.log("rdy ajax? ");
-    doAjaxForProject(requestForProjectNames,userId);
-    console.log("done ajax? ");
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
 	}
-
-  console.log('what??????')
-
+	// else{
+		%>
 });
 
 function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
@@ -402,11 +399,22 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = null;
+centerMap();
 
 var map;
 
 var marker;
+
+function centerMap(){
+  let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
+  let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+  if (centerLat && centerLong) {
+    center = new google.maps.LatLng(centerLat, centerLong);
+  } else {
+    center = new google.maps.LatLng(10.8, 160.8);
+  }
+}
 
 function updateMap() {
     var latVal = $('#lat').val();
@@ -451,7 +459,7 @@ function placeMarker(location) {
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        centerMap();
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -806,7 +814,7 @@ function showUploadBox() {
 		</div>
     </div>
 
-    <!-- Herein trying out new html date input --> 
+    <!-- Herein trying out new html date input -->
     <!--
     <div class="form-group">
 
@@ -849,6 +857,8 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
+
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
 
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">

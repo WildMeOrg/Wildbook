@@ -56,11 +56,13 @@ if (logs == null) {
 JSONArray all = new JSONArray();
 
 if (projectId!=null) {
-	Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
+	Project project = myShepherd.getProjectByUuid(projectId);
 	if (project!=null) {
 		JSONObject projectData = new JSONObject();
 		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd, request));
-		projectData.put("projectACMIds", project.getAllACMIdsJSON());
+		//projectData.put("projectACMIds", project.getAllACMIdsJSON());
+		projectData.put("projectACMIds", myShepherd.getAllProjectACMIdsJSON(project.getId()));
+		//projectData.put("projectAnnotIds", project.getAllAnnotIdsJSON());
 		all.put(projectData);
 	}
 }

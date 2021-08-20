@@ -126,11 +126,16 @@ public class IAJsonProperties extends JsonProperties {
 
 	// e.g. if a humpback whale detection returns ia class sperm_whale_fluke this will return humpback_fluke or whatever
 	public String convertIAClassForTaxonomy(String returnedIAClass, Taxonomy taxy) {
-		String detKey = detectionKey(taxy);
-		String lookupKey = detKey + "." + "_save_as";
+		String taxKey = taxonomyKey(taxy);
+		String lookupKey = taxKey + "." + returnedIAClass + "._save_as";
 		String ans = (String) get(lookupKey);
 		System.out.println("IAJsonProperties.convertIAClassForTaxonomy called on "+returnedIAClass+" for taxonomy "+taxy.toString());
-		System.out.println(".....convertIAClassForTaxonomy made lookupKey "+lookupKey+" and found "+ans);
+		System.out.println(".................convertIAClassForTaxonomy made lookupKey "+lookupKey+" and found "+ans);
+		if (!Util.stringExists(ans)) {
+			String defaultLookupKey = taxKey+"._default._save_as";
+			ans = (String) get(defaultLookupKey);
+		  System.out.println("........fallback convertIAClassForTaxonomy made defaulLookupKey "+defaultLookupKey+" and found "+ans);
+		}
 		if (!Util.stringExists(ans)) ans = returnedIAClass;
 		return ans;
 	}
@@ -232,6 +237,7 @@ public class IAJsonProperties extends JsonProperties {
 		return result;
 	}
 
+
 	// for a given taxonomy (input during submission) and an iaClass (returned from IA), we'll save the annotation only if this check is passed.
 	// e.g., if we get a whale_shark detection on a humpback whale: false. If we get an orca_dorsal detection on a bottlenose dolphin: true.
 	// this just checks if the iaClass has a defined behavior in the IA.json file.
@@ -299,6 +305,35 @@ public class IAJsonProperties extends JsonProperties {
 	public static JSONObject copyJobj(JSONObject jobj) {
 		return new JSONObject(jobj, JSONObject.getNames(jobj));
 	}
+	
+	private boolean isUserSelectableIAClass(Taxonomy taxy, String key, JSONObject underTaxy){
+	  if(key.startsWith("_")){return false;}
+	  else if(key.equals("common_name")){return false;}
+	  else if(key.equals("match_trivial")){return false;}
+	  else if( underTaxy.get(key) instanceof String &&  ((String)underTaxy.get(key)).startsWith("@")){return false;}
+	  else if(underTaxy.get(key) instanceof JSONObject){
+	    JSONObject obj=(JSONObject)underTaxy.get(key);
+	    if(!obj.isNull("_save_as")){
+	      String saveAs=(String)obj.get("_save_as");
+	      if(saveAs!=null && !key.equals(saveAs))return false;
+	    }
+	  }
+	  return true;
+	}
+	
+	public List<String> getValidIAClassesIgnoreRedirects(Taxonomy taxy) {
+    List<String> result = new ArrayList<String>();
+    if (!hasIA(taxy)) return result;
+    JSONObject underTaxy = (JSONObject) get(taxonomyKey(taxy));
+    Iterator<String> keys = underTaxy.keys();
+    while (keys.hasNext()) {
+      String key = keys.next();
+      if(isUserSelectableIAClass(taxy,key,underTaxy)) {
+        result.add(key); //iaClasses are keys, not values, in this format
+      }
+    }
+    return result;
+  }
 
 }
 

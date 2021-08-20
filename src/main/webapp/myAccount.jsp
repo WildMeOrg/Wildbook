@@ -44,13 +44,15 @@ response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new
 response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+String dispUsername = request.getUserPrincipal().toString();
+if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-
-	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
+	<a name="top" id="top"></a>
+	<h1 class="intro"><%=(props.getProperty("userAccount") + " " + dispUsername) %></h1>
 
 	<p>
 
@@ -145,7 +147,9 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 							if (d.success) {
 								p.remove();
 								updateNotificationsWidget();
-							} else {
+								refreshCollaborations();
+							} 
+							else {
 								p.removeClass('throbbing').html(d.message);
 							}
 						},
@@ -246,14 +250,15 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 				    	    	<%
 
 					    		List<Organization> orgs=myShepherd.getAllOrganizationsForUser(thisUser);
-
-					    		int numOrgs=orgs.size();
-								for(Organization org:orgs){
-									String selected="";
-
-									%>
-									<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
-									<%
+								if(orgs!=null){
+						    		int numOrgs=orgs.size();
+									for(Organization org:orgs){
+										String selected="";
+	
+										%>
+										<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
+										<%
+									}
 								}
 								%>
 				    		</select>
@@ -265,7 +270,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 													</td>
 												</tr>
 													<%
-													if(userProjects.size()>0){
+													if(userProjects!=null && userProjects.size()>0){
 														for(int j=0; j<userProjects.size(); j++){
 													%>
 													<tr>
@@ -346,39 +351,8 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	</script>
 
 <%
-if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && CommonConfiguration.getProperty("allowSocialMediaLogin", request).equals("true")){
-%>
-	<h2><%=props.getProperty("socialMediaConnections") %></h2>
 
-	<div style="padding-bottom: 10px;">
-	<%
-		String types[] = new String[] {"facebook", "flickr"};
-
-	if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
-
-		String socialType="facebook";
-		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
-		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
-		}
-	}
-	if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
-
-		String socialType="flickr";
-		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
-		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
-		}
-	}
-	%>
-	</div>
-<%
-}
 	Properties collabProps = new Properties();
-	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
-
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
@@ -390,6 +364,9 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 			String cls = "state-" + c.getState();
 			String msg = "state_" + c.getState();
 			String click = "";
+			
+			String otherUsername=c.getUsername1();
+			if(localUsername.equals(otherUsername))otherUsername=c.getUsername2();
 
 			if (state!=null) {
 
@@ -400,7 +377,7 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 				else if (state.equals(Collaboration.STATE_INITIALIZED)) {
 					click += "<span class=\"collab-button\"></span>"; // empty placeholder
 				} 
-				else {
+				else if(state.equals(Collaboration.STATE_APPROVED)) {
 					click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
 				}
 
@@ -414,9 +391,13 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					msg = "state_initialized_me";
 					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
 						msg = "state_initialized";
-						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + otherUsername + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					}
+					else{
+						click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
+						
 					}
 				}
 				else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
@@ -424,22 +405,22 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					cls="state-initialized";
 					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
 						msg = "state_edit_pend";
-						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + otherUsername + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					}
 					else{
-						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					}
 					
 				}
-				else if (state.equals(Collaboration.STATE_APPROVED)) {
-					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+				else if (state.equals(Collaboration.STATE_APPROVED) && !c.getUsername1().equals("public") && !c.getUsername2().equals("public")) {
+					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
 					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
 				} 
 				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					System.out.println("EDITABLE State msg = "+msg);
 				} 
@@ -448,35 +429,18 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 				}
 				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
-				/*
-				else {
-				if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
-					msg = "state_initialized_me";
-					if(!me.equals(c.getEditInitiator()))click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
-					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
-					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 
-				}
-				else if (state.equals(Collaboration.STATE_APPROVED)) {
-					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
-					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-				} 
-				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
-					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
-					System.out.println("EDITABLE State msg = "+msg);
-				}
-				h += "<div id=\""+c.getId()+"\" class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
-			}
-			}
-				
-				*/
 				
 			} //end if state!=null
 	
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
-		out.println("<div class=\"collab-list\"><a name=\"collaborations\"><h2>" + collabProps.getProperty("collaborationTitle") + "</h2></a>" + h + "</div>");
+		%>
+		<a name="collaborations" id="collaborations" style="padding-top: 200px;"></a>
+		<h2><%=collabProps.getProperty("collaborationTitle") %></h2>
+		<%
+		
+		out.println("<div class=\"collab-list\">" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();
@@ -504,7 +468,11 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 					}
 					line = br.readLine();
 				}
-			} finally {
+			} 
+			catch(Exception e){
+				e.printStackTrace();
+			}
+			finally {
 				br.close();
 			}
 			out.println("<div class=\"collab-log\"><h1>Queries by collaborators</h1><div class=\"scrollbox\">" + h + "</div></div>");
@@ -544,22 +512,11 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
 
 	</div>
 
-	<%
-	}// end if collaborationSecurityEnabled
-	%>
-
     </p> <!-- end content p -->
 
+	<a name="mydata" id="mydata">
     <h2><%=props.getProperty("myData") %></h2>
 
-
-<%
-
-String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+thisUser.getUsername()+"'";
-%>
-    <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
-    	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
-    </jsp:include>
 
     <p><strong><%=props.getProperty("links2mydata") %></strong></p>
         <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
@@ -647,8 +604,9 @@ function initiateCollab() {
 					success: function(d) {
 						console.info('Success! Got back '+JSON.stringify(d));
 						$("#collabResp").text("The collaboration request has been sent.");
-						appendCollabRequest(collabTarget);
-						clearCollabInitFields()
+						//appendCollabRequest(collabTarget);
+						//clearCollabInitFields();
+						refreshCollaborations();
 					},
 					error: function(x,y,z) {
 						$("#collabResp").text("There was an error sending this collaboration request.");
@@ -671,7 +629,8 @@ function clearCollabInitFields() {
 function appendCollabRequest(name) {
 	if ($("#none-line").length > 0) $("#none-line").val('');
 	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b>" +name+ "</b></span><span class=\"state collab-info\"><%=collabProps.getProperty("state_initialized")%></span></div>";
-	$(".collab-list").append(newCollab);
+	//$(".collab-list").append(newCollab);
+	refreshCollaborations();
 }
 
 // end collab type ahead
@@ -684,6 +643,7 @@ $('.collabRow .add-view-permissions').click(function() {
 $('.collabRow .revoke-view-permissions').click(function() {
 	let collabId = $(this).closest('.collabRow').find('.collabId').val();
 	changeViewPermissions(collabId, "revoke");
+	refreshCollaborations();
 });
 
 function changeViewPermissions(collabId, action) {
@@ -698,7 +658,8 @@ $.ajax({
 		console.info('Success toggling view permission! Got back '+JSON.stringify(d));
 		if (d.success==true) {
 			console.log("changing collaboration "+d.collabId+" state in UI");
-			changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+			//changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+			refreshCollaborations();
 		}
 	},
 	error: function(x,y,z) {
@@ -736,6 +697,7 @@ function changeVisibleCollaborationState(newState, collabId, action) {
 		revokeEditBtn.remove();
 
 		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_rejected")%>');
+		refreshCollaborations();
 	}
 
 	if (action=="invite") {
@@ -746,6 +708,7 @@ function changeVisibleCollaborationState(newState, collabId, action) {
 		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_initialized")%>');
 		console.log("trying to update UI to invite again...");
 		updateNotificationsWidget();
+		refreshCollaborations();
 	}
 	
 
