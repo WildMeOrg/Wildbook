@@ -43,8 +43,8 @@ private String coerceOwnerId(Occurrence occ, Shepherd myShepherd) {
         User user = myShepherd.getUser(sub);
         if (user != null) return user.getUUID();
     }
-    throw new RuntimeException("could not find User for " + occ);
-    //return null;
+    System.out.println("assets.jsp: could not find User for " + occ);
+    return "00000000-0000-0000-0000-000000000000";
 }
 
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds
@@ -106,6 +106,7 @@ private Set<String> doneAnns = new HashSet<String>();
 
 private String annotSingleSql(Annotation ann, MediaAsset ma) {
     if (doneAnns.contains(ann.getId())) return "-- already processed " + ann + "\n";
+    doneAnns.add(ann.getId());
     String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?);";
     sqlIns = sqlSub(sqlIns, ann.getId());
     sqlIns = sqlSub(sqlIns, ma.getUUID());
@@ -113,6 +114,7 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
     if (iac == null) iac = "";
     sqlIns = sqlSub(sqlIns, iac);
     JSONObject bounds = new JSONObject();
+    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString();  //nudge to load w/h properly. :sigh: thanks dn
     int[] bb = ann.getBbox();
     if (bb == null) {
         bounds.put("migrateBbox", false);
@@ -120,7 +122,6 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
         bounds.put("rect", new JSONArray(bb));
     }
     sqlIns = sqlSub(sqlIns, MigrationUtil.jsonQuote(bounds));
-    doneAnns.add(ann.getId());
     return sqlIns;
 }
 
@@ -215,7 +216,7 @@ sql += "join \"ANNOTATION_FEATURES\" using (\"ID_EID\") ";
 sql += "join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") ";
 sql += "join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"ID_OID\" = \"ENCOUNTER\".\"ID\") ";
 sql += "order by \"MEDIAASSET\".\"UUID\" ";
-//sql += "limit 30 ";
+//sql += "limit 1000 ";
 
 //out.println(sql);
 //if (sql != null) return;
@@ -238,6 +239,7 @@ Set<Integer> done = new HashSet<Integer>();
 int ct = 0;
 for (MediaAsset ma : allMA) {
     ct++;
+    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] assets processed");
     if (done.contains(ma.getId())) continue;
     done.add(ma.getId());
     if (!ma.getStore().getType().equals(AssetStoreType.LOCAL)) continue;
@@ -256,7 +258,6 @@ for (MediaAsset ma : allMA) {
         agMap.put(occ, occMas);
     }
     occMas.add(ma);
-    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] assets processed");
 }
 
 out.println(fileWriteAndPreview("rsync_for_assets.filelist", content));
@@ -400,8 +401,11 @@ System.out.println("migration/assets.jsp finished keywords");
 <%
 content = "BEGIN;\n";
 ct = 0;
+done = new HashSet<Integer>();
 for (MediaAsset ma : allMA) {
     ct++;
+    if (done.contains(ma.getId())) continue;
+    done.add(ma.getId());
     content += annotSql(ma, kmap) + "\n";
     if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] annotations processed");
 }
