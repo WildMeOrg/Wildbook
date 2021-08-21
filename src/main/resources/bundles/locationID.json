@@ -24,14 +24,14 @@
 	"name": "British Virgin Islands", "id": "British Virgin Islands"  },
 	{
 	"name": "Cayman Islands", "id": "Cayman Islands", "locationID":[
-		{"name": "Little Cayman", "id": "Little Cayman"},
+		{"name": "Little Cayman", "id": "Little Cayman","prefix": "LC", "prefixDigitPadding": 5},
 		{
 		"name": "Cayman Brac",
-		"id": "Cayman Brac"
+		"id": "Cayman Brac","prefix": "CB", "prefixDigitPadding": 5
 		},
 		{
 		"name": "Grand Cayman",
-		"id": "Grand Cayman"
+		"id": "Grand Cayman","prefix": "GC", "prefixDigitPadding": 5
 		}
 	] 
 	},
