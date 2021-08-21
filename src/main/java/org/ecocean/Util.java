@@ -754,6 +754,14 @@ public class Util {
       return capitolizeFirstLetter(lower);
     }
 
+    public static String getRequestParamIfExists(HttpServletRequest request, String paramName){
+      String returnVal = "";
+      if(Util.stringExists(request.getParameter(paramName))){
+	      returnVal=request.getParameter(paramName);
+      }
+      return returnVal;
+    }
+
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
       return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
     }
@@ -1112,6 +1120,7 @@ public class Util {
     }
 
   public static JSONObject copy(JSONObject original) {
+    if (original == null) return null;
     return new JSONObject(original, JSONObject.getNames(original));
   }
 

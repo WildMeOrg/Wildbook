@@ -25,33 +25,33 @@ import io.prometheus.client.exporter.common.TextFormat;
 
 public class Prometheus
 {
-    
-    
-    private String context="context0";    
-    
+
+
+    private String context="context0";
+
     static String cvsSplitBy = ",";
-    
+
     //Default constructor
     public Prometheus()
     {
-      
-  
+
+
     }
-    
+
     public Prometheus(String context)
     {
       this.context=context;
-  
+
     }
 
     //Unit test constructor
     public Prometheus(boolean isTesting)
     {
-      
+
     }
-    
+
     /** Implementation borrowed from MetricsServlet class
-    * Parses the default collector registery into the kind of 
+    * Parses the default collector registery into the kind of
     * output that prometheus likes
     * Visit https://github.com/prometheus/client_java/blob/master/simpleclient_servlet/src/main/java/io/prometheus/client/exporter/MetricsServlet.java
     */
@@ -71,7 +71,7 @@ public class Prometheus
         writer.close();
       }
     }
-    
+
     //Helper method for metrics() also borrowed from MetricsServlet.java
     private Set<String> parse(HttpServletRequest req)
     {
@@ -85,15 +85,15 @@ public class Prometheus
         return new HashSet<String>(Arrays.asList(includedParam));
       }
     }
-    
- 
-    
+
+
+
     public static String getValue(String key) {
       if(key==null)return null;
       String value=null;
       BufferedReader br = null;
       String line = "";
-      
+
       try {
 
         br = new BufferedReader(new FileReader(MetricsBot.csvFile));
@@ -105,17 +105,17 @@ public class Prometheus
               String m_key=vals[0];
               String m_value=vals[1];
 
-              if(m_key.trim().equals(key)) {value=m_value;} 
+              if(m_key.trim().equals(key)) {value=m_value;}
             }
-        }        
-      } 
+        }
+      }
       catch (FileNotFoundException e) {
           e.printStackTrace();
           System.out.println("Metrics failed to load value "+key+" because I could not find file: "+MetricsBot.csvFile);
-      } 
+      }
       catch (IOException e) {
           e.printStackTrace();
-      } 
+      }
       finally {
           if (br != null) {
               try {
@@ -127,13 +127,13 @@ public class Prometheus
       }
       return value;
     }
-    
+
     public void getValues() {
-      
-      
-      
+
+
+
       ArrayList<String> metrics=new ArrayList<String>();
-      
+
       BufferedReader br = null;
       String line = "";
       try {
@@ -142,16 +142,16 @@ public class Prometheus
         while ((line = br.readLine()) != null) {
 
           metrics.add(line);
-            
-        }        
-      } 
+
+        }
+      }
       catch (FileNotFoundException e) {
           e.printStackTrace();
           System.out.println("Metrics failed to load because I could not find file: "+MetricsBot.csvFile);
-      } 
+      }
       catch (IOException e) {
           e.printStackTrace();
-      } 
+      }
       finally {
           if (br != null) {
               try {
@@ -161,14 +161,14 @@ public class Prometheus
               }
           }
       }
-      
+
       for(String metric:metrics) {
-        
-        
+
+
         String[] vals = metric.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-        
+
         if(vals.length>3) {
-        
+
           try {
               String m_key=vals[0].trim();
               String m_value=vals[1].trim();
@@ -177,11 +177,11 @@ public class Prometheus
               String m_labels=null;
               if(vals.length>4)m_labels=vals[4].trim();
               if(m_type.equals("gauge")) {
-                
-                System.out.println("Loading gauge: "+m_key);
-                
+
+                //System.out.println("Loading gauge: "+m_key);
+
                 if(m_labels!=null) {
-                  
+
                   //preprocess labels
                   m_labels=m_labels.replaceAll("\"","");
                   ArrayList<String> labelNames=new ArrayList<String>();
@@ -196,16 +196,16 @@ public class Prometheus
                     labelValues.add(value);
                   }
 
-                  
+
                   //add label names and build gauge
-                  
+
                   StringTokenizer str4=new StringTokenizer(labelNames.get(0),"_");
                   String prefix4= str4.nextToken();
-    
+
                   Gauge g=Gauge.build().name(m_key).labelNames(prefix4).help(m_help).register();
                   //set gauge value overall
-                  
-                  
+
+
                   //add label values
                   for(int i=0;i<labelNames.size();i++) {
                     String name=labelNames.get(i);
@@ -214,16 +214,16 @@ public class Prometheus
                     String suffix=str3[1];
                     String value = labelValues.get(i);
                     if(name!=null && value!=null)g.labels(suffix).inc(new Double(value));
-                    
+
                   }
-                  
-                  
+
+
                 }
                 //no labels, easy case!
                 else{
                   Gauge.build().name(m_key).help(m_help).register().inc(new Double(m_value));
                 }
-                
+
               }
               /*
                //we don't support counters...yet
@@ -237,21 +237,19 @@ public class Prometheus
           catch(Exception e) {
             e.printStackTrace();
           }
-          
-        
+
+
         }
-          
-        
+
+
       }
 
     }
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
 }
-
-

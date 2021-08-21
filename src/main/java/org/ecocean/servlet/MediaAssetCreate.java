@@ -116,7 +116,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-        
+
         JSONObject res=new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class_nonum");
@@ -154,23 +154,32 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                   if (ma != null) allMAs.add(ma);
               }
               if (allMAs.size() > 0) {
-                  System.out.println("Starting IA.intakeMediaAssets");
-                  
-                  final Task parentTask = new Task();
-                  Task task = null;
-                  Taxonomy taxy=null;
-                  if(j.getString("taxonomy")!=null && !j.getString("taxonomy").equals("null")) {
-                    taxy=new Taxonomy(j.getString("taxonomy"));
-                  }
-                  if(taxy!=null) {
-                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask); 
-                  }
-                  else {
-                    task = IA.intakeMediaAssets(myShepherd, allMAs);
-                  }
-                    System.out.println("Out of IA.intakeMediaAssets");
-                  myShepherd.storeNewTask(task);
-                  res.put("IATaskId", task.getId());
+                    System.out.println("Starting IA.intakeMediaAssets");
+                    final Task parentTask = new Task();
+                    String locationID = "";
+                    if(j.optString("locationID", null)!=null && !j.optString("locationID", null).equals("null")) {
+                        locationID = j.getString("locationID");
+                        JSONObject tp = new JSONObject();
+                        JSONObject mf = new JSONObject();
+                        mf.put("locationId", locationID);
+                        tp.put("matchingSetFilter", mf);
+                        parentTask.setParameters(tp);
+                    }
+
+                    Task task = null;
+                    Taxonomy taxy=null;
+                    if(j.optString("taxonomy")!=null && !j.optString("taxonomy", null).equals("null")) {
+                        taxy=new Taxonomy(j.getString("taxonomy"));
+                    }
+                    if(taxy!=null) {
+                        task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                    }
+                    else {
+                        task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    }
+                        System.out.println("Out of IA.intakeMediaAssets");
+                    myShepherd.storeNewTask(task);
+                    res.put("IATaskId", task.getId());
               }
               myShepherd.commitDBTransaction();
             }
@@ -278,7 +287,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                         targetMA = urlStore.create(params);
                     }
 
-                } 
+                }
 
                 if (success) {
 /*
@@ -405,5 +414,3 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
-  
-  

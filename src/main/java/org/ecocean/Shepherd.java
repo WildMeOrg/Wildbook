@@ -51,6 +51,7 @@ import java.text.SimpleDateFormat;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
@@ -4723,12 +4724,12 @@ public Long countMediaAssets(Shepherd myShepherd){
             String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
             if(!nameString.equals(imageName)){hasKeyword=false;}
         }
-        if (hasKeyword && isAcceptableVideoFile(imageName)) {
+        if (hasKeyword && isAcceptableVideoFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
         }
-        else if (hasKeyword && isAcceptableImageFile(imageName)) {
+        else if (hasKeyword && isAcceptableImageFile(imageName) && !thumbs.contains(images.get(i))) {
                 m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
@@ -5161,11 +5162,11 @@ public Long countMediaAssets(Shepherd myShepherd){
 
   public ArrayList<String> getAllSocialUnitNames() {
     ArrayList<String> comNames=new ArrayList<String>();
-    Query q = pm.newQuery(Relationship.class);
+    Query q = pm.newQuery(SocialUnit.class);
     try{
 
-      q.setResult("distinct relatedSocialUnitName");
-      q.setOrdering("relatedSocialUnitName ascending");
+      q.setResult("distinct socialUnitName");
+      q.setOrdering("socialUnitName ascending");
       Collection results = (Collection) q.execute();
       comNames=new ArrayList<String>(results);
 
@@ -5803,6 +5804,22 @@ public Long countMediaAssets(Shepherd myShepherd){
         if (u != null) return u;
         return getUserByEmailAddress(value);  //see note below about uniqueness, alas
     }
+    
+    public JSONArray getAllProjectACMIdsJSON(String projectId) {
+      JSONArray allAnnotIds = new JSONArray();
+      String filter="SELECT FROM org.ecocean.Annotation WHERE acmId!=null && enc.annotations.contains(this) && project.id=='"+projectId+"' && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc;org.ecocean.Project project";
+      Query q = pm.newQuery(filter);
+      q.setResult("distinct acmId");
+      Collection results = (Collection) q.execute();
+      ArrayList<String> al=new ArrayList<String>(results);
+      q.closeAll();
+      for (String ann :al) {
+            allAnnotIds.put(ann);
+    }
+      
+      return allAnnotIds;
+    }
+    
 
 
 } //end Shepherd class

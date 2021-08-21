@@ -53,6 +53,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
@@ -65,6 +66,7 @@ import javax.servlet.ServletException;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -363,6 +365,23 @@ Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
 Util.mark("sendIdentify-C", startTime);
+
+        // WB-1665 now wants us to bail upon empty target annots:
+	if (Util.collectionIsEmptyOrNull(tlist)) {
+            System.out.println("WARNING: bailing on empty target list");
+            JSONObject emptyRtn = new JSONObject();
+            JSONObject status = new JSONObject();
+            status.put("message", "rejected");
+            status.put("error", "Empty target annotation list");
+            status.put("emptyTargetAnnotations", true);
+            emptyRtn.put("status", status);
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
+            return emptyRtn;
+        }
+
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing..
@@ -1690,8 +1709,12 @@ System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
             if ((enc == null) || (ann.getAcmId() == null)) continue;
             String taxonomyString = enc.getTaxonomyString();
             if (!shouldUpdateSpeciesFromIa(taxonomyString, myShepherd.getContext())) continue;
+            
+            //WB-1251, switch species to iaClass
+            if(ann.getIAClass()==null)continue;
             uuids.add(ann.getAcmId());
-            species.add(taxonomyString);
+            //species.add(taxonomyString);
+            species.add(ann.getIAClass().replaceAll("\\+","%2B"));
         }
 System.out.println("updateSpeciesOnIA(): " + uuids);
 System.out.println("updateSpeciesOnIA(): " + species);
@@ -1718,6 +1741,7 @@ System.out.println("updateSpeciesOnIA(): " + species);
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        iaClass = iaConf.convertIAClassForTaxonomy(iaClass, taxonomyBeforeDetection);
 
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
@@ -1970,7 +1994,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
 */
 /*
     update due to WB-945 work:  we now must _first_ build all the Annotations, and then after that decide how they get distributed
-    to Encounters... 
+    to Encounters...
 */
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 FeatureType.initAll(myShepherd);
@@ -2409,6 +2433,10 @@ System.out.println("identification most recent action found is " + action);
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
+        
+        System.out.println("!!!ustr: "+iaBaseURL);
+        System.out.println("!!!urlSuffix: "+urlSuffix);
+        
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1);  //get rid of leading /
             ustr += urlSuffix;
@@ -2467,12 +2495,11 @@ System.out.println("identification most recent action found is " + action);
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species for iaClass");
 
             // iaClass... not your scientific name species
-            String iaClass = rtn.getJSONArray("response").optString(0, null);
 
-            // String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
-            // IAJsonProperties iaConf = IAJsonProperties.iaConfig();
-            // Taxonomy taxy = ma.getTaxonomy(myShepherd);
-            // String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
+            String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
+            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            Taxonomy taxy = ma.getTaxonomy(myShepherd);
+            String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
 
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
             ann.setIAExtractedKeywords(myShepherd, originalTaxy);
@@ -3201,10 +3228,12 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         }
         JSONArray idList = new JSONArray();
         JSONArray speciesList = new JSONArray();
+        System.out.println("!!!IGOTS: "+species.toString());
         for (int i = 0 ; i < uuids.size() ; i++) {
             idList.put(toFancyUUID(uuids.get(i)));
-            speciesList.put(species.get(i).replaceAll(" ", "_").toLowerCase());
+            speciesList.put(species.get(i));
         }
+        System.out.println("!!!IPUTS: "+speciesList.toString());
         JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
     }
 
@@ -4415,5 +4444,6 @@ System.out.println("iaList.size = " + iaList.size());
         return diff;
     }
 
+    
 }
 

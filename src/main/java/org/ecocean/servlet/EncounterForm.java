@@ -422,14 +422,25 @@ System.out.println("*** trying redirect?");
                 }
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
-                if(projectIdSelection != null){
-                  for(String projectId: projectIdSelection){
-                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
-                    if(currentProject!=null){
-                      projects.add(currentProject);
+
+                //Adding to a project should not generate an error that blocks data capture
+                //throw exception and move on
+                try {
+                  if(projectIdSelection != null){
+                    for(String projectId: projectIdSelection){
+                      Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
+                      if(currentProject!=null){
+                        projects.add(currentProject);
+                      }
                     }
                   }
                 }
+                catch(Exception e) {
+                  e.printStackTrace();
+                }
+
+
+
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
@@ -679,13 +690,20 @@ System.out.println("about to do enc()");
             }
             enc.setEncounterNumber(encID);
 
+            //Adding to a project should not generate an error that blocks data capture
+            //throw exception and move on
             //add encounter to projects
-            if(projects!=null){
-              for(Project currentProject: projects){
-                if(currentProject!=null && enc!=null){
-                  currentProject.addEncounter(enc);
+            try {
+              if(projects!=null){
+                for(Project currentProject: projects){
+                  if(currentProject!=null && enc!=null){
+                    currentProject.addEncounter(enc);
+                  }
                 }
               }
+            }
+            catch(Exception g) {
+              g.printStackTrace();
             }
 
 
@@ -705,16 +723,17 @@ System.out.println("enc ?= " + enc.toString());
             for (FileItem item : formFiles) {
               //convert each FileItem into a MediaAsset
               System.out.println("Making an asset...");
-              newAsset = makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
-              System.out.println("Asset null? : "+newAsset);
-              if (newAsset!=null&&stuName==null) {
-                String filename = newAsset.getFilename();	
-                System.out.println("EncounterForm got filename "+filename);
-                 // Here we see if we can get the StudySite name.	
-                stuName = getTrappingStationFromWwfSpainFilename(filename);	
-                parsedDate = getDateFromWwfSpainFilename(filename);	
-                System.out.println("	EncounterForm got date "+parsedDate);
-              }
+              makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+              // newAsset = makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
+              // System.out.println("Asset null? : "+newAsset);
+              // if (newAsset!=null&&stuName==null) {
+              //   String filename = newAsset.getFilename();
+              //   System.out.println("EncounterForm got filename "+filename);
+              //    // Here we see if we can get the StudySite name.
+              //   stuName = getTrappingStationFromWwfSpainFilename(filename);
+              //   parsedDate = getDateFromWwfSpainFilename(filename);
+              //   System.out.println("	EncounterForm got date "+parsedDate);
+              // }
             }
 
             ///////////////////TODO social files also!!!
@@ -1243,25 +1262,25 @@ System.out.println("depth --> " + formValues.get("depth").toString());
 	    enc.setDWCGlobalUniqueIdentifier(guid);
 	    enc.setDWCImageURL((request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
 
-      //this will try to set from MediaAssetMetadata -- ymmv	
-	    if (!llSet) enc.setLatLonFromAssets();	
-	    if (enc.getYear() < 1) enc.setDateFromAssets();	
-       // modifications for WWF spain	
-	    System.out.println("   EncounterForm: about to setDateFromAssets. Old date = "+enc.getDate());	
-	    enc.setDateFromAssets();	
-	    System.out.println("   EncounterForm: setDateFromAssets result "+enc.getDate());	
+      //this will try to set from MediaAssetMetadata -- ymmv
+	    if (!llSet) enc.setLatLonFromAssets();
+	    if (enc.getYear() < 1) enc.setDateFromAssets();
+       // modifications for WWF spain
+	    System.out.println("   EncounterForm: about to setDateFromAssets. Old date = "+enc.getDate());
+	    enc.setDateFromAssets();
+	    System.out.println("   EncounterForm: setDateFromAssets result "+enc.getDate());
 
 
  	    System.out.println("   EncounterForm: parsed study site name "+stuName);
 
       //xxxxxxxx
-      // StudySite done last so common fields (e.g. Population, Gov Area, lat/long) can be shared	
-	    StudySite stu = myShepherd.getStudySiteByName(stuName);	
-	    if (stu==null) {	
-	    	stu = new StudySite(stuName, enc);	
-	    	myShepherd.storeNewStudySite(stu);	
-	    }	
-	    enc.setStudySite(stu);	
+      // StudySite done last so common fields (e.g. Population, Gov Area, lat/long) can be shared
+	    StudySite stu = myShepherd.getStudySiteByName(stuName);
+	    if (stu==null) {
+	    	stu = new StudySite(stuName, enc);
+	    	myShepherd.storeNewStudySite(stu);
+	    }
+	    enc.setStudySite(stu);
 	    System.out.println("	EncounterForm: set encounter study site ID to "+ enc.getStudySiteID());
 
 
@@ -1302,7 +1321,7 @@ System.out.println("depth --> " + formValues.get("depth").toString());
                 for (MediaAsset ma: enc.getMedia()) {
                   ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
                 }
-  
+
                 Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
                 if (locCode != null) {
                     parentTask = new Task();
@@ -1317,7 +1336,7 @@ System.out.println("depth --> " + formValues.get("depth").toString());
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
                 System.out.println("EncounterForm saved task "+task);
-              } 
+              }
               else {
                 System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
               }
@@ -1345,8 +1364,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
         //WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(("/confirmSubmit.jsp?number=" + encID));
-        dispatcher.forward(request, response);   
-        
+        dispatcher.forward(request, response);
+
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
           myShepherd.beginDBTransaction();
@@ -1459,10 +1478,11 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     myShepherd.closeDBTransaction();
     //return null;
   }
-  
-  private MediaAsset makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
-    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
-    sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+
+  private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
+    String sanitizedItemName = ServletUtilities.cleanFileName(item.getName());
+    JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + sanitizedItemName));
+    sp.put("key", Util.hashDirectories(encID) + "/" + sanitizedItemName);
     MediaAsset ma = new MediaAsset(astore, sp);
     File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
     File tmpDir = tmpFile.getParentFile();
@@ -1492,7 +1512,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     else {
         System.out.println("failed to write file " + tmpFile);
     }
-    return ma;
+    // return ma;
   }
 
   private void createOccurrenceIfMissingAndAddEncounter(String occID, Encounter enc, Shepherd myShepherd){
@@ -1507,9 +1527,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     }
   }
 
-  
+
   private MediaAsset makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
-    
+
     System.out.println("Entering makeMediaAssetsFromJavaFileObject");
 
     JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
