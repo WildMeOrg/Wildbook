@@ -2681,7 +2681,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           }
   
           String jsex = jsonIn.optString("sex");
-          if (jsex!=null) {
+          if (jsex!=null&&!"".equals(jsex)) {
             indiv.setSex(jsex);
           }
   
@@ -2699,23 +2699,17 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           String jdeathTime= jsonIn.optString("timeOfDeath");
 
           try {
-            if (jbirthTime!=null) {
+            if (jbirthTime!=null&&!"".equals("timeOfBirth")) {
               indiv.setTimeOfBirth(Long.parseLong(jbirthTime));
             }
-          } catch (NumberFormatException nfe) {
-            nfe.printStackTrace();
-          }
+          } catch (NumberFormatException nfe) {}
   
           try {
-            if (jdeathTime!=null) {
+            if (jdeathTime!=null&&!"".equals("timeOfDeath")) {
               indiv.setTimeOfDeath(Long.parseLong(jdeathTime));
             }
-          } catch (NumberFormatException nfe) {
-            nfe.printStackTrace();
-          }
+          } catch (NumberFormatException nfe) {}
 
-        } catch (NumberFormatException nfe) {
-          nfe.printStackTrace();
         } catch (Exception e) {
           e.printStackTrace();
         } 
@@ -2867,6 +2861,58 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       return rtn;
   }
 
+  public org.json.JSONObject apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+    if (jsonIn == null) throw new IOException("apiPatchReplace has null json");
+    String path = jsonIn.optString("path", null);
+    if (path == null) throw new IOException("apiPatchReplace has null path");
+    if (path.startsWith("/")) path = path.substring(1);
+    Object valueObj = jsonIn.opt("value");
+    //boolean hasValue = jsonIn.has("value");
+
+    if ((valueObj != null) && valueObj.equals(null)) valueObj = null;
+
+    org.json.JSONObject rtn = new org.json.JSONObject();
+    SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+    try {
+        switch (path) {
+            case "timeOfBirth":
+                this.setTimeOfBirth(Long.parseLong(String.valueOf(valueObj)));
+                break;
+            case "timeOfDeath":
+                this.setTimeOfDeath(Long.parseLong(String.valueOf(valueObj)));
+                break;
+            case "sex":
+                this.setSex((String)valueObj);
+                break;
+            case "comments":
+                this.setComments((String)valueObj);
+                break;
+            case "customFields":
+                org.json.JSONObject cfj = jsonIn.optJSONObject("value");
+                if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
+                String cfdId = cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_");
+                this.resetCustomFieldValues(cfdId);
+                this.trySetting(myShepherd, cfdId, cfj.opt("value"));
+                break;
+            case "names":
+                throw new ApiValueException("names PATCH not yet supported", path);
+            default:
+                throw new Exception("apiPatchReplace unknown path " + path);
+        }
+    } catch (ApiValueException ex) {
+        throw ex;
+    } catch (ApiDeleteCascadeException ex) {
+        throw ex;
+    } catch (NumberFormatException nfe) {
+        throw new NumberFormatException("apiPatchReplace unable to modify "+this+" due to an invalid String "+String.valueOf(valueObj)+" for Long conversion");
+    } catch (Exception ex) {
+        throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
+    }
+    rtn.put("op", "replace");
+    rtn.put("path", path);
+    rtn.put("value", valueObj);
+    return rtn;
+  }
 
   public org.json.JSONObject apiPatchRemove(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
     if (jsonIn == null) throw new IOException("apiPatchRemove has null json");
