@@ -242,28 +242,10 @@
 		"__meta" : {
 			"formSchema": { "displayOrder": 1 }
 		},
-		"lightBackgroundLogo": {
+		"logoIncludesSiteName": {
 			"__meta": {
-				"formSchema": { "displayOrder": 0.0 },
-				"type": "image"
-			}
-		},
-		"darkBackgroundLogo": {
-			"__meta": {
-				"formSchema": { "displayOrder": 0.01 },
-				"type": "image"
-			}
-		},
-		"footerLogo": {
-			"__meta": {
-				"formSchema": { "displayOrder": 0.02 },
-				"type": "image"
-			}
-		},
-		"splashVideo": {
-			"__meta": {
-				"formSchema": { "displayOrder": 0.03 },
-				"type": "video"
+				"type": "boolean",
+				"defaultValue": false
 			}
 		},
 		"textColor": {
