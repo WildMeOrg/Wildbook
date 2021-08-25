@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException, java.util.Collections" %>
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -571,17 +571,32 @@ context=ServletUtilities.getContext(request);
 	      <select multiple size="5" name="submitterID" id="submitterID">
 	        <option value="None"></option>
 	        <%
+            List<String> allUserNames = new ArrayList<String> ();
+            List<String> allUserFullNames = new ArrayList<String> ();
 	          for (int n = 0; n < numUsers; n++) {
-	            String username = users.get(n).getUsername();
+              String username = users.get(n).getUsername();
 	            String userFullName=username;
 	            if(users.get(n).getFullName()!=null){
 	              userFullName=users.get(n).getFullName();
 	            }
-
-	          %>
-	          <option value="<%=username%>"><%=userFullName%></option>
-	          <%
-	          }
+              allUserNames.add(username);
+              allUserFullNames.add(userFullName);
+            }
+            List<String> allUserFullNamesSorted = new ArrayList<String>(allUserFullNames);
+            Collections.sort(allUserFullNamesSorted, String.CASE_INSENSITIVE_ORDER);
+            List<Integer> indecesInOriginal = new ArrayList<Integer>();
+            for(String sortedUserFullName: allUserFullNamesSorted){
+                indecesInOriginal.add(allUserFullNames.indexOf(sortedUserFullName));
+            }
+            if(allUserNames.size()> 0){
+              for(int o = 0; o < allUserNames.size(); o++){
+                  String username = allUserNames.get(indecesInOriginal.get(o));
+                  String userFullName = allUserFullNames.get(indecesInOriginal.get(o));
+      	          %>
+      	          <option value="<%=username%>"><%=userFullName%></option>
+      	          <%
+	           }
+            }
 	        %>
 	      </select>
 
