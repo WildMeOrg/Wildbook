@@ -571,31 +571,18 @@ context=ServletUtilities.getContext(request);
 	      <select multiple size="5" name="submitterID" id="submitterID">
 	        <option value="None"></option>
 	        <%
-            List<String> allUserNames = new ArrayList<String> ();
-            List<String> allUserFullNames = new ArrayList<String> ();
+            // List<String> allUserNames = new ArrayList<String> ();
+            // List<String> allUserFullNames = new ArrayList<String> ();
+            List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
 	          for (int n = 0; n < numUsers; n++) {
-              String username = users.get(n).getUsername();
+              String username = sortedUsers.get(n).getUsername();
 	            String userFullName=username;
-	            if(users.get(n).getFullName()!=null){
-	              userFullName=users.get(n).getFullName();
+	            if(sortedUsers.get(n).getFullName()!=null){
+	              userFullName=sortedUsers.get(n).getFullName();
 	            }
-              allUserNames.add(username);
-              allUserFullNames.add(userFullName);
-            }
-            List<String> allUserFullNamesSorted = new ArrayList<String>(allUserFullNames);
-            Collections.sort(allUserFullNamesSorted, String.CASE_INSENSITIVE_ORDER);
-            List<Integer> indecesInOriginal = new ArrayList<Integer>();
-            for(String sortedUserFullName: allUserFullNamesSorted){
-                indecesInOriginal.add(allUserFullNames.indexOf(sortedUserFullName));
-            }
-            if(allUserNames.size()> 0){
-              for(int o = 0; o < allUserNames.size(); o++){
-                  String username = allUserNames.get(indecesInOriginal.get(o));
-                  String userFullName = allUserFullNames.get(indecesInOriginal.get(o));
-      	          %>
-      	          <option value="<%=username%>"><%=userFullName%></option>
-      	          <%
-	           }
+              %>
+              <option value="<%=username%>"><%=userFullName%></option>
+              <%
             }
 	        %>
 	      </select>
