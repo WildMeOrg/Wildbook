@@ -44,7 +44,7 @@ private String coerceOwnerId(Occurrence occ, Shepherd myShepherd) {
         if (user != null) return user.getUUID();
     }
     System.out.println("assets.jsp: could not find User for " + occ);
-    return "00000000-0000-0000-0000-000000000000";
+    return "00000000-0000-0000-0000-000000000001";
 }
 
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds

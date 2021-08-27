@@ -53,6 +53,17 @@ public class MigrationUtil {
         return in;
     }
 
+    public static User getPublicUser(Shepherd myShepherd) {
+        String pubAddr = "public@wildme.org";  // this is the only one i know of for now, but can expand to try others if needed
+        return myShepherd.getUserByEmailAddress(pubAddr);
+    }
+    public static String getPublicUserId(Shepherd myShepherd) {
+        User pub = getPublicUser(myShepherd);
+        if (pub != null) return pub.getUUID();
+        System.out.println("WARNING: MigrationUtil.getPublicUserId() could NOT find public User, using zero-guid!");
+        return "00000000-0000-0000-0000-000000000000";  // we need something.  :(
+    }
+
     public static List<String> setSort(Set<String> in) {
         List<String> sort = new ArrayList<String>(in);
         Collections.sort(sort, String.CASE_INSENSITIVE_ORDER);
