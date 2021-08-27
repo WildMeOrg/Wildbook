@@ -64,7 +64,6 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
 }
 
 
-//*every* annot gets all asset keywords -- long live next-gen
 private String encSql(Encounter enc, Shepherd myShepherd) {
     boolean err = false;
     if (!Util.stringExists(enc.getId())) return "";
@@ -98,6 +97,48 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
     return "\n" + sqlIns;
 }
 
+private String occSql(Occurrence occ, Shepherd myShepherd) {
+    if (!Util.stringExists(occ.getId())) return "";
+    String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
+    sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getId());
+    Long vers = occ.getVersion();
+    if (vers == null) vers = 3L;  //better than null, i say?
+    sqlIns = MigrationUtil.sqlSub(sqlIns, vers);
+    sqlIns = MigrationUtil.sqlSub(sqlIns, "processed");
+    sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getAlternateId());
+
+    // are we allowing empty sightings in codex??  TODO
+    if (!Util.collectionIsEmptyOrNull(occ.getEncounters())) {
+        Set<String> encIds = new HashSet<String>();
+        for (Encounter enc : occ.getEncounters()) {
+            encIds.add(enc.getId());
+        }
+        sqlIns += "UPDATE encounter SET sighting_guid='" + occ.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
+    }
+
+    return "\n" + sqlIns;
+}
+
+private String indSql(MarkedIndividual indiv, Shepherd myShepherd) {
+    if (!Util.stringExists(indiv.getId())) return "";
+    String sqlIns = "INSERT INTO individual (created, updated, viewed, guid, version) VALUES (now(), now(), now(), ?, ?);\n";
+    sqlIns = MigrationUtil.sqlSub(sqlIns, indiv.getId());
+    Long vers = indiv.getVersion();
+    if (vers == null) vers = 3L;  //better than null, i say?
+    sqlIns = MigrationUtil.sqlSub(sqlIns, vers);
+
+    // are we allowing empty individuals in codex??  TODO
+    if (indiv.numEncounters() > 0) {
+        Set<String> encIds = new HashSet<String>();
+        for (Encounter enc : indiv.getEncounters()) {
+            encIds.add(enc.getId());
+        }
+        sqlIns += "UPDATE encounter SET individual_guid='" + indiv.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
+    }
+
+    return "\n" + sqlIns;
+}
+
 
 %><html>
 <head>
@@ -120,6 +161,7 @@ migrationDir: <b><%=checkDir%></b>
 </p>
 <%
 
+boolean debug = false;
 String context = "context0";
 Shepherd myShepherd = new Shepherd(context);
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
@@ -127,17 +169,36 @@ myShepherd.beginDBTransaction();
 
 
 String jdoql = "SELECT FROM org.ecocean.Encounter ORDER BY id";
-jdoql += " RANGE 0,500";  // debug only
-
+if (debug) jdoql += " RANGE 0,500";
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
 List<Encounter> allEnc = new ArrayList<Encounter>(c);
 query.closeAll();
 
+// now occurrences/sightings
+jdoql = "SELECT FROM org.ecocean.Occurrence ORDER BY id";
+if (debug) jdoql += " RANGE 0,500";
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<Occurrence> allOcc = new ArrayList<Occurrence>(c);
+query.closeAll();
+
+// now indiv
+jdoql = "SELECT FROM org.ecocean.MarkedIndividual ORDER BY id";
+if (debug) jdoql += " RANGE 0,500";
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<MarkedIndividual> allInd = new ArrayList<MarkedIndividual>(c);
+query.closeAll();
+
 if (!commit) {
     myShepherd.rollbackDBTransaction();
 %>
-<p><b><%=allEnc.size()%> Encounters</b></p>
+<p>
+    <b><%=allEnc.size()%> Encounters</b>,
+    <b><%=allOcc.size()%> Sightings</b>,
+    <b><%=allInd.size()%> Individuals</b>
+</p>
 <hr /><p><b>commit=false</b>, not modifying anything</p>
 <p><a href="?commit=true">Migrate DateTime values for Encounters and Occurrences</a></p>
 <%
@@ -146,7 +207,6 @@ if (!commit) {
 
 
 String content = "BEGIN;\n";
-String allSql = "";
 int ct = 0;
 for (Encounter enc : allEnc) {
     ct++;
@@ -154,8 +214,29 @@ for (Encounter enc : allEnc) {
     content += encSql(enc, myShepherd);
 }
 content += "END;\n";
-
 out.println(fileWriteAndPreview("houston_encounters.sql", content));
+
+
+content = "BEGIN;\n";
+ct = 0;
+for (Occurrence occ : allOcc) {
+    ct++;
+    if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allOcc.size() + "] occurrences processed");
+    content += occSql(occ, myShepherd);
+}
+content += "END;\n";
+out.println(fileWriteAndPreview("houston_occurrences.sql", content));
+
+
+content = "BEGIN;\n";
+ct = 0;
+for (MarkedIndividual ind : allInd) {
+    ct++;
+    if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allInd.size() + "] individuals processed");
+    content += indSql(ind, myShepherd);
+}
+content += "END;\n";
+out.println(fileWriteAndPreview("houston_individuals.sql", content));
 
 myShepherd.rollbackDBTransaction();
 
