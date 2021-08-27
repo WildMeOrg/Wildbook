@@ -32,15 +32,25 @@ public class MigrationUtil {
         return file;
     }
 
-    private static String sqlSub(String inSql, String rep) {
-        rep = rep.replaceAll("'", "''");
+    public static String sqlSub(String inSql, String rep) {
+        if (rep == null) return inSql.replaceFirst("\\?", "NULL");
+        rep = rep.replaceAll("'", "''");  //FIXME this needs to be better string-prepping
         return inSql.replaceFirst("\\?", "'" + rep + "'");
     }
-    private static String sqlSub(String inSql, Integer rep) {
-        return inSql.replaceFirst("\\?", rep.toString());
+    public static String sqlSub(String inSql, Integer rep) {
+        String rs = "NULL";
+        if (rep != null) rs = rep.toString();
+        return inSql.replaceFirst("\\?", rs);
     }
-    private static String sqlSub(String inSql, Long rep) {
-        return inSql.replaceFirst("\\?", rep.toString());
+    public static String sqlSub(String inSql, Long rep) {
+        String rs = "NULL";
+        if (rep != null) rs = rep.toString();
+        return inSql.replaceFirst("\\?", rs);
+    }
+    public static String sqlSub(String inSql, Boolean rep) {
+        String rs = "NULL";
+        if (rep != null) rs = rep.toString();
+        return inSql.replaceFirst("\\?", rs);
     }
 
 

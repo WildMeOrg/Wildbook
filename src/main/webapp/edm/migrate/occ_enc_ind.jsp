@@ -41,8 +41,7 @@ private String coerceOwnerId(Encounter enc, Shepherd myShepherd) {
     String sub = enc.getSubmitterID();
     User user = myShepherd.getUser(sub);
     if (user != null) return user.getUUID();
-    //System.out.println("assets.jsp: could not find User for " + occ);
-    return "00000000-0000-0000-0000-000000000002";
+    return null;
 }
 
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds
@@ -53,12 +52,12 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
         if (enc != null) break;
     }
     if (enc == null) {
-        System.out.println("migration/assets.jsp could not find any Encounter for " + ma);
+        System.out.println("migration/occ_enc_ind.jsp could not find any Encounter for " + ma);
         return null;
     }
     Occurrence occ = myShepherd.getOccurrence(enc);
     if (occ == null) {
-        System.out.println("migration/assets.jsp could not find any Occurrence for " + enc + " (via " + ma + ")");
+        System.out.println("migration/occ_enc_ind.jsp could not find any Occurrence for " + enc + " (via " + ma + ")");
         return null;
     }
     return occ;
@@ -67,22 +66,36 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
 
 //*every* annot gets all asset keywords -- long live next-gen
 private String encSql(Encounter enc, Shepherd myShepherd) {
-    String sqlIns = "INSERT INTO encounter (created, updated, viewed, guid, version, owner_guid, public) VALUES (now(), now(), now(), ?, ?, ?, ?);";
+    boolean err = false;
+    if (!Util.stringExists(enc.getId())) return "";
+    String sqlIns = "INSERT INTO encounter (created, updated, viewed, guid, version, owner_guid, public) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, enc.getId());
-    sqlIns = MigrationUtil.sqlSub(sqlIns, enc.getVersion());
+    Long vers = enc.getVersion();
+    if (vers == null) vers = 3L;  //better than null, i say?
+    sqlIns = MigrationUtil.sqlSub(sqlIns, vers);
     String oid = coerceOwnerId(enc, myShepherd);
-    sqlIns = MigrationUtil.sqlSub(sqlIns, oid);
+    if (oid == null) {
+        sqlIns = MigrationUtil.sqlSub(sqlIns, "__NO_OWNER_FOUND__");
+        err = true;
+    } else {
+        sqlIns = MigrationUtil.sqlSub(sqlIns, oid);
+    }
     sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.getPublicUserId(myShepherd).equals(oid));
 
-    if (enc.hasAnnotatinos()) {
+    if (err) {
+        System.out.println("migration/occ_enc_ind.jsp: could not find owner for " + enc);
+        sqlIns = "-- could not find owner for " + enc + "\n-- " + sqlIns;
+    }
+
+    if (enc.hasAnnotations()) {
         Set<String> annIds = new HashSet<String>();
         for (Annotation ann : enc.getAnnotations()) {
             annIds.add(ann.getId());
         }
-        sqlIns += "UPDATE annotation SET encounter_guid='" + enc.getId() + "' WHERE guid IN ('" + String.join("', '", annIds) + "');\n";
+        sqlIns += (err ? "-- " : "") + "UPDATE annotation SET encounter_guid='" + enc.getId() + "' WHERE guid IN ('" + String.join("', '", annIds) + "');\n";
     }
 
-    return sqlIns;
+    return "\n" + sqlIns;
 }
 
 
@@ -93,7 +106,7 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
 </head>
 <body>
 <p>
-<h1>This will help migrate <b>Encounters</b>, <b>Sightings</b>, and <b>Individuals</b> to Houston within Codex.</h1>
+<h2>This will help migrate <b>Encounters</b>, <b>Sightings</b>, and <b>Individuals</b> to Houston within Codex.</h2>
 </p>
 <hr />
 
@@ -107,9 +120,14 @@ migrationDir: <b><%=checkDir%></b>
 </p>
 <%
 
+String context = "context0";
+Shepherd myShepherd = new Shepherd(context);
+boolean commit = Util.requestParameterSet(request.getParameter("commit"));
+myShepherd.beginDBTransaction();
+
 
 String jdoql = "SELECT FROM org.ecocean.Encounter ORDER BY id";
-jdoql += " RANGE 0,50";  // debug only
+jdoql += " RANGE 0,500";  // debug only
 
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
@@ -129,7 +147,7 @@ if (!commit) {
 
 String content = "BEGIN;\n";
 String allSql = "";
-ct = 0;
+int ct = 0;
 for (Encounter enc : allEnc) {
     ct++;
     if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allEnc.size() + "] encounters processed");
