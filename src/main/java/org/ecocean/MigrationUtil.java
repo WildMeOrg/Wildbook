@@ -32,6 +32,18 @@ public class MigrationUtil {
         return file;
     }
 
+    private static String sqlSub(String inSql, String rep) {
+        rep = rep.replaceAll("'", "''");
+        return inSql.replaceFirst("\\?", "'" + rep + "'");
+    }
+    private static String sqlSub(String inSql, Integer rep) {
+        return inSql.replaceFirst("\\?", rep.toString());
+    }
+    private static String sqlSub(String inSql, Long rep) {
+        return inSql.replaceFirst("\\?", rep.toString());
+    }
+
+
     public static String toUUID(String s) {  // h/t https://stackoverflow.com/a/19399768
         return UUID.fromString(
             s.replaceFirst( 

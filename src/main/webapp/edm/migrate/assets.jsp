@@ -118,11 +118,11 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
     if (doneAnns.contains(ann.getId())) return "-- already processed " + ann + "\n";
     doneAnns.add(ann.getId());
     String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?);";
-    sqlIns = sqlSub(sqlIns, ann.getId());
-    sqlIns = sqlSub(sqlIns, ma.getUUID());
+    sqlIns = MigrationUtil.sqlSub(sqlIns, ann.getId());
+    sqlIns = MigrationUtil.sqlSub(sqlIns, ma.getUUID());
     String iac = ann.getIAClass();
     if (iac == null) iac = "";
-    sqlIns = sqlSub(sqlIns, iac);
+    sqlIns = MigrationUtil.sqlSub(sqlIns, iac);
     JSONObject bounds = new JSONObject();
     if (ma.getMetadata() != null) ma.getMetadata().getDataAsString();  //nudge to load w/h properly. :sigh: thanks dn
     int[] bb = ann.getBbox();
@@ -131,7 +131,7 @@ private String annotSingleSql(Annotation ann, MediaAsset ma) {
     } else {
         bounds.put("rect", new JSONArray(bb));
     }
-    sqlIns = sqlSub(sqlIns, MigrationUtil.jsonQuote(bounds));
+    sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.jsonQuote(bounds));
     return sqlIns;
 }
 
@@ -149,8 +149,8 @@ private String annotKeywords(Annotation ann, MediaAsset ma, Map<String,String> k
         if (hasKw.contains(kid)) continue;
         hasKw.add(kid);
         String sqlIns = "INSERT INTO annotation_keywords (created, updated, viewed, annotation_guid, keyword_guid) VALUES (now(), now(), now(), ?, ?);";
-        sqlIns = sqlSub(sqlIns, ann.getId());
-        sqlIns = sqlSub(sqlIns, kid);
+        sqlIns = MigrationUtil.sqlSub(sqlIns, ann.getId());
+        sqlIns = MigrationUtil.sqlSub(sqlIns, kid);
         s += sqlIns + "\n";
     }
     return s;
@@ -173,15 +173,6 @@ public static Connection getConnection(Shepherd myShepherd) throws java.sql.SQLE
     //conn = DriverManager.getConnection(CommonConfiguration.getPropertyLEGACY("datanucleus.ConnectionURL","context0"), connectionProps);
     conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/mig_after");
     return conn;
-}
-
-private static String sqlSub(String inSql, String rep) {
-    rep = rep.replaceAll("'", "''");
-    return inSql.replaceFirst("\\?", "'" + rep + "'");
-}
-
-private static String sqlSub(String inSql, Integer rep) {
-    return inSql.replaceFirst("\\?", rep.toString());
 }
 
 
@@ -296,8 +287,8 @@ for (Occurrence occ : agMap.keySet()) {
 
     String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '\"{}\"');";
     String userId = coerceOwnerId(occ, myShepherd);
-    agSql = sqlSub(agSql, occ.getId());
-    agSql = sqlSub(agSql, userId);
+    agSql = MigrationUtil.sqlSub(agSql, occ.getId());
+    agSql = MigrationUtil.sqlSub(agSql, userId);
     allSql += agSql + "\n";
 
     String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
@@ -310,15 +301,15 @@ for (Occurrence occ : agMap.keySet()) {
         String ext = (dot < 0) ? "" : "." + fname.substring(dot + 1);
         content += "ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
         String s = sqlIns;
-        s = sqlSub(s, ma.getUUID());
-        s = sqlSub(s, ext.substring(1));
-        s = sqlSub(s, fname);
-        s = sqlSub(s, "MIME");
-        s = sqlSub(s, -1);
-        s = sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
-        s = sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
-        s = sqlSub(s, meta(ma));  //meta (should include dimensions)
-        s = sqlSub(s, occ.getId());
+        s = MigrationUtil.sqlSub(s, ma.getUUID());
+        s = MigrationUtil.sqlSub(s, ext.substring(1));
+        s = MigrationUtil.sqlSub(s, fname);
+        s = MigrationUtil.sqlSub(s, "MIME");
+        s = MigrationUtil.sqlSub(s, -1);
+        s = MigrationUtil.sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
+        s = MigrationUtil.sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
+        s = MigrationUtil.sqlSub(s, meta(ma));  //meta (should include dimensions)
+        s = MigrationUtil.sqlSub(s, occ.getId());
         allSql += s + "\n\n";
     }
 }
@@ -393,8 +384,8 @@ for (Keyword kw : kws) {
 String sqlIns = "INSERT INTO keyword (created, updated, viewed, guid, value, source) VALUES (now(), now(), now(), ?, ?, 'user');";
 for (String k : kmap.keySet()) {
     String s = sqlIns;
-    s = sqlSub(s, kmap.get(k));
-    s = sqlSub(s, k);
+    s = MigrationUtil.sqlSub(s, kmap.get(k));
+    s = MigrationUtil.sqlSub(s, k);
     content += s + "\n";
 }
 content += "\nEND;\n";
