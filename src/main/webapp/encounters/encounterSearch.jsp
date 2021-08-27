@@ -464,7 +464,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	clickable:true,
                     	icon:"../images/Kitizensciencelogo.png",
                     	<%-- url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>' --%>
-                    }
+                    },
+		 			afterParse: useData
 		/*  google.maps.event.addListener(marker, 'click', function() {
 		      window.location.href = marker.url;
 		    }); */
@@ -474,11 +475,13 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	
         geoXml.parse(filename);
         
+        
+        
     	var iw = new google.maps.InfoWindow({
-    		content:'<%=encprops.getProperty("loadingMapData") %><a href="encounter.jsp?number=+<%=encprops.getProperty("loadingMapData") %>"></a>',
+    		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
          
-    	iw.open(map);
+    	iw.open(map); 
     	
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
 
@@ -492,9 +495,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 function useData(doc){	
 	geoXmlDoc = doc;
 	kml = geoXmlDoc[0];
+	
     if (kml.markers) {
 	 for (var i = 0; i < kml.markers.length; i++) {
-	     //if(i==0){alert(kml.markers[i].getVisible());
+	     if(i==0){alert(kml.markers[i].getVisible());
 	 }
    } 
 }
