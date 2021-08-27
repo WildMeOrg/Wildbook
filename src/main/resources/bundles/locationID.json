@@ -202,6 +202,46 @@
 	 			 	"long":25
  			 },
 			 "locationID":[
+				{
+					"name": "Siyafunda",
+					"id": "Siyafunda",
+					"description": "Siyafunda"
+				},
+				{
+					"name": "Oceana",
+					"id": "Oceana",
+					"description": "Oceana"
+				},
+				{
+					"name": "Sibuya",
+					"id": "Sibuya",
+					"description": "Sibuya"
+				},
+				{
+					"name": "Mpongo",
+					"id": "Mpongo",
+					"description": "Mpongo"
+				},
+				{
+					"name": "EV Krull",
+					"id": "EV Krull",
+					"description": "EV Krull"
+				},
+				{
+					"name": "Matola",
+					"id": "Matola",
+					"description": "Matola"
+				},
+				{
+					"name": "Areena",
+					"id": "Areena",
+					"description": "Areena"
+				},
+				{
+					"name": "Inkwenkwezi",
+					"id": "Inkwenkwezi",
+					"description": "Inkwenkwezi"
+				},
 				 {
  					"name": "Kariega Game Reserve",
  					"id": "Kariega Game Reserve",
