@@ -1005,6 +1005,18 @@ function doImageEnhancer(sel) {
                         wildbook.openInTab('manualAnnotation.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
                     }
                 ]);
+                
+              //manual blur.jsp
+                opt.menu.push([
+                    function(enh) {  //the menu text
+            	        return 'Manual Image Blur';
+                    },
+                    function(enh) {  //the menu action
+            	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                        var ma = assetById(mid);
+                        wildbook.openInTab('manualBlur.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
+                    }
+                ]);
 
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
