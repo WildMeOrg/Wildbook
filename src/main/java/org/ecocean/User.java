@@ -14,6 +14,8 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -546,5 +548,21 @@ public class User implements Serializable {
     public String getProjectIdForPreferredContext() {
       return getPreference(PROJECT_CONTEXT);
     }
+
+    public static List<User> sortUsersByFullnameDefaultUsername(final List<User> originalList) {
+       List<User> sortedCopy = new ArrayList<User>(originalList);
+       Collections.sort(sortedCopy, new Comparator<User>() {
+           public int compare(User user1, User user2) {
+               if ((user1 == null) || (user2 == null)) return 0;
+               String user1Fullname = user1.getFullName();
+               if(user1Fullname == null || ("").equals(user1Fullname)) user1Fullname = user1.getUsername();
+               String user2Fullname = user2.getFullName();
+               if(user2Fullname == null || ("").equals(user2Fullname)) user2Fullname = user2.getUsername();
+               if ((user1Fullname == null) || (user2Fullname == null)) return 0;
+               return user1Fullname.toLowerCase().trim().compareTo(user2Fullname.toLowerCase().trim());
+           }
+       });
+       return sortedCopy;
+   }
 
 }
