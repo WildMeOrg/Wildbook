@@ -400,6 +400,14 @@ public class ServletUtilities {
     // return isOwner;
   }
 
+  public static boolean isEncounterOwnedByPublic(Encounter enc) {
+    boolean isPublic = false;
+      if (enc.getSubmitterID() != null && enc.getSubmitterID().toLowerCase().trim().equals("public")) {
+        isPublic = true;
+      }
+    return isPublic;
+  }
+
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
     //if (request.isUserInRole("admin")) {
     if (request.getUserPrincipal()!=null) {
