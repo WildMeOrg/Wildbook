@@ -2,7 +2,7 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-		
+
 		{
 			"name": "Kruppwald Essen",
 			"id": "KE",
@@ -23,6 +23,8 @@
 				{
 					"name": "Klufterbach",
 					"id": "KB",
+          "prefix": "KB",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo":{
 						"lat":50.686688,
 						"long":7.127002
@@ -32,6 +34,8 @@
 				{
 					"name": "Venner Bach",
 					"id": "VB",
+          "prefix": "VB",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.670721,
 						"long": 7.129955
@@ -41,6 +45,8 @@
 				{
 					"name": "Katzenlochbach/Villiper Bach",
 					"id": "KOB",
+          "prefix": "KOB",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.667533,
 						"long": 7.083178
@@ -50,6 +56,8 @@
 				{
 					"name": "Marienforster Bach/Keltersbaumbach",
 					"id": "MB",
+          "prefix": "MB",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.675925,
 						"long": 7.136618
@@ -59,6 +67,8 @@
 				{
 					"name": "Annaberger Bach",
 					"id": "AB",
+          "prefix": "AB",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.684203,
 						"long": 7.116158
@@ -68,6 +78,8 @@
 				{
 					"name": "Tümpel KoVK",
 					"id": "KoVK",
+          "prefix": "KoVK",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.660984,
 						"long": 7.034919
@@ -77,6 +89,8 @@
 				{
 					"name": "Tümpelgraben TG",
 					"id": "TG",
+          "prefix": "TG",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.681499,
 						"long": 7.118652
@@ -86,6 +100,8 @@
 				{
 					"name": "Seitengraben SG",
 					"id": "SG",
+          "prefix": "SG",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.682431,
 						"long": 7.116877
@@ -95,6 +111,8 @@
 				{
 					"name": "Tümpel TT",
 					"id": "TT",
+          "prefix": "TT",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.681057,
 						"long": 7.121233
@@ -104,6 +122,8 @@
 				{
 					"name": "Schutzhütte",
 					"id": "hut",
+          "prefix": "hut",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 50.682028,
 						"long": 7.118937
@@ -123,6 +143,8 @@
 				{
 					"name": "Kernlebensraum",
 					"id": "KLR",
+          "prefix": "KLR",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 51.923413,
 						"long": 8.872099
@@ -132,6 +154,8 @@
 				{
 					"name": "Paderborner Dorf",
 					"id": "PD",
+          "prefix": "PD",
+  				"prefixDigitPadding": 4,
 					"geospatialInfo": {
 						"lat": 51.917119,
 						"long": 8.880677
@@ -142,4 +166,3 @@
 		},
   ]
 }
-

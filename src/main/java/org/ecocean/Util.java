@@ -738,7 +738,8 @@ public class Util {
     //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
     public static String validEmailRegexPattern() {
         //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
-        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+        // return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$"; // this failed on myha@studserv.uni-leipzig.de
+        return "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"; // from https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression (JP found on 30 Aug 2021)
     }
 
     public static boolean isValidEmailAddress(String email) {
@@ -1088,9 +1089,8 @@ public class Util {
     }
 
   public static JSONObject copy(JSONObject original) {
+    if (original == null) return null;
     return new JSONObject(original, JSONObject.getNames(original));
   }
 
 }
-
-

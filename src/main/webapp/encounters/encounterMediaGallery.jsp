@@ -51,16 +51,6 @@ java.util.*" %>
     return false;
   }
 
-    String rotationInfo(MediaAsset ma) {
-        if ((ma == null) || (ma.getMetadata() == null)) return null;
-        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
-        if (orient == null) return null;
-        for (String k : orient.keySet()) {
-            if (orient.get(k).matches(".*90.*")) return orient.get(k);
-            if (orient.get(k).matches(".*270.*")) return orient.get(k);
-        }
-        return null;
-    }
   %>
 
 <%
@@ -230,14 +220,15 @@ function forceLink(el) {
 
 		  		if (ma != null) {
 		  			//System.out.println("    EMG: ma is not null");
-                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
+            if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (!tasks.contains(t)) tasks.add(t);
+                                                    if (tasks.contains(t)) continue;
+                                                    if (t.deepContains(ann)!=null) tasks.add(t);
                                                     //System.out.println("Task ID: "+t.getId());
                                                 }
 
@@ -262,7 +253,7 @@ function forceLink(el) {
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
-                                                j.put("rotation", rotationInfo(ma));
+                                                j.put("rotation", ma.getRotationInfo());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;

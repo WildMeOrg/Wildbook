@@ -86,4 +86,3 @@ public class MediaAssetSet implements java.io.Serializable {
         return jobj;
     }
 }
-
