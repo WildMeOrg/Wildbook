@@ -100,7 +100,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 	    	}
 			if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
-			
+
 			try {
 				if (thisUser.getProjectIdForPreferredContext()!=null) {
 					defaultProjectId = thisUser.getProjectIdForPreferredContext();
@@ -127,7 +127,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 						if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
 							allProjects.add(projectsUserBelongsTo.get(i));
 						}
-					}	
+					}
 				}
 				userProjects = allProjects;
 			}
@@ -148,7 +148,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 								p.remove();
 								updateNotificationsWidget();
 								refreshCollaborations();
-							} 
+							}
 							else {
 								p.removeClass('throbbing').html(d.message);
 							}
@@ -254,7 +254,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 						    		int numOrgs=orgs.size();
 									for(Organization org:orgs){
 										String selected="";
-	
+
 										%>
 										<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
 										<%
@@ -280,7 +280,6 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 														} //end userProjects for loop
 													}  //endif userProjects.size()>0
 														else{
-															System.out.println("got here 1");
 															%>
 															<tr>
 																<td class="clickable-row"><%=props.getProperty("NoProjects") %></td>
@@ -292,7 +291,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
 													<!--begin default project context selection-->
 													<tr>
-														<td style="border-style: none;"><%=props.getProperty("defaultProject") %></td>	
+														<td style="border-style: none;"><%=props.getProperty("defaultProject") %></td>
 													</tr>
 													<tr>
 														<td>
@@ -303,11 +302,11 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 																	String projNameForDefaultSelect = projForDefaultSelect.getResearchProjectName();
 
 																	if (defaultProjectId!=null&&defaultProjectId.equals(projForDefaultSelect.getId())) {
-																	%>	
+																	%>
 																		<option value="<%=projForDefaultSelect.getId()%>" selected><%=projNameForDefaultSelect%></option>
 																	<%
 																	} else {
-																		%>			
+																		%>
 																			<option value="<%=projForDefaultSelect.getId()%>"><%=projNameForDefaultSelect%></option>
 																		<%
 																	}
@@ -317,7 +316,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 														</td>
 													</tr>
 													<tr>
-														<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>	
+														<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>
 													</tr>
 													<!--end default project context selection-->
 		            </table></td>
@@ -331,7 +330,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 			let selectedProjectDropdown = $("#defaultProjectDropdown");
 			let projId = selectedProjectDropdown.val();
 			let requestJSON = {};
-			requestJSON['action'] = 'setProjectContext'; 
+			requestJSON['action'] = 'setProjectContext';
 			requestJSON['projectId'] = projId;
 			$.ajax({
 				url: wildbookGlobals.baseUrl + '/UserPreferences',
@@ -364,7 +363,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 			String cls = "state-" + c.getState();
 			String msg = "state_" + c.getState();
 			String click = "";
-			
+
 			String otherUsername=c.getUsername1();
 			if(localUsername.equals(otherUsername))otherUsername=c.getUsername2();
 
@@ -373,10 +372,10 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				// need a revoke button from either direction
 				if (state.equals(Collaboration.STATE_REJECTED)) {
 					click += "<span class=\"collab-button\"><input type=\"button\" id=\"addView-"+c.getId()+"\" class=\"add-view-permissions\" value=\"" + collabProps.getProperty("buttonAddViewPerm") + "\"></span>";
-				} 
+				}
 				else if (state.equals(Collaboration.STATE_INITIALIZED)) {
 					click += "<span class=\"collab-button\"></span>"; // empty placeholder
-				} 
+				}
 				else if(state.equals(Collaboration.STATE_APPROVED)) {
 					click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
 				}
@@ -397,7 +396,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 					}
 					else{
 						click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
-						
+
 					}
 				}
 				else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
@@ -413,33 +412,33 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					}
-					
+
 				}
 				else if (state.equals(Collaboration.STATE_APPROVED) && !c.getUsername1().equals("public") && !c.getUsername2().equals("public")) {
 					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
 					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-				} 
+				}
 				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
 					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+otherUsername+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
 					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
 					System.out.println("EDITABLE State msg = "+msg);
-				} 
+				}
 				else if ("state_rejected".equals(msg)) {
 					click += "<span class=\"collab-button\"></span>"; //empty placeholder
 				}
 				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
 
-				
+
 			} //end if state!=null
-	
+
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
 		%>
 		<a name="collaborations" id="collaborations" style="padding-top: 200px;"></a>
 		<h2><%=collabProps.getProperty("collaborationTitle") %></h2>
 		<%
-		
+
 		out.println("<div class=\"collab-list\">" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
@@ -468,7 +467,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 					}
 					line = br.readLine();
 				}
-			} 
+			}
 			catch(Exception e){
 				e.printStackTrace();
 			}
@@ -710,7 +709,7 @@ function changeVisibleCollaborationState(newState, collabId, action) {
 		updateNotificationsWidget();
 		refreshCollaborations();
 	}
-	
+
 
 }
 
