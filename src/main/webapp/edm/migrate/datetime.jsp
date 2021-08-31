@@ -66,6 +66,8 @@ for (Encounter enc : all) {
     if (commit) {
         enc.setTime(cdt);
         System.out.println("datetime.jsp: [" + ct + "/" + all.size() + "] migrated " + cdt + " on " + enc);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
     }
 }
 out.println("</ul>");
@@ -104,6 +106,8 @@ for (Occurrence occ : occs) {
     int encNum = Util.collectionSize(occ.getEncounters());
     out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
     System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
 }
 
 
