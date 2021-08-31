@@ -411,7 +411,7 @@ if (thisUser == null) {
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="<%=urlLoc %>/why.jsp">Why Kitizen Science is Needed</a></li>
                         <li><a href="<%=urlLoc %>/how.jsp">How Kitizen Science Works</a></li>
-                        <li><a href="<%=urlLoc %>/spayneuter.jsp">Spay/Neuter Evidence</a></li>
+                        <li><a href="<%=urlLoc %>/spayneuter.jsp">Spay/Neuter Evidence</a></li> 
                     </ul>
             </li>
 

@@ -490,7 +490,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 	    
    }
   
- 
+  
 //not using this function right now. kept because it might be useful later  
 function useData(doc){	
 	geoXmlDoc = doc;
