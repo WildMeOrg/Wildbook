@@ -14,7 +14,11 @@
     <listener-class>org.ecocean.StartupWildbook</listener-class>
 </listener>
 
-
+<listener>
+   <listener-class>
+      com.sun.appserv.web.taglibs.cache.CacheSessionListener
+   </listener-class>
+</listener>
 
   <display-name>Wildbook®</display-name>
   <description>
