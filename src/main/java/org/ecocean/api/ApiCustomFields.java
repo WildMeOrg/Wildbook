@@ -412,7 +412,7 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
         try {
             Object val = null;
-            if (!json.isNull(key)) val = json.get(key);
+            if (!json.isNull(key)) val = Util.coerceValue(json, key, cls);
             Method setter = this.getClass().getMethod(setterName, cls);
             setter.invoke(this, cls.cast(val));
         } catch (java.lang.reflect.InvocationTargetException ex) {
@@ -424,6 +424,8 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
             }
         } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException ex) {
             throw new IOException("setter woes: " + ex.toString());
+        } catch (org.json.JSONException ex) {
+            throw new ApiValueException("failed to parse JSON input: " + ex.toString(), key);
         }
         this.setVersion();
         return true;

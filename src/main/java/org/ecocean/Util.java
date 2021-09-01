@@ -675,6 +675,47 @@ public class Util {
         return compareJSONArrays(j1, j2, true);
     }
 
+
+    // this will attempt to get out wantClass-type object from json.key, even if the input json is messed up (e.g. { "doubleFoo": "1.234" } )
+    public static Object coerceValue(JSONObject json, String key, String wantClass) throws JSONException {
+        if ((json == null) || (key == null) || (wantClass == null)) throw new JSONException("json, key, and wantClass must all be non-null");
+        if (!json.has(key)) throw new JSONException("non-existent key '" + key + "'");
+        if (json.isNull(key)) return null;
+        //basically we use the json.getFoo() calls cuz they throw JSONException if they cannot coax that out of the json
+        Double d = null;
+        switch (wantClass) {
+            case "java.lang.String":
+                //sadly, optString() will munge these into strings!  so lets bail on these first
+                if (json.optJSONObject(key) != null) throw new JSONException("will not cast JSONObject at " + key + " to String");
+                if (json.optJSONArray(key) != null) throw new JSONException("will not cast JSONArray at " + key + " to String");
+                String s = json.optString(key, null);  //this seems to allow numbers, whereas getString() does not!!!
+                if (s != null) return s;
+                //otherwise, we give it our best shot.  (e.g. will handle boolean)  careful what you wish for.
+                return JSONObject.valueToString(json.get(key));
+
+            //the rest of these will just throw their own JSONExceptions normally
+            case "java.lang.Double":
+                return json.getDouble(key);
+            case "java.lang.Integer":
+                //getDouble() is much more tolerant than getInt(), for example this lets "1.234" get turned into Integer 1
+                d = json.getDouble(key);
+                return d.intValue();
+            case "java.lang.Long":
+                d = json.getDouble(key);  //see note above
+                return d.longValue();
+            case "java.lang.Boolean":
+                return json.getBoolean(key);
+        }
+        System.out.println("WARNING: Util.coerceValue() fell through with wantClass=" + wantClass + " on key=" + key + ", json=" + json);
+        return json.get(key);
+    }
+    //helper version where you can pass in a Class
+    public static Object coerceValue(JSONObject json, String key, Class cls) throws JSONException {
+        if (cls == null) throw new JSONException("passed class must not be null");
+        return coerceValue(json, key, cls.getName());
+    }
+
+
     //this is a workaround for the annoying fact that JSONObject.optBoolean() has a little-b default value
     // and therefore we cannot know if we are getting the default or the key did not exist.  :(
     public static Boolean optBoolean(JSONObject j, String key) {
