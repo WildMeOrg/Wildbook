@@ -46,6 +46,10 @@ Using the EDM, migrating data can be done from the `/edm/migrate/` url.  It will
 
 Manipulate and migrate <b>locationID.json</b> data using `/edm/migrate/locationID.jsp`.
 
+### Taxonomies
+
+Update `site.species` site settings as well as set proper taxonomies on Encounters using `/edm/migrate/taxonomies.jsp`.
+
 ### DateTime
 
 The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
