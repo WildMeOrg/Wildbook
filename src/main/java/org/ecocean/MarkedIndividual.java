@@ -2783,6 +2783,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       if (!hasValue) throw new IOException("apiPatch op=" + opName + " has no value - use op=remove");
       org.json.JSONObject rtn = new org.json.JSONObject();
       SystemLog.debug("apiPatch op={} on {}, with path={}, jsonIn={}", opName, this, path, jsonIn);
+
       // We are gonna need to allow for a couple things here, so generic string
       try {
           switch (path) {
@@ -2830,28 +2831,32 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfDeath");
                   }
               case "names":
-              throw new ApiValueException("name PATCH is still under construction { id, value }", "names");
-                  // org.json.JSONObject jnames = jsonIn.optJSONObject("names");
-                  // Iterator namesIt = jnames.keys();
-                  // while (namesIt.hasNext()) {
-                  //   String key = (String) namesIt.next();
-                  //   String value = jnames.optString(key);
-                    
-                  //   if (names.getKeyList().contains(key)) {
-                  //     String oldVal = names.getValuesByKey(key)
-                  //     names.removeValuesByKey(key);
+                org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
 
-                  //   }
-
-                  // }
-                  
+                Iterator nameIter = nameJson.keys();
+                while (nameIter.hasNext()) {
+                  String key = (String) nameIter.next();
+                  String value = nameJson.optString(key);
+                  if (this.getName(key)!=null&&!"".equals(this.getName(key))) {
+                    this.getNames().removeValuesByKey(key, this.getName(key));
+                    this.getNames().removeKey(key);
+                    this.refreshNamesCache();
+                  }
+                  this.addName(key, value);
+                  //this.setNames(namesMV);
+                }
+                // see iffin it worked 
+                MultiValue namesMV= this.getNames();
+                break;
               default:
                   throw new Exception("apiPatch op=" + opName + " unknown path " + path);
           }
       } catch (ApiValueException ex) {
           myShepherd.rollbackDBTransaction();
-          throw ex;
+          ex.printStackTrace();
+          //throw ex;
       } catch (Exception ex) {
+          ex.printStackTrace();
           myShepherd.rollbackDBTransaction();
           throw new IOException("apiPatch op=" + opName + " unable to modify " + this + " due to " + ex.toString());
       }
@@ -2873,6 +2878,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
     org.json.JSONObject rtn = new org.json.JSONObject();
     SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+
     try {
         switch (path) {
             case "timeOfBirth":
@@ -2895,14 +2901,30 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 this.trySetting(myShepherd, cfdId, cfj.opt("value"));
                 break;
             case "names":
-                throw new ApiValueException("names PATCH not yet supported", path);
+              org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
+
+              Iterator nameIter = nameJson.keys();
+              while (nameIter.hasNext()) {
+                String key = (String) nameIter.next();
+                String value = nameJson.optString(key);
+
+                if (this.getNames().getValue(key)!=null&&!"".equals(this.getNames().getValue(key))) {
+                  this.getNames().removeKey(key);
+                  this.refreshNamesCache();
+                }
+                this.addName(key, value);
+              }
+              
+              break;
             default:
                 throw new Exception("apiPatchReplace unknown path " + path);
         }
     } catch (ApiValueException ex) {
-        throw ex;
+        ex.printStackTrace();
+        //throw ex;
     } catch (ApiDeleteCascadeException ex) {
-        throw ex;
+        ex.printStackTrace();
+        //throw ex;
     } catch (NumberFormatException nfe) {
         throw new NumberFormatException("apiPatchReplace unable to modify "+this+" due to an invalid String "+String.valueOf(valueObj)+" for Long conversion");
     } catch (Exception ex) {
@@ -2920,7 +2942,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     if (path == null) throw new IOException("apiPatchRemove has null path");
     if (path.startsWith("/")) path = path.substring(1);
     org.json.JSONObject rtn = new org.json.JSONObject();
-    SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
+    SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);System.out.println("???????????????? API PATCH REMOVE GOT JSON : "+jsonIn.toString());System.out.println("???????????????? API PATCH REMOVE GOT JSON : "+jsonIn.toString());
+
     try {
       switch (path) {
         case "encounters":
@@ -2965,7 +2988,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                   rtn.put("value", id);
                 }
                 break;
-                  
 
             case "customFields":
                 org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
@@ -2973,6 +2995,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
                 this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
                 break;
+            case "names":
+
+              org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
+              Iterator nameIter = nameJson.keys();
+              while (nameIter.hasNext()) {
+                String key = (String) nameIter.next();
+                if (this.getName(key)!=null&&!"".equals(this.getName(key))) {
+                  this.getNames().removeValuesByKey(key, this.getName(key));
+                  this.getNames().removeKey(key);
+                  this.refreshNamesCache();
+                }
+              }
+              break;
+
             default:
                 throw new Exception("apiPatch remove unknown path=" + path);
         }
