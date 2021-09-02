@@ -563,7 +563,7 @@ context=ServletUtilities.getContext(request);
 	  <strong><%=props.getProperty("username")%></strong><br />
 	      <%
 
-	        List<User> users = myShepherd.getNativeUsers();
+	        List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
 	        int numUsers = users.size();
 
 	      %>
