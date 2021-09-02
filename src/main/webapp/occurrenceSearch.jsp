@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException, java.util.Collections" %>
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -14,35 +14,35 @@ context=ServletUtilities.getContext(request);
   myShepherd.beginDBTransaction();
   try{
 	  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
-	
+
 	  try {
 	    firstYear = myShepherd.getEarliestSightingYear();
 	    nowYear = myShepherd.getLastSightingYear();
 	  } catch (Exception e) {
 	    e.printStackTrace();
 	  }
-	
+
 	//let's load out properties
 	  Properties props = new Properties();
 	  //String langCode = "en";
 	  String langCode=ServletUtilities.getLanguageCode(request);
-	
+
 	  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
 	  // Properties occProps = new Properties();
 	  // occProps = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
 	  Properties occProps = ShepherdProperties.getOrgProperties("occurrence.properties", langCode, request);
-	
+
 	  props = ShepherdProperties.getOrgProperties("individualSearch.properties", langCode, request);
-	
-	
+
+
 	%>
-	
-	
+
+
 	<jsp:include page="header.jsp" flush="true"/>
-	
+
 	    <!-- Sliding div content: STEP1 Place inside the head section -->
 	  <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
-	
+
 	  <script type="text/javascript">
 	    //animatedcollapse.addDiv('location', 'fade=1')
 	    animatedcollapse.addDiv('map', 'fade=1')
@@ -55,7 +55,7 @@ context=ServletUtilities.getContext(request);
 	    animatedcollapse.addDiv('genetics', 'fade=1')
 	  animatedcollapse.addDiv('social', 'fade=1')
 	  animatedcollapse.addDiv('patternrecognition', 'fade=1')
-	
+
 	    animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
 	      //$: Access to jQuery
 	      //divobj: DOM reference to DIV being expanded/ collapsed. Use "divobj.id" to get its ID
@@ -64,7 +64,7 @@ context=ServletUtilities.getContext(request);
 	    animatedcollapse.init()
 	  </script>
 	  <!-- /STEP2 Place inside the head section -->
-	
+
 	<%
 	String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 	%>
@@ -72,16 +72,16 @@ context=ServletUtilities.getContext(request);
 	<script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 	<script type="text/javascript" src="javascript/geoxml3.js"></script>
 	<script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
-	
+
 	  <!-- /STEP2 Place inside the head section -->
-	
-	
-	
-	
+
+
+
+
 	<style type="text/css">v\:* {
 	  behavior: url(#default#VML);
 	}</style>
-	
+
 	<style type="text/css">
 	.full_screen_map {
 	position: absolute !important;
@@ -93,7 +93,7 @@ context=ServletUtilities.getContext(request);
 	margin-top: 0px !important;
 	margin-bottom: 8px !important;
 	</style>
-	
+
 	<script>
 	  function resetMap() {
 	    var ne_lat_element = document.getElementById('ne_lat');
@@ -106,7 +106,7 @@ context=ServletUtilities.getContext(request);
 	    sw_long_element.value = "";
 	  }
 	</script>
-	
+
 	<div class="container maincontent">
 	<table width="720">
 	<tr>
@@ -116,14 +116,14 @@ context=ServletUtilities.getContext(request);
 	String titleString=occProps.getProperty("OccurrenceSearch");
 	String formAction="occurrenceSearchResults.jsp";
 	%>
-	
-	
+
+
 	<h1 class="intro"><strong><span class="para">
 	    <img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
 	  <%=titleString%>
 	</h1>
 	</p>
-	
+
 	<%
 	if((request.getParameter("individualDistanceSearch")!=null)||(request.getParameter("encounterNumber")!=null)){
 	  MarkedIndividual compareAgainst=new MarkedIndividual();
@@ -136,19 +136,19 @@ context=ServletUtilities.getContext(request);
 	      compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
 	    }
 	  }
-	
+
 	    List<String> loci=myShepherd.getAllLoci();
 	    int numLoci=loci.size();
 	    String[] theLoci=new String[numLoci];
 	    for(int q=0;q<numLoci;q++){
 	      theLoci[q]=loci.get(q);
 	    }
-	
+
 	    String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
-	
-	
+
+
 	%>
-	
+
 	<p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
 	<%
 	String compareAgainstHaplotype="";
@@ -173,23 +173,23 @@ context=ServletUtilities.getContext(request);
 	          }
 	          %>
 	        </tr>
-	
-	
+
+
 	        <tr>
 	          <td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
 	        </tr>
-	
+
 	      </table>
-	
+
 	</p>
 	<%
 	}
-	
+
 	%>
 	<p><em><strong><%=occProps.getProperty("searchInstructions")%>
 	</strong></em></p>
-	
-	
+
+
 	<form action="<%=formAction %>" method="get" name="search" id="search">
 	    <%
 	  if(request.getParameter("individualDistanceSearch")!=null){
@@ -199,10 +199,10 @@ context=ServletUtilities.getContext(request);
 	  }
 	    %>
 	<table width="810px">
-	
+
 	<tr>
 	  <td width="810px">
-	
+
 	    <h4 class="intro search-collapse-header"><a
 	      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-chevron-down"></span></a> <a
 	      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
@@ -211,46 +211,46 @@ context=ServletUtilities.getContext(request);
 	</tr>
 	<tr>
 	  <td width="810px">
-	
+
 	<script type="text/javascript">
 	//alert("Prepping map functions.");
 	var center = new google.maps.LatLng(0, 0);
-	
+
 	var map;
-	
+
 	var markers = [];
 	var overlays = [];
-	
-	
+
+
 	var overlaysSet=false;
-	
+
 	var geoXml = null;
 	var geoXmlDoc = null;
 	var kml = null;
 	var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
-	
-	
+
+
 	  function initialize() {
 	  //alert("initializing map!");
 	  //overlaysSet=false;
 	  var mapZoom = 1.5;
 	  if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-	
+
 	    map = new google.maps.Map(document.getElementById('map_canvas'), {
 	      zoom: mapZoom,
 	      center: center,
 	      mapTypeId: google.maps.MapTypeId.HYBRID
 	    });
-	
+
 	    //adding the fullscreen control to exit fullscreen
 	    var fsControlDiv = document.createElement('DIV');
 	    var fsControl = new FSControl(fsControlDiv, map);
 	    fsControlDiv.index = 1;
 	    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-	
-	
-	
-	
+
+
+
+
 	   map.enableKeyDragZoom({
 	          visualEnabled: true,
 	          visualPosition: google.maps.ControlPosition.LEFT,
@@ -263,7 +263,7 @@ context=ServletUtilities.getContext(request);
 	            on: "Turn off"
 	          }
 	        });
-	
+
 	        var dz = map.getDragZoomObject();
 	        google.maps.event.addListener(dz, 'dragend', function (bnds) {
 	          var ne_lat_element = document.getElementById('ne_lat');
@@ -276,7 +276,7 @@ context=ServletUtilities.getContext(request);
 	          sw_long_element.value = bnds.getSouthWest().lng();
 	        });
 	 }
-	
+
 	  function setOverlays() {
 	    //alert("In setOverlays!");
 	    if(!overlaysSet){
@@ -294,7 +294,7 @@ context=ServletUtilities.getContext(request);
 	      overlaysSet=true;
 	      }
 	   }
-	
+
 	function useData(doc){
 	  geoXmlDoc = doc;
 	  kml = geoXmlDoc[0];
@@ -304,7 +304,7 @@ context=ServletUtilities.getContext(request);
 	   }
 	   }
 	}
-	
+
 	function fullScreen(){
 	  $("#map_canvas").addClass('full_screen_map');
 	  $('html, body').animate({scrollTop:0}, 'slow');
@@ -312,14 +312,14 @@ context=ServletUtilities.getContext(request);
 	  $("#header_menu").hide();
 	  if(overlaysSet){overlaysSet=false;setOverlays();}
 	}
-	
+
 	function exitFullScreen() {
 	  $("#header_menu").show();
 	  $("#map_canvas").removeClass('full_screen_map');
 	  initialize();
 	  if(overlaysSet){overlaysSet=false;setOverlays();}
 	}
-	
+
 	//making the exit fullscreen button
 	function FSControl(controlDiv, map) {
 	  // Set CSS styles for the DIV containing the control
@@ -353,55 +353,55 @@ context=ServletUtilities.getContext(request);
 	    } else {
 	      controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
 	    }
-	
+
 	  // Setup the click event listeners: toggle the full screen
-	
+
 	  google.maps.event.addDomListener(controlUI, 'click', function() {
-	
+
 	   if($("#map_canvas").hasClass("full_screen_map")){
 	    exitFullScreen();
 	    } else {
 	    fullScreen();
 	    }
 	  });
-	
+
 	}
-	
-	
+
+
 	  google.maps.event.addDomListener(window, 'load', initialize);
-	
-	
+
+
 	    </script>
-	
+
 	    <div id="map">
 	      <p><%=props.getProperty("useTheArrow") %></p>
-	
+
 	      <div id="map_canvas" style="width: 770px; height: 510px; ">
 	          <div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
-	
+
 	          </div>
 	      </div>
-	
+
 	      <div id="map_overlay_buttons">
-	
+
 	          <input type="button" value="<%=props.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
-	
-	
+
+
 	      </div>
 	      <p><%=props.getProperty("northeastCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=props.getProperty("longitude") %>
 	        <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
 	        <%=props.getProperty("southwestCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=props.getProperty("longitude") %>
 	        <input type="text" id="sw_long" name="sw_long"></input></p>
 	    </div>
-	
+
 	  </td>
 	</tr>
-	
+
 	<tr>
-	
+
 	</tr>
-	
-	
+
+
 	<tr>
 	  <td>
 	    <h4 class="intro search-collapse-header"><a
@@ -409,12 +409,12 @@ context=ServletUtilities.getContext(request);
 	      color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
 	  </td>
 	</tr>
-	
+
 	<tr>
 	  <td>
 	    <div id="date" style="display:none;">
 	      <p><%=props.getProperty("dateInstructions") %></p>
-	
+
 	      <p><strong><%=occProps.getProperty("eventDate")%>:</strong></p>
 	      <table>
 	        <tr>
@@ -422,21 +422,21 @@ context=ServletUtilities.getContext(request);
 	          <td><%=occProps.getProperty("end") %> <input type="text" id="eventDateTo" name="eventDateTo" class="addDatePicker"/></td>
 	        </tr>
 	      </table>
-	
+
 	      <script>
 	      $(function() {
 	        $('.addDatePicker').datepicker();
 	        console.log("Done setting datepickers!");
 	      });
 	      </script>
-	
+
 	    </div>
 	  </td>
 	</tr>
-	
-	
-	
-	
+
+
+
+
 	  <tr id="FieldsTitleRow">
 	    <td>
 	      <h4 class="intro search-collapse-header"><a
@@ -444,29 +444,29 @@ context=ServletUtilities.getContext(request);
 	        color="#000000"><%=occProps.getProperty("fieldsTitle") %></font></a></h4>
 	    </td>
 	  </tr>
-	
+
 	  <tr id="fieldsContentRow">
-	
+
 	    <td>
 	        <div id="tags" style="display:none;">
 	            <p><%=occProps.getProperty("fieldsInstructions") %></p>
-	
 
-	
-	
-	             
+
+
+
+
 	             <p> <table>
 	             		<%
 				        if(CommonConfiguration.showProperty("showTaxonomy",context)){
 				        %>
 						<tr>
 							<td>
-				         		<%=props.getProperty("genusSpecies")%> 
+				         		<%=props.getProperty("genusSpecies")%>
 				         	</td>
 				         	<td>
 					         <select name="genusSpeciesField" id="genusSpeciesField">
 							<option value=""></option>
-				
+
 									       <%
 									       boolean hasMoreTax=true;
 									       int taxNum=0;
@@ -474,7 +474,7 @@ context=ServletUtilities.getContext(request);
 									       	  String currentGenuSpecies = "genusSpecies"+taxNum;
 									       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 									       	  	%>
-				
+
 									       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
 									       	  	<%
 									       		taxNum++;
@@ -482,18 +482,18 @@ context=ServletUtilities.getContext(request);
 									          else{
 									             hasMoreTax=false;
 									          }
-				
+
 									       }
 									       %>
-				
-				
+
+
 								      </select>
 							</td>
 							</tr>
 					<%
 					}
 					%>
-				
+
 	              <%
 	              // should make listVals logic contingent on if user is logged in
 	              List<String> categoricalFields = new ArrayList<String>();
@@ -501,7 +501,7 @@ context=ServletUtilities.getContext(request);
 	              categoricalFields.add("groupComposition");
 	              categoricalFields.add("initialCue");
 	              categoricalFields.add("humanActivityNearby");
-	
+
 	              for (String fieldName: categoricalFields) {
 	                boolean customCategories = false;
 	                if (useCustomProperties) {
@@ -516,15 +516,15 @@ context=ServletUtilities.getContext(request);
 	                  ClassEditTemplate.printStringFieldSearchRowFullCategories(fieldName, out, occProps, myShepherd, Occurrence.class);
 	                }
 	              }
-	
-	
+
+
 	              List<String> listVals = new ArrayList<String>();
 	              //listVals.add("groupBehavior");
 	              listVals.add("fieldStudySite");
 	              listVals.add("fieldSurveyCode");
 	              listVals.add("sightingPlatform");
 	              listVals.add("seaState");
-	
+
 	              for (String fieldName : listVals) {
 	                List<String> posVals = (useCustomProperties)
 	                  ? CommonConfiguration.getIndexedPropertyValues(fieldName, request)
@@ -533,7 +533,7 @@ context=ServletUtilities.getContext(request);
 	                if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
 	                FormUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
 	              }
-	
+
 	              for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
 	                if (listVals.contains(fieldName)) continue; // already printed
 	                FormUtilities.printStringFieldSearchRow(fieldName, out, occProps);
@@ -541,58 +541,60 @@ context=ServletUtilities.getContext(request);
 	              %>
 	              </table>
 	              </p>
-	            
+
 	           </div>
 	           </td>
 	           </tr>
-	
+
 	<tr>
 	  <td>
-	
+
 	    <h4 class="intro search-collapse-header"><a
 	      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
 	      <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
 	  </td>
 	</tr>
-	
+
 	<tr>
 	<td>
 	  <div id="metadata" style="display:none; ">
 	  <p><%=props.getProperty("metadataInstructions") %></p>
-	
+
 	  <strong><%=props.getProperty("username")%></strong><br />
 	      <%
-	     
+
 	        List<User> users = myShepherd.getNativeUsers();
 	        int numUsers = users.size();
-	
+
 	      %>
-	
+
 	      <select multiple size="5" name="submitterID" id="submitterID">
 	        <option value="None"></option>
 	        <%
+            // List<String> allUserNames = new ArrayList<String> ();
+            // List<String> allUserFullNames = new ArrayList<String> ();
+            List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
 	          for (int n = 0; n < numUsers; n++) {
-	            String username = users.get(n).getUsername();
+              String username = sortedUsers.get(n).getUsername();
 	            String userFullName=username;
-	            if(users.get(n).getFullName()!=null){
-	              userFullName=users.get(n).getFullName();
+	            if(sortedUsers.get(n).getFullName()!=null){
+	              userFullName=sortedUsers.get(n).getFullName();
 	            }
-	
-	          %>
-	          <option value="<%=username%>"><%=userFullName%></option>
-	          <%
-	          }
+              %>
+              <option value="<%=username%>"><%=userFullName%></option>
+              <%
+            }
 	        %>
 	      </select>
 
-	
+
 	<%
 	  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
 	%>
 	</div>
 	</td>
 	</tr>
-	
+
 
 	<tr>
 	  <td>
@@ -607,7 +609,7 @@ context=ServletUtilities.getContext(request);
 	</table>
 	<br>
 	</div>
-	
+
 	<script type="text/javascript" src="javascript/formNullRemover.js"></script>
 <%
 	}
@@ -621,6 +623,3 @@ context=ServletUtilities.getContext(request);
 	}
 %>
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-
