@@ -108,10 +108,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 
 
-  GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
+/*   GregorianCalendar cal = new GregorianCalendar();
+  int nowYear = cal.get(1); */
 
-
+  Calendar calendar = new GregorianCalendar();
+  TimeZone timeZone = calendar.getTimeZone();
+  calendar.setTimeZone(timeZone)
+  TimeZone timeZone = TimeZone.getDefault()
+  
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
