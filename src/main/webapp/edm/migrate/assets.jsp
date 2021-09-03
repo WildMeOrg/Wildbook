@@ -216,7 +216,7 @@ List<MediaAsset> allMA = new ArrayList<MediaAsset>(c);
 query.closeAll();
 System.out.println("migration/assets.jsp finished initial query");
 
-Map<String, Set<MediaAsset>> agMap = new HashMap<String, Set<MediaAsset>>();
+Map<String, Set<Integer>> agMap = new HashMap<String, Set<Integer>>();
 
 String content = "";
 Set<Integer> done = new HashSet<Integer>();
@@ -236,12 +236,12 @@ for (MediaAsset ma : allMA) {
         continue;
     }
 
-    Set<MediaAsset> occMas = agMap.get(occId);
+    Set<Integer> occMas = agMap.get(occId);
     if (occMas == null) {
-        occMas = new HashSet<MediaAsset>();
+        occMas = new HashSet<Integer>();
         agMap.put(occId, occMas);
     }
-    occMas.add(ma);
+    occMas.add(ma.getId());
 }
 
 out.println(fileWriteAndPreview("rsync_for_assets.filelist", content));
@@ -261,11 +261,8 @@ which were rsync'ed (above) into the proper final location for the houston asset
 content = "### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n\n";
 String allSql = "";
 ct = 0;
-Iterator<Map.Entry<String, Set<MediaAsset>>> it = agMap.entrySet().iterator();
-while (it.hasNext()) {
+for (String occId : agMap.keySet()) {
     content = "";
-    Map.Entry<String, Set<MediaAsset>> entry = it.next();
-    String occId = (String)entry.getKey();
     Occurrence occ = myShepherd.getOccurrence(occId);
     ct++;
     if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + agMap.keySet().size() + "] asset_groups processed");
@@ -280,7 +277,11 @@ while (it.hasNext()) {
     allSql += agSql + "\n";
 
     String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
-    for (MediaAsset ma : agMap.get(occId)) {
+    myShepherd.rollbackDBTransaction();
+    myShepherd.beginDBTransaction();
+    for (Integer maId : agMap.get(occId)) {
+        MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
+        if (ma == null) continue;
         String path = getRelPath(ma);
         //out.println(ma);
         content += "cp -a $TMP_ASSET_DIR'/" + path + "' $TARGET_DIR/" + subdir + "/_asset_group/\n";
@@ -300,7 +301,7 @@ while (it.hasNext()) {
         s = MigrationUtil.sqlSub(s, occ.getId());
         allSql += s + "\n\n";
     }
-    it.remove();
+    myShepherd.rollbackDBTransaction();
 }
 
 out.println(fileWriteAndPreview("dirs_and_copy.sh", content));
