@@ -435,6 +435,9 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
+  public static String getPropertyLEGACY(String name, String context) {
+    return initializeLEGACY(context).getProperty(name);
+  }
 
   // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
   public static String getProperty(String name, HttpServletRequest request) {
