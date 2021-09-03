@@ -168,6 +168,11 @@
 			}
 		},
 		"metaKeywords": {
+			"__meta": {
+				"type": "string",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
+			}
 		}
 	},
 

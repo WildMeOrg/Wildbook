@@ -50,6 +50,10 @@ Manipulate and migrate <b>locationID.json</b> data using `/edm/migrate/locationI
 
 Update `site.species` site settings as well as set proper taxonomies on Encounters using `/edm/migrate/taxonomies.jsp`.
 
+### Site Settings
+
+General catch-all for migrating misc settings.
+
 ### DateTime
 
 The option at `/edm/migrate/datetime.jsp` will migrate date-related values to the new
