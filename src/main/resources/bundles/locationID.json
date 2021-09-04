@@ -10,7 +10,7 @@
       {"name":"Cook Islands", "id":"Cook Islands", "locationID":[]},
       {"name":"Fiji", "id":"Fiji", "locationID":[]},
       {"name":"French Polynesia", "id":"French Polynesia", "locationID":[]},
-      {"name":"Guam", "id":"Guam", "locationID":[]},
+     
 	  {"name":"Cocos Islands", "id":"Cocos Islands", "locationID":[]},
 	  {"name":"Galapagos Islands", "id":"Galapagos Islands", "locationID":[]},
 
@@ -63,7 +63,22 @@
       {"name":"New Caledonia", "id":"New Caledonia", "locationID":[]},
 
       {"name":"Niue", "id":"Niue", "locationID":[]},
-      {"name":"Northern Mariana Islands", "id":"Northern Mariana Islands", "locationID":[]},
+	  
+	  {"name":"Mariana Islands", "id":"Mariana Islands", "locationID":[
+			{"name":"Agrihan", "id":"Agrihan", "locationID":[]},
+			{"name":"Aguijan", "id":"Aguijan", "locationID":[]},
+			{"name":"Guam", "id":"Guam", "locationID":[]},
+			{"name":"Marpi Reef", "id":"Marpi Reef", "locationID":[]},
+			{"name":"Northern Mariana Islands", "id":"Northern Mariana Islands", "locationID":[]},
+			{"name":"Rota", "id":"Rota", "locationID":[]},
+			{"name":"Rota Bank", "id":"Rota Bank", "locationID":[]},
+			{"name":"Saipan", "id":"Saipan", "locationID":[]},
+			{"name":"Tinian", "id":"Tinian", "locationID":[]}
+
+			
+	  ]},
+	  
+	  
       {"name":"Palau", "id":"Palau", "locationID":[]},
       {"name":"Papua New Guinea", "id":"Papua New Guinea", "locationID":[]},
       {"name":"Samoa", "id":"Samoa", "locationID":[]},
