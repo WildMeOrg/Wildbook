@@ -52,6 +52,8 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 
 
 /**
@@ -1182,6 +1184,19 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   }
 
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
+  public List<User> getNativeUsersWithoutAnonymous() {
+    List<User> users = getNativeUsers("username ascending NULLS LAST");
+    CollectionUtils.filter(users, new Predicate<User>() { // from https://stackoverflow.com/questions/122105/how-to-filter-a-java-collection-based-on-predicate
+       @Override
+       public boolean evaluate(User user) {
+          if(user.getUsername().contains("Anonymous_")) {
+             return false;
+          }
+          return true;
+       }
+    });
+    return users;
+  }
   public List<User> getNativeUsers() {
     return getNativeUsers("username ascending NULLS LAST");
   }
