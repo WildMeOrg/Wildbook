@@ -467,7 +467,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     },
 		 			afterParse: useData
 		  google.maps.event.addListener(marker, 'click', function() {
-		      window.location.href = marker.url;
+			  window.location.href = marker.url;
+		     /*  window.open(this.url, '_blank'); */
 		    });
          }); 
 
