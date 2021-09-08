@@ -466,10 +466,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>'
                     },
 		 			afterParse: useData
-		  google.maps.event.addListener(marker, 'click', function() {
+		 /*  google.maps.event.addListener(marker, 'click', function() {
 			  window.location.href = marker.url;
-		     /*  window.open(this.url, '_blank'); */
-		    });
+		     /*  window.open(this.url, '_blank');
+		    }); */
          }); 
 
 		 
@@ -479,7 +479,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
         
         
     	var iw = new google.maps.InfoWindow({
-    		<%-- content:'<%=encprops.getProperty("loadingMapData") %>', --%>
+    		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
          
     	iw.open(map); 
