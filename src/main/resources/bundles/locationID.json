@@ -227,6 +227,11 @@
 			},
 			"locationID": []
 		},
+    {
+			"name": "South Bondi",
+			"id": "SB",
+			"locationID": []
+		},
 		{
 			"name": "South Solitary Island",
 			"id": "SS",
