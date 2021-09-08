@@ -462,10 +462,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     markerOptions: {
                     	flat:true,
                     	clickable:true,
-                    	icon:"../images/Kitizensciencelogo.png",
-                    	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>'
+                    	icon:"../images/Kitizensciencelogo.png"<%-- ,
+                    	url:'encounter.jsp?number=<%=encprops.getProperty("loadingMapData") %>' --%>
                     },
-		 			afterParse: useData
+		 			/* afterParse: useData */
 		 /*  google.maps.event.addListener(marker, 'click', function() {
 			  window.location.href = marker.url;
 		     /*  window.open(this.url, '_blank');
