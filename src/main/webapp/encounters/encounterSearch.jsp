@@ -463,7 +463,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     	flat:true,
                     	clickable:true,
                     	icon:"../images/Kitizensciencelogo.png"
-         }); 
+         })
 
 		 
 	
