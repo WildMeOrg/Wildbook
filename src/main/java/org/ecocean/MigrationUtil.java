@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public class MigrationUtil {
     private static File migDir = new File("/tmp/migration");
+    private static User PUBLIC_USER = null;
+    private static String PUBLIC_USER_ID = null;
 
     public static File setDir(String dir) {
         if (dir == null) return null;
@@ -81,14 +83,21 @@ public class MigrationUtil {
     }
 
     public static User getPublicUser(Shepherd myShepherd) {
+        if (PUBLIC_USER != null) return PUBLIC_USER;
         String pubAddr = "public@wildme.org";  // this is the only one i know of for now, but can expand to try others if needed
-        return myShepherd.getUserByEmailAddress(pubAddr);
+        PUBLIC_USER = myShepherd.getUserByEmailAddress(pubAddr);
+        return PUBLIC_USER;
     }
     public static String getPublicUserId(Shepherd myShepherd) {
+        if (PUBLIC_USER_ID != null) return PUBLIC_USER_ID;
         User pub = getPublicUser(myShepherd);
-        if (pub != null) return pub.getUUID();
-        System.out.println("WARNING: MigrationUtil.getPublicUserId() could NOT find public User, using zero-guid!");
-        return "00000000-0000-0000-0000-000000000000";  // we need something.  :(
+        if (pub != null) {
+            PUBLIC_USER_ID = pub.getUUID();
+        } else {
+            System.out.println("WARNING: MigrationUtil.getPublicUserId() could NOT find public User, using zero-guid!");
+            PUBLIC_USER_ID = "00000000-0000-0000-0000-000000000123";  // we need something.  :(
+        }
+        return PUBLIC_USER_ID;
     }
 
     public static List<String> setSort(Set<String> in) {
