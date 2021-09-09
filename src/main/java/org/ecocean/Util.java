@@ -1064,10 +1064,16 @@ public class Util {
       return (val!=null && intExists(val));
     }
     
+    public static void appendToFile(String data, String absolutePath) throws FileNotFoundException {
+        writeToFile(data, absolutePath, true);
+    }
     public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
+        writeToFile(data, absolutePath, false);
+    }
+    public static void writeToFile(String data, String absolutePath, boolean append) throws FileNotFoundException {
       File file=new File(absolutePath);
       try{
-        FileOutputStream fos=new FileOutputStream(file);
+        FileOutputStream fos=new FileOutputStream(file, append);
         OutputStreamWriter writer =new OutputStreamWriter(fos, StandardCharsets.UTF_8);
         writer.write(data);
         writer.flush();

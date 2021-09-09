@@ -31,6 +31,11 @@ public class MigrationUtil {
         Util.writeToFile(contents, file.getAbsolutePath());
         return file;
     }
+    public static File appendFile(String fname, String contents) throws java.io.IOException {
+        File file = new File(getDir(), fname);
+        Util.appendToFile(contents, file.getAbsolutePath());
+        return file;
+    }
 
     public static String sqlSub(String inSql, String rep) {
         if (rep == null) return inSql.replaceFirst("\\?", "NULL");

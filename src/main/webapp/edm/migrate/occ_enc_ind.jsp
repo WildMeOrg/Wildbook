@@ -29,12 +29,18 @@ org.ecocean.media.*
               "
 %><%!
 
+private String filename(String name) {
+    return "occencind_" + name;
+}
 private String fileWriteAndPreview(String name, String content) throws java.io.IOException {
+    return "<div>" + filename(name) + "</div>";
+/*
     String fname = "occencind_" + name;
     File loc = MigrationUtil.writeFile(fname, content);
     String rtn = content;
     if (rtn.length() > 3000) rtn = rtn.substring(0, 3000) + "\n\n   [... preview truncated ...]";
     return "<div>This file located at: <i class=\"code\">" + loc.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
+*/
 }
 
 private String coerceOwnerId(Encounter enc, Shepherd myShepherd) {
@@ -207,14 +213,18 @@ if (!commit) {
 }
 
 
+File sqlFile = filepath("houston_encounters.sql");
 String content = "BEGIN;\n";
 int ct = 0;
 for (Encounter enc : allEnc) {
     ct++;
     if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allEnc.size() + "] encounters processed");
     content += encSql(enc, myShepherd);
+    MigrationUtil.appendFile(filename("houston_encounters.sql"), content);
+    content = "";
 }
 content += "END;\n";
+MigrationUtil.appendFile(filename("houston_encounters.sql"), content);
 out.println(fileWriteAndPreview("houston_encounters.sql", content));
 
 
