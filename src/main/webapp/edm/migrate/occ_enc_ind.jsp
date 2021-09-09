@@ -39,6 +39,7 @@ private String fileWriteAndPreview(String name, String content) throws java.io.I
 
 private String coerceOwnerId(Encounter enc, Shepherd myShepherd) {
     String sub = enc.getSubmitterID();
+    if (sub == null) return null;
     User user = myShepherd.getUser(sub);
     if (user != null) return user.getUUID();
     return null;
