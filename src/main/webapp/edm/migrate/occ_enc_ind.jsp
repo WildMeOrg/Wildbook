@@ -11,6 +11,8 @@ java.util.Arrays,
 java.util.Map,
 java.util.HashMap,
 java.util.Set,
+java.io.BufferedReader,
+java.io.FileReader,
 java.util.UUID,
 java.util.HashSet,
 org.json.JSONObject,
@@ -32,15 +34,17 @@ org.ecocean.media.*
 private String filename(String name) {
     return "occencind_" + name;
 }
-private String fileWriteAndPreview(String name, String content) throws java.io.IOException {
-    return "<div>" + filename(name) + "</div>";
-/*
-    String fname = "occencind_" + name;
-    File loc = MigrationUtil.writeFile(fname, content);
+private String filePreview(String name) throws java.io.IOException {
+    File path = new File(MigrationUtil.getDir(), name);
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    String content = "";
+    String line;
+    while ( ((line = br.readLine()) != null) && (content.length() < 3500) ) {
+        content += line + "\n";
+    }
     String rtn = content;
     if (rtn.length() > 3000) rtn = rtn.substring(0, 3000) + "\n\n   [... preview truncated ...]";
-    return "<div>This file located at: <i class=\"code\">" + loc.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
-*/
+    return "<div>This file located at: <i class=\"code\">" + path.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
 }
 
 private String coerceOwnerId(Encounter enc, Shepherd myShepherd) {
@@ -120,7 +124,7 @@ private String occSql(Occurrence occ, Shepherd myShepherd) {
         for (Encounter enc : occ.getEncounters()) {
             encIds.add(enc.getId());
         }
-        sqlIns += "UPDATE encounter SET sighting_guid='" + occ.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
+        if (encIds.size() > 0) sqlIns += "UPDATE encounter SET sighting_guid='" + occ.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
     }
 
     return "\n" + sqlIns;
@@ -213,41 +217,52 @@ if (!commit) {
 }
 
 
-File sqlFile = filepath("houston_encounters.sql");
+String fname = filename("houston_encounters.sql");
+MigrationUtil.writeFile(fname, "");
 String content = "BEGIN;\n";
 int ct = 0;
 for (Encounter enc : allEnc) {
     ct++;
     if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allEnc.size() + "] encounters processed");
     content += encSql(enc, myShepherd);
-    MigrationUtil.appendFile(filename("houston_encounters.sql"), content);
+    MigrationUtil.appendFile(fname, content);
     content = "";
 }
 content += "END;\n";
-MigrationUtil.appendFile(filename("houston_encounters.sql"), content);
-out.println(fileWriteAndPreview("houston_encounters.sql", content));
+MigrationUtil.appendFile(fname, content);
+out.println(filePreview(fname));
 
 
+fname = filename("houston_occurrences.sql");
+MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
 for (Occurrence occ : allOcc) {
     ct++;
     if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allOcc.size() + "] occurrences processed");
     content += occSql(occ, myShepherd);
+    MigrationUtil.appendFile(fname, content);
+    content = "";
 }
 content += "END;\n";
-out.println(fileWriteAndPreview("houston_occurrences.sql", content));
+MigrationUtil.appendFile(fname, content);
+out.println(filePreview(fname));
 
 
+fname = filename("houston_individuals.sql");
+MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
 for (MarkedIndividual ind : allInd) {
     ct++;
     if (ct % 100 == 0) System.out.println("migration/occ_enc_ind.jsp [" + ct + "/" + allInd.size() + "] individuals processed");
     content += indSql(ind, myShepherd);
+    MigrationUtil.appendFile(fname, content);
+    content = "";
 }
 content += "END;\n";
-out.println(fileWriteAndPreview("houston_individuals.sql", content));
+MigrationUtil.appendFile(fname, content);
+out.println(filePreview(fname));
 
 myShepherd.rollbackDBTransaction();
 
