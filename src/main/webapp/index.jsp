@@ -6,7 +6,8 @@
               java.util.Map,
               java.util.Iterator,
               java.util.Properties,
-              java.util.StringTokenizer
+              java.util.StringTokenizer,
+              org.ecocean.metrics.Prometheus
               "
 %>
 
@@ -21,8 +22,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //set up our Shepherd
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
 
 
@@ -420,49 +420,6 @@ margin-bottom: 8px !important;
 <%
 
 
-//check usernames and passwords
-    myShepherd.beginDBTransaction();
-     List<User> users=myShepherd.getAllUsers();
-     if(users.size()==0){
-         String salt=ServletUtilities.getSalt().toHex();
-       String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
-       //System.out.println("Creating default hashed password: "+hashedPassword+" with salt "+salt);
-
-
-         User newUser=new User("tomcat",hashedPassword,salt);
-         myShepherd.getPM().makePersistent(newUser);
-         System.out.println("Creating tomcat user account...");
-         myShepherd.commitDBTransaction();
-
-           List<Role> roles=myShepherd.getAllRoles();
-           if(roles.size()==0){
-
-               myShepherd.beginDBTransaction();
-               System.out.println("Creating tomcat roles...");
-
-               Role newRole1=new Role("tomcat","admin");
-               newRole1.setContext("context0");
-               myShepherd.getPM().makePersistent(newRole1);
-              Role newRole4=new Role("tomcat","destroyer");
-              newRole4.setContext("context0");
-              myShepherd.getPM().makePersistent(newRole4);
-
-            Role newRole7=new Role("tomcat","rest");
-              newRole7.setContext("context0");
-              myShepherd.getPM().makePersistent(newRole7);
-
-              Role newRole8=new Role("tomcat","researcher");
-              newRole8.setContext("context0");
-              myShepherd.getPM().makePersistent(newRole8);
-
-            myShepherd.commitDBTransaction();
-
-
-              System.out.println("Creating tomcat user account...");
-           }
-     }
-
-
 
 
 //let's quickly get the data we need from Shepherd
@@ -471,24 +428,27 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-myShepherd.beginDBTransaction();
+//myShepherd.beginDBTransaction();
 
 try{
 
     /* below three lines can be commented out to reduce load time during development */
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getNumUsers();
+    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numMarkedIndividuals=(new Double(Prometheus.getValue("wildbook_individuals_total"))).intValue();
+    //numEncounters=myShepherd.getNumEncounters();
+    numEncounters=(new Double(Prometheus.getValue("wildbook_encounters_total"))).intValue();
+    //numDataContributors=myShepherd.getNumUsers();
+    numDataContributors = 12;
 
 
 }
 catch(Exception e){
     e.printStackTrace();
 }
-finally{
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
-}
+//finally{
+   //myShepherd.rollbackDBTransaction();
+   //myShepherd.closeDBTransaction();
+//}
 %>
 
 <script src="javascript/sss/sss.min.js"></script>
@@ -789,7 +749,7 @@ jQuery(function($) {
           e.printStackTrace();
         } finally {
           myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+          //myShepherd.closeDBTransaction();
         }
         %>
 
