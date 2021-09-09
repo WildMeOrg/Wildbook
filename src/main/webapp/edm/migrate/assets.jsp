@@ -6,6 +6,8 @@ java.util.Iterator,
 java.nio.file.Path,
 java.util.ArrayList,
 java.io.File,
+java.io.BufferedReader,
+java.io.FileReader,
 javax.jdo.*,
 java.util.Arrays,
 java.util.Map,
@@ -29,23 +31,39 @@ org.ecocean.media.*
               "
 %><%!
 
-private String fileWriteAndPreview(String name, String content) throws java.io.IOException {
-    String fname = "assets_" + name;
-    File loc = MigrationUtil.writeFile(fname, content);
+private String filename(String name) {
+    return "assets_" + name;
+}
+private String filePreview(String name) throws java.io.IOException {
+    File path = new File(MigrationUtil.getDir(), name);
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    String content = "";
+    String line;
+    while ( ((line = br.readLine()) != null) && (content.length() < 3500) ) {
+        content += line + "\n";
+    }
     String rtn = content;
     if (rtn.length() > 3000) rtn = rtn.substring(0, 3000) + "\n\n   [... preview truncated ...]";
-    return "<div>This file located at: <i class=\"code\">" + loc.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
+    return "<div>This file located at: <i class=\"code\">" + path.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
 }
-
 private String coerceOwnerId(Occurrence occ, Shepherd myShepherd) {
+    String gotId = null;
+    String pubId = MigrationUtil.getPublicUserId(myShepherd);
     for (Encounter enc : occ.getEncounters()) {
         String sub = enc.getSubmitterID();
         if (sub == null) continue;
         User user = myShepherd.getUser(sub);
-        if (user != null) return user.getUUID();
+        if (user == null) continue;
+        if (user.getUUID().equals(pubId)) {
+            gotId = pubId;
+            break;  //this wins over other users
+        }
+        gotId = user.getUUID();
+        //we keep trying in case there is a public encounter in here
     }
-    System.out.println("assets.jsp: could not find User for " + occ);
-    return "00000000-0000-0000-0000-000000000001";
+    if (gotId != null) return gotId;
+    System.out.println("assets.jsp: could not find User for " + occ + "; making public");
+    return pubId;
 }
 
 //ideally there would only be one (total) for any Asset, but this gets "the first one" it finds
@@ -218,6 +236,8 @@ System.out.println("migration/assets.jsp finished initial query");
 
 Map<String, Set<Integer>> agMap = new HashMap<String, Set<Integer>>();
 
+String fname = filename("rsync_for_assets.filelist");
+MigrationUtil.writeFile(fname, "");
 String content = "";
 Set<Integer> done = new HashSet<Integer>();
 int ct = 0;
@@ -235,6 +255,8 @@ for (MediaAsset ma : allMA) {
         content += "#### no occ for " + ma + " (should not happen if you had run occur.jsp)\n";
         continue;
     }
+    MigrationUtil.appendFile(fname, content);
+    content = "";
 
     Set<Integer> occMas = agMap.get(occId);
     if (occMas == null) {
@@ -244,7 +266,7 @@ for (MediaAsset ma : allMA) {
     occMas.add(ma.getId());
 }
 
-out.println(fileWriteAndPreview("rsync_for_assets.filelist", content));
+out.println(filePreview(fname));
 System.out.println("migration/assets.jsp finished assets");
 %>
 
@@ -256,10 +278,13 @@ which were rsync'ed (above) into the proper final location for the houston asset
 </p>
 
 <%
-///Connection con = getConnection(myShepherd);
 
+fname = filename("dirs_and_copy.sh");
+MigrationUtil.writeFile(fname, "");
+String allSql_fname = filename("houston_assetgroups_assets.sql");
+MigrationUtil.writeFile(allSql_fname, "");
 content = "### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n\n";
-String allSql = "";
+String allSql = "BEGIN;\n\n";
 ct = 0;
 for (String occId : agMap.keySet()) {
     content = "";
@@ -285,14 +310,14 @@ for (String occId : agMap.keySet()) {
         String path = getRelPath(ma);
         //out.println(ma);
         content += "cp -a $TMP_ASSET_DIR'/" + path + "' $TARGET_DIR/" + subdir + "/_asset_group/\n";
-        String fname = ma.getFilename();
-        int dot = fname.lastIndexOf(".");
-        String ext = (dot < 0) ? "" : "." + fname.substring(dot + 1);
-        content += "ln -s '../_asset_group/" + fname + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
+        String filename = ma.getFilename();
+        int dot = filename.lastIndexOf(".");
+        String ext = (dot < 0) ? "" : "." + filename.substring(dot + 1);
+        content += "ln -s '../_asset_group/" + filename + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
         String s = sqlIns;
         s = MigrationUtil.sqlSub(s, ma.getUUID());
         s = MigrationUtil.sqlSub(s, ext.substring(1));
-        s = MigrationUtil.sqlSub(s, fname);
+        s = MigrationUtil.sqlSub(s, filename);
         s = MigrationUtil.sqlSub(s, "MIME");
         s = MigrationUtil.sqlSub(s, -1);
         s = MigrationUtil.sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
@@ -302,9 +327,15 @@ for (String occId : agMap.keySet()) {
         allSql += s + "\n\n";
     }
     myShepherd.rollbackDBTransaction();
+
+    MigrationUtil.appendFile(fname, content);
+    content = "";
+
+    MigrationUtil.appendFile(allSql_fname, allSql);
+    allSql = "";
 }
 
-out.println(fileWriteAndPreview("dirs_and_copy.sh", content));
+out.println(filePreview(fname));
 System.out.println("migration/assets.jsp dirs assets");
 
 %>
@@ -314,8 +345,11 @@ System.out.println("migration/assets.jsp dirs assets");
 Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 </p>
 
-<%=fileWriteAndPreview("houston_assetgroups_assets.sql", "BEGIN;\n" + allSql + "\nEND;\n")%>
-<%System.out.println("migration/assets.jsp dirs asset_groups");%>
+<%
+MigrationUtil.appendFile(allSql_fname, "\n\nEND;\n");
+out.println(filePreview(allSql_fname));
+System.out.println("migration/assets.jsp dirs asset_groups");
+%>
 
 <h2>Keywords in houston</h2>
 <p>
@@ -323,6 +357,8 @@ SQL to create the keywords in houston:
 </p>
 
 <%
+fname = filename("houston_keywords.sql");
+MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 Map<String,String> kmap = new HashMap<String,String>();
 List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
@@ -343,10 +379,12 @@ for (String k : kmap.keySet()) {
     s = MigrationUtil.sqlSub(s, kmap.get(k));
     s = MigrationUtil.sqlSub(s, k);
     content += s + "\n";
+    MigrationUtil.appendFile(fname, content);
+    content = "";
 }
-content += "\nEND;\n";
 
-out.println(fileWriteAndPreview("houston_keywords.sql", content));
+MigrationUtil.appendFile(fname, "\n\nEND;\n");
+out.println(filePreview(fname));
 System.out.println("migration/assets.jsp finished keywords");
 
 %>
@@ -356,6 +394,8 @@ System.out.println("migration/assets.jsp finished keywords");
 <p>SQL for Annotations and keywords in houston</p>
 
 <%
+fname = filename("houston_annotations.sql");
+MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
 done = new HashSet<Integer>();
@@ -364,13 +404,16 @@ for (MediaAsset ma : allMA) {
     if (done.contains(ma.getId())) continue;
     done.add(ma.getId());
     content += annotSql(ma, kmap) + "\n";
+    MigrationUtil.appendFile(fname, content);
+    content = "";
     if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + allMA.size() + "] annotations processed");
 }
-content += "\nEND;\n";
-myShepherd.rollbackDBTransaction();
 
-out.println(fileWriteAndPreview("houston_annotations.sql", content));
+MigrationUtil.appendFile(fname, "\n\nEND;\n");
+out.println(filePreview(fname));
 System.out.println("migration/assets.jsp finished annotations");
+
+myShepherd.rollbackDBTransaction();
 %>
 
 
