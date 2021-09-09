@@ -127,7 +127,7 @@ private String annotSql(MediaAsset ma, Map<String,String> kmap) {
     return s;
 }
 
-private Set<String> doneAnns = new HashSet<String>();
+public Set<String> doneAnns = new HashSet<String>();
 
 private String annotSingleSql(Annotation ann, MediaAsset ma) {
     if (doneAnns.contains(ann.getId())) return "-- already processed " + ann + "\n";
@@ -205,6 +205,7 @@ rsync -av --files-from=/tmp/filelist oldworld.wildbook.server:/var/lib/tomcat8/w
 <%
 MigrationUtil.setDir(request.getParameter("migrationDir"));
 String checkDir = MigrationUtil.checkDir();
+doneAnns = new HashSet<String>();
 %>
 <p>
 migrationDir: <b><%=checkDir%></b>
