@@ -200,7 +200,7 @@ if (!commit) {
     <b><%=allInd.size()%> Individuals</b>
 </p>
 <hr /><p><b>commit=false</b>, not modifying anything</p>
-<p><a href="?commit=true">Migrate DateTime values for Encounters and Occurrences</a></p>
+<p><a href="?commit=true">Generate sql</a></p>
 <%
     return;
 }
