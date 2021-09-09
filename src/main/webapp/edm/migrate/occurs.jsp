@@ -68,7 +68,7 @@ if (!commit) {
 int ct = 0;
 for (Encounter enc : all) {
     ct++;
-    Occurrence existOcc = myShepherd.getOccurrence(enc);
+    Occurrence existOcc = myShepherd.getOccurrenceForEncounter(enc.getId());
     if (existOcc != null) {
         out.println("<p class=\"muted\">" + enc + " already has " + existOcc + "</p>");
         continue;
