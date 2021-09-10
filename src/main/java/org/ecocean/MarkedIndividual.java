@@ -2684,14 +2684,23 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (jsex!=null&&!"".equals(jsex)) {
             indiv.setSex(jsex);
           }
-  
+
           org.json.JSONObject jnames = jsonIn.optJSONObject("names");
           if (jnames!=null) {
             Iterator<String> keys = jnames.keys();
+            String firstName = null;
             while (keys.hasNext()) {
               String key = keys.next();
               String value = jnames.optString(key);
+              if (firstName==null) {
+                firstName = value;
+              }
               indiv.addName(key, value);
+            }
+            final String DEF_NAME = "defaultName";
+            // did we get a default name? if not, set the first one since we don't have anything else to go off of
+            if (indiv.getName(DEF_NAME)==null||"".equals(indiv.getName(DEF_NAME))) {
+              indiv.addName(DEF_NAME, firstName);
             }
           }
   
@@ -2843,10 +2852,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     this.refreshNamesCache();
                   }
                   this.addName(key, value);
-                  //this.setNames(namesMV);
+                  final String DEF_NAME = "defaultName";
+                  if (key!=DEF_NAME&&(this.getName(DEF_NAME)==null||"".equals(this.getName(DEF_NAME)))) {
+                    this.addName(DEF_NAME, value);
+                  }
                 }
-                // see iffin it worked 
-                MultiValue namesMV= this.getNames();
+
                 break;
               default:
                   throw new Exception("apiPatch op=" + opName + " unknown path " + path);
@@ -2872,7 +2883,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     if (path == null) throw new IOException("apiPatchReplace has null path");
     if (path.startsWith("/")) path = path.substring(1);
     Object valueObj = jsonIn.opt("value");
-    //boolean hasValue = jsonIn.has("value");
 
     if ((valueObj != null) && valueObj.equals(null)) valueObj = null;
 
@@ -2913,8 +2923,11 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                   this.refreshNamesCache();
                 }
                 this.addName(key, value);
+                final String DEF_NAME = "defaultName";
+                if (key!=DEF_NAME&&(this.getName(DEF_NAME)==null||"".equals(this.getName(DEF_NAME)))) {
+                  this.addName(DEF_NAME, value);
+                }
               }
-              
               break;
             default:
                 throw new Exception("apiPatchReplace unknown path " + path);
@@ -2942,7 +2955,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     if (path == null) throw new IOException("apiPatchRemove has null path");
     if (path.startsWith("/")) path = path.substring(1);
     org.json.JSONObject rtn = new org.json.JSONObject();
-    SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);System.out.println("???????????????? API PATCH REMOVE GOT JSON : "+jsonIn.toString());System.out.println("???????????????? API PATCH REMOVE GOT JSON : "+jsonIn.toString());
+    SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
 
     try {
       switch (path) {
