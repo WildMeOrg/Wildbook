@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /gallery.jsp
+
+User-agent: *
+Disallow: /submit.jsp
