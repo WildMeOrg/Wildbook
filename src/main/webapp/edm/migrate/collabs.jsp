@@ -139,14 +139,15 @@ for (Object c : collabs) {
         continue;
     }
     String id = Util.generateUUID();
-    String sqlIns = "\nINSERT INTO collaboration (created, updated, viewed, guid) VALUES (?, ?, ?, ?);\n";
+    content += "\n-- " + collab.toString() + "\n";
+    String sqlIns = "INSERT INTO collaboration (created, updated, viewed, guid) VALUES (?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(collab.getDateTimeCreated()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, id);
     content += sqlIns;
 
-    sqlIns = "\nINSERT INTO collaboration_user_associations (created, updated, viewed, collaboration_guid, user_guid, initiator, read_approval_state, edit_approval_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?);\n";
+    sqlIns = "INSERT INTO collaboration_user_associations (created, updated, viewed, collaboration_guid, user_guid, initiator, read_approval_state, edit_approval_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(collab.getDateTimeCreated()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
@@ -154,6 +155,8 @@ for (Object c : collabs) {
 
     String sql1 = sqlIns;
     String sql2 = sqlIns;
+    sql1 = MigrationUtil.sqlSub(sql1, u1.getUUID());
+    sql2 = MigrationUtil.sqlSub(sql2, u2.getUUID());
     //Collaboration.java says this, so i am going with it:  "NOTE the first user, by convention, is the initiator"
     sql1 = MigrationUtil.sqlSub(sql1, true);
     sql2 = MigrationUtil.sqlSub(sql2, false);
@@ -175,7 +178,7 @@ for (Object c : collabs) {
         sql2 = MigrationUtil.sqlSub(sql2, "approved");
         sql2 = MigrationUtil.sqlSub(sql2, "approved");
     } else {
-        sql1 = "-- skipping: unknown STATE for " + collab.toString() + "\n";
+        sql1 = "-- skipping: unknown STATE for " + collab.getState() + "\n";
         sql2 = "";
     }
     content += sql1;
