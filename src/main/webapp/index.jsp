@@ -360,7 +360,9 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 int numMarkedIndividualsLeftFlank=0;
+int numMarkedIndividualsRightFlank=0;
 int numEncountersLeftFlank=0;
+int numEncountersRightFlank=0;
 
 try {
 
@@ -371,7 +373,9 @@ try {
     numDataContributors=myShepherd.getNumUsers();
 
     numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
+    numEncountersRightFlank = myShepherd.getNumEncountersRightFlank();
     numMarkedIndividualsLeftFlank = myShepherd.getNumMarkedIndividualsLeftFlank();
+    numMarkedIndividualsRightFlank = myShepherd.getNumMarkedIndividualsRightFlank();
 }
 catch(Exception e){
     e.printStackTrace();
@@ -635,14 +639,14 @@ finally{
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><i>
                   <span class="half-massive"><%=numMarkedIndividualsLeftFlank %> Left </span></br>
-                  <span class="half-massive"><%= numMarkedIndividuals - numMarkedIndividualsLeftFlank %> Right </span> </br>
+                  <span class="half-massive"><%= numMarkedIndividualsRightFlank %> Right </span> </br>
                   unique individuals
                 </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><i>
                   <span class="half-massive"><%=numEncountersLeftFlank %> Left </span></br>
-                  <span class="half-massive"><%= numEncounters - numEncountersLeftFlank %> Right </span></br>
+                  <span class="half-massive"><%= numEncountersRightFlank %> Right </span></br>
                   reported encounters
                 </i></p>
             </section>

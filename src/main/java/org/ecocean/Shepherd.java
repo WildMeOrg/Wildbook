@@ -5608,6 +5608,11 @@ public Long countMediaAssets(Shepherd myShepherd){
       return getNumEncountersMatching(lFlankFilter);
     }
 
+    public int getNumEncountersRightFlank() {
+      String rFlankFilter = "this.dynamicProperties.indexOf(\"flank=R\") > -1";
+      return getNumEncountersMatching(rFlankFilter);
+    }
+
     // Just like getNumEncountersMatching (same filter arg) but for MarkedIndividuals
     public int getNumMarkedIndividualsWithEncMatching(String filter) {
       int num = 0;
@@ -5627,6 +5632,11 @@ public Long countMediaAssets(Shepherd myShepherd){
     public int getNumMarkedIndividualsLeftFlank() {
       String lFlankFilter = "enc.dynamicProperties.indexOf(\"flank=L\") > -1 VARIABLES org.ecocean.Encounter enc";
       return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
+    }
+
+    public int getNumMarkedIndividualsRightFlank() {
+      String rFlankFilter = "enc.dynamicProperties.indexOf(\"flank=R\") > -1 VARIABLES org.ecocean.Encounter enc";
+      return getNumMarkedIndividualsWithEncMatching(rFlankFilter);
     }
   //End Spotashark customizations
     public JSONArray getAllProjectACMIdsJSON(String projectId) {
