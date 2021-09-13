@@ -580,6 +580,8 @@ div.gallery-download {
     text-align: center;
     font-size: 0.8em;
     margin-top: -2.5em;
+    position: inherit;
+    z-index: 39;
 }
 
 .gallery-download a {
