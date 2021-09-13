@@ -1,5 +1,11 @@
-User-agent: *
-Disallow: /gallery.jsp
+user-agent: *
+disallow: /gallery.jsp
 
-User-agent: *
-Disallow: /submit.jsp
+user-agent: *
+disallow: /submit.jsp
+
+user-Agent: *
+crawl-Delay: 20
+
+user-agent: MJ12bot
+disallow: /gallery.jsp
