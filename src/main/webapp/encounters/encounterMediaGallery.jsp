@@ -863,20 +863,26 @@ jQuery(document).ready(function() {
     });
 */
 
-<% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
-    if (wildbookGlobals.username) {
-        $('.image-enhancer-wrapper').each(function(i, el) {
-            var mid = imageEnhancer.mediaAssetIdFromElement($(el));
-	    var ma = assetById(mid);
-            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
-            $(el).closest('figure').after(h);
-            //$(el).closest('.my-gallery').after(h);
-        });
-    }
-<% } //end encounterGalleryDownloadLink %>
 });
 
 
+$(window).on('load', function (e) {
+
+    <% if (Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownloadLink", context))) { %>
+
+        if (wildbookGlobals.username) {
+    
+            $('.image-enhancer-wrapper').each(function(i, el) {
+    
+                var mid = imageEnhancer.mediaAssetIdFromElement($(el));
+            var ma = assetById(mid);
+                var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+                $(el).closest('figure').after(h);
+            });
+        }
+    <% } //end encounterGalleryDownloadLink %>
+
+})
 
 
 function doImageEnhancer(sel) {
