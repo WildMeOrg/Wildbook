@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.util.json.JSONArray;
+import org.json.JSONArray;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -56,7 +56,7 @@ public class ProjectIA extends HttpServlet {
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         String projectIdPrefix = null;
         String queryEncounterId = null;
-        
+
         try {
             res.put("success","false");
 
@@ -79,7 +79,7 @@ public class ProjectIA extends HttpServlet {
                             if (targetAnns.isEmpty()) {
                                 targetAnns = getAnnotationList(targetEncs);
                             }
-                            List<Annotation> anns = new ArrayList<>();  
+                            List<Annotation> anns = new ArrayList<>();
                             anns.add(0, queryAnn);
                             Task parentTask = new Task();
                             JSONObject tp = new JSONObject();
@@ -100,7 +100,7 @@ public class ProjectIA extends HttpServlet {
                     res.put("success","true");
                     res.put("initiatedJobs", initiatedJobs);
                     response.setStatus(HttpServletResponse.SC_OK);
-                    //JSONObject rtnIA = IBEISIA.sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, context); 
+                    //JSONObject rtnIA = IBEISIA.sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, context);
                 }
             }
 
@@ -130,7 +130,7 @@ public class ProjectIA extends HttpServlet {
         ArrayList<Annotation> anns = new ArrayList<>();
         Set<Annotation> annHash = new HashSet<>();
         for (Encounter enc : encs) {
-            annHash.addAll(enc.getAnnotations());  
+            annHash.addAll(enc.getAnnotations());
         }
         anns.addAll(annHash);
         return anns;
