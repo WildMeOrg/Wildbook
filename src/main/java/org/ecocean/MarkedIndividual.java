@@ -2746,7 +2746,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     j.put("version", enc.getVersion());
                     jarr.put(j);
                 } else {
-                    jarr.put(enc.asApiJSONObject(arg));
+                  // We need max data from encounters too when we get max for individual or sighting
+                    org.json.JSONObject encArg = new org.json.JSONObject();
+                    encArg.put("org.ecocean.Encounter", "max");
+                    jarr.put(enc.asApiJSONObject(encArg));
                 }
             }
             obj.put("encounters", jarr);
