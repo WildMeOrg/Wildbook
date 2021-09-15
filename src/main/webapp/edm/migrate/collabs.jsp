@@ -178,7 +178,7 @@ for (Object c : collabs) {
     // now we get into the various permutations covered in document 'Collaboration migration notes'
 
     if (Collaboration.STATE_INITIALIZED.equals(collab.getState()) && (editUser == null)) {  // case 1  (from doc)
-        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        collabSql = MigrationUtil.sqlSub(collabSql, (String)null);
         sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
         sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
         sql2 = MigrationUtil.sqlSub(sql2, "pending");  //read_approval_state
@@ -190,7 +190,7 @@ for (Object c : collabs) {
         sql2 = "";
 
     } else if (Collaboration.STATE_APPROVED.equals(collab.getState()) && (editUser == null)) {  // case 3
-        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        collabSql = MigrationUtil.sqlSub(collabSql, (String)null);
         sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
         sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
         sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
@@ -218,7 +218,7 @@ for (Object c : collabs) {
         sql2 = MigrationUtil.sqlSub(sql2, "approved");  //edit_approval_state
 
     } else if (Collaboration.STATE_REJECTED.equals(collab.getState()) && (editUser == null)) {  // case 7
-        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        collabSql = MigrationUtil.sqlSub(collabSql, (String)null);
         sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
         sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
         sql2 = MigrationUtil.sqlSub(sql2, "declined");  //read_approval_state
