@@ -2195,7 +2195,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
   public void setDecimalLatitude(Double lat){
-        if ((lat != null) && !Util.isValidDecimalLatitude(lat)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
+      if ((lat != null) && !Util.isValidDecimalLatitude(lat)) throw new ApiValueException("invalid latitude value", "decimalLatitude");
       this.decimalLatitude = lat;
       gpsLatitude = Util.decimalLatLonToString(lat);
         setVersion();
