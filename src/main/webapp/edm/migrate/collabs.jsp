@@ -134,53 +134,110 @@ for (Object c : collabs) {
     Collaboration collab = (Collaboration)c;
     User u1 = myShepherd.getUser(collab.getUsername1());
     User u2 = myShepherd.getUser(collab.getUsername2());
+    User editUser = null;
     if ((u1 == null) || (u2 == null)) {
         content += "-- failed to find one/both users for " + collab.toString() + "\n";
         continue;
     }
+    if (collab.getEditInitiator() != null) {
+        editUser = myShepherd.getUser(collab.getEditInitiator());
+        if (editUser == null) {  // yikes!
+            content += "-- OUCH failed to find editInitiator=" + collab.getEditInitiator() + "\n";
+            continue;
+        }
+        if (!editUser.equals(u1) && !editUser.equals(u2)) {
+            content += "-- UGH editInitiator=" + editUser + " matches neither " + u1 + " nor " + u2 + "\n";
+            continue;
+        }
+    }
+
     String id = Util.generateUUID();
     content += "\n-- " + collab.toString() + "\n";
-    String sqlIns = "INSERT INTO collaboration (created, updated, viewed, guid) VALUES (?, ?, ?, ?);\n";
+    String collabSql = "INSERT INTO collaboration (created, updated, viewed, guid, initiator_guid, edit_initiator_guid) VALUES (?, ?, ?, ?, ?, ?);\n";
+    collabSql = MigrationUtil.sqlSub(collabSql, Util.millisToIso8601StringNoTimezone(collab.getDateTimeCreated()));
+    collabSql = MigrationUtil.sqlSub(collabSql, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
+    collabSql = MigrationUtil.sqlSub(collabSql, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
+    collabSql = MigrationUtil.sqlSub(collabSql, id);
+
+    // this is used by both user_associations identically, so lets do this part first
+    String sqlIns = "INSERT INTO collaboration_user_associations (created, updated, viewed, collaboration_guid, user_guid, read_approval_state, edit_approval_state) VALUES (?, ?, ?, ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(collab.getDateTimeCreated()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
     sqlIns = MigrationUtil.sqlSub(sqlIns, id);
-    content += sqlIns;
 
-    sqlIns = "INSERT INTO collaboration_user_associations (created, updated, viewed, collaboration_guid, user_guid, initiator, read_approval_state, edit_approval_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?);\n";
-    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(collab.getDateTimeCreated()));
-    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
-    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(System.currentTimeMillis()));
-    sqlIns = MigrationUtil.sqlSub(sqlIns, id);
-
-    String sql1 = sqlIns;
-    String sql2 = sqlIns;
+    String sql1 = sqlIns;  // user_association 1
+    String sql2 = sqlIns;  // user_association 2
     sql1 = MigrationUtil.sqlSub(sql1, u1.getUUID());
     sql2 = MigrationUtil.sqlSub(sql2, u2.getUUID());
+
     //Collaboration.java says this, so i am going with it:  "NOTE the first user, by convention, is the initiator"
-    sql1 = MigrationUtil.sqlSub(sql1, true);
-    sql2 = MigrationUtil.sqlSub(sql2, false);
+    // this means initiator should always be u1
+    collabSql = MigrationUtil.sqlSub(collabSql, u1.getUUID());
 
-    //initiator is always approved   TODO does this _always_ include edit as well?
-    sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read
-    sql1 = MigrationUtil.sqlSub(sql1, "approved");  //edit
+    // now we get into the various permutations covered in document 'Collaboration migration notes'
 
-    if (Collaboration.STATE_INITIALIZED.equals(collab.getState())) {
-        sql2 = MigrationUtil.sqlSub(sql2, "pending");
-        sql2 = MigrationUtil.sqlSub(sql2, "pending");
-    } else if (Collaboration.STATE_REJECTED.equals(collab.getState())) {
-        sql2 = MigrationUtil.sqlSub(sql2, "declined");
-        sql2 = MigrationUtil.sqlSub(sql2, "declined");
-    } else if (Collaboration.STATE_APPROVED.equals(collab.getState())) {  //"approved" means read-approved
-        sql2 = MigrationUtil.sqlSub(sql2, "approved");
-        sql2 = MigrationUtil.sqlSub(sql2, "pending");
-    } else if (Collaboration.STATE_EDIT_PRIV.equals(collab.getState())) {  //"edit" means edit-(and-read)-approved
-        sql2 = MigrationUtil.sqlSub(sql2, "approved");
-        sql2 = MigrationUtil.sqlSub(sql2, "approved");
+    if (Collaboration.STATE_INITIALIZED.equals(collab.getState()) && (editUser == null)) {  // case 1  (from doc)
+        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "pending");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "not_initiated");  //edit_approval_state
+
+    } else if (Collaboration.STATE_INITIALIZED.equals(collab.getState())) {  // case 2: we bail here
+        collabSql = "-- invalid case: state=initialized + editInitiator=" + editUser + "\n";
+        sql1 = "";
+        sql2 = "";
+
+    } else if (Collaboration.STATE_APPROVED.equals(collab.getState()) && (editUser == null)) {  // case 3
+        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "not_initiated");  //edit_approval_state
+
+    } else if (Collaboration.STATE_APPROVED.equals(collab.getState())) {  // case 4
+        collabSql = MigrationUtil.sqlSub(collabSql, editUser.getUUID());
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "declined");  //edit_approval_state
+
+    } else if (Collaboration.STATE_EDIT_PRIV.equals(collab.getState()) && (editUser != null)) {  // case 5
+        collabSql = MigrationUtil.sqlSub(collabSql, editUser.getUUID());
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //edit_approval_state
+
+    } else if (Collaboration.STATE_EDIT_PRIV.equals(collab.getState())) {  // case 6
+        collabSql = MigrationUtil.sqlSub(collabSql, u1.getUUID());  // this is our guess, sorry world
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //edit_approval_state
+
+    } else if (Collaboration.STATE_REJECTED.equals(collab.getState()) && (editUser == null)) {  // case 7
+        collabSql = MigrationUtil.sqlSub(collabSql, null);
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "not_initiated");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "declined");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "not_initiated");  //edit_approval_state
+
+    } else if (Collaboration.STATE_EDIT_PENDING_PRIV.equals(collab.getState()) && (editUser != null)) {  // case 8
+        collabSql = MigrationUtil.sqlSub(collabSql, editUser.getUUID());
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //read_approval_state
+        sql1 = MigrationUtil.sqlSub(sql1, "approved");  //edit_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "approved");  //read_approval_state
+        sql2 = MigrationUtil.sqlSub(sql2, "pending");  //edit_approval_state
+
     } else {
-        sql1 = "-- skipping: unknown STATE for " + collab.getState() + "\n";
+        collabSql = "-- skipping: fell through; unknown case (editUser=" + editUser + ")\n";
+        sql1 = "";
         sql2 = "";
     }
+
+    content += collabSql;
     content += sql1;
     content += sql2;
 }
