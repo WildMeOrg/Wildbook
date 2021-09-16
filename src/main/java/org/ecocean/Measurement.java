@@ -6,14 +6,14 @@ import org.json.JSONObject;
 public class Measurement extends DataCollectionEvent {
 
   private static final long serialVersionUID = -7934850478287322048L;
-  
+
   private Double value;
-  
+
   private String units;
-  
+
   public Measurement() {
   }
-  
+
   public Measurement(String correspondingEncounterNumber, String type, Double value, String units, String samplingProtocol) {
     super(correspondingEncounterNumber, type);
     super.setSamplingProtocol(samplingProtocol);
@@ -29,11 +29,11 @@ public class Measurement extends DataCollectionEvent {
     if(value==null){this.value=null;}
     else{this.value = value;}
   }
-  
+
   public String getUnits() {
     return units;
   }
-  
+
   public void setUnits(String u) {
     if(u==null){this.units=null;}
     else{this.units = u;}
@@ -53,5 +53,9 @@ public class Measurement extends DataCollectionEvent {
             .append("value", value)
             .append("units", units)
             .toString();
+    }
+
+    public String toExcelFormat(){
+      return "type: " + getType().toString() + "; value: " + value.toString() + "; units: " + units;
     }
 }

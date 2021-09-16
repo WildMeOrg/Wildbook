@@ -4,7 +4,7 @@ javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
-org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
+org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat, org.apache.commons.lang3.StringUtils" %>
 
 
 <%
@@ -545,13 +545,19 @@ if (sharky.getNames() != null) {
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
 	      if (nameKey.equals("Nickname")) continue;
+        if(StringUtils.isBlank(nameKey)){ //blanks needed to be caught and skipped
+          continue;
+        }
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
         MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
         List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+        if(nameKey.trim().contains("Merged") && (sharky.getName(nameKey) == null || sharky.getName(nameKey).equals(""))){ //skip the "merged" nameKeys if they're empty
+          continue;
+        }
         if (projects!=null&&projects.size()>0) {
           for(Project currentProject: projects){
             String researchProjId = currentProject.getProjectIdPrefix();
-            if (nameKey.contains(researchProjId)){
+            if (nameKey.contains(researchProjId) && !nameKey.contains("Merged")){
               inProjectsAndWillGetDisplayedInSeparateSection = true;
               continue;
             }
@@ -561,11 +567,11 @@ if (sharky.getNames() != null) {
           inProjectsAndWillGetDisplayedInSeparateSection = false;
           continue;
         }
+
 	      String nameLabel=nameKey;
 	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
 	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
 	      String nameValue = sharky.getName(nameKey);
-
 	      %>
 	      <div class="namesection <%=nameKey%>">
 	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
@@ -592,7 +598,7 @@ if (sharky.getNames() != null) {
       String researchProjId = currentProject.getProjectIdPrefix();
       String researchProjName = currentProject.getResearchProjectName();
       String incrementalId = indie.getName(researchProjId);
-      if(incrementalId != null){
+      if(incrementalId != null && researchProjName!=null && researchProjId !=null){
         %>
         <div class="namesection <%=researchProjName%>">
 	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>

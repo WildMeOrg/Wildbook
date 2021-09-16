@@ -28,6 +28,7 @@ public class ExportColumn {
     // since we have multiple MediaAssets and Keywords per row, these are used for those cols
     private int maNum = -1;
     private int kwNum = -1;
+    private int measureNum = -1;
 
     public ExportColumn(Class declaringClass, String header, Method getter, int colNum) {
       this.declaringClass = declaringClass;
@@ -53,10 +54,19 @@ public class ExportColumn {
       } catch (InvocationTargetException e) {
         System.out.println("EncounterSearchExportMetadataExcel got an InvocationTargetException on column "+header+" and object "+obj);
         return null;
+      } catch (Error e){
+        System.out.println("EncounterSearchExportMetadataExcel got a more generic error on column " + header + " and object " + obj);
+        e.printStackTrace();
+        return null;
       }
-      if (value == null) return null;
+      if (value == null){
+        return null;
+      }
       return value.toString();
     }
+
+    public int getMeasurementNum() {return measureNum;}
+    public void setMeasurementNum(int n) {this.measureNum = n;}
 
     public int getMaNum() {return maNum;}
     public void setMaNum(int n) {this.maNum = n;}
@@ -88,7 +98,7 @@ public class ExportColumn {
 
   // this would be a static method of above subclass if java allowed that
   public static ExportColumn newEasyColumn(String classDotFieldNameHeader, List<ExportColumn> columns) throws ClassNotFoundException, NoSuchMethodException {
-    
+
     String[] parts = classDotFieldNameHeader.split("\\.");
 
     String className = parts[0];
@@ -101,7 +111,7 @@ public class ExportColumn {
       System.out.println("[ERROR]: newEasyColumn failed to find the class specified by "+classDotFieldNameHeader+". Parsed className "+className);
       return null;
     }
-    
+
     String fieldName = parts[1];
     String getterName = "get"+Util.capitolizeFirstLetter(fieldName);
     Method getter = null;
@@ -114,12 +124,9 @@ public class ExportColumn {
     }
 
     System.out.println("newEasyColumn called with input "+classDotFieldNameHeader+", getterName="+getterName+", fieldName="+fieldName);
-    
+
     return new ExportColumn(declaringClass, classDotFieldNameHeader, getter, columns);
 
   }
 
 }
-
-
-

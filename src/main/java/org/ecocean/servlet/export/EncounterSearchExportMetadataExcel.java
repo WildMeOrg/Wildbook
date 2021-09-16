@@ -33,7 +33,9 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
   private int numMediaAssetCols = 0;
   private int numKeywords = 0;
+  private int numMeasurements = 0;
   private int numNameCols = 0;
+  private List<String> measurementColTitles = new ArrayList<String>();
 
   int rowLimit = 100000;
 
@@ -42,9 +44,19 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
     int maxNumMedia = 0;
     int maxNumKeywords = 0;
     int maxNumNames = 0;
+    int maxNumMeasurements = 0;
     Set<String> individualIDsChecked = new HashSet<String>();
     for (int i=0;i<rEncounters.size() && i< rowLimit;i++) {
       Encounter enc=(Encounter)rEncounters.get(i);
+      if(enc.getMeasurements().size() > 0){
+        for(Measurement currentMeasurement: enc.getMeasurements()){ // populate a list of measurementColName with measurements in current encounter set only
+            String currentMeasurementType = currentMeasurement.getType();
+            if(currentMeasurementType != null && !measurementColTitles.contains(currentMeasurementType)){
+              measurementColTitles.add(currentMeasurementType);
+            }
+        }
+      }
+      if (enc.getMeasurements().size() > maxNumMeasurements) maxNumMeasurements = enc.getMeasurements().size();
       ArrayList<MediaAsset> mas = enc.getMedia();
       int numMedia = mas.size();
       if (numMedia > maxNumMedia) maxNumMedia = numMedia;
@@ -63,8 +75,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
     numMediaAssetCols = maxNumMedia;
     numKeywords = maxNumKeywords;
     numNameCols = maxNumNames;
+    numMeasurements = maxNumMeasurements;
     System.out.println("EncounterSearchExportMetadataExcel: environment vars numMediaAssetCols = "+numMediaAssetCols+"; maxNumKeywords = "+maxNumKeywords+" and maxNumNames = "+numNameCols);
-
   }
 
 
@@ -114,7 +126,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       // business logic start here
       WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile);
       WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
-      
+
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
       newEasyColumn("Encounter.catalogNumber", columns); // adds Encounter.catalogNumber to columns
       //newEasyColumn("Encounter.individualID", columns);
@@ -130,7 +142,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
       Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a NPE
       ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth", encDepthGetter, columns);
-      
+
       newEasyColumn("Encounter.dateInMilliseconds", columns);
       newEasyColumn("Encounter.year", columns);
       newEasyColumn("Encounter.month", columns);
@@ -173,8 +185,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       newEasyColumn("Encounter.occurrenceRemarks", columns);
 
 
-      // int numMediaAssets = 3;
-      // for (int i=0; i<=numMediaAssets; i++) {
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
       // This will include labels in a labeledKeyword value
@@ -195,6 +205,37 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         }
 
       }
+
+      // add measurements to export
+
+      //sort measurementColTitles (a subset of all possible measureVals that's currently not in the same order as they appear in measureVals) by order in which they will appear in enc.getMeasurements, which is dictated by commonConfig array (i.e., measureVals). If this doesn't happen, some encounters with a measurements list beginning with a rare measurement will end up misplaced in the colunns
+      List<String> sortedMeasurementColTitles = new ArrayList<String>();
+      if(measurementColTitles.size() > 0){
+        List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
+        List<Integer> measurementColTitlesRanked = new ArrayList<Integer>();
+        for(String currentMeasurementTitle: measurementColTitles){
+          int currentIndexInMeasureVals = measureVals.indexOf(currentMeasurementTitle);
+          measurementColTitlesRanked.add(currentIndexInMeasureVals); // an array of indeces, a copy of which will be sorted
+        }
+        List<Integer> measurementColTitlesRankedSorted = measurementColTitlesRanked;
+        Collections.sort(measurementColTitlesRankedSorted);
+        for(int currentIndex : measurementColTitlesRankedSorted){
+          sortedMeasurementColTitles.add(measureVals.get(currentIndex));
+        }
+      }
+      // end sorting
+
+      Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
+        if(sortedMeasurementColTitles.size() > 0){
+          for (String currentSortedColTitle: sortedMeasurementColTitles) {
+            String measurementColName = "Encounter.measurement." + currentSortedColTitle;
+            ExportColumn measurementCol = new ExportColumn(Measurement.class, measurementColName, getMeasurementValue, columns);
+            String modifiedColumnName = measurementColName.replace("Encounter.measurement.", "");
+            int matchingMeasurementColNum = sortedMeasurementColTitles.indexOf(modifiedColumnName);
+            measurementCol.setMeasurementNum(matchingMeasurementColNum);
+          }
+        }
+      // End measurements export
 
       for (ExportColumn exportCol: columns) {
         exportCol.writeHeaderLabel(sheet);
@@ -243,6 +284,16 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             Keyword kw = ma.getKeyword(kwNum);
             if (kw == null) continue;
             exportCol.writeLabel(kw, row, sheet);
+          }
+          else if (exportCol.isFor(Measurement.class)) {
+            int measurementNumber = exportCol.getMeasurementNum();
+            if(measurementNumber < 0) continue;
+            if(enc.getMeasurements() != null && enc.getMeasurements().size() > 0 && measurementNumber < enc.getMeasurements().size()){
+              String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList = sortedMeasurementColTitles.get(measurementNumber);
+              Measurement currentMeasurement = enc.getMeasurement(whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.replace("Encounter.measurement.", ""));
+              if (currentMeasurement == null) continue;
+              exportCol.writeLabel(currentMeasurement, row, sheet);
+            }
           }
           else System.out.println("EncounterSearchExportMetadataExcel: no object found for class "+exportCol.getDeclaringClass());
         }

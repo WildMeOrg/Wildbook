@@ -621,10 +621,10 @@ public class StandardImport extends HttpServlet {
     if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
   	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
-    if (surveyComments!=null) occ.addComments(surveyComments);
+    if (surveyComments!=null && !occ.getComments().contains(surveyComments)) occ.addComments(surveyComments);
 
     String comments = getString(row, "Occurrence.comments");
-    if (comments!=null) occ.addComments(comments);
+    if (comments!=null && !occ.getComments().contains(comments)) occ.addComments(comments);
 
     Integer numAdults = getInteger(row, "Occurrence.numAdults");
     if (numAdults!=null) occ.setNumAdults(numAdults);
