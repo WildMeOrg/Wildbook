@@ -58,6 +58,8 @@ query.closeAll();
 
 out.println("<ul>");
 int ct = 0;
+int gap = 1000;
+int nextCommit = gap;
 for (Encounter enc : all) {
     ct++;
     ComplexDateTime cdt = enc.deriveComplexDateTime(tz);
@@ -65,9 +67,13 @@ for (Encounter enc : all) {
     out.println("<li>" + enc.getCatalogNumber() + " " + enc.getDate() + " => <b>" + cdt + "</b></li>");
     if (commit) {
         enc.setTime(cdt);
-        System.out.println("datetime.jsp: [" + ct + "/" + all.size() + "] migrated " + cdt + " on " + enc);
-        myShepherd.commitDBTransaction();
-        myShepherd.beginDBTransaction();
+        if (ct % 50 == 0) System.out.println("datetime.jsp: [" + ct + "/" + all.size() + "] migrated " + cdt + " on " + enc);
+        if (ct > nextCommit) {
+            System.out.println("datetime.jsp: COMMIT");
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            nextCommit += gap;
+        }
     }
 }
 out.println("</ul>");
@@ -97,6 +103,7 @@ query.closeAll();
 
 out.println("<ul>");
 ct = 0;
+nextCommit = gap;
 for (Occurrence occ : occs) {
     ct++;
     boolean changed = occ.setTimesFromEncounters();  //no override so wont touch existing values, which would be weird to exist, but...
@@ -105,9 +112,13 @@ for (Occurrence occ : occs) {
     ComplexDateTime et = occ.getEndTime();
     int encNum = Util.collectionSize(occ.getEncounters());
     out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
-    System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
-    myShepherd.commitDBTransaction();
-    myShepherd.beginDBTransaction();
+    if (ct % 50 == 0) System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
+    if (ct > nextCommit) {
+        System.out.println("datetime.jsp: COMMIT");
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+        nextCommit += gap;
+    }
 }
 
 
