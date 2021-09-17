@@ -109,6 +109,27 @@ ALTER TABLE "OCCURRENCE_ENCOUNTERS" ADD CONSTRAINT "OCCURRENCE_ENCOUNTERS_FK2" F
 
 END;
 
+-- now we have to do away with non-uuid ids on Encounters, sigh
+
+ALTER TABLE "ENCOUNTER" ADD COLUMN tmp_non_uuid TEXT;
+
+BEGIN;
+
+UPDATE "ENCOUNTER" SET tmp_non_uuid = "ID" WHERE LENGTH("ID") != 36 OR "ID" NOT LIKE '%-%-%-%';
+
+-- this one *must* happen first
+UPDATE "ENCOUNTER" SET "OTHERCATALOGNUMBERS" = CONCAT("OTHERCATALOGNUMBERS", ', ', tmp_non_uuid) WHERE tmp_non_uuid IS NOT NULL AND "OTHERCATALOGNUMBERS" IS NOT NULL;
+UPDATE "ENCOUNTER" SET "OTHERCATALOGNUMBERS" = tmp_non_uuid WHERE tmp_non_uuid IS NOT NULL AND "OTHERCATALOGNUMBERS" IS NULL;
+
+-- this should affect all fk refs as well, thanks to ON UPDATE CASCADE previously added
+UPDATE "ENCOUNTER" SET "ID" = uuid_generate_v4() WHERE tmp_non_uuid IS NOT NULL;
+
+END;
+
+
+ALTER TABLE "ENCOUNTER" DROP COLUMN tmp_non_uuid;
+
+
 
 
 
