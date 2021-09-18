@@ -27,8 +27,8 @@ imageCropper.cropInnerPics = function() {
 imageCropper.cropGridPics = function() {
   imageCropper.cropPics('.gallery-unit .crop', 16.0/9);
 };
-cropper.zoom(0.1);
-cropper.zoom(-0.1);
+//cropper.zoom(0.1);
+//cropper.zoom(-0.1);
 
 $( document ).ready(function() {
   //imageCropper.cropGridPics();
