@@ -111,8 +111,10 @@ File encounterDir = new File(encountersDir, num);
 /*   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1); */
 
-  Calendar calendar = new GregorianCalendar();
-  TimeZone timeZone = calendar.getTimeZone();
+  //Calendar calendar = new GregorianCalendar();
+  //TimeZone timeZone = calendar.getTimeZone();
+  var time=new Date();
+  var Time= time.localeTimeString();
 
   
 //handle some cache-related security
