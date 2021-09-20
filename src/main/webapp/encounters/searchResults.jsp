@@ -331,8 +331,8 @@ function doTable() {
 	computeCounts();
 	displayCounts();
 
-	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
-		if (!sTable.opts.sliderElement) return;
+  $('#results-table').on('wheel', function(ev) {
+    if (!sTable.opts.sliderElement) return;
 		ev.preventDefault();
 		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
 		if (delta != 0) nudge(-delta);
@@ -530,7 +530,7 @@ function tableUp() {
 ////////
 var encs;
 $(document).ready( function() {
-	
+
 	wildbook.init(function() {
 		let useProjectContext = "<%=useProjectContext%>";
 		encs = new wildbook.Collection.Encounters();
