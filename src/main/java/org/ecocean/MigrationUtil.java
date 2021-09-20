@@ -42,7 +42,7 @@ public class MigrationUtil {
     public static String sqlSub(String inSql, String rep) {
         if (rep == null) return inSql.replaceFirst("\\?", "NULL");
         rep = rep.replaceAll("'", "''");  //FIXME this needs to be better string-prepping
-        return inSql.replaceFirst("\\?", "'" + rep + "'");
+        return inSql.replaceFirst("\\?", "'" + java.util.regex.Matcher.quoteReplacement(rep) + "'");
     }
     public static String sqlSub(String inSql, Integer rep) {
         String rs = "NULL";
