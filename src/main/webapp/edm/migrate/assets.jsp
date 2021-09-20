@@ -291,21 +291,21 @@ for (String occId : agMap.keySet()) {
     content = "";
     Occurrence occ = myShepherd.getOccurrence(occId);
     ct++;
-    if (ct % 100 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + agMap.keySet().size() + "] asset_groups processed");
-    String subdir = occ.getId();
+    if (ct % 10 == 0) System.out.println("migration/assets.jsp [" + ct + "/" + agMap.keySet().size() + "] asset_groups processed");
+    String subdir = occId;
     content += "\nmkdir -p $TARGET_DIR/" + subdir + "/_asset_group\n";
     content += "mkdir $TARGET_DIR/" + subdir + "/_assets\n";
 
     String agSql = "INSERT INTO asset_group (created, updated, viewed, guid, major_type, description, owner_guid, config) VALUES (now(), now(), now(), ?, 'filesystem', 'Legacy migration', ?, '\"{}\"');";
     String userId = coerceOwnerId(occ, myShepherd);
-    agSql = MigrationUtil.sqlSub(agSql, occ.getId());
+    agSql = MigrationUtil.sqlSub(agSql, occId);
     agSql = MigrationUtil.sqlSub(agSql, userId);
     allSql += agSql + "\n";
+    occ = null;
 
     String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
-    myShepherd.rollbackDBTransaction();
-    myShepherd.beginDBTransaction();
     for (Integer maId : agMap.get(occId)) {
+        System.out.println("migration/assets.jsp: " + maId + " from " + occId);
         MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
         if (ma == null) continue;
         String path = getRelPath(ma);
@@ -314,6 +314,7 @@ for (String occId : agMap.keySet()) {
         String filename = ma.getFilename();
         int dot = filename.lastIndexOf(".");
         String ext = (dot < 0) ? "" : "." + filename.substring(dot + 1);
+        if (ext.length() < 2) ext = ".unknown";  //fallback?
         content += "ln -s '../_asset_group/" + filename + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
         String s = sqlIns;
         s = MigrationUtil.sqlSub(s, ma.getUUID());
@@ -324,16 +325,18 @@ for (String occId : agMap.keySet()) {
         s = MigrationUtil.sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
         s = MigrationUtil.sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
         s = MigrationUtil.sqlSub(s, meta(ma));  //meta (should include dimensions)
-        s = MigrationUtil.sqlSub(s, occ.getId());
+        s = MigrationUtil.sqlSub(s, occId);
         allSql += s + "\n\n";
+        ma = null;
     }
-    myShepherd.rollbackDBTransaction();
-
     MigrationUtil.appendFile(fname, content);
     content = "";
 
     MigrationUtil.appendFile(allSql_fname, allSql);
     allSql = "";
+
+    myShepherd.rollbackDBTransaction();
+    myShepherd.beginDBTransaction();
 }
 
 out.println(filePreview(fname));
