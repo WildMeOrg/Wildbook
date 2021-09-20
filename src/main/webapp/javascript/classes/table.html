@@ -199,7 +199,7 @@ function tableInit() {
 	var hd = '<thead><tr><th class="col-num">#</th>';
 	_.each(columns, function(cstruct, c) { hd += '<th class="col-' + c + '">' + cstruct.label + '</th>'; });
 	$('#test-table').append(hd + '</tr></thead>').append(tableBody);
-	$('#test-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+	$('#test-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
 		ev.preventDefault();
 		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
 console.log(delta);
