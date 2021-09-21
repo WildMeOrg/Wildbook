@@ -2665,7 +2665,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>

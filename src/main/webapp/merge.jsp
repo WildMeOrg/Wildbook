@@ -51,7 +51,7 @@ table.compareZone tr th {
   let conflictingProjs = [];
   let conflictingProjOwners = [];
   let countOfIncrementalIdRowPopulated = 0;
-  let projNamesBelongingToIndividuals = [];
+  var projNamesBelongingToIndividuals = [];
   let projIdPrefixesBelongingToIndividuals = [];
 	$(document).ready(function() {
 		// highlightMergeConflicts(); //TODO add this back in -MF
@@ -507,6 +507,7 @@ table.compareZone tr th {
           	"sex": sex,
           	"taxonomy": taxonomy,
             "projIds": projIdConsolidated,
+            "projNames": projNamesBelongingToIndividuals.join(";"),
             "desiredIncrementalIds": desiredIncrementalIdConsolidated,
             "deprecatedIncrementIds": deprecatedIncrementIdConsolidated
           },
