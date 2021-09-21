@@ -90,7 +90,7 @@ public class MigrationUtil {
     public static String jsonQuote(JSONObject j) {
         if (j == null) return "\"{}\"";
         String s = j.toString();
-        return "\"" + s.replaceAll("\"", "\\\\\\\\\"") + "\"";  // gimme a effin break java
+        return "\"" + s.replaceAll("\"", "\\\\\"") + "\"";  // gimme a effin break java
     }
 
     public static String cleanup(String in) {
