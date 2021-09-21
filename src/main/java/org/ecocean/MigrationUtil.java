@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.UUID;
@@ -39,25 +41,41 @@ public class MigrationUtil {
         return file;
     }
 
+/*
     public static String sqlSub(String inSql, String rep) {
         if (rep == null) return inSql.replaceFirst("\\?", "NULL");
         rep = rep.replaceAll("'", "''");  //FIXME this needs to be better string-prepping
         return inSql.replaceFirst("\\?", "'" + java.util.regex.Matcher.quoteReplacement(rep) + "'");
     }
+*/
+    public static String sqlSub(String inSql, String rep) {
+        return sqlSub(inSql, rep, true);  //default behavior is quote (assumed string)
+    }
+    public static String sqlSub(String inSql, String rep, boolean quoteIt) {
+        Pattern p = Pattern.compile("^(.*?[ \\(])\\?([,\\)].*)$");
+        Matcher m = p.matcher(inSql);
+        if (!m.matches()) {
+            System.out.println("WARNING sqlSub() could not find pattern in: " + inSql);
+            return inSql;
+        }
+        rep = rep.replaceAll("'", "''");  //FIXME this needs to be better string-prepping
+        if (quoteIt) rep = "'" + rep + "'";
+        return m.group(1) + rep + m.group(2);
+    }
     public static String sqlSub(String inSql, Integer rep) {
         String rs = "NULL";
         if (rep != null) rs = rep.toString();
-        return inSql.replaceFirst("\\?", rs);
+        return sqlSub(inSql, rs, false);
     }
     public static String sqlSub(String inSql, Long rep) {
         String rs = "NULL";
         if (rep != null) rs = rep.toString();
-        return inSql.replaceFirst("\\?", rs);
+        return sqlSub(inSql, rs, false);
     }
     public static String sqlSub(String inSql, Boolean rep) {
         String rs = "NULL";
         if (rep != null) rs = rep.toString();
-        return inSql.replaceFirst("\\?", rs);
+        return sqlSub(inSql, rs, false);
     }
 
 
