@@ -2558,8 +2558,8 @@ public static String getCellValueAsString(Row row, int num) {
         if (((assets.size()>=batchSize) && assets.size()>0) || count==numEncs) {
           System.out.println("About to send "+assets.size()+" assets to IA! On "+count+"/"+numEncs);
           itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
-          IBEISIA.sendMediaAssetsNew(assets, context);
           myShepherd.updateDBTransaction();
+          IBEISIA.sendMediaAssetsNew(assets, context);
           assets = new ArrayList<MediaAsset>();
         }
           
@@ -2567,8 +2567,8 @@ public static String getCellValueAsString(Row row, int num) {
 
       if (assets.size()>0) {
         itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
-        IBEISIA.sendMediaAssetsNew(assets, context);
         myShepherd.updateDBTransaction();
+        IBEISIA.sendMediaAssetsNew(assets, context);
       }
 
       
