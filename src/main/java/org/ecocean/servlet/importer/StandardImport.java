@@ -2538,41 +2538,42 @@ public static String getCellValueAsString(Row row, int num) {
     
     try{
       
-      int count=0;
-      int batchSize = 50;
-      List<Encounter> allEncs = itask.getEncounters();
-      int numEncs = allEncs.size();
-
-      ArrayList<MediaAsset> assets = new ArrayList<MediaAsset>();
-
-      for (Encounter enc: allEncs){
-        count++;
-
-        ArrayList<MediaAsset> theseAssets = enc.getMedia();
-        for (MediaAsset assy: theseAssets) {
-          if (!assy.hasAcmId()) {
-            assets.add(assy);
+      if(itask!=null && itask.getEncounters()!=null) {
+        int count=0;
+        int batchSize = 60;
+        List<Encounter> allEncs = itask.getEncounters();
+        int numEncs = allEncs.size();
+  
+        ArrayList<MediaAsset> assets = new ArrayList<MediaAsset>();
+  
+        for (Encounter enc: allEncs){
+          count++;
+  
+          ArrayList<MediaAsset> theseAssets = enc.getMedia();
+          for (MediaAsset assy: theseAssets) {
+            if (!assy.hasAcmId()) {
+              assets.add(assy);
+            }
           }
+  
+          if (((assets.size()>=batchSize) && assets.size()>0) || count==numEncs) {
+            System.out.println("About to send "+assets.size()+" assets to IA! On "+count+"/"+numEncs);
+            itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
+            myShepherd.updateDBTransaction();
+            IBEISIA.sendMediaAssetsNew(assets, context);
+            assets = new ArrayList<MediaAsset>();
+          }
+            
         }
-
-        if (((assets.size()>=batchSize) && assets.size()>0) || count==numEncs) {
-          System.out.println("About to send "+assets.size()+" assets to IA! On "+count+"/"+numEncs);
+  
+        if (assets.size()>0) {
           itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
           myShepherd.updateDBTransaction();
           IBEISIA.sendMediaAssetsNew(assets, context);
-          assets = new ArrayList<MediaAsset>();
         }
-          
-      }
-
-      if (assets.size()>0) {
-        itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
-        myShepherd.updateDBTransaction();
-        IBEISIA.sendMediaAssetsNew(assets, context);
-      }
 
       
-
+      }
     }
     catch(Exception e){
       myShepherd.rollbackDBTransaction();
