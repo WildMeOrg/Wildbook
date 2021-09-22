@@ -39,6 +39,16 @@ List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleD
 int numRoles=roles.size();
 int numRoleDefinitions=roleDefinitions.size();
 
+String localUsername="";
+String localEmail="";
+User localUser = null;
+localUser = myShepherd.getUser(request);
+if(localUser != null){
+		localUsername = localUser.getUsername();
+		localEmail = localUser.getEmailAddress();
+}
+
+
 //handle some cache-related security
 response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -63,9 +73,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 
 	    <%
 	    //let's set up any pre-defined values if appropriate
-	    String localUsername="";
 	    String localAffiliation="";
-	    String localEmail="";
 	    String localFullName="";
 	    String profilePhotoURL="images/user-profile-grey-grey.png";
 	    String userProject="";
@@ -199,13 +207,13 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	            		</tr>
 	            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
 	                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-	                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+	                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input id="emailAddress_input" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
 	                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
 	                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
 
 			     		<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
 
-	                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update") %>" /></td></tr>
+	                    <tr><td colspan="3"><input name="Create" type="button" id="Create" value="<%=props.getProperty("update") %>" onclick="sendButtonClicked();" /></td></tr>
 	            	</table></td>
 
 	            	<td><table>
@@ -326,6 +334,53 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	<br></br>
 
 	<script>
+	function sendButtonClicked() {
+		//check for existing email address
+		const localUsername = '<%=localUsername%>';
+		const localEmail = '<%=localEmail%>';
+		const emailVal = $('#emailAddress_input').val();
+		if (emailVal != localEmail) {
+			doAjaxForExistingEmailAddress(emailVal);
+		}
+		if(emailVal == localEmail){ //handle case where the user edits other things besides	 email
+			submitForm();
+		}
+	}
+
+	function doAjaxForExistingEmailAddress(emailAddress) {
+			let jsonRequest = {};
+			jsonRequest['checkForExistingEmailDesired'] = true;
+			jsonRequest['emailAddress'] = emailAddress;
+			$.ajax({
+				url: wildbookGlobals.baseUrl + '../UserCreate',
+				type: 'POST',
+				data: JSON.stringify(jsonRequest),
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function (data) {
+					console.log("data from doAjaxForExistingEmailAddress:");
+					console.log(data);
+					if (data && data.existingEmailAddressResultsJson && data.existingEmailAddressResultsJson.doesEmailAddressExistAlready) {
+						window.setTimeout(function () { alert('Email address already claimed by another user. Please try another unique email address.'); }, 100);
+					}
+					if (data && data.existingEmailAddressResultsJson && !data.existingEmailAddressResultsJson.doesEmailAddressExistAlready) {
+						submitForm();
+					}
+					if (!data || !data.existingEmailAddressResultsJson) {
+						window.setTimeout(function () { alert('Updating user information was not successful. Please refresh the page and try again.'); }, 100);
+					}
+				},
+				error: function (x, y, z) {
+					console.warn('%o %o %o', x, y, z);
+				}
+			});
+		}
+
+		function submitForm() {
+			document.forms['editUser'].submit();
+		}
+
+
 		function setDefaultProject() {
 			let selectedProjectDropdown = $("#defaultProjectDropdown");
 			let projId = selectedProjectDropdown.val();
