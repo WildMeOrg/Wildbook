@@ -52,7 +52,7 @@ public class MigrationUtil {
         return sqlSub(inSql, rep, true);  //default behavior is quote (assumed string)
     }
     public static String sqlSub(String inSql, String rep, boolean quoteIt) {
-        Pattern p = Pattern.compile("^(.*?[ \\(])\\?([,\\)].*)$");
+        Pattern p = Pattern.compile("^(.*?[ \\(])\\?([,\\)].*)$", Pattern.DOTALL);  //need to match multiline
         Matcher m = p.matcher(inSql);
         if (!m.matches()) {
             System.out.println("WARNING sqlSub() could not find pattern in: " + inSql);
