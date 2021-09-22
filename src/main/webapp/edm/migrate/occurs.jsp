@@ -42,7 +42,7 @@ This will build out Occurrences (Sightings) for Encounters which do not have any
 <%
 
 
-String sql = "SELECT * FROM \"ENCOUNTER\" WHERE \"ID\" NOT IN (SELECT \"ID_EID\" FROM \"OCCURRENCE_ENCOUNTERS\") ORDER BY \"ID\";";
+String sql = "SELECT \"ID\" FROM \"ENCOUNTER\" a LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" b ON a.\"ID\" = b.\"ID_EID\" WHERE b.\"ID_EID\" IS NULL;";
 
 String context = "context0";
 Shepherd myShepherd = new Shepherd(context);
@@ -50,9 +50,11 @@ boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 myShepherd.beginDBTransaction();
 
 Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
-query.setClass(Encounter.class);
 Collection c = (Collection)query.execute();
-List<Encounter> all = new ArrayList<Encounter>(c);
+List<String> all = new ArrayList<String>();
+for (Object o : c) {
+    all.add((String)o);
+}
 query.closeAll();
 
 if (!commit) {
@@ -66,12 +68,15 @@ if (!commit) {
 }
 
 int ct = 1;
-for (Encounter enc : all) {
+for (String encId : all) {
+    Encounter enc = myShepherd.getEncounter(encId);
     ct++;
     if (ct % 200 == 0) {
+        System.out.println("occurs.jsp COMMIT");
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
     }
+    if (enc == null) continue;  //snh?
     Occurrence existOcc = myShepherd.getOccurrenceForEncounter(enc.getId());
     if (existOcc != null) {
         out.println("<p class=\"muted\">" + enc + " already has " + existOcc + "</p>");
