@@ -241,6 +241,7 @@ String fname = filename("rsync_for_assets.filelist");
 MigrationUtil.writeFile(fname, "");
 String content = "";
 Set<Integer> done = new HashSet<Integer>();
+Set<Integer> usable = new HashSet<Integer>();
 int ct = 0;
 for (MediaAsset ma : allMA) {
     ct++;
@@ -265,6 +266,7 @@ for (MediaAsset ma : allMA) {
         agMap.put(occId, occMas);
     }
     occMas.add(ma.getId());
+    usable.add(ma.getId());
 }
 
 out.println(filePreview(fname));
@@ -405,6 +407,10 @@ ct = 0;
 done = new HashSet<Integer>();
 for (MediaAsset ma : allMA) {
     ct++;
+    if (!usable.contains(ma.getId())) {
+        System.out.println("migration/assets.jsp: cannot do annotation on unusable " + ma);
+        continue;
+    }
     if (done.contains(ma.getId())) continue;
     done.add(ma.getId());
     content += annotSql(ma, kmap) + "\n";
