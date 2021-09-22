@@ -65,9 +65,13 @@ if (!commit) {
     return;
 }
 
-int ct = 0;
+int ct = 1;
 for (Encounter enc : all) {
     ct++;
+    if (ct % 200 == 0) {
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+    }
     Occurrence existOcc = myShepherd.getOccurrenceForEncounter(enc.getId());
     if (existOcc != null) {
         out.println("<p class=\"muted\">" + enc + " already has " + existOcc + "</p>");
