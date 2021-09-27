@@ -305,6 +305,7 @@ for (String occId : agMap.keySet()) {
     allSql += agSql + "\n";
     occ = null;
 
+    // ma.contentHash _may_ contain filesystem_xxhash64 (but needs getter)
     String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
     for (Integer maId : agMap.get(occId)) {
         System.out.println("migration/assets.jsp: " + maId + " from " + occId);
