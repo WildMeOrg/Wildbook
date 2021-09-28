@@ -21,6 +21,8 @@ Shepherd myShepherd=new Shepherd(context);
 String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
+String uploadDir = UploadServlet.getUploadDir(request);
+
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
 //   (this allows the session to be automatically consider non-bot, so the upload can happen)
 String password = "fhqwhgads";
@@ -47,12 +49,38 @@ if (!org.ecocean.servlet.ReCAPTCHA.sessionIsHuman(request)) {
 
 <script>
 function uploadFinished() {
-	console.log("uploadFinished! Callback executing");
-	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
 	var filename = document.getElementById('hiddenFilename').innerHTML;
-	// forward user to the review page
-	window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
-	//window.location.replace('upload?filename='+filename+"&isUserUpload=true");
+
+	console.log("Hidden filename: "+filename);
+	
+	$.ajax({
+		url: '../ValidateImportExcel',
+        type: 'GET',
+        dataType: 'json',
+		data: {
+			'filename': filename,
+		},
+        success: function(d) {
+			console.info('Import Excel File valid!');
+            mediaAssetSetId = d.mediaAssetSetId;
+			if (d['success']==true) {
+				document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
+				window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
+			} else {
+				//localUploader will kil this automatically, gotta bring it back for re-attempts on a fail
+				document.getElementById('upcontrols').style.display = 'block';
+				console.log('Excel Validation failed!');
+				alert('This Excel file exceeds the maximum row limit of 1000.');
+			}
+        },
+        error: function(a,b,c) {
+			console.info('Import Excel File NOT valid!: %o %o %o', a,b,c);
+			document.getElementById('upcontrols').style.display = 'block';
+            alert('Error validating Excel file!');
+        },
+    });
+	console.log("uploadFinished! Callback executing");
+	
 }
 </script>
 <body onLoad="uploaderInit(uploadFinished)">

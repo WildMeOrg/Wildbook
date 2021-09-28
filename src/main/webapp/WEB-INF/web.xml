@@ -2767,4 +2767,14 @@
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
 
+   <servlet>
+    <servlet-name>ValidateImportExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.ValidateImportExcel</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ValidateImportExcel</servlet-name>
+    <url-pattern>/ValidateImportExcel</url-pattern>
+  </servlet-mapping>
+
 </web-app>
