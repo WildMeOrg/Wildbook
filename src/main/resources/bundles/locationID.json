@@ -1041,6 +1041,8 @@
 				{ "name":"Aldabra Atoll", "id":"Aldabra Atoll", "locationID":[] }
 
 		  ] },
+		  
+		  { "name":"Western Australia", "id":"Western Australia", "locationID":[] },
 
 		  {"name":"Yemen","id":"Yemen","locationID":[
 
