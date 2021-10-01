@@ -127,7 +127,12 @@
 			 {
 			  "name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
 			  	{
-				  "name": "Gulf of Alaska", "id": "Gulf of Alaska" },
+				  "name": "Gulf of Alaska", "id": "Gulf of Alaska", "locationID":[
+				  
+					{"name": "Cook Inlet", "id": "Cook Inlet" }
+				  
+				  
+				  ] },
 
 				{ "name":"California", "id":"California", "locationID":[
 
