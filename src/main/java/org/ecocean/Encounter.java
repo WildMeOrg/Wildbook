@@ -4070,6 +4070,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             if (cdt != null) obj.put("time", cdt.toIso8601());
         }
 
+        if (this.getIndividual()!=null) {
+          obj.put("individual", getIndividual().asApiJSONObject());
+        } else {
+          obj.put("individual", "None");
+        }
+
         Taxonomy tx = this.getTaxonomy();
         if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
 
