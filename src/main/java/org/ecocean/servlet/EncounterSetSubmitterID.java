@@ -21,10 +21,8 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
+import org.ecocean.User;
 import org.ecocean.Shepherd;
-import org.ecocean.grid.EncounterLite;
-import org.ecocean.grid.GridManager;
-import org.ecocean.grid.GridManagerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -65,45 +63,43 @@ public class EncounterSetSubmitterID extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
+    boolean unauthorized = true;
 
     String encounterNumber = "None", submitter = "N/A";
     String prevSubmitter = "null";
    
-
-
+    
+    
     encounterNumber = request.getParameter("number");
     submitter = request.getParameter("submitter");
     if ((myShepherd.isEncounter(encounterNumber)) && (request.getParameter("number") != null)) {
       myShepherd.beginDBTransaction();
-      Encounter sharky = myShepherd.getEncounter(encounterNumber);
+      Encounter enc = myShepherd.getEncounter(encounterNumber);
+      
+      User encOwner = myShepherd.getUser(enc.getSubmitterID());
+      if ((encOwner==null&&request.isUserInRole("orgAdmin")|| // case 1
+          ServletUtilities.isCurrentUserOrgAdminOfTargetUser(encOwner, request, myShepherd)|| // case 2
+          ServletUtilities.isUserAuthorizedForEncounter(enc, request))&& // case 3
+          CommonConfiguration.isCatalogEditable(context)) { // all cases require
+        unauthorized = false;
+      }
 
       try {
-
-
-        if (sharky.getSubmitterID() != null) {
-          prevSubmitter = sharky.getSubmitterID();
+        if (enc.getSubmitterID() != null) {
+          prevSubmitter = enc.getSubmitterID();
         }
-
-        if(submitter.trim().equals("")){sharky.setSubmitterID(null);}
+        if(submitter.trim().equals("")){enc.setSubmitterID(null);}
         else{
-          sharky.setSubmitterID(submitter);
+          enc.setSubmitterID(submitter);
         }
-        sharky.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Changed Library submitter ID from " + prevSubmitter + " to " + submitter + ".</p>");
-
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Changed Library submitter ID from " + prevSubmitter + " to " + submitter + ".</p>");
       } catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();
       }
 
-      if (!locked) {
-        
-        //reset the entry in the GridManager graph
-        if(CommonConfiguration.useSpotPatternRecognition(context) && (sharky.getSpots()!=null || sharky.getRightSpots()!=null)) {
-          GridManager gm = GridManagerFactory.getGridManager();
-          gm.addMatchGraphEntry(sharky.getCatalogNumber(), new EncounterLite(sharky));
-        }
-        
+      if (!locked&&!unauthorized) {
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
@@ -113,19 +109,21 @@ public class EncounterSetSubmitterID extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         String message = "The submitter ID for encounter " + encounterNumber + " was changed from " + prevSubmitter + " to " + submitter + ".";
         ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
-      } 
-      else {
-        
+      } else if (!unauthorized) {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-
+      } else {
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> You must be the encounter owner or have elevated user roles to reassign submitter ID.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
       }
       
-    } 
-    else {
+    } else {
 
       out.println(ServletUtilities.getHeader(request));
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

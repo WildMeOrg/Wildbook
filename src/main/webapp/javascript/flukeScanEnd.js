@@ -348,7 +348,7 @@ console.log(ev); return;
 	computeCounts();
 	displayCounts();
 
-	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+	$('#results-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
 		if (!sTable.opts.sliderElement) return;
 		ev.preventDefault();
 		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
