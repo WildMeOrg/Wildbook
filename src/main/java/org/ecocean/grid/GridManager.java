@@ -743,19 +743,54 @@ public class GridManager {
   public static synchronized int getNumRightPatterns(){return numRightPatterns;}
   public static synchronized int getNumLeftPatterns(){return numLeftPatterns;}
   
+  private static ConcurrentHashMap<String, Long> speciesCountsMapLeft=new ConcurrentHashMap<String, Long>();
+  private static ConcurrentHashMap<String, Long> speciesCountsMapRight=new ConcurrentHashMap<String, Long>();
+  
+  public ConcurrentHashMap<String, Long> getSpeciesCountsMapLeft(){return speciesCountsMapLeft;}
+  public ConcurrentHashMap<String, Long> getSpeciesCountsMapRight(){return speciesCountsMapRight;}
+  
   /*
    * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare against.
    */
   private static synchronized void resetPatternCounts(){
     numLeftPatterns=0;
     numRightPatterns=0;
+    speciesCountsMapLeft=new ConcurrentHashMap<String, Long>();
+    speciesCountsMapRight=new ConcurrentHashMap<String, Long>();
     Enumeration<String> keys=getMatchGraph().keys();
     while(keys.hasMoreElements()){
       String key=keys.nextElement();
       EncounterLite el=getMatchGraphEncounterLiteEntry(key);
-      if((el.getSpots()!=null)&&(el.getSpots().size()>0)){numLeftPatterns++;}
-      if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){numRightPatterns++;}
+      String species="null";
+      if(el.getGenus()!=null&&el.getSpecificEpithet()!=null)species=(el.getGenus()+" "+el.getSpecificEpithet());
+      if((el.getSpots()!=null)&&(el.getSpots().size()>0)){
+        numLeftPatterns++;
+        //WB-1791 - do by-species counts as well
+        if(speciesCountsMapLeft.containsKey(species)) {
+          Long currentValue=speciesCountsMapLeft.get(species);
+          int currentValInt=currentValue.intValue();
+          currentValInt++;
+          speciesCountsMapLeft.put(species, new Long(currentValInt));
+        }
+        else {speciesCountsMapLeft.put(species, new Long(0));}
+      }
+      
+      if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){
+        numRightPatterns++;
+        //WB-1791 - do by-species counts as well
+        if(speciesCountsMapRight.containsKey(species)) {
+          Long currentValue=speciesCountsMapRight.get(species);
+          int currentValInt=currentValue.intValue();
+          currentValInt++;
+          speciesCountsMapRight.put(species, new Long(currentValInt));
+        }
+        else {speciesCountsMapRight.put(species, new Long(0));}
+      }
+      
+      
     }
+    
+
     
   }
   

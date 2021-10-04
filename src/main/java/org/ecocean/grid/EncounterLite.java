@@ -60,6 +60,10 @@ public class EncounterLite implements java.io.Serializable {
   private String belongsToMarkedIndividual="";
   String date = "";
   
+  //add for WB-1791 species-aware matching
+  String genus;
+  String specificEpithet;
+  
   String submitterID=null;
   String locationID=null;
 
@@ -137,6 +141,13 @@ public class EncounterLite implements java.io.Serializable {
 
 
     }
+    
+    //WB-1791 get species info
+    if(enc.getGenus()!=null) {
+      this.genus=enc.getGenus();
+      if(enc.getSpecificEpithet()!=null)this.specificEpithet=enc.getSpecificEpithet();
+    }
+
 
   }
 
@@ -1673,6 +1684,16 @@ public class EncounterLite implements java.io.Serializable {
   public String getLocationID() {return locationID;}
   
   public String getSubmitterID() {return submitterID;}
+  
+  //WB-1791 add species aware spot matching
+  public String getGenus() {return genus;}
+  public String getSpecificEpithet() {return specificEpithet;}
+  public boolean doesSpeciesMatch(EncounterLite el) {
+    if(this.getGenus()==null || this.getSpecificEpithet()==null) {return false;}
+    if(el.getGenus()==null || el.getSpecificEpithet()==null) {return false;}
+    if(this.getGenus().equals(el.getGenus()) && this.getSpecificEpithet().equals(el.getSpecificEpithet()))return true;
+    return false;
+  }
   
   
 }
