@@ -772,7 +772,7 @@ public class GridManager {
           currentValInt++;
           speciesCountsMapLeft.put(species, new Long(currentValInt));
         }
-        else {speciesCountsMapLeft.put(species, new Long(0));}
+        else {speciesCountsMapLeft.put(species, new Long(1));}
       }
       
       if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){
@@ -784,7 +784,7 @@ public class GridManager {
           currentValInt++;
           speciesCountsMapRight.put(species, new Long(currentValInt));
         }
-        else {speciesCountsMapRight.put(species, new Long(0));}
+        else {speciesCountsMapRight.put(species, new Long(1));}
       }
       
       
