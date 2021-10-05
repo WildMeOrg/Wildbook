@@ -4070,11 +4070,18 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             if (cdt != null) obj.put("time", cdt.toIso8601());
         }
 
+        org.json.JSONObject indObj = new org.json.JSONObject();
         if (this.getIndividual()!=null) {
-          obj.put("individual", getIndividual().asApiJSONObject());
-        } else {
-          obj.put("individual", "None");
+          MarkedIndividual individual = this.getIndividual();
+          indObj.put("id", individual.getId());
+          List<String> nameKeys = individual.getNameKeys();
+          org.json.JSONObject indNames = new org.json.JSONObject();
+          for (String nameKey : nameKeys) {
+            indNames.put(nameKey, individual.getName(nameKey));
+          }
+          indObj.put("names", indNames);
         }
+        obj.put("individual", indObj);
 
         Taxonomy tx = this.getTaxonomy();
         if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
