@@ -417,7 +417,9 @@ function setIndivAutocomplete(el) {
 
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
