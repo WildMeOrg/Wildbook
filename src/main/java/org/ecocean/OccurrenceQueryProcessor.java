@@ -23,7 +23,7 @@ import org.joda.time.format.ISODateTimeFormat;
 public class OccurrenceQueryProcessor extends QueryProcessor {
 
   //private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
-  private static final String SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && \"OCCURRENCEID\" != null";
+  private static final String SELECT_FROM_ORG_ECOCEAN_OCCURRENCE_WHERE = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && occurrenceID!=null";
   //private static final String VARIABLES_STATEMENT = " VARIABLES org.ecocean.Encounter enc";
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform","seaState","observer","comments","occurrenceID"};
@@ -34,7 +34,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
-    String filter = SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE;
+    String filter = SELECT_FROM_ORG_ECOCEAN_OCCURRENCE_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
     String context = "context0";

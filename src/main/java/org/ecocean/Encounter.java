@@ -3222,7 +3222,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
   }
 
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
     jobj=decorateJsonNoAnnots(request,jobj);
 
     jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");

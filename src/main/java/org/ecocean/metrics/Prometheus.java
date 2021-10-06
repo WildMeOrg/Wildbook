@@ -178,7 +178,7 @@ public class Prometheus
               if(vals.length>4)m_labels=vals[4].trim();
               if(m_type.equals("gauge")) {
                 
-                System.out.println("Loading gauge: "+m_key);
+                //System.out.println("Loading gauge: "+m_key);
                 
                 if(m_labels!=null) {
                   

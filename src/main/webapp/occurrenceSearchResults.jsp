@@ -66,7 +66,9 @@
 		JSONArray jsonobj = new JSONArray();
 		for (Occurrence occ : rOccurrences) {
 			JSONObject occObject = occ.getJSONSummary();
-			jsonobj.put(occObject);
+      occObject.put("_sanitized", !occ.canUserAccess(request));
+      // jsonobj.put(occ.uiJson(request));
+      jsonobj.put(occObject);
 		}
 
 		occsJson = jsonobj.toString();
@@ -225,7 +227,6 @@ $(document).keydown(function(k) {
 // functor!
 function _notUndefined(fieldName) {
   function _helperFunc(o) {
-	console.log("the fucking 'o' variable: "+JSON.stringify(o));
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
@@ -314,14 +315,12 @@ var counts = {
 };
 
 var sTable = false;
-//var searchResultsObjects = [];
+var searchResultsObjects = [];
 
 function doTable() {
-/*
 	for (var i = 0 ; i < searchResults.length ; i++) {
 		searchResultsObjects[i] = new wildbook.Model.Occurrence(searchResults[i]);
 	}
-*/
 
 	sTable = new SortTable({
 		data: searchResults,
@@ -365,7 +364,7 @@ function doTable() {
 	computeCounts();
 	displayCounts();
 
-	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+	$('#results-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
 		if (!sTable.opts.sliderElement) return;
 		ev.preventDefault();
 		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
@@ -433,6 +432,15 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
+    var privateResults = searchResultsObjects[results[i]].get('_sanitized') || false;
+    var title = 'Occurrence ' + searchResults[results[i]].occurrenceID;
+    if (privateResults) {
+      title += ' [private]';
+      $($('#results-table tbody tr')[i]).addClass('collab-private');
+    } else {
+      $($('#results-table tbody tr')[i]).removeClass('collab-private');
+    }
+    $('#results-table tbody tr')[i].title = title;
 		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
