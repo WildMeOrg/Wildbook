@@ -83,6 +83,7 @@ public class MergeIndividual extends HttpServlet {
       List<String> desiredIncrementalIdArr = new ArrayList<String>();
       List<String> deprecatedIncrementIdsArr = new ArrayList<String>();
       List<String> projIdsArr = new ArrayList<String>();
+      List<String> projNamesArr = new ArrayList<String>();
 
       String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
       if(desiredIncrementalIds != null){
@@ -93,8 +94,12 @@ public class MergeIndividual extends HttpServlet {
         deprecatedIncrementIdsArr = Arrays.asList(deprecatedIncrementIds.split(";"));
       }
       String projIds = request.getParameter("projIds");
+      String projNames = request.getParameter("projNames");
       if(projIds != null){
         projIdsArr = Arrays.asList(projIds.split(";"));
+      }
+      if(projNames != null){
+        projNamesArr = Arrays.asList(projNames.split(";"));
       }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
@@ -140,12 +145,13 @@ public class MergeIndividual extends HttpServlet {
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
-        boolean incrementalIdAndProjectIdListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size(); //assumes parallel syntax structure between these lists as well, although that is not strictly checked or enforced here (but hopefully ensured elsewhere)
-        if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectIdListsAreTheSameSize){
+        boolean incrementalIdAndProjectNameListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projNamesArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size() && desiredIncrementalIdArr.size()==projNamesArr.size() && projNamesArr.size() == projIdsArr.size();
+        if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectNameListsAreTheSameSize){
             for (int i=0; i<desiredIncrementalIdArr.size(); i++){
               if(!deprecatedIncrementIdsArr.get(i).equals("_")){
                 //there is a deprecated incremental ID that we need to rename and add to both individuals
-                mark1.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
+                mark1.addName("Merged " + projNamesArr.get(i),deprecatedIncrementIdsArr.get(i));
+                mark1.refreshNamesCache();
               }
               if(desiredIncrementalIdArr.get(i).equals("_")){
                 //Do nothing currently, I think
@@ -153,8 +159,11 @@ public class MergeIndividual extends HttpServlet {
                 // remove old name
                 mark1.getNames().removeKey(projIdsArr.get(i));
                 mark1.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
+
               }
             }
+        } else{
+          System.out.println("Error! incrementalIdAndProjectNameListsAreTheSameSize was false! ProjectID-related names were not successfully added to marked individual: " + mark1.getIndividualID());
         }
         if (throwaway) myShepherd.getPM().deletePersistent(mark2);
         myShepherd.commitDBTransaction();

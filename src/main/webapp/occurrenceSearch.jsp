@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException, java.util.Collections" %>
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -7,9 +7,6 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrenceSearch.jsp");
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
 
@@ -562,91 +559,45 @@ function FSControl(controlDiv, map) {
                 FormUtilities.printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
-              </table>
-              </table>
-           </div>
-           </td>
-           </tr>
-
-<tr>
-  <td>
-
-    <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
-      <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
-  </td>
-</tr>
-
-<tr>
-<td>
-  <div id="metadata" style="display:none; ">
-  <p><%=props.getProperty("metadataInstructions") %></p>
-
-  <strong><%=props.getProperty("username")%></strong><br />
-      <%
-        Shepherd inShepherd=new Shepherd("context0");
-      //inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getNativeUsers();
-        int numUsers = users.size();
-
-      %>
-
-      <select multiple size="5" name="submitterID" id="submitterID">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n).getUsername();
-            String userFullName=username;
-            if(users.get(n).getFullName()!=null){
-              userFullName=users.get(n).getFullName();
+              <option value="<%=username%>"><%=userFullName%></option>
+              <%
             }
+	        %>
+	      </select>
 
-          %>
-          <option value="<%=username%>"><%=userFullName%></option>
-          <%
-          }
-        %>
-      </select>
+
+	<%
+	  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
+	%>
+	</div>
+	</td>
+	</tr>
+
+
+	<tr>
+	  <td>
+	  </td>
+	</tr>
+	</table>
+	<br />
+	<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
+	</form>
+	</td>
+	</tr>
+	</table>
+	<br>
+	</div>
+
+	<script type="text/javascript" src="javascript/formNullRemover.js"></script>
 <%
-inShepherd.rollbackDBTransaction();
-inShepherd.closeDBTransaction();
-
+	}
+	catch(Exception f){
+		f.printStackTrace();
+	}
+	finally{
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
+		  myShepherd = null;
+	}
 %>
-
-<%
-  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
-%>
-</div>
-</td>
-</tr>
-
-<%
-  myShepherd.rollbackDBTransaction();
-%>
-
-
-<tr>
-  <td>
-  </td>
-</tr>
-</table>
-<br />
-<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
-</form>
-</td>
-</tr>
-</table>
-<br>
-</div>
-
-<script type="text/javascript" src="javascript/formNullRemover.js"></script>
-
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-<%
-  kwQuery.closeAll();
-  myShepherd.closeDBTransaction();
-  kwQuery = null;
-  myShepherd = null;
-%>

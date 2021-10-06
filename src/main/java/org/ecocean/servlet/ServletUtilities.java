@@ -376,6 +376,11 @@ public class ServletUtilities {
     return resourceFile;
   }
 
+  // there must be a less bad name for this
+  public static boolean isCurrentUserOrgAdminOfTargetUser(User user, HttpServletRequest request, Shepherd myShepherd) {
+    return request.isUserInRole("orgAdmin") && !myShepherd.getAllCommonOrganizationsForTwoUsers(user, myShepherd.getUser(myShepherd.getUsername(request))).isEmpty();
+  }
+
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
     //if (request.isUserInRole("admin")) {
