@@ -132,11 +132,15 @@ public Set<String> doneAnns = new HashSet<String>();
 private String annotSingleSql(Annotation ann, MediaAsset ma) {
     if (doneAnns.contains(ann.getId())) return "-- already processed " + ann + "\n";
     doneAnns.add(ann.getId());
-    String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?);";
+    String sqlIns = "INSERT INTO annotation (created, updated, viewed, guid, asset_guid, content_guid, viewpoint, ia_class, bounds) VALUES (now(), now(), now(), ?, ?, ?, ?, ?, ?);";
     sqlIns = MigrationUtil.sqlSub(sqlIns, ann.getId());
     sqlIns = MigrationUtil.sqlSub(sqlIns, ma.getUUID());
+    sqlIns = MigrationUtil.sqlSub(sqlIns, ann.getAcmId());
+    String vp = ann.getViewpoint();
+    if (vp == null) vp = "unknown";
+    sqlIns = MigrationUtil.sqlSub(sqlIns, vp);
     String iac = ann.getIAClass();
-    if (iac == null) iac = "";
+    if (iac == null) iac = "unknown";
     sqlIns = MigrationUtil.sqlSub(sqlIns, iac);
     JSONObject bounds = new JSONObject();
     if (ma.getMetadata() != null) ma.getMetadata().getDataAsString();  //nudge to load w/h properly. :sigh: thanks dn

@@ -49,6 +49,7 @@ public class MigrationUtil {
     }
 */
     public static String sqlSub(String inSql, String rep) {
+        if (rep == null) return sqlSub(inSql, "NULL", false);
         return sqlSub(inSql, rep, true);  //default behavior is quote (assumed string)
     }
     public static String sqlSub(String inSql, String rep, boolean quoteIt) {
