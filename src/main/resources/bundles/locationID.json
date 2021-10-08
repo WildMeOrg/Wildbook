@@ -114,7 +114,8 @@
 				{"name": "Galapagos Islands", "id": "Galapagos Islands" },
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
-			]}
+			]},
+			{ "name":"Taiwan", "id":"Taiwan", "locationID":[] }
 		],
 		"id": "PacificOcean",
 		"defaultLatitutde": 0.0,
