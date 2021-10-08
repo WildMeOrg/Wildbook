@@ -221,6 +221,10 @@ public class MediaAsset implements java.io.Serializable {
         id = i;
     }
 
+    public String getContentHash() {
+        return contentHash;
+    }
+
     public Occurrence getOccurrence() {
       return this.occurrence;
     }
@@ -405,6 +409,9 @@ public class MediaAsset implements java.io.Serializable {
     public long setRevision() {
         this.revision = System.currentTimeMillis();
         return this.revision;
+    }
+    public long getRevision() {
+        return revision;
     }
 
     public String setHashCode() {
