@@ -275,7 +275,11 @@
 		"defaultLongitude": 80.0
 	},
 
-	{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+	{ "name":"Brazil", "id":"Brazil", "locationID":[
+	
+		{ "name":"Rio de Janeiro, Arraial do Cabo", "id":"Rio de Janeiro, Arraial do Cabo", "locationID":[] }
+	
+	] },
 
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 
