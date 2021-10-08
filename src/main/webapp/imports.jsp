@@ -14,6 +14,8 @@ java.util.Iterator,
 org.ecocean.security.Collaboration,
 java.util.HashMap,
 org.ecocean.ia.Task,
+java.util.HashMap,
+java.util.LinkedHashSet,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -208,8 +210,8 @@ if (itask == null) {
     	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
     }	
     out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images","Match Results"};
+    String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
+    if (adminMode) headers = new String[]{"Encounter", "Date", "User", "Occurrence", "Individual", "#Images","Match Results by Class"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -279,6 +281,14 @@ if (itask == null) {
 
         //MediaAssets
         ArrayList<MediaAsset> mas = enc.getMedia();
+        
+        //de-duplicate MediaAssets
+        Set<MediaAsset> set = new LinkedHashSet<MediaAsset>();
+        set.addAll(mas);
+        mas.clear();
+        mas.addAll(set);
+        
+        
         if (Util.collectionSize(mas) < 1) {
             out.println("<td class=\"dim\">0</td>");
         } else {
@@ -295,6 +305,7 @@ if (itask == null) {
         
         //let's do some annotation tabulation
         ArrayList<Task> tasks=new ArrayList<Task>();
+        HashMap<String,String> annotTypesByTask=new HashMap<String,String>();
         for(Annotation annot:enc.getAnnotations()){
         	String viewpoint="null";
         	String iaClass="null";
@@ -318,7 +329,10 @@ if (itask == null) {
         	List<Task> relatedTasks = Task.getRootTasksFor(annot, myShepherd);
         	if(relatedTasks!=null && relatedTasks.size()>0){
         		for(Task task:relatedTasks){
-        			if(!tasks.contains(task)){tasks.add(task);}
+        			if(!tasks.contains(task)){
+        				tasks.add(task);
+        				annotTypesByTask.put(task.getId(),iaClass);
+        			}
         		}
         	}		
         	
@@ -328,7 +342,7 @@ if (itask == null) {
         if(tasks.size()>0){
         	out.println("     <ul>");
         	for(Task task:tasks){
-        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >link</a></ul>");
+        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >"+annotTypesByTask.get(task.getId())+"</a>");
         	}
         	out.println("     </ul>");
         	
