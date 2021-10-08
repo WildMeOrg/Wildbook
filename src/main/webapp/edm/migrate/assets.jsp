@@ -310,7 +310,7 @@ for (String occId : agMap.keySet()) {
     occ = null;
 
     // ma.contentHash _may_ contain filesystem_xxhash64 (but needs getter)
-    String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, title, meta, asset_group_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, 'TBD', ?, '00000000', '00000000-0000-0000-0000-000000000000', ?, ?, ?, ?);";
+    String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, content_guid, title, meta, asset_group_guid) VALUES (?, now(), now(), ?, ?, ?, ?, 'TBD', ?, ?, ?, ?, ?, ?, ?, ?);";
     for (Integer maId : agMap.get(occId)) {
         System.out.println("migration/assets.jsp: " + maId + " from " + occId);
         MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
@@ -323,13 +323,23 @@ for (String occId : agMap.keySet()) {
         String ext = (dot < 0) ? "" : "." + filename.substring(dot + 1);
         if (ext.length() < 2) ext = ".unknown";  //fallback?
         content += "ln -s '../_asset_group/" + filename + "' $TARGET_DIR/" + subdir + "/_assets/" + ma.getUUID() + ext + "\n";
+        String filesystemGuid = "00000000-0000-0000-0000-000000000000";  // TODO calculate
+        String mimeType = "UNKNOWN";
+        ImageAttributes iattr = ma.getImageAttributes();
+        if ((iattr != null) && (iattr.getFileType() != null)) mimeType = iattr.getFileType();
+        long rev = ma.getRevision();
+        if (rev < 0) rev = System.currentTimeMillis();
         String s = sqlIns;
+        s = MigrationUtil.sqlSub(s, Util.millisToIso8601StringNoTimezone(rev));
         s = MigrationUtil.sqlSub(s, ma.getUUID());
         s = MigrationUtil.sqlSub(s, ext.substring(1));
         s = MigrationUtil.sqlSub(s, filename);
-        s = MigrationUtil.sqlSub(s, "MIME");
+        s = MigrationUtil.sqlSub(s, mimeType);
         s = MigrationUtil.sqlSub(s, -1);
+        s = MigrationUtil.sqlSub(s, ma.getContentHash());
+        s = MigrationUtil.sqlSub(s, filesystemGuid);
         s = MigrationUtil.sqlSub(s, Util.generateUUID());  //semantic guid -- needs to be unique????
+        s = MigrationUtil.sqlSub(s, ma.getAcmId());
         s = MigrationUtil.sqlSub(s, "Legacy MediaAsset id=" + ma.getId());
         s = MigrationUtil.sqlSub(s, meta(ma));  //meta (should include dimensions)
         s = MigrationUtil.sqlSub(s, occId);
