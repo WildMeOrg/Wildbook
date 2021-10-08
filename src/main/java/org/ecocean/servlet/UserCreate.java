@@ -379,11 +379,19 @@ public class UserCreate extends HttpServlet {
           if(oldUsername != null && !oldUsername.equals("")){
             try{
               String tmpUsrSalt=ServletUtilities.getSalt().toHex();
-              String tmpUsrPassword = "tomcat123"; //it does not matter; this user will be gone very soon
-              String tmpUsrHashedPassword=ServletUtilities.hashAndSaltPassword(tmpUsrPassword, tmpUsrSalt);
-              newUserWithOldUsername=new User(oldUsername,tmpUsrHashedPassword,tmpUsrSalt);
+              String tmpUsr1Password = "tomcat123"; //it does not matter; this user will be gone very soon
+              String tmpUsr1HashedPassword=ServletUtilities.hashAndSaltPassword(tmpUsr1Password, tmpUsrSalt);
+
+              // Cannot have two users with the same username or email, so gonna have to give newUser a temporary username while consolidation happens, and then swap the true username back in
+              String newUserTrueUsername = newUser.getUsername();
+              String tmpUsr2Username="alert_WildMe_Staff_If_You_See_This_Username";
+              newUser.setUsername(tmpUsr2Username);
+              myShepherd.updateDBTransaction();
+              newUserWithOldUsername=new User(oldUsername,tmpUsr1HashedPassword,tmpUsrSalt);
               myShepherd.getPM().makePersistent(newUserWithOldUsername);
               UserConsolidate.consolidateUserForUserEdit(myShepherd, newUser, newUserWithOldUsername);
+              newUser.setUsername(newUserTrueUsername);
+              myShepherd.updateDBTransaction();
             }
             catch(Exception e){
               System.out.println("error while creating or de-duplicating a temporary user during user edit");
