@@ -767,10 +767,7 @@ public class GridManager {
         numLeftPatterns++;
         //WB-1791 - do by-species counts as well
         if(speciesCountsMapLeft.containsKey(species)) {
-          Long currentValue=speciesCountsMapLeft.get(species);
-          int currentValInt=currentValue.intValue();
-          currentValInt++;
-          speciesCountsMapLeft.put(species, new Long(currentValInt));
+          speciesCountsMapLeft.put(species, Long.sum(speciesCountsMapLeft.get(species), 1));
         }
         else {speciesCountsMapLeft.put(species, new Long(1));}
       }
@@ -779,10 +776,7 @@ public class GridManager {
         numRightPatterns++;
         //WB-1791 - do by-species counts as well
         if(speciesCountsMapRight.containsKey(species)) {
-          Long currentValue=speciesCountsMapRight.get(species);
-          int currentValInt=currentValue.intValue();
-          currentValInt++;
-          speciesCountsMapRight.put(species, new Long(currentValInt));
+          speciesCountsMapRight.put(species, Long.sum(speciesCountsMapRight.get(species),1));
         }
         else {speciesCountsMapRight.put(species, new Long(1));}
       }

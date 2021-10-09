@@ -61,8 +61,8 @@ public class EncounterLite implements java.io.Serializable {
   String date = "";
   
   //add for WB-1791 species-aware matching
-  String genus;
-  String specificEpithet;
+  String genus=null;
+  String specificEpithet=null;
   
   String submitterID=null;
   String locationID=null;
