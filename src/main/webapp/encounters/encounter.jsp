@@ -418,7 +418,9 @@ function setIndivAutocomplete(el) {
 
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -2666,7 +2668,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>

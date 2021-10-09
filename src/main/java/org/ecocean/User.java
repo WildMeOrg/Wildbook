@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -76,7 +77,7 @@ public class User implements Serializable {
 
   private boolean acceptedUserAgreement=false;
 
-  private boolean receiveEmails=true;
+  private Boolean receiveEmails=true;
 
   // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
   private Boolean sharing=true;
@@ -111,7 +112,7 @@ public class User implements Serializable {
     public User(String email,String uuid){
       this.uuid=uuid;
       setEmailAddress(email);
-      setReceiveEmails(true);
+      setReceiveEmails(CommonConfiguration.getDefaultReceiveEmails("context0"));
       String salt=ServletUtilities.getSalt().toHex();
       String pass=Util.generateUUID();
       String hashedPassword=ServletUtilities.hashAndSaltPassword(pass, salt);
@@ -341,8 +342,8 @@ public class User implements Serializable {
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
 
 
-    public boolean getReceiveEmails(){return receiveEmails;}
-    public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
+    public Boolean getReceiveEmails(){return receiveEmails;}
+    public void setReceiveEmails(Boolean receive){this.receiveEmails=receive;}
 
 
 
