@@ -564,7 +564,7 @@ function getIAInfoForEncounterData(el) {
       generateIALinkingMenu(d.IAInfo, encId);
     },
     error: function(x,y,z) {
-        conole.log('error getting some ia options!');
+        console.log('error getting some ia options!');
         console.warn('%o %o %o', x, y, z);
     }
   });
