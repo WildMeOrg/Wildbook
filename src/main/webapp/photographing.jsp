@@ -13,11 +13,12 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-		  <h2>Photographing A Whale Shark</h2>
+		  <h2>Photographing a Shark</h2>
 	
 			
-			<p>Did you know that by photographing a whale shark you can directly contribute to a global effort to better understand and protect these amazing animals? 
+			<p>Did you know that by photographing a shark you can directly contribute to a global effort to better understand and protect these amazing animals? 
 
+<h3>Whale Shark Example</h3>
 
  The whale shark is listed as <em>vulnerable </em>to extinction  in the <em><a href="http://www.iucnredlist.org/search/details.php/19488/all">IUCN Red List of Threatened Species</a>. </em>Photographs showing the distinctive patterning and scarring on whale sharks are used to
 			  uniquely identify individuals for long-term, mark-recapture analysis. Resulting population models can be used by local, regional, and international conservation and management authorities to understand the pressures on this species 
