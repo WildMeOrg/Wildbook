@@ -155,7 +155,7 @@ File encounterDir = new File(encountersDir, num);
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
 
-// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.  
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
 
 //let's load encounters.properties
@@ -1145,7 +1145,7 @@ if(enc.getLocation()!=null){
         <span class="form-control-feedback" id="depthError">X</span>
       </div>
       <div class="col-sm-3">
-        <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
+        <input name="AddDepth" type="submit" id="AddDepth" style="padding: 0" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
       </div>
     </div>
   </form>
@@ -1238,7 +1238,6 @@ if(enc.getLocation()!=null){
 <!-- End Display maximumElevationInMeters -->
 
 	<!-- START MAP and GPS SETTER -->
-
     <script type="text/javascript">
         var markers = [];
         var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
@@ -1756,10 +1755,10 @@ function resetIdButtons() {
                           String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
                           if(enc.getLocationID() != null && nextID == null){
                             nextID = encprops.getProperty("noLocationIdPrefix") + enc.getLocationID();
-                          } 
+                          }
                           if(enc.getLocationID() == null && nextID == null){
                             nextID = encprops.getProperty("noLocationID");
-                          } 
+                          }
                           %>
                            <script type="text/javascript">
                           	function populateID() {
@@ -1923,6 +1922,7 @@ function checkIdDisplay() {
 <!-- END INDIVIDUALID ATTRIBUTE -->
 
 <!-- START ALTERNATEID ATTRIBUTE -->
+<%-- comment this section out
             <%
             String alternateID="";
             if(enc.getAlternateID()!=null){
@@ -1985,7 +1985,7 @@ function checkIdDisplay() {
                 </div>
               </div>
             </form>
-
+end commenting out --%>
         <!-- END ALTERNATEID ATTRIBUTE -->
 
 
@@ -4305,6 +4305,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     </div>
 
 <!--  START GROUP ROLE SECTION -->
+<%-- comment out group role and patterning
 <p class="para"><%=encprops.getProperty("groupRole") %>&nbsp;
 
   <%
@@ -4509,7 +4510,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
   }
 %>
 <!--  END PATTERNING CODE SECTION -->
-
+comment out group role and patterning --%>
 
 
 <!--  START LIFESTAGE SECTION -->
