@@ -871,9 +871,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
