@@ -16,7 +16,7 @@
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
-    <geotools.version>8.3</geotools.version>
+    <geotools.version>23.0</geotools.version>
 	
 	<!--
 	 <project.http.version></project.http.version>
@@ -388,9 +388,9 @@
     <!-- end local repo dependencies-->
 
     <dependency>
-      <groupId>org.geotools</groupId>
-      <artifactId>gt-main</artifactId>
-      <version>${geotools.version}</version>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-shapefile</artifactId>
+        <version>${geotools.version}</version>
     </dependency>
 
     <dependency>
@@ -401,13 +401,17 @@
 
     <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-shapefile</artifactId>
+      <artifactId>gt-referencing</artifactId>
       <version>${geotools.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-epsg-hsql</artifactId>
+      <version>${geotools.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-epsg-extension</artifactId>
       <version>${geotools.version}</version>
     </dependency>
 
