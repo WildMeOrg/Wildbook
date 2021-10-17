@@ -2,9 +2,17 @@
 wildbook.NoteField = {
     originalContent: {},
     quill: {},
+    id: '',
+    
+    Quill.prototype.getHtml: function() {
+        return wildbook.NoteField.originalContent[id].container.querySelector('.ql-editor').innerHTML;
+    },
 
     editClick: function(wrap, ev) {
-        var id = wrap.id.substring(5);
+    	 Quill.prototype.getHtml = function() {
+    	        return this.container.querySelector('.ql-editor').innerHTML;
+    	    };
+        id = wrap.id.substring(5);
         if (wildbook.NoteField.quill[id]) return;
         wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
         $(wrap).find('.org-ecocean-notefield-control').css('visibility', 'hidden');
@@ -22,8 +30,7 @@ wildbook.NoteField = {
                 return node;
             }
         }
-        Quill.register({ 'formats/link': MyLink,
-        	'modules/htmlEditButton': htmlEditButton} );
+        Quill.register(MyLink);
 
         wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
             modules: {
@@ -44,17 +51,6 @@ wildbook.NoteField = {
 	            ['clean']      
                 ]
             },
-            htmlEditButton: {
-                debug: true, // logging, default:false
-                msg: "Edit the content in HTML format", //Custom message to display in the editor, default: Edit HTML here, when you click "OK" the quill editor's contents will be replaced
-                okText: "Ok", // Text to display in the OK button, default: Ok,
-                cancelText: "Cancel", // Text to display in the cancel button, default: Cancel
-                buttonHTML: "&lt;&gt;", // Text to display in the toolbar button, default: <>
-                buttonTitle: "Show HTML source", // Text to display as the tooltip for the toolbar button, default: Show HTML source
-                syntax: false, // Show the HTML with syntax highlighting. Requires highlightjs on window.hljs (similar to Quill itself), default: false
-                prependSelector: 'div#myelement', // a string used to select where you want to insert the overlayContainer, default: null (appends to body),
-                editorModules: {} // The default mod
-              },
             theme: 'snow'
         });
         var menus = '<span class="ql-formats">';
@@ -198,13 +194,16 @@ wildbook.NoteField = {
 	$codeEnabled = 0;
 	$("#switchCode").click(function(){
 		if($codeEnabled == 0){
-			$codeEnabled = 1;
+			/*$codeEnabled = 1;
 			var s = $(".ql-editor").html();
 			$("#code").val(s);
 			var d = $("#code").val();
 			$(".ql-editor").text(d);
 			
-			$("#switchCode").text("SHOW TEXT");
+			$("#switchCode").text("SHOW TEXT");*/
+			
+			
+			wildbook.NoteField.originalContent[id].pasteHTML(quillEd_txtArea_1.value);
 		}
 		else{
 			$codeEnabled = 0;
