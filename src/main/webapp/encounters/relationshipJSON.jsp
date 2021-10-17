@@ -53,10 +53,19 @@ context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("relationshipJson.jsp");
 
+String cacheName="relationshipJson";
 
+//inject individualID stuff here as all this stuff is SLOW
+String individualIDClauseRel="";
+String individualIDClauseSocUnit="";
+if(request.getParameter("individualID")!=null){
+	individualIDClauseRel=" && (markedIndividualName1 =='"+request.getParameter("individualID")+"' || markedIndividualName2 =='"+request.getParameter("individualID")+"' )";
+	individualIDClauseSocUnit=" WHERE members.contains(member) && member.mi.individualID=='"+request.getParameter("individualID")+"' VARIABLES org.ecocean.social.Membership member";
+	cacheName = cacheName+"_"+request.getParameter("individualID");
+}
 
-String filter="SELECT FROM org.ecocean.social.Relationship where type != 'CommunityMembership'";
-String filter2="SELECT FROM org.ecocean.social.SocialUnit";
+String filter="SELECT FROM org.ecocean.social.Relationship where type != 'CommunityMembership' "+individualIDClauseRel;
+String filter2="SELECT FROM org.ecocean.social.SocialUnit "+individualIDClauseSocUnit;
 
 Query query=null;
 Query query2=null;
@@ -75,17 +84,18 @@ try {
 	javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
 	grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("timeOfBirth").addMember("timeOfDeath").addMember("dateFirstIdentified").addMember("dateTimeLatestSighting").addMember("encounters");
 
+
 	
 	
 	//GET FORMAL RELATIONSHIPS BUT IGNORE OLD FORMAT COMMUNITYMEMBERSHIP THAT IS NOW REPLACED WITH SOCIALUNIT and MEMBERSHIP objects
-	if(qc.getQueryByName("relationshipJson")!=null && System.currentTimeMillis()<qc.getQueryByName("relationshipJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
-		jsonobj=Util.toggleJSONObject(qc.getQueryByName("relationshipJson").getJSONSerializedQueryResult());
-		System.out.println("Getting relationshipJson cache!");
+	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+		System.out.println("Getting relationshipJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing relationshipJson cache!");
+		System.out.println("Refreshing relationshipJson cache: "+cacheName);
 		
-
+		System.out.println("query1 filter: "+filter);
 		query=myShepherd.getPM().newQuery(filter);
 	
 		myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
@@ -95,20 +105,21 @@ try {
 	
 		Collection result = (Collection)query.execute();
 		ArrayList<Relationship> rels=new ArrayList<Relationship>(result);
-		
+		System.out.println("relationshipJSON.jsp query 1 complete");
 		
 	        
 	        for(Relationship rel:rels){
 	        	jarray.put(rel.uiJson(request));
 	        }
 	        
-
+	    System.out.println("query 1 processing complete");
+	    System.out.println("query2 filter: "+filter2);
 		query2=myShepherd.getPM().newQuery(filter2);
 	
 	
 		Collection result2 = (Collection)query2.execute();
 		ArrayList<SocialUnit> rels2=new ArrayList<SocialUnit>(result2);
-		
+		System.out.println("relationshipJSON.jsp query 2 complete");
 	        
 	        for(SocialUnit su:rels2){
 	        	List<MarkedIndividual> indies=su.getMarkedIndividuals();
@@ -123,14 +134,17 @@ try {
 	        	}
 	        }
 	        
+	        System.out.println("query 2 processing complete");
 	        
 	      //somehow add jsonobjSU to jsonobj results jarray
 	      
 	        jsonobj.put("results",jarray);
 	      
-	        CachedQuery cq=new CachedQuery("relationshipJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
+	        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(jsonobj), false, myShepherd);
 	        cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
 	        qc.addCachedQuery(cq);
+	        
+	        System.out.println("relationshipJSON.jsp query cache posting complete");
 	        		
 		}
 	
