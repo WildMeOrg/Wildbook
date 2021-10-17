@@ -24,12 +24,19 @@ public JSONObject uiJson(Occurrence indy, HttpServletRequest request) throws JSO
   JSONObject jobj = new JSONObject();
 
   jobj.put("occurrenceID", indy.getOccurrenceID());
+  jobj.put("locationID", indy.getLocationID());
 
   	JSONArray jArray =new JSONArray();
     for (Encounter enc : indy.getEncounters()) {
     	JSONObject jobjEnc = new JSONObject();
     	boolean hasIDs=false;
-		if(enc.getIndividual()!=null)jobjEnc.put("individualID", enc.getIndividual().getIndividualID());
+		if(enc.getIndividual()!=null){
+			jobjEnc.put("individualID", enc.getIndividual().getIndividualID());
+			jobjEnc.put("displayName", enc.getIndividual().getDisplayName());
+			jobjEnc.put("sex", enc.getIndividual().getSex());
+			jobjEnc.put("haplotype", enc.getIndividual().getHaplotype());
+		}
+		if(enc.getLocationID()!=null)jobjEnc.put("locationID", enc.getLocationID());
 		
     	jArray.put(jobjEnc);
     }
