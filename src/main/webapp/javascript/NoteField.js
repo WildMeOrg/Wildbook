@@ -11,7 +11,8 @@ wildbook.NoteField = {
 
         /// see:  https://github.com/quilljs/quill/issues/1139
         var Link = Quill.import('formats/link');
-        var htmlEditButton = Quill.import('quill-html-edit-button');
+        /*var htmlEditButton = Quill.import('quill-html-edit-button');*/
+        
         class MyLink extends Link {
             static create(value) {
                 let node = super.create(value);
@@ -21,8 +22,8 @@ wildbook.NoteField = {
                 return node;
             }
         }
-        Quill.register({ 'formats/link': MyLink,
-        	"modules/htmlEditButton": htmlEditButton} );
+        /*Quill.register({ 'formats/link': MyLink,
+        	'modules/htmlEditButton': htmlEditButton} );*/
 
         wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
             modules: {
