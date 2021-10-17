@@ -4,14 +4,11 @@ wildbook.NoteField = {
     quill: {},
     id: '',
     
-    Quill.prototype.getHtml: function() {
-        return wildbook.NoteField.originalContent[id].container.querySelector('.ql-editor').innerHTML;
-    },
-
     editClick: function(wrap, ev) {
-    	 Quill.prototype.getHtml = function() {
-    	        return this.container.querySelector('.ql-editor').innerHTML;
-    	    };
+    	Quill.prototype.getHtml= function() {
+            return wildbook.NoteField.originalContent[id].container.querySelector('.ql-editor').innerHTML;
+        };
+    	
         id = wrap.id.substring(5);
         if (wildbook.NoteField.quill[id]) return;
         wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
