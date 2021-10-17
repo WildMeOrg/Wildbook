@@ -41,7 +41,7 @@ public JSONObject uiJson(Occurrence indy, HttpServletRequest request) throws JSO
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
-//System.out.println("??? TRY COMPRESS ??");
+	//System.out.println("??? TRY COMPRESS ??");
     //String s = scrubJson(req, jo).toString();
     String s = jo.toString();
     if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
@@ -116,10 +116,10 @@ try {
 	//GET FORMAL RELATIONSHIPS BUT IGNORE OLD FORMAT COMMUNITYMEMBERSHIP THAT IS NOW REPLACED WITH SOCIALUNIT and MEMBERSHIP objects
 	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-		System.out.println("Getting occurrenceJson cache: "+cacheName);
+		//System.out.println("Getting occurrenceJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing occurrenceGraphJson cache: "+cacheName);
+		//System.out.println("Refreshing occurrenceGraphJson cache: "+cacheName);
 		
 
 		query=myShepherd.getPM().newQuery(filter);
