@@ -461,7 +461,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
                     map: map,
                     markerOptions: {flat:true,
                     				clickable:false,
-                    				icon:"../images/Kitizensciencelogo.png"},
+                    				icon:"../images/Kitizensciencelogo.png"}
          });
 				 
 		 
