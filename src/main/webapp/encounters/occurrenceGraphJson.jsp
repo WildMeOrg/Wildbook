@@ -75,12 +75,24 @@ myShepherd.setAction("occurrenceGraphJson.jsp");
 
 
 String genusFilter="";
+String cacheName="occurrenceGraphJson";;
 if(request.getParameter("genus")!=null){
 	genusFilter="&& enc.genus == '"+request.getParameter("genus")+"'";
+	cacheName = cacheName+"_"+request.getParameter("genus");
+}
+
+String cacheIDFilter="";
+String individualIDFilter="";
+if(request.getParameter("individualID")!=null){
+	individualIDFilter=" && enc.individual.individualID == '"+request.getParameter("individualID")+"'";
+	cacheName = cacheName+"_"+request.getParameter("individualID");
 }
 
 
-String filter="SELECT FROM org.ecocean.Occurrence where encounters.size() > 1 && encounters.contains(enc) && enc.individual != null "+genusFilter+" VARIABLES org.ecocean.Encounter enc";
+String filter="SELECT FROM org.ecocean.Occurrence where encounters.size() > 1 && encounters.contains(enc) && enc.individual != null "+individualIDFilter+genusFilter+" VARIABLES org.ecocean.Encounter enc";
+
+
+
 
 Query query=null;
 
@@ -102,12 +114,12 @@ try {
 	
 	
 	//GET FORMAL RELATIONSHIPS BUT IGNORE OLD FORMAT COMMUNITYMEMBERSHIP THAT IS NOW REPLACED WITH SOCIALUNIT and MEMBERSHIP objects
-	if(qc.getQueryByName("occurrenceJson")!=null && System.currentTimeMillis()<qc.getQueryByName("occurrenceJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
-		jsonobj=Util.toggleJSONObject(qc.getQueryByName("occurrenceJson").getJSONSerializedQueryResult());
-		System.out.println("Getting occurrenceJson cache!");
+	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+		System.out.println("Getting occurrenceJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing relationshipJson cache!");
+		System.out.println("Refreshing occurrenceGraphJson cache: "+cacheName);
 		
 
 		query=myShepherd.getPM().newQuery(filter);
