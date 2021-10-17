@@ -90,10 +90,10 @@ try {
 	//GET FORMAL RELATIONSHIPS BUT IGNORE OLD FORMAT COMMUNITYMEMBERSHIP THAT IS NOW REPLACED WITH SOCIALUNIT and MEMBERSHIP objects
 	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-		System.out.println("Getting relationshipJson cache: "+cacheName);
+		//System.out.println("Getting relationshipJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing relationshipJson cache: "+cacheName);
+		//System.out.println("Refreshing relationshipJson cache: "+cacheName);
 		
 		System.out.println("query1 filter: "+filter);
 		query=myShepherd.getPM().newQuery(filter);
@@ -112,14 +112,14 @@ try {
 	        	jarray.put(rel.uiJson(request));
 	        }
 	        
-	    System.out.println("query 1 processing complete");
-	    System.out.println("query2 filter: "+filter2);
+	    //System.out.println("query 1 processing complete");
+	    //System.out.println("query2 filter: "+filter2);
 		query2=myShepherd.getPM().newQuery(filter2);
 	
 	
 		Collection result2 = (Collection)query2.execute();
 		ArrayList<SocialUnit> rels2=new ArrayList<SocialUnit>(result2);
-		System.out.println("relationshipJSON.jsp query 2 complete");
+		//System.out.println("relationshipJSON.jsp query 2 complete");
 	        
 	        for(SocialUnit su:rels2){
 	        	List<MarkedIndividual> indies=su.getMarkedIndividuals();
@@ -134,7 +134,7 @@ try {
 	        	}
 	        }
 	        
-	        System.out.println("query 2 processing complete");
+	        //System.out.println("query 2 processing complete");
 	        
 	      //somehow add jsonobjSU to jsonobj results jarray
 	      
@@ -144,7 +144,7 @@ try {
 	        cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
 	        qc.addCachedQuery(cq);
 	        
-	        System.out.println("relationshipJSON.jsp query cache posting complete");
+	        //System.out.println("relationshipJSON.jsp query cache posting complete");
 	        		
 		}
 	

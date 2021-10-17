@@ -53,7 +53,7 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
-//System.out.println("??? TRY COMPRESS ??");
+	//System.out.println("??? TRY COMPRESS ??");
     //String s = scrubJson(req, jo).toString();
     String s = jo.toString();
     if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
@@ -119,10 +119,10 @@ try {
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
 	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-		System.out.println("Getting socialJson cache: "+cacheName);
+		//System.out.println("Getting socialJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing socialJson cache: "+cacheName);
+		//System.out.println("Refreshing socialJson cache: "+cacheName);
 		PersistenceManagerFactory pmf = myShepherd.getPM().getPersistenceManagerFactory();
 	
 		//individual
