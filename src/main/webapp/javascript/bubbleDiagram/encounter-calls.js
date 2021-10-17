@@ -23,40 +23,47 @@ var getData = function(individualID, displayName) {
 
 	console.log("QUERY: "+wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"));
 
-    d3.json(wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+    //d3.json(wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+	d3.json(wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?individualID='+individualID, function(error, json) {
+	
 	if(error) {
             console.log("error")
 	}
 	var jsonData = json;
 	for(var i=0; i < jsonData.length; i++) {
             var thisOcc = jsonData[i];
-            //console.log("JsonData["+i+"] = "+JSON.stringify(thisOcc));
+            console.log("JsonData["+i+"] = "+JSON.stringify(thisOcc));
             var encounterSize = thisOcc.encounters.length;
             // make encounterArray, containing the individualIDs of every encounter in thisOcc;
             for(var j=0; j < encounterSize; j++) {
-		//console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
-		var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
-		//console.log("thisEncIndID="+thisEncIndID);
+				console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
+				var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
+				var sex=thisOcc.encounters[j].sex;
+				var haplotype=thisOcc.encounters[j].haplotype;
+				var location=thisOcc.encounters[j].locationID;
+				//console.log("thisEncIndID="+thisEncIndID);
 		
-		//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
-		//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-		if (!thisEncIndID || (thisEncIndID==displayName)) continue;  //unknown indiv -> false
-		if(encounterArray.includes(thisEncIndID)) {
-		} else {
-		    encounterArray.push(thisEncIndID);
-		}
+				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
+				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+				if (!thisEncIndID || (thisEncIndID==displayName)) continue;  //unknown indiv -> false
+				if(encounterArray.includes(thisEncIndID)) {
+				} 
+				else {
+		    		encounterArray.push(thisEncIndID);
+				}
             }
             occurrenceArray = occurrenceArray.concat(encounterArray);
             var occurrenceID = jsonData[i].encounters[0].occurrenceID;
             var index = encounterArray.indexOf(individualID.toString());
             if (~index) {
-		encounterArray[index] = "";
+				encounterArray[index] = "";
             }
             var occurrenceObject = new Object();
             if(encounterArray.length > 0) {
-		occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
-            } else {
-		occurrenceObject = {occurrenceID: "", occurringWith: ""};
+				occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
+            } 
+			else {
+				occurrenceObject = {occurrenceID: "", occurringWith: ""};
             }
             occurrenceObjectArray.push(occurrenceObject);
             encounterArray = [];
@@ -64,23 +71,33 @@ var getData = function(individualID, displayName) {
 
 	for(var i = 0; i < occurrenceArray.length; ++i) {
             if(!dataObject[occurrenceArray[i]])
-		dataObject[occurrenceArray[i]] = 0;
+				dataObject[occurrenceArray[i]] = 0;
             ++dataObject[occurrenceArray[i]];
 	}
 	for (var prop in dataObject) {
             var whale = new Object();
-            whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
+            whale = {text:prop, count:dataObject[prop], sex: sex, location: location};
             items.push(whale);	
 	}
 	//if (items.length > 0) {
-            getSexHaploData(individualID, items);
+    //        getSexHaploData(individualID, items);
 	//}
+	
+	makeTable(items, "#coHead", "#coBody", null,["occurringWith", "occurrenceNumber","sex","location"]);
+	$('#cooccurrenceTable tr').click(function() {
+            selectedWhale = ($(this).attr("class"));
+            goToWhaleURL(selectedWhale);
+	});
+	
 	getEncounterTableData(occurrenceObjectArray, individualID);
     });
 };
 
+/*
 var getSexHaploData = function(individualID, items) {
-    d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
+    //d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
+	d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == '" + individualID + "'"), function(error, json) {
+	
 	if(error) {
 	    console.log("error")
 	}
@@ -93,6 +110,7 @@ var getSexHaploData = function(individualID, items) {
 	    result.sex = jsonData[i].sex;
 	    result.haplotype = jsonData[i].localHaplotypeReflection;
 	}
+	
 	makeTable(items, "#coHead", "#coBody", null,["occurringWith", "occurrenceNumber","sex","location"]);
 	$('#cooccurrenceTable tr').click(function() {
             selectedWhale = ($(this).attr("class"));
@@ -100,6 +118,7 @@ var getSexHaploData = function(individualID, items) {
 	});
     });
 };
+*/
 
 var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, keys) {
     var previousSort = null;
