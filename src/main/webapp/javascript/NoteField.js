@@ -11,7 +11,7 @@ wildbook.NoteField = {
 
         /// see:  https://github.com/quilljs/quill/issues/1139
         var Link = Quill.import('formats/link');
-        var htmlButton = Quill.import('quill-html-edit-button');
+        var htmlEditButton = Quill.import('quill-html-edit-button');
         class MyLink extends Link {
             static create(value) {
                 let node = super.create(value);
