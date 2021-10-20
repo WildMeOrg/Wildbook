@@ -100,7 +100,9 @@ String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contain
 String individualIDFilter="";
 if(request.getParameter("individualID")!=null){
 	individualIDFilter = request.getParameter("individualID");
-	filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this || rel.individual2==this) && (rel.markedIndividualName1 =='"+request.getParameter("individualID")+"' || rel.markedIndividualName2 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+	//filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this || rel.individual2==this) && (rel.markedIndividualName1 =='"+request.getParameter("individualID")+"' || rel.markedIndividualName2 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+	filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this && rel.markedIndividualName2 =='"+request.getParameter("individualID")+"') || (rel.individual2==this && rel.markedIndividualName1 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+
 }
 
 
