@@ -77,7 +77,7 @@ public class MergeIndividual extends HttpServlet {
         errorAndClose(msg, response);
         return;
       }
-      
+
       oldName1 = mark1.getDisplayName() + "("+Util.prettyUUID(mark1.getIndividualID())+")";
       oldName2 = mark2.getDisplayName() + "("+Util.prettyUUID(mark2.getIndividualID())+")";
 
@@ -87,6 +87,7 @@ public class MergeIndividual extends HttpServlet {
       List<String> desiredIncrementalIdArr = new ArrayList<String>();
       List<String> deprecatedIncrementIdsArr = new ArrayList<String>();
       List<String> projIdsArr = new ArrayList<String>();
+      List<String> projNamesArr = new ArrayList<String>();
 
       String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
       if(desiredIncrementalIds != null){
@@ -97,8 +98,12 @@ public class MergeIndividual extends HttpServlet {
         deprecatedIncrementIdsArr = Arrays.asList(deprecatedIncrementIds.split(";"));
       }
       String projIds = request.getParameter("projIds");
+      String projNames = request.getParameter("projNames");
       if(projIds != null){
         projIdsArr = Arrays.asList(projIds.split(";"));
+      }
+      if(projNames != null){
+        projNamesArr = Arrays.asList(projNames.split(";"));
       }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
@@ -111,19 +116,30 @@ public class MergeIndividual extends HttpServlet {
       if (userPrincipal!=null) {
         currentUsername = userPrincipal.getName();
       }
-      
+
       //if we can't determine who is requeting this, no merge
       if (currentUsername!=null) {
 
-        
+        /*
+        ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
+        for (String user : mark2Users) {
+          if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
+            allUniqueUsers.add(user);
+            System.out.println("unique user == "+user);
+          }
+
+
+        }//end for
+        */
+
         //WB-1017
         //1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database calls.
         //2. if User has full edit access to every Encounter of both MarkedIndividuals, they are trusted to make this decision automatically
         //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
-        if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {  
+        if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {
           canMergeAutomatically = true;
           System.out.println("Can merge automatically.");
-        } 
+        }
         else {
           System.out.println("Scheduling a merge between: "+mark1.getIndividualID()+" and "+mark2.getIndividualID());
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
@@ -137,12 +153,13 @@ public class MergeIndividual extends HttpServlet {
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
-        boolean incrementalIdAndProjectIdListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size(); //assumes parallel syntax structure between these lists as well, although that is not strictly checked or enforced here (but hopefully ensured elsewhere)
-        if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectIdListsAreTheSameSize){
+        boolean incrementalIdAndProjectNameListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projNamesArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size() && desiredIncrementalIdArr.size()==projNamesArr.size() && projNamesArr.size() == projIdsArr.size();
+        if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectNameListsAreTheSameSize){
             for (int i=0; i<desiredIncrementalIdArr.size(); i++){
               if(!deprecatedIncrementIdsArr.get(i).equals("_")){
                 //there is a deprecated incremental ID that we need to rename and add to both individuals
-                mark1.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
+                mark1.addName("Merged " + projNamesArr.get(i),deprecatedIncrementIdsArr.get(i));
+                mark1.refreshNamesCache();
               }
               if(desiredIncrementalIdArr.get(i).equals("_")){
                 //Do nothing currently, I think
@@ -150,12 +167,15 @@ public class MergeIndividual extends HttpServlet {
                 // remove old name
                 mark1.getNames().removeKey(projIdsArr.get(i));
                 mark1.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
+
               }
             }
+        } else{
+          System.out.println("Error! incrementalIdAndProjectNameListsAreTheSameSize was false! ProjectID-related names were not successfully added to marked individual: " + mark1.getIndividualID());
         }
         if (throwaway) myShepherd.getPM().deletePersistent(mark2);
         myShepherd.commitDBTransaction();
-  
+
       }
       else {
         myShepherd.rollbackDBTransaction();
@@ -168,7 +188,7 @@ public class MergeIndividual extends HttpServlet {
       le.printStackTrace();
       myShepherd.rollbackDBTransaction();
       errorAndClose("An exception occurred. Please contact the admins.", response);
-      
+
     }
     finally {
       myShepherd.closeDBTransaction();
@@ -182,24 +202,24 @@ public class MergeIndividual extends HttpServlet {
 
         // redirect to the confirm page
         try {
-          
+
           //WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
-          
+
           RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(("/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1));
-          dispatcher.forward(request, response); 
-          
+          dispatcher.forward(request, response);
+
         }
         catch (IOException ioe) {
           ioe.printStackTrace();
         }
 
-      } 
+      }
     else if (!locked) {
         response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
-        
-      } 
+
+      }
      else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }

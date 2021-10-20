@@ -97,7 +97,7 @@ public class Feature implements java.io.Serializable {
     }
     public void setId(String i) {
         id = i;
-    }   
+    }
 
     public FeatureType getType() {
         return type;
@@ -189,7 +189,7 @@ public class Feature implements java.io.Serializable {
 
 
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                                                                    boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+        boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
         org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
         jobj.put("id", id);
         if (this.getType() != null) jobj.put("type", this.getType().getId());
