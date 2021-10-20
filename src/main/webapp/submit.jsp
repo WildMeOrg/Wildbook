@@ -1262,6 +1262,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
        <fieldset>
         <h3><%=props.getProperty("tags") %></h3>
+				<p><%=props.getProperty("tagsDescription") %></p>
+				<br>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
