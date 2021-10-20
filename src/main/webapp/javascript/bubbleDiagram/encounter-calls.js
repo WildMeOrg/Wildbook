@@ -45,7 +45,7 @@ var getData = function(individualID, displayName) {
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-				if (!thisEncIndID || (thisEncIndID==displayName)) continue;  //unknown indiv -> false
+				if (!thisEncIndID || (thisEncIndID===displayName)) continue;  //unknown indiv -> false
 				if(encounterArray.includes(thisEncIndID)) {
 				} 
 				else {
