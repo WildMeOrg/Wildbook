@@ -252,7 +252,7 @@ You too can assist with shark research, by submitting photos and sighting data. 
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph the flanks</h3>
 					<p class="lead">
-						Each shark has an individual fingerprint, such as the pattern of spots behind the gills on the left or right sides of a whale shark. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your shark might be completely new to the database.
+						Each shark has an individual fingerprint, such as the spots behind the gills on the sides of a whale shark or the 1st dorsal fin of a white shark. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your shark might be completely new to the database.
 					</p>
 					<p class="lead">
 						<a href="photographing.jsp" title="">See the photography guide</a>
