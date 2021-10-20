@@ -502,7 +502,6 @@ finally{
                             	<li class="divider"></li>
                             	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
                             	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                             <%
                             }
                             %>
