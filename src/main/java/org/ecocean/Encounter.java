@@ -2204,7 +2204,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
   public void setDecimalLongitude(Double lon) {
-      if ((lon != null) && !Util.isValidDecimalLatitude(lon)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
+      if ((lon != null) && !Util.isValidDecimalLongitude(lon)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
       this.decimalLongitude = lon;
       gpsLongitude = Util.decimalLatLonToString(lon);
         setVersion();
