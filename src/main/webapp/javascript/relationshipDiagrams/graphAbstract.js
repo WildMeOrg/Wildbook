@@ -245,8 +245,7 @@ class GraphAbstract { //See static attributes below class
      * @param {diagramId} [Node] - An HTML reference dictating where the info message should be appended
      */	
     incompleteInfoMessage(diagramId) {
-	$(diagramId).html("<h4 id='incompleteInfoMsg'>There are currently no known " +
-			  "relationships for this Marked Individual</h4>")
+	$(diagramId).html("<p> </p><p id='incompleteInfoMsg'>No data is available.</p>")
     }
 
     /**
