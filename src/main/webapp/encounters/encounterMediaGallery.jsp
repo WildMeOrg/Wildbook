@@ -326,7 +326,10 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 
 }
-catch(Exception e){e.printStackTrace();}
+catch(Exception e){
+  System.out.println("I tried do stuff in encounterMediaGallery but caught the following error:")
+  e.printStackTrace();
+}
 finally{
 	query.closeAll();
 	imageShepherd.rollbackDBTransaction();
