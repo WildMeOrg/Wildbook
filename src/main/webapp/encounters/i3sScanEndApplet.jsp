@@ -42,7 +42,7 @@ context=ServletUtilities.getContext(request);
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-  }	
+  }
   String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
@@ -55,7 +55,7 @@ context=ServletUtilities.getContext(request);
   File file = new File("foo");
   String scanDate = "";
   String side2 = "";
-  
+
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -88,13 +88,13 @@ context=ServletUtilities.getContext(request);
   if (usaUser) {
     linkURLBase = "ncaquariums.wildbook.org";
   }
- 
+
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
-  
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -133,14 +133,14 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
 
 .tr-location-nonlocal {
     opacity: 0.6;
@@ -347,7 +347,7 @@ td, th {
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 		  <%
-		  
+
 
 		    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
 		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
@@ -418,13 +418,13 @@ $(document).ready(function() {
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-  
+
 <a name="resultstable"></a>
 <table class="tablesorter">
 
 <table width="800px">
   <thead>
-  
+
         <tr align="left" valign="top">
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
@@ -435,6 +435,7 @@ $(document).ready(function() {
         </thead>
         <tbody>
         <%
+          Shepherd nameShepherd = new Shepherd(context);
           if (!xmlOK) {
 
             I3SMatchObject[] results = new I3SMatchObject[1];
@@ -443,11 +444,18 @@ $(document).ready(function() {
             for (int p = 0; p < results.length; p++) {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr align="left" valign="top">
-         
-                <td width="60" align="left"><a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+
+                <td width="60" align="left">
+                <%
+                  String localIndividualName = results[p].getIndividualName();
+                  if (Util.isUUID(localIndividualName)) {
+                    localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                  }
+                %>
+                <a
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
                 </a></td>
-             
+
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
@@ -475,7 +483,7 @@ $(document).ready(function() {
             //end for loop
           }
 
-//or use XML output here	
+//or use XML output here
         } else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
@@ -491,7 +499,7 @@ $(document).ready(function() {
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
-          
+
                 <td width="60" align="left"><a
                   href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
                 </a>
@@ -500,7 +508,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
+            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
@@ -545,7 +553,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
         %>
 
-      
+
 </tbody>
 </table>
 
@@ -563,11 +571,10 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-    
+
 
 
 %>
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
