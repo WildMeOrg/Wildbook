@@ -59,8 +59,8 @@ wildbook.NoteField = {
         
        // $("#switchCode").addEventListener('click', function(evt) {
         $("#switchCode").click(function(){
-        	var t = wildbook.NoteField.quill[id].getHtml();
-        	wildbook.NoteField.quill[id].value = wildbook.NoteField.quill[id].getHtml();
+        	var t = wildbook.NoteField.quill[id].container.querySelector('.ql-editor').innerHTML;
+        	wildbook.NoteField.quill[id].value = t;
         });
         
     },
