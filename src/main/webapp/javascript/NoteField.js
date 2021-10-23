@@ -2,14 +2,14 @@
 wildbook.NoteField = {
     originalContent: {},
     quill: {},
-    id: '',
+   
     
     editClick: function(wrap, ev) {
     	Quill.prototype.getHtml= function() {
             return wildbook.NoteField.originalContent[id].container.querySelector('.ql-editor').innerHTML;
         };
     	
-        id = wrap.id.substring(5);
+        var id = wrap.id.substring(5);
         if (wildbook.NoteField.quill[id]) return;
         wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
         $(wrap).find('.org-ecocean-notefield-control').css('visibility', 'hidden');
@@ -191,16 +191,16 @@ wildbook.NoteField = {
 	$codeEnabled = 0;
 	$("#switchCode").click(function(){
 		if($codeEnabled == 0){
-			/*$codeEnabled = 1;
-			var s = $(".ql-editor").html();
-			$("#code").val(s);
-			var d = $("#code").val();
-			$(".ql-editor").text(d);
+			$codeEnabled = 1;
+			var s = $(".ql-editor").innerHTML;
+			//$("#code").val(s);
+			//var d = $("#code").val();
+			$(".ql-editor").value = s;
 			
-			$("#switchCode").text("SHOW TEXT");*/
+			$("#switchCode").text("SHOW TEXT");
 			
 			
-			wildbook.NoteField.originalContent[id].pasteHTML(quillEd_txtArea_1.value);
+			//wildbook.NoteField.originalContent[id].pasteHTML(quillEd_txtArea_1.value);
 		}
 		else{
 			$codeEnabled = 0;
