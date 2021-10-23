@@ -56,6 +56,12 @@ wildbook.NoteField = {
         menus += '</span>';
         $(wildbook.NoteField.quill[id].getModule('toolbar').container).append(menus);
         wildbook.NoteField.kitsciExtend();
+        
+        $("$switchCode").addEventListener('click', function(evt) {
+        	var t = wildbook.NoteField.quill[id].getHtml();
+        	wildbook.NoteField.quill[id].value = wildbook.NoteField.quill[id].getHtml();
+        });
+        
     },
 
     closeEdit: function(id, content) {  //content overrides quill content
@@ -189,7 +195,7 @@ wildbook.NoteField = {
 	})
 
 	$codeEnabled = 0;
-	$("#switchCode").click(function(){
+	$("#switchCode1").click(function(){
 		if($codeEnabled == 0){
 			$codeEnabled = 1;
 			var s = $(".ql-editor").innerHTML;
