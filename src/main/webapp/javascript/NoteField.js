@@ -57,7 +57,7 @@ wildbook.NoteField = {
         $(wildbook.NoteField.quill[id].getModule('toolbar').container).append(menus);
         wildbook.NoteField.kitsciExtend();
         
-        $("$switchCode").addEventListener('click', function(evt) {
+        $("#switchCode").addEventListener('click', function(evt) {
         	var t = wildbook.NoteField.quill[id].getHtml();
         	wildbook.NoteField.quill[id].value = wildbook.NoteField.quill[id].getHtml();
         });
