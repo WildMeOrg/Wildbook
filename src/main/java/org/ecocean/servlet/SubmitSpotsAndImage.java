@@ -156,9 +156,14 @@ System.out.println("====> params = " + params);
     System.out.println("    + updated children for asset "+crMa.toString()+"; hasFamily = "+crMa.hasFamily(myShepherd));
     String speciesString = enc.getTaxonomyString();
     Annotation ann = new Annotation(speciesString, crMa);
-    ann.setMatchAgainst(true);
-    String iaClass = "whalesharkCR"; // should we change this?
-    ann.setIAClass(iaClass);
+    
+    //WB-1841 only whale sharks are currently matchable via this method
+    if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
+      ann.setMatchAgainst(true);
+      String iaClass = "whalesharkCR"; // should we change this?
+      ann.setIAClass(iaClass);
+    }
+    
     if(rightSide) {ann.setViewpoint("right");}
     else {ann.setViewpoint("left");}
     enc.addAnnotation(ann);
