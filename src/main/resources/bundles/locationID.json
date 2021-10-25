@@ -209,9 +209,22 @@
 					  {
 					  "name": "Farallon Islands", "id": "Farallon Islands" },
 					  {
+					  "name": "La Jolla Cove", "id": "La Jolla Cove" },
+					  {
+					  "name": "Morro Bay", "id": "Morro Bay" },
+					  {
+					  "name": "Point La Jolla", "id": "Point La Jolla" },
+					  {
+					  "name": "Point Loma", "id": "Point Loma" },
+					  {
 					  "name": "Point Reyes", "id": "Point Reyes" },
 					  {
-					  "name": "Morro Bay", "id": "Morro Bay" }
+					  "name": "San Diego", "id": "San Diego" },
+					  {
+					  "name": "SoCal", "id": "SoCal" }
+					  
+
+
 				  
 				  ]},
 				  
@@ -250,6 +263,9 @@
 				  
 				  {
 				  "name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  
+				  {
+					  "name": "Oregon", "id": "Oregon" },
 
 				{
 				  "name": "8a", "id": "8a" },
@@ -258,7 +274,9 @@
 				  "name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
 				  
 				  {
-				  "name": "Peru", "id": "Peru" }
+				  "name": "Peru", "id": "Peru" },
+				  {
+					  "name": "Washington", "id": "Washington" }
 				  
 				  
 				  
