@@ -25,6 +25,293 @@
 						{ "name":"East Australia", "id":"East Australia", "locationID":[
 							{ "name":"Cape Byron", "id":"Cape Byron", "locationID":[] }
 						] },
+						
+						{
+							"name": "Broughton Island",
+							"id": "BI",
+							"geospatialInfo":{
+								"lat":-32.6166,
+								"long":152.3333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Big Seal",
+							"id": "BS",
+							"geospatialInfo": {
+								"lat": -32.4666,
+								"long": 152.55
+							},
+							"locationID": []
+						},
+						{
+							"name": "Bait Grounds, Forster",
+							"id": "BT",
+							"geospatialInfo": {
+								"lat": -32.166,
+								"long": 152.5166
+							},
+							"locationID": []
+						},
+						{
+							"name": "Cherubs Cave",
+							"id": "CC",
+							"geospatialInfo": {
+								"lat": -27.1166,
+								"long": 153.4666
+							},
+							"locationID": []
+						},
+						{
+							"name": "Cod Grounds,Laurieton",
+							"id": "CG",
+							"geospatialInfo": {
+								"lat": -31.6817,
+								"long": 152.901
+							},
+							"locationID": []
+						},
+						{
+							"name": "Coffs Harbour",
+							"id": "CH",
+							"geospatialInfo": {
+								"lat": -30.2476,
+								"long": 153.36
+							},
+							"locationID": []
+						},
+						{
+							"name": "Dalmeny Point",
+							"id": "DP",
+							"geospatialInfo": {
+								"lat": -36.167,
+								"long": 150.1333
+							},
+							"locationID": []
+						},
+					{
+							"name": "Diamond Bay, Vaucluse, Sydney",
+							"id": "VAUCLUSE",
+							"geospatialInfo": {
+								"lat": -33.862778,
+								"long": 151.283333
+							},
+							"locationID": []
+						},
+					{
+							"name": "Drum Drumsticks",
+							"id": "DD",
+							"geospatialInfo": {
+								"lat": -35.047,
+								"long": 150.54
+							},
+							"locationID": []
+						},
+						{
+							"name": "Fairy Bower",
+							"id": "FB",
+							"geospatialInfo": {
+								"lat": -34.0486111,
+								"long": 151.5372222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Foggy Cave,Terrigal",
+							"id": "FC",
+							"geospatialInfo": {
+								"lat": -33.4355556,
+								"long": 151.5844444
+							},
+							"locationID": []
+						},
+						{
+							"name": "Flinders Reef",
+							"id": "FL",
+							"geospatialInfo": {
+								"lat": -26.9833333,
+								"long": 153.4847222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Fish Rock",
+							"id": "FR",
+							"geospatialInfo": {
+								"lat": -30.9402778,
+								"long": 153.0958333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Flat Rock",
+							"id": "FT",
+							"geospatialInfo": {
+								"lat": -27.1333333,
+								"long": 153.5583333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Julian Rocks",
+							"id": "JR",
+							"geospatialInfo": {
+								"lat": -28.6138889,
+								"long": 153.6263889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Long Reef, Sydney",
+							"id": "LF",
+							"geospatialInfo": {
+								"lat": -33.7361111,
+								"long": 151.3250000
+							},
+							"locationID": []
+						},
+						{
+							"name": "Latitude Reef, Forster",
+							"id": "LR",
+							"geospatialInfo": {
+								"lat": -32.2088889,
+								"long": 152.5680556
+							},
+							"locationID": []
+						},
+						{
+							"name": "Little Seal",
+							"id": "LS",
+							"geospatialInfo": {
+								"lat": -32.4763889,
+								"long": 152.5472222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Montague Island",
+							"id": "MI",
+							"geospatialInfo": {
+								"lat": -36.2416667,
+								"long": 150.2263889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Magic Point",
+							"id": "MP",
+							"geospatialInfo": {
+								"lat": -33.9625000,
+								"long": 151.2638889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Mermaid Reef",
+							"id": "MR",
+							"geospatialInfo": {
+								"lat": -31.7680556,
+								"long": 152.8069444
+							},
+							"locationID": []
+						},
+						{
+							"name": "North Bondi",
+							"id": "NB",
+							"geospatialInfo": {
+								"lat": -33.9013889,
+								"long": 151.2722222
+							},
+							"locationID": []
+						},
+						{
+							"name": "North Solitary",
+							"id": "NS",
+							"geospatialInfo": {
+								"lat": -29.9180556,
+								"long": 153.3833333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Pinnacle Forster",
+							"id": "PF",
+							"geospatialInfo": {
+								"lat": -32.2402778,
+								"long": 152.6013889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Skeleton Reef, Forster",
+							"id": "SK",
+							"geospatialInfo": {
+								"lat": -32.4083333,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Seal Rocks",
+							"id": "SR",
+							"geospatialInfo": {
+								"lat": -32.4666667,
+								"long": 152.5500000
+							},
+							"locationID": []
+						},
+					{
+							"name": "South Bondi",
+							"id": "SB",
+							"locationID": []
+						},
+						{
+							"name": "South Solitary Island",
+							"id": "SS",
+							"geospatialInfo": {
+								"lat": -30.2083333,
+								"long": 153.2833333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Sawtooth",
+							"id": "ST",
+							"geospatialInfo": {
+								"lat": -32.4447222,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "The Barge",
+							"id": "TB",
+							"geospatialInfo": {
+								"lat": -32.1527778,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Tollgate",
+							"id": "TG",
+							"geospatialInfo": {
+								"lat": -35.7555556,
+								"long": 150.2541667
+							},
+							"locationID": []
+						},
+						{
+							"name": "Wolf Rock",
+							"id": "WR",
+							"geospatialInfo": {
+								"lat": -25.9111111,
+								"long": 153.2055556
+							},
+							"locationID": []
+						},
+						
+						
 						{	
 						"name": "Gold Coast", "id": "Gold Coast", "prefix": "AP-", "prefixDigitPadding": 3 },
 						
