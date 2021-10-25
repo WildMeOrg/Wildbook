@@ -22,15 +22,25 @@
 				  
 				  {
 				  "name": "Australia (Pacific Ocean)", "id": "1b", "prefix": "AP-", "prefixDigitPadding": 3, "locationID": [ 
-				  
+						{ "name":"East Australia", "id":"East Australia", "locationID":[
+							{ "name":"Cape Byron", "id":"Cape Byron", "locationID":[] }
+						] },
 						{	
 						"name": "Gold Coast", "id": "Gold Coast", "prefix": "AP-", "prefixDigitPadding": 3 },
 						
 						{	
 						"name": "Queensland", "id": "Queensland", "prefix": "AP-", "prefixDigitPadding": 3 },
+						{
+							"name": "North Stradbroke Island",
+							"id": "North Stradbroke Island",
+						"geospatialInfo":{"lat":-27.423971,"long":153.547871},
+							"locationID": []
+						},
 				  
 						{
 						"name": "NSW", "id": "NSW", "prefix": "AP-", "prefixDigitPadding": 3 }
+
+
 				 ]}
 			  
 			  ]},
@@ -98,14 +108,39 @@
 			  ] 
 			  },
 			  
-			  {
-			  "name": "4a", "id": "4a", "prefix": "MZ-", "prefixDigitPadding": 3 },
+			  { "name":"Mozambique", "id":"Mozambique", "locationID":[
 			  
-			  			  {
-			  "name": "4a1", "id": "4a1", "prefix": "MZ-", "prefixDigitPadding": 3 },
+			  	{
+					"name": "4a", "id": "4a", "prefix": "MZ-", "prefixDigitPadding": 3 },
 			  
-			  			  {
-			  "name": "4a2", "id": "4a2" },
+					{
+					"name": "4a1", "id": "4a1", "prefix": "MZ-", "prefixDigitPadding": 3 },
+			  
+			  		{
+					"name": "4a2", "id": "4a2" },
+
+					{ "name":"Bazaruto", "id":"Bazaruto", "locationID":[] },
+
+					{ "name":"Morrungulo", "id":"Morrungulo", "locationID":[] },
+
+					{ "name":"Pomene", "id":"Pomene", "locationID":[] 	},
+
+					{ "name":"San Sebastian", "id":"San Sebastian", "locationID":[] },
+
+					{ "name":"Tofo", "id":"Tofo", "locationID":[
+						{ "name":"Amazon", "id":"Amazon", "locationID":[] },
+						{ "name":"Giants Castle", "id":"Giants Castle", "locationID":[] },
+						{ "name":"Hospital", "id":"Hospital", "locationID":[] },
+						{ "name":"Manta Reef", "id":"Manta Reef", "locationID":[] },
+						{ "name":"Office", "id":"Office", "locationID":[] },
+						{ "name":"Reggies", "id":"Reggies", "locationID":[] }
+				] },
+
+				{ "name":"Zavora", "id":"Zavora", "locationID":[] }
+
+			] },
+			  
+
 			  
 			  			  {
 			  "name": "Tanzania", "id": "Tanzania", "prefix": "TZ-", "prefixDigitPadding": 3 },
