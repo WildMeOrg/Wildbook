@@ -1102,6 +1102,8 @@ public class Shepherd {
   }
 
   public boolean doesUserHaveRole(String username, String rolename, String context) {
+    username = username.replaceAll("\\'", "\\\\'");
+    rolename = rolename.replaceAll("\\'", "\\\\'");
     String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "' && this.context == '"+context+"'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
