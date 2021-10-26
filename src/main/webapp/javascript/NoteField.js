@@ -2,13 +2,8 @@
 wildbook.NoteField = {
     originalContent: {},
     quill: {},
-   
-    
+
     editClick: function(wrap, ev) {
-    	Quill.prototype.getHtml= function() {
-            return wildbook.NoteField.originalContent[id].container.querySelector('.ql-editor').innerHTML;
-        };
-    	
         var id = wrap.id.substring(5);
         if (wildbook.NoteField.quill[id]) return;
         wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
@@ -16,8 +11,6 @@ wildbook.NoteField = {
 
         /// see:  https://github.com/quilljs/quill/issues/1139
         var Link = Quill.import('formats/link');
-        /*var htmlEditButton = Quill.import('quill-html-edit-button');*/
-        
         class MyLink extends Link {
             static create(value) {
                 let node = super.create(value);
@@ -56,13 +49,6 @@ wildbook.NoteField = {
         menus += '</span>';
         $(wildbook.NoteField.quill[id].getModule('toolbar').container).append(menus);
         wildbook.NoteField.kitsciExtend();
-        
-       // $("#switchCode").addEventListener('click', function(evt) {
-        $("#switchCode").click(function(){
-        	var t = wildbook.NoteField.quill[id].container.querySelector('.ql-editor').innerHTML;
-        	wildbook.NoteField.quill[id].value = t;
-        });
-        
     },
 
     closeEdit: function(id, content) {  //content overrides quill content
@@ -196,18 +182,15 @@ wildbook.NoteField = {
 	})
 
 	$codeEnabled = 0;
-	$("#switchCode1").click(function(){
+	$("#switchCode").click(function(){
 		if($codeEnabled == 0){
 			$codeEnabled = 1;
-			var s = $(".ql-editor").innerHTML;
-			//$("#code").val(s);
-			//var d = $("#code").val();
-			$(".ql-editor").value = s;
+			var s = $(".ql-editor").html();
+			$("#code").val(s);
+			var d = $("#code").val();
+			$(".ql-editor").text(d);
 			
 			$("#switchCode").text("SHOW TEXT");
-			
-			
-			//wildbook.NoteField.originalContent[id].pasteHTML(quillEd_txtArea_1.value);
 		}
 		else{
 			$codeEnabled = 0;
