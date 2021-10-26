@@ -8,7 +8,7 @@
 
 <%!
 // here I'll define some methods that will end up in classEditTemplate
-//Recommiting
+
 public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
@@ -403,22 +403,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		  zoom: mapZoom,
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.TERRAIN,
-		  fullscreenControl: true,
-		  
+		  fullscreenControl: true
 		});
-	  
-<%-- 	  var image = "../Image/favicon.ico"
-	  var kitizenmarker = new google.maps.Marker({
-		  position: {center}
-	  map,
-	  icon: image,
-	  url: "encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"
-	  });
-	  
-	  google.maps.event.addListener(marker, 'click', function() {
-	      window.location.href = marker.url;
-	      window.open(this.url, '_blank');
-	    }); --%>
 
    map.enableKeyDragZoom({
           visualEnabled: true,
@@ -459,21 +445,19 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		//read in the KML
 		 geoXml = new geoXML3.parser({
                     map: map,
-                    markerOptions: {flat:true,
-                    				clickable:false,
-                    				icon:"../images/Kitizensciencelogo.png"}
+                    markerOptions: {flat:true,clickable:false},
+
          });
-				 
-		 
+
+		
+	
         geoXml.parse(filename);
-        
-        
         
     	var iw = new google.maps.InfoWindow({
     		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
          
-    	iw.open(map); 
+    	iw.open(map);
     	
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
 
@@ -481,16 +465,14 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
       }
 	    
    }
-  
-  
+ 
 //not using this function right now. kept because it might be useful later  
 function useData(doc){	
 	geoXmlDoc = doc;
 	kml = geoXmlDoc[0];
-	
     if (kml.markers) {
 	 for (var i = 0; i < kml.markers.length; i++) {
-	     if(i==0){alert(kml.markers[i].getVisible());
+	     //if(i==0){alert(kml.markers[i].getVisible());
 	 }
    } 
 }
@@ -1570,6 +1552,5 @@ else {
 <script type="text/javascript" src="../javascript/formNullRemover.js"></script>
 
 <jsp:include page="../footer.jsp" flush="true"/>
-
 
 
