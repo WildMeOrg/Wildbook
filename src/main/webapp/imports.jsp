@@ -48,7 +48,7 @@ if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
   String langCode=ServletUtilities.getLanguageCode(request);
   props = ShepherdProperties.getProperties("login.properties", langCode,context);
 */
-  
+
 
 
 %>
@@ -162,12 +162,12 @@ if (itask == null) {
 	            }
 	            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
 	        }
-	
+
 	        int indivCount = 0;
 	        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
 	            if (enc.hasMarkedIndividual()) indivCount++;
 	        }
-	
+
 	        out.println("<tr>");
 	        out.println("<td><a title=\"" + task.getId() + "\" href=\"imports.jsp?taskId=" + task.getId() + "\">" + task.getId().substring(0,8) + "</a></td>");
 	        if (adminMode) {
@@ -208,7 +208,7 @@ if (itask == null) {
     out.println("<br>Status: "+itask.getStatus());
     if(itask.getParameters()!=null){
     	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-    }	
+    }
     out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Encounter", "Date", "Occurrence", "Individual", "#Images","Match Results by Class"};
     if (adminMode) headers = new String[]{"Encounter", "Date", "User", "Occurrence", "Individual", "#Images","Match Results by Class"};
@@ -217,25 +217,25 @@ if (itask == null) {
     }
 
     out.println("</tr></thead><tbody>");
-    
-    
+
+
     //if incomplete refresh
     if(itask.getStatus()!=null && !itask.getStatus().equals("complete")){
     %>
-	    
+
 	    <p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
 	  <script type="text/javascript">
 	  (function countdown(remaining) {
 		    if(remaining === 0)location.reload(true);
 		    document.getElementById('countdown').innerHTML = remaining;
 		    setTimeout(function(){ countdown(remaining - 1); }, 1000);
-	
+
 		})
-		    (60);	
-		    
+		    (60);
+
 	  </script>
-	    
-	    
+
+
 	    <%
     }
 
@@ -249,7 +249,7 @@ if (itask == null) {
 
     HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
-       
+
     	JSONArray jarr=new JSONArray();
     	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
@@ -281,14 +281,14 @@ if (itask == null) {
 
         //MediaAssets
         ArrayList<MediaAsset> mas = enc.getMedia();
-        
+
         //de-duplicate MediaAssets
         Set<MediaAsset> set = new LinkedHashSet<MediaAsset>();
         set.addAll(mas);
         mas.clear();
         mas.addAll(set);
-        
-        
+
+
         if (Util.collectionSize(mas) < 1) {
             out.println("<td class=\"dim\">0</td>");
         } else {
@@ -302,7 +302,7 @@ if (itask == null) {
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
             }
         }
-        
+
         //let's do some annotation tabulation
         ArrayList<Task> tasks=new ArrayList<Task>();
         HashMap<String,String> annotTypesByTask=new HashMap<String,String>();
@@ -324,7 +324,7 @@ if (itask == null) {
         		numAnnotations++;
         	}
         	if(annot.getMatchAgainst())numMatchAgainst++;
-        	
+
         	//let's look for match results we can easily link for the user
         	List<Task> relatedTasks = Task.getRootTasksFor(annot, myShepherd);
         	if(relatedTasks!=null && relatedTasks.size()>0){
@@ -334,10 +334,10 @@ if (itask == null) {
         				annotTypesByTask.put(task.getId(),iaClass);
         			}
         		}
-        	}		
-        	
+        	}
+
         }
-        
+
         out.println("<td>");
         if(tasks.size()>0){
         	out.println("     <ul>");
@@ -345,14 +345,14 @@ if (itask == null) {
         		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >"+annotTypesByTask.get(task.getId())+"</a>");
         	}
         	out.println("     </ul>");
-        	
-        }			
+
+        }
         out.println("</td>");
 
         out.println("</tr>");
-        
+
         jarrs.put(enc.getCatalogNumber(), jarr);
-        
+
     }
     int percent = -1;
     if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
@@ -399,7 +399,7 @@ try{
 			}
 		}
 		%>
-		
+
 	</ul>
 	</p>
 <%
@@ -452,7 +452,7 @@ function sendToIA(skipIdent) {
         }
     });
 }
- 
+
 </script>
 </p>
 
@@ -466,21 +466,21 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 <% } %>
 </p>
 
-<% if (adminMode) { 
+<% if (adminMode) {
 %>
     <div id="ia-send-div">
-    
+
 	    <%
 	    if ((numIA < 1 || forcePushIA) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
 	    %>
 	    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
-	
+
 	    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
 	    	<select multiple id="id-locationids" style="vertical-align: top;">
 	        	<option selected><%= String.join("</option><option>", locationIds) %></option>
 	        	<option value="">ALL locations</option>
 	    	</select>
-	    	
+
 	    <%
 	    }
  } //end if admin mode
@@ -497,7 +497,7 @@ if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMod
 <%
 }
 %>
-    	
+
     </div>
 
 </p>
@@ -516,4 +516,3 @@ if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMod
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 %>
-

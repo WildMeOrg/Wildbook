@@ -138,7 +138,8 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         String kv=keys.nextElement();
         EncounterLite el=chm.get(kv);
         //Encounter enc = (Encounter) encounters.next();
-        if (!kv.equals(encounterNumber)) {
+        //WB-1791 - make the creation thread species aware
+        if (!kv.equals(encounterNumber) && baseEnc.doesSpeciesMatch(el) ) {
           String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
           if (rightSide && (el.getRightSpots() != null) && (el.getRightSpots().size() > 0)) {
             //add the workItem
