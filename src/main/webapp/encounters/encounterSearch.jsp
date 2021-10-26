@@ -446,7 +446,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		 geoXml = new geoXML3.parser({
                     map: map,
                     markerOptions: {flat:true,clickable:false},
-
+                    icon:"../images/Kitizensciencelogo.png"}
          });
 
 		
