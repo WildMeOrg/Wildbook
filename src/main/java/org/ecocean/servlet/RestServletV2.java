@@ -37,6 +37,7 @@ import org.ecocean.customfield.CustomFieldException;
 import org.ecocean.User;
 import org.ecocean.Role;
 import org.ecocean.Organization;
+import org.ecocean.MergeException;
 import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
 import org.ecocean.api.ApiHttpServlet;
@@ -148,6 +149,10 @@ System.out.println("######>>>>>> payload=" + payload);
         }
         if (payload.optJSONObject("query") != null) {
             QueryParser.handleQuery(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("class", "__FAIL__").equals("merge")) {
+            handleMerge(request, response, payload, instanceId, context);
             return;
         }
 
@@ -1364,6 +1369,86 @@ rtn.put("_payload", payload);
                 SystemLog.info("RestServlet.handleDelete() deleted {} id={}, cascade-deleted MarkedIndividual {}", cls, id, indiv.getId());
             }
             if (arr.length() > 0) resJson.put("deletedIndividuals", arr);
+        }
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        rtn.put("result", resJson);
+        rtn.put("success", true);
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.getBytes("UTF-8").length);
+        out.println(rtnS);
+        out.close();
+    }
+
+    private void handleMerge(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        JSONObject rtn = new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleMerge");
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+
+        String targetId = payload.optString("targetIndividualId", null);
+        MarkedIndividual target = myShepherd.getMarkedIndividual(targetId);
+        if (target == null) {
+            myShepherd.rollbackDBTransaction();
+            response.setStatus(404);
+            rtn.put("message", "unknown target individual id=" + targetId);
+            rtn.put("invalidId", targetId);
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.getBytes("UTF-8").length);
+            out.println(rtnS);
+            out.close();
+            return;
+        }
+
+        JSONArray fromIds = payload.optJSONArray("sourceIndividualIds");
+        if ((fromIds == null) || (fromIds.length() < 1)) {
+            myShepherd.rollbackDBTransaction();
+            response.setStatus(500);
+            rtn.put("message", "sourceIndividualIds must not be empty");
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.getBytes("UTF-8").length);
+            out.println(rtnS);
+            out.close();
+            return;
+        }
+
+        Set<MarkedIndividual> fromIndividuals = new HashSet<MarkedIndividual>();
+        for (int i = 0 ; i < fromIds.length() ; i++) {
+            String fid = fromIds.optString(i, null);
+            MarkedIndividual findiv = myShepherd.getMarkedIndividual(fid);
+            if (findiv == null) {
+                myShepherd.rollbackDBTransaction();
+                response.setStatus(404);
+                rtn.put("message", "unknown source individual id=" + fid);
+                rtn.put("invalidId", fid);
+                String rtnS = rtn.toString();
+                response.setContentLength(rtnS.getBytes("UTF-8").length);
+                out.println(rtnS);
+                out.close();
+                return;
+            }
+            fromIndividuals.add(findiv);
+        }
+
+        // TODO handle passed in sex, primaryName
+        JSONObject resJson = target.mergeFrom(myShepherd, fromIndividuals);
+        try {
+            resJson = target.mergeFrom(myShepherd, fromIndividuals);
+        } catch (MergeException ex) {
+                myShepherd.rollbackDBTransaction();
+                response.setStatus(500);
+                rtn.put("message", "merge failed");
+                rtn.put("errorFields", new JSONArray(ex.getFields()));
+                String rtnS = rtn.toString();
+                response.setContentLength(rtnS.getBytes("UTF-8").length);
+                out.println(rtnS);
+                out.close();
+                return;
         }
 
         myShepherd.commitDBTransaction();

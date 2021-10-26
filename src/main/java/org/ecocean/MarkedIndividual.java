@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 
 import org.ecocean.api.ApiDeleteCascadeException;
 import org.ecocean.api.ApiValueException;
+import org.ecocean.MergeException;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.security.Collaboration;
@@ -3043,6 +3044,24 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return rtn;
   }
 
+    public org.json.JSONObject mergeFrom(Shepherd myShepherd, Set<MarkedIndividual> fromIndividuals) throws MergeException {
+        if (Util.collectionIsEmptyOrNull(fromIndividuals)) throw new MergeException("empty source individuals list", "sourceIndividualsIds");
+        org.json.JSONObject res = new org.json.JSONObject();
+        org.json.JSONArray merged = new org.json.JSONArray();
+        // TODO handle overrides being passed in
+        String targetSex = this.getSex();
+        // TODO do we *set* a null sex on target based on from???  only if they all match???
+        for (MarkedIndividual from : fromIndividuals) {
+            String sex = from.getSex();
+            if ((sex != null) && (targetSex != null) && !sex.equals(targetSex)) throw new MergeException("empty source individuals list", "sex");
+            ///// DO ACTUAL MERGE
+            merged.put(from.getId());
+        }
+        res.put("merged", merged);
+        res.put("targetSex", this.getSex());
+        res.put("targetDefaultName", this.getDefaultName());
+        return res;
+    }
 }
 
 
