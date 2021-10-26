@@ -493,8 +493,8 @@ function populateAnnotIdTaskIdAdapter(data, encounterId){
       for(let i = 0; i<initiatedJobs.length; i++){
         const currentJob = initiatedJobs[i];
         const currentQueryAnnId = currentJob.queryAnnId;
-        const currentTopTaskId = currentJob.topTaskId;
-        annotIdTaskIdAdapter[currentQueryAnnId] = currentTopTaskId;
+        const currentChildTaskId = currentJob.childTaskId;
+        annotIdTaskIdAdapter[currentQueryAnnId] = currentChildTaskId;
       }
     }
   }
