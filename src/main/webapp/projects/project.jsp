@@ -542,9 +542,8 @@ function removeEncounterFromProjectAjax(el) {
 }
 
 function goToIAResults(taskId) {
-  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
-  window.open('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+projIdPrefix, '_blank');
-  // window.location.replace('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+projIdPrefix);
+	  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
+	  window.open('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
 }
 
 function generateIALinkingMenu(json, encId) {
