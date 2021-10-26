@@ -1910,7 +1910,8 @@ function checkIdDisplay() {
             function setUpIdActionOnClick(){
               $(".id-action").click(function(event) {
                         event.preventDefault();
-                        if(globalEncSpecies === notAvailable || !globalEncSpecies){
+
+                        if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(CommonConfiguration.getProperty("showTaxonomy",context).equals("true")) %>&&(!globalEncSpecies || globalEncSpecies === notAvailable)){
                           window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
                       		return false;
                         }
@@ -3925,15 +3926,20 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <!-- START TAXONOMY ATTRIBUTE -->
-<%
+
+    <script type="text/javascript">
+      var globalEncSpecies = null;
+      var notAvailable = null;
+    </script>
+    <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
     <script type="text/javascript">
-      var globalEncSpecies = '<%=genusSpeciesFound%>';
-      var notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+      globalEncSpecies = '<%=genusSpeciesFound%>';
+      notAvailable = '<%=encprops.getProperty("notAvailable")%>';
     </script>
     <%
     %>
