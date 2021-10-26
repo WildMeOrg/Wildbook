@@ -445,8 +445,7 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		//read in the KML
 		 geoXml = new geoXML3.parser({
                     map: map,
-                    markerOptions: {flat:true,clickable:false},
-                    icon:"../images/Kitizensciencelogo.png"}
+                    markerOptions: {flat:true,clickable:false,icon:"../images/Kitizensciencelogo.png"}
          });
 
 		
