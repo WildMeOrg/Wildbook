@@ -327,7 +327,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 
 }
 catch(Exception e){
-  System.out.println("I tried do stuff in encounterMediaGallery but caught the following error:")
+  System.out.println("I tried do stuff in encounterMediaGallery but caught the following error:");
   e.printStackTrace();
 }
 finally{
