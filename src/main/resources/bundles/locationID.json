@@ -313,7 +313,13 @@
              			 	"lat":33.544080,
              			 	"long":-117.799331
              			 }},
-
+              
+            {"name": "Laguna Beach- Crescent Bay", "id": "Laguna Beach- Crescent Bay",
+             "geospatialInfo":{
+             			 	"lat":33.545887,
+             			 	"long":-117.802251
+             			 }},
+              
             {"name": "La Jolla", "id": "La Jolla",
              "geospatialInfo":{
              			 	"lat":32.849477,
