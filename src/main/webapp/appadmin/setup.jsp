@@ -27,7 +27,6 @@ body {
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
-             org.ecocean.PPSR,
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
