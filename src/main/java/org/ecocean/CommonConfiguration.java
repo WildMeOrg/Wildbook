@@ -206,6 +206,40 @@ public class CommonConfiguration {
     return getServerURI(req, contextPath).toASCIIString();
   }
 
+  public static String getServerURLNoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURINoPort(req, contextPath).toASCIIString();
+  }
+  public static String getServerURL(HttpServletRequest req) {
+    try {
+      return getServerURLNoPort(req, req.getContextPath());
+    }
+    catch (URISyntaxException e) {
+      System.out.println("URISyntaxException on CommonConfiguration.getServerURL("+req+"). Returning Null.");
+      return null;
+    }
+  }
+
+  // If we want to create full URL links within the webapp, we want to exclude the port used above
+  public static URI getServerURINoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), req.getServerName(), contextPath, null).normalize();
+  }
+
+  public static String getServerURL(String context) {
+        URI u = getServerURI(context);
+        if (u == null) return null;
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
+    }
+
+    public static URI getServerURI(String context) {
+          Shepherd myShepherd = new Shepherd(context);
+          myShepherd.setAction("CommonCOnfiguration.getServerURI");
+          myShepherd.beginDBTransaction();
+          URI u = getServerURI(myShepherd);
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return u;
+      }
+
   public static URI getServerURI(Shepherd myShepherd) {
         JSONObject info = getServerInfo(myShepherd);
         if (info == null) return null;
