@@ -206,6 +206,29 @@ public class CommonConfiguration {
     return getServerURI(req, contextPath).toASCIIString();
   }
 
+  public static URI getServerURI(Shepherd myShepherd) {
+        JSONObject info = getServerInfo(myShepherd);
+        if (info == null) return null;
+        try {
+            return new URI(
+                info.optString("scheme", null),
+                null,
+                info.optString("serverName", null),
+                info.optInt("serverPort", 80),
+                info.optString("contextPath", null),
+                null, null
+            ).normalize();
+        } catch (URISyntaxException ex) {
+            System.out.println("CommonConfiguration.getServerURL() threw " + ex.toString());
+            return null;
+        }
+    }
+    public static String getServerURL(Shepherd myShepherd) {
+        URI u = getServerURI(myShepherd);
+        if (u == null) return null;
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
+    }
+
 
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
