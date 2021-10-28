@@ -288,6 +288,19 @@ if(species.equals("Notorynchus cepedianus")){
 	};
 <%
 }
+else if(species.equals("Carcharias taurus")){
+%>
+	
+	//all other species
+	var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
+	var spotTypeNames = {
+			ref1: 'First dorsal',
+			ref2: 'Second dorsal',
+			ref3: 'Pelvic',
+		spot: 'spot',
+	};
+<%
+}
 else{
 %>
 	
