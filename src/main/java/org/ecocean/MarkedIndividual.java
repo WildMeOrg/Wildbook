@@ -2554,7 +2554,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
+    //  THIS IS OLD WORLD, see merge()
     public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+        throw new RuntimeException("mergeIndividual() is deprecated");
+/*
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
@@ -2562,6 +2565,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       this.names.merge(other.getNames());
       this.setComments(getMergedComments(other, request, myShepherd));
       refreshDependentProperties();
+*/
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
@@ -2627,7 +2631,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     public static MarkedIndividual fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         MarkedIndividual indiv = new MarkedIndividual();
 
-        System.out.println("jsonIn for Encounter.fromApaJSONObject: "+jsonIn.toString());
+        System.out.println("jsonIn for Encounter.fromApiJSONObject: "+jsonIn.toString());
         //in theory we should not have a MarkedIndividual with zero encounters... with that assumption, we fail if no encounters
         //  are referenced or newly created
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
@@ -3047,16 +3051,31 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     public org.json.JSONObject mergeFrom(Shepherd myShepherd, Set<MarkedIndividual> fromIndividuals) throws MergeException {
         if (Util.collectionIsEmptyOrNull(fromIndividuals)) throw new MergeException("empty source individuals list", "sourceIndividualsIds");
         org.json.JSONObject res = new org.json.JSONObject();
-        org.json.JSONArray merged = new org.json.JSONArray();
+        org.json.JSONObject merged = new org.json.JSONObject();
         // TODO handle overrides being passed in
         String targetSex = this.getSex();
         // TODO do we *set* a null sex on target based on from???  only if they all match???
         for (MarkedIndividual from : fromIndividuals) {
+            org.json.JSONArray jencs = new org.json.JSONArray();
             String sex = from.getSex();
-            if ((sex != null) && (targetSex != null) && !sex.equals(targetSex)) throw new MergeException("empty source individuals list", "sex");
-            ///// DO ACTUAL MERGE
-            merged.put(from.getId());
+            if ((sex != null) && (targetSex != null) && !sex.equals(targetSex)) throw new MergeException("conflict on sex with " + from, "sex");
+            if (from.getNumEncounters() > 0) for (Encounter enc : from.getEncounters()) {
+                jencs.put(enc.getId());
+                from.removeEncounter(enc);
+                enc.setIndividual(this);
+            }
+            merged.put(from.getId(), jencs);
+            if (from.getNumEncounters() > 0) throw new RuntimeException("source individual still has encounters! " + from);
+            String fromStr = from.toString();
+            SystemLog.info("mergeFrom on target {} deleting {}", this, fromStr);
+            try {
+                from.delete(myShepherd);
+            } catch (IOException ex) {
+                SystemLog.error("mergeFrom on {} failed to delete {} due to {}", this, fromStr, ex.toString(), ex);
+                throw new MergeException("deletion of individual " + fromStr + " failed", "sourceIndividualIds");
+            }
         }
+        res.put("targetId", this.getId());
         res.put("merged", merged);
         res.put("targetSex", this.getSex());
         res.put("targetDefaultName", this.getDefaultName());
