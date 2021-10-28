@@ -45,6 +45,16 @@
       </field>
     </class>
 
+    <class name="SystemValue">
+		<field name="key" primary-key="true" />
+		<field name="version">
+			<column allows-null="true" />
+		</field>
+		<field name="value">
+			<column jdbc-type="LONGVARCHAR" />
+		</field>
+	</class>
+
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
       <field name="individualID" primary-key="true">
         <column length="100"/>
@@ -113,7 +123,7 @@
       <field name="groupBehavior" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
-	  
+
        <field name="socialMediaSourceID" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
