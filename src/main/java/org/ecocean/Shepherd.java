@@ -2887,6 +2887,7 @@ public class Shepherd {
   }
 
   public MarkedIndividual getMarkedIndividual(String id) {
+    if (id == null) return null;
     MarkedIndividual tempShark = null;
     try {
       tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, id.trim()), true)));
