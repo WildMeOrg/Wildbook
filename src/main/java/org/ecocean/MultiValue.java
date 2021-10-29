@@ -74,6 +74,8 @@ public class MultiValue implements java.io.Serializable {
         return valuesAsString;
     }
 
+/*
+    DEPRECATED in favor of using list one below
     public void merge(MultiValue other) {
         for (String key: other.getKeys()) {
             for (String val: other.getValuesByKey(key)) {
@@ -81,7 +83,28 @@ public class MultiValue implements java.io.Serializable {
             }
         }
     }
+*/
+    //singleton version
+    public void merge(MultiValue other) {
+        if (other == null) return;
+        Set<MultiValue> others = new HashSet<MultiValue>();
+        others.add(other);
+        this.merge(others);
+    }
 
+    public void merge(Set<MultiValue> others) {
+        if (others == null) return;
+        for (MultiValue other : others) {
+            if (other == null) continue;  //why would you do this to us?
+            for (String key : other.getKeys()) {
+                for (String val : other.getValuesByKey(key)) {
+                    this.addValues(key, val);
+                }
+            }
+        }
+    }
+
+    //this returns a _new_ one
     public static MultiValue merge(MultiValue a, MultiValue b) {
         MultiValue c = new MultiValue();
         c.merge(a);
