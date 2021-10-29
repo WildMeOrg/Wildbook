@@ -3054,6 +3054,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         org.json.JSONObject merged = new org.json.JSONObject();
         // TODO handle overrides being passed in
         String targetSex = this.getSex();
+        Set<MultiValue> otherNames = new HashSet<MultiValue>();
         // TODO do we *set* a null sex on target based on from???  only if they all match???
         for (MarkedIndividual from : fromIndividuals) {
             org.json.JSONArray jencs = new org.json.JSONArray();
@@ -3064,6 +3065,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 from.removeEncounter(enc);
                 enc.setIndividual(this);
             }
+            otherNames.add(from.getNames());
             merged.put(from.getId(), jencs);
             if (from.getNumEncounters() > 0) throw new RuntimeException("source individual still has encounters! " + from);
             String fromStr = from.toString();
@@ -3075,6 +3077,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 throw new MergeException("deletion of individual " + fromStr + " failed", "sourceIndividualIds");
             }
         }
+        if (this.names == null) this.names = new MultiValue();
+        this.names.merge(otherNames);
         res.put("targetId", this.getId());
         res.put("merged", merged);
         res.put("targetSex", this.getSex());
