@@ -1,5 +1,5 @@
-SUBJECT: New encounter submission: @ENCOUNTER_ID@
-The Wildbook for Whale Sharks library has received a new encounter submission. You can view it at:
+SUBJECT: New shark encounter submission: @ENCOUNTER_ID@
+The Sharkbook.ai library has received a new encounter submission. You can view it at:
 @ENCOUNTER_LINK@
 
 Location:  @ENCOUNTER_LOCATION@
