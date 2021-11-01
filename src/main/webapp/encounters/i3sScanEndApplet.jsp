@@ -437,7 +437,6 @@ $(document).ready(function() {
         <%
           Shepherd nameShepherd = new Shepherd(context);
           if (!xmlOK) {
-
             I3SMatchObject[] results = new I3SMatchObject[1];
             results = matches;
             Arrays.sort(results, new I3SMatchComparator());
@@ -458,7 +457,8 @@ $(document).ready(function() {
 
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
-          <%} else {%>
+          <%} else {
+            %>
           <td><a
             href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
           </a></td>
@@ -495,13 +495,18 @@ $(document).ready(function() {
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
+            String enc1IndId = enc1.attributeValue("assignedToShark");
+            String localIndividualName = enc1IndId;
+            if(enc1IndId != null && !enc1IndId.equals("")){
+              localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+            }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
 
                 <td width="60" align="left"><a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
+                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=localIndividualName%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
