@@ -242,6 +242,26 @@
 					"id": "Inkwenkwezi",
 					"description": "Inkwenkwezi"
 				},
+				{
+					"name": "Kwandwe",
+					"id": "Kwandwe",
+					"description": "Kwandwe"
+				},
+				{
+					"name": "Endalweni",
+					"id": "Endalweni",
+					"description": "Endalweni"
+				},
+				{
+					"name": "Gareths",
+					"id": "Gareths",
+					"description": "Gareths"
+				},
+				{
+					"name": "Kruger National Park",
+					"id": "Kruger National Park",
+					"description": "Kruger National Park"
+				},
 				 {
  					"name": "Kariega Game Reserve",
  					"id": "Kariega Game Reserve",
