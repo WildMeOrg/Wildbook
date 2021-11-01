@@ -75,6 +75,9 @@ import org.ecocean.*;
 //use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
 
+import java.util.Comparator;
+import java.util.Collections;
+
 public class Util {
 
   //Measurement static values
@@ -190,6 +193,15 @@ public class Util {
       String label = findLabel(key, langCode,context);
       list.add(new OptionDesc(key, label));
 
+    }
+    System.out.println("deleteMe unsorted list is: " + list.toString());
+    if(list.size()> 0){
+      Collections.sort(list, new Comparator<OptionDesc>(){
+        @Override
+        public int compare(final OptionDesc obj1, OptionDesc obj2){
+          return obj1.getDisplay().compareTo(obj2.getDisplay());
+        }
+      });
     }
     return list;
   }
@@ -1092,5 +1104,3 @@ public class Util {
   }
 
 }
-
-
