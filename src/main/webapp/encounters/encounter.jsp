@@ -417,7 +417,9 @@ function setIndivAutocomplete(el) {
 
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -871,9 +873,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
@@ -1902,7 +1910,8 @@ function checkIdDisplay() {
             function setUpIdActionOnClick(){
               $(".id-action").click(function(event) {
                         event.preventDefault();
-                        if(globalEncSpecies === notAvailable || !globalEncSpecies){
+
+                        if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(CommonConfiguration.getProperty("showTaxonomy",context).equals("true")) %>&&(!globalEncSpecies || globalEncSpecies === notAvailable)){
                           window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
                       		return false;
                         }
@@ -3917,15 +3926,20 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <!-- START TAXONOMY ATTRIBUTE -->
-<%
+
+    <script type="text/javascript">
+      var globalEncSpecies = null;
+      var notAvailable = null;
+    </script>
+    <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
     <script type="text/javascript">
-      var globalEncSpecies = '<%=genusSpeciesFound%>';
-      var notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+      globalEncSpecies = '<%=genusSpeciesFound%>';
+      notAvailable = '<%=encprops.getProperty("notAvailable")%>';
     </script>
     <%
     %>
