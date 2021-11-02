@@ -109,20 +109,20 @@
 
 	{ "name":"LS - Little Seal", "id":"LS - Little Seal", "locationID":[] },
 
+  { "name":"MP - Magic Point", "id":"MP - Magic Point", "locationID":[] },
+
 	{ "name":"Markham (AR-386)", "id":"Markham (AR-386)","geospatialInfo":{
        "lat":33.9614,
        "long":-77.5535
      }, "locationID":[] },
 
-	{ "name":"MI - Montague Island", "id":"MI - Montague Island", "locationID":[] },
-
-	{ "name":"MP - Magic Point", "id":"MP - Magic Point", "locationID":[] },
-
 	{ "name":"MR -	Mermaid Reef", "id":"MR -	Mermaid Reef", "locationID":[] },
 
-	{ "name":"NB -	North Bondi", "id":"NB -	North Bondi", "locationID":[] },
+	{ "name":"MI - Montague Island", "id":"MI - Montague Island", "locationID":[] },
 
-	{ "name":"NB - North Bondi", "id":"NB - North Bondi", "locationID":[] },
+	{ "name":"Mutiny Dive Charters", "id":"Mutiny Dive Charters", "locationID":[] },
+
+	{ "name":"NB -	North Bondi", "id":"NB -	North Bondi", "locationID":[] },
 
 	{ "name":"Northeastern", "id":"Northeastern","geospatialInfo":{
        "lat":35.0918,
