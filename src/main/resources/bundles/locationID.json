@@ -106,7 +106,14 @@
 			 {
 			  "name": "East China Sea", "id": "East China Sea"  },
 			 {
-			  "name": "Flores Sea", "id": "Flores Sea" },
+			  "name": "Flores Sea", "id": "Flores Sea", "locationID":[
+			  
+				{"name": "Bali Sea", "id": "Bali Sea", "locationID":[
+					{"name": "Lovina", "id": "Lovina" }
+					
+				] }
+			  
+			  ] },
 
 			 {
 			  "name": "Gulf of Thailand", "id": "Gulf of Thailand" },
