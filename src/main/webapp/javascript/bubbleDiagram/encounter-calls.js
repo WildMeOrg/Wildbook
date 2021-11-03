@@ -53,7 +53,7 @@ var getData = function(individualID, displayName) {
 				}
             }
             occurrenceArray = occurrenceArray.concat(encounterArray);
-            var occurrenceID = jsonData[i].encounters[0].occurrenceID;
+            var occurrenceID = jsonData[i].occurrenceID;
             var index = encounterArray.indexOf(individualID.toString());
             if (~index) {
 				encounterArray[index] = "";
@@ -65,7 +65,7 @@ var getData = function(individualID, displayName) {
 			else {
 				occurrenceObject = {occurrenceID: "", occurringWith: ""};
             }
-            occurrenceObjectArray.push(occurrenceObject);
+			occurrenceObjectArray.push(occurrenceObject);
             encounterArray = [];
 	}
 
@@ -477,13 +477,15 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 	for(var i=0; i < jsonData.encounters.length; i++) {
     	    var occurringWith = "";
             for(var j = 0; j < occurrenceObjectArray.length; j++) {
-		if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
-		    if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
-		    } else {
-			var occurringWith = occurrenceObjectArray[j].occurringWith;
-			console.log(occurringWith);
-		    }
-		}
+				if (typeof occurrenceObjectArray[j].occurrenceID !== 'undefined' && typeof jsonData.encounters[i].occurrenceID !== 'undefined' && occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
+			    	if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
+						
+			    	} 
+					else {
+						var occurringWith = occurrenceObjectArray[j].occurringWith;
+						console.log("occurringWith: "+occurringWith+" in "+jsonData.encounters[i].occurrenceID+" and "+occurrenceObjectArray[j].occurrenceID);
+			    	}
+				}
             }
             var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
             if(dateInMilliseconds > 0) {
@@ -534,8 +536,9 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             var alternateID = jsonData.encounters[i].alternateid;
             var encounter = new Object();
             if(occurringWith === undefined) {
-		var occurringWith = "";
+				var occurringWith = "";
             }
+
             encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
             encounterData.push(encounter);
 	}
