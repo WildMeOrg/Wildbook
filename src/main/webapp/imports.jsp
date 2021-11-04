@@ -240,22 +240,21 @@ try{
 			           			label: 'Import ID',
 			           			value: _colTask,
 			           			sortValue: function(o) { return o.taskID; },
-			           			//sortFunction: function(a,b) {},
 			           		},
 			           		{
 			           			key: 'uname',
 			           			label: 'User',
 			           			value: _colUser,
 			           			sortValue: function(o) { return o.uname; },
-			           			//sortFunction: function(a,b) {},
 			           		},
 
 			           		{
 			           			key: 'date',
 			           			label: 'Date',
 			           			value: _colDate,
-			           			sortValue: function(o) { return o.created; },
-			           			//sortFunction: function(a,b) {},
+			           			sortValue: function(a,b){
+			           				return (a.created < b.created) ? -1 : ((a.created > b.created) ? 1 : 0);
+			           			}
 			           		},
 
 			           		{
@@ -281,7 +280,7 @@ try{
 			           			label: 'IA?',
 			           			value: _colIA,
 			           			sortValue: function(o) { return o.iaStatus; },
-			           			//sortFunction: function(a,b) {},
+			     
 			           		},
 
 			           		{
@@ -289,7 +288,7 @@ try{
 			           			label: 'Status',
 			           			value: _colStatus,
 			           			sortValue: function(o) { return o.status; },
-			           			//sortFunction: function(a,b) {},
+	
 			           		},
 
 			];
@@ -298,8 +297,8 @@ try{
 			var start = 0;
 			var results = [];
 
-			var sortCol = -1;
-			var sortReverse = false;
+			var sortCol = 2;
+			var sortReverse = true;
 			
 			
 			var sTable = false;
@@ -522,6 +521,8 @@ try{
 				if (o.status == undefined) return '';
 				return o.status;
 			}
+			
+
 			
 		</script>
 		
