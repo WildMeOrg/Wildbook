@@ -5,6 +5,7 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
+org.json.JSONObject,
 java.util.Set,
 java.util.HashSet,
 java.util.List,
@@ -141,68 +142,44 @@ a.button:hover {
 </style>
 
 
-    <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
-    <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
+	<script src="javascript/underscore-min.js"></script>
+	<script src="javascript/backbone-min.js"></script>
+	<script src="javascript/core.js"></script>
+	<script src="javascript/classes/Base.js"></script>
+
+	<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+	<link rel="stylesheet" href="css/pageableTable.css" />
+	<script src="javascript/tsrt.js"></script>
 
 
 <div class="container maincontent">
-
+<h2>Import Tasks</h2>
+	    
 <%
 
 
 try{
 	Set<String> locationIds = new HashSet<String>();
 	
-    out.println("<table id=\"import-table\" xdata-page-size=\"6\" data-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String uclause = "";
     if (!adminMode) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
-    //query.range(0,100);
     Collection c = (Collection) (query.execute());
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
-    //String[] headers = new String[]{"Import ID", "Date", "Encounters", "Individuals", "Images",  "IA?"};
-    String[] headers = new String[]{"Import ID", "User", "Date", "Encounters", "Individuals", "Images",  "IA?", "Status"};
-    for (int i = 0 ; i < headers.length ; i++) {
-        out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
-    }
-
-    out.println("</tr></thead><tbody>");
+    
+    //set up the JSON object for our table
+    JSONArray jsonobj = new JSONArray();
+    
     for (ImportTask task : tasks) {
     	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
-	        //List<Encounter> encs = task.getEncounters();
-	        //List<MediaAsset> mas = task.getMediaAssets();
-	        boolean foundChildren = false;
-
 	        int iaStatus = 0;
-	        /*
-	        if (Util.collectionSize(mas) > 0) {
-	            for (MediaAsset ma : mas) {
-	                if (ma.getDetectionStatus() != null) iaStatus++;
-	                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) {
-	                    hasChildren = "<td class=\"yes\">yes</td>";
-	                    foundChildren = true;
-	                    break;
-	                }
-	            }
-	            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
-	        }
-	        */
-	
 	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
-	        
-	        /*
-	        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
-	            if (enc.hasMarkedIndividual()) indivCount++;
-	        }
-	        */
-	
-	        out.println("<tr>");
-	        out.println("<td><a title=\"" + task.getId() + "\" href=\"import.jsp?taskId=" + task.getId() + "\">" + task.getId().substring(0,8) + "</a></td>");
-	        //if (adminMode) {
+			String taskID = task.getId();
 	            User tu = task.getCreator();
 	            String uname = "(guest)";
 	            if (tu != null) {
@@ -211,32 +188,355 @@ try{
 	                if (uname == null) uname = tu.getUUID();
 	                if (uname == null) uname = Long.toString(tu.getUserID());
 	            }
-	            out.println("<td>" + uname + "</td>");
-	        //}
+
 	        int numEncs=getNumEncountersForTask(task.getId(),myShepherd);
-	        out.println("<td>" + task.getCreated().toString().substring(0,10) + "</td>");
-	        out.println("<td class=\"ct" + numEncs + "\">" + numEncs + "</td>");
-	        out.println("<td class=\"ct" + indivCount + "\">" + indivCount + "</td>");
+	        String created=task.getCreated().toString().substring(0,10);
+	      
 	        int numMediaAssets=getNumMediaAssetsForTask(task.getId(),myShepherd);
-	        out.println("<td class=\"ct" + numMediaAssets + "\">" + numMediaAssets + "</td>");
+	        String iaStatusString="";
 
 	        if (iaStatus < 1) {
-	            out.println("<td class=\"no\">no</td>");
+	            iaStatusString="no";
 	        } else {
-	            int percent = Math.round(iaStatus / numMediaAssets * 100);
-	            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + numMediaAssets + " (" + percent + "%)\">yes</td>");
+	        	iaStatusString="yes";
 	        }
-	        out.println("<td>"+task.getStatus()+"</td>");
-	        out.println("</tr>");
+	        String status=task.getStatus();
+	        
+	        //let's build this Task's JSON
+	        JSONObject jobj = new JSONObject();
+	        jobj.put("iaStatus", iaStatusString);
+	        jobj.put("numMediaAssets", numMediaAssets);
+	        jobj.put("numEncs", numEncs);
+	        jobj.put("created", created);
+	        jobj.put("uname", uname);
+	        jobj.put("taskID", taskID);
+	        jobj.put("indivCount", indivCount);
+	        jobj.put("status", status);
+	        
+	        jsonobj.put(jobj);
+
     	}
-    }
+    } //end for loop of tasks
+    
+    
+    %>
+    
+    	<script type="text/javascript">
 
-%>
+			var searchResults = <%=jsonobj.toString() %>;
+			var resultsTable;
 
-</tbody>
-</table>
+			$(document).keydown(function(k) {
+				if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
+				if (k.which == 38) return tableDn();
+				if (k.which == 40) return tableUp();
+				if (k.which == 33) return nudge(-howMany);
+				if (k.which == 34) return nudge(howMany);
+			});
+			
+			var colDefn = [
+			           		{
+			           			key: 'taskID',
+			           			label: 'Import ID',
+			           			value: _colTask,
+			           			sortValue: function(o) { return o.taskID; },
+			           			//sortFunction: function(a,b) {},
+			           		},
+			           		{
+			           			key: 'uname',
+			           			label: 'User',
+			           			value: _colUser,
+			           			sortValue: function(o) { return o.uname; },
+			           			//sortFunction: function(a,b) {},
+			           		},
+
+			           		{
+			           			key: 'date',
+			           			label: 'Date',
+			           			value: _colDate,
+			           			sortValue: function(o) { return o.created; },
+			           			//sortFunction: function(a,b) {},
+			           		},
+
+			           		{
+			           			key: 'numberEncounters',
+			           			label: 'Encounters',
+			           			value: _colNumberEncounters,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'numberIndividuals',
+			           			label: 'Individuals',
+			           			value: _colNumberIndividuals,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'numberImages',
+			           			label: 'Images',
+			           			value: _colNumberImages,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'iaStatus',
+			           			label: 'IA?',
+			           			value: _colIA,
+			           			sortValue: function(o) { return o.iaStatus; },
+			           			//sortFunction: function(a,b) {},
+			           		},
+
+			           		{
+			           			key: 'status',
+			           			label: 'Status',
+			           			value: _colStatus,
+			           			sortValue: function(o) { return o.status; },
+			           			//sortFunction: function(a,b) {},
+			           		},
+
+			];
+			
+			var howMany = 10;
+			var start = 0;
+			var results = [];
+
+			var sortCol = -1;
+			var sortReverse = false;
+			
+			
+			var sTable = false;
+
+			
+			function doTable() {
+
+				sTable = new SortTable({
+					data: searchResults,
+					perPage: howMany,
+					sliderElement: $('#results-slider'),
+					columns: colDefn,
+				});
+
+				$('#results-table').addClass('tablesorter').addClass('pageableTable');
+				var th = '<thead><tr>';
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						var cls = 'ptcol-' + colDefn[c].key;
+						if (!colDefn[c].nosort) {
+							if (sortCol < 0) { //init
+								sortCol = c;
+								cls += ' headerSortUp';
+							}
+							cls += ' header" onClick="return headerClick(event, ' + c + ');';
+						}
+						th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
+					}
+				$('#results-table').append(th + '</tr></thead>');
+				for (var i = 0 ; i < howMany ; i++) {
+					var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+					}
+					r += '</tr>';
+					$('#results-table').append(r);
+				}
+
+				sTable.initSort();
+				sTable.initValues();
 
 
+				newSlice(sortCol);
+
+				$('#progress').hide();
+				sTable.sliderInit();
+				show();
+
+				$('#results-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
+					if (!sTable.opts.sliderElement) return;
+					ev.preventDefault();
+					var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+					if (delta != 0) nudge(-delta);
+				});
+				
+
+			} //end doTable
+			
+			function rowClick(el) {
+				console.log(el);
+				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), '_blank');
+				w.focus();
+				return false;
+			}
+
+			function headerClick(ev, c) {
+				start = 0;
+				ev.preventDefault();
+				console.log(c);
+				if (sortCol == c) {
+					sortReverse = !sortReverse;
+				} else {
+					sortReverse = false;
+				}
+				sortCol = c;
+
+				$('#results-table th.headerSortDown').removeClass('headerSortDown');
+				$('#results-table th.headerSortUp').removeClass('headerSortUp');
+				if (sortReverse) {
+					$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
+				} else {
+					$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
+				}
+			console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+
+			function show() {
+				$('#results-table td').html('');
+				$('#results-table tbody tr').show();
+				for (var i = 0 ; i < results.length ; i++) {
+
+		      var title = 'Individual ' + searchResults[results[i]].id;
+		  		
+		  			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+		  		
+		  		$('#results-table tbody tr')[i].title = title;
+					//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+					$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].taskID);
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
+					}
+				}
+				if (results.length < howMany) {
+					$('#results-slider').hide();
+					for (var i = 0 ; i < (howMany - results.length) ; i++) {
+						$('#results-table tbody tr')[i + results.length].style.display = 'none';
+					}
+				} else {
+					$('#results-slider').show();
+				}
+
+				//if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
+				sTable.sliderSet(100 - (start / (sTable.matchesFilter.length - howMany)) * 100);
+				displayPagePosition();
+			}
+			
+			function displayPagePosition() {
+				if (sTable.matchesFilter.length < 1) {
+					$('#table-info').html('<b>no matches found</b>');
+					return;
+				}
+
+				var max = start + howMany;
+				if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
+				$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
+			}
+			function newSlice(col, reverse) {
+				results = sTable.slice(col, start, start + howMany, reverse);
+			}
+
+
+
+			function nudge(n) {
+				start += n;
+				if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
+				if (start < 0) start = 0;
+			console.log('start -> %d', start);
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+			function tableDn() {
+				return nudge(-1);
+				start--;
+				if (start < 0) start = 0;
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+			function tableUp() {
+				return nudge(1);
+				start++;
+				if (start > sTable.matchesFilter.length - 1) start = sTable.matchesFilter.length - 1;
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+			
+			////////
+			$(document).ready( function() {
+				wildbook.init(function() { doTable(); });
+			});
+
+
+			var tableContents = document.createDocumentFragment();
+			
+			function _textExtraction(n) {
+				var s = $(n).text();
+				var skip = new RegExp('^(none|unassigned|)$', 'i');
+				if (skip.test(s)) return 'zzzzz';
+				return s;
+			}
+
+			function applyFilter() {
+				var t = $('#filter-text').val();
+				console.log(t);
+				sTable.filter(t);
+				start = 0;
+				newSlice(1);
+				show();
+			}
+			
+			function _colTask(o) {
+				if (o.taskID == undefined) return '';
+				return o.taskID;
+			}
+			
+			function _colUser(o) {
+				if (o.uname == undefined) return '';
+				return o.uname;
+			}
+			
+			function _colDate(o) {
+				if (o.created == undefined) return '';
+				return o.created;
+			}
+			
+			function _colNumberEncounters(o) {
+				if (o.numEncs == undefined) return '';
+				return o.numEncs;
+			}
+			
+			function _colNumberIndividuals(o) {
+				if (o.indivCount == undefined) return '';
+				return o.indivCount;
+			}
+			
+			function _colNumberImages(o) {
+				if (o.numMediaAssets == undefined) return '';
+				return o.numMediaAssets;
+			}
+			
+			function _colIA(o) {
+				if (o.iaStatus == undefined) return '';
+				return o.iaStatus;
+			}
+			
+			function _colStatus(o) {
+				if (o.status == undefined) return '';
+				return o.status;
+			}
+			
+		</script>
+		
+		<p class="table-filter-text">
+			<input placeholder="Filter by text" id="filter-text" onChange="return applyFilter()" />
+			<input type="button" value="Filter" />
+			<input type="button" value="Clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+			<span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
+		</p>
+
+		<div class="pageableTable-wrapper">
+			<div id="progress">loading...</div>
+			<table id="results-table"></table>
+			<div id="results-slider"></div>
+		</div>
 
 <%
 }
