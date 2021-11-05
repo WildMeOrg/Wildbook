@@ -1365,7 +1365,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
                       while(hasMoreStages){
                             String currentLifeStage = "lifeStage"+stageNum;
-                            if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+                            if(CommonConfiguration.getProperty(currentLifeStage,context)!=null && !CommonConfiguration.getProperty(currentLifeStage,context).equals("null")){
                                 %>
                                 <label class="radio-inline">
                                   <input type="radio" name="lifeStage" value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></input>
