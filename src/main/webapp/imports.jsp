@@ -63,6 +63,26 @@ private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 %>
 
 <%!
+//Use Feature as a proxy for MediaAssets since they have a 1-to-1 correspondence
+private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd myShepherd){
+	int num=0;	
+	String filter="select from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.detectionStatus == 'complete' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	Query query=myShepherd.getPM().newQuery(filter);
+	try{
+		Collection c=(Collection)query.execute();
+		num=c.size();
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
+	finally{
+		query.closeAll();
+	}
+	return num;
+}
+%>
+
+<%!
 
 private int getNumEncountersForTask(String taskID, Shepherd myShepherd){
 	int num=0;
@@ -177,7 +197,7 @@ try{
     
     for (ImportTask task : tasks) {
     	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
-	        int iaStatus = 0;
+	        int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
 	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
 			String taskID = task.getId();
 	            User tu = task.getCreator();
