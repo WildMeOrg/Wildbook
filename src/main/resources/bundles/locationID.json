@@ -310,6 +310,8 @@
 	"defaultLongitude": 0.0,
 	"defaultLatitude":  0.0
 	},
+	
+	{ "name":"Vietnam", "id":"Vietnam", "locationID":[]},
 
 	{ "name":"Misc - Legacy Wildbook IDs", "id":"Misc", "locationID":[
 					 {
