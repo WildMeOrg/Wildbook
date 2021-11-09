@@ -4027,6 +4027,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             enc.setTaxonomy(tx);
         }
 
+        try {
+            enc.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+        } catch (Exception ex) {
+            throw new ApiValueException(ex.toString(), "customFields");
+        }
+
         enc.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
         enc.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
         enc.setFromJSONObject("behavior", String.class, jsonIn);
