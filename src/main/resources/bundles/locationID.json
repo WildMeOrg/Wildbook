@@ -290,7 +290,8 @@
 
 	{ "name":"Australia", "id":"Australia", "locationID":[
 		{ "name":"New South Wales", "id":"New South Wales", "locationID":[
-				{ "name":"Byron Bay", "id":"Byron Bay", "locationID":[] }
+				{ "name":"Byron Bay", "id":"Byron Bay", "locationID":[] },
+				{ "name":"Jervis Bay", "id":"Jervis Bay", "locationID":[] }
 		] },
 		{ "name":"Southern Queensland", "id":"Southern Queensland", "locationID":[
 				{ "name":"Sunshine Coast", "id":"Sunshine Coast", "locationID":[] }
