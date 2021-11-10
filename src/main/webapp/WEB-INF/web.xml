@@ -93,9 +93,9 @@
 
 				/import/** = authc, roles[researcher]
 
-				/encounters/encounter.jsp = authc
-				/encounters/encounterMediaGallery.jsp = authc
-				/encounters/projectManagement.jsp = authc
+				# /encounters/encounter.jsp = authc
+				# /encounters/encounterMediaGallery.jsp = authc
+				# /encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
