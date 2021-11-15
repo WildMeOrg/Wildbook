@@ -1,133 +1,167 @@
 {
-  "description": "Hierarchical Encounter.locationID list in Wildbook",
-  "source": "http://en.wikipedia.org/wiki/List_of_seas",
-  "locationID": [
-	{
-	"name": "Anguilla", "id": "Anguilla" },
-	{
-	"name": "Antigua and Barbuda", "id": "Antigua and Barbuda" },
-	{
-	"name": "Aruba", "id": "Aruba" },
-	{
-	"name": "Bahamas", "id": "Bahamas" },
-	{
-	"name": "Barbados",  "id": "Barbados" },
-	{
-	"name": "Belize", "id": "Belize" },
-	{
-	"name": "Bermuda", "id": "Bermuda" },
-	{
-	"name": "BES Islands (Bonaire, St. Eustatius, Saba)", "id": "BES Islands (Bonaire, St. Eustatius, Saba)" },
-	{
-	"name": "Brazil", "id": "Brazil" },
-	{
-	"name": "British Virgin Islands", "id": "British Virgin Islands"  },
-	{
-	"name": "Cayman Islands", "id": "Cayman Islands", "locationID":[
-		{"name": "Little Cayman", "id": "Little Cayman","prefix": "LC", "prefixDigitPadding": 5},
-		{
-		"name": "Cayman Brac",
-		"id": "Cayman Brac","prefix": "CB", "prefixDigitPadding": 5
-		},
-		{
-		"name": "Grand Cayman",
-		"id": "Grand Cayman","prefix": "GC", "prefixDigitPadding": 5
-		}
-	] 
-	},
-	{
-	"name": "Colombia","id":"Colombia" },
-	{
-	"name": "Costa Rica", "id": "Costa Rica" },
-	{
-	"name": "Cuba", "id": "Cuba"  },
-	{
-	"name": "Curacao", "id": "Curacao"  },
-	{
-	"name": "Dominica", "id": "Dominica" },
+	"description": "Hierarchical Encounter.locationID list in Wildbook",
+	"source": "http://en.wikipedia.org/wiki/List_of_seas",
+	"locationID": [
+	  {
+	  "name": "Anguilla", "id": "Anguilla" },
+	  {
+	  "name": "Antigua and Barbuda", "id": "Antigua and Barbuda" },
+	  {
+	  "name": "Aruba", "id": "Aruba" },
+	  {
+	  "name": "Bahamas", "id": "Bahamas" },
+	  {
+	  "name": "Barbados",  "id": "Barbados" },
+	  {
+	  "name": "Belize", "id": "Belize" },
+	  {
+	  "name": "Bermuda", "id": "Bermuda" },
+	  {
+	  "name": "BES Islands (Bonaire, St. Eustatius, Saba)", "id": "BES Islands (Bonaire, St. Eustatius, Saba)" },
+	  {
+	  "name": "Brazil", "id": "Brazil" },
+	  {
+	  "name": "British Virgin Islands", "id": "British Virgin Islands"  },
+	  {
+	  "name": "Cayman Islands", "id": "Cayman Islands", "locationID":[
+		  {"name": "Little Cayman", "id": "Little Cayman","prefix": "LC", "prefixDigitPadding": 5},
+		  {
+		  "name": "Cayman Brac",
+		  "id": "Cayman Brac","prefix": "CB", "prefixDigitPadding": 5
+		  },
+		  {
+		  "name": "Grand Cayman",
+		  "id": "Grand Cayman","prefix": "GC", "prefixDigitPadding": 5
+		  }
+	  ] 
+	  },
+	  {
+	  "name": "Colombia","id":"Colombia" },
+	  {
+	  "name": "Costa Rica", "id": "Costa Rica" },
+	  {
+	  "name": "Cuba", "id": "Cuba"  },
+	  {
+	  "name": "Curacao", "id": "Curacao"  },
+	  {
+	  "name": "Dominica", "id": "Dominica" },
+  
+	  {
+	  "name": "Dominican Republic", "id": "Dominican Republic" },
+	  {
+	  "name": "French Guiana", "id": "French Guiana" },
+	  {
+	  "name": "Grenada", "id": "Grenada" },
+	  {
+	  "name": "Guadaloupe", "id": "Guadaloupe"  },
+	  {
+	  "name": "Guatemala", "id": "Guatemala" },
+	  {
+	  "name": "Guyana", "id": "Guyana" },
+	  {
+	  "name": "Haiti", "id": "Haiti" },
+	  {
+		  "name": "Jamaica",
+		  "id": "Jamaica"
+	  },
+	  {
+		  "name": "Martinique",
+		  "id": "Martinique"
+	  },
+	  {
+		  "name": "Montserrat",
+		  "id": "Montserrat"
+	  },
+	  {
+		  "name": "Nicaragua",
+		  "id": "Nicaragua"
+	  },
+	  {
+		  "name": "Panama",
+		  "id": "Panama"
+	  },
+	  {
+		  "name": "Puerto Rico",
+		  "id": "Puerto Rico"
+	  },
+	  {
+		  "name": "Saint Barthelemy",
+		  "id": "Saint Barthelemy"
+	  },
+	  {
+		  "name": "Saint Martin",
+		  "id": "Saint Martin"
+	  },
+	  {
+		  "name": "South Africa",
+		  "id": "South Africa"
+	  },
+	  {
+		  "name": "St. Kitts and Nevis",
+		  "id": "St. Kitts and Nevis"
+	  },
+	  {
+		  "name": "St. Lucia",
+		  "id": "St. Lucia"
+	  },
+	  {
+		  "name": "St. Vincent and the Grenadines",
+		  "id": "St. Vincent and the Grenadines"
+	  },
+	  {
+		  "name": "Suriname",
+		  "id": "Suriname"
+	  },
+	  {
+		  "name": "Trinidad and Tobago",
+		  "id": "Trinidad and Tobago"
+	  },
+	  {
+		  "name": "Turks and Caicos Islands",
+		  "id": "Turks and Caicos Islands"
+	  },
+	  {
+		  "name": "U.S. Virgin Islands",
+		  "id": "U.S. Virgin Islands"
+	  },
 
-	{
-	"name": "Dominican Republic", "id": "Dominican Republic" },
-	{
-	"name": "French Guiana", "id": "French Guiana" },
-	{
-	"name": "Grenada", "id": "Grenada" },
-	{
-	"name": "Guadaloupe", "id": "Guadaloupe"  },
-	{
-	"name": "Guatemala", "id": "Guatemala" },
-	{
-	"name": "Guyana", "id": "Guyana" },
-	{
-	"name": "Haiti", "id": "Haiti" },
-	{
-		"name": "Jamaica",
-		"id": "Jamaica"
-	},
-	{
-		"name": "Martinique",
-		"id": "Martinique"
-	},
-	{
-		"name": "Montserrat",
-		"id": "Montserrat"
-	},
-	{
-		"name": "Nicaragua",
-		"id": "Nicaragua"
-	},
-	{
-		"name": "Panama",
-		"id": "Panama"
-	},
-	{
-		"name": "Puerto Rico",
-		"id": "Puerto Rico"
-	},
-	{
-		"name": "Saint Barthelemy",
-		"id": "Saint Barthelemy"
-	},
-	{
-		"name": "Saint Martin",
-		"id": "Saint Martin"
-	},
-	{
-		"name": "South Africa",
-		"id": "South Africa"
-	},
-	{
-		"name": "St. Kitts and Nevis",
-		"id": "St. Kitts and Nevis"
-	},
-	{
-		"name": "St. Lucia",
-		"id": "St. Lucia"
-	},
-	{
-		"name": "St. Vincent and the Grenadines",
-		"id": "St. Vincent and the Grenadines"
-	},
-	{
-		"name": "Suriname",
-		"id": "Suriname"
-	},
-	{
-		"name": "Trinidad and Tobago",
-		"id": "Trinidad and Tobago"
-	},
-	{
-		"name": "Turks and Caicos Islands",
-		"id": "Turks and Caicos Islands"
-	},
-	{
-		"name": "U.S. Virgin Islands",
-		"id": "U.S. Virgin Islands"
-	},
-	{
-		"name": "Venezuela",
-		"id": "Venezuela"
-	}	
-	]
-}
 
+	  {
+		"name": "United States",
+		"id": "United States",
+		"locationID": [
+
+			{
+				"name": "US West Coast",
+				"id": "US West Coast"
+			},
+			{
+				"name": "US East Coast",
+				"id": "US East Coast",
+				"locationID": [
+					{
+						"name": "Subsection Florida",
+						"id": "Subsection Florida"
+					}
+				]
+			},
+			{
+				"name": "US Gulf Coast",
+				"id": "US Gulf Coast",
+				"locationID": [
+					{
+						"name": "Subsection Florida",
+						"id": "Subsection Florida"
+					}
+				]
+			}
+		]
+	  },
+	  {
+		  "name": "Venezuela",
+		  "id": "Venezuela"
+	  }	
+	  ]
+  }
+  
+  
