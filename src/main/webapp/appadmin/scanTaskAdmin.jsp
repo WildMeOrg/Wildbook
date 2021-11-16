@@ -1,15 +1,9 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.grid.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.concurrent.ThreadPoolExecutor" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor, java.util.concurrent.ConcurrentHashMap, java.util.Enumeration" %>
 <%
-  String context=ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-//  Properties props = ShepherdProperties.getProperties("scanTaskAdmin.properties", langCode, context);
 
+//String context="context0";
+String context=ServletUtilities.getContext(request);
   //concurrency examination for creation and removal threads
   ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 
@@ -59,6 +53,20 @@
     	nfe.printStackTrace();
     }
   }
+
+
+//setup our Properties object to hold all properties
+  Properties props = new Properties();
+  //String langCode = "en";
+
+String langCode=ServletUtilities.getLanguageCode(request);
+    
+
+  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
+  props=ShepherdProperties.getProperties("submit.properties", langCode, context);
+
+
+
 %>
 
 <style>
@@ -495,8 +503,36 @@ single scan are allowed to exceed the total.</span>
 
 </p>
 
-<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %></p>
-<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %></p>
+<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %>
+	<ul>
+	<%
+	ConcurrentHashMap<String, Long> map=gm.getSpeciesCountsMapLeft();
+	Enumeration<String> keys=map.keys();
+	while(keys.hasMoreElements()){
+		String species=keys.nextElement();
+		Long value=map.get(species);
+		%>
+		<li><em><%=species %></em>: <%=value.intValue() %></li>
+		<%
+	}
+	%>
+	</ul>
+</p>
+<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %>
+	<ul>
+	<%
+	ConcurrentHashMap<String, Long> rmap=gm.getSpeciesCountsMapRight();
+	Enumeration<String> rkeys=rmap.keys();
+	while(rkeys.hasMoreElements()){
+		String species=rkeys.nextElement();
+		Long value=rmap.get(species);
+		%>
+		<li><em><%=species %></em>: <%=value.intValue() %></li>
+		<%
+	}
+	%>
+	</ul>
+</p>
 <%
 
   } catch (Exception e) {

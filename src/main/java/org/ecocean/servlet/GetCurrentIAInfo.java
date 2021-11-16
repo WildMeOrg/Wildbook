@@ -98,6 +98,9 @@ public class GetCurrentIAInfo extends HttpServlet {
     private JSONObject getIAJSONForAnnotation(Shepherd myShepherd, Annotation ann) {
         JSONObject annIA = new JSONObject();
         try {
+          
+            System.out.println("In getIAJSONForAnnotation...");
+          
             annIA.put("id", ann.getId());
             annIA.put("iaClass", ann.getIAClass());
             annIA.put("identificationStatus", ann.getIdentificationStatus());
@@ -107,10 +110,21 @@ public class GetCurrentIAInfo extends HttpServlet {
             annIA.put("assetDetectionStatus", ma.getDetectionStatus());
             annIA.put("assetWebURL", Util.scrubURL(ma.webURL()));
             
-            String lastTask = "";
-            List<Task> rootTasks = ann.getRootIATasks(myShepherd);
+             List<Task> rootTasks = ann.getRootIATasks(myShepherd);
             if (rootTasks!=null&&!rootTasks.isEmpty()) {
-                annIA.put("lastTaskId", rootTasks.get(0).getId());
+              
+              //WB-1812 - previously (commented out right above) we were only ever exposing the first root task
+              //instead, let's be consistent with encounterMediaGallery.jsp and return the most recent IA task
+              for (Task t : ma.getRootIATasks(myShepherd)) {
+                  if (rootTasks.contains(t)) continue;
+                  if (t.deepContains(ann)!=null) rootTasks.add(t);
+              }
+              Comparator<Task> byRanking = 
+                  (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
+              Collections.sort(rootTasks, byRanking);
+              Collections.reverse(rootTasks); // now desc, ez
+              annIA.put("lastTaskId", rootTasks.get(0).getId());
+
             }
         } catch (NullPointerException npe) {
             npe.printStackTrace();
