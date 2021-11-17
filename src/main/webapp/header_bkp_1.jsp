@@ -398,31 +398,22 @@ if (thisUser == null) {
 
 
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">ABOUT <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">About <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="<%=urlLoc %>/mission.jsp">MISSION AND GOALS</a></li>
-                        <li><a href="<%=urlLoc %>/whoAreWe.jsp">WHO WE ARE</a></li>
-                        <li><a href="<%=urlLoc %>/financial.jsp">FINANCIAL SUPPORTERS</a></li>
-                        <li<a href="<%=urlLoc %>/contactus.jsp">CONTACT</a></li>
+                        <li><a href="<%=urlLoc %>/mission.jsp">Mission, Questions, Timeline</a></li>
+                        <li><a href="<%=urlLoc %>/whoAreWe.jsp">Who We Are</a></li>
+                        <li><a href="<%=urlLoc %>/financial.jsp">Our Financial Supporters</a></li>
                     </ul>
             </li>
 
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">CAT SCIENCE <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Cat Science <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="<%=urlLoc %>/why.jsp">WHY THIS IS NEEDED</a></li>
-                        <li><a href="<%=urlLoc %>/how.jsp">WHO WE ARE</a></li>
-                        <li><a href="<%=urlLoc %>/spayneuter.jsp">S/N IMPACT RESEARCH</a></li>
+                        <li><a href="<%=urlLoc %>/why.jsp">Why Kitizen Science is Needed</a></li>
+                        <li><a href="<%=urlLoc %>/how.jsp">How Kitizen Science Works</a></li>
+                        <li><a href="<%=urlLoc %>/spayneuter.jsp">Spay/Neuter Evidence</a></li> 
                     </ul>
             </li>
-
-            <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">LOCATIONS <span class="caret"></span></a>
-                                <ul class="dropdown-menu" role="menu">
-                                    <li><a href="<%=urlLoc %>/locations.jsp">CURRENT LOCATIONS</a></li>
-                                    <li><a href="<%=urlLoc %>/locations.jsp">COLLABORATE</a></li>
-                                </ul>
-                        </li>
 
                       <!-- submit encounter, survey -->
 
@@ -453,22 +444,8 @@ if (thisUser == null) {
                       </li>
 
                       <li>
-                        <a href="<%=urlLoc %>/publications.jsp">PUBLICATIONS</a>
+                        <a href="<%=urlLoc %>/locations.jsp">Locations</a>
                       </li>
-
-                      <li>
-                                              <a href="<%=urlLoc %>/donate.jsp">DONATE</a>
-                                            </li>
-
-
-                                            <li class="dropdown">
-                                                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">VOLUNTEER <span class="caret"></span></a>
-                                                                            <ul class="dropdown-menu" role="menu">
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">CAT WALK (SURVEYS)</a></li>
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">CAT AND MOUSE (ONLINE)</a></li>
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">ONLINE TASK INSTRUCTIONS</a></li>
-                                                                            </ul>
-                                                                    </li>
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Volunteer <span class="caret"></span></a>
@@ -522,6 +499,18 @@ if (thisUser == null) {
                       </li>
 
                       <!-- moved search to admin access section --!>
+
+                      <li>
+                        <a href="<%=urlLoc %>/collaborate.jsp">Collaborate</a>
+                      </li>
+
+                      <li>
+                        <a href="<%=urlLoc %>/contactus.jsp">Contact</a>
+                      </li>
+
+                      <li>
+                        <a title="uwMode=<%=uwMode%>" href="<%=urlLoc %>/donate.jsp">Donate</a>
+                      </li>
 
 <% if (request.isUserInRole("admin")) { %>
                       <li class="dropdown">
