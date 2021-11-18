@@ -4035,13 +4035,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         enc.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
         enc.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
-        enc.setFromJSONObject("behavior", String.class, jsonIn);
         enc.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?  or should it be in setLocationId() ??
-        enc.setFromJSONObject("lifeStage", String.class, jsonIn);  //ditto?
         enc.setFromJSONObject("sex", String.class, jsonIn);  //ditto?
-        enc.setFromJSONObject("country", String.class, jsonIn);
         enc.setFromJSONObject("verbatimLocality", String.class, jsonIn);
-        enc.setFromJSONObject("verbatimEventDate", String.class, jsonIn);
 
         org.json.JSONObject jind = jsonIn.optJSONObject("individual");
         if (jind != null) {
@@ -4093,13 +4089,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
 
         obj.put("sex", getSex());
-        obj.put("lifeStage", getLifeStage());
-        obj.put("behavior", getBehavior());
         obj.put("decimalLatitude", getDecimalLatitude());
         obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
         obj.put("locationId", getLocationId());
-        obj.put("country", getCountry());
         obj.put("verbatimLocality", getVerbatimLocality());
 
         obj.put("customFields", this.getCustomFieldJSONObject());
@@ -4153,9 +4146,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     break;
                 case "comments":
                     this.addComments((String)valueObj);
-                    break;
-                case "behavior":
-                    this.setBehavior((String)valueObj);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality((String)valueObj);
@@ -4221,7 +4211,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 case "sex":
                 case "decimalLatitude":
                 case "decimalLongitude":
-                case "behavior":
                 case "verbatimLocality":
                 case "locationId":
                 case "taxonomy":
@@ -4276,9 +4265,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     break;
                 case "decimalLongitude":
                     this.setDecimalLongitude(null);
-                    break;
-                case "behavior":
-                    this.setBehavior(null);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality(null);

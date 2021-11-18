@@ -24,6 +24,22 @@ Adjust actual postgresql user/hostname/db arguments accordingly for your configu
 
 1. `cat all-in-one.sql | psql -U wildbook -h localhost nextgen`
 
+### "Normalizing" values for CustomFields
+
+_(See also *CustomFields*, *Behaviors*, and *Measurements* sections below.)_
+
+Some old-world fields are to be deprecated and supported by migrating to CustomFields.  In order to prepare for this, it is best to
+(manually) normalize the values first.  For example, `lifeStage` may contain variations and misspellings on values, such as 
+`sub-adult`, `SubAdult`, `sub adult` and so on.  If this is resolved ahead of time, it will make the mirgration to CustomField easier.
+
+Some fields to consider for migration to CustomFields include:
+* Encounter.lifeStage
+* Encounter.country
+* Occurrence.bearing
+* Occurrence.distance
+* other Occurrence customizations (e.g. individualCount)
+* behaviors and measurements
+
 ## Start up EDM
 
 Now the EDM can be started, so run tomcat with the appropriate database configuration.  You can confirm the correct EDM is running at the url

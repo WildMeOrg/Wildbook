@@ -1532,8 +1532,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             throw new ApiValueException(ex.toString(), "customFields");
         }
 
-        occ.setFromJSONObject("bearing", Double.class, jsonIn);
-        occ.setFromJSONObject("distance", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
         occ.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
         occ.setFromJSONObject("comments", String.class, jsonIn);
@@ -1623,7 +1621,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             org.json.JSONObject encCounts = new org.json.JSONObject();
             encCounts.put("sex", new org.json.JSONObject());
             //encCounts.put("behavior", new org.json.JSONObject());
-            encCounts.put("lifeStage", new org.json.JSONObject());
+            //encCounts.put("lifeStage", new org.json.JSONObject());
             encCounts.put("individuals", 0);
             org.json.JSONArray jarr = new org.json.JSONArray();
             for (Encounter enc : this.encounters) {
@@ -1641,8 +1639,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 if (isMaxDetail) {
                     String v = enc.getSex();
                     if (v != null) encCounts.getJSONObject("sex").put(v, encCounts.getJSONObject("sex").optInt(v, 0) + 1); 
-                    v = enc.getLifeStage();
-                    if (v != null) encCounts.getJSONObject("lifeStage").put(v, encCounts.getJSONObject("lifeStage").optInt(v, 0) + 1); 
+                    //v = enc.getLifeStage();
+                    //if (v != null) encCounts.getJSONObject("lifeStage").put(v, encCounts.getJSONObject("lifeStage").optInt(v, 0) + 1); 
                     //v = enc.getBehavior();
                     //if (v != null) encCounts.getJSONObject("behavior").put(v, encCounts.getJSONObject("behavior").optInt(v, 0) + 1); 
                     if (enc.hasMarkedIndividual()) encCounts.put("individuals", encCounts.getInt("individuals") + 1);
@@ -1664,8 +1662,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         }
 */
 
-        obj.put("distance", getDistance());
-        obj.put("bearing", getBearing());
         obj.put("customFields", this.getCustomFieldJSONObject());
 
         if (hasLatLon()) {
@@ -1734,12 +1730,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "decimalLongitude":
                     this.setDecimalLongitude( (valueObj == null) ? null : tryDouble(valueObj) );
-                    break;
-                case "bearing":
-                    this.setBearing( (valueObj == null) ? null : tryDouble(valueObj) );
-                    break;
-                case "distance":
-                    this.setDistance( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
                 case "comments":
                     this.addComments((String)valueObj);
@@ -1814,8 +1804,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 //these cases are all equivalent to add
                 case "startTime":
                 case "endTime":
-                case "bearing":
-                case "distance":
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "locationId":
@@ -1875,12 +1863,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "locationId":
                     this.setLocationId(null);
-                    break;
-                case "bearing":
-                    this.setBearing(null);
-                    break;
-                case "distance":
-                    this.setDistance(null);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality(null);
