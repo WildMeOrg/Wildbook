@@ -464,27 +464,19 @@ if (thisUser == null) {
                                             <li class="dropdown">
                                                                         <a href="#" style="color:#9dc327;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">VOLUNTEER <span class="caret"></span></a>
                                                                             <ul class="dropdown-menu" role="menu">
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">CAT WALK (SURVEYS)</a></li>
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">CAT AND MOUSE (ONLINE)</a></li>
-                                                                                <li><a href="<%=urlLoc %>/locations.jsp">ONLINE TASK INSTRUCTIONS</a></li>
+
+                                                                                <% if (isAnonymous) { %>
+                                                                                                        <li><a href="<%=urlLoc %>/catwalk.jsp">CAT WALK (SURVEYS)</a></li>
+                                                                                                                                                                                        <li><a href="<%=urlLoc %>/register.jsp">CAT AND MOUSE (ONLINE)</a></li>
+                                                                                                                                                                                        <li><a href="<%=urlLoc %>/register.jsp?instructions">ONLINE TASK INSTRUCTIONS</a></li>
+                                                                                                                                                                                        <li><a href="<%=urlLoc %>/queue.jsp">LOGIN</a></li>
+                                                                                <% } else { %>
+                                                                                                        <li><a href="<%=urlLoc %>/register.jsp?instructions">INSTRUCTIONS</a></li>
+                                                                                                        <li><a href="<%=urlLoc %>/queue.jsp">PROCESS SUBMISSIONS</a></li>
+                                                                                                        <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+                                                                                <% } %>
                                                                             </ul>
                                                                     </li>
-
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Volunteer <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-<!-- TODO make this only show to non-logged in -->
-<% if (isAnonymous) { %>
-                        <li><a href="<%=urlLoc %>/register.jsp">Cat and Mouse: Online Tasks</a></li>
-                        <li><a href="<%=urlLoc %>/catwalk.jsp">Cat Walk: Cat Surveys</a></li>
-                        <li><a href="<%=urlLoc %>/queue.jsp">Login</a></li>
-<% } else { %>
-                        <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
-                        <li><a href="<%=urlLoc %>/queue.jsp">Process Submissions</a></li>
-                        <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
-<% } %>
-                    </ul>
-                      </li>
 
 
                       <li class="dropdown" style="display: none;">
