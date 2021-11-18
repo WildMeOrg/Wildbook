@@ -462,7 +462,7 @@ if (thisUser == null) {
 
 
                                             <li class="dropdown">
-                                                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">VOLUNTEER <span class="caret"></span></a>
+                                                                        <a href="#" style="color:#9dc327;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">VOLUNTEER <span class="caret"></span></a>
                                                                             <ul class="dropdown-menu" role="menu">
                                                                                 <li><a href="<%=urlLoc %>/locations.jsp">CAT WALK (SURVEYS)</a></li>
                                                                                 <li><a href="<%=urlLoc %>/locations.jsp">CAT AND MOUSE (ONLINE)</a></li>
