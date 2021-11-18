@@ -403,7 +403,7 @@ if (thisUser == null) {
                         <li><a href="<%=urlLoc %>/mission.jsp">MISSION AND GOALS</a></li>
                         <li><a href="<%=urlLoc %>/whoAreWe.jsp">WHO WE ARE</a></li>
                         <li><a href="<%=urlLoc %>/financial.jsp">FINANCIAL SUPPORTERS</a></li>
-                        <li<a href="<%=urlLoc %>/contactus.jsp">CONTACT</a></li>
+                        <li><a href="<%=urlLoc %>/contactus.jsp">CONTACT</a></li>
                     </ul>
             </li>
 
@@ -420,7 +420,7 @@ if (thisUser == null) {
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">LOCATIONS <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="<%=urlLoc %>/locations.jsp">CURRENT LOCATIONS</a></li>
-                                    <li><a href="<%=urlLoc %>/locations.jsp">COLLABORATE</a></li>
+                                    <li><a href="<%=urlLoc %>/whoAreWe.jsp">COLLABORATE</a></li>
                                 </ul>
                         </li>
 
