@@ -3365,6 +3365,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             jobj.remove("location");
             jobj.remove("gpsLongitude");
             jobj.remove("verbatimLocality");
+            jobj.remove("verbatimEventDate");
             jobj.remove("locationID");
             jobj.remove("gpsLongitude");
             jobj.remove("genus");
@@ -4039,6 +4040,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         enc.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?  or should it be in setLocationId() ??
         enc.setFromJSONObject("sex", String.class, jsonIn);  //ditto?
         enc.setFromJSONObject("verbatimLocality", String.class, jsonIn);
+        enc.setFromJSONObject("verbatimEventDate", String.class, jsonIn);
 
         org.json.JSONObject jind = jsonIn.optJSONObject("individual");
         if (jind != null) {
@@ -4095,6 +4097,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         obj.put("customFields", this.getCustomFieldJSONObject());
         obj.put("locationId", getLocationId());
         obj.put("verbatimLocality", getVerbatimLocality());
+        obj.put("verbatimEventDate", getVerbatimEventDate());
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
@@ -4150,6 +4153,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality((String)valueObj);
+                    break;
+                case "verbatimEventDate":
+                    this.setVerbatimEventDate((String)valueObj);
                     break;
                 case "locationId":
                     this.setLocationId((String)valueObj);
@@ -4213,6 +4219,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "verbatimLocality":
+                case "verbatimEventDate":
                 case "locationId":
                 case "taxonomy":
                     rtn.put("_chainedAdd", true);
@@ -4269,6 +4276,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality(null);
+                    break;
+                case "verbatimEventDate":
+                    this.setVerbatimEventDate(null);
                     break;
                 case "locationId":
                     this.setLocationId(null);
