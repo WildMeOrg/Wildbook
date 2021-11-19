@@ -302,14 +302,15 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
         if (fallback == null) fallback = "Z";
         if (locationID == null) locationID = country;  //hail mary
         if (locationID == null) return fallback;
-        org.json.JSONObject loc = null;
+        String locTZ = null;
         try {
-            loc = LocationID.find(locationID);
+            Object tz = LocationID.recurseToFindBestValue(locationID, "timeZone");
+            locTZ = (String)tz;
         } catch (Exception ex) {
             SystemLog.warn("exception thrown finding LocationID for " + locationID + ": " + ex.toString());
         }
-        if (loc == null) return fallback;
-        return loc.optString("timeZone", fallback);
+        if (locTZ != null) return locTZ;
+        return fallback;
     }
     public boolean hasIncompleteTime() {
         return ((day < 1) || (month < 0) || (year < 1000) || (hour < 0) || (minutes == null) || minutes.equals(""));

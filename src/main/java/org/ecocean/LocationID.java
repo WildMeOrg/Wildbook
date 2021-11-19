@@ -68,6 +68,11 @@ public class LocationID {
     jsonMaps=new ConcurrentHashMap<String,JSONObject>();
     loadJSONData(filename);
   }
+
+    public static void resetCache() {
+        jsonMaps = new ConcurrentHashMap<String,JSONObject>();
+        loadJSONData(null);
+    }
   
     //in the new world, this comes from configuration!!
     private static void loadJSONData(String qualifier) {
@@ -114,7 +119,31 @@ public class LocationID {
   catch(JSONException e) {}
     return null;
   }
-  
+
+
+    // will look for id-object but attempt to find a value for key along the way, returning most-specific
+    public static Object recurseToFindBestValue(String id, String key) {
+        return recurseToFindBestValue(id, key, getLocationIDStructure(), null);
+    }
+    public static Object recurseToFindBestValue(String id, String key, JSONObject tree, Object bestSoFar) {
+        if ((id == null) || (key == null) || (tree == null)) return null;
+
+        // we are at the desired node; done!
+        if (id.equals(tree.optString("id", null))) return !tree.isNull(key) ? tree.get(key) : bestSoFar;
+
+        if (!tree.isNull(key)) bestSoFar = tree.get(key);
+        JSONArray kidArr = tree.optJSONArray("locationID");
+        if (kidArr == null) return null;  // no kids means no node found
+        for (int i = 0 ; i < kidArr.length() ; i++) {
+            JSONObject kidTree = kidArr.optJSONObject(i);
+            if (kidTree == null) continue;
+            Object res = recurseToFindBestValue(id, key, kidTree, bestSoFar);
+            if (res != null) return res;
+        }
+        return null;
+    }
+
+
   /*
    * Return the "name" attribute from JSON for a given "id" in /bundles/locationID.json
    */

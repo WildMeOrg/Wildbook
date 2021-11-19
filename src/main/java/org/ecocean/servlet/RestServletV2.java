@@ -31,6 +31,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Taxonomy;
+import org.ecocean.LocationID;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.customfield.CustomFieldException;
@@ -634,6 +635,7 @@ rtn.put("_payload", payload);
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, setTaxs);  //now just set it, like any other
 
                 } else {
+                    if (key.equals("site.custom.regions")) LocationID.resetCache();
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }
                 updatedConfs.add(conf);
