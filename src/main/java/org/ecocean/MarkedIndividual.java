@@ -228,6 +228,12 @@ public class MarkedIndividual extends org.ecocean.api.ApiCustomFields implements
         names = mv;
         refreshNamesCache();
     }
+    public void setNames(org.json.JSONObject j) {
+        if (j == null) return;
+        MultiValue mv = new MultiValue();
+        mv.setValues(j);
+        setNames(mv);
+    }
     public MultiValue getNames() {
         return names;
     }
@@ -3048,18 +3054,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return rtn;
   }
 
-    public org.json.JSONObject mergeFrom(Shepherd myShepherd, Set<MarkedIndividual> fromIndividuals) throws MergeException {
+    // mvp dictates that *target* individual dictates sex and name, unless parameters.override indicate otherwise
+    public org.json.JSONObject mergeFrom(Shepherd myShepherd, Set<MarkedIndividual> fromIndividuals, org.json.JSONObject parameters) throws MergeException {
         if (Util.collectionIsEmptyOrNull(fromIndividuals)) throw new MergeException("empty source individuals list", "sourceIndividualsIds");
         org.json.JSONObject res = new org.json.JSONObject();
         org.json.JSONObject merged = new org.json.JSONObject();
-        // TODO handle overrides being passed in
-        String targetSex = this.getSex();
         Set<MultiValue> otherNames = new HashSet<MultiValue>();
-        // TODO do we *set* a null sex on target based on from???  only if they all match???
         for (MarkedIndividual from : fromIndividuals) {
             org.json.JSONArray jencs = new org.json.JSONArray();
-            String sex = from.getSex();
-            if ((sex != null) && (targetSex != null) && !sex.equals(targetSex)) throw new MergeException("conflict on sex with " + from, "sex");
             if (from.getNumEncounters() > 0) for (Encounter enc : from.getEncounters()) {
                 jencs.put(enc.getId());
                 from.removeEncounter(enc);
@@ -3077,8 +3079,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 throw new MergeException("deletion of individual " + fromStr + " failed", "sourceIndividualIds");
             }
         }
+        // going to stick with this til new-world names get sorted!  FIXME
         if (this.names == null) this.names = new MultiValue();
         this.names.merge(otherNames);
+
+        if ((parameters != null) && (parameters.optJSONObject("override") != null)) {
+            if (parameters.getJSONObject("override").has("sex")) this.setSex(parameters.getJSONObject("override").optString("sex", null));
+            if (parameters.getJSONObject("override").has("names")) this.setNames(parameters.getJSONObject("override").optJSONObject("names"));
+        }
         res.put("targetId", this.getId());
         res.put("merged", merged);
         res.put("targetSex", this.getSex());

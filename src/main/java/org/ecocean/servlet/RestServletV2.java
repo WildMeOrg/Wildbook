@@ -1440,7 +1440,7 @@ rtn.put("_payload", payload);
         // TODO handle passed in sex, primaryName
         JSONObject resJson = null;
         try {
-            resJson = target.mergeFrom(myShepherd, fromIndividuals);
+            resJson = target.mergeFrom(myShepherd, fromIndividuals, payload.optJSONObject("parameters"));
         } catch (MergeException ex) {
                 myShepherd.rollbackDBTransaction();
                 SystemLog.error("mergeFrom() failed on target {} (payload {}) error={}", target, payload, ex.getMessage(), ex);
