@@ -95,7 +95,7 @@ public class MultiValue implements java.io.Serializable {
     public void merge(Set<MultiValue> others) {
         if (others == null) return;
         for (MultiValue other : others) {
-            if (other == null) continue;  //why would you do this to us?
+            if ((other == null) || (other.getKeys() == null)) continue;  //why would you do this to us?
             for (String key : other.getKeys()) {
                 for (String val : other.getValuesByKey(key)) {
                     this.addValues(key, val);
