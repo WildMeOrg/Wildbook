@@ -59,11 +59,11 @@ finally{
               <div class="container main-section">
 
                 <div class="row">
-                  <div class="col-sm-6" style="margin-top:40px;">
+                  <div class="col-sm-10" style="margin-top:40px;">
                     <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
                   <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </div>
-                  <div class="xcol-sm-6">
+                  <div class="xcol-sm-2">
                     <%if (indocetUser) {%>
                       <p>
                       <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">
@@ -77,7 +77,7 @@ finally{
 
                     <a href="http://www.wildbook.org" class="xcol-sm-4" title="This site is Powered by Wildbook">
                       <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
-  											height: 150px;
+  											height: 100px;
   										"/>
                     </a>
                 </div>

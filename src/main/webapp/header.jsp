@@ -143,6 +143,7 @@ if (thisUser == null) {
     <style>
       ul.nav.navbar-nav {
         width: 100%;
+        text-transform: uppercase;
       }
 
 /* this hackiness is cuz we un-fixed the navbar */
@@ -401,7 +402,7 @@ if (thisUser == null) {
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">ABOUT <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="<%=urlLoc %>/mission.jsp">MISSION AND GOALS</a></li>
-                        <li><a href="<%=urlLoc %>/whoAreWe.jsp">HOW IT WORKS</a></li>
+                        <li><a href="<%=urlLoc %>/whoAreWe.jsp">WHO WE ARE</a></li>
                         <li><a href="<%=urlLoc %>/financial.jsp">FINANCIAL SUPPORTERS</a></li>
                         <li><a href="<%=urlLoc %>/contactus.jsp">CONTACT</a></li>
                     </ul>
