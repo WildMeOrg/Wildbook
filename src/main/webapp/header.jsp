@@ -146,6 +146,18 @@ if (thisUser == null) {
         text-transform: uppercase;
       }
 
+      @media (min-width: 768px) {
+
+        ul.nav.navbar-nav {
+                width: 100%;
+                text-transform: uppercase;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+              }
+    }
+
+
 /* this hackiness is cuz we un-fixed the navbar */
 .maincontent {
     margin-top: 0 !important;
