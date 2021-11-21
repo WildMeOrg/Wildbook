@@ -4241,10 +4241,14 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   .navbar-nav {
     float: left;
     margin: 0;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
   }
+  ul.nav.navbar-nav {
+          width: 100%;
+          text-transform: uppercase;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+        }
   .navbar-nav > li {
     float: left;
   }
