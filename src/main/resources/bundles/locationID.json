@@ -3,6 +3,23 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 		{
+			"name": "Example Top-Level Region",
+			"id": "example-top-level-region",
+			"timeZone": "+02:00",
+			"locationID": [
+				{
+					"name": "Example Sub-Region 1",
+					"id": "example-sub-region-1",
+					"timeZone": "+3:00"
+				},
+				{
+					"name": "Example Sub-Region 2",
+					"id": "example-sub-region-2"
+				}
+			]
+		},
+
+		{
 		"name": "Pacific Ocean",
 		"locationID": [
 			 {
@@ -246,7 +263,7 @@
 			  },
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
-				{"name": "Tasman Sea", id: "Tasman Sea" },
+				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
 			]}
 			
