@@ -217,7 +217,7 @@ if (!commit) {
 }
 
 
-String fname = filename("houston_encounters.sql");
+String fname = filename("houston_04_encounters.sql");
 MigrationUtil.writeFile(fname, "");
 String content = "BEGIN;\n";
 int ct = 0;
@@ -233,7 +233,7 @@ MigrationUtil.appendFile(fname, content);
 out.println(filePreview(fname));
 
 
-fname = filename("houston_occurrences.sql");
+fname = filename("houston_05_occurrences.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
@@ -249,7 +249,7 @@ MigrationUtil.appendFile(fname, content);
 out.println(filePreview(fname));
 
 
-fname = filename("houston_individuals.sql");
+fname = filename("houston_06_individuals.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;

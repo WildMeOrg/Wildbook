@@ -288,10 +288,13 @@ which were rsync'ed (above) into the proper final location for the houston asset
 
 fname = filename("dirs_and_copy.sh");
 MigrationUtil.writeFile(fname, "");
-String allSql_fname = filename("houston_assetgroups_assets.sql");
+String allSql_fname = filename("houston_02_assetgroups_assets.sql");
 MigrationUtil.writeFile(allSql_fname, "");
+String sta_fname = "final_99_sighting_to_asset.sql";
+MigrationUtil.writeFile(sta_fname, "");
 content = "### change these to appropriate directories\nTMP_ASSET_DIR=/data/migration/assets\nTARGET_DIR=/data/var/asset_group\n\n";
 String allSql = "BEGIN;\n\n";
+String sta_content = "BEGIN;\n\n";
 ct = 0;
 for (String occId : agMap.keySet()) {
     content = "";
@@ -311,6 +314,7 @@ for (String occId : agMap.keySet()) {
 
     // ma.contentHash _may_ contain filesystem_xxhash64 (but needs getter)
     String sqlIns = "INSERT INTO asset (created, updated, viewed, guid, extension, path, mime_type, magic_signature, size_bytes, filesystem_xxhash64, filesystem_guid, semantic_guid, content_guid, title, meta, asset_group_guid) VALUES (?, now(), now(), ?, ?, ?, ?, 'TBD', ?, ?, ?, ?, ?, ?, ?, ?);";
+    String sta_sqlIns = "INSERT INTO sighting_assets (created, updated, viewed, sighting_guid, asset_guid) VALUES (?, now(), now(), ?, ?);";
     for (Integer maId : agMap.get(occId)) {
         System.out.println("migration/assets.jsp: " + maId + " from " + occId);
         MediaAsset ma = MediaAssetFactory.load(maId, myShepherd);
@@ -329,8 +333,9 @@ for (String occId : agMap.keySet()) {
         if ((iattr != null) && (iattr.getFileType() != null)) mimeType = iattr.getFileType();
         long rev = ma.getRevision();
         if (rev < 0) rev = System.currentTimeMillis();
+        String createdStr = Util.millisToIso8601StringNoTimezone(rev);
         String s = sqlIns;
-        s = MigrationUtil.sqlSub(s, Util.millisToIso8601StringNoTimezone(rev));
+        s = MigrationUtil.sqlSub(s, createdStr);
         s = MigrationUtil.sqlSub(s, ma.getUUID());
         s = MigrationUtil.sqlSub(s, ext.substring(1));
         s = MigrationUtil.sqlSub(s, filename);
@@ -344,6 +349,11 @@ for (String occId : agMap.keySet()) {
         s = MigrationUtil.sqlSub(s, meta(ma));  //meta (should include dimensions)
         s = MigrationUtil.sqlSub(s, occId);
         allSql += s + "\n\n";
+        s = sta_sqlIns;  //sighting-to-asset join table
+        s = MigrationUtil.sqlSub(s, createdStr);
+        s = MigrationUtil.sqlSub(s, occId);
+        s = MigrationUtil.sqlSub(s, ma.getUUID());
+        sta_content += s + "\n\n";
         ma = null;
     }
     MigrationUtil.appendFile(fname, content);
@@ -351,6 +361,9 @@ for (String occId : agMap.keySet()) {
 
     MigrationUtil.appendFile(allSql_fname, allSql);
     allSql = "";
+
+    MigrationUtil.appendFile(sta_fname, sta_content);
+    sta_content = "";
 
     myShepherd.rollbackDBTransaction();
     myShepherd.beginDBTransaction();
@@ -369,6 +382,10 @@ Now this sql will create the <b>AssetGroups</b> and <b>Assets</b> needed.
 <%
 MigrationUtil.appendFile(allSql_fname, "\n\nEND;\n");
 out.println(filePreview(allSql_fname));
+
+MigrationUtil.appendFile(sta_fname, "\n\nEND;\n");
+out.println(filePreview(sta_fname));
+
 System.out.println("migration/assets.jsp dirs asset_groups");
 %>
 
@@ -378,7 +395,7 @@ SQL to create the keywords in houston:
 </p>
 
 <%
-fname = filename("houston_keywords.sql");
+fname = filename("houston_01_keywords.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 Map<String,String> kmap = new HashMap<String,String>();
@@ -415,7 +432,7 @@ System.out.println("migration/assets.jsp finished keywords");
 <p>SQL for Annotations and keywords in houston</p>
 
 <%
-fname = filename("houston_annotations.sql");
+fname = filename("houston_03_annotations.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
