@@ -571,20 +571,27 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 <fieldset>
 <h3><%=props.getProperty("dateAndLocation")%></h3>
 
-<div class="form-group required">
+<div class="form-group required" style="margin-left: 0px;">
 
     <div class="form-group required">
 
-      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+			</div>
+
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
-          <%=props.getProperty("dateHelp") %>
+          <%=props.getProperty("examples") %>
+          <ul>
+            <li>2014-01-05 12:30</li>
+            <li>2014-03-23</li>
+            <li>2013-12</li>
+            <li>2010</li>
+          </ul>
         </p>
       </div>
 
-      <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-      </div>
     </div>
 
 <%
@@ -592,9 +599,9 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
 
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-      <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-      <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
-    </div>
+        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
+        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" onChange="$('.required-missing').removeClass('required-missing');>
+      </div>
 
 <%
 }
@@ -604,18 +611,20 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 <hr />
 
+<%
+
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("submit.jsp1");
+myShepherd.beginDBTransaction();
+String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+if(qualifier==null) {qualifier="default";}
+else{qualifier=qualifier.replaceAll(".properties","");}
+
+%>
+
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 	<p class="help-block">Location data submitted to SeadragonSearch is kept private from the general public.</p>
-    <div class="form-group required">
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
-      </div>
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control">
-      </div>
-    </div>
-
 
 <%
 
@@ -625,12 +634,7 @@ String submitterName="";
 String submitterEmail="";
 String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
 String project="";
-Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("submit.jsp1");
-myShepherd.beginDBTransaction();
-String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
-if(qualifier==null) {qualifier="default";}
-else{qualifier=qualifier.replaceAll(".properties","");}
+
 if(request.getRemoteUser()!=null){
     submitterName=request.getRemoteUser();
 
@@ -646,23 +650,38 @@ if(request.getRemoteUser()!=null){
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
+boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
 
 //add locationID to fields selectable
 %>
-    <div class="form-group required">
+
+   <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("locationID") %></label>
+        <label style="text-align: left;" class="control-label text-danger"><%=props.getProperty("locationID") %></label>
       </div>
+
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
           <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
       </div>
     </div>
+
+
+
+    <div class="form-group required">
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label"><%=props.getProperty("where") %></label>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+        <input name="location" type="text" id="location" size="40" class="form-control">
+      </div>
+    </div>
+
+
 <%
 
-String defaultCountry = CommonConfiguration.getProperty("defaultCountry", context);
-if (defaultCountry!=null) defaultCountry = defaultCountry.trim();
-if(CommonConfiguration.showProperty("showCountry",context)){
 
+if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
           <div class="form-group required">
@@ -672,44 +691,23 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
-
-            <%
-            if (defaultCountry==null||"".equals(defaultCountry)) {
-            %>
-                <option value="" selected="selected"></option>
-            <%
-            } else {
-              %>
-                <option value="<%=defaultCountry%>" selected="selected"><%=defaultCountry%></option>
-              <%
-            }
-
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-                Locale obj = new Locale("", countryCode);
-                String currentCountry = obj.getDisplayCountry();
-                boolean isDefault = currentCountry.equals(defaultCountry.trim());
-                if (!isDefault) {
-                %>
-                  <option value="<%=currentCountry %>"><%=currentCountry%></option>
-                <%
-                }
-            }
-                              %>
-                </select>
+          <option value="" selected="selected"></option>
+          <%
+            List<String> countries = (useCustomProperties)
+            ? CommonConfiguration.getIndexedPropertyValues("country", request)
+            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+            for (String country: countries) {
+              %><option value="<%=country%>"><%=country%></option><%
+            }%>
+        </select>
       </div>
     </div>
 
 <%
-
 }  //end if showCountry
 
 %>
-
-<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-  <label class="control-label"><%=props.getProperty("mapPin") %></label>
-</div>
-
+<em><%=props.getProperty("gps_title") %></em>
 <div>
     <p id="map">
     <!--
@@ -760,7 +758,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 <%
 }
 %>
-
 </fieldset>
 <hr />
 
