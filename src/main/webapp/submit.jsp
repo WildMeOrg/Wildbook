@@ -934,10 +934,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
-            <br><br>Suggested descriptors: <em>missing, bent, short</em>
-            <br><br>Seadragon body parts: <em>flag or stump</em>
-            <br><br>Locations on the body: <em>head, snout, neck, dorsal (on the back), lower (underside), tail</em>
-            <br><br>Example: <em>Missing left dorsal flag.</em>
+
           </div>
 
           <div class="col-xs-6 col-lg-8">
