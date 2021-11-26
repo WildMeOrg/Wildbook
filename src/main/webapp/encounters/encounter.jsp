@@ -450,6 +450,29 @@ function setIndivAutocomplete(el) {
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
