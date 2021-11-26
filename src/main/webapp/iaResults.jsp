@@ -483,13 +483,11 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		}
 
 		MarkedIndividual mark = enc.getIndividual();
-
 		if (mark==null) {
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
-
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -501,7 +499,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			// old user based id
 			mark.addName(nextNameKey, nextName);
 		}
-
 		System.out.println("RTN for no match naming: "+rtn.toString());
 
 		rtn.put("success",true);
@@ -1522,7 +1519,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
+                <%
+                if(user != null){
+                %>
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
+                <%
+                }
+                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -2072,12 +2075,12 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
+	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
+		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
+		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
 	}
-	confirmMsg+= ' to record your decision.';
+	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
@@ -2094,15 +2097,25 @@ function negativeButtonClick(encId, oldDisplayName) {
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName);
+				updateNameCallback(d, oldDisplayName, encId);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
-	alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+  let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
+  if(d && d.responseJSON && d.responseJSON.success){
+    if(oldDisplayName!=="undefined" && oldDisplayName){
+        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+    } else{
+      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+    }
+
+  }
+	alert(alertMsg);
+  location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
 }
 
 function addNegativeButton(encId, oldDisplayName) {
