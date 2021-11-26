@@ -57,6 +57,8 @@ if (Util.requestParameterSet(request.getParameter("recordQuiz"))) {
     return;
 }
 
+    request.setAttribute("pageTitle", "Kitizen Science > Online Instructions");
+
 %>
 <style>
 .mobile-note {

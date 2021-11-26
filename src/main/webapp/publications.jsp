@@ -14,6 +14,8 @@
     Properties props = new Properties();
     props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
 
+    request.setAttribute("pageTitle", "Kitizen Science > Publications");
+
 
 %>
 <jsp:include page="header.jsp" flush="true"/>

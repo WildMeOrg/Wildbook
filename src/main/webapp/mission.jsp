@@ -14,7 +14,7 @@ Shepherd myShepherd = new Shepherd(context);
 	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
 	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
     
-        request.setAttribute("pageTitle", "Kitizen Science &gt; Mission, Questions, Timeline");
+        request.setAttribute("pageTitle", "Kitizen Science > Mission and Questions");
 
 %>
 
