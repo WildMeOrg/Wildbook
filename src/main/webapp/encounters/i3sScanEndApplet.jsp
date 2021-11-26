@@ -470,6 +470,11 @@ $(document).ready(function() {
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
+            String enc1IndId = enc1.attributeValue("assignedToShark");
+            String localIndividualName = enc1IndId;
+            if(enc1IndId != null && !enc1IndId.equals("")){
+              localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+            }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
@@ -477,7 +482,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
                 <td width="60" align="left">
             <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
-            	<%=enc1.attributeValue("assignedToShark")%>
+            	<%=localIndividualName%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
