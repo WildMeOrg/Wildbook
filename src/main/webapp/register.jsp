@@ -757,7 +757,7 @@ How did you hear about Kitizen Science?
 %>
 <div id="instructions">
 
-<h1>Instructions</h1>
+<h2>Instructions</h2>
 
 <p>Kitizen Science's online cat photo processing system is set up as a collection of &quot;microtasks,&quot; where volunteers are presented with a cat submission consisting of one or more photos.  You will select attributes about the cat such as its primary color and whether it is a kitten or adult, and then compare it to suggested matches in our cat database to decide if the cat is new to our system or if it has a match. By building a record of when and where individual cats are sighted during cat surveys, you are helping us take a large number of photos and distill them into data in a format we can analyze.</p>
 <p>Some cats are harder to see than others, and you won't always get to see good details. All that we ask is that you do your best with each  submission. Similar to other photo classification citizen science programs, Kitizen Science  records and compares the opinions of multiple volunteers so that occasional mistakes are outvoted by a majority.</p>
