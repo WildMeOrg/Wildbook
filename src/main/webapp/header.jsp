@@ -395,7 +395,7 @@ if (thisUser == null) {
               </div>
 
               <div class="nav-bar-wrapper">
-                <div class="container" style="padding: 0;">
+                <div class="container">
                   <div class="navbar-header clearfix">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                       <span class="sr-only">Toggle navigation</span>
@@ -405,7 +405,7 @@ if (thisUser == null) {
                     </button>
                   </div>
 
-                  <div id="navbar" class="navbar-collapse collapse" style="padding: 0;">
+                  <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
 
