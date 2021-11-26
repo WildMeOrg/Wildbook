@@ -18,7 +18,7 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-		  <h1>Publications</h1>
+		  <h2>Publications</h2>
 		  <ul>
 		  <li><a href="#acknowl">Acknowledging Wildbook for Whale Sharks in a publication</a></li>
 		  <li><a href="#scipubs">Scientific publications</a></li>
