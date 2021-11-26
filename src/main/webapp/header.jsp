@@ -153,7 +153,7 @@ if (thisUser == null) {
                 text-transform: uppercase;
                 display: flex;
                 flex-direction: row;
-                justify-content: space-between;
+                justify-content: end;
               }
     }
 
@@ -395,7 +395,7 @@ if (thisUser == null) {
               </div>
 
               <div class="nav-bar-wrapper">
-                <div class="container">
+                <div class="container" style="padding: 0;">
                   <div class="navbar-header clearfix">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                       <span class="sr-only">Toggle navigation</span>
@@ -405,7 +405,7 @@ if (thisUser == null) {
                     </button>
                   </div>
 
-                  <div id="navbar" class="navbar-collapse collapse">
+                  <div id="navbar" class="navbar-collapse collapse" style="padding: 0;">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
                     <ul class="nav navbar-nav">
 
@@ -484,7 +484,7 @@ if (thisUser == null) {
                                                                                                                                                                                         <li><a href="<%=urlLoc %>/register.jsp?instructions">ONLINE TASK INSTRUCTIONS</a></li>
                                                                                                                                                                                         <li><a href="<%=urlLoc %>/queue.jsp">LOGIN</a></li>
                                                                                 <% } else { %>
-                                                                                                        <li><a href="<%=urlLoc %>/register.jsp?instructions">INSTRUCTIONS</a></li>
+                                                                                                        <li><a href="<%=urlLoc %>/register.jsp?instructions">ONLINE TASK INSTRUCTIONS</a></li>
                                                                                                         <li><a href="<%=urlLoc %>/queue.jsp">PROCESS SUBMISSIONS</a></li>
                                                                                                         <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
                                                                                 <% } %>
