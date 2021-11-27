@@ -446,10 +446,16 @@ finally{
                         <ul class="dropdown-menu" role="menu">
                         
                           <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMyEncounters")%></a></li>
+                                               
+                          		<li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=approved">&nbsp;&nbsp;&nbsp;<%=props.getProperty("viewMyApprovedEncounters")%></a></li>
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unapproved">&nbsp;&nbsp;&nbsp;<%=props.getProperty("viewMyUnapprovedEncounters")%></a></li>
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable">&nbsp;&nbsp;&nbsp;<%=props.getProperty("viewMyUnidentifiableEncounters")%></a></li>
+                          
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMyIndividuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySightings")%></a></li>
-                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           
+                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("viewMyBulkImports")%></a></li>
+                          <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("viewMyProjects")%></a></li>
+                              
                           
                         </ul>
                       </li>
@@ -476,10 +482,7 @@ finally{
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                               <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
-                              <li class="divider"></li>
-                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
-                              <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
-                              <li class="divider"></li>
+                             <li class="divider"></li>
                             <% }
                             if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
@@ -512,12 +515,7 @@ finally{
                              <%
 
                             } //end if admin
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
-                            %>
-                            	<li class="divider"></li>
-                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                          	<%
-                          	}
+
                             %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
