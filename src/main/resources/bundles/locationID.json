@@ -199,7 +199,7 @@
 						},
 						{
 							"name": "Magic Point",
-							"id": "MP",
+							"id": "MP - Magic Point",
 							"geospatialInfo": {
 								"lat": -33.9625000,
 								"long": 151.2638889
@@ -436,7 +436,12 @@
 			  "name": "Kenya", "id": "Kenya", "prefix": "K-", "prefixDigitPadding": 3 },
 			  
 			  			  {
-			  "name": "SouthAfrica", "id": "SouthAfrica", "prefix": "SA-", "prefixDigitPadding": 3 },
+			  "name": "South Africa", "id": "South Africa", "prefix": "SA-", "prefixDigitPadding": 3, "locationID":[
+			  
+				{ "name":"False Bay", "id":"False Bay", "locationID":[] }
+			  
+			  
+			  ] },
 			  
 			  			  {
 			  "name": "Djibouti", "id": "Djibouti", "prefix": "DJ-", "prefixDigitPadding": 3 },
@@ -543,6 +548,8 @@
 					  {
 					  "name": "San Diego", "id": "San Diego" },
 					  {
+					  "name": "San Francisco Bay", "id": "San Francisco Bay" },
+					  {
 					  "name": "SoCal", "id": "SoCal" }
 					  
 
@@ -602,7 +609,8 @@
 				  
 				  
 				  
-			] }
+			] },
+			{"name": "None", "id": "None", "locationID": []}
 
 
 
