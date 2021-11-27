@@ -496,19 +496,21 @@ finally{
                               <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
 
-                            <%
-                            if(CommonConfiguration.useSpotPatternRecognition(context)){
-                            %>
-                            	<li class="divider"></li>
-                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            <%
-                            }
-                            %>
+
 
                               <li class="divider"></li>
-                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
+                              <li class="dropdown-header"><%=props.getProperty("manageData")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
+                              <%
+                              if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
+                            	%>
+                            	
+                            		<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           		<%
+
+
+                              }
+                              %>
                               <li class="divider"></li>
                             <% }
 
@@ -516,7 +518,13 @@ finally{
                             if(request.isUserInRole("admin")) { %>
                                 <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-
+	                            <%
+	                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+	                            %>
+	                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+	                            <%
+	                            }
+	                            %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
                                 <%
@@ -535,15 +543,7 @@ finally{
                                 <%
 
                             } //end if admin
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
-                            %>
-                            	<li class="divider"></li>
-                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           	<%
 
-
-                          	}
                             %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
