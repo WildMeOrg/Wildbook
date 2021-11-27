@@ -506,6 +506,8 @@ finally{
                             	%>
                             	
                             		<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           		 	<li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+                               
                            		<%
 
 
@@ -537,10 +539,8 @@ finally{
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
-                                  <li class="divider"></li>
-                                <% } %>
-                               <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                                <%
+                                 
+                                <% } 
 
                             } //end if admin
 
