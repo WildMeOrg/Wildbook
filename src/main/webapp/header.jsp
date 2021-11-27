@@ -413,7 +413,7 @@ if (thisUser == null) {
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">ABOUT <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="<%=urlLoc %>/mission.jsp">MISSION AND GOALS</a></li>
+                        <li><a href="<%=urlLoc %>/mission.jsp">MISSION AND QUESTIONS</a></li>
                         <li><a href="<%=urlLoc %>/whoAreWe.jsp">WHO WE ARE</a></li>
                         <li><a href="<%=urlLoc %>/financial.jsp">FINANCIAL SUPPORTERS</a></li>
                         <li><a href="<%=urlLoc %>/contactus.jsp">CONTACT</a></li>
