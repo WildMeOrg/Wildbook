@@ -173,6 +173,8 @@
 
 	{ "name":"TG -	Tollgate", "id":"TG -	Tollgate", "locationID":[] },
 
+  { "name":"Triangle Wrecks", "id":"Triangle Wrecks", "locationID":[] },
+
 	{ "name":"U-352", "id":"U-352","geospatialInfo":{
        "lat":34.2281,
        "long":-76.5649
