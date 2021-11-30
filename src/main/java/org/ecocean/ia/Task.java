@@ -59,6 +59,31 @@ public class Task implements java.io.Serializable {
         return modified;
     }
 
+    public boolean isTypeDetection() {
+        if (this.hasObjectMediaAssets()) return true;
+        if (this.hasObjectAnnotations()) return false;
+        if (this.parameters == null) return false;
+        if (this.getParameters().optJSONObject("ibeis.identification") != null) return false;
+        if (this.getParameters().optBoolean("ibeis.detection", false)) return true;
+        return false;
+    }
+    public boolean isTypeIdentification() {
+        if (this.isTypeDetection()) return false;  // we trust this a little more
+        if (this.hasObjectAnnotations()) return true;
+        if (this.parameters == null) return false;
+        if (this.getParameters().optJSONObject("ibeis.identification") != null) return true;
+        return false;
+    }
+
+    public boolean initiatedWithDetection() {
+        if (this.parameters == null) return false;
+        return this.getParameters().optBoolean("ibeis.detection", false);
+    }
+    public boolean initiatedWithIdentification() {
+        if (this.parameters == null) return false;  // not sure how i feel about this
+        return !this.getParameters().optBoolean("skipIdent", false);
+    }
+
     public int countObjectMediaAssets() {
         return (objectMediaAssets == null) ? 0 : objectMediaAssets.size();
     }
