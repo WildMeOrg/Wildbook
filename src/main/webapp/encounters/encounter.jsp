@@ -3279,7 +3279,7 @@ else {
           if (measurementDesc == null) {
         	  measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
-          pageContext.setAttribute("measurementEvent", measurementDesc);
+          pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
           %>
           <tr>
