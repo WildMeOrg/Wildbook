@@ -15,6 +15,7 @@
          java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
+         org.ecocean.datacollection.*,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
@@ -3149,8 +3150,8 @@ itq.closeAll();
 
 
 <%
-  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurementEvents(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurementEvents(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
@@ -3159,7 +3160,7 @@ itq.closeAll();
 <br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
+  pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
 %>
 
 <% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -3220,9 +3221,10 @@ else {
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
-    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
     //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
-    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
+    //MeasurementEvent event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
+    MeasurementEvent event=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -3257,7 +3259,7 @@ else {
   <p class="editTextMeasure"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
 
     <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
     %>
 
     <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editFormMeasure">
@@ -3265,17 +3267,19 @@ else {
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        //List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurementEvents();
 
         %>
         <c:forEach items="${items}" var="item">
           <%
-          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
-          if (measurement == null) {
-            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+          MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
+          //Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          MeasurementEvent measurement=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
+          if (measurementDesc == null) {
+        	  measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
-          pageContext.setAttribute("measurementEvent", measurement);
+          pageContext.setAttribute("measurementEvent", measurementDesc);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
           %>
           <tr>
