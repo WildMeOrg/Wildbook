@@ -18,6 +18,8 @@ java.util.HashMap,
 java.util.LinkedHashSet,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%!
+// for debugging mostly
+/*
 public String dumpTask(Task task) {
     if (task == null) return "NULL TASK";
     Task rootTask = task.getRootTask();
@@ -41,6 +43,7 @@ public String dumpTask(Task task) {
     t += "- initiatedWithIdentification: " + task.initiatedWithIdentification() + "\n";
     return t;
 }
+*/
 %>
 <%
 
@@ -229,6 +232,10 @@ if (itask == null) {
 <%
 } else { //end listing
 
+System.out.println(">>> General    STATS: " + itask.stats());
+System.out.println(">>> MediaAsset STATS: " + itask.statsMediaAssets());
+System.out.println(">>> Annotation STATS: " + itask.statsAnnotations());
+
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<br>Status: "+itask.getStatus());
     if(itask.getParameters()!=null){
@@ -322,10 +329,7 @@ if (itask == null) {
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
                     jarr.put(ma.getId());
-                    List<Task> maTasks = Task.getRootTasksFor(ma, myShepherd);
-for (Task task : maTasks) {
-  System.out.println(dumpTask(task));
-}
+                    //List<Task> maTasks = Task.getRootTasksFor(ma, myShepherd);
                     if (ma.getDetectionStatus() != null) numIA++;
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
@@ -358,7 +362,6 @@ for (Task task : maTasks) {
         	List<Task> relatedTasks = Task.getRootTasksFor(annot, myShepherd);
         	if(relatedTasks!=null && relatedTasks.size()>0){
         		for(Task task:relatedTasks){
-System.out.println(dumpTask(task));
         			if(!tasks.contains(task)){
         				tasks.add(task);
         				annotTypesByTask.put(task.getId(),iaClass);
