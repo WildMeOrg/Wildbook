@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -49,7 +50,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
     for (int i=0;i<rEncounters.size() && i< rowLimit;i++) {
       Encounter enc=(Encounter)rEncounters.get(i);
       if(enc.getMeasurements().size() > 0){
-        for(Measurement currentMeasurement: enc.getMeasurements()){ // populate a list of measurementColName with measurements in current encounter set only
+        for(MeasurementEvent currentMeasurement: enc.getMeasurementEvents()){ // populate a list of measurementColName with measurements in current encounter set only
             String currentMeasurementType = currentMeasurement.getType();
             if(currentMeasurementType != null && !measurementColTitles.contains(currentMeasurementType)){
               measurementColTitles.add(currentMeasurementType);
