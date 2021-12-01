@@ -110,7 +110,7 @@ public class UpdateStandard extends HttpServlet {
     myShepherd = new Shepherd(context);
     out = response.getWriter();
     astore = getAssetStore(myShepherd);
-    
+
     if(astore!=null){
       System.out.println("astore is OK!");
     }
@@ -125,14 +125,12 @@ public class UpdateStandard extends HttpServlet {
     //this might better be set via a different configuration variable of its own
     //String filename = Util.safePath(request.getParameter("filename"));
     //if (filename == null) filename = "upload.xlsx";  //meh?
-    
+
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
-    System.out.println("deleteMe filename in UpdateStandard.java is: " + filename);
-    
-    
+
     File dataFile = new File(filename);
-    
+
     if (filename == null) {
       System.out.println("Filename request parameter was not set in the URL.");
       out.println("<p>I could not find a filename parameter in the URL. Please specify the full path on the server file system to the Excel import file as the ?filename= parameter on the URL.</p><p>Please note: the importer assumes that all image files exist in the same folder as the Excel file or are relatively referenced in the Excel file within a subdirectory.</p><p>Example value: ?filename=/import/MyNewData/importMe.xlsx</p>");
@@ -142,16 +140,16 @@ public class UpdateStandard extends HttpServlet {
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
       return;
     }
-    
-    
-    
+
+
+
     String uploadDir = dataFile.getParentFile().getAbsolutePath();
 
     //String subdir = Util.safePath(request.getParameter("subdir"));
     //if (subdir != null) uploadDir += subdir;
     photoDirectory = uploadDir+"/";
-    
-    
+
+
     boolean dataFound = dataFile.exists();
 
     missingColumns = new HashSet<String>();
@@ -187,7 +185,7 @@ public class UpdateStandard extends HttpServlet {
     initColIndexVariables(firstRow);
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
+
 
 
 		out.println("<li>Num Cols = "+cols+"</li>");
@@ -205,12 +203,12 @@ public class UpdateStandard extends HttpServlet {
     String importComment = "<p style=\"import-comment\">import <i>" + importId + "</i> at " + ldt.toString() + "</p>";
     System.out.println("===== importId " + importId + " (committing=" + committing + ")");
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Beginning row loop:</h2>"); 
+    out.println("<h2>Beginning row loop:</h2>");
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
     int offset = 0;
-    int numRows = 5000000; 
+    int numRows = 5000000;
     for (rownum=1+offset; rownum<rows&&rownum<(numRows+offset); rownum++) {
 
     	MarkedIndividual mark = null;
@@ -285,7 +283,7 @@ public class UpdateStandard extends HttpServlet {
           +"</ul></li>");
 
         }
-        
+
       }
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
@@ -330,10 +328,10 @@ public class UpdateStandard extends HttpServlet {
     out.println("<li>Num encs missing = "+numEncsMissing+"</li>");
     out.println("</ul>");
 
-    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
-    out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
+    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");
+    out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
     if (committing) out.println("<p>Import reference ID <b>" + importId + "</b></p>");
     //fs.close();
   }
@@ -357,7 +355,7 @@ public class UpdateStandard extends HttpServlet {
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
+
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
@@ -552,7 +550,7 @@ public class UpdateStandard extends HttpServlet {
     if (millis!=null) {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
-    } 
+    }
 
 
   	// Location
@@ -679,7 +677,7 @@ public class UpdateStandard extends HttpServlet {
 
            String colAffiliation="Encounter.submitter"+startIter+".affiliation";
            String val3=getString(row,colAffiliation);
-           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+           if(val3!=null) thisPerson.setAffiliation(val3.trim());
            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
 
          }
@@ -719,7 +717,7 @@ public class UpdateStandard extends HttpServlet {
 
             String colFullName="Encounter.photographer"+startIter+".fullName";
             String val2=getString(row,colFullName);
-            if(val2!=null) thisPerson.setFullName(val2.trim()); 
+            if(val2!=null) thisPerson.setFullName(val2.trim());
             if (unusedColumns!=null) unusedColumns.remove(colFullName);
 
             String colAffiliation="Encounter.photographer"+startIter+".affiliation";
@@ -807,7 +805,7 @@ public class UpdateStandard extends HttpServlet {
   		for (String columnHeader: colIndexMap.keySet()) {
   			if (columnHeader.contains(className+".")) {
   				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}	
+  			}
   		}
   	} catch (Exception e) {}
   	return fieldNames;
@@ -982,7 +980,7 @@ public class UpdateStandard extends HttpServlet {
     ArrayList<Keyword> ans = getLabeledKeywords(row, n);
     int maxAssets = getNumAssets(row);
     int maxKeywords=4;
-    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
+    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; //
     // we have up to 4 keywords per row.
     String kwColPrefix = "Encounter.mediaAsset"+n+".keyword";
     for (int i=0; i<=maxKeywords; i++) {
@@ -1186,7 +1184,7 @@ public class UpdateStandard extends HttpServlet {
 
 
     //MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(individualID);
-    
+
    //  else {
    //    System.out.println("StandardImport got individual "+mark+" from individualCache");
    //  }
@@ -1316,7 +1314,7 @@ public class UpdateStandard extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       return new Long( (long) val );
     }
-    catch (Exception e){      
+    catch (Exception e){
       try {
         String str = getString(row, i);
         if (str==null) return null;
@@ -1534,7 +1532,7 @@ public class UpdateStandard extends HttpServlet {
     // }
 
     // return as;
-    
+
   }
 
 

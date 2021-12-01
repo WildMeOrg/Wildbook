@@ -3,6 +3,8 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+         java.math.BigDecimal,
+         java.math.RoundingMode,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -12,8 +14,7 @@
          org.ecocean.media.MediaAsset,
          java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,
-         org.ecocean.datacollection.*,
+         org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
@@ -21,8 +22,6 @@
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
-         java.math.BigDecimal,
-         java.math.RoundingMode,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
@@ -129,35 +128,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("encounter.jsp1");
-
-String num = request.getParameter("number");
-
-if (num != null) {
-  num = num.replaceAll("\\+", "").trim();
-} else {
-  System.out.println("No Num!!");
-}
-
-
-String freshWithSheetName = request.getParameter("freshWithSheet");
-boolean isFreshWithSheet = (freshWithSheetName!=null);
-if (isFreshWithSheet) {
-  Encounter fresh = new Encounter(context, freshWithSheetName, myShepherd);
-  fresh.addConfigDataSheet(context, freshWithSheetName, myShepherd);
-  System.out.println("!!");
-  System.out.println("isFreshWithSheetName: "+freshWithSheetName);
-  myShepherd.storeNewEncounter(fresh);
-  num = fresh.getCatalogNumber();
-  System.out.println("num = "+num);
-  System.out.println("!!");
-
-}
-
-
-
+String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -183,10 +154,9 @@ File encounterDir = new File(encountersDir, num);
 //handle translation
   //String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
+
+// Use to encode special characters. Prompted by occurrence ID link containing ampersand not working.
 URLCodec urlCodec = new URLCodec();
-
-
-
 
 //let's load encounters.properties
   //Properties encprops = new Properties();
@@ -194,21 +164,21 @@ URLCodec urlCodec = new URLCodec();
 
   //Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context, "indocet");
 
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-  int nFieldsPerSubtable = 8;
-
-
   pageContext.setAttribute("num", num);
 
 
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounter.jsp1");
   //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
 
+
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
 
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
@@ -444,9 +414,12 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -468,13 +441,37 @@ function setIndivAutocomplete(el) {
   <script>
             function initialize() {
 	            //alert("Initializing map!");
-              var mapZoom = null;
-              mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
+	              //var mapZoom = 1;
+	              var mapZoom = null;
+                mapZoom = <%=CommonConfiguration.getMapZoom(context)%>;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
@@ -514,9 +511,6 @@ function setIndivAutocomplete(el) {
 
 
         }
-
-
-
 
 var encounterNumber = '<%=num%>';
 
@@ -585,8 +579,6 @@ var encounterNumber = '<%=num%>';
 
 <script src="../javascript/imageTools.js"></script>
 
-<link rel="stylesheet" href="../css/classEditTemplate.css" />
-<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
 
 
 
@@ -618,7 +610,7 @@ var encounterNumber = '<%=num%>';
 	              // remove any potentially-sensitive data, labeled with the secure-field class
 	              %>
 	              <script type="text/javascript">
-	                $(document).ready(function() {
+	                $(window).on('load',function() {
 	                  $('.secure-field').remove();
 	                });
 	              </script>
@@ -645,9 +637,9 @@ var encounterNumber = '<%=num%>';
 
 					cmsg = cmsg.replace("'", "\\'");
 					if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+						blocker = "<script>$(window).on('load',function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
 					} else {
-						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+						blocker = "<script>$(window).on('load',function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
 					}
 					out.println(blocker);
 				} //end if !visible
@@ -666,105 +658,18 @@ var encounterNumber = '<%=num%>';
 					System.out.println("============ out ==============");
 				}
 
-  //let's see if this user has ownership and can make edits
-  boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-  boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
-  pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
-  boolean loggedIn = false;
-  try{
-  	if(request.getUserPrincipal()!=null){loggedIn=true;}
-  }
-  catch(NullPointerException nullLogged){}
+				//let's see if this user has ownership and can make edits
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+            boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
+      			pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
+      			boolean loggedIn = false;
+      			try{
+      				if(request.getUserPrincipal()!=null){loggedIn=true;}
+      			}
+      			catch(NullPointerException nullLogged){}
 
-  String headerBGColor="FFFFFC";
-  //if(CommonConfiguration.getProperty(()){}
-
-  // DataSheet processing
-  String newMortalitySheet = request.getParameter("newMortalitySheet");
-  String newTaggingSheet = request.getParameter("newTaggingSheet");
-  String newTrackcountsSheet = request.getParameter("newTrackcountsSheet");
-  String saving = request.getParameter("save");
-
-  boolean needToSave = ((saving              != null) ||
-                        (newMortalitySheet   != null) ||
-                        (newTaggingSheet     != null) ||
-                        (newTrackcountsSheet != null));
-
-
-  if (newMortalitySheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Mortality Sheet!");
-    enc.addConfigDataSheet(context, "mortality", myShepherd);
-  }
-
-  if (newTaggingSheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Tagging Sheet!");
-    enc.addConfigDataSheet(context, "tagging", myShepherd);
-  }
-
-
-  if (newTrackcountsSheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Trackcounts Sheet!");
-    enc.addConfigDataSheet(context, "trackcounts", myShepherd);
-  }
-
-  if (needToSave) {
-    System.out.println("");
-    System.out.println("ENCOUNTER.JSP: Saving updated info...");
-    Enumeration en = request.getParameterNames();
-
-
-    while (en.hasMoreElements()) {
-      String pname = (String) en.nextElement();
-      String value = request.getParameter(pname);
-      System.out.println("parsing parameter "+pname);
-      if (pname.indexOf("enc:") == 0) {
-        String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
-        String getterName = "get" + methodName.substring(3);
-        System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+enc+", "+methodName+", "+value+");");
-        //ClassEditTemplate.updateObjectField(enc, methodName, value);
-        ClassEditTemplate.invokeObjectMethod(enc, methodName, value);
-      }
-      else if (pname.indexOf("enc-dp-new:") == 0) {
-        String afterColon = pname.split(":")[1];
-        String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
-        int dataSheetNum = Integer.parseInt(dataSheetNumStr);
-
-        // Create a new datapoint and add it to the appropriate sheet
-        // populate that datapoint's value with "value"
-        //Amount newEggDP = new Amount
-
-        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
-        //enc.addNewEgg(dataSheetNum);
-      }
-      else if (pname.indexOf("enc-dp-") == 0) {
-        // looks like nes-dp-dsNUM: _____. now to parse the NUM
-        String beforeColon = pname.split(":")[0];
-        String dpID = beforeColon.substring(7);
-        System.out.println("  looks like a change was detected on DataPoint "+dpID);
-        DataPoint dp = myShepherd.getDataPoint(dpID);
-        System.out.println("  now I have dp and its labeled string = "+dp.toLabeledString());
-        System.out.println("  its old value = "+dp.getValueString());
-        System.out.println("checkone");
-        dp.setValueFromString(value);
-        System.out.println("checktwo");
-        System.out.println("  its new value = "+dp.getValueString());
-      }
-      else if (pname.indexOf("dat-") == 0) {
-        String beforeColon = pname.split(":")[0];
-        String dpID = beforeColon.substring(4);
-        System.out.println("  Found a change on datasheet "+dpID);
-      }
-    }
-    myShepherd.commitDBTransaction();
-    System.out.println("ENCOUNTER.JSP: Transaction committed");
-    System.out.println("");
-  }
-
-  //end datasheet processing
-
-
-
-
+      			String headerBGColor="FFFFFC";
+      			//if(CommonConfiguration.getProperty(()){}
     			%>
 
 <script type="text/javascript">
@@ -912,9 +817,6 @@ $(function() {
 					<div class="row secure-field">
 
 
-					<div class="row">
-
-
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 <%-- START LOCATION --%>
@@ -929,7 +831,7 @@ $(function() {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
     buttons.toggle();
   });
@@ -994,9 +896,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
@@ -1030,7 +938,7 @@ if(enc.getLocation()!=null){
 
 <!-- start location  -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addLocation").click(function(event) {
       event.preventDefault();
 
@@ -1090,7 +998,7 @@ if(enc.getLocation()!=null){
 
 <!-- start country -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#countryFormBtn").click(function(event) {
       event.preventDefault();
 
@@ -1164,7 +1072,7 @@ if(enc.getLocation()!=null){
 
 <!-- start locationID -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#setLocationBtn").click(function(event) {
       event.preventDefault();
 
@@ -1221,7 +1129,7 @@ if(enc.getLocation()!=null){
 
 <!-- start depth -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#AddDepth").click(function(event) {
       event.preventDefault();
 
@@ -1302,7 +1210,7 @@ if(enc.getLocation()!=null){
 %>
 <!-- start elevation -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#AddElev").click(function(event) {
       event.preventDefault();
 
@@ -1474,13 +1382,12 @@ if(enc.getLocation()!=null){
 %>
 
 
-
- 	<%
+<%
  	if(isOwner || isPublic){
-     	%>
+%>
 
       <script type="text/javascript">
-        $(document).ready(function() {
+        $(window).on('load',function() {
 
           //form submission
           $("#setGPSbutton").click(function(event) {
@@ -1606,7 +1513,7 @@ if(enc.getLocation()!=null){
 
 
 	        <script type="text/javascript">
-	        $(document).ready(function() {
+	        $(window).on('load',function() {
 	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
 	            buttons.toggle();
 	          });
@@ -1685,7 +1592,7 @@ if(enc.getLocation()!=null){
 
 
                     <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#matchedBy option[value='Pattern match']").attr('selected','selected');
 
                       $("#setMB").click(function(event) {
@@ -1761,16 +1668,20 @@ function switchIdMode(bid) {
     resetIdButtons();
 }
 function resetIdButtons() {
-console.info('resetIdButtons()');
+//console.info('resetIdButtons()');
     $('.id-action').hide();
+    $('#AddNewDisabled').show();
+    $('#AddToExistingDisabled').show();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
 //console.log('newId=%s / existId=%s', newId, existId);
     if (newId) {
+        $('#AddNewDisabled').hide();
         $('#AddNew').show();
     } else if (existId) {
 //console.log('existId=%s', existId);
         if (lastIndivAutoData[existId]) {
+            $('#AddToExistingDisabled').hide();
             $('#Add').show();
         } else {
             console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
@@ -1779,74 +1690,9 @@ console.info('resetIdButtons()');
 }
 
                     $(document).ready(function() {
-
-
-                      $(".id-action").click(function(event) {
-                        event.preventDefault();
-                        var forceNew = false;
-                        var individual = $("#individualAddEncounterInput").val();
-                        if (!individual) {
-                            individual = $("#individualNewAddEncounterInput").val();
-                            forceNew = true;
-                        }
-                        if (!individual) return false;  //both blank, i guess
-
-                        $(".id-action").hide();
-
-                        var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
-                        var matchType = $("#matchType").val();
-
-                        var noemail = false;
-                        if ($("#noEmailCheckbox").is(":checked")) {
-                          noemail = true;
-                        }
-
-                        var action = $("#individualAddEncounterAction").val();
-                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
-                        console.info('sendData=%o', sendData);
-
-                        $.post("../IndividualAddEncounter", sendData,
-                        function(data) {
-
-
-                          $("#individualErrorDiv").hide();
-                          $("#individualDiv").addClass("has-success");
-                          $("#individualCheck, #matchedByCheck").show();
-                          $("#displayIndividualID").html(individual);
-
-                          //change the display in the Encounter page nearby link
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $('#displayIndividualID').closest('a').text(data.displayName);
-
-                          $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $("#topid").html(individual);
-          			      	  $(".add2shark").hide();
-        			        	  $(".removeFromShark").show();
-                          //add topid update here
-
-
-                          //change the name in the topbar
-                          //$('#topid').text(data.displayName);
-                          //$("#topid").html(data.displayName);
-                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $("#topid").text(data.displayName);
-
-                          $(".add2shark").hide();
-        				  $(".removeFromShark").show();
-
-                          $("#displayMatchedBy").html(matchType);
-                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
-
-                        })
-                        .fail(function(response) {
-                        	$("#addSuccessDiv").hide();
-                          	$("#individualDiv").addClass("has-error");
-                          	$("#individualErrorDiv").html(response.responseText);
-                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
-
-                        });
-                      });
+                      populateNewIndWithDisabledButton();
+                      populateAddToExistingIndWithDisabledButton();
+                      setUpIdActionOnClick();
 
                       $("#individualAddEncounterInput, #matchType").click(function() {
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
@@ -1881,14 +1727,6 @@ console.info('resetIdButtons()');
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
-                          // String nextID=getNextIndividualNumber(enc, myShepherd, context);
-                          // TODO not including the below which comes from master because it causes an error:
-                          // java.lang.NumberFormatException: For input string: "4135682370"
-                          //         at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:65)
-                          //         at java.base/java.lang.Integer.parseInt(Integer.java:652)
-                          //         at java.base/java.lang.Integer.parseInt(Integer.java:770)
-                          //         at org.ecocean.MarkedIndividual.nextNameByPrefix(MarkedIndividual.java:2626)
-                          //         at org.apache.jsp.encounters.encounter_jsp._jspService(encounter_jsp.java:1092)
                           String locationIdPrefix = enc.getPrefixForLocationID();
                           int locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
                           String nextID = MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
@@ -1907,8 +1745,8 @@ console.info('resetIdButtons()');
                           <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
-                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
-
+                        <div id="new-ind-button-section">
+                        </div>
                       </div>
 
                     <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
@@ -1921,8 +1759,8 @@ console.info('resetIdButtons()');
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
                           <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
                         </div>
-
-                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          <div id="add-to-existing-ind-section">
+                          </div>
                       </div>
 
                       <div class="form-group row" id="matchedByDiv">
@@ -1958,7 +1796,7 @@ function checkIdDisplay() {
     $('#individualAddEncounterInput').val('');
     resetIdButtons();
 }
-	                    $(document).ready(function() {
+	                    $(window).on('load',function() {
 
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
@@ -1987,7 +1825,7 @@ function checkIdDisplay() {
 
 
              <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
@@ -2020,6 +1858,10 @@ function checkIdDisplay() {
                             //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
+
+                            populateNewIndWithDisabledButton();
+                            populateAddToExistingIndWithDisabledButton();
+                            setUpIdActionOnClick();
 
                         })
                         .fail(function(response) {
@@ -2074,6 +1916,85 @@ function checkIdDisplay() {
 
 
           <script type="text/javascript">
+            function populateNewIndWithDisabledButton(){
+              let newIndHtml = '';
+              newIndHtml += '<input disabled="true" name="AddNewDisabled" type="button" id="AddNewDisabled" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              newIndHtml += '<input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#new-ind-button-section').empty();
+              $('#new-ind-button-section').append(newIndHtml);
+            }
+            function populateAddToExistingIndWithDisabledButton(){
+              let addToExistingHtml = '';
+              addToExistingHtml += '<input disabled="true" name="AddToExistingDisabled" type="button" id="AddToExistingDisabled" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              addToExistingHtml += '<input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#add-to-existing-ind-section').empty();
+              $('#add-to-existing-ind-section').append(addToExistingHtml);
+            }
+            function setUpIdActionOnClick(){
+              $(".id-action").click(function(event) {
+                        event.preventDefault();
+
+                        if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(CommonConfiguration.getProperty("showTaxonomy",context).equals("true")) %>&&(!globalEncSpecies || globalEncSpecies === notAvailable)){
+                          window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
+                      		return false;
+                        }
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
+                        $(".id-action").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
+                        var matchType = $("#matchType").val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
+                        var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
+
+                        $.post("../IndividualAddEncounter", sendData,
+                        function(data) {
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+                          $("#displayIndividualID").html(individual);
+
+                          //change the display in the Encounter page nearby link
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $('#displayIndividualID').closest('a').text(data.displayName);
+
+                          //change the name in the topbar
+                          //$('#topid').text(data.displayName);
+                          //$("#topid").html(data.displayName);
+                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $("#topid").text(data.displayName);
+
+                          $(".add2shark").hide();
+        				  $(".removeFromShark").show();
+
+                          $("#displayMatchedBy").html(matchType);
+                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
+
+
+                        })
+                        .fail(function(response) {
+                        	$("#addSuccessDiv").hide();
+                          	$("#individualDiv").addClass("has-error");
+                          	$("#individualErrorDiv").html(response.responseText);
+                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
+
+                        });
+                      });
+            }
+
             $(document).ready(function() {
               $("#setAltIDbtn").click(function(event) {
                 event.preventDefault();
@@ -2162,7 +2083,7 @@ function checkIdDisplay() {
                 if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && (isOwner || isPublic)) {
               %>
               <script type="text/javascript">
-                $(document).ready(function() {
+                $(window).on('load',function() {
 
                   $("#removeOccurrenceBtn").click(function(event) {
                     event.preventDefault();
@@ -2219,10 +2140,10 @@ function checkIdDisplay() {
                 }
                 //create new Occurrence with name
 
-                if((isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                if( (isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
                 <script type="text/javascript">
-                  $(document).ready(function() {
+                  $(window).on('load',function() {
                     $("#createOccur").click(function(event) {
                       event.preventDefault();
 
@@ -2280,7 +2201,7 @@ function checkIdDisplay() {
                   <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
 
                   <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#addOccurrence").click(function(event) {
                         event.preventDefault();
 
@@ -2347,7 +2268,7 @@ function checkIdDisplay() {
         <div>
 
 
-          <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+          <% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
           <h2>
             <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
             <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
@@ -2356,7 +2277,7 @@ function checkIdDisplay() {
 
 
           <script type="text/javascript">
-          $(document).ready(function() {
+          $(window).on('load',function() {
             var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
               buttons.toggle();
             });
@@ -2388,6 +2309,9 @@ function checkIdDisplay() {
            <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
 
            <%}%>
+
+
+
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
@@ -2436,7 +2360,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner){
+					         if(isOwner || isPublic) {
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2462,7 +2386,7 @@ function checkIdDisplay() {
 
 			</p> <!--  End submitters paragraph -->
 			<%
-			if(isOwner){
+			if(isOwner || isPublic){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2475,7 +2399,6 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-         int numPhotographers = 0;
 	       if(enc.getPhotographers()!=null){
 	    	   %>
 
@@ -2483,8 +2406,8 @@ function checkIdDisplay() {
 	    	   <tbody>
 	    	   <%
 	    	   List<User> photographers=enc.getPhotographers();
-	    	   numPhotographers=photographers.size();
-			   for(int f=0;f<numPhotographers;f++){
+	    	   int numSubmitters=photographers.size();
+			   for(int f=0;f<numSubmitters;f++){
 				   User user=photographers.get(f);
 				   %>
 				   <tr id="<%=user.getUUID() %>">
@@ -2522,7 +2445,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner){
+					         if(isOwner || isPublic){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2543,92 +2466,9 @@ function checkIdDisplay() {
 			   	<%
 	 		} //end if photographers!=null
 			%>
-
-
-      <div id="addNewPhotographer" style="display:none;">
-        <label><small>Add New Photographer</small></label><br>
-        <input id="photographerName-new" name="photographerName-new" type="text" placeholder="<%=encprops.getProperty("name")%>" size="30"/>
-        <input id="photographerEmail-new" name="photographerEmail-new" type="text" placeholder="<%=encprops.getProperty("email")%>" size="30"/>
-        <input id="photographerOrganization-new" name="photographerOrganization-new" type="text" placeholder="<%=encprops.getProperty("submitterAffiliation")%>" size="30"/>
-        <input id="photographerProject-new" name="photographerProject-new" type="text" placeholder="<%=encprops.getProperty("submitterProject")%>" size="30"/>
-        <button class="btn btn-md" type="button" name="button" id="editPhotographers">Done</button>
-
-        <label id="editPhotographerFail" style="color:red;"></label>
-        <label id="editPhotographerSuccess" style="color:green;"></label>
-
-    <script type="text/javascript">
-      $(document).ready(function() {
-        $("#editPhotographers").click(function() {
-          event.preventDefault();
-          var numPhotographers = parseInt('<%=numPhotographers%>');
-          // Load all this into an object cause it could be any length really.
-          var sendObj = {};
-          sendObj["numPhotographers"] = numPhotographers;
-          sendObj["encNum"] = '<%=enc.getCatalogNumber()%>';
-
-          for (i=0;i<numPhotographers;i++) {
-            sendObj["photographerName-"+i] = $("#photographerName-"+i).val();
-            sendObj["photographerEmail-"+i] = $("#photographerEmail-"+i).val();
-            sendObj["photographerOrganization-"+i] = $("#photographerOrganization-"+i).val();
-            sendObj["photographerProject-"+i] = $("#photographerProject-"+i).val();
-            sendObj["photographerId-"+i] = $("#photographerId-"+i).val();
-            //Send the value from the input field to the id separated field for the default veiw.
-          }
-          // Do we have a new user to make? Need at least a name...
-          var newUser = false;
-          var newName =  $("#photographerName-new").val();
-          if (newName!=null&&newName.length>0) {
-            newUser = true;
-            sendObj["photographerName-new"] = $("#photographerName-new").val();
-            sendObj["photographerEmail-new"] = $("#photographerEmail-new").val();
-            sendObj["photographerOrganization-new"] = $("#photographerOrganization-new").val();
-            sendObj["photographerProject-new"] = $("#photographerProject-new").val();
-          }
-          //Go forth, object.
-          console.log("WHATS IN THE BOX?X?X? "+JSON.stringify(sendObj));
-          $.post("../EncounterEditContributors", sendObj,
-          function(response) {
-            for (i=0;i<numPhotographers;i++) {
-              var photographerId = $("#photographerId-"+i).val();
-              $("#"+photographerId+" #displayPhotographerName").html($("#photographerName-"+i).val());
-              $("#"+photographerId+" #displayPhotographerEmail").html($("#photographerEmail-"+i).val());
-              $("#"+photographerId+" #displayPhotographerOrg").html($("#photographerOrganization-"+i).val());
-              $("#"+photographerId+" #displayPhotographerProject").html($("#photographerProject-"+i).val());
-            }
-            if (newUSer==true) {
-              $("#editPhotographerSuccess").text("Photographers data set. Refresh page to see new users.");
-            } else {
-              $("#editPhotographerSuccess").text("Photographers data set.");
-            }
-            // Did you make a new photographer/user? Sigh,,, I guess we will populate a bunch of html for it.
-
-            //Show success messages?
-          })
-          .fail(function(response) {
-            //Give em the fail whale?
-            $("#editPhotographerFail").text("Error: Unable to modify photographers.");
-          });
-        });
-      });
-
-
-
-    </script>
-
-
-
-  </div>
-
-
-
-
-
-
-
-
 			</p> <!--  End photographers paragraph -->
 			<%
-			if(isOwner){
+			if(isOwner || isPublic){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2646,7 +2486,7 @@ function checkIdDisplay() {
 
 
 							<%
-		                    if(isOwner){
+		                    if(isOwner || isPublic){
 
 		                    %>
 
@@ -2699,7 +2539,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner){
+					         if(isOwner || isPublic){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2722,7 +2562,7 @@ function checkIdDisplay() {
 			%>
 			</p> <!--  End informOthers paragraph -->
 			<%
-			if(isOwner){
+			if(isOwner || isPublic){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2741,7 +2581,7 @@ function checkIdDisplay() {
                   	<br>
                   	 <!--  remake for Users removal -->
 		         <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       //$("button.editUsers").click(function(event) {
@@ -2787,7 +2627,7 @@ function checkIdDisplay() {
 
                  <!--  remake for User addition -->
 		         <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       $("button.addUser").click(function(event) {
@@ -2857,7 +2697,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
@@ -2866,7 +2706,7 @@ function checkIdDisplay() {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editMeta, #closeEditMeta").on("click", function(){
     buttons.toggle();
   });
@@ -2923,7 +2763,7 @@ else {
 									%>
 
                   <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#selectState option[value='<%=state %>']").attr('selected','selected');
 
                       $("#editWork").click(function(event) {
@@ -3013,7 +2853,6 @@ else {
      									<td>
                          				<%
                          				if(enc.getAssignedUsername()!=null){
-
                         	 				String username=enc.getAssignedUsername();
                          					if(myShepherd.getUser(username)!=null){
                          					%>
@@ -3044,10 +2883,10 @@ else {
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
 
+                                  <p><strong><%=displayName %></strong></p>
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
-					                        <p><strong><%=displayName %></strong></p>
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
@@ -3112,7 +2951,7 @@ else {
 
 
 <!-- start set username -->
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
    %>
 <div>
   <div class="highlight resultMessageDiv" id="assignErrorDiv"></div>
@@ -3169,7 +3008,7 @@ else {
 if (isOwner) {
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#tapirApprove").click(function(event) {
       event.preventDefault();
 
@@ -3219,7 +3058,7 @@ if(request.getUserPrincipal()!=null){
 %>
 <!-- start autocomments -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#manualAdd").click(function(event) {
       event.preventDefault();
 
@@ -3310,20 +3149,20 @@ itq.closeAll();
 
 
 <%
-  pageContext.setAttribute("showMeasurementEvents", CommonConfiguration.showMeasurementEvents(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurementEvents(context));
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
 
-<c:if test="${showMeasurementEvents}">
+<c:if test="${showMeasurements}">
 <br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
+  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
 %>
 
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
   <c:out value="${measurementTitle}"></c:out>
@@ -3333,7 +3172,7 @@ itq.closeAll();
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editMeasure, #closeEditMeasure").on("click", function(){
     buttons.toggle();
   });
@@ -3381,9 +3220,9 @@ else {
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
-    MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
+    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
     //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
-    MeasurementEvent event=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
+    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -3418,7 +3257,7 @@ else {
   <p class="editTextMeasure"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
 
     <%
-    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     %>
 
     <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editFormMeasure">
@@ -3426,15 +3265,15 @@ else {
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-        List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurementEvents();
+        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
 
         %>
         <c:forEach items="${items}" var="item">
           <%
-          MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
-          MeasurementEvent measurement = enc.findMeasurementEventOfType(measurementDesc.getType());
+          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
           if (measurement == null) {
-            measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
@@ -3490,7 +3329,7 @@ else {
 
 
 
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
   <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
@@ -3499,7 +3338,7 @@ else {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editTracking, #closeEditTracking").on("click", function(){
     buttons.toggle();
   });
@@ -3737,7 +3576,7 @@ else {
     <tr>
     <td width="560px" style="vertical-align:top;">
 
-      <% if ((isOwner ||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+      <% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
       <h2>
         <img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
         <button class="btn btn-md" type="button" name="button" id="editDate">Edit</button>
@@ -3747,7 +3586,7 @@ else {
 
 
       <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         var buttons = $("#editDate, #closeEditDate").on("click", function(){
           buttons.toggle();
         });
@@ -3821,7 +3660,7 @@ else {
     <br>
         <!-- start date -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#addResetDate").click(function(event) {
           event.preventDefault();
 
@@ -3880,7 +3719,7 @@ else {
 
     <!-- start releaseDate -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#AddDate").click(function(event) {
           event.preventDefault();
 
@@ -3942,7 +3781,7 @@ else {
     <br>
     <!-- start verbatim event date -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#setVerbatimEventDateBtn").click(function(event) {
           event.preventDefault();
 
@@ -4016,7 +3855,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
       	</jsp:include>
 
 		<%
-		if(isOwner){
+		if(isOwner || isPublic){
 		%>
           <br/>
           <br>
@@ -4047,7 +3886,6 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         %>
     <%-- END IMAGES --%>
 
-	            <div id="updone"></div>
 
       <%
 
@@ -4080,7 +3918,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     var buttons = $("#editObservation, #closeEditObservation").on("click", function(){
       buttons.toggle();
     });
@@ -4111,15 +3949,26 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <!-- START TAXONOMY ATTRIBUTE -->
-<%
+
+    <script type="text/javascript">
+      var globalEncSpecies = null;
+      var notAvailable = null;
+    </script>
+    <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
+    <script type="text/javascript">
+      globalEncSpecies = '<%=genusSpeciesFound%>';
+      notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+    </script>
+    <%
+    %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          <%=encprops.getProperty("taxonomy")%> <em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
           %>
           <%
           %>
@@ -4135,7 +3984,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
             assets[i].taxonomyString = newValue;
         }
     }
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#taxBtn").click(function(event) {
           event.preventDefault();
 
@@ -4228,7 +4077,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 <!-- start set living status -->
   <script type="text/javascript">
-    $(document).ready(function() {
+    $(window).on('load',function() {
       $("#addStatus").click(function(event) {
         event.preventDefault();
 
@@ -4299,7 +4148,7 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 <%
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addSex").click(function(event) {
       event.preventDefault();
 
@@ -4379,7 +4228,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
  %>
 
  <script type="text/javascript">
-   $(document).ready(function() {
+   $(window).on('load',function() {
      $("#addScar").click(function(event) {
        event.preventDefault();
 
@@ -4454,7 +4303,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
     <!-- start set behavior popup -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#editBehavior").click(function(event) {
           event.preventDefault();
 
@@ -4545,7 +4394,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
     <!-- start set groupRole popup -->
   <script type="text/javascript">
-    $(document).ready(function() {
+    $(window).on('load',function() {
       $("#editGroupRole").click(function(event) {
         event.preventDefault();
 
@@ -4641,7 +4490,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
 <!-- start set patterning code -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#editPattern").click(function(event) {
       event.preventDefault();
 
@@ -4756,7 +4605,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
 <!-- start set life stage -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addLife").click(function(event) {
       event.preventDefault();
 
@@ -4849,7 +4698,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 %>
 
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#editComment").click(function(event) {
       event.preventDefault();
 
@@ -4916,7 +4765,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
     buttons.toggle();
   });
@@ -4937,7 +4786,17 @@ else {
  %>
  <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
 
- <%}
+ <%}%>
+
+
+
+
+<%
+if(isOwner || isPublic){
+%>
+
+<%
+}
 
 
   if (enc.getDynamicProperties() != null) {
@@ -4977,6 +4836,10 @@ else {
         </form>
 
 </div>
+
+<%
+%>
+
 </p>
 
 
@@ -5025,21 +4888,6 @@ else{
 <%
 
 %>
-
-</div>
-
-<!-- end two columns here -->
-
-<script src="../tools/flow.min.js"></script>
-<style>
-
-div#add-image-zone {
-  background-color: #e8e8e8;
-  margin-bottom: 8px;
-  padding: 13px;
-}
-
-</style>
 
 
   </div>
@@ -5271,14 +5119,12 @@ button#upload-button {
   	return false;
   }
   function uploadFinished() {
-  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
-    console.log("upload finished.");
-    console.log('upload finished. Files added: '+filenames);
-
     if (filenames.length > 0) {
       console.log("creating mediaAsset for filename "+filenames[0]);
+
       let locationID = '<%=enc.getLocationID()%>';
       console.log("locationID for new asset: "+locationID);
+
       $.ajax({
         url: '../MediaAssetCreate',
         type: 'POST',
@@ -5291,7 +5137,8 @@ button#upload-button {
               ]
             }
           ],
-          "taxonomy":"<%=enc.getTaxonomyString() %>"
+          "taxonomy":"<%=enc.getTaxonomyString() %>",
+          "locationID":locationID
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
@@ -5372,14 +5219,14 @@ if(!isOwner){isOwnerValue="false";}
 if(loggedIn){
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addBioSample").click(function() {
       $("#dialogSample").toggle();
     });
   });
 </script>
 
-<br>
+
 <hr />
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif" />
@@ -5648,7 +5495,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#haplo<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogHaplotype<%=thisSample.getSampleID() %>").toggle();
     });
@@ -5926,7 +5773,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 
 <!-- start ms marker popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
       $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
     });
@@ -6052,12 +5899,13 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 				</td></tr>
 
 
+
 			<%
 			}
 			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
 				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementEventType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
 				<%
 				if(!mito.getSuperHTMLString().equals("")){
 				%>
@@ -6095,7 +5943,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
@@ -6117,7 +5965,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -6263,7 +6111,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		</table>
 
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
           var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
           if (x.style.display === "none") {
@@ -6286,7 +6134,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
     });
@@ -6390,7 +6238,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start sat tag metadata -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
       $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
     });
@@ -6517,7 +6365,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 
 <!-- start genetic sex popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addSex<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
 
@@ -6640,7 +6488,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
 
@@ -6669,7 +6517,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
@@ -6691,7 +6539,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -6959,7 +6807,7 @@ function adjustLocationCheckboxes(el) {
     return true;
 }
 
-$(document).ready(function() {
+$(window).on('load',function() {
     adjustLocationCheckboxes( $('.ul-root input:checked')[0] );  //this will check all below the default-checked one
     iaMatchFilterLocationCountUpdate();
     $('.ul-root input[type="checkbox"]').on('change', function(ev) {
@@ -7033,11 +6881,7 @@ for (String l : locCount.keySet()) {
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
             <span class="item-count"><%=locCount.get(null)%></span>
         </div>
-<!-- TODO maybe an option here to not recurse to children locations? -->
-        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
-        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+
     </div>
 
   </div>
@@ -7162,7 +7006,10 @@ finally{
 }
 %>
 
+
 </div>
+</div>
+
 <!--db: These are the necessary tools for photoswipe.-->
 <%
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);

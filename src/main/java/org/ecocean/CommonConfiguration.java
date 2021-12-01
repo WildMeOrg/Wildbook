@@ -416,6 +416,14 @@ public class CommonConfiguration {
     }
   }
 
+  public static Boolean getDefaultReceiveEmails(String context) {
+    if (Util.stringExists(getProperty("defaultReceiveEmails", context))) {
+      return Boolean.parseBoolean(getProperty("defaultReceiveEmails", context).trim());
+    } else {
+      return true;
+    }
+  }
+
   public static String getNewSubmissionEmail(String context) {
     return getProperty("newSubmissionEmail",context).trim();
   }

@@ -96,7 +96,7 @@ public class UserCreate extends HttpServlet {
     try{
       jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
     }catch(Exception e){
-      System.out.println("create user exception");
+      System.out.println("Failed to get json from the http request. That might be totally ok! There are other reasons that UserCreate gets called.");
       e.printStackTrace();
     }
     JSONObject existingUserResultsJson = new JSONObject();
@@ -169,12 +169,12 @@ public class UserCreate extends HttpServlet {
       if((password.equals(password2))||(isEdit)){
 
         User newUser=null;
-        String oldUsername = null;
+        String originalUsername = null;
         try{
           myShepherd.beginDBTransaction();
           if(myShepherd.getUserByUUID(uuid)!=null){
             newUser=myShepherd.getUserByUUID(uuid);
-            oldUsername = newUser.getUsername();
+            originalUsername = newUser.getUsername();
           }
           else{
             newUser=new User(uuid);
@@ -374,19 +374,19 @@ public class UserCreate extends HttpServlet {
 
           myShepherd.updateDBTransaction();
 
-          //now that the new or updated user data is persisted, let's consolidate all of the stuff that belonged to the *old* username (if exists) into the new version of the user by consolidating a user with the username of oldUsername into the newUser. This action both exploits and closes (in the case of edited usernames, at least) the security flaw that a user can be created and inherit already-existing assets if it happens to have the username of the assets' [previous] owner.
-          User newUserWithOldUsername=null;
-          if(oldUsername != null && !oldUsername.equals("")){
+          //now that the new or updated user data is persisted, if the username changed, let's consolidate all of the stuff that belonged to the *old* username (if exists) into the new version of the user by consolidating a user with the username of originalUsername into the newUser. This action both exploits and closes (in the case of edited usernames, at least) the security flaw that a user can be created and inherit already-existing assets if it happens to have the username of the assets' [previous] owner.
+          User tempUserWithOriginalUserName=null;
+          if(originalUsername != null && !originalUsername.equals("") && newUser.getUsername()!= null && !newUser.getUsername().equals(originalUsername)){
             try{
               String tmpUsrSalt=ServletUtilities.getSalt().toHex();
-              String tmpUsrPassword = "tomcat123"; //it does not matter; this user will be gone very soon
-              String tmpUsrHashedPassword=ServletUtilities.hashAndSaltPassword(tmpUsrPassword, tmpUsrSalt);
-              newUserWithOldUsername=new User(oldUsername,tmpUsrHashedPassword,tmpUsrSalt);
-              myShepherd.getPM().makePersistent(newUserWithOldUsername);
-              UserConsolidate.consolidateUserForUserEdit(myShepherd, newUser, newUserWithOldUsername);
+              String tmpUsr1Password = "tomcat123"; //it does not matter; this user will be gone very soon
+              String tmpUsr1HashedPassword=ServletUtilities.hashAndSaltPassword(tmpUsr1Password, tmpUsrSalt);
+              tempUserWithOriginalUserName=new User(originalUsername,tmpUsr1HashedPassword,tmpUsrSalt); // this user is now magically associated with encounters with submitterId of originalUsername
+              myShepherd.getPM().makePersistent(tempUserWithOriginalUserName);
+              UserConsolidate.consolidateUserForUserEdit(myShepherd, newUser, tempUserWithOriginalUserName);
             }
             catch(Exception e){
-              System.out.println("error while creating or de-duplicating a temporary user during user edit");
+              System.out.println("error while trying to assign the original user's data to the user account with the new edits");
               e.printStackTrace();
             }
           }

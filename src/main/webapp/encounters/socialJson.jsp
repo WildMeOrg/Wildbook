@@ -53,7 +53,7 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
-//System.out.println("??? TRY COMPRESS ??");
+	//System.out.println("??? TRY COMPRESS ??");
     //String s = scrubJson(req, jo).toString();
     String s = jo.toString();
     if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
@@ -94,9 +94,20 @@ if(request.getParameter("specificEpithet")!=null){
 	specificEpithet=request.getParameter("specificEpithet");
 }
 
-String cacheName="socialJson_"+genus+"_"+specificEpithet;
-
 String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc1) && enc1.genus==\'"+genus+"' && enc1.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc1";
+
+
+String individualIDFilter="";
+if(request.getParameter("individualID")!=null){
+	individualIDFilter = request.getParameter("individualID");
+	//filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this || rel.individual2==this) && (rel.markedIndividualName1 =='"+request.getParameter("individualID")+"' || rel.markedIndividualName2 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+	filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this && rel.markedIndividualName2 =='"+request.getParameter("individualID")+"') || (rel.individual2==this && rel.markedIndividualName1 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+
+}
+
+
+String cacheName="socialJson_"+individualIDFilter+"_"+genus+"_"+specificEpithet;
+
 
 Query query=null;
 
@@ -110,10 +121,10 @@ try {
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
 	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-		System.out.println("Getting socialJson cache!");
+		//System.out.println("Getting socialJson cache: "+cacheName);
 	}
 	else{
-		System.out.println("Refreshing socialJson cache!");
+		//System.out.println("Refreshing socialJson cache: "+cacheName);
 		PersistenceManagerFactory pmf = myShepherd.getPM().getPersistenceManagerFactory();
 	
 		//individual

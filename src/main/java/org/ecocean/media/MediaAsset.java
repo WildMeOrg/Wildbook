@@ -487,6 +487,7 @@ public class MediaAsset implements java.io.Serializable {
         HashMap<String,String> orient = this.getMetadata().findRecurse(".*orient.*");
         if (orient == null) return null;
         for (String k : orient.keySet()) {
+            if (k.toLowerCase().contains("thumb")) continue;  //we skip exif sections with "thumb" in them
             if (orient.get(k).matches(".*90.*")) return orient.get(k);
             if (orient.get(k).matches(".*270.*")) return orient.get(k);
         }

@@ -1429,7 +1429,7 @@ public class Encounter implements java.io.Serializable {
   public boolean wasInPeriod(DateTime start, DateTime end) {
     Long thisTime = getDateInMilliseconds();
     if (thisTime==null) return false;
-    return (start.getMillis()<=thisTime && end.getMillis()>thisTime);
+    return (start.getMillis()<=thisTime && end.getMillis()>=thisTime);
   }
 
 
@@ -3449,7 +3449,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
   }
 
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
     jobj=decorateJsonNoAnnots(request,jobj);
 
     jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
@@ -3672,7 +3671,7 @@ throw new Exception();
         public String getPrefixForLocationID(){ //convenience function
           return LocationID.getPrefixForLocationID(this.getLocationID(), null);
         }
-        
+
         public int getPrefixDigitPaddingForLocationID() { // convenience function
           return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
         }

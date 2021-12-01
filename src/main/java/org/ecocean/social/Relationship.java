@@ -180,7 +180,7 @@ public class Relationship implements java.io.Serializable{
     if(this.getRelatedSocialUnitName()!=null)jobj.put("relatedSocialUnitName", this.getRelatedSocialUnitName());
     
     
-    return sanitizeJson(request, decorateJson(request,decorateJson(request, jobj)));
+    return sanitizeJson(request, decorateJson(request,jobj));
   }
   
   public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {

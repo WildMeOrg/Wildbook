@@ -54,6 +54,7 @@ String rotationInfo(MediaAsset ma) {
 %>
 
 <%
+
 String context = ServletUtilities.getContext(request);
 String langCode = ServletUtilities.getLanguageCode(request);
 
@@ -132,7 +133,7 @@ if (request.getParameter("acmId") != null) {
 		rtn.put("error", "unknown error");
 	} else {
 		JSONArray janns = new JSONArray();
-		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+		//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 		Project project = null;
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
@@ -148,6 +149,7 @@ if (request.getParameter("acmId") != null) {
 	 			if (enc != null) {
 	 				jann.put("encounterId", enc.getCatalogNumber());
 	 				jann.put("encounterLocationId", enc.getLocationID());
+          jann.put("encounterDate", enc.getDate());
 					locationIdPrefix = enc.getPrefixForLocationID();
 					jann.put("encounterLocationIdPrefix", locationIdPrefix);
 					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
@@ -196,6 +198,8 @@ if (request.getParameter("acmId") != null) {
 	out.println(rtn.toString());
 	return;
 }
+
+
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
@@ -216,8 +220,8 @@ if ((request.getParameter("number") != null) && ((request.getParameter("individu
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("iaResults.jsp2");
 	myShepherd.beginDBTransaction();
+
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-	myShepherd.getPM().refresh(enc);
 	if (enc == null) {
 		res.put("error", "no such encounter: " + request.getParameter("number"));
 		out.println(res.toString());
@@ -479,13 +483,11 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		}
 
 		MarkedIndividual mark = enc.getIndividual();
-
 		if (mark==null) {
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
-
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -497,7 +499,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			// old user based id
 			mark.addName(nextNameKey, nextName);
 		}
-
 		System.out.println("RTN for no match naming: "+rtn.toString());
 
 		rtn.put("success",true);
@@ -860,16 +861,21 @@ function cacheTaskAndChildren(task) {
         cacheTaskAndChildren(task.children[i]);
     }
 }
+
 function processTask(task) {
     //first we populate tasks hash (for use later via getCachedTask()
     cacheTaskAndChildren(task);
+
     //now we get the DOM element
     //  note: this recurses, so our "one" element should have nested children element for child task(s)
     wildbook.IA.getDomResult(task, function(t, res) {
-		$('.maincontent').append(res);
+        $('.maincontent').append(res);
         grabTaskResultsAll(task);
     });
 }
+
+
+
 //calls grabTaskResult() on all appropriate nodes in tree
 //  note there is no callback -- that is because this ultimately is expecting to put contents in
 //  appropriate divs (e.g. id="task-XXXX")
@@ -887,6 +893,7 @@ console.info("grabTaskResultsAll %s TRYING.....", task.id);
         grabTaskResultsAll(task.children[i]);
     }
 }
+
 function grabTaskResult(tid) {
 //	$("#initial-waiter").remove();
         alreadyGrabbed[tid] = true;
@@ -906,8 +913,7 @@ function grabTaskResult(tid) {
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
-			$('#wait-message-' + tid).remove();  //in case it already exists from previous
-
+		    $('#wait-message-' + tid).remove();  //in case it already exists from previous
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
                     $('#task-debug-' + tid).append('<br /><b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
@@ -1008,14 +1014,18 @@ console.info('age = %.2fmin', age / (60*1000));
 		}
 	});
 }
+
+
 function approxServerTime() {
 	return serverTimestamp + (new Date().getTime() - pageStartTimestamp);
 }
+
 //st is a server timestamp (i.e. using its clock, like data fields set on server)
 //  this returns millisec different from (approx) server time... basically its age
 function serverTimeDiff(st) {
     return approxServerTime() - st;
 }
+
 function manualCallback(tid) {
 console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	var m = jobIdMap[tid];
@@ -1028,6 +1038,7 @@ console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	jobIdMap[tid].manualAttempts++;
 	$('#wait-message-' + tid).html('<i>attempting to manually query IA</i>').removeClass('throbbing');;
 	console.log(m);
+
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '/ia?callback&jobid=' + m.jobId,
 		type: 'GET',
@@ -1047,6 +1058,7 @@ console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	});
 	$('#wait-message-' + tid).remove();
 	grabTaskResult(tid);
+
 	//$('#wait-message-' + tid).html(m.jobId);
 	//alert(m.jobId);
 }
@@ -1093,6 +1105,7 @@ function showTaskResult(res, taskId) {
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
+
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
 				var algoDesc = 'texture (HotSpotter match results)'; // default display description if no algo info given
                 if (algoInfo == 'CurvRankTwoFluke') {
@@ -1258,6 +1271,8 @@ console.info('%d ===> %s', num, acmId);
 	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
+
+
 	//now the image guts
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
@@ -1297,10 +1312,11 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
-			this as follows:
+            this as follows:
             (a) if it is the query annot, we *should* be able to find the id of the annot by looking at task.annotationIds.
             (b) if we cannot, or if target/dict annots, then we collect data about *all* possibly annots and show that
         */
+
 	//var encId = false;
 	//var indivId = false;
 	var imgInfo = '';
@@ -1369,7 +1385,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
                         constrainDuringPan: true,
-                        animationTime: 0,
+                        animationTime: 0.01,
 
                 	});
 
@@ -1388,6 +1404,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
+                        if(ft.parameters.theta)elt.setAttribute("theta", ft.parameters.theta);
+
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
 
@@ -1398,6 +1416,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
 
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
+
                 	});
 
                 	viewer.addHandler('full-screen', event => {
@@ -1407,6 +1432,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.01
+                      		);
 
                 	    }
                 	});
@@ -1425,13 +1456,38 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
+
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
                 	});
 
+                	  viewer.addHandler("update-viewport", function(){
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.1
+                      		);
+                      });
+
+                	  viewer.addHandler("animation", function(){
+                  	   	//rotate annots
+                  	   	setTimeout(
+                    				updateFeatureTheta(viewer)
+                    				, 0.01
+                    		);
+                      });
 
 
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
+
+
 
 
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
@@ -1440,8 +1496,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
-            if (mainAsset.dateTime) {
-                imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
+            if(res.responseJSON.annotations[0] && res.responseJSON.annotations[0].encounterDate){
+                imgInfo += ' <b>' + res.responseJSON.annotations[0].encounterDate.substring(0,16) + '</b> ';
             }
             if (mainAsset.filename) {
                 var fn = mainAsset.filename;
@@ -1449,8 +1505,6 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-			var ft = findMyFeature(acmId, mainAsset);
-
             if (ft) {
                 var encId = ft.encounterId;
 
@@ -1462,7 +1516,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
+                <%
+                if(user != null){
+                %>
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
+                <%
+                }
+                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -1551,7 +1611,9 @@ console.info('qdata[%s] = %o', taskId, qdata);
 					$(selector).append(illustrationHtml);
 				}
             }
+
         }  //end if (mainAsset)
+
     if (otherAnnots.length > 0) {
         imgInfo += '<div><i>Alternate references:</i><ul>';
         for (var i = 0 ; i < otherAnnots.length ; i++) {
@@ -1692,11 +1754,13 @@ function setIndivAutocomplete(el) {
     };
     wildbook.makeAutocomplete(el[0], args);
 }
+
 function annotCheckboxReset() {
 	$('.annot-action-checkbox-active').removeClass('annot-action-checkbox-active').addClass('annot-action-checkbox-inactive').prop('checked', false);
 	$('.annot-summary-checked').removeClass('annot-summary-checked');
 	$('#enc-action').html(headerDefault);
 }
+
 function annotClick(ev) {
 	//console.log(ev);
 	var acmId = ev.currentTarget.getAttribute('data-acmid');
@@ -1762,6 +1826,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
 }
+
 function findMyFeature(annotAcmId, asset) {
 //console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
     if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
@@ -1774,6 +1839,14 @@ function findMyFeature(annotAcmId, asset) {
 function imageLoaded(imgEl, ft, asset) {
     if (imgEl.getAttribute('data-feature-drawn')) return;
     drawFeature(imgEl, ft, asset);
+}
+
+function updateFeatureTheta(viewer){
+	    viewer.currentOverlays.forEach(overlay => {
+			if(overlay.element.hasAttribute("theta")){
+					overlay.element.style.transform = 'rotate('+overlay.element.getAttribute("theta")+'rad)';
+			}
+	    });
 }
 
 function drawFeature(imgEl, ft, asset) {
@@ -1821,6 +1894,7 @@ function checkForResults() {
 		dataType: 'json'
 	});
 }
+
 var countdown = 100;
 function processResults(res) {
 	if (!res || !res.queryAnnotation) {
@@ -1849,6 +1923,7 @@ console.info('waiting to try again...');
 		if (altIDString && altIDString.length > 0) {
       			altIDString = ', altID '+altIDString;
     		}
+
 		$('#results').html('One match found (<a target="_new" href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
@@ -1877,6 +1952,7 @@ console.info('waiting to try again...');
 			res.matchAnnotations[i].score + '</li>';
 	}
 	h += '</ul><div>' + approvalButtons(res.queryAnnotation, res.matchAnnotations) + '</div>';
+
 	$('#results').html(h);
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
@@ -1884,15 +1960,19 @@ console.info('waiting to try again...');
 		console.log("mouseover3");
 	});
 }
+
 function updateMatch(m) {
 		jQuery('#image-compare').html('');
 		addImage(fakeEncounter(m.encounter, m.mediaAsset),jQuery('#image-compare'));
 }
+
 function fakeEncounter(e, ma) {
 	var enc = new wildbook.Model.Encounter(e);
 	enc.set('annotations', [{mediaAsset: ma}]);
 	return enc;
 }
+
+
 /////// these are disabled now, as matching results "bar" handles actions
 function approvalButtons(qann, manns) {
 	return '';
@@ -1973,6 +2053,8 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 	});
 	return true;
 }
+
+
 function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
@@ -1990,12 +2072,12 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
+	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
+		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
+		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
 	}
-	confirmMsg+= ' to record your decision.';
+	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
@@ -2012,15 +2094,25 @@ function negativeButtonClick(encId, oldDisplayName) {
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName);
+				updateNameCallback(d, oldDisplayName, encId);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
-	alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+  let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
+  if(d && d.responseJSON && d.responseJSON.success){
+    if(oldDisplayName!=="undefined" && oldDisplayName){
+        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+    } else{
+      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+    }
+
+  }
+	alert(alertMsg);
+  location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
 }
 
 function addNegativeButton(encId, oldDisplayName) {

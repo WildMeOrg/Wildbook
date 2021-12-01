@@ -29,6 +29,7 @@ import org.ecocean.social.SocialUnit;
 import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.tag.SatelliteTag;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -434,13 +435,18 @@ public class StandardImport extends HttpServlet {
         if(taskID!=null)itask=myShepherd.getImportTask(taskID);
         if(itask!=null)System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
 
-        List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
+        //List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
         for(String encid:encsCreated) {
           if(myShepherd.getEncounter(encid)!=null) {
             if(itask!=null)itask.addEncounter(myShepherd.getEncounter(encid));
             myShepherd.updateDBTransaction();
           }
         }
+        
+        //let's register acmIDs for MediaAssets
+        if(itask!=null)sendforACMID(itask, myShepherd);
+        
+        //let's finish up and be done
         if(itask!=null)itask.setStatus("complete");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -621,10 +627,10 @@ public class StandardImport extends HttpServlet {
     if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
   	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
     String surveyComments = getString(row, "Survey.comments");
-    if (surveyComments!=null) occ.addComments(surveyComments);
+    if (surveyComments!=null && !occ.getComments().contains(surveyComments)) occ.addComments(surveyComments);
 
     String comments = getString(row, "Occurrence.comments");
-    if (comments!=null) occ.addComments(comments);
+    if (comments!=null && !occ.getComments().contains(comments)) occ.addComments(comments);
 
     Integer numAdults = getInteger(row, "Occurrence.numAdults");
     if (numAdults!=null) occ.setNumAdults(numAdults);
@@ -2525,5 +2531,55 @@ public static String getCellValueAsString(Row row, int num) {
     }
     return null;
   }
+  
+  private void sendforACMID(ImportTask itask, Shepherd myShepherd) {
+    
+    try{
+      
+      if(itask!=null && itask.getEncounters()!=null) {
+        int count=0;
+        int batchSize = 60;
+        List<Encounter> allEncs = itask.getEncounters();
+        int numEncs = allEncs.size();
+  
+        ArrayList<MediaAsset> assets = new ArrayList<MediaAsset>();
+  
+        for (Encounter enc: allEncs){
+          count++;
+  
+          ArrayList<MediaAsset> theseAssets = enc.getMedia();
+          for (MediaAsset assy: theseAssets) {
+            if (!assy.hasAcmId()) {
+              assets.add(assy);
+            }
+          }
+  
+          if (((assets.size()>=batchSize) && assets.size()>0) || count==numEncs) {
+            System.out.println("About to send "+assets.size()+" assets to IA! On "+count+"/"+numEncs);
+            itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
+            myShepherd.updateDBTransaction();
+            IBEISIA.sendMediaAssetsNew(assets, context);
+            assets = new ArrayList<MediaAsset>();
+          }
+            
+        }
+  
+        if (assets.size()>0) {
+          itask.setStatus("Registering image assets for "+count+"/"+numEncs+" encounters.");
+          myShepherd.updateDBTransaction();
+          IBEISIA.sendMediaAssetsNew(assets, context);
+        }
+
+      
+      }
+    }
+    catch(Exception e){
+      myShepherd.rollbackDBTransaction();
+    }
+
+    
+    
+  }
+  
 
 }

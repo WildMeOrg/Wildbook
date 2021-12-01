@@ -288,7 +288,6 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 														} //end userProjects for loop
 													}  //endif userProjects.size()>0
 														else{
-															System.out.println("got here 1");
 															%>
 															<tr>
 																<td class="clickable-row"><%=props.getProperty("NoProjects") %></td>
