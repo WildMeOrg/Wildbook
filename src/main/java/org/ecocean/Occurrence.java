@@ -81,6 +81,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private String modified;
     private String locationId;
     private String verbatimLocality;
+    private String verbatimEventDate;
   private String dateTimeCreated;
 
   // ASWN fields
@@ -625,6 +626,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public String getVerbatimLocality() {
         return verbatimLocality;
+    }
+
+    public void setVerbatimEventDate(String vd) {
+        verbatimEventDate = vd;
+    }
+    public String getVerbatimEventDate() {
+        return verbatimEventDate;
     }
 
     //when we *must* have some kind of location
@@ -1537,6 +1545,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setFromJSONObject("comments", String.class, jsonIn);
         occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
         occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
+        occ.setFromJSONObject("verbatimEventDate", String.class, jsonIn);
         occ._validateLocations();
 
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
@@ -1677,6 +1686,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
         obj.put("locationId", getLocationIdSomehow());
         obj.put("verbatimLocality", getVerbatimLocalitySomehow());
+        obj.put("verbatimEventDate", getVerbatimEventDate());
 
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
@@ -1736,6 +1746,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality((String)valueObj);
+                    break;
+                case "verbatimEventDate":
+                    this.setVerbatimEventDate((String)valueObj);
                     break;
                 case "locationId":
                     this.setLocationId((String)valueObj);
@@ -1808,6 +1821,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 case "decimalLongitude":
                 case "locationId":
                 case "verbatimLocality":
+                case "verbatimEventDate":
                     rtn.put("_chainedAdd", true);
                     this.apiPatchAdd(myShepherd, jsonIn);
                     break;
@@ -1866,6 +1880,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "verbatimLocality":
                     this.setVerbatimLocality(null);
+                    break;
+                case "verbatimEventDate":
+                    this.setVerbatimEventDate(null);
                     break;
                 case "comments":
                     this.setComments(null);
