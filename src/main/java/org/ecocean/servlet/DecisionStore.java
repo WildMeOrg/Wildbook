@@ -120,9 +120,10 @@ public class DecisionStore extends HttpServlet {
 
     private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value) {
         try {
-            String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' && VALUE == '" + value + "' && PROPERTY == 'flag'";
+            //String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' && VALUE == '" + value + "' && PROPERTY == 'flag'";
+            String jdoql = "SELECT * FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' AND VALUE = '%" + value + "%' AND PROPERTY LIKE 'flag'";
             rtn.put("query", jdoql);
-            myShepherd.getPM().newQuery(jdoql).deletePersistentAll();
+            myShepherd.getPM().newQuery("javax.jdo.query.SQL", jdoql).deletePersistentAll();
             myShepherd.commitDBTransaction();
             rtn.put("success", true);
         }catch (Exception e){
