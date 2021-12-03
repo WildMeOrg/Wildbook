@@ -18,6 +18,28 @@ java.util.HashMap,
 java.util.LinkedHashSet,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
+<%!
+public String dumpTask(Task task) {
+    if (task == null) return "NULL TASK";
+    Task rootTask = task.getRootTask();
+    String t = "=====================================\n" + task.getId() + "\nparams: " + task.getParameters() + "\n";
+    t += "- rootTask                     " + (task.equals(rootTask) ? "(this)" : rootTask.getId()) + "\n";
+    t += "- parent:                      " + ((task.getParent() == null) ? "NONE" : task.getParent().getId()) + "\n";
+    if (task.hasChildren()) {
+        t += "- children                    ";
+        for (Task kid : task.getChildren()) {
+            t += " " + kid.getId();
+        }
+        t += "\n";
+    } else {
+        t += "- children                     NONE\n";
+    }
+    t += "- countObjectMediaAssets:      " + task.countObjectMediaAssets() + "\n";
+    t += "- countObjectAnnotations:      " + task.countObjectAnnotations() + "\n";
+    return t;
+}
+%>
+
 <jsp:include page="header.jsp" flush="true"/>
 
 <script>
@@ -122,6 +144,11 @@ try{
 	        myShepherd.closeDBTransaction();
 	        return;
 	    }
+	}
+	
+	String dumpTask="empty";
+	if(itask!=null && itask.getIATask()!=null){
+		dumpTask=dumpTask(itask.getIATask());
 	}
 	
 	Set<String> locationIds = new HashSet<String>();
@@ -289,6 +316,7 @@ try{
 		Total marked individuals: <%=allIndies.size() %><br>
 		Total encounters: <%=itask.getEncounters().size() %>
 	</p>
+
 	
 	<%
 	try{
@@ -355,7 +383,7 @@ try{
 	    // some of this borrowed from core.js sendMediaAssetsToIA()
 	    // but now we send bulkImport as the entire js_jarrs value
 	    var data = {
-	        taskParameters: { skipIdent: skipIdent || false },
+	        taskParameters: { skipIdent: skipIdent || false, importTaskId: '<%=taskId%>' },
 	        bulkImport: {}
 	    };
 	    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
