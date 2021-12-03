@@ -17,6 +17,34 @@ org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+<%!
+// for debugging mostly
+/*
+public String dumpTask(Task task) {
+    if (task == null) return "NULL TASK";
+    Task rootTask = task.getRootTask();
+    String t = "=====================================\n" + task.getId() + "\nparams: " + task.getParameters() + "\n";
+    t += "- rootTask                     " + (task.equals(rootTask) ? "(this)" : rootTask.getId()) + "\n";
+    t += "- parent:                      " + ((task.getParent() == null) ? "NONE" : task.getParent().getId()) + "\n";
+    if (task.hasChildren()) {
+        t += "- children                    ";
+        for (Task kid : task.getChildren()) {
+            t += " " + kid.getId();
+        }
+        t += "\n";
+    } else {
+        t += "- children                     NONE\n";
+    }
+    t += "- countObjectMediaAssets:      " + task.countObjectMediaAssets() + "\n";
+    t += "- countObjectAnnotations:      " + task.countObjectAnnotations() + "\n";
+    t += "- isTypeDetection:             " + task.isTypeDetection() + "\n";
+    t += "- isTypeIdentification:        " + task.isTypeIdentification() + "\n";
+    t += "- initiatedWithDetection:      " + task.initiatedWithDetection() + "\n";
+    t += "- initiatedWithIdentification: " + task.initiatedWithIdentification() + "\n";
+    return t;
+}
+*/
+%>
 <%
 
 String context = ServletUtilities.getContext(request);
@@ -204,6 +232,10 @@ if (itask == null) {
 <%
 } else { //end listing
 
+System.out.println(">>> General    STATS: " + itask.stats());
+System.out.println(">>> MediaAsset STATS: " + itask.statsMediaAssets());
+System.out.println(">>> Annotation STATS: " + itask.statsAnnotations());
+
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<br>Status: "+itask.getStatus());
     if(itask.getParameters()!=null){
@@ -297,6 +329,7 @@ if (itask == null) {
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
                     jarr.put(ma.getId());
+                    //List<Task> maTasks = Task.getRootTasksFor(ma, myShepherd);
                     if (ma.getDetectionStatus() != null) numIA++;
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
@@ -429,7 +462,7 @@ function sendToIA(skipIdent) {
     // some of this borrowed from core.js sendMediaAssetsToIA()
     // but now we send bulkImport as the entire js_jarrs value
     var data = {
-        taskParameters: { skipIdent: skipIdent || false },
+        taskParameters: { skipIdent: skipIdent || false, importTaskId: '<%=taskId%>' },
         bulkImport: {}
     };
     for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
