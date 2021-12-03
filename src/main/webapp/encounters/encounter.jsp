@@ -976,7 +976,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
                                         String pct = "";
                                         double p = new Double(ct) / new Double(countDec);
                                         if (ct < countDec) pct = Math.round(p * 100d) + "%";
-                                        sorted.put(p + "_" + val, "<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <a href='javascript:flag('" + val + "',0);'>X</a> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+                                        sorted.put(p + "_" + val, "<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
                                     }
                                     List<String> keys = new ArrayList<String>(sorted.keySet());
                                     Collections.sort(keys);
@@ -1002,7 +1002,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
                                     String pct = "";
                                     double p = new Double(ct) / new Double(countFlag);
                                     if (ct < countFlag) pct = Math.round(p * 100d) + "%";
-                                    out.println("<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val.substring(5) + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+                                    out.println("<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val.substring(5) + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <a href='javascript:flag('" + val.substring(5) + "',0);'>X</a>  <span class=\"prop-val-pct\">" + pct + "</span></div>");
                                 }
                             }
                         %>
