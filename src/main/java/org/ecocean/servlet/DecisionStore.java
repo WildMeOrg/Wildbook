@@ -76,14 +76,7 @@ public class DecisionStore extends HttpServlet {
                 val.put("_multipleId", multId);
 
                 if (action == 0) {
-                    String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
-                    rtn.put("query", jdoql);
-                    Query query = myShepherd.getPM().newQuery(jdoql);
-                    query.execute();
-                    query.closeAll();
-                    response.setContentType("text/json");
-                    out.println(rtn);
-                    out.close();
+                    deleteFlag(response, out, myShepherd, rtn, enc, value.toString());
                 } else {
                     Decision dec = new Decision(user, enc, key, val);
                     myShepherd.getPM().makePersistent(dec);
@@ -104,14 +97,7 @@ public class DecisionStore extends HttpServlet {
             rtn.put("error", "invalid value passed");
         } else {  //good to go?
             if (action == 0) {
-                String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
-                rtn.put("query", jdoql);
-                Query query = myShepherd.getPM().newQuery(jdoql);
-                /*query.execute();
-                query.closeAll();*/
-                response.setContentType("text/json");
-                out.println(rtn);
-                out.close();
+                deleteFlag(response, out, myShepherd, rtn, enc, value.toString());
             } else {
                 Decision dec = new Decision(user, enc, prop, value);
                 myShepherd.getPM().makePersistent(dec);
@@ -127,6 +113,18 @@ public class DecisionStore extends HttpServlet {
         } else {
             myShepherd.rollbackDBTransaction();
         }
+        response.setContentType("text/json");
+        out.println(rtn);
+        out.close();
+    }
+
+    private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value) {
+        String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
+        rtn.put("query", jdoql);
+        rtn.put("success", true);
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        query.execute();
+        query.closeAll();
         response.setContentType("text/json");
         out.println(rtn);
         out.close();
