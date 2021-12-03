@@ -122,15 +122,15 @@ public class DecisionStore extends HttpServlet {
         try {
             String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' && VALUE == '*" + value + "*' && PROPERTY == 'flag'";
             rtn.put("query", jdoql);
-            Query query = myShepherd.getPM().newQuery(jdoql);
-            query.deletePersistentAll();
+            myShepherd.getPM().newQuery(jdoql).deletePersistentAll();
             myShepherd.commitDBTransaction();
-            query.closeAll();
             rtn.put("success", true);
         }catch (Exception e){
-            myShepherd.rollbackDBTransaction();
+            rtn.put("success", false);
             rtn.put("JSP-error", e.getMessage());
+            myShepherd.rollbackDBTransaction();
         }finally {
+            myShepherd.closeDBTransaction();
             response.setContentType("text/json");
             out.println(rtn);
             out.close();
