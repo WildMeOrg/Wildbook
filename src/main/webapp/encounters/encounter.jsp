@@ -114,7 +114,7 @@ File encounterDir = new File(encountersDir, num);
  // Calendar calendar = new GregorianCalendar();
  // TimeZone timeZone = calendar.getTimeZone();
 
-  
+
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -644,11 +644,11 @@ if (request.getParameter("refreshImages") != null) {
 <script type="text/javascript">
 
 
-function flag(type) {
+function flag(type,action=1) {
     $('.kitsci-actions button').hide();
     $.ajax({
         url: '../DecisionStore',
-        data: JSON.stringify({ property: 'flag', value: { value: ['flag-' + type], via: 'encounter.jsp' }, encounterId: encounterNumber }),
+        data: JSON.stringify({action: action, property: 'flag', value: { value: ['flag-' + type], via: 'encounter.jsp' }, encounterId: encounterNumber }),
         dataType: 'json',
         complete: function(xhr) {
             console.log(xhr);
@@ -951,6 +951,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
     <div class="kitsci-actions">
         <h2>Current state: <b><%=enc.getState()%></b></h2>
         <button class="button-smaller" onclick="return flag('detection-multicat-fail');"><%= encprops.getProperty("multiCatDetFailFlag") %></button>
+        <button class="button-smaller btn-danger" onclick="return flag('detection-multicat-fail',0);">Remove detection-multicat-fail</button>
         <button class="button-smaller" onclick="return flag('detection-multicat-false');"><%= encprops.getProperty("multiCatFalseFlag") %></button>
         <button class="button-smaller" onclick="return flag('detection-fail');"><%= encprops.getProperty("flagDetFail") %></button>
         <button class="button-smaller" onclick="return flag('detection-box-redraw');"><%= encprops.getProperty("flagBoxRedraw") %></button>

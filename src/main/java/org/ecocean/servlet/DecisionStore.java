@@ -54,6 +54,7 @@ public class DecisionStore extends HttpServlet {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String encId = jsonIn.optString("encounterId", "_FAIL_");
         String prop = jsonIn.optString("property", null);
+        int action = jsonIn.optInt("action", 1);
         JSONObject value = jsonIn.optJSONObject("value");
         JSONObject multiple = jsonIn.optJSONObject("multiple");  //special multiple prop/value set!
         List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
@@ -70,7 +71,11 @@ public class DecisionStore extends HttpServlet {
                 if (val == null) continue;
                 val.put("_multipleId", multId);
                 Decision dec = new Decision(user, enc, key, val);
-                myShepherd.getPM().makePersistent(dec);
+                if(action==0){
+                    myShepherd.getPM().deletePersistent(dec);
+                }else{
+                    myShepherd.getPM().makePersistent(dec);
+                }
                 ids.put(dec.getId());
                 Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
             }
