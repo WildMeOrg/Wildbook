@@ -78,9 +78,9 @@ public class DecisionStore extends HttpServlet {
                 if (action == 0) {
                     String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
                     rtn.put("query", jdoql);
-                    //Query query = myShepherd.getPM().newQuery(jdoql);
-                    //Collection col = (Collection) query.execute();
-                    //query.closeAll();
+                    Query query = myShepherd.getPM().newQuery(jdoql);
+                    Collection col = (Collection) query.execute();
+                    query.closeAll();
                     response.setContentType("text/json");
                     out.println(rtn);
                     out.close();
@@ -106,9 +106,9 @@ public class DecisionStore extends HttpServlet {
             if (action == 0) {
                 String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
                 rtn.put("query", jdoql);
-                //Query query = myShepherd.getPM().newQuery(jdoql);
-                //Collection col = (Collection) query.execute();
-                //query.closeAll();
+                Query query = myShepherd.getPM().newQuery(jdoql);
+                Collection col = (Collection) query.execute();
+                query.closeAll();
                 response.setContentType("text/json");
                 out.println(rtn);
                 out.close();
