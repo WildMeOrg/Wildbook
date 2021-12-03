@@ -77,9 +77,13 @@ public class DecisionStore extends HttpServlet {
 
                 if (action == 0) {
                     String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
-                    Query query = myShepherd.getPM().newQuery(jdoql);
-                    Collection col = (Collection) query.execute();
-                    query.closeAll();
+                    rtn.put("query", jdoql);
+                    //Query query = myShepherd.getPM().newQuery(jdoql);
+                    //Collection col = (Collection) query.execute();
+                    //query.closeAll();
+                    response.setContentType("text/json");
+                    out.println(rtn);
+                    out.close();
                 } else {
                     Decision dec = new Decision(user, enc, key, val);
                     myShepherd.getPM().makePersistent(dec);
@@ -101,9 +105,13 @@ public class DecisionStore extends HttpServlet {
         } else {  //good to go?
             if (action == 0) {
                 String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
-                Query query = myShepherd.getPM().newQuery(jdoql);
-                Collection col = (Collection) query.execute();
-                query.closeAll();
+                rtn.put("query", jdoql);
+                //Query query = myShepherd.getPM().newQuery(jdoql);
+                //Collection col = (Collection) query.execute();
+                //query.closeAll();
+                response.setContentType("text/json");
+                out.println(rtn);
+                out.close();
             } else {
                 Decision dec = new Decision(user, enc, prop, value);
                 myShepherd.getPM().makePersistent(dec);
