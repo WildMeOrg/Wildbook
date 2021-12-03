@@ -4,6 +4,7 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,7 +20,10 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -66,14 +70,18 @@ public class DecisionStore extends HttpServlet {
             JSONArray ids = new JSONArray();
             String multId = Util.generateUUID();
             for (Object kobj : multiple.keySet()) {
-                String key = (String)kobj;
+                String key = (String) kobj;
                 JSONObject val = multiple.optJSONObject(key);
                 if (val == null) continue;
                 val.put("_multipleId", multId);
                 Decision dec = new Decision(user, enc, key, val);
-                if(action==0){
-                    myShepherd.getPM().deletePersistent(dec);
-                }else{
+                if (action == 0) {
+                    //String flagName = value.getJSONArray("value").get(0).toString();
+                    String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
+                    Query query = myShepherd.getPM().newQuery(jdoql);
+                    Collection col = (Collection) query.execute();
+                    query.closeAll();
+                } else {
                     myShepherd.getPM().makePersistent(dec);
                 }
                 ids.put(dec.getId());
@@ -92,7 +100,14 @@ public class DecisionStore extends HttpServlet {
             rtn.put("error", "invalid value passed");
         } else {  //good to go?
             Decision dec = new Decision(user, enc, prop, value);
-            myShepherd.getPM().makePersistent(dec);
+            if (action == 0) {
+                String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
+                Query query = myShepherd.getPM().newQuery(jdoql);
+                Collection col = (Collection) query.execute();
+                query.closeAll();
+            } else {
+                myShepherd.getPM().makePersistent(dec);
+            }
             rtn.put("success", true);
             rtn.put("decisionId", dec.getId());
             Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
