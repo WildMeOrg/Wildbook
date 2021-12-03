@@ -124,9 +124,11 @@ public class DecisionStore extends HttpServlet {
             rtn.put("query", jdoql);
             Query query = myShepherd.getPM().newQuery(jdoql);
             query.deletePersistentAll();
+            myShepherd.commitDBTransaction();
             query.closeAll();
             rtn.put("success", true);
         }catch (Exception e){
+            myShepherd.rollbackDBTransaction();
             rtn.put("JSP-error", e.getMessage());
         }finally {
             response.setContentType("text/json");
