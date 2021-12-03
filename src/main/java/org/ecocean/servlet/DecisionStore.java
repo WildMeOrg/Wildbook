@@ -121,16 +121,24 @@ public class DecisionStore extends HttpServlet {
     private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value) {
         try {
             //String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' && VALUE == '" + value + "' && PROPERTY == 'flag'";
-            String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID LIKE '" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
+            String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "'";
+            //String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID LIKE '" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
             rtn.put("query", jdoql);
-            myShepherd.getPM().newQuery("javax.jdo.query.SQL", jdoql).execute();
+            Query query = myShepherd.getPM().newQuery(jdoql);
+            Collection col = (Collection) query.execute();
+            List<Decision> decs = new ArrayList<Decision>(col);
+            for (Decision d : decs) {
+                if(d.getProperty().equals("flag") && d.getValueAsString().contains(value)){
+                    myShepherd.getPM().deletePersistent(d);
+                }
+            }
             myShepherd.commitDBTransaction();
             rtn.put("success", true);
-        }catch (Exception e){
+        } catch (Exception e) {
             rtn.put("success", false);
             rtn.put("JSP-error", e.getMessage());
             myShepherd.rollbackDBTransaction();
-        }finally {
+        } finally {
             myShepherd.closeDBTransaction();
             response.setContentType("text/json");
             out.println(rtn);
