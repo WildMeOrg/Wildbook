@@ -76,7 +76,7 @@ public class DecisionStore extends HttpServlet {
                 val.put("_multipleId", multId);
 
                 if (action == 0) {
-                    deleteFlag(response, out, myShepherd, rtn, enc, value.toString());
+                    deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString());
                 } else {
                     Decision dec = new Decision(user, enc, key, val);
                     myShepherd.getPM().makePersistent(dec);
@@ -97,7 +97,7 @@ public class DecisionStore extends HttpServlet {
             rtn.put("error", "invalid value passed");
         } else {  //good to go?
             if (action == 0) {
-                deleteFlag(response, out, myShepherd, rtn, enc, value.toString());
+                deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString());
             } else {
                 Decision dec = new Decision(user, enc, prop, value);
                 myShepherd.getPM().makePersistent(dec);
@@ -120,13 +120,12 @@ public class DecisionStore extends HttpServlet {
 
     private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value) {
         try {
-            String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
+            String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
             rtn.put("query", jdoql);
-            rtn.put("success", true);
             Query query = myShepherd.getPM().newQuery(jdoql);
             query.deletePersistentAll();
             query.closeAll();
-
+            rtn.put("success", true);
         }catch (Exception e){
             rtn.put("JSP-error", e.getMessage());
         }finally {
