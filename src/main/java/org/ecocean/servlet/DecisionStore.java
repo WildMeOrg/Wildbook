@@ -74,18 +74,18 @@ public class DecisionStore extends HttpServlet {
                 JSONObject val = multiple.optJSONObject(key);
                 if (val == null) continue;
                 val.put("_multipleId", multId);
-                Decision dec = new Decision(user, enc, key, val);
+
                 if (action == 0) {
-                    //String flagName = value.getJSONArray("value").get(0).toString();
                     String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
                     Query query = myShepherd.getPM().newQuery(jdoql);
                     Collection col = (Collection) query.execute();
                     query.closeAll();
                 } else {
+                    Decision dec = new Decision(user, enc, key, val);
                     myShepherd.getPM().makePersistent(dec);
+                    ids.put(dec.getId());
+                    Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
                 }
-                ids.put(dec.getId());
-                Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
             }
             if (ids.length() > 0) {
                 rtn.put("success", true);
@@ -99,18 +99,19 @@ public class DecisionStore extends HttpServlet {
         } else if (value == null) {
             rtn.put("error", "invalid value passed");
         } else {  //good to go?
-            Decision dec = new Decision(user, enc, prop, value);
             if (action == 0) {
                 String jdoql = "DELETE FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' AND value='" + value + "' AND PROPERTY LIKE 'flag'";
                 Query query = myShepherd.getPM().newQuery(jdoql);
                 Collection col = (Collection) query.execute();
                 query.closeAll();
             } else {
+                Decision dec = new Decision(user, enc, prop, value);
                 myShepherd.getPM().makePersistent(dec);
+                rtn.put("success", true);
+                rtn.put("decisionId", dec.getId());
+                Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
             }
-            rtn.put("success", true);
-            rtn.put("decisionId", dec.getId());
-            Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
+
         }
 
         if (rtn.optBoolean("success", false)) {
