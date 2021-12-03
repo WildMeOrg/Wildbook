@@ -79,7 +79,7 @@ public class DecisionStore extends HttpServlet {
                     String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
                     rtn.put("query", jdoql);
                     Query query = myShepherd.getPM().newQuery(jdoql);
-                    Collection col = (Collection) query.execute();
+                    query.execute();
                     query.closeAll();
                     response.setContentType("text/json");
                     out.println(rtn);
@@ -107,7 +107,7 @@ public class DecisionStore extends HttpServlet {
                 String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID='" + enc.getCatalogNumber() + "' AND VALUE='" + value + "' AND PROPERTY LIKE 'flag'";
                 rtn.put("query", jdoql);
                 Query query = myShepherd.getPM().newQuery(jdoql);
-                Collection col = (Collection) query.execute();
+                query.execute();
                 query.closeAll();
                 response.setContentType("text/json");
                 out.println(rtn);
