@@ -179,7 +179,7 @@ public class ImportTask implements java.io.Serializable {
         if (iaTask == null) return false;
         return iaTask.hasChildren();
     }
-    public boolean iaTaskWantsIdentification() {
+    public boolean iaTaskRequestedIdentification() {
         if (iaTask == null) return false;
         if (iaTask.getParameters() == null) return true;  // has no skipIdent, so i guess?
         return !iaTask.getParameters().optBoolean("skipIdent", false);
