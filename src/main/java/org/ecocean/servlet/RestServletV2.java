@@ -1286,7 +1286,11 @@ rtn.put("_payload", payload);
                 break;
             case "org.ecocean.Occurrence":
                 obj = myShepherd.getOccurrence(id);
-                //TODO FIXME collect indivs from encs deleted
+                Occurrence occ = (Occurrence)obj;
+                if (occ.getNumEncounters() > 0) for (Encounter oenc : occ.getEncounters()) {
+                    MarkedIndividual oindiv = oenc.getIndividual();
+                    if ((oindiv != null) && !indivs.contains(oindiv)) indivs.add(oindiv);
+                }
                 break;
             case "org.ecocean.MarkedIndividual":
                 obj = myShepherd.getMarkedIndividual(id);
@@ -1327,7 +1331,7 @@ rtn.put("_payload", payload);
         } catch (ApiDeleteCascadeException casc) {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            SystemLog.warn("RestServlet.handleDelete() failed on {} due to cascade {}", obj, casc);
+            SystemLog.warn("RestServlet.handleDelete() failed on {} due to cascade {}", obj, casc.toString());
             JSONObject jerr = new JSONObject();
             jerr.put("id", id);
             jerr.put("class", cls);
@@ -1335,12 +1339,15 @@ rtn.put("_payload", payload);
             rtn.put("details", casc.toString());
             ApiCustomFields vul = casc.getObject();
             if (vul instanceof Occurrence) {
+                SystemLog.info("RestServlet.handleDelete() cascade vulnerable Occurrence {}", (Occurrence)vul);
                 rtn.put("vulnerableSighting", vul.getId());
                 response.setStatus(604);
             } else if (vul instanceof MarkedIndividual) {
+                SystemLog.info("RestServlet.handleDelete() cascade vulnerable MarkedIndividual {}", (MarkedIndividual)vul);
                 rtn.put("vulnerableIndividual", vul.getId());
                 response.setStatus(605);
             } else {
+                SystemLog.info("RestServlet.handleDelete() cascade vulnerable Unknown object {}", vul);
                 response.setStatus(699);
             }
             String rtnS = rtn.toString();
