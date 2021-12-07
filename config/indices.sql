@@ -38,3 +38,10 @@ CREATE INDEX IF NOT EXISTS "ACCESSCONTROL_USERNAME_idx" ON "ACCESSCONTROL" ("USE
 -- this one gets autocreated (in all caps!) so lets do this... sigh?
 CREATE INDEX IF NOT EXISTS "TASK_CREATED_IDX" ON "TASK" ("CREATED");
 
+
+
+-- this is not an index, but just throwing it in here since this file is part of "standard wildbook setup"
+--  why do we need this?  long story that i dont have an easy answer for.  ask JH or JV on the first of any month.
+
+INSERT INTO "RELATIONSHIP" ("RELATIONSHIP_ID", "MARKEDINDIVIDUALNAME1", "MARKEDINDIVIDUALNAME2", "MARKEDINDIVIDUALROLE1", "MARKEDINDIVIDUALROLE2", "TYPE", "STARTTIME", "ENDTIME") VALUES (0, (SELECT "INDIVIDUALID" FROM "MARKEDINDIVIDUAL" ORDER BY random() LIMIT 1), (SELECT "INDIVIDUALID" FROM "MARKEDINDIVIDUAL" ORDER BY random() LIMIT 1), 'placeholder', 'placeholder', 'placeholder-to-prevent-empty-table', 0, 0);
+
