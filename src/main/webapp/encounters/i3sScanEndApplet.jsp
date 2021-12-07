@@ -425,7 +425,12 @@ $(document).ready(function() {
                 <%
                   String localIndividualName = results[p].getIndividualName();
                   if (Util.isUUID(localIndividualName)) {
-                    localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    Shepherd nameShepherd=new Shepherd(context);
+                    nameShepherd.setAction("i3ScanEndApplet.jsp displayName render");
+                  	nameShepherd.beginDBTransaction();
+                  	localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                  	nameShepherd.rollbackDBTransaction();
+                  	nameShepherd.closeDBTransaction();
                   }
                 %>
                 <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
@@ -473,7 +478,12 @@ $(document).ready(function() {
             String enc1IndId = enc1.attributeValue("assignedToShark");
             String localIndividualName = enc1IndId;
             if(enc1IndId != null && !enc1IndId.equals("")){
+              Shepherd nameShepherd=new Shepherd(context);
+              nameShepherd.setAction("i3ScanEndApplet.jsp displayName render 2");
+            	nameShepherd.beginDBTransaction();
               localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              nameShepherd.rollbackDBTransaction();
+	            nameShepherd.closeDBTransaction();
             }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
