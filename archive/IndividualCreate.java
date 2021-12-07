@@ -20,7 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.ai.nmt.google.DetectTranslate;
+import org.ecocean.ai.nmt.azure.DetectTranslate;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;

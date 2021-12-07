@@ -40,6 +40,7 @@ myShepherd.beginDBTransaction();
 int imageID = Integer.parseInt(request.getParameter("imageID"));
 String imgSrc="";
 String encNum="";
+String species = "Rhincodon typus";
 try{
 
 	
@@ -50,6 +51,7 @@ try{
 		enc = Encounter.findByAnnotation(ann, myShepherd);
 		if (enc == null) continue;  //maybe there is another annotations?
 		encNum = enc.getCatalogNumber();
+		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null)species=enc.getGenus()+" "+enc.getSpecificEpithet();
 	}
 	if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
 	
@@ -272,13 +274,50 @@ console.log(imgEl);
 }
 
 
-var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
-var spotTypeNames = {
-	ref1: '5th gill top',
-	ref2: 'posterior pectoral',
-	ref3: '5th gill bottom',
-	spot: 'spot',
-};
+<%
+if(species.equals("Notorynchus cepedianus")){
+%>
+	//sevengill only
+	var spotTypes = [ 'ref1', 'ref2', 'ref3', 'ref4', 'spot' ];
+	var spotTypeNames = {
+		ref1: '1st gill (top or upper)',
+		ref2: 'Eye (Top)',
+		ref3: 'Nostril (lower corner)',
+		ref4: 'Mount (lower corner)',
+		spot: 'spot',
+	};
+<%
+}
+else if(species.equals("Carcharias taurus")){
+%>
+	
+	//all other species
+	var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
+	var spotTypeNames = {
+			ref1: 'First dorsal',
+			ref2: 'Second dorsal',
+			ref3: 'Pelvic',
+		spot: 'spot',
+	};
+<%
+}
+else{
+%>
+	
+	//all other species
+	var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
+	var spotTypeNames = {
+		ref1: '5th gill top',
+		ref2: 'posterior pectoral',
+		ref3: '5th gill bottom',
+		spot: 'spot',
+	};
+<%
+}
+%>
+
+
+
 var side = false;
 
 function startImageTools() {

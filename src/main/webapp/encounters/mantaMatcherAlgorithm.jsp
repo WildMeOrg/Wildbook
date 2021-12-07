@@ -1,10 +1,14 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.Shepherd" %>
+<%@ page import="org.ecocean.Encounter" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
 <%@ page import="org.ecocean.mmutil.*" %>
 <%@ page import="java.text.*" %>
 <%@ page import="java.util.*" %>
 <%@ page import="java.io.File" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="org.ecocean.media.*" %>
 <%@ page import="org.ecocean.servlet.*" %>
 
 <%--
@@ -55,16 +59,17 @@ try {
   <div id="mma" class="section">
     <p class="sectionTitle"><%= encprops.getProperty("mma.sectionTitle") %></p>
 <%
-    List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
+    //List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
+    List<MediaAsset> photos=enc.getMedia();
     for (int t = 0; t < photos.size(); t++) {
-      SinglePhotoVideo spv = photos.get(t);
-      if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
+      MediaAsset spv = photos.get(t);
+      if (!MediaUtilities.isAcceptableImageFile(spv.localPath().toFile()))
         continue;
-      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv.localPath().toFile());
       File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
       File matchOutputAll = mmFiles.get("TXT");
       File mmFT = mmFiles.get("FT");
-      if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile()))
+      if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.localPath().toFile()))
         continue;
 %>
     <div class="subSection featureRegion">
@@ -77,7 +82,7 @@ try {
           <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
             <input name="action" type="hidden" value="imageremove" id="actionRemove"/>
             <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getId() %>" id="dataCollectionEventID"/>
             <p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="<%= encprops.getProperty("mma.submit.remove") %>"/></p>
           </form>
         </div>
@@ -96,7 +101,7 @@ try {
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
               <input name="action" type="hidden" value="rescanRegional" id="actionScanRegional"/>
               <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getId() %>" id="dataCollectionEventID"/>
               <p><input name="scanFile" type="submit" id="scanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.scanRegional"), enc.getLocationID()) %>"/></p>
             </form>
           </div>
@@ -105,13 +110,13 @@ try {
         } else if (enc.getLocationID() != null) {
 %>
         <div class="resultsRegional">
-          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
+          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?encNumber=<%=encNum %>&spv=<%=spv.getId() %>"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
           <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %></p>
           <div class="formRescanRegional">
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
               <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional"/>
               <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getId() %>" id="dataCollectionEventID"/>
               <p><input name="rescanFile" type="submit" id="rescanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.rescanRegional"), enc.getLocationID()) %>"/></p>
             </form>
           </div>
@@ -126,7 +131,7 @@ try {
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
               <input name="action" type="hidden" value="rescan" id="actionScan"/>
               <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getId() %>" id="dataCollectionEventID"/>
               <p><input name="scanFile" type="submit" id="scanFile" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
             </form>
           </div>
@@ -135,13 +140,13 @@ try {
         } else {
 %>
         <div class="resultsGlobal">
-          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>"><%= encprops.getProperty("mma.resultsLink") %></a></p>
+          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?encNumber=<%=encNum %>&spv=<%=spv.getId() %>"><%= encprops.getProperty("mma.resultsLink") %></a></p>
           <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputAll.lastModified())) %></p>
           <div class="formRescan">
             <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
               <input name="action" type="hidden" value="rescan" id="actionRescan"/>
               <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getId() %>" id="dataCollectionEventID"/>
               <p><input name="rescanFile" type="submit" id="rescanFile" value="<%= encprops.getProperty("mma.submit.rescan") %>"/></p>
             </form>
           </div>

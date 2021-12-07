@@ -92,16 +92,14 @@
 
 				/import/** = authc, roles[researcher]
 
-				/gallery.jsp = authc
-				/encounters/encounter.jsp = authc
-				/encounters/encounterMediaGallery.jsp = authc
+				#/encounters/encounter.jsp = authc
+				#/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
 		/GenePopExport = authc, roles[researcher]
 
-		/IndividualSetNickName = authc, roles[researcher]
 		/IndividualSetName = authc, roles[researcher]
 
     	/match.jsp = authc
@@ -247,8 +245,6 @@
 						/EncounterAddImage = authc, roles[researcher]
 						/KeywordHandler = authc, roles[researcher]
 
-						/AdoptionAction = authc, roles[admin]
-						/AdoptionForm = authc, roles[admin]
 						/DeleteAdoption = authc, roles[admin]
 						/ResurrectDeletedAdoption = authc, roles[admin]
 

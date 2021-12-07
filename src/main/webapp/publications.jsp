@@ -36,6 +36,61 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+
+		<p>
+		Araujo G, Ismail AR, McCann C, McCann D, Legaspi CG, Snow S, Labaja J, Manjaji-Matsumoto M, Ponzo A. (2020) Getting the most out of citizen science for endangered species such as Whale Shark. J Fish Biol. 2020 Jan 9. doi: 10.1111/jfb.14254.<br>
+		<a href="https://onlinelibrary.wiley.com/doi/pdf/10.1111/jfb.14254">Web link</a>
+		
+		</p>
+		
+		<p>
+		Araujo, G., Agustines, A., Tracey, B. et al. (2019) Photo-ID and telemetry highlight a global whale shark hotspot in Palawan, Philippines. Sci Rep 9, 17209 (2019) doi:10.1038/s41598-019-53718-w<br>
+		<a href="https://www.nature.com/articles/s41598-019-53718-w?proof=true&draft=marketing">Web link</a>
+		</p>
+		
+		<p>
+		McCoy E, Burce R, David D, Aca EQ, Hardy J, Labaja J, Snow SJ, Ponzo A and Araujo G (2018) Long-Term Photo-Identification Reveals the Population Dynamics and Strong Site Fidelity of Adult Whale Sharks to the Coastal Waters of Donsol, Philippines. Front. Mar. Sci. 5:271. doi: 10.3389/fmars.2018.00271<br>
+		<a href="https://www.frontiersin.org/articles/10.3389/fmars.2018.00271/full">Web link</a>
+		</p>
+		
+		<p>
+		Araujo G, Rohner CA, Labaja J, Conales SJ, Snow SJ, Murray R, Pierce SJ, Ponzo A. (2018) Satellite tracking of juvenile whale sharks in the Sulu and Bohol Seas, Philippines. PeerJ 6:e5231 https://doi.org/10.7717/peerj.5231<br>
+		<a href="https://peerj.com/articles/5231/">Web link</a>
+		
+		</p>
+		
+		</p>
+		Diamant S. et al (2018) Movements and habitat use of satellite-tagged whale sharks off western Madagascar.<br>
+		<a href="https://www.int-res.com/articles/esr2018/36/n036p049.pdf">Web link</a>
+		<p>
+		
+		Rohner CA, Richardson AJ, Jaine FRA, Bennett MB, Weeks SJ, Cliff G, Robinson DP, Reeve-Arnold KE, Pierce SJ. (2018) Satellite tagging highlights the importance of productive Mozambican coastal waters to the ecology and conservation of whale sharks.<br>
+		<a href="https://peerj.com/articles/4161/">Web link</a>
+		</p>
+		
+		<p>
+		Bradley M. Norman, Jason A. Holmberg, Zaven Arzoumanian, Samantha D. Reynolds, Rory P. Wilson, Dani Rob, Simon J. Pierce, Adrian C. Gleiss, Rafael de la Parra, Beatriz Galvan, Deni Ramirez-Macias, David Robinson, Steve Fox, Rachel Graham, David Rowat, Matthew Potenski, Marie Levine, Jennifer A. Mckinney, Eric Hoffmayer, Alistair D. M. Dove, Robert Hueter, Alessandro Ponzo, Gonzalo Araujo, Elson Aca, David David, Richard Rees, Alan Duncan, Christoph A. Rohner, Clare E. M. Prebble, Alex Hearn, David Acuna, Michael L. Berumen, Abraham Vázquez, Jonathan Green, Steffen S. Bach, Jennifer V. Schmidt, Stephen J. Beatty, David L. Morgan; Undersea Constellations: The Global Biology of an Endangered Marine Megavertebrate Further Informed through Citizen Science, 2017/11/29, BioScience, bix127.
+		<br><a href="https://doi.org/10.1093/biosci/bix127">Web link</a>
+		</p>
+		
+		<p>
+		Thomson JA, Araujo G, Labaja J, McCoy E, Murray R, Ponzo A. Feeding the world's largest fish: highly variable whale shark residency patterns at a provisioning site in the Philippines. R. Soc. open sci. 2017 4 170394; DOI: 10.1098/rsos.170394. Published 27 September 2017<br>
+		<a href="http://rsos.royalsocietypublishing.org/content/4/9/170394">Web link</a>
+		</p>
+		
+		<p>
+		Robinson DP, Jaidah MY, Bach SS, Rohner CA, Jabado RW, Ormond R, et al. (2017) Some like it hot: Repeat migration and residency of whale sharks within an extreme natural environment. PLoS ONE 12(9): e0185360. https://doi.org/10.1371/journal.pone.0185360
+		<br><a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185360">Web link</a></p>
+		
+		
+		<p>
+		Reynolds SD, Norman BM, Beger M, Franklin CE, Dwyer RG. Movement, distribution and marine reserve use by an endangered migratory giant. Divers Distrib. 2017;00:1–12.
+		<br><a href="https://doi.org/10.1111/ddi.12618">Web link</a></p>
+		
+		<p>McKinney JA, Hoffmayer ER, Holmberg J, Graham RT, Driggers WB III, de la Parra-Venegas R, et al. (2017) Long-term assessment of whale shark population demography and connectivity using photo-identification in the Western Atlantic Ocean. PLoS ONE 12(8): e0180495. https://doi.org/10.1371/journal.pone.0180495
+		<br><a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0180495">Web link</a>
+		</p>
+		
 		<p>Macena BCL, Hazin FHV (2016) Whale Shark (<em>Rhincodon typus</em>) Seasonal Occurrence, Abundance and Demographic Structure in the Mid-Equatorial Atlantic Ocean. PLoSONE 11(10):e0164440.doi:10.1371/journal.pone.0164440<br>
 		<a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0164440">Web link</a>
 		</p>

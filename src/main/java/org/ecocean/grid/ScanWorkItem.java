@@ -342,5 +342,26 @@ public class ScanWorkItem implements java.io.Serializable {
   public void setNewEncounter(EncounterLite el) {
     this.newEncounter = el;
   }
+  
+  public void setProperties(Properties props) {
+    //algorithm parameter read-ins
+    this.epsilon = new Double(props.getProperty("epsilon"));
+    this.R = new Double(props.getProperty("R"));
+    this.Sizelim = new Double(props.getProperty("Sizelim"));
+    this.maxTriangleRotation = new Double(props.getProperty("maxTriangleRotation"));
+    this.C = new Double(props.getProperty("C"));
+
+    //boolean read-ins
+    this.secondRun = true;
+    String secondRunString = (String) props.get("secondRun");
+    if (secondRunString.equals("false")) {
+      secondRun = false;
+    }
+    this.rightScan = false;
+    String rightScanString = (String) props.get("rightScan");
+    if (rightScanString.equals("true")) {
+      rightScan = true;
+    }
+  }
 }
 	

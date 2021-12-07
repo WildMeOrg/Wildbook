@@ -22,6 +22,9 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.grid.EncounterLite;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.LocationID;
 import org.ecocean.MarkedIndividual;
 
@@ -117,7 +120,18 @@ public class EncounterSetLocationID extends HttpServlet {
       }
 
       if (!locked) {
+        
+        //reset the entry in the GridManager graph
+        if(CommonConfiguration.useSpotPatternRecognition(context) && (changeMe.getSpots()!=null || changeMe.getRightSpots()!=null)) {
+          GridManager gm = GridManagerFactory.getGridManager();
+          gm.addMatchGraphEntry(changeMe.getCatalogNumber(), new EncounterLite(changeMe));
+        }
+        
         myShepherd.commitDBTransaction();
+        
+        
+
+        
         //out.println(ServletUtilities.getHeader(request));
         //out.println("<strong>Success:</strong> Encounter location has been updated from " + oldCode + " to " + request.getParameter("code") + ".");
         //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");

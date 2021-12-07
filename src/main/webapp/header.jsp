@@ -16,8 +16,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-<!DOCTYPE html>
-<html>
+
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
@@ -100,14 +99,14 @@ finally{
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-1"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'UA-30944767-12');
+        gtag('config', 'UA-30944767-1');
       </script>
 
       <title><%=pageTitle%></title>
@@ -414,14 +413,20 @@ finally{
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
+							
+							<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
-
+	
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+							-->
 
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          	<li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                          	 <li><a target="_blank" href="https://docs.wildme.org/docs/researchers/overview"><%=props.getProperty("shepherdDoc")%></a></li>
+                                
+                        	<!-- 
                         	<li class="divider"></li>
+                        	 -->
+                        	
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -490,9 +495,24 @@ finally{
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                               <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
+
+
+
                               <li class="divider"></li>
-                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
+                              <li class="dropdown-header"><%=props.getProperty("manageData")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
+                              <%
+                              if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
+                            	%>
+                            	
+                            		<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           		 	<li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+                               
+                           		<%
+
+
+                              }
+                              %>
                               <li class="divider"></li>
                             <% }
 
@@ -500,7 +520,13 @@ finally{
                             if(request.isUserInRole("admin")) { %>
                                 <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-
+	                            <%
+	                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+	                            %>
+	                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+	                            <%
+	                            }
+	                            %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
                                 <%
@@ -513,22 +539,11 @@ finally{
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
-                                  <li class="divider"></li>
-                                <% } %>
-                                <li><a target="_blank" href="https://docs.wildme.org/docs/researchers/overview"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                                <%
+                                 
+                                <% } 
 
                             } //end if admin
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
-                            %>
-                            	<li class="divider"></li>
-                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           	<%
 
-
-                          	}
                             %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
@@ -546,18 +561,6 @@ finally{
                               </ul>
                             </li>
 
-
-
-                            <%
-                            if(CommonConfiguration.useSpotPatternRecognition(context)){
-                            %>
-                            	<li class="divider"></li>
-                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                            <%
-                            }
-                            %>
                           </ul>
                         </li>
                       </ul>

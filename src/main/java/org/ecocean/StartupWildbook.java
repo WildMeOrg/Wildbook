@@ -47,9 +47,11 @@ public class StartupWildbook implements ServletContextListener {
   // it is attached via web.xml's <listener></listener>
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
 
+
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+
 
   }
 
@@ -123,6 +125,9 @@ public class StartupWildbook implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
+        
+        createMatchGraph();
+        
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
         if (skipInit(sce, null)) {
             System.out.println("- SKIPPED initialization due to skipInit()");
@@ -135,9 +140,9 @@ public class StartupWildbook implements ServletContextListener {
         IAPluginManager.startup(sce);
 
         //NOTE! this is whaleshark-specific (and maybe other spot-matchers?) ... should be off on any other trees
-        if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            createMatchGraph();
-        }
+        //if (CommonConfiguration.useSpotPatternRecognition(context)) {
+        //    createMatchGraph();
+        //}
 
         //TODO genericize starting "all" consumers ... configurable? how?  etc.
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!

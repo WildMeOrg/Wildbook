@@ -156,9 +156,14 @@ System.out.println("====> params = " + params);
     System.out.println("    + updated children for asset "+crMa.toString()+"; hasFamily = "+crMa.hasFamily(myShepherd));
     String speciesString = enc.getTaxonomyString();
     Annotation ann = new Annotation(speciesString, crMa);
-    ann.setMatchAgainst(true);
-    String iaClass = "whalesharkCR"; // should we change this?
-    ann.setIAClass(iaClass);
+    
+    //WB-1841 only whale sharks are currently matchable via this method
+    if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
+      ann.setMatchAgainst(true);
+      String iaClass = "whalesharkCR"; // should we change this?
+      ann.setIAClass(iaClass);
+    }
+    
     if(rightSide) {ann.setViewpoint("right");}
     else {ann.setViewpoint("left");}
     enc.addAnnotation(ann);
@@ -166,25 +171,7 @@ System.out.println("====> params = " + params);
     myShepherd.getPM().makePersistent(ann);
     System.out.println("    + saved annotation");
 
-    // we need to intake mediaassets so they get acmIds and are matchable
-    ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
-    maList.add(crMa);
-    ArrayList<Annotation> annList = new ArrayList<Annotation>();
-    annList.add(ann);
-    try {
-      System.out.println("    + sending asset to IA");
-      IBEISIA.sendMediaAssetsNew(maList, context);
-      myShepherd.updateDBTransaction();
-      System.out.println("    + asset sent, sending annot");
-      IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
-      myShepherd.updateDBTransaction();
-      System.out.println("    + annot sent.");
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-      System.out.println("hit above exception while trying to send CR ma & annot to IA");
-    }
-    System.out.println("    + done processing new CR annot");
+
 
 
     if (rightSide) {
@@ -200,8 +187,8 @@ System.out.println("====> params = " + params);
     GridManager gm = GridManagerFactory.getGridManager();
     gm.addMatchGraphEntry(encId, new EncounterLite(enc));
     
-    myShepherd.commitDBTransaction();
-    myShepherd.closeDBTransaction();
+    myShepherd.updateDBTransaction();
+
 
     JSONObject rtn = new JSONObject("{\"success\": true}");
     rtn.put("spotAssetId", crMa.getId());
@@ -210,6 +197,31 @@ System.out.println("====> params = " + params);
     PrintWriter out = response.getWriter();
     out.println(rtn.toString());
     out.close();
+    
+    // we need to intake mediaassets so they get acmIds and are matchable
+    ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+    maList.add(crMa);
+    ArrayList<Annotation> annList = new ArrayList<Annotation>();
+    annList.add(ann);
+    try {
+      System.out.println("    + sending asset to IA");
+      IBEISIA.sendMediaAssetsNew(maList, context);
+      myShepherd.updateDBTransaction();
+      System.out.println("    + asset sent, sending annot");
+      IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+      myShepherd.commitDBTransaction();
+      System.out.println("    + annot sent.");
+    } 
+    catch (Exception e) {
+      myShepherd.rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("hit above exception while trying to send CR ma & annot to IA");
+    }
+    System.out.println("    + done processing new CR annot");
+    
+
+    myShepherd.closeDBTransaction();
+    
   }
 
 

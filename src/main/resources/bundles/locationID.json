@@ -2,114 +2,620 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-		{
-			"name": "Klufterbach",
-			"id": "KB",
-			"geospatialInfo":{
-				"lat":50.686688,
-				"long":7.127002
-			},
-			"locationID": []
-		},
-		{
-			"name": "Venner Bach",
-			"id": "VB",
-			"geospatialInfo": {
-				"lat": 50.670721,
-				"long": 7.129955
-			},
-			"locationID": []
-		},
-		{
-			"name": "Katzenlochbach/Villiper Bach",
-			"id": "KOB",
-			"geospatialInfo": {
-				"lat": 50.667533,
-				"long": 7.083178
-			},
-			"locationID": []
-		},
-		{
-			"name": "Marienforster Bach/Keltersbaumbach",
-			"id": "MB",
-			"geospatialInfo": {
-				"lat": 50.675925,
-				"long": 7.136618
-			},
-			"locationID": []
-		},
-		{
-			"name": "Annaberger Bach",
-			"id": "AB",
-			"geospatialInfo": {
-				"lat": 50.684203,
-				"long": 7.116158
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel KoVK",
-			"id": "KoVK",
-			"geospatialInfo": {
-				"lat": 50.660984,
-				"long": 7.034919
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpelgraben TG",
-			"id": "TG",
-			"geospatialInfo": {
-				"lat": 50.681499,
-				"long": 7.118652
-			},
-			"locationID": []
-		},
-		{
-			"name": "Seitengraben SG",
-			"id": "SG",
-			"geospatialInfo": {
-				"lat": 50.682431,
-				"long": 7.116877
-			},
-			"locationID": []
-		},
-		{
-			"name": "Tümpel TT",
-			"id": "TT",
-			"geospatialInfo": {
-				"lat": 50.681057,
-				"long": 7.121233
-			},
-			"locationID": []
-		},
-		{
-			"name": "Schutzhütte",
-			"id": "hut",
-			"geospatialInfo": {
-				"lat": 50.682028,
-				"long": 7.118937
-			},
-			"locationID": []
-		},
-		{
-			"name": "Kernlebensraum",
-			"id": "KLR",
-			"geospatialInfo": {
-				"lat": 51.923413,
-				"long": 8.872099
-			},
-			"locationID": []
-		},
-		{
-			"name": "Paderborner Dorf",
-			"id": "PD",
-			"geospatialInfo": {
-				"lat": 51.917119,
-				"long": 8.880677
-			},
-			"locationID": []
-		},
+
+			 {
+			  "name": "Australia", "id": "1", "locationID": [
+			  
+			  
+				{
+				  "name": "Ningaloo (non-specific)", "id": "1a", "prefix": "A-", "prefixDigitPadding": 3 },
+				 {
+				  "name": "North Ningaloo", "id": "1a1", "prefix": "A-", "prefixDigitPadding": 3 },
+				  {
+				  "name": "South Ningaloo", "id": "1a2", "prefix": "A-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Shark Bay Region", "id": "1a3", "prefix": "A-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "North West shelf region", "id": "1a4", "prefix": "A-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Australia (Pacific Ocean)", "id": "1b", "prefix": "AP-", "prefixDigitPadding": 3, "locationID": [ 
+						{ "name":"East Australia", "id":"East Australia", "locationID":[
+							{ "name":"Cape Byron", "id":"Cape Byron", "locationID":[] }
+						] },
+						
+						{
+							"name": "Broughton Island",
+							"id": "BI",
+							"geospatialInfo":{
+								"lat":-32.6166,
+								"long":152.3333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Big Seal",
+							"id": "BS",
+							"geospatialInfo": {
+								"lat": -32.4666,
+								"long": 152.55
+							},
+							"locationID": []
+						},
+						{
+							"name": "Bait Grounds, Forster",
+							"id": "BT",
+							"geospatialInfo": {
+								"lat": -32.166,
+								"long": 152.5166
+							},
+							"locationID": []
+						},
+						{
+							"name": "Cherubs Cave",
+							"id": "CC",
+							"geospatialInfo": {
+								"lat": -27.1166,
+								"long": 153.4666
+							},
+							"locationID": []
+						},
+						{
+							"name": "Cod Grounds,Laurieton",
+							"id": "CG",
+							"geospatialInfo": {
+								"lat": -31.6817,
+								"long": 152.901
+							},
+							"locationID": []
+						},
+						{
+							"name": "Coffs Harbour",
+							"id": "CH",
+							"geospatialInfo": {
+								"lat": -30.2476,
+								"long": 153.36
+							},
+							"locationID": []
+						},
+						{
+							"name": "Dalmeny Point",
+							"id": "DP",
+							"geospatialInfo": {
+								"lat": -36.167,
+								"long": 150.1333
+							},
+							"locationID": []
+						},
+					{
+							"name": "Diamond Bay, Vaucluse, Sydney",
+							"id": "VAUCLUSE",
+							"geospatialInfo": {
+								"lat": -33.862778,
+								"long": 151.283333
+							},
+							"locationID": []
+						},
+					{
+							"name": "Drum Drumsticks",
+							"id": "DD",
+							"geospatialInfo": {
+								"lat": -35.047,
+								"long": 150.54
+							},
+							"locationID": []
+						},
+						{
+							"name": "Fairy Bower",
+							"id": "FB",
+							"geospatialInfo": {
+								"lat": -34.0486111,
+								"long": 151.5372222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Foggy Cave,Terrigal",
+							"id": "FC",
+							"geospatialInfo": {
+								"lat": -33.4355556,
+								"long": 151.5844444
+							},
+							"locationID": []
+						},
+						{
+							"name": "Flinders Reef",
+							"id": "FL",
+							"geospatialInfo": {
+								"lat": -26.9833333,
+								"long": 153.4847222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Fish Rock",
+							"id": "FR",
+							"geospatialInfo": {
+								"lat": -30.9402778,
+								"long": 153.0958333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Flat Rock",
+							"id": "FT",
+							"geospatialInfo": {
+								"lat": -27.1333333,
+								"long": 153.5583333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Julian Rocks",
+							"id": "JR",
+							"geospatialInfo": {
+								"lat": -28.6138889,
+								"long": 153.6263889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Long Reef, Sydney",
+							"id": "LF",
+							"geospatialInfo": {
+								"lat": -33.7361111,
+								"long": 151.3250000
+							},
+							"locationID": []
+						},
+						{
+							"name": "Latitude Reef, Forster",
+							"id": "LR",
+							"geospatialInfo": {
+								"lat": -32.2088889,
+								"long": 152.5680556
+							},
+							"locationID": []
+						},
+						{
+							"name": "Little Seal",
+							"id": "LS",
+							"geospatialInfo": {
+								"lat": -32.4763889,
+								"long": 152.5472222
+							},
+							"locationID": []
+						},
+						{
+							"name": "Montague Island",
+							"id": "MI",
+							"geospatialInfo": {
+								"lat": -36.2416667,
+								"long": 150.2263889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Magic Point",
+							"id": "MP - Magic Point",
+							"geospatialInfo": {
+								"lat": -33.9625000,
+								"long": 151.2638889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Mermaid Reef",
+							"id": "MR",
+							"geospatialInfo": {
+								"lat": -31.7680556,
+								"long": 152.8069444
+							},
+							"locationID": []
+						},
+						{
+							"name": "North Bondi",
+							"id": "NB",
+							"geospatialInfo": {
+								"lat": -33.9013889,
+								"long": 151.2722222
+							},
+							"locationID": []
+						},
+						{
+							"name": "North Solitary",
+							"id": "NS",
+							"geospatialInfo": {
+								"lat": -29.9180556,
+								"long": 153.3833333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Pinnacle Forster",
+							"id": "PF",
+							"geospatialInfo": {
+								"lat": -32.2402778,
+								"long": 152.6013889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Skeleton Reef, Forster",
+							"id": "SK",
+							"geospatialInfo": {
+								"lat": -32.4083333,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Seal Rocks",
+							"id": "SR",
+							"geospatialInfo": {
+								"lat": -32.4666667,
+								"long": 152.5500000
+							},
+							"locationID": []
+						},
+					{
+							"name": "South Bondi",
+							"id": "SB",
+							"locationID": []
+						},
+						{
+							"name": "South Solitary Island",
+							"id": "SS",
+							"geospatialInfo": {
+								"lat": -30.2083333,
+								"long": 153.2833333
+							},
+							"locationID": []
+						},
+						{
+							"name": "Sawtooth",
+							"id": "ST",
+							"geospatialInfo": {
+								"lat": -32.4447222,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "The Barge",
+							"id": "TB",
+							"geospatialInfo": {
+								"lat": -32.1527778,
+								"long": 152.5388889
+							},
+							"locationID": []
+						},
+						{
+							"name": "Tollgate",
+							"id": "TG",
+							"geospatialInfo": {
+								"lat": -35.7555556,
+								"long": 150.2541667
+							},
+							"locationID": []
+						},
+						{
+							"name": "Wolf Rock",
+							"id": "WR",
+							"geospatialInfo": {
+								"lat": -25.9111111,
+								"long": 153.2055556
+							},
+							"locationID": []
+						},
+						
+						
+						{	
+						"name": "Gold Coast", "id": "Gold Coast", "prefix": "AP-", "prefixDigitPadding": 3 },
+						
+						{	
+						"name": "Queensland", "id": "Queensland", "prefix": "AP-", "prefixDigitPadding": 3 },
+						{
+							"name": "North Stradbroke Island",
+							"id": "North Stradbroke Island",
+						"geospatialInfo":{"lat":-27.423971,"long":153.547871},
+							"locationID": []
+						},
+				  
+						{
+						"name": "NSW", "id": "NSW", "prefix": "AP-", "prefixDigitPadding": 3 }
+
+
+				 ]}
+			  
+			  ]},
+
+			  
+			  {
+			  "name": "ChristmasIsland", "id": "ChristmasIsland", "prefix": "X-", "prefixDigitPadding": 3 },
+			  
+			   {
+			  "name": "Indonesia", "id": "Indonesia", "prefix": "ID-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Japan", "id": "Japan" },
+			  
+			  {
+			  "name": "Malaysia", "id": "Malaysia", "prefix": "MY-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Thailand", "id": "Thailand", "prefix": "T-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Myanmar", "id": "Myanmar", "prefix": "MR-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "1g", "id": "1g" },
+			  
+			  {
+			  "name": "2", "id": "2", "prefix": "CRB-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "2a", "id": "2a", "prefix": "H-", "prefixDigitPadding": 3 },
+			 
+			{
+			  "name": "2b", "id": "2b", "prefix": "BZ-", "prefixDigitPadding": 3 },
+			{
+			  "name": "2c", "id": "2c", "prefix": "MXA-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Texas", "id": "2d", "prefix": "TX-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "2e", "id": "2e", "prefix": "GC-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "2e1", "id": "2e1", "prefix": "GC-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "2f", "id": "2f" },
+			  
+			  {
+			  "name": "2g", "id": "2g", "prefix": "USA-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "South Atlantic", "id": "2h", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
+				  {
+				  "name": "St. Helena Island", "id": "2h1", "prefix": "SHA-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Ascension Island", "id": "2h2", "prefix": "ID-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Brazil", "id": "2h3", "prefix": "BRZ-", "prefixDigitPadding": 3 },
+				   {
+				  "name": "Azores", "id": "2h4" }
+			  ] 
+			  },
+			  
+			  { "name":"Mozambique", "id":"Mozambique", "locationID":[
+			  
+			  	{
+					"name": "4a", "id": "4a", "prefix": "MZ-", "prefixDigitPadding": 3 },
+			  
+					{
+					"name": "4a1", "id": "4a1", "prefix": "MZ-", "prefixDigitPadding": 3 },
+			  
+			  		{
+					"name": "4a2", "id": "4a2" },
+
+					{ "name":"Bazaruto", "id":"Bazaruto", "locationID":[] },
+
+					{ "name":"Morrungulo", "id":"Morrungulo", "locationID":[] },
+
+					{ "name":"Pomene", "id":"Pomene", "locationID":[] 	},
+
+					{ "name":"San Sebastian", "id":"San Sebastian", "locationID":[] },
+
+					{ "name":"Tofo", "id":"Tofo", "locationID":[
+						{ "name":"Amazon", "id":"Amazon", "locationID":[] },
+						{ "name":"Giants Castle", "id":"Giants Castle", "locationID":[] },
+						{ "name":"Hospital", "id":"Hospital", "locationID":[] },
+						{ "name":"Manta Reef", "id":"Manta Reef", "locationID":[] },
+						{ "name":"Office", "id":"Office", "locationID":[] },
+						{ "name":"Reggies", "id":"Reggies", "locationID":[] }
+				] },
+
+				{ "name":"Zavora", "id":"Zavora", "locationID":[] }
+
+			] },
+			  
+
+			  
+			  			  {
+			  "name": "Tanzania", "id": "Tanzania", "prefix": "TZ-", "prefixDigitPadding": 3 },
+
+			  {
+			  "name": "Kenya", "id": "Kenya", "prefix": "K-", "prefixDigitPadding": 3 },
+			  
+			  			  {
+			  "name": "South Africa", "id": "South Africa", "prefix": "SA-", "prefixDigitPadding": 3, "locationID":[
+			  
+				{ "name":"False Bay", "id":"False Bay", "locationID":[] }
+			  
+			  
+			  ] },
+			  
+			  			  {
+			  "name": "Djibouti", "id": "Djibouti", "prefix": "DJ-", "prefixDigitPadding": 3 },
+			  
+			  			  {
+			  "name": "Madagascar", "id": "Madagascar", "prefix": "MD-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Madagascar", "id": "Madagascar" },
+			  
+			  {
+			  "name": "Mayotte", "id": "Mayotte" },
+			  
+			  
+			  {
+			  "name": "Réunion Island", "id": "Reunion Island" },
+
+
+			 {
+			  "name": "RedSea", "id": "RedSea", "prefix": "R-", "prefixDigitPadding": 3, "locationID":[
+			  
+			  
+				{"name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" }
+			  
+			  
+			  ] },
+
+
+			
+			  
+			   {
+			  "name": "4h", "id": "4h", "prefix": "Q-", "prefixDigitPadding": 3 },
+			  
+			   {
+			  "name": "4h1", "id": "4h1", "prefix": "Q-", "prefixDigitPadding": 3 },
+			  
+			   {
+			  "name": "4h1a", "id": "4h1a" },
+			  
+			   {
+			  "name": "4h2", "id": "4h2" },
+			  
+			   {
+			  "name": "4h2a", "id": "4h2a" },
+			  
+			  			   {
+			  "name": "4h2b", "id": "4h2b" },
+			  
+			  {
+			  "name": "4h2c", "id": "4h2c" },
+			  
+			  {
+			  "name": "4h3", "id": "4h3" },
+			  
+			  {
+			  "name": "4h4", "id": "4h4" },
+			  
+			  {
+			  "name": "Maldives", "id": "Maldives", "prefix": "M-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Seychelles", "id": "Seychelles", "prefix": "S-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6a", "id": "6a", "prefix": "P-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6a1", "id": "6a1", "prefix": "P-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6a2", "id": "6a2", "prefix": "P-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6a3", "id": "6a3", "prefix": "P-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6a4", "id": "6a4", "prefix": "P-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "6b", "id": "6b", "prefix": "TW-", "prefixDigitPadding": 3 },
+			  
+			  {
+			  "name": "Pacific Ocean", "id": "7", "locationID":[
+			  
+				  {
+				  "name": "California", "id": "California", "locationID":[
+					
+						{
+					  "name": "Ano Nuevo", "id": "Ano Nuevo" },
+					  {
+					  "name": "Aptos", "id": "Aptos" },
+					  {
+					  "name": "Farallon Islands", "id": "Farallon Islands" },
+					  {
+					  "name": "La Jolla Cove", "id": "La Jolla Cove" },
+					  {
+					  "name": "Morro Bay", "id": "Morro Bay" },
+					  {
+					  "name": "Point La Jolla", "id": "Point La Jolla" },
+					  {
+					  "name": "Point Loma", "id": "Point Loma" },
+					  {
+					  "name": "Point Reyes", "id": "Point Reyes" },
+					  {
+					  "name": "San Diego", "id": "San Diego" },
+					  {
+					  "name": "San Francisco Bay", "id": "San Francisco Bay" },
+					  {
+					  "name": "SoCal", "id": "SoCal" }
+					  
+
+
+				  
+				  ]},
+				  
+				  {
+				  "name": "Cocos Islands", "id": "7b", "prefix": "CR-", "prefixDigitPadding": 3 },
+				  
+			
+				  {
+				  "name": "Galapagos Islands", "id": "7a", "prefix": "G-", "prefixDigitPadding": 3 },
+				   
+				  
+				  {
+				  "name": "Hawaii", "id": "Hawaii", "prefix": "HW-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Mexico-BLP", "id": "Mexico-BLP", "locationID": [
+				  
+						{
+							"name": "7d", "id": "7d" }
+
+					], "prefix": "MX-", "prefixDigitPadding": 3
+				  },
+				  
+				  {
+				  "name": "Mexico-LC", "id": "Mexico-LC", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Mexico-Nayarit", "id": "Mexico-Nayarit", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Mexico-BLA", "id": "Mexico-BLA", "prefix": "MX-", "prefixDigitPadding": 3 },
+
+
+				{
+				  "name": "Mexico-Revillagigedo", "id": "Mexico-Revillagigedo", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Mexico-BC", "id": "Mexico-BC", "prefix": "MX-", "prefixDigitPadding": 3 },
+				  
+				  {
+					  "name": "Oregon", "id": "Oregon" },
+
+				{
+				  "name": "8a", "id": "8a" },
+				  	  
+				  {
+				  "name": "Panama", "id": "Panama", "prefix": "PAN-", "prefixDigitPadding": 3 },
+				  
+				  {
+				  "name": "Peru", "id": "Peru" },
+				  {
+					  "name": "Washington", "id": "Washington" }
+				  
+				  
+				  
+			] },
+			{"name": "None", "id": "None", "locationID": []}
+
+
+
+			 
+
   ]
 }
 

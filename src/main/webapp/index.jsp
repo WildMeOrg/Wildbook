@@ -20,19 +20,8 @@ String context=ServletUtilities.getContext(request);
 
 //set up our Shepherd
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
-
-
-String langCode=ServletUtilities.getLanguageCode(request);
-
-//check for and inject a default user 'tomcat' if none exists
-// Make a properties object for lang support.
-Properties props = new Properties();
-// Grab the properties file with the correct language strings.
-props = ShepherdProperties.getProperties("index.properties", langCode,context);
-
 
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
@@ -47,9 +36,6 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
 
 
 
-
-
-
 //let's quickly get the data we need from Shepherd
 
 int numMarkedIndividuals=0;
@@ -57,22 +43,17 @@ int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
-myShepherd.beginDBTransaction();
+
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-//String url = "login.jsp";
-//response.sendRedirect(url);
-//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-//dispatcher.forward(request, response);
-
-
+myShepherd.beginDBTransaction();
 try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
-    //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
+    //numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
     numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
@@ -81,11 +62,12 @@ try{
 
 }
 catch(Exception e){
-    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
-    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
 }
-
+finally{
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
+}
 %>
 
 <style>
@@ -117,14 +99,14 @@ h2.vidcap {
 	color: #fff;
 	font-weight:300;
 	text-shadow: 1px 2px 2px #333;
-	margin-top: 35%;
+	margin-top: 55%;
 }
 
 
 
 /* The container for our text and stuff */
 #messageBox{
-    position: absolute;  top: 0;  left: 0;
+    position: absolute;  top: -150px;  left: -30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -132,15 +114,44 @@ h2.vidcap {
     height:100%;
 }
 
-@media screen and (min-width: 851px) {
+
+
+
+
+@media screen and (min-width: 1350px) {
 	h2.vidcap {
 	    font-size: 3.3em;
-	    margin-top: -45%;
+	    margin-top: -35%; 
+	}
+	
+
+}
+
+@media screen and (min-width: 1350px) {
+	#messageBox div{
+	    margin-left: -15%;
+	    margin-top: 15%;
+	    padding-left: 15px;
+	    padding-top: 15px;
 	}
 }
 
-@media screen and (max-width: 850px) and (min-width: 551px) {
+@media screen and (max-width: 1000px) and (min-width: 501px) {
+	#messageBox div{
 
+
+	    padding-left: 15px;
+	    padding-top: 210px;
+	}
+	
+	h2.vidcap {
+		font-size: 1.2em;
+		margin-top: 70%;
+	}
+	
+	#messageBox div button.large{
+		font-size: 1.0em;
+	}
 	
 	#fullScreenDiv{
 	    width:100%;
@@ -152,14 +163,24 @@ h2.vidcap {
 	    position: relative;
 	}
 	
-	h2.vidcap {
-	    font-size: 2.4em;
-	    margin-top: 55%;
+}
+
+@media screen and (max-width: 500px) {
+	#messageBox div{
+
+
+	    padding-left: 15px;
+	    padding-top: 250px;
 	}
 	
-}
-@media screen and (max-width: 550px) {
-
+	h2.vidcap {
+		font-size: 1.0em;
+		margin-top: 85%;
+	}
+	
+	#messageBox div button.large{
+		font-size: 0.5em;
+	}
 	
 	#fullScreenDiv{
 	    width:100%;
@@ -171,11 +192,6 @@ h2.vidcap {
 	    position: relative;
 	}
 	
-	h2.vidcap {
-	    font-size: 1.8em;
-	    margin-top: 100%;
-	}
-	
 }
  
 
@@ -185,17 +201,29 @@ h2.vidcap {
         
    <div id="fullScreenDiv">
         <div id="videoDiv">           
-            <video playsinline preload id="video" autoplay muted>
-            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
-            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
+            <video playsinline preload id="video" autoplay muted poster="images/whaleshark_lander.jpg">
+            <source src="images/whaleshark_lander.webm#t=,3" type="video/webm"></source>
+            <source src="images/whaleshark_lander.mp4#t=,3" type="video/mp4"></source>
             </video> 
         </div>
         <div id="messageBox"> 
             <div>
-                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
+                <h2 class="vidcap">You can help study sharks!</h2>
+                                    <a href="submit.jsp">
+                <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
+            </a>
+            <br>
+            <% if (CommonConfiguration.allowAdoptions(context)) { %>
+	            <a href="adoptashark.jsp">
+	                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+	            </a>
+	            <br>
+            <% } %>
 
             </div>
         </div>   
+        
+
     </div>
 
   
@@ -205,59 +233,81 @@ h2.vidcap {
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
+	<h2 class="section-header">How it works</h2>
+	<p class="lead">The Wildbook for Sharks photo-identification library is a visual database of various shark encounters and of individually catalogued sharks. The library is maintained and used by marine biologists to collect and analyze shark sighting data to learn more about these amazing creatures.The Wildbook uses photographs of the skin patterning behind the gills of each shark, and any scars, to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools. You too can assist with shark research, by submitting photos and sighting data. The information you submit will be used in mark-recapture studies to help with the global conservation of these threatened species.</p>
+	<p class="lead">The Wildbook uses photographs of the skin patterning behind the gills of each shark, and any scars, to distinguish between individual animals. Cutting-edge software supports rapid identification using pattern recognition and photo management tools.
 
-  	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
-  	
-  	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/detectionSpermWhale.jpg" />
-		  	
-  	
-  	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/CurvRank_matches.jpg" />
-		
-		
-	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/action.jpg" />
-		
-  	
-  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
-  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
-  	
-  	<div class="row">
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/hotspotter.jpg" />
-		  	<em><%=props.getProperty("megapteraMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/spermWhaleTrailingEdge.jpg" />
-		  	<em><%=props.getProperty("physeterMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/tracedFin.jpg" />
-		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/rightWHaleID.jpg" />
-		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
-	  	</section>
-	  	
-  	</div>
-  	
-  	
+You too can assist with shark research, by submitting photos and sighting data. The information you submit will be used in mark-recapture studies to help with the global conservation of this threatened species.</p>
 
-  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
-
+	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
+		<ol class="list-inline carousel-indicators slide-nav">
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	    </ol>
+		<div class="carousel-inner text-left">
+			<div class="item active">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Photograph the flanks</h3>
+					<p class="lead">
+						Each shark has an individual fingerprint, such as the spots behind the gills on the sides of a whale shark or the 1st dorsal fin of a white shark. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your shark might be completely new to the database.
+					</p>
+					<p class="lead">
+						<a href="photographing.jsp" title="">See the photography guide</a>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="cust/mantamatcher/img/bellyshotofmanta.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Submit photo/video</h3>
+					<p class="lead">
+						You can upload files from your computer. Be sure to enter when and where you saw the shark, and add other information, such as scarring and sex, if you can. You will receive email updates when your animal is processed by a researcher.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Researcher verification</h3>
+					<p class="lead">
+						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct and add any additional information.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Matching process</h3>
+					<p class="lead">
+						Once a researcher is happy with all the data accompanying the identification photo using pattern matching algorithms. The algorithms are like facial recognition software for animal patterns.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Match Result</h3>
+					<p class="lead">
+						The algorithm (or manual comparison) provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to existing sharks of the same species in the database, or create a new individual profile.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 
 <div class="container-fluid relative data-section">
@@ -267,62 +317,66 @@ h2.vidcap {
 
             <!-- Random user profile to select -->
             <%
+            //Shepherd myShepherd=new Shepherd(context);
             //myShepherd.beginDBTransaction();
-            try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/user-profile-white-transparent.png";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
+			try{
+	            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+	            if(featuredUser!=null){
+	                String profilePhotoURL="images/empty_profile.jpg";
+	                if(featuredUser.getUserImage()!=null){
+	                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+	                }
 
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	//myShepherd.rollbackDBTransaction();
-            }
+	            %>
+	                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+	                    <div class="focusbox-inner opec">
+	                        <h2>Our contributors</h2>
+	                        <div>
+	                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+	                            <p><%=featuredUser.getFullName() %>
+	                                <%
+	                                if(featuredUser.getAffiliation()!=null){
+	                                %>
+	                                <i><%=featuredUser.getAffiliation() %></i>
+	                                <%
+	                                }
+	                                %>
+	                            </p>
+	                            <p><%=featuredUser.getUserStatement() %></p>
+	                        </div>
+	                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+	                    </div>
+	                </section>
+	            <%
+	            }
+			}
+			catch(Exception e){e.printStackTrace();}
+			finally{
+	            //myShepherd.rollbackDBTransaction();
+	            //myShepherd.closeDBTransaction();
+			}
             %>
 
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
+                    <h2>Latest shark encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
+                       //Shepherd myShepherd=new Shepherd(context);
+
+
+                       //myShepherd.beginDBTransaction();
                        try{
+                    	   List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                           int numResults=latestIndividuals.size();
+
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/whalesharkbw.png" alt="" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -334,36 +388,37 @@ h2.vidcap {
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividual().getDisplayName() %></a></p>
 
 
 	                            </li>
 	                        <%
 	                        }
-						}
+                       }
                        catch(Exception e){e.printStackTrace();}
                        finally{
-                    	   myShepherd.rollbackDBTransaction();
-
+	                       //myShepherd.rollbackDBTransaction();
+	                       //myShepherd.closeDBTransaction();
                        }
-
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("topSpotters")%></h2>
+                    <h2>Top spotters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
+                    //Shepherd myShepherd=new Shepherd(context);
                     //myShepherd.beginDBTransaction();
+
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
-	                    System.out.println("  I think my startTime is: "+startTime);
+	                    //System.out.println("  I think my startTime is: "+startTime);
 
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
@@ -373,8 +428,8 @@ h2.vidcap {
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
+	                          if(myShepherd.getUser(spotter)!=null){
+	                        	  String profilePhotoURL="images/empty_profile.jpg";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
@@ -393,7 +448,7 @@ h2.vidcap {
 	                                    <%
 	                                      }
 	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
 	                                </li>
 
 	                           <%
@@ -402,12 +457,16 @@ h2.vidcap {
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    //finally{myShepherd.rollbackDBTransaction();}
+                    finally{
+                    	//myShepherd.rollbackDBTransaction();
+                        //myShepherd.closeDBTransaction();
+                    }
+
 
                    %>
 
                     </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
+                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
                 </div>
             </section>
         </div>
@@ -416,20 +475,20 @@ h2.vidcap {
 
 <div class="container-fluid">
     <section class="container text-center  main-section">
-       <div class="row">
+        <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified sharks</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
-            </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
             </section>
         </div>
 
@@ -438,14 +497,12 @@ h2.vidcap {
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
-                   
-<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
+                      <h1 style="color: #005589;-webkit-text-fill-color: #005589;">Why we do this</h1>
                         <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
-                        
-                    </div>
+                            <i>&ldquo;Sharkbook, previously Wildbook for Whale Sharks, has pioneered the way for a new generation of global scale, collaborative wildlife projects that blend citizen science and computer vision to help researchers get bigger and more detailed pictures of some of the world's most mysterious species.&rdquo;</i> - Jason Holmberg, Information Architect</p>
+                        <a href="whoAreWe.jsp" title="">Learn more about the Researchers and Volunteers</a><br>
+                        <a href="http://www.wildme.org" title="">Learn more about Wild Me and Wildbook</a>
+                    
                 </div>
             </article>
         <main>
@@ -454,22 +511,26 @@ h2.vidcap {
 </div>
 
 
-<%
-if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
-%>
+
 <div class="container-fluid">
     <section class="container main-section">
+        <h2 class="section-header">How can I help?</h2>
+        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
 
-        <!-- Complete header for adoption section in index properties file -->
-        <%=props.getProperty("adoptionHeader") %>
+		<% if (CommonConfiguration.allowAdoptions(context)) { %>
         <section class="adopt-section row">
-
-            <!-- Complete text body for adoption section in index properties file -->
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-              <%=props.getProperty("adoptionBody") %>
+                <h3 class="uppercase">Adopt a Shark</h3>
+                <ul>
+                    <li>Support individual research programs in different regions</li>
+					<li>Receive email updates when we resight your adopted animal</li>
+					<li>Display your photo and a quote on the animal's page in our database</li>
+</ul>
+                <a href="adoptashark.jsp" title="">Learn more about adopting an individual animal in our study</a>
             </div>
             <%
-            myShepherd.beginDBTransaction();
+            //Shepherd myShepherd=new Shepherd(context);
+            //myShepherd.beginDBTransaction();
             try{
 	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
 	            if(adopt!=null){
@@ -498,26 +559,56 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
 				}
             }
             catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
+            finally{
+	            
+            }
+            
 
             %>
 
 
         </section>
-
-        <hr/>
-        <%= props.getProperty("donationText") %>
+        <hr />
+        <% } 
+        
+           myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            
+            %>
+        <section class="donate-section">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3>Donate</h3>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these sharks and their habitat.</p>
+                <p>You can make a one time donation or <a href="adoptashark.jsp" title="More information about donations">learn about adopting an animal</a></p>
+            </div>
+            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+                <a href="oneTimeDonation.jsp">
+	                <button class="large">
+	                    One Time Donation
+	                    <span class="button-icon" aria-hidden="true">
+	                </button>
+                </a>
+            </div>
+        </section>
     </section>
 </div>
-<%
-}
-%>
+
+<div class="container-fluid">
+    <section class="container main-section">
+        <h2 class="section-header">Development</h2>
+        <p class="lead text-center">Sharkbook is maintained and developed by the nonprofit organization <a href="https://www.wildme.org" target="_blank">Wild Me</a> with significant support and input from the research community. This site is a flagship project of <a target="_blank" href="https://github.com/wildmeorg">Wild Me's Wildbook and WBIA open source projects</a>. <a href="http://www.simonjpierce.com/">Dr. Simon Pierce</a> provides scientific oversight and guidance.</p>
+</section>
+</div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
 
-
-<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-myShepherd=null;
-%>
+<!-- 
+<script>
+window.addEventListener("resize", function(e) { $("#map_canvas").height($("#map_canvas").width()*0.662); });
+google.maps.event.addDomListener(window, "resize", function() {
+	 google.maps.event.trigger(map, "resize");
+	 map.fitBounds(bounds);
+	});
+</script>
+ -->

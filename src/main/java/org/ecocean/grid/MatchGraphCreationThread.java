@@ -21,14 +21,19 @@ package org.ecocean.grid;
 
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+//import org.ecocean.MarkedIndividual;
 //import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
+
+//import java.util.Collection;
+//import java.util.Iterator;
+//import java.util.List;
+//import java.util.Vector;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -42,8 +47,10 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
   java.util.Properties props2 = new java.util.Properties();
   GridManager gm;
   String context="context0";
-  String jdoql="SELECT FROM org.ecocean.Encounter";
+  String jdoql="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";
   boolean finished = false;
+  
+  
   /**
    * Constructor to create a new thread object
    */
@@ -55,8 +62,27 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
 
   }
   
+  /**
+   * Constructor to create a new thread object
+   */
+  public MatchGraphCreationThread(HttpServletRequest request, String jdoql) {
+
+    gm = GridManagerFactory.getGridManager();
+    threadCreationObject = new Thread(this, ("MatchGraphCreationThread.class"));
+    this.context=ServletUtilities.getContext(request);
+    this.jdoql=jdoql;
+
+  }
+  
   public MatchGraphCreationThread() {
 
+    gm = GridManagerFactory.getGridManager();
+    threadCreationObject = new Thread(this, ("MatchGraphCreationThread.class"));
+
+  }
+  
+  public MatchGraphCreationThread(String jdoql) {
+    this.jdoql=jdoql;
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("MatchGraphCreationThread.class"));
 
@@ -80,56 +106,49 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
     PersistenceManager pm=myShepherd.getPM();
     PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
 
+    //optimize with fetch groups
     javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
-    grp2.addMember("sex").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day").addMember("spots").addMember("rightSpots").addMember("leftReferenceSpots").addMember("rightReferenceSpots");
-
-
+    grp2.addMember("sex").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day").addMember("spots").addMember("rightSpots").addMember("leftReferenceSpots").addMember("rightReferenceSpots").addMember("individual");
+    javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "indySearchResults");
+    grp.addMember("individualID");
     myShepherd.getPM().getFetchPlan().setGroup("encSearchResults");
-
+    myShepherd.getPM().getFetchPlan().addGroup("indySearchResults");
 
     myShepherd.beginDBTransaction();
-    
-    List<String> encNumbers=myShepherd.getAllEncounterNumbers();
-    int numEncs=encNumbers.size();
-    System.out.println("MatchGraphCreationThread is exploring this many encounters: "+numEncs);
-    myShepherd.rollbackDBTransaction();
-    
-    //gm.initializeNodes((int)(numEncs*2/3));
-    gm. resetMatchGraphWithInitialCapacity(numEncs);
-    
-    //Query query=null;
+
     try {
       
-      //query=myShepherd.getPM().newQuery(jdoql);
-      //Collection c = (Collection) (query.execute());
-      //System.out.println("Num scans to do: "+c.size());
-      //Iterator encounters = c.iterator();
-      
-      int count = 0;
+      Query q=myShepherd.getPM().newQuery(jdoql);
+      Collection results = (Collection) (q.execute());
+      ArrayList<Encounter> resultList = new ArrayList<Encounter>(results);
+      q.closeAll();
 
-      for (int i=0;i<numEncs;i++) {
-        myShepherd.beginDBTransaction();
-        Encounter enc = myShepherd.getEncounter(encNumbers.get(i));
-        if (((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0))||((enc.getSpots() != null) && (enc.getSpots().size() > 0))) {
-            EncounterLite el=new EncounterLite(enc);
-            gm.addMatchGraphEntry(enc.getCatalogNumber(), el);
-            count++;
-          } 
+      gm.resetMatchGraphWithInitialCapacity(resultList.size());
 
-        myShepherd.rollbackDBTransaction();
+
+      for (Encounter enc:resultList) {
+        try {
+          if (((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0))||((enc.getSpots() != null) && (enc.getSpots().size() > 0))) {
+              EncounterLite el=new EncounterLite(enc);
+              gm.addMatchGraphEntry(enc.getCatalogNumber(), el);
+            } 
+        }
+        catch(Exception internal) {
+          internal.printStackTrace();
+        }
       }
-      //myShepherd.rollbackDBTransaction();
+
       finished=true;
 
     } 
     catch (Exception e) {
       System.out.println("I failed while constructing the EncounterLites in MatchGraphCreationThread.");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      
+
     }
     finally{
       //if(query!=null){query.closeAll();}
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
     

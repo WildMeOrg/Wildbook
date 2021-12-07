@@ -25,7 +25,8 @@ import javax.jdo.Extent;
 import javax.jdo.Query;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+//import org.ecocean.SinglePhotoVideo;
+import org.ecocean.media.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,19 +61,19 @@ public final class MantaMatcherUtilities {
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    * @return Map of string to file for each MantaMatcher algorithm feature.
    */
-  public static Map<String, File> getMatcherFilesMap(SinglePhotoVideo spv) {
+  public static Map<String, File> getMatcherFilesMap(MediaAsset spv) {
     if (spv == null)
       throw new NullPointerException("Invalid file specified: null");
-    Map<String, File> map = getMatcherFilesMap(spv.getFile());
+    Map<String, File> map = getMatcherFilesMap(spv.localPath().toFile());
     // MMA input files.
-    map.put("MMA-INPUT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInput.txt"));
-    map.put("MMA-INPUT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInputRegional.txt"));
+    map.put("MMA-INPUT", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaInput.txt"));
+    map.put("MMA-INPUT-REGIONAL", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaInputRegional.txt"));
     // MMA results files: global.
-    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.txt"));
-    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.csv"));
+    map.put("TXT", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaOutput.txt"));
+    map.put("CSV", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaOutput.csv"));
     // MMA results files: regional.
-    map.put("TXT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.txt"));
-    map.put("CSV-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.csv"));
+    map.put("TXT-REGIONAL", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaOutputRegional.txt"));
+    map.put("CSV-REGIONAL", new File(spv.localPath().toFile().getParentFile(), spv.getId() + "_mmaOutputRegional.csv"));
     return map;
   }
 
@@ -162,8 +163,8 @@ public final class MantaMatcherUtilities {
    * @return true if any CR images are found, false otherwise
    */
   public static boolean checkEncounterHasMatcherFiles(Encounter enc, File dataDir) {
-    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
-      if (MediaUtilities.isAcceptableImageFile(spv.getFile()) && checkMatcherFilesExist(spv.getFile())) {
+    for (MediaAsset spv : enc.getMedia()) {
+      if (MediaUtilities.isAcceptableImageFile(spv.localPath().toFile()) && checkMatcherFilesExist(spv.localPath().toFile())) {
         return true;
       }
     }
@@ -175,7 +176,7 @@ public final class MantaMatcherUtilities {
    * base image file.
    * @param spv {@code SinglePhotoVideo} instance denoting base reference image
    */
-  public static void removeMatcherFiles(SinglePhotoVideo spv) {
+  public static void removeMatcherFiles(MediaAsset spv) {
     Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
     mmFiles.get("CR").delete();
     mmFiles.get("EH").delete();
@@ -200,7 +201,7 @@ public final class MantaMatcherUtilities {
    * @return text suitable for MantaMatcher algorithm input file
    */
   @SuppressWarnings("unchecked")
-  public static String collateAlgorithmInput(Shepherd shep, File encDir, Encounter enc, SinglePhotoVideo spv) {
+  public static String collateAlgorithmInput(Shepherd shep, File encDir, Encounter enc, MediaAsset spv) {
     // Validate input.
     if (enc.getLocationID() == null)
       throw new IllegalArgumentException("Invalid location ID specified");
@@ -245,8 +246,8 @@ public final class MantaMatcherUtilities {
 
     // Collate results.
     StringBuilder sb = new StringBuilder();
-//    sb.append(spv.getFile().getParent()).append("\n\n");
-    sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
+//    sb.append(spv.localPath().toFile().getParent()).append("\n\n");
+    sb.append(spv.localPath().toFile().getAbsolutePath()).append("\n\n");
     for (Encounter x : list) {
       if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
         sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
@@ -270,7 +271,7 @@ public final class MantaMatcherUtilities {
    * @return text suitable for MantaMatcher algorithm input file
    */
   @SuppressWarnings("unchecked")
-  public static String collateAlgorithmInputRegional(Shepherd shep, File encDir, Encounter enc, SinglePhotoVideo spv) {
+  public static String collateAlgorithmInputRegional(Shepherd shep, File encDir, Encounter enc, MediaAsset spv) {
     // Validate input.
     if (enc.getLocationID() == null)
       throw new IllegalArgumentException("Invalid location ID specified");
@@ -318,8 +319,8 @@ public final class MantaMatcherUtilities {
 
     // Collate results.
     StringBuilder sb = new StringBuilder();
-//    sb.append(spv.getFile().getParent()).append("\n\n");
-    sb.append(spv.getFile().getAbsolutePath()).append("\n\n");
+//    sb.append(spv.localPath().toFile().getParent()).append("\n\n");
+    sb.append(spv.localPath().toFile().getAbsolutePath()).append("\n\n");
     for (Encounter x : list) {
       if (!enc.getEncounterNumber().equals(x.getEncounterNumber()))
         sb.append(encDir.getAbsolutePath()).append(File.separatorChar).append(x.subdir()).append("\n");
@@ -340,7 +341,7 @@ public final class MantaMatcherUtilities {
    * @param enc encounter for which to remove algorithm match results
    */
   public static void removeAlgorithmMatchResults(Encounter enc) {
-    for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+    for (MediaAsset spv : enc.getMedia()) {
       Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
       mmFiles.get("TXT").delete();
       mmFiles.get("CSV").delete();
