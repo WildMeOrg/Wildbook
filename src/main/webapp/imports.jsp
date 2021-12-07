@@ -25,23 +25,12 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 	//long startTime=System.currentTimeMillis();
 	int num=0;
-	//String filter="select count(distinct individualID) from org.ecocean.MarkedIndividual where encounters.contains(enc) && itask.encounters.contains(enc) && itask.id == '"+taskID+"' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask";
 	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"');";
-	
 	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
-
 	try{
 		List results = query.executeList();
 		num = ((Long) results.iterator().next()).intValue();
-		
 	}
-	
-	
-	/*Query query=myShepherd.getPM().newQuery(filter);
-	try{
-		num=((Long) query.execute()).intValue();
-	}
-	*/
 	catch(Exception e){
 		e.printStackTrace();
 	}
@@ -60,14 +49,8 @@ private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 	//long startTime=System.currentTimeMillis();
 	int num=0;	
-	//String filter="select count(this) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
-	//Query query=myShepherd.getPM().newQuery(filter);
 	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_OID\" from \"ENCOUNTER_ANNOTATIONS\" where \"CATALOGNUMBER_OID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"'));";
-	/*try{
-		//num=((Long) query.execute()).intValue();
-	}*/
-	
-		Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
 
 	try{
 		List results = query.executeList();
@@ -86,7 +69,6 @@ private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 %>
 
 <%!
-//Use Feature as a proxy for MediaAssets since they have a 1-to-1 correspondence
 private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd myShepherd){
 	//long startTime=System.currentTimeMillis();
 	int num=0;	
@@ -204,8 +186,22 @@ a.button:hover {
 
 <div class="container maincontent">
 <h2>Import Tasks</h2>
-	    
 <%
+if(adminMode && request.getParameter("showAll")!=null){
+	%>
+	<p>The following is a full list of bulk import tasks. <a href="imports.jsp">Click here to filter to just your bulk imports.</a></p>	    
+	<%
+}
+else if(adminMode){
+	%>
+	<p><p>The following is a list of your bulk imports. <a href="imports.jsp?showAll=true">Click here to see all bulk imports.</a></p>
+	<%
+}
+else {
+	%>
+	<p><p>The following is a list of your bulk imports.</p>
+	<%
+}
 
 
 try{
