@@ -23,12 +23,13 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%!
 
 private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
 	int num=0;
-	String filter="select distinct individualID from org.ecocean.MarkedIndividual where encounters.contains(enc) && itask.encounters.contains(enc) && itask.id == '"+taskID+"' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask";
-	Query query=myShepherd.getPM().newQuery(filter);
+	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"');";
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
 	try{
-		Collection c=(Collection)query.execute();
-		num=c.size();
+		List results = query.executeList();
+		num = ((Long) results.iterator().next()).intValue();
 	}
 	catch(Exception e){
 		e.printStackTrace();
@@ -36,6 +37,7 @@ private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 	finally{
 		query.closeAll();
 	}
+	//System.out.println("getNumIndividualsForTask: "+(System.currentTimeMillis()-startTime));
 	return num;
 }
 
@@ -45,12 +47,15 @@ private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 //Use Feature as a proxy for MediaAssets since they have a 1-to-1 correspondence
 //and we thereby have one less table lookup in the query
 private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
 	int num=0;	
-	String filter="select from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
-	Query query=myShepherd.getPM().newQuery(filter);
+	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_OID\" from \"ENCOUNTER_ANNOTATIONS\" where \"CATALOGNUMBER_OID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"'));";
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
+
 	try{
-		Collection c=(Collection)query.execute();
-		num=c.size();
+		List results = query.executeList();
+		num = ((Long) results.iterator().next()).intValue();
+		
 	}
 	catch(Exception e){
 		e.printStackTrace();
@@ -58,19 +63,20 @@ private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 	finally{
 		query.closeAll();
 	}
+	//System.out.println("getNumMediaAssetsForTask: "+(System.currentTimeMillis()-startTime));
 	return num;
 }
 %>
 
 <%!
-//Use Feature as a proxy for MediaAssets since they have a 1-to-1 correspondence
 private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
 	int num=0;	
-	String filter="select from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.detectionStatus == 'complete' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	String filter="select count(this) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.detectionStatus == 'complete' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
 	Query query=myShepherd.getPM().newQuery(filter);
+	
 	try{
-		Collection c=(Collection)query.execute();
-		num=c.size();
+		num=((Long) query.execute()).intValue();
 	}
 	catch(Exception e){
 		e.printStackTrace();
@@ -78,6 +84,7 @@ private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd my
 	finally{
 		query.closeAll();
 	}
+	//System.out.println("getNumMediaAssetsForTaskDetectionComplete: "+(System.currentTimeMillis()-startTime));
 	return num;
 }
 %>
@@ -85,12 +92,14 @@ private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd my
 <%!
 
 private int getNumEncountersForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
 	int num=0;
-	String filter="select from org.ecocean.Encounter where itask.encounters.contains(this) && itask.id == '"+taskID+"' VARIABLES org.ecocean.servlet.importer.ImportTask itask";
-	Query query=myShepherd.getPM().newQuery(filter);
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select count(*) from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"';");
+
 	try{
-		Collection c=(Collection)query.execute();
-		num=c.size();
+		List results = query.executeList();
+		num = ((Long) results.iterator().next()).intValue();
+		
 	}
 	catch(Exception e){
 		e.printStackTrace();
@@ -98,6 +107,8 @@ private int getNumEncountersForTask(String taskID, Shepherd myShepherd){
 	finally{
 		query.closeAll();
 	}
+	
+	//System.out.println("getNumEncountersForTask: "+(System.currentTimeMillis()-startTime));
 	return num;
 }
 
@@ -175,15 +186,29 @@ a.button:hover {
 
 <div class="container maincontent">
 <h2>Import Tasks</h2>
-	    
 <%
+if(adminMode && request.getParameter("showAll")!=null){
+	%>
+	<p>The following is a full list of bulk import tasks. <a href="imports.jsp">Click here to filter to just your bulk imports.</a></p>	    
+	<%
+}
+else if(adminMode){
+	%>
+	<p><p>The following is a list of your bulk imports. <a href="imports.jsp?showAll=true">Click here to see all bulk imports.</a></p>
+	<%
+}
+else {
+	%>
+	<p><p>The following is a list of your bulk imports.</p>
+	<%
+}
 
 
 try{
 	Set<String> locationIds = new HashSet<String>();
 	
     String uclause = "";
-    if (!adminMode) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    if (request.getParameter("showAll")==null) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
@@ -197,7 +222,7 @@ try{
     
     for (ImportTask task : tasks) {
     	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
-	        int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
+	        //int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
 	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
 			String taskID = task.getId();
 	            User tu = task.getCreator();
@@ -215,10 +240,9 @@ try{
 	        int numMediaAssets=getNumMediaAssetsForTask(task.getId(),myShepherd);
 	        String iaStatusString="";
 
-	        if (iaStatus < 1) {
-	            iaStatusString="no";
-	        } else {
-	        	iaStatusString="yes";
+	        if (task.getIATask() !=null) {
+	            if(!task.iaTaskRequestedIdentification())iaStatusString="detection";
+	            else{iaStatusString="identification";}
 	        }
 	        String status=task.getStatus();
 	        
