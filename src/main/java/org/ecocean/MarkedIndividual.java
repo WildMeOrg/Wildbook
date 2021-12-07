@@ -2608,7 +2608,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return new ToStringBuilder(this)
                 .append("individualID", this.getId())
                 .append("species", getGenusSpecies())
-                .append("names", getNames())
                 .append("sex", getSex())
                 .append("numEncounters", numberEncounters)
                 .append("numLocations", numberLocations)
@@ -2696,25 +2695,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             indiv.setSex(jsex);
           }
 
-          org.json.JSONObject jnames = jsonIn.optJSONObject("names");
-          if (jnames!=null) {
-            Iterator<String> keys = jnames.keys();
-            String firstName = null;
-            while (keys.hasNext()) {
-              String key = keys.next();
-              String value = jnames.optString(key);
-              if (firstName==null) {
-                firstName = value;
-              }
-              indiv.addName(key, value);
-            }
-            final String DEF_NAME = "defaultName";
-            // did we get a default name? if not, set the first one since we don't have anything else to go off of
-            if (indiv.getName(DEF_NAME)==null||"".equals(indiv.getName(DEF_NAME))) {
-              indiv.addName(DEF_NAME, firstName);
-            }
-          }
-  
           String jbirthTime= jsonIn.optString("timeOfBirth");
           String jdeathTime= jsonIn.optString("timeOfDeath");
 
@@ -2766,21 +2746,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             obj.put("encounters", jarr);
         }
 
-        org.json.JSONObject JSONnames = new org.json.JSONObject();
-        if (detLvl.equals(DETAIL_LEVEL_MIN)) {
-          JSONnames.put("displayName", getDisplayName());
-          obj.put("names", JSONnames);
-          return obj;
-        }
-        if (names!=null) {
-          List<String> keys = names.getSortedKeys();
-          for (String key : keys) { 
-            try {
-              JSONnames.put(key, names.getValue(key));
-            } catch (Exception e) {}
-          }
-        }
-        obj.put("names", JSONnames);
         obj.put("sex", this.getSex());
         obj.put("comments", this.getComments());
         obj.put("timeOfBirth", String.valueOf(timeOfBirth));
@@ -2853,26 +2818,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     nfe.printStackTrace();
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfDeath");
                   }
-              case "names":
-                org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
-
-                Iterator nameIter = nameJson.keys();
-                while (nameIter.hasNext()) {
-                  String key = (String) nameIter.next();
-                  String value = nameJson.optString(key);
-                  if (this.getName(key)!=null&&!"".equals(this.getName(key))) {
-                    this.getNames().removeValuesByKey(key, this.getName(key));
-                    this.getNames().removeKey(key);
-                    this.refreshNamesCache();
-                  }
-                  this.addName(key, value);
-                  final String DEF_NAME = "defaultName";
-                  if (key!=DEF_NAME&&(this.getName(DEF_NAME)==null||"".equals(this.getName(DEF_NAME)))) {
-                    this.addName(DEF_NAME, value);
-                  }
-                }
-
-                break;
               default:
                   throw new Exception("apiPatch op=" + opName + " unknown path " + path);
           }
@@ -2924,25 +2869,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 this.resetCustomFieldValues(cfdId);
                 this.trySetting(myShepherd, cfdId, cfj.opt("value"));
                 break;
-            case "names":
-              org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
-
-              Iterator nameIter = nameJson.keys();
-              while (nameIter.hasNext()) {
-                String key = (String) nameIter.next();
-                String value = nameJson.optString(key);
-
-                if (this.getNames().getValue(key)!=null&&!"".equals(this.getNames().getValue(key))) {
-                  this.getNames().removeKey(key);
-                  this.refreshNamesCache();
-                }
-                this.addName(key, value);
-                final String DEF_NAME = "defaultName";
-                if (key!=DEF_NAME&&(this.getName(DEF_NAME)==null||"".equals(this.getName(DEF_NAME)))) {
-                  this.addName(DEF_NAME, value);
-                }
-              }
-              break;
             default:
                 throw new Exception("apiPatchReplace unknown path " + path);
         }
@@ -3022,19 +2948,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
                 this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
                 break;
-            case "names":
-
-              org.json.JSONObject nameJson = new org.json.JSONObject(jsonIn.optString("value"));
-              Iterator nameIter = nameJson.keys();
-              while (nameIter.hasNext()) {
-                String key = (String) nameIter.next();
-                if (this.getName(key)!=null&&!"".equals(this.getName(key))) {
-                  this.getNames().removeValuesByKey(key, this.getName(key));
-                  this.getNames().removeKey(key);
-                  this.refreshNamesCache();
-                }
-              }
-              break;
 
             default:
                 throw new Exception("apiPatch remove unknown path=" + path);
@@ -3079,18 +2992,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 throw new MergeException("deletion of individual " + fromStr + " failed", "sourceIndividualIds");
             }
         }
-        // going to stick with this til new-world names get sorted!  FIXME
-        if (this.names == null) this.names = new MultiValue();
-        this.names.merge(otherNames);
 
         if ((parameters != null) && (parameters.optJSONObject("override") != null)) {
             if (parameters.getJSONObject("override").has("sex")) this.setSex(parameters.getJSONObject("override").optString("sex", null));
-            if (parameters.getJSONObject("override").has("names")) this.setNames(parameters.getJSONObject("override").optJSONObject("names"));
         }
         res.put("targetId", this.getId());
         res.put("merged", merged);
         res.put("targetSex", this.getSex());
-        res.put("targetDefaultName", this.getDefaultName());
         return res;
     }
 }
