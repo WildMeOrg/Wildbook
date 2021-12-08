@@ -76,7 +76,7 @@ public class DecisionStore extends HttpServlet {
                 val.put("_multipleId", multId);
 
                 if (action == 0) {
-                    deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString());
+                    deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString(), skipUsers);
                 } else {
                     Decision dec = new Decision(user, enc, key, val);
                     myShepherd.getPM().makePersistent(dec);
@@ -97,7 +97,7 @@ public class DecisionStore extends HttpServlet {
             rtn.put("error", "invalid value passed");
         } else {  //good to go?
             if (action == 0) {
-                deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString());
+                deleteFlag(response, out, myShepherd, rtn, enc, value.getJSONArray("value").get(0).toString(), skipUsers);
             } else {
                 Decision dec = new Decision(user, enc, prop, value);
                 myShepherd.getPM().makePersistent(dec);
@@ -118,7 +118,7 @@ public class DecisionStore extends HttpServlet {
         out.close();
     }
 
-    private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value) {
+    private void deleteFlag(HttpServletResponse response, PrintWriter out, Shepherd myShepherd, JSONObject rtn, Encounter enc, String value, List<String> skipUsers) {
         try {
             //String jdoql = "SELECT FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID=='" + enc.getCatalogNumber() + "' && VALUE == '" + value + "' && PROPERTY == 'flag'";
             String jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
@@ -128,7 +128,7 @@ public class DecisionStore extends HttpServlet {
             Collection col = (Collection) query.execute();
             List<Decision> decs = new ArrayList<Decision>(col);
             for (Decision d : decs) {
-                if(d.getProperty().equals("flag") && d.getValueAsString().contains(value)){
+                if (d.getProperty().equals("flag") && d.getValueAsString().contains(value)) {
                     myShepherd.getPM().deletePersistent(d);
                 }
             }
@@ -139,6 +139,7 @@ public class DecisionStore extends HttpServlet {
             rtn.put("JSP-error", e.getMessage());
             myShepherd.rollbackDBTransaction();
         } finally {
+            Decision.updateEncounterStateBasedOnDecision(myShepherd, enc, skipUsers);
             myShepherd.closeDBTransaction();
             response.setContentType("text/json");
             out.println(rtn);
