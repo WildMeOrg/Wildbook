@@ -4079,12 +4079,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         if (this.getIndividual()!=null) {
           MarkedIndividual individual = this.getIndividual();
           indObj.put("id", individual.getId());
-          List<String> nameKeys = individual.getNameKeys();
-          org.json.JSONObject indNames = new org.json.JSONObject();
-          for (String nameKey : nameKeys) {
-            indNames.put(nameKey, individual.getName(nameKey));
-          }
-          indObj.put("names", indNames);
         }
         obj.put("individual", indObj);
 
