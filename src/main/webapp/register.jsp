@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
@@ -8,6 +8,8 @@ java.util.List,
 java.util.ArrayList,
 org.ecocean.servlet.ReCAPTCHA,
 org.ecocean.*, java.util.Properties" %>
+<%@ page import="java.util.concurrent.ThreadPoolExecutor" %>
+<%@ page import="java.util.Map" %>
 <%!
 
 private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2) throws java.io.IOException {
@@ -28,6 +30,17 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     role.setContext(myShepherd.getContext());
     myShepherd.getPM().makePersistent(role);
     return user;
+}
+
+private static void sendConfirmationEmail(HttpServletRequest request,Shepherd myShepherd, String username, String email, String pw1, String pw2){
+    ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    MarkedIndividual addToMe = null;
+    Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, new Encounter());
+
+    es.execute(new NotificationMailer(context, langCode, "rutvikmehta@stellartech.in", "Pease confirm your account", tagMap));
 }
 
 %><%
@@ -202,12 +215,16 @@ if (thisUser != null) {
             ok = false;
             errorMessage = "Please agree to terms and conditions";
         }
-        if (ok) try {
+        if (ok){
+            sendConfirmationEmail(request,myShepherd, reg_username, reg_email, reg_password1, reg_password2);
+        } /*try {
             user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2);
+
+            sendConfirmationEmail(request,myShepherd, reg_username, reg_email, reg_password1, reg_password2);
         } catch (java.io.IOException ex) {
             System.out.println("WARNING: registerUser() threw " + ex.getMessage());
             errorMessage = ex.getMessage();
-        }
+        }*/
 
         if (user == null) {
             session.setAttribute("error", "<div class=\"error\">We have encountered an error creating your account: <b>" + errorMessage + "</b>");
@@ -266,7 +283,7 @@ System.out.println("survey response: " + resp.toString());
               <h2 class="intro">Cat &amp; Mouse: Do Online Microtasks</h2>
 
               <p align="left">
-		
+
 <div style="padding: 10px;">
 <%
 if (session.getAttribute("error") != null) {
@@ -276,7 +293,7 @@ if (session.getAttribute("error") != null) {
 
 %>
 </div>
-              
+
 <% if (mode < 0) {
     if (uwMode) {
 %>
@@ -591,7 +608,7 @@ function checkAccount() {
 <input type="button" value="Login" onClick="window.location.href='queue.jsp';" />
 
 </div>
-              
+
 <% }
 if (mode == 2) {
 
@@ -1152,6 +1169,6 @@ if (rollback) {
 
 %>
             </div>
-            
+
           <jsp:include page="footer.jsp" flush="true"/>
 
