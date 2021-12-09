@@ -566,7 +566,7 @@ h1 { background: none !important; }
 .enc-asset-wrapper,
 .img-wrapper {
     width: 100%;
-    height: 400px;
+    height: 100%;
     display: inline-block;
     margin: 0 10px 4px 10px;
     position: relative;
