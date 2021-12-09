@@ -1279,17 +1279,21 @@ rtn.put("_payload", payload);
         switch (cls) {
             case "org.ecocean.Encounter":
                 obj = myShepherd.getEncounter(id);
-                Encounter enc = (Encounter)obj;
-                parentOcc = myShepherd.getOccurrence(enc);
-                MarkedIndividual indiv = enc.getIndividual();
-                if (indiv != null) indivs.add(indiv);
+                if (obj != null) {
+                    Encounter enc = (Encounter)obj;
+                    parentOcc = myShepherd.getOccurrence(enc);
+                    MarkedIndividual indiv = enc.getIndividual();
+                    if (indiv != null) indivs.add(indiv);
+                }
                 break;
             case "org.ecocean.Occurrence":
                 obj = myShepherd.getOccurrence(id);
-                Occurrence occ = (Occurrence)obj;
-                if (occ.getNumEncounters() > 0) for (Encounter oenc : occ.getEncounters()) {
-                    MarkedIndividual oindiv = oenc.getIndividual();
-                    if ((oindiv != null) && !indivs.contains(oindiv)) indivs.add(oindiv);
+                if (obj != null) {
+                    Occurrence occ = (Occurrence)obj;
+                    if (occ.getNumEncounters() > 0) for (Encounter oenc : occ.getEncounters()) {
+                        MarkedIndividual oindiv = oenc.getIndividual();
+                        if ((oindiv != null) && !indivs.contains(oindiv)) indivs.add(oindiv);
+                    }
                 }
                 break;
             case "org.ecocean.MarkedIndividual":
