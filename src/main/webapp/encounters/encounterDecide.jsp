@@ -1038,7 +1038,7 @@ function assetLoaded(el, imgInfo) {
             left: 0
         });
         imgEl.show();
-        imgEl.panzoom({maxScale:1}).on('panzoomend', function(ev, panzoom, matrix, changed) {
+        imgEl.panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
             if (!changed) return $(ev.currentTarget).panzoom('zoom');
         });
         return;
