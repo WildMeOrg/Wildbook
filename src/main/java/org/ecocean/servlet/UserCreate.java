@@ -88,69 +88,6 @@ public class UserCreate extends HttpServlet {
       //System.out.println("isEdit is TRUE in UserCreate!");
     }
 
-
-    //check for an existing user
-    JSONObject returnJson = new JSONObject();
-    returnJson.put("success", false);
-    JSONObject jsonRes = new JSONObject();
-    try{
-      jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
-    }catch(Exception e){
-      System.out.println("Failed to get json from the http request. That might be totally ok! There are other reasons that UserCreate gets called.");
-      e.printStackTrace();
-    }
-    JSONObject existingUserResultsJson = new JSONObject();
-    existingUserResultsJson.put("success", false);
-    existingUserResultsJson.put("doesUserExistAlready", false);
-    try{
-      Boolean checkForExistingUsernameDesired = jsonRes.optBoolean("checkForExistingUsernameDesired", false);
-      String targetUsername = jsonRes.optString("username", null);
-      if(checkForExistingUsernameDesired && targetUsername!=null && !targetUsername.equals("")){
-        User targetUser = myShepherd.getUser(targetUsername);
-        if(targetUser != null){
-          existingUserResultsJson.put("doesUserExistAlready", true);
-        }
-      }
-      existingUserResultsJson.put("success", true);
-    } catch (Exception e) {
-        System.out.println("userCreate exception while checking for an existing user.");
-        e.printStackTrace();
-        addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
-    } finally {
-        System.out.println("userCreate closing ajax call for user checking for an existing user....");
-        myShepherd.rollbackDBTransaction();
-        returnJson.put("success", true);
-        returnJson.put("existingUserResultsJson", existingUserResultsJson);
-    }
-
-
-    //check for an existing email address
-    returnJson.put("success", false);
-    JSONObject existingEmailAddressResultsJson = new JSONObject();
-    existingEmailAddressResultsJson.put("success", false);
-    existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", false);
-    try{
-      Boolean checkForExistingEmailDesired = jsonRes.optBoolean("checkForExistingEmailDesired", false);
-      String targetEmailAddress = jsonRes.optString("emailAddress", null);
-      if(checkForExistingEmailDesired && targetEmailAddress!=null && !targetEmailAddress.equals("")){
-        User targetUserForEmail = myShepherd.getUserByEmailAddress(targetEmailAddress);
-        if(targetUserForEmail != null){
-          existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", true);
-        }
-      }
-      existingEmailAddressResultsJson.put("success", true);
-    }catch (Exception e) {
-        System.out.println("userCreate exception while checking for an existing user.");
-        e.printStackTrace();
-        addErrorMessage(returnJson, "userCreate: Exception while checking for an existing user.");
-    } finally {
-        System.out.println("userCreate closing ajax call for user checking for an existing user....");
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        returnJson.put("success", true);
-        returnJson.put("existingEmailAddressResultsJson", existingEmailAddressResultsJson);
-    }
-
     //create a new Role from an encounter
     if (  (request.getParameter("uuid") != null) && (!request.getParameter("uuid").trim().equals("") )) {
       String uuid=request.getParameter("uuid");
@@ -396,10 +333,6 @@ public class UserCreate extends HttpServlet {
         e.printStackTrace();
       }
       finally{
-        if (out!=null) {
-            out.println(returnJson);
-            out.close();
-        }
         myShepherd.closeDBTransaction();
         myShepherd=null;
       }
@@ -420,19 +353,11 @@ public class UserCreate extends HttpServlet {
 }
 else{
   //output failure statement
-  if(returnJson != null){ // a little hacky, sorry. Just checking username or email existence fails on a lot of the other stuff, but I don't want the request to fail, so capturing that behavior here.
-    if (out!=null) {
-        out.println(returnJson);
-        out.close();
-      }
-      myShepherd.closeDBTransaction();
-  }else{
     out.println(ServletUtilities.getHeader(request));
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
     out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
     out.println(ServletUtilities.getFooter(context));
-  }
 
 }
     out.close();
