@@ -1104,13 +1104,13 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         <hr>
         <fieldset>
 
-          
-          
+
+
           <%
           if (request.getRemoteUser()!=null) {
           %>
-            
-            
+
+
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("status") %></label>
@@ -1289,7 +1289,7 @@ if (hasTags) {
 
 <c:if test="${showMetalTags and !empty metalTags}">
   <hr/>
-  
+
     <h3><%=props.getProperty("tags") %></h3>
 
  <div class="form-group">
@@ -1366,7 +1366,7 @@ if (hasTags) {
           </table>
       </div>
   </div>
-  
+
 </c:if>
 <%
 if (hasTags) {
@@ -1387,7 +1387,7 @@ if (hasTags) {
         <p class="text-center">
           <%=props.getProperty("pleaseReview")%> <a target="_blank" href="termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a> <%=props.getProperty("and")%> <a target="_blank" href="privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a> <%=props.getProperty("beforeSubmitting")%>
         </p>
-        
+
         <!-- <p>
           <a target="_blank" href="termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a>
           <a target="_blank" href="privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a>
@@ -1402,11 +1402,11 @@ if (hasTags) {
           <input class="form-control" name="informothers" type="text" id="informothers" size="75">
           <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
         </div>
-        
+
         <%
       }
       %>
-      
+
 
           <%
           if(request.getRemoteUser()==null){
