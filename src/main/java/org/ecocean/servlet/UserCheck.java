@@ -66,6 +66,7 @@ public class UserCheck extends HttpServlet {
     JSONObject returnJson = new JSONObject();
     returnJson.put("success", false);
     JSONObject jsonRes = new JSONObject();
+    myShepherd.beginDBTransaction();
     try{
       jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
     }catch(Exception e){
@@ -91,7 +92,7 @@ public class UserCheck extends HttpServlet {
         addErrorMessage(returnJson, "userCheck: Exception while checking for an existing user.");
     } finally {
         System.out.println("userCheck closing ajax call for user checking for an existing user....");
-        myShepherd.rollbackDBTransaction();
+        myShepherd.rollbackAndClose();
         returnJson.put("success", true);
         returnJson.put("existingUserResultsJson", existingUserResultsJson);
     }
@@ -102,6 +103,7 @@ public class UserCheck extends HttpServlet {
     JSONObject existingEmailAddressResultsJson = new JSONObject();
     existingEmailAddressResultsJson.put("success", false);
     existingEmailAddressResultsJson.put("doesEmailAddressExistAlready", false);
+    myShepherd.beginDBTransaction();
     try{
       Boolean checkForExistingEmailDesired = jsonRes.optBoolean("checkForExistingEmailDesired", false);
       String targetEmailAddress = jsonRes.optString("emailAddress", null);
@@ -118,8 +120,7 @@ public class UserCheck extends HttpServlet {
         addErrorMessage(returnJson, "userCheck: Exception while checking for an existing user.");
     } finally {
         System.out.println("userCheck closing ajax call for user checking for an existing user....");
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        myShepherd.rollbackAndClose();
         returnJson.put("success", true);
         returnJson.put("existingEmailAddressResultsJson", existingEmailAddressResultsJson);
         if (out!=null) {
