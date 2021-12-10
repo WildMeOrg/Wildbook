@@ -1093,11 +1093,13 @@ public class Shepherd {
   }
 
   public ArrayList<Project> getProjectsForUser(User user) {
+    Boolean isAdmin = user.hasRoleByName("admin", this);
     Query query = null;
     Iterator<Project> projectIter = null;
     ArrayList<Project> projectArr = null;
     try {
       String filter = "SELECT FROM org.ecocean.Project WHERE users.contains(user)";
+      if(isAdmin) filter = "SELECT FROM org.ecocean.Project";
       query = getPM().newQuery(filter);
       query.declareParameters("User user");
       Collection c = (Collection)query.execute(user);
