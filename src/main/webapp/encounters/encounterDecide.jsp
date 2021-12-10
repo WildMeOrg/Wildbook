@@ -1095,11 +1095,11 @@ var yscale = wh / oh;
 var px = -(imgInfo.bbox[0] * zscale) + (ww / 2) - (imgInfo.bbox[2] * zscale / 2);
 var py = -(imgInfo.bbox[1] * yscale) + (wh / 2) - (imgInfo.bbox[3] * yscale / 2);
 
-var zz = 3 * ww / imgInfo.bbox[2];
+var zz = 3 * wh / imgInfo.bbox[2];
 if (zz < 1) zz = 1;
 console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
-//imgEl.panzoom('zoom', zz);
+imgEl.panzoom('zoom', zz);
 
 	imgEl.show();
 
