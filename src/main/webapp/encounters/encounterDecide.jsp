@@ -1099,7 +1099,11 @@ var zz = 3 * ww / imgInfo.bbox[2];
 if (zz < 1) zz = 1;
 console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
-imgEl.panzoom('zoom', zz);
+if(iw==1080 && ih==1920){
+    imgEl.panzoom('zoom', 3);
+}else{
+    imgEl.panzoom('zoom', zz);
+}
 
 	imgEl.show();
 
