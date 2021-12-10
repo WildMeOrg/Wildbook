@@ -623,7 +623,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
               }
             }
           }
-          if(locIdMissingCounter<1){ //locationId is missing, and no decision has flagged it yet
+          /*if(locIdMissingCounter<1){ //locationId is missing, and no decision has flagged it yet
             System.out.println("adding flag-locationid-missing to encounter " + enc.getCatalogNumber());
             JSONObject val = new JSONObject();
             List valueArr = new ArrayList<String>();
@@ -633,7 +633,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
             String flagProp = "flag";
             Decision dec = new Decision(user, enc, flagProp, val);
             myShepherd.getPM().makePersistent(dec);
-          }
+          }*/
         }
 
         //assign those in processing, disputed, or mergereview queue to either "mergereview" or "disputed" as needed
@@ -711,12 +711,12 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
                     for (int i = 0 ; i < vals.length() ; i++) {
                       String fval = vals.optString(i, null);
                       if (fval != null) {
-                        if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
+                        /*if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
                           fct++;
                           //locationMissingCounter ++;
                           if (fmap.get(fval) == null) fmap.put(fval, 0);
                           fmap.put(fval, 1); //don't increment. If you've gotten here, it's always one -Mark F.
-                        }
+                        }*/
                         if(!fval.equals("flag-locationid-missing")){
                           fct++; //felt safe incrementing fct++ this deep in the logic by assuming it's impossible to get a flag without said flag having a value. Even possible, suggestive of something wrong anyway, so seems justified not to count it -Mark F.
                           if (fmap.get(fval) == null) fmap.put(fval, 0);
