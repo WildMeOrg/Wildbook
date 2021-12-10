@@ -1055,9 +1055,9 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
                     <button class="button-smaller"
                             onclick="return flag('detection-privacy');"><%= encprops.getProperty("flagPrivateInfoNeedsBlurring") %>
                     </button>
-                    <button class="button-smaller"
+                    <%--<button class="button-smaller"
                             onclick="return flag('locationid-missing');"><%= encprops.getProperty("flagLocationMissing") %>
-                    </button>
+                    </button>--%>
                     <br/>
                     <button onclick="return setState('processing');"><%= encprops.getProperty("advanceToProcessing") %>
                     </button>
