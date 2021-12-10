@@ -619,7 +619,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
           if(currentDecisions != null && currentDecisions.size()>0){
             for(Decision currentDec: currentDecisions){
               if(currentDec.getValueAsString().contains("flag-locationid-missing")){
-                locIdMissingCounter ++;
+                //locIdMissingCounter ++;
               }
             }
           }
@@ -713,7 +713,7 @@ for (int ci = 0 ; ci < theads.length ; ci++) {
                       if (fval != null) {
                         if(fval.equals("flag-locationid-missing") && locationMissingCounter<1){
                           fct++;
-                          locationMissingCounter ++;
+                          //locationMissingCounter ++;
                           if (fmap.get(fval) == null) fmap.put(fval, 0);
                           fmap.put(fval, 1); //don't increment. If you've gotten here, it's always one -Mark F.
                         }
