@@ -1104,6 +1104,9 @@ console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, z
 
     if(iw==1080 && ih==1920 && zz!=1){
         zz = 3;
+        if(ww<imgInfo.bbox[2]){
+            zz=1;
+        }
     }
 
     if(iw==1080 && ih==1920){
