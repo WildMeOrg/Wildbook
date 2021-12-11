@@ -154,7 +154,7 @@ $(document).ready(function() {
                 Math.floor(w / scale),
                 Math.floor(h / scale)
             ].join(',');
-            document.location.href = 'manualAnnotation.jsp' + document.location.search.replace(/bbox=[^&]+/, '') + '&bbox=' + bbox;
+            document.location.href = 'manualBlur.jsp' + document.location.search.replace(/bbox=[^&]+/, '') + '&bbox=' + bbox;
         } else {
             boxStart = [ev.offsetX, ev.offsetY];
             $('#bbox').css('left', ev.offsetX);
@@ -176,7 +176,7 @@ $(document).ready(function() {
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("manualAnnotation.jsp");
+myShepherd.setAction("manualBlur.jsp");
 myShepherd.beginDBTransaction();
 
 try{
@@ -500,7 +500,7 @@ System.out.println(v);
 	<% } %>
 	</p>
 				
-				<h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
+				<h2><a href="manualBlur.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
 		
 		
 		
