@@ -162,7 +162,7 @@ try{
         }
       }
     }
-    
+
     if(projects != null && projects.size()>0){
       System.out.println("projects not null");
       %>
