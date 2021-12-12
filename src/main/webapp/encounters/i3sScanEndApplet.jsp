@@ -425,7 +425,19 @@ $(document).ready(function() {
                 <%
                   String localIndividualName = results[p].getIndividualName();
                   if (Util.isUUID(localIndividualName)) {
-                    localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    Shepherd nameShepherd=new Shepherd(context);
+                    nameShepherd.setAction("i3ScanEndApplet.jsp displayName render");
+                    nameShepherd.beginDBTransaction();
+                    try{
+                    	localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    }catch(Exception e){
+                      System.out.println("Error retrieving local display name in the case where xml is not OK");
+                      e.printStackTrace();
+                    } finally{
+                      nameShepherd.rollbackDBTransaction();
+                    	nameShepherd.closeDBTransaction();
+                      nameShepherd=null;
+                    }
                   }
                 %>
                 <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
@@ -473,7 +485,19 @@ $(document).ready(function() {
             String enc1IndId = enc1.attributeValue("assignedToShark");
             String localIndividualName = enc1IndId;
             if(enc1IndId != null && !enc1IndId.equals("")){
-              localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              Shepherd nameShepherd=new Shepherd(context);
+              nameShepherd.setAction("i3ScanEndApplet.jsp displayName render 2");
+              nameShepherd.beginDBTransaction();
+              try{
+                localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              }catch(Exception e){
+                System.out.println("Error retrieving local display name in the case where xml is OK");
+                e.printStackTrace();
+              }finally{
+                nameShepherd.rollbackDBTransaction();
+                nameShepherd.closeDBTransaction();
+                nameShepherd=null;
+              }
             }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
