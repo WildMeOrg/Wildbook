@@ -133,8 +133,11 @@ public class EncounterDelete extends HttpServlet {
 
             //delete Occurrence if it's last encounter has been removed.
             if(occur.getNumberEncounters()==0){
+              out.println("checkpoint 3.1");
               myShepherd.throwAwayOccurrence(occur);
+              out.println("checkpoint 3.2");
             }
+            out.println("checkpoint 3.3");
 
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
