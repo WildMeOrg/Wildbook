@@ -211,7 +211,7 @@ public class EncounterDelete extends HttpServlet {
           locked = true;
           log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
 
-          out.println("Failed to serialize encounter: " + request.getParameter("number"));
+          out.println(edel);
 
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
