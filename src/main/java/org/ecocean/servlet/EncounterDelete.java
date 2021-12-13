@@ -78,7 +78,7 @@ public class EncounterDelete extends HttpServlet {
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdirs();}
-    
+
     //boolean isOwner = true;
 
     myShepherd.beginDBTransaction();
@@ -92,7 +92,7 @@ public class EncounterDelete extends HttpServlet {
       String message = "Encounter " + request.getParameter("number") + " was deleted from the database.";
       ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       Encounter enc2trash = myShepherd.getEncounter(request.getParameter("number"));
-      
+
       setDateLastModified(enc2trash);
 
 
@@ -111,7 +111,7 @@ public class EncounterDelete extends HttpServlet {
             out.println("checkpoint 0");
             thisEncounterDir.mkdirs();
             System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
-          
+
           }
 
           out.println("checkpoint 1");
@@ -135,24 +135,24 @@ public class EncounterDelete extends HttpServlet {
             if(occur.getNumberEncounters()==0){
               myShepherd.throwAwayOccurrence(occur);
             }
-            
+
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-     
+
           }
 
           out.println("checkpoint 4");
 
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
-          
+
           //break association with User object submitters
           if(enc2trash.getSubmitters()!=null){
             enc2trash.setSubmitters(null);
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
           }
-          
+
           //break asociation with User object photographers
           if(enc2trash.getPhotographers()!=null){
             enc2trash.setPhotographers(null);
@@ -171,11 +171,10 @@ public class EncounterDelete extends HttpServlet {
           myShepherd.throwAwayEncounter(enc2trash);
 
           out.println("checkpoint 6");
-          
+
           //remove from grid too
-          GridManager gm = GridManagerFactory.getGridManager();
-          gm.removeMatchGraphEntry(request.getParameter("number"));
-          
+            GridManager.removeMatchGraphEntry(request.getParameter("number"));
+
           myShepherd.commitDBTransaction();
 
           out.println("checkpoint 7");
@@ -193,15 +192,15 @@ public class EncounterDelete extends HttpServlet {
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
               String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
             }
           }
-          
+
           out.println(ServletUtilities.getFooter(context));
 
 
 
-        } 
+        }
         catch (Exception edel) {
 
           out.println("catch");
@@ -217,7 +216,7 @@ public class EncounterDelete extends HttpServlet {
           out.close();
 
         }
-        
+
         // Notify new-submissions address
         Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
         tagMap.put("@USER@", request.getRemoteUser());
@@ -249,7 +248,7 @@ public class EncounterDelete extends HttpServlet {
 
         }
         */
-      } 
+      }
       else {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
@@ -258,10 +257,10 @@ public class EncounterDelete extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(ServletUtilities.getFooter(context));
       }
-      
-      
-      
-    } 
+
+
+
+    }
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
