@@ -167,7 +167,7 @@ public class EncounterDelete extends HttpServlet {
           out.println("checkpoint 5");
 
           //now delete for good
-          myShepherd.beginDBTransaction();
+          //myShepherd.beginDBTransaction();
           myShepherd.throwAwayEncounter(enc2trash);
 
           out.println("checkpoint 6");
