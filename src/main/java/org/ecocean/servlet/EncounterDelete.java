@@ -173,7 +173,11 @@ public class EncounterDelete extends HttpServlet {
           out.println("checkpoint 6");
 
           //remove from grid too
-            GridManager.removeMatchGraphEntry(request.getParameter("number"));
+            try{
+                GridManager.removeMatchGraphEntry(request.getParameter("number"));
+            }catch (Exception e){
+
+            }
 
           myShepherd.commitDBTransaction();
 
