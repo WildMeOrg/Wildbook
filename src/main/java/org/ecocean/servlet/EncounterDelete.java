@@ -169,6 +169,8 @@ public class EncounterDelete extends HttpServlet {
           //now delete for good
           myShepherd.beginDBTransaction();
           myShepherd.throwAwayEncounter(enc2trash);
+
+          out.println("checkpoint 6");
           
           //remove from grid too
           GridManager gm = GridManagerFactory.getGridManager();
@@ -176,10 +178,13 @@ public class EncounterDelete extends HttpServlet {
           
           myShepherd.commitDBTransaction();
 
+          out.println("checkpoint 7");
+
           //log it
           Logger log = LoggerFactory.getLogger(EncounterDelete.class);
           log.info("Click to restore deleted encounter: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/ResurrectDeletedEncounter?number=" + request.getParameter("number")+"\">"+request.getParameter("number")+"</a>");
 
+          out.println("checkpoint 8");
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
