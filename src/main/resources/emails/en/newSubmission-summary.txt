@@ -4,5 +4,6 @@ The Sharkbook.ai library has received a new encounter submission. You can view i
 
 Location:  @ENCOUNTER_LOCATION@
 Date:  @ENCOUNTER_DATE@
+Species:  @ENCOUNTER_SPECIES@
 Sex:  @ENCOUNTER_SEX@
 Comments:  @ENCOUNTER_COMMENTS@
