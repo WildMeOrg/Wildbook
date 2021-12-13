@@ -124,6 +124,17 @@ public class EncounterDelete extends HttpServlet {
 
           out.println("checkpoint 2");
 
+
+          out.println("encounter ID enc2trash: "+enc2trash.getOccurrenceID());
+
+
+          if(myShepherd.isOccurrence(enc2trash.getOccurrenceID())){
+            out.println("checkpoint 2");
+            out.close();
+          }else{
+            out.close();
+          }
+
           if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
@@ -173,13 +184,8 @@ public class EncounterDelete extends HttpServlet {
           out.println("checkpoint 6");
 
           //remove from grid too
-            try{
-                GridManager.removeMatchGraphEntry(request.getParameter("number"));
-            }catch (Exception e){
-
-            }
-
-            out.println("checkpoint 7");
+          GridManager gm = GridManagerFactory.getGridManager();
+          gm.removeMatchGraphEntry(request.getParameter("number"));
 
           myShepherd.commitDBTransaction();
 
