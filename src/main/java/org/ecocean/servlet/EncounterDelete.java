@@ -87,9 +87,7 @@ public class EncounterDelete extends HttpServlet {
 
     if ((request.getParameter("number") != null)&&(myShepherd.isEncounter(request.getParameter("number")))) {
 
-      out.println("here");
 
-      out.close();
 
       String message = "Encounter " + request.getParameter("number") + " was deleted from the database.";
       ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
@@ -102,6 +100,8 @@ public class EncounterDelete extends HttpServlet {
         //myShepherd.beginDBTransaction();
 
         try {
+
+          out.println("try");
 
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
@@ -187,10 +187,18 @@ public class EncounterDelete extends HttpServlet {
 
         } 
         catch (Exception edel) {
+
+          out.println("catch");
+
           locked = true;
           log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
+
+          out.println("Failed to serialize encounter: " + request.getParameter("number"));
+
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
+
+          out.close();
 
         }
         
