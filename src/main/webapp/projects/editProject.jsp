@@ -297,9 +297,9 @@ function addHTMLListeners() {
 
           var res = $.map(data, function(item) {
             console.log("what is in this user el?? "+JSON.stringify(item));
-            if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
+            if (typeof item.username === 'undefined'||item.username==undefined||item.username==="") return;
             let fullName = "";
-            if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
+            if (item.fullName!=null&&item.fullName!=="undefined") fullName = item.fullName;
             let label = ("name: "+fullName+" user: "+item.username);
             if (alreadyParticipant.indexOf(item.id) > -1) {
               label += ' (<%=props.getProperty("alreadyParticipating")%>)';
