@@ -82,6 +82,11 @@ public class EncounterDelete extends HttpServlet {
     //boolean isOwner = true;
 
     myShepherd.beginDBTransaction();
+
+    out.println("here");
+
+    out.close();
+
     if ((request.getParameter("number") != null)&&(myShepherd.isEncounter(request.getParameter("number")))) {
       String message = "Encounter " + request.getParameter("number") + " was deleted from the database.";
       ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
