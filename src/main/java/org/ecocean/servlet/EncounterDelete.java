@@ -108,22 +108,29 @@ public class EncounterDelete extends HttpServlet {
           String savedFilename = request.getParameter("number") + ".dat";
           File thisEncounterDir = new File(Encounter.dir(shepherdDataDir, request.getParameter("number")));
           if(!thisEncounterDir.exists()){
+            out.println("checkpoint 0");
             thisEncounterDir.mkdirs();
             System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
           
           }
+
+          out.println("checkpoint 1");
 
           File serializedBackup = new File(thisEncounterDir, savedFilename);
           FileOutputStream fout = new FileOutputStream(serializedBackup);
           ObjectOutputStream oos = new ObjectOutputStream(fout);
           oos.writeObject(backUpEnc);
           oos.close();
-          
+
+          out.println("checkpoint 2");
+
           if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
-            
+
+            out.println("checkpoint 3");
+
             //delete Occurrence if it's last encounter has been removed.
             if(occur.getNumberEncounters()==0){
               myShepherd.throwAwayOccurrence(occur);
@@ -133,6 +140,8 @@ public class EncounterDelete extends HttpServlet {
             myShepherd.beginDBTransaction();
      
           }
+
+          out.println("checkpoint 4");
 
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
@@ -154,6 +163,8 @@ public class EncounterDelete extends HttpServlet {
           //record who deleted this encounter
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
           myShepherd.commitDBTransaction();
+
+          out.println("checkpoint 5");
 
           //now delete for good
           myShepherd.beginDBTransaction();
