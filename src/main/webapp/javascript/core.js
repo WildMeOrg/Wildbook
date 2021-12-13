@@ -6,6 +6,7 @@ var wildbook = {
         'SinglePhotoVideo',
         'MediaAsset',
         'Measurement',
+        'Occurrence'
     ],
 
     Model: {},

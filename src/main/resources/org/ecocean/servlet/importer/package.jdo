@@ -24,6 +24,8 @@
 
       <field name="log" persistence-modifier="persistent" serialized-element="true" />
 
+      <field name="iaTask" persistence-modifier="persistent" element-type="org.ecocean.ia.Task" />
+
     </class> 
   
   </package>

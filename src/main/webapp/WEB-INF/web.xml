@@ -198,7 +198,7 @@
 
 				/BatchUpload/** = authc, roles[admin]
 				/appadmin/batch* = authc, roles[admin]
-				/EncounterSetSubmitterID = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[researcher]
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
@@ -452,6 +452,7 @@
 		/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
+			/import.jsp = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
@@ -1226,6 +1227,8 @@
     <servlet-name>WildbookMetrics</servlet-name>
     <url-pattern>/metrics</url-pattern>
   </servlet-mapping>
+
+
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>

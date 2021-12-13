@@ -18,6 +18,29 @@ java.util.HashMap,
 java.util.LinkedHashSet,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
+<%!
+public String dumpTask(Task task) {
+    if (task == null) return "NULL TASK";
+    Task rootTask = task.getRootTask();
+    String t = "=====================================\n" + task.getId() + "\nparams: " + task.getParameters() + "\n";
+    t += "- rootTask                     " + (task.equals(rootTask) ? "(this)" : rootTask.getId()) + "\n";
+    t += "- parent:                      " + ((task.getParent() == null) ? "NONE" : task.getParent().getId()) + "\n";
+    if (task.hasChildren()) {
+        t += "- children                    ";
+        for (Task kid : task.getChildren()) {
+            t += " " + kid.getId();
+        }
+        t += "\n";
+    } else {
+        t += "- children                     NONE\n";
+    }
+    t += "- countObjectMediaAssets:      " + task.countObjectMediaAssets() + "\n";
+    t += "- countObjectAnnotations:      " + task.countObjectAnnotations() + "\n";
+    return t;
+}
+%>
+
+
 <jsp:include page="header.jsp" flush="true"/>
 
 <script>
@@ -75,6 +98,10 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("import.jsp");
 myShepherd.beginDBTransaction();
+
+//should the user see the detect and/or detect+ID buttons?
+boolean allowIA=false;
+
 try{
 	User user = AccessControl.getUser(request, myShepherd);
 	if (user == null) {
@@ -124,12 +151,20 @@ try{
 	    }
 	}
 	
+	String dumpTask="empty";
+	if(itask!=null && itask.getIATask()!=null){
+		dumpTask=dumpTask(itask.getIATask());
+	}
+	
+	
 	Set<String> locationIds = new HashSet<String>();
-	
-	
-	
+
 	    out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
-	    out.println("<br>Status: "+itask.getStatus());
+	    out.println("<br>Data Import Status: <em>"+itask.getStatus()+"</em>");
+	    out.println("<br>Computer Vision Status: <em><span id=\"iaStatus\"></span></em>");
+	    
+	    out.println("<p id=\"refreshPara\" class=\"caption\">Refreshing results in <span id=\"countdown\"></span> seconds.</p><script>$('#refreshPara').hide();</script>");
+	    
 	    if(itask.getParameters()!=null){
 	    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
 	    }	
@@ -142,26 +177,6 @@ try{
 	
 	    out.println("</tr></thead><tbody>");
 	    
-	    
-	    //if incomplete refresh
-	    if(itask.getStatus()!=null && !itask.getStatus().equals("complete")){
-	    %>
-		    
-		    <p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
-		  <script type="text/javascript">
-		  (function countdown(remaining) {
-			    if(remaining === 0)location.reload(true);
-			    document.getElementById('countdown').innerHTML = remaining;
-			    setTimeout(function(){ countdown(remaining - 1); }, 1000);
-		
-			})
-			    (60);	
-			    
-		  </script>
-		    
-		    
-		    <%
-	    }
 	
 	    List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
 	    HashMap<HashMap<String,String>,Integer> annotsMap=new HashMap<HashMap<String,String>,Integer>();
@@ -170,6 +185,7 @@ try{
 	    int numAnnotations=0;
 	    int numMatchAgainst=0;
 	    boolean foundChildren = false;
+	    int numMatchTasks=0;
 	
 	    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
 	    if (Util.collectionSize(itask.getEncounters()) > 0) {
@@ -271,7 +287,7 @@ try{
 	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >"+annotTypesByTask.get(task.getId())+"</a>");
 	        	}
 	        	out.println("     </ul>");
-	        	
+	        	numMatchTasks++;
 	        }			
 	        out.println("</td>");
 	
@@ -289,6 +305,7 @@ try{
 		Total marked individuals: <%=allIndies.size() %><br>
 		Total encounters: <%=itask.getEncounters().size() %>
 	</p>
+
 	
 	<%
 	try{
@@ -315,7 +332,7 @@ try{
 				HashMap<String,String> mapHere = iterAnnots.next();
 				if(mapHere.toString().equals("{null=null}") ){
 					%>
-					<li>No annotations found: <%=annotsMap.get(mapHere) %></li>
+					<li>Nothing found: <%=annotsMap.get(mapHere) %></li>
 					<%
 				}
 				else{
@@ -329,6 +346,78 @@ try{
 		</ul>
 		</p>
 	<%
+	
+	//let's determine the IA Status
+	String iaStatusString="not started";
+	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
+	boolean shouldRefresh=false;
+	//let's check shouldRefresh logic
+	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
+	
+	if (itask.getIATask() !=null && itask.iaTaskStarted()) {
+        //detection-only Task
+		//if(hasIdentificationBenRun(itask)){
+		if(!itask.iaTaskRequestedIdentification()){
+        	if(numDetectionComplete==allAssets.size()){
+        		iaStatusString="detection complete";
+        	}
+        	else{
+        		iaStatusString="detection requests sent ("+numDetectionComplete+"/"+allAssets.size()+" complete)";
+        		shouldRefresh=true;
+        	}
+        }
+        //ID Task
+        else{
+        	iaStatusString="identification requests sent (see below)";
+        	if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
+        	System.out.println("heerios!");
+        }
+    }
+	//let's handle legacy data
+	else if(itask.getIATask() == null && numDetectionComplete>0 ){
+    	if(numDetectionComplete==allAssets.size()){
+    		iaStatusString="detection complete";
+    		allowIA=false;
+    	}
+    	else{
+    		iaStatusString="detection requests sent ("+numDetectionComplete+"/"+allAssets.size()+" complete)";
+    		shouldRefresh=true;
+    		allowIA=false;
+    	}
+    	if(numMatchTasks>0){
+    		iaStatusString="identification requests sent (see below)";
+        	if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
+        	allowIA=false;
+    	}
+	}
+	
+
+	
+	%>
+	<script>
+		$('#iaStatus').text('<%=iaStatusString %>');
+	</script>
+	<%
+	
+    //START refresh function
+    //if incomplete or IA in process - refresh
+    if(shouldRefresh){
+    %>
+	    <script type="text/javascript">
+	    	$('#refreshPara').show();
+	  		(function countdown(remaining) {
+		    	if(remaining === 0)location.reload(true);
+		    	document.getElementById('countdown').innerHTML = remaining;
+		    	setTimeout(function(){ countdown(remaining - 1); }, 1000);
+	
+			})(60);	
+	 	</script>
+	    
+	    <%
+    }
+    //END refresh function
+	
+	
 	}
 	catch(Exception n){
 		n.printStackTrace();
@@ -355,7 +444,7 @@ try{
 	    // some of this borrowed from core.js sendMediaAssetsToIA()
 	    // but now we send bulkImport as the entire js_jarrs value
 	    var data = {
-	        taskParameters: { skipIdent: skipIdent || false },
+	        taskParameters: { skipIdent: skipIdent || false, importTaskId: '<%=taskId%>' },
 	        bulkImport: {}
 	    };
 	    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
@@ -371,7 +460,7 @@ try{
 	        complete: function(x) {
 	            console.log('sendToIA() response: %o', x);
 		    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-		        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+		        $('#ia-send-wait').html('<i>Images sent successfully. Refresh this page to track progress.</i>');
 		    } else {
 		        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
 		    }
@@ -392,12 +481,13 @@ try{
 	<% } %>
 	</p>
 	
-	<% if (adminMode) { 
+	<% 
+	if (allowIA || forcePushIA) { 
 	%>
 	    <div id="ia-send-div">
 	    
 		    <%
-		    if ((numIA < 1 || forcePushIA) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
+		    if (allAssets.size() > 0) {
 		    %>
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		

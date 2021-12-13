@@ -16,37 +16,37 @@ import org.json.JSONTokener;
 import javax.servlet.http.HttpServletRequest;
 
 public class LocationID {
-
+  
   //the JSON representation of /bundles/locationID.json
   private static ConcurrentHashMap<String,JSONObject> jsonMaps=new ConcurrentHashMap<String,JSONObject>();
-
-
+  
+  
   public static ConcurrentHashMap<String,JSONObject> getJSONMaps(){return jsonMaps;}
-
+  
   /*
-   * Return the JSON representation of /bundles/locationID.json
+   * Return the JSON representation of /bundles/locationID.json 
    */
   public static JSONObject getLocationIDStructure() {
     if(jsonMaps.get("default")==null)loadJSONData(null);
     return jsonMaps.get("default");
   }
-
+  
   /*
-   * Return the JSON representation of /bundles/locationID.json
+   * Return the JSON representation of /bundles/locationID.json 
    */
   public static JSONObject getLocationIDStructure(String qualifier) {
     if(qualifier==null)return getLocationIDStructure();
     if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
     return jsonMaps.get(qualifier);
   }
-
+  
   /*
-   * Return the JSON representation of /bundles/locationID.json but check the request for the user and then try to send the appropriate org argument if it exists.
+   * Return the JSON representation of /bundles/locationID.json but check the request for the user and then try to send the appropriate org argument if it exists. 
    */
   public static JSONObject getLocationIDStructure(HttpServletRequest request) {
-
+    
     String qualifier=null;
-
+    
     Shepherd myShepherd=new Shepherd(request);
     myShepherd.setAction("LocationID.java");
     myShepherd.beginDBTransaction();
@@ -59,7 +59,7 @@ public class LocationID {
     if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
     return jsonMaps.get(qualifier);
   }
-
+  
   /*
    * Force a reload of /bundles/locationID.json
    */
@@ -67,20 +67,20 @@ public class LocationID {
     jsonMaps=new ConcurrentHashMap<String,JSONObject>();
     loadJSONData(filename);
   }
-
+  
   private static void loadJSONData(String qualifier) {
     InputStream is = null;
     String filename="locationID.json";
     if(qualifier!=null) {
       filename="locationID_"+qualifier+".json";
-    }
-
+    } 
+    
     String shepherdDataDir=CommonConfiguration.getShepherdDataDir("context0");
     Properties contextsProps=ShepherdProperties.getContextsProperties();
     if(contextsProps.getProperty("context0"+"DataDir")!=null){
       shepherdDataDir=contextsProps.getProperty("context0"+"DataDir");
     }
-
+      
     //first look for the file in the override director
     File configFile = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+filename);
 
@@ -95,7 +95,7 @@ public class LocationID {
       else {
         is=LocationID.class.getResourceAsStream("/bundles/"+filename);
       }
-
+    
       //if we couldn't find it in the override dir or locally, load it from the web app root
     if (is == null) {
       filename="locationID.json";
@@ -174,19 +174,19 @@ public class LocationID {
   public static String getLongitude(String locationId, JSONObject tree) {
     return findGeospatialParameterInIdTree("long", locationId, tree);
   }
-
+  
   private static JSONObject recurseToFindID(String id,JSONObject jsonobj) {
-
+    
     //if this is the right object, return it
     try {
       if(jsonobj.getString("id")!=null && jsonobj.getString("id").equals(id)) {return jsonobj;}
     }
     catch(JSONException e) {}
-
+    
     //otherwise iterate through its locationID array
     try {
       if(jsonobj.getJSONArray("locationID")!=null) {
-
+  
         JSONArray locs=jsonobj.getJSONArray("locationID");
         //System.out.println("Iterating locationID array for: "+jsonobj.getString("name"));
         int numLocs=locs.length();
@@ -200,7 +200,7 @@ public class LocationID {
   catch(JSONException e) {}
     return null;
   }
-
+  
   /*
    * Return the "name" attribute from JSON for a given "id" in /bundles/locationID.json
    */
@@ -214,7 +214,7 @@ public class LocationID {
     }
     return null;
   }
-
+  
   public static String getPrefixForLocationID(String locationID, String qualifier) { //now a wrapper method
     if(locationID == null) return ""; //"" here for improved cosmetics on front end?
     String locPrefix = "";
@@ -232,7 +232,7 @@ public class LocationID {
     }
     return digitPadding;
   }
-
+  
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
    */
@@ -240,7 +240,7 @@ public class LocationID {
     ArrayList<String> al=new ArrayList<String>();
     return getIDForParentAndChildren(locationID,al,qualifier);
   }
-
+  
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children in the order traversed
    */
@@ -248,15 +248,15 @@ public class LocationID {
     JSONObject j=recurseToFindID(locationID,getLocationIDStructure(qualifier));
     if(j!=null) {
       try{
-
+        
         recurseToFindIDStrings(j,al);
-
+        
       }
       catch(JSONException e) {}
     }
     return al;
   }
-
+  
   /*
    * Starting with a childID, get the IDs of its root parent all the way down to the child ID
    * @childLocationID - dig for a child with this @id
@@ -269,17 +269,17 @@ public class LocationID {
     findPath(jsonobj, childLocationIDToFind, al);
     return al;
   }
-
+  
   private static void findPath(JSONObject jsonobj, String childLocationIDToFind, ArrayList<String> al) {
     try {
       if(jsonobj.getString("id").equals( childLocationIDToFind)) {return;}
     }
     catch(JSONException e) {}
-
+    
     //otherwise iterate through its locationID array
     try {
       if(jsonobj.getJSONArray("locationID")!=null) {
-
+  
         JSONArray locs=jsonobj.getJSONArray("locationID");
         //System.out.println("Iterating locationID array for: "+jsonobj.getString("name"));
         int numLocs=locs.length();
@@ -291,13 +291,13 @@ public class LocationID {
             if(loc.getString("id").equals(childLocationIDToFind))return;
             findPath(loc, childLocationIDToFind,al);
           }
-
+         
         }
       }
     }
     catch(JSONException e) {}
   }
-
+  
   private static String getIDIfContainsChildID(JSONObject jsonobj,String childID, String qualifier) {
     List<String> list=getIDForParentAndChildren(childID,new ArrayList<String>(),qualifier);
     try {
@@ -306,20 +306,20 @@ public class LocationID {
     catch(JSONException jsone) {}
     return null;
   }
-
-
+  
+  
   private static void recurseToFindIDStrings(JSONObject jsonobj,ArrayList<String> al) {
-
+    
     //if this is the right object, return it
     try {
       if(!al.contains(jsonobj.getString("id")))al.add(jsonobj.getString("id"));
     }
     catch(JSONException e) {}
-
+    
     //otherwise iterate through its locationID array
     try {
       if(jsonobj.getJSONArray("locationID")!=null) {
-
+  
         JSONArray locs=jsonobj.getJSONArray("locationID");
         //System.out.println("Iterating locationID array for: "+jsonobj.getString("name"));
         int numLocs=locs.length();
@@ -332,26 +332,26 @@ public class LocationID {
   }
   catch(JSONException e) {}
   }
-
+  
   /*
   * Return an HTML selector of hierarchical locationIDs with indenting
   */
   public static String getHTMLSelector(boolean multiselect, String selectedID,String qualifier, String htmlID, String htmlName, String htmlClass) {
-
+    
     String multiselector="";
     if(multiselect)multiselector=" multiple=\"multiple\"";
-
+    
     StringBuffer selector=new StringBuffer("<select style=\"resize:both;\" name=\""+htmlName+"\" id=\""+htmlID+"\" class=\""+htmlClass+"\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
 
      createSelectorOptions(getLocationIDStructure(qualifier),selector,0,selectedID);
-
+    
     selector.append("</select>\n\r");
     return selector.toString();
 
   }
-
+  
   private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel, String selectedID) {
-
+    
     int localNestingLevel=nestingLevel;
     String selected="";
     String spacing="";
@@ -364,20 +364,20 @@ public class LocationID {
     }
     catch(JSONException e) {}
 
-
+    
     //iterate locationID array
     try {
         JSONArray locs=jsonobj.getJSONArray("locationID");
         int numLocs=locs.length();
         for(int i=0;i<numLocs;i++) {
-
+          
           JSONObject loc=locs.getJSONObject(i);
           createSelectorOptions(loc,selector,localNestingLevel,selectedID);
         }
     }
     catch(JSONException e) {}
   }
-
+  
     public static String getBootstrapMenu(String qualifier, String urlPrefix) {
         if (urlPrefix == null) urlPrefix = "./";   //probably not what you want
         JSONObject locJson = getLocationIDStructure(qualifier);

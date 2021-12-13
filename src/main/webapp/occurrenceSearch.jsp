@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException, java.util.Collections" %>
 <%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -563,7 +563,7 @@ context=ServletUtilities.getContext(request);
 	  <strong><%=props.getProperty("username")%></strong><br />
 	      <%
 
-	        List<User> users = myShepherd.getNativeUsers();
+	        List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
 	        int numUsers = users.size();
 
 	      %>
@@ -571,17 +571,19 @@ context=ServletUtilities.getContext(request);
 	      <select multiple size="5" name="submitterID" id="submitterID">
 	        <option value="None"></option>
 	        <%
+            // List<String> allUserNames = new ArrayList<String> ();
+            // List<String> allUserFullNames = new ArrayList<String> ();
+            List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
 	          for (int n = 0; n < numUsers; n++) {
-	            String username = users.get(n).getUsername();
+              String username = sortedUsers.get(n).getUsername();
 	            String userFullName=username;
-	            if(users.get(n).getFullName()!=null){
-	              userFullName=users.get(n).getFullName();
+	            if(sortedUsers.get(n).getFullName()!=null){
+	              userFullName=sortedUsers.get(n).getFullName();
 	            }
-
-	          %>
-	          <option value="<%=username%>"><%=userFullName%></option>
-	          <%
-	          }
+              %>
+              <option value="<%=username%>"><%=userFullName%></option>
+              <%
+            }
 	        %>
 	      </select>
 

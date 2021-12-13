@@ -284,13 +284,13 @@ try{
 	//also don't clone if this is a part
 	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
-
+		
 	}
 	//also don't clone if this is a part
 	//if the one annot isn't trivial, then we have to clone the encounter as well
 	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
-
+		
 		//exception case - if there is only one annotation and it is a part
 		if(annots.size()==1){
 			Annotation annot1 = annots.get(0);
@@ -298,7 +298,7 @@ try{
 				cloneEncounter=false;
 			}
 		}
-
+		
 	}
 
 
@@ -487,9 +487,9 @@ try{
 	        }
 	    }
 
-
+	
 	    myShepherd.updateDBTransaction();
-
+	    
 	    //register media asset for acmId
 	    if(ma.getAcmId()==null){
 	    	ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
@@ -497,7 +497,7 @@ try{
 	    	IBEISIA.sendMediaAssetsNew(mas, context);
 	    	myShepherd.updateDBTransaction();
 	    }
-
+	    
 	    //register annotation for acmId
 	    if(ann.getAcmId()==null){
 	    	ArrayList<Annotation> anns = new ArrayList<Annotation>();
@@ -506,7 +506,7 @@ try{
 	    }
 
 	    myShepherd.commitDBTransaction();
-
+	    
 		%><hr />
 
 		<h2>Success!</h2>
