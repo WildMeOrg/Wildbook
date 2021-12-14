@@ -23,6 +23,7 @@ import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
 
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -31,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 //import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 //import java.util.Vector;
@@ -127,14 +130,14 @@ public class EncounterDelete extends HttpServlet {
           if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
-            enc2trash.setOccurrenceID(null);
+            //enc2trash.setOccurrenceID(null);
 
             out.println("checkpoint 3");
 
             //delete Occurrence if it's last encounter has been removed.
             if(occur.getNumberEncounters()==0){
               out.println("checkpoint 3.1");
-              myShepherd.getPM().deletePersistent(occur);
+              myShepherd.throwAwayOccurrence(occur);
               out.println("checkpoint 3.2");
             }
             out.println("checkpoint 3.3");
@@ -142,6 +145,20 @@ public class EncounterDelete extends HttpServlet {
             try{
               myShepherd.commitDBTransaction();
             }catch (Exception e){
+
+              try {
+                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE encounter.occuranceId=='" + enc2trash.getOccurrenceID() + "'";
+                //String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID LIKE '" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
+                Query query = myShepherd.getPM().newQuery(jdoql);
+                Collection col = (Collection) query.execute();
+                List<Occurrence> occs = new ArrayList<Occurrence>(col);
+                for (Occurrence o : occs) {
+                  myShepherd.getPM().deletePersistent(o);
+                }
+              }catch (Exception ex){
+                out.println(ex);
+              }
+
               out.println(e);
               out.println(e.getMessage());
               out.println(e.getStackTrace());
