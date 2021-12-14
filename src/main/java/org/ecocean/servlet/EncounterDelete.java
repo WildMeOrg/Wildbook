@@ -147,14 +147,14 @@ public class EncounterDelete extends HttpServlet {
             }catch (Exception e){
 
               try {
-                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE occuranceId=='" + enc2trash.getOccurrenceID() + "'";
+                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE occurrence.occuranceId=='" + enc2trash.getOccurrenceID() + "'";
                 //String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID LIKE '" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
-                Query query = myShepherd.getPM().newQuery(jdoql);
+                /*Query query = myShepherd.getPM().newQuery(jdoql);
                 Collection col = (Collection) query.execute();
                 List<Occurrence> occs = new ArrayList<Occurrence>(col);
-                for (Occurrence o : occs) {
-                  myShepherd.getPM().deletePersistent(o);
-                }
+                for (Occurrence o : occs) {*/
+                  myShepherd.getPM().deletePersistent((org.ecocean.Occurrence)myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, enc2trash.getOccurrenceID()), true));
+                //}
               }catch (Exception ex){
                 out.println(ex);
               }
