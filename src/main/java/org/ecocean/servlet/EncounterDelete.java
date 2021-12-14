@@ -147,7 +147,7 @@ public class EncounterDelete extends HttpServlet {
             }catch (Exception e){
 
               try {
-                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE encounter.occuranceId=='" + enc2trash.getOccurrenceID() + "'";
+                String jdoql = "SELECT FROM org.ecocean.Occurrence WHERE occurrence.occuranceId=='" + enc2trash.getOccurrenceID() + "'";
                 //String jdoql = "DELETE FROM DECISION WHERE ENCOUNTER_CATALOGNUMBER_OID LIKE '" + enc.getCatalogNumber() + "' AND VALUE LIKE '%" + value + "%' AND PROPERTY LIKE 'flag'";
                 Query query = myShepherd.getPM().newQuery(jdoql);
                 Collection col = (Collection) query.execute();
