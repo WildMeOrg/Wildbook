@@ -139,7 +139,11 @@ public class EncounterDelete extends HttpServlet {
             }
             out.println("checkpoint 3.3");
 
-            myShepherd.commitDBTransaction();
+            try{
+              myShepherd.commitDBTransaction();
+            }catch (Exception e){
+              out.println(e);
+            }
             out.println("checkpoint 3.4");
             myShepherd.beginDBTransaction();
             out.println("checkpoint 3.5");
