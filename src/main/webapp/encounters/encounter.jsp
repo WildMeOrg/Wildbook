@@ -1575,7 +1575,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
            	%>
 
                     marker = new google.maps.Marker({
-                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                        markerOptions: {flat:true,clickable:false,icon:"../images/Kitizensciencelogo.png"},
                         position: latLng,
                         map: map
                     });
@@ -1690,7 +1690,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
                                     emptyMarkers();
                                     var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
                                     var newMarker = new google.maps.Marker({
-                                        icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                                        markerOptions: {flat:true,clickable:false,icon:"../images/Kitizensciencelogo.png"},
                                         position: newLatLng,
                                         map: map
                                     });
