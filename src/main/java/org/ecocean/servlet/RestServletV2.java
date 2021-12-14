@@ -648,6 +648,7 @@ rtn.put("_payload", payload);
             myShepherd.closeDBTransaction();
             rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
             SystemLog.error("RestServlet.handleConfiguration() instance={} rolling back db transaction due to exception on SET operation: {}", instanceId, ex.toString());
+            ex.printStackTrace();
             String rtnS = rtn.toString();
             response.setContentLength(rtnS.getBytes("UTF-8").length);
             out.println(rtnS);

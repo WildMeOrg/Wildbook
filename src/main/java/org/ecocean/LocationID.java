@@ -87,6 +87,10 @@ public class LocationID {
             SystemLog.warn("LocationID.loadJSONData() failed: {}", ex.toString());
         }
         myShepherd.rollbackAndClose();
+        if (loc == null) {
+            SystemLog.warn("LocationID.loadJSONData() has loc=null; not setting jsonMaps");
+            return;
+        }
         jsonMaps.put((qualifier == null) ? "default" : qualifier, loc);
     }
 
