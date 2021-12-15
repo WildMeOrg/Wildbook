@@ -1572,7 +1572,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             Set<Taxonomy> siteTxs = Taxonomy.siteTaxonomies(myShepherd);
             for (int i = 0 ; i < jtxs.length() ; i++) {
                 try {
-                    occ.addTaxonomy(resolveTaxonomyJSONObject(myShepherd, jtxs.optJSONObject(i), siteTxs));  //throws IllegalArgumentException if bad
+                    //occ.addTaxonomy(resolveTaxonomyJSONObject(myShepherd, jtxs.optJSONObject(i), siteTxs));  //throws IllegalArgumentException if bad
+                    occ.addTaxonomy(resolveTaxonomyString(myShepherd, jtxs.optString(i, null), siteTxs));  //throws IllegalArgumentException if bad
                 } catch (IllegalArgumentException ex) {
                     throw new ApiValueException(ex.toString(), "taxonomies");
                 }
@@ -1691,7 +1692,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
             for (Taxonomy tx : taxonomies) {
-                txs.put(tx.asApiJSONObject());
+                //txs.put(tx.asApiJSONObject());
+                txs.put(tx.getId());
             }
             obj.put("taxonomies", txs);
         }
@@ -1754,6 +1756,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     this.setLocationId((String)valueObj);
                     break;
                 case "taxonomies":
+/*
                     // we allow for both { "id": "uuid" } and simply "uuid" as values here
                     org.json.JSONObject tj = jsonIn.optJSONObject("value");
                     if (tj == null) {
@@ -1764,6 +1767,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     }
                     try {
                         this.addTaxonomy(resolveTaxonomyJSONObject(myShepherd, tj));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                    }
+*/
+                    try {
+                        this.addTaxonomy(resolveTaxonomyString(myShepherd, jsonIn.optString("value", null)));
                     } catch (IllegalArgumentException ex) {
                         throw new ApiValueException(ex.getMessage(), "taxonomies");
                     }
@@ -1888,6 +1897,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     this.setComments(null);
                     break;
                 case "taxonomies":
+/*
                     // we allow for both { "id": "uuid" } and simply "uuid" as values here
                     org.json.JSONObject tj = jsonIn.optJSONObject("value");
                     if (tj == null) {
@@ -1902,6 +1912,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                         throw new ApiValueException(ex.getMessage(), "taxonomies");
                     }
                     rtn.put("value", tj.getString("id"));
+*/
+                    try {
+                        this.removeTaxonomy(resolveTaxonomyString(myShepherd, jsonIn.optString("value", null)));
+                        rtn.put("value", jsonIn.optString("value", null));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                    }
                     break;
                 case "encounters":
                     String id = jsonIn.optString("value", null);

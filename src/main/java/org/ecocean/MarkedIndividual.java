@@ -2677,6 +2677,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         try {
           if (indiv.numEncounters() < 1) throw new IOException("to create a new MarkedIndividual, there must be at least one Encounter");
   
+/*
           org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
           if (jtx != null) {
               Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
@@ -2684,6 +2685,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
               indiv.setTaxonomy(tx);
           }
+*/
+        String txId = jsonIn.optString("taxonomy", null);
+        if (txId != null) {
+            Taxonomy tx = myShepherd.getTaxonomyById(txId);
+            if (tx == null) throw new IOException("invalid taxonomy: " + txId);
+            if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
+            indiv.setTaxonomy(tx);
+        }
   
           String jcomments = jsonIn.optString("comments");
           if (jcomments!=null) {
@@ -2750,7 +2759,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         obj.put("comments", this.getComments());
         obj.put("timeOfBirth", String.valueOf(timeOfBirth));
         obj.put("timeOfDeath", String.valueOf(timeOfDeath));
-        if (this.taxonomy != null) obj.put("taxonomy", this.taxonomy.asApiJSONObject());
+        if (this.taxonomy != null) obj.put("taxonomy", this.taxonomy.getId());
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
     }

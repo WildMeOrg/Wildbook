@@ -394,6 +394,18 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         return resolveTaxonomyJSONObject(myShepherd, tj, Taxonomy.siteTaxonomies(myShepherd));
     }
 
+    // like above but now we _only_ accept a Taxonomy id (string)
+    public static Taxonomy resolveTaxonomyString(Shepherd myShepherd, String ts, Set<Taxonomy> validTxs) {
+        if (ts == null) throw new IllegalArgumentException("passed null id");
+        Taxonomy tx = myShepherd.getTaxonomyById(ts);
+        if (tx == null) throw new IllegalArgumentException("invalid taxonomy at id=" + ts);
+        if ((validTxs != null) && !validTxs.contains(tx)) throw new IllegalArgumentException("non-site taxonomy " + tx);
+        return tx;
+    }
+    public static Taxonomy resolveTaxonomyString(Shepherd myShepherd, String ts) {
+        return resolveTaxonomyString(myShepherd, ts, Taxonomy.siteTaxonomies(myShepherd));
+    }
+
     public static Double tryDouble(Object obj) {  //this will throw exceptions if conversion problems
         if (obj == null) return null;
         if (obj instanceof Integer) return new Double((Integer)obj);

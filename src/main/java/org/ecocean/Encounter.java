@@ -4021,10 +4021,19 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         enc.setTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("time", null)));
 
+/*
         org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
         if (jtx != null) {
             Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
             if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
+            if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
+            enc.setTaxonomy(tx);
+        }
+*/
+        String txId = jsonIn.optString("taxonomy", null);
+        if (txId != null) {
+            Taxonomy tx = myShepherd.getTaxonomyById(txId);
+            if (tx == null) throw new IOException("invalid taxonomy: " + txId);
             if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
             enc.setTaxonomy(tx);
         }
@@ -4083,7 +4092,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         obj.put("individual", indObj);
 
         Taxonomy tx = this.getTaxonomy();
-        if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
+        if (tx != null) obj.put("taxonomy", tx.getId());
 
         obj.put("sex", getSex());
         obj.put("decimalLatitude", getDecimalLatitude());
@@ -4155,18 +4164,25 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                     this.setLocationId((String)valueObj);
                     break;
                 case "taxonomy":
+/*
                     // we allow for both { "id": "uuid" } and simply "uuid" as values here
                     org.json.JSONObject tj = jsonIn.optJSONObject("value");
                     if (tj == null) {
                         String tid = jsonIn.optString("value", null);
-                        if (tid == null) throw new ApiValueException("must pass json object with .id or string id", "taxonomies");
+                        if (tid == null) throw new ApiValueException("must pass json object with .id or string id", "taxonomy");
                         tj = new org.json.JSONObject();
                         tj.put("id", tid);
                     }
                     try {
                         this.setTaxonomy(resolveTaxonomyJSONObject(myShepherd, tj));
                     } catch (IllegalArgumentException ex) {
-                        throw new ApiValueException(ex.getMessage(), "taxonomies");
+                        throw new ApiValueException(ex.getMessage(), "taxonomy");
+                    }
+*/
+                    try {
+                        this.setTaxonomy(resolveTaxonomyString(myShepherd, jsonIn.optString("value", null)));
+                    } catch (IllegalArgumentException ex) {
+                        throw new ApiValueException(ex.getMessage(), "taxonomy");
                     }
                     break;
                 case "customFields":
