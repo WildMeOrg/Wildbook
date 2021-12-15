@@ -133,7 +133,7 @@ if (request.getParameter("acmId") != null) {
 		rtn.put("error", "unknown error");
 	} else {
 		JSONArray janns = new JSONArray();
-		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+		//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 		Project project = null;
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
@@ -483,13 +483,11 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		}
 
 		MarkedIndividual mark = enc.getIndividual();
-
 		if (mark==null) {
 			mark = new MarkedIndividual(enc);
 			myShepherd.getPM().makePersistent(mark);
 			myShepherd.updateDBTransaction();
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
-
 		}
 
 		if (validToName&&"true".equals(useNextProjectId)) {
@@ -501,7 +499,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			// old user based id
 			mark.addName(nextNameKey, nextName);
 		}
-
 		System.out.println("RTN for no match naming: "+rtn.toString());
 
 		rtn.put("success",true);
@@ -1388,7 +1385,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
                         constrainDuringPan: true,
-                        animationTime: 0,
+                        animationTime: 0.01,
 
                 	});
 
@@ -1407,6 +1404,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
+                        if(ft.parameters.theta)elt.setAttribute("theta", ft.parameters.theta);
+
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
 
@@ -1417,6 +1416,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
 
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
+
                 	});
 
                 	viewer.addHandler('full-screen', event => {
@@ -1426,6 +1432,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.01
+                      		);
 
                 	    }
                 	});
@@ -1444,13 +1456,38 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
+
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
                 	});
 
+                	  viewer.addHandler("update-viewport", function(){
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.1
+                      		);
+                      });
+
+                	  viewer.addHandler("animation", function(){
+                  	   	//rotate annots
+                  	   	setTimeout(
+                    				updateFeatureTheta(viewer)
+                    				, 0.01
+                    		);
+                      });
 
 
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
+
+
 
 
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
@@ -1479,7 +1516,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
+                <%
+                if(user != null){
+                %>
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
+                <%
+                }
+                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -1798,6 +1841,14 @@ function imageLoaded(imgEl, ft, asset) {
     drawFeature(imgEl, ft, asset);
 }
 
+function updateFeatureTheta(viewer){
+	    viewer.currentOverlays.forEach(overlay => {
+			if(overlay.element.hasAttribute("theta")){
+					overlay.element.style.transform = 'rotate('+overlay.element.getAttribute("theta")+'rad)';
+			}
+	    });
+}
+
 function drawFeature(imgEl, ft, asset) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var scale = imgEl.height / imgEl.naturalHeight;
@@ -2021,12 +2072,12 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
+	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
+		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
+		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
 	}
-	confirmMsg+= ' to record your decision.';
+	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
@@ -2043,15 +2094,25 @@ function negativeButtonClick(encId, oldDisplayName) {
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName);
+				updateNameCallback(d, oldDisplayName, encId);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
-	alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+  let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
+  if(d && d.responseJSON && d.responseJSON.success){
+    if(oldDisplayName!=="undefined" && oldDisplayName){
+        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+    } else{
+      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+    }
+
+  }
+	alert(alertMsg);
+  location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
 }
 
 function addNegativeButton(encId, oldDisplayName) {

@@ -80,6 +80,20 @@ public Long countViewpointIAClassInstances(String genus, String specificEpithet,
 	return myValue;
 }
 
+public Long countViewpointIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
+	Long myValue=new Long(0);
+	if(iaClass==null || iaClass.equals("null")){
+		//do nothing
+	}
+	else{
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && viewpoint != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+
+	}
+	return myValue;
+}
+
 public HashMap<String, Long> getMediaAssetDetectionStatusesForSpecies(String genus, String specificEpithet, Shepherd myShepherd){
 	HashMap<String, Long> map=new HashMap<String, Long>();
 	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");

@@ -46,6 +46,7 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import java.util.regex.*;
 import org.ecocean.LocationID;
+import java.math.BigInteger;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -2615,16 +2616,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         if (NAMES_CACHE.size() < 1) return null;  //on the off chance has not been init'ed  (snh?)
         if (prefix == null) return null;
         Pattern pat = Pattern.compile("(^|.*;)" + prefix.toLowerCase() + "(\\d+)(;.*|$)");
-        int val = 0;  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
+        BigInteger val = new BigInteger("0");  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
         for (String c : NAMES_CACHE.values()) {
             Matcher mat = pat.matcher(c);
             if (!mat.find()) continue;
             if (zeroPadding < 1) zeroPadding = mat.group(2).length();
-            int num = Integer.parseInt(mat.group(2));  //snh!? blame regex if exception thrown here.  :)
-            if (num > val) val = num;
+            BigInteger num = new BigInteger(mat.group(2));
+            if(num.compareTo(val)>0) val = num;
         }
         if (zeroPadding < 1) zeroPadding = 4;  //if we had no guess (e.g. new?) lets be optimistic!
-        return String.format("%s%0" + zeroPadding + "d", prefix, val + 1);
+        return String.format("%s%0" + zeroPadding + "d", prefix, val.add(new BigInteger("1")));
       }
 
     public static List<String> findNames(String regex) {

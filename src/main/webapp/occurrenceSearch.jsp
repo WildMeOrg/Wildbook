@@ -571,6 +571,8 @@ context=ServletUtilities.getContext(request);
 	      <select multiple size="5" name="submitterID" id="submitterID">
 	        <option value="None"></option>
 	        <%
+            // List<String> allUserNames = new ArrayList<String> ();
+            // List<String> allUserFullNames = new ArrayList<String> ();
             List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
 	          for (int n = 0; n < numUsers; n++) {
               String username = sortedUsers.get(n).getUsername();
