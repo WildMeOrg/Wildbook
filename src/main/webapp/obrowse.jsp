@@ -545,6 +545,7 @@ if (Util.requestParameterSet(request.getParameter("evict"))) {
 }
 
 Shepherd myShepherd = new Shepherd(context);
+shown = new ArrayList<Object>();
 myShepherd.setAction("obrowse.jsp");
 myShepherd.beginDBTransaction();
 
@@ -636,6 +637,10 @@ if (type.equals("Encounter")) {
 		}
 
 	}
+
+
+
+
 
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmid==null) {

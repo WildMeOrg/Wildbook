@@ -662,6 +662,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
 */
             boolean success = true;
             JSONObject detectArgs = jin.optJSONObject("__detect_args");
+            if (detectArgs != null) detectArgs.put("jobid", taskId);
             String detectUrl = jin.optString("__detect_url");
             String detArgString = (detectArgs!=null) ? detectArgs.toString() : null;
             System.out.println("_doDetect got detectUrl "+detectUrl+" and detectArgs "+detArgString);

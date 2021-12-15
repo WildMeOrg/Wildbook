@@ -59,6 +59,13 @@ public class EncounterLite implements java.io.Serializable {
   private String encounterNumber = "";
   private String belongsToMarkedIndividual="";
   String date = "";
+  
+  //add for WB-1791 species-aware matching
+  String genus=null;
+  String specificEpithet=null;
+  
+  String submitterID=null;
+  String locationID=null;
 
   public EncounterLite() {
   }
@@ -72,6 +79,16 @@ public class EncounterLite implements java.io.Serializable {
     if(enc.getSex()!=null){
       this.sex = enc.getSex();
     }
+    
+    if(enc.getSubmitterID()!=null){
+      this.submitterID = enc.getSubmitterID();
+    }
+    
+    if(enc.getLocationID()!=null){
+      this.locationID = enc.getLocationID();
+    }
+    
+    
     //this.size = enc.getSize();
     /*if(enc.getSpots()!=null) {
         this.spots=new superSpot[enc.getSpots().length];
@@ -81,6 +98,7 @@ public class EncounterLite implements java.io.Serializable {
     }*/
 
 
+    /*
     if ((enc.getLeftReferenceSpots() != null) && (enc.getLeftReferenceSpots().size() == 3)) {
       //this.leftReferenceSpots=new superSpot[3];
       //superSpot[] existingRefs=enc.getLeftReferenceSpots();
@@ -97,6 +115,7 @@ public class EncounterLite implements java.io.Serializable {
       //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
       //System.out.println("I found right reference spots!");
     }
+    */
 
     //get spots
     if (enc.getSpots() != null) {
@@ -122,6 +141,13 @@ public class EncounterLite implements java.io.Serializable {
 
 
     }
+    
+    //WB-1791 get species info
+    if(enc.getGenus()!=null) {
+      this.genus=enc.getGenus();
+      if(enc.getSpecificEpithet()!=null)this.specificEpithet=enc.getSpecificEpithet();
+    }
+
 
   }
 
@@ -1654,6 +1680,20 @@ public class EncounterLite implements java.io.Serializable {
   }
   
   public String getBelongsToMarkedIndividual() {return belongsToMarkedIndividual;}
+  
+  public String getLocationID() {return locationID;}
+  
+  public String getSubmitterID() {return submitterID;}
+  
+  //WB-1791 add species aware spot matching
+  public String getGenus() {return genus;}
+  public String getSpecificEpithet() {return specificEpithet;}
+  public boolean doesSpeciesMatch(EncounterLite el) {
+    if(this.getGenus()==null || this.getSpecificEpithet()==null) {return false;}
+    if(el.getGenus()==null || el.getSpecificEpithet()==null) {return false;}
+    if(this.getGenus().equals(el.getGenus()) && this.getSpecificEpithet().equals(el.getSpecificEpithet()))return true;
+    return false;
+  }
   
   
 }

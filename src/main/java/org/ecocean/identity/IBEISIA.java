@@ -265,7 +265,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 
     //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONObject userConfidence, String baseUrl, String context)
+                                          JSONObject userConfidence, String baseUrl, String context, String taskId)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
@@ -280,6 +280,7 @@ Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
+        map.put("jobid", taskId);
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
@@ -401,7 +402,7 @@ Util.mark("sendIdentify-C", startTime);
 Util.mark("sendIdentify-D", startTime);
 
 
-		System.out.println("===================================== qlist & tlist =========================");
+		System.out.println("===================================== qlist & tlist ========================= [taskId=" + taskId + "]");
 		System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
 		if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist)) {
 		    System.out.println("tlist/tnlist == null! Checking against all.");
@@ -1163,7 +1164,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");
@@ -1303,7 +1304,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");

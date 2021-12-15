@@ -22,7 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 200;
+  int maxPages = 250;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -203,10 +203,16 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		desiredKeywords.add("Top");
-		desiredKeywords.add("Bottom");
-		desiredKeywords.add("Right");
-		desiredKeywords.add("Left");
+
+		desiredKeywords = CommonConfiguration.getIndexedPropertyValues("pictureBookKeywords", context);
+
+		// if misconfigured you can get null so lets be safe
+		if (desiredKeywords==null||desiredKeywords.size()==0) {
+      desiredKeywords.add("Top");
+  		desiredKeywords.add("Bottom");
+  		desiredKeywords.add("Right");
+  		desiredKeywords.add("Left");
+		}
 
 	for (MarkedIndividual mark: rIndividuals) {
 
@@ -285,7 +291,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					<th>Biopsy</th>
 					<th>S. skin</th>
 					<th>Location</th>
-					<!--<th>Fluke photo</th>-->
 					<th>Nickname</th>
 					<th>Sex</th>
 					<th>Satellite Tag</th>
@@ -312,7 +317,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= biopsy ? "checked" : ""%> /></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= sloughedSkin ? "checked" : ""%> /></td>
 						<td><%=location%></td>
-						<!--<td><%=flukePhoto%></td>-->
 						<td><%=nickname%></td>
 						<td><%=sex%></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= satelliteTag ? "checked" : ""%> /></td>
