@@ -30,8 +30,7 @@ jobs:
             USER_NAME: "ubuntu"
 
         run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -i private_key ${USER_NAME}@${HOSTNAME}
+          ssh -i ${PRIVATE_KEY} ${USER_NAME}@${HOSTNAME}
           `cd /data/code/hardik/Wildbook/
           sudo git fetch
           sudo git pull
