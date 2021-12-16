@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+
+name: AUTO-DEPLOY-CHANGES
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ auto-deploy-jaydeep ]
+  pull_request:
+    branches: [ auto-deploy-jaydeep ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout the code
+      - uses: actions/checkout@v2
+        env:
+            PRIVATE_KEY: ${{ secrets.KITIZEN_RSA }}
+            HOSTNAME: "kitizenscience.org"
+            USER_NAME: "ubuntu"
+
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -i private_key ${USER_NAME}@${HOSTNAME}
+          `cd /data/code/hardik/Wildbook/
+          sudo git fetch
+          sudo git pull
+          sudo ./mavenBuild.sh
+          sudo ./copyBuildDirOnly.sh`
+
+
