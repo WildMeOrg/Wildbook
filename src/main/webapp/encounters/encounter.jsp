@@ -1575,7 +1575,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
            	%>
 
                     marker = new google.maps.Marker({
-                        icon: 'https://www.kitizenscience.org/images/Kitizensciencelogo.png',
+                        icon: 'https://www.kitizenscience.org/images/2globe_128.gif',
                         position: latLng,
                         map: map
                     });
