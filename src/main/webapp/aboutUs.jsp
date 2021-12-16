@@ -23,7 +23,7 @@ For over two decades, Botswana Predator Conservation has been working to study a
 <a href="https://vimeo.com/51046340">BPC Video</a>
 </p>
 <p>
-    <a href="https://www.bpctrust.org/"><img width="300px" style="max-width: 100%;" alt="BPC Logo" src="cust/mantamatcher/img/BPC_logo_dog.jpg" class="img-responsive center-block"></a>
+    <a href="https://www.bpctrust.org/"><img width="300px" style="max-width: 100%; width:13%" alt="BPC Logo" src="cust/mantamatcher/img/BPC_logo_dog.jpg" class="img-responsive center-block"></a>
 </p>
 
 <br/>
@@ -33,7 +33,7 @@ For over two decades, Botswana Predator Conservation has been working to study a
 Learn more about Wild Me, and donate to their work here: https://www.wildme.org/
 </p>
 <p>
-    <a href="https://www.wildme.org/"><img width="300px" style="max-width: 100%;" alt="Wild Me Logo" src="images/WildMe-Logo-04.png" class="img-responsive center-block"></a>
+    <a href="https://www.wildme.org/"><img width="300px" style="max-width: 100%; width:13%" alt="Wild Me Logo" src="images/WildMe-Logo-04.png" class="img-responsive center-block"></a>
 </p>
 
 <br/>
