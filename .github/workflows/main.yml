@@ -23,18 +23,18 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout the code
-        env:
-            PRIVATE_KEY: ${{ secrets.KITIZEN_RSA }}
-            HOSTNAME: "kitizenscience.org"
-            USER_NAME: "ubuntu"
 
-        run: |
-          ssh -i ${PRIVATE_KEY} ${USER_NAME}@${HOSTNAME}
-          `cd /data/code/hardik/Wildbook/
-          sudo git fetch
-          sudo git pull
-          sudo ./mavenBuild.sh
-          sudo ./copyBuildDirOnly.sh`
+      - name: executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: "kitizenscience.org"
+          username: "ubuntu"
+          key: ${{ secrets.KITIZEN_RSA }}
+          port: 22
+          script: `cd /data/code/hardik/Wildbook/
+            sudo git fetch
+            sudo git pull
+            sudo ./mavenBuild.sh
+            sudo ./copyBuildDirOnly.sh`
 
 
