@@ -24,7 +24,6 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout the code
-        uses: actions/checkout@v2
         env:
             PRIVATE_KEY: ${{ secrets.KITIZEN_RSA }}
             HOSTNAME: "kitizenscience.org"
