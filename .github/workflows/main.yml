@@ -31,7 +31,8 @@ jobs:
           username: "ubuntu"
           key: ${{ secrets.KITIZEN_RSA }}
           port: 22
-          script: `cd /data/code/hardik/Wildbook/
+          script: |
+            cd /data/code/hardik/Wildbook/
             sudo git fetch
             sudo git pull
             sudo ./mavenBuild.sh
