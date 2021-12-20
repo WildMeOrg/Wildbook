@@ -2736,7 +2736,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public Measurement getMeasurement(String type) {
       MeasurementEvent m=this.getMeasurementEvent(type);
       //WB-1897 fix for crufty old IOT MeasurementEvent data
-      if(m.getType()!=null && m.getValue()!=null && m.getUnits()!=null) {
+      if(m!=null && m.getType()!=null && m.getValue()!=null && m.getUnits()!=null) {
     	Measurement oldMeas = new Measurement(this.catalogNumber,m.getType(),m.getValue(),m.getUnits(),"");
       	return oldMeas;
       }
