@@ -301,6 +301,19 @@ else if(species.equals("Carcharias taurus")){
 	};
 <%
 }
+else if(species.equals("Scyliorhinus stellaris")){
+%>
+	
+	//all other species
+	var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
+	var spotTypeNames = {
+			ref1: 'Front of eye',
+			ref2: 'Back of eye',
+			ref3: 'Center of nostril',
+		spot: 'spot',
+	};
+<%
+}
 else{
 %>
 	

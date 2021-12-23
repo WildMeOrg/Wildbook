@@ -163,6 +163,16 @@ System.out.println("====> params = " + params);
       String iaClass = "whalesharkCR"; // should we change this?
       ann.setIAClass(iaClass);
     }
+    else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
+      ann.setMatchAgainst(true);
+      String iaClass = "leopardsharkCR"; // should we change this?
+      ann.setIAClass(iaClass);
+    }
+    else if(speciesString!=null && speciesString.equals("Scyliorhinus stellaris")) {
+      ann.setMatchAgainst(true);
+      String iaClass = "nursehoundsharkCR"; // should we change this?
+      ann.setIAClass(iaClass);
+    }
     
     if(rightSide) {ann.setViewpoint("right");}
     else {ann.setViewpoint("left");}
