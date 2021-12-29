@@ -189,12 +189,12 @@ a.button:hover {
 <%
 if(adminMode && request.getParameter("showAll")!=null){
 	%>
-	<p>The following is a full list of bulk import tasks. <a href="imports.jsp">Click here to filter to just your bulk imports.</a></p>	    
+	<p>The following is a full list of bulk import tasks. <a id="showMine" href="imports.jsp" onclick="$('body,#showMine').css('cursor', 'progress');">Click here to filter to just your bulk imports.</a></p>	    
 	<%
 }
 else if(adminMode){
 	%>
-	<p><p>The following is a list of your bulk imports. <a href="imports.jsp?showAll=true">Click here to see all bulk imports.</a></p>
+	<p><p>The following is a list of your bulk imports. <a id="showAll" href="imports.jsp?showAll=true" onclick="$('body,#showAll').css('cursor', 'progress');">Click here to see all bulk imports.</a></p>
 	<%
 }
 else {
@@ -320,20 +320,21 @@ try{
 			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 			           		},
 			           		{
+			           			key: 'status',
+			           			label: 'Import Status',
+			           			value: _colStatus,
+			           			sortValue: function(o) { return o.status; },
+	
+			           		},
+			           		{
 			           			key: 'iaStatus',
 			           			label: 'IA?',
 			           			value: _colIA,
 			           			sortValue: function(o) { return o.iaStatus; },
 			     
-			           		},
+			           		}
 
-			           		{
-			           			key: 'status',
-			           			label: 'Status',
-			           			value: _colStatus,
-			           			sortValue: function(o) { return o.status; },
-	
-			           		},
+
 
 			];
 			
