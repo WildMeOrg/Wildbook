@@ -224,7 +224,14 @@ function forceLink(el) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
-                                                List<Task> tasks = ann.getRootIATasks(imageShepherd);
+                                                List<Task> tasks = Task.getTasksFor(ann, imageShepherd);
+
+                                                // now we remove any children whose parent is in the list of tasks
+                                                Iterator<Task> it = tasks.iterator();
+                                                while (it.hasNext()) {
+                                                    Task t = it.next();
+                                                    if ((t.getParent() != null) && tasks.contains(t.getParent())) it.remove();
+                                                }
 
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (tasks.contains(t)) continue;
