@@ -226,17 +226,17 @@ function forceLink(el) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = Task.getTasksFor(ann, imageShepherd);
 
-                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
-                                                    if (tasks.contains(t)) continue;
-                                                    if (t.deepContains(ann)!=null) tasks.add(t);
-                                                    //System.out.println("Task ID: "+t.getId());
-                                                }
-
                                                 // now we remove any children whose parent is in the list of tasks
                                                 Iterator<Task> it = tasks.iterator();
                                                 while (it.hasNext()) {
                                                     Task t = it.next();
                                                     if ((t.getParent() != null) && tasks.contains(t.getParent())) it.remove();
+                                                }
+
+                                                for (Task t : ma.getRootIATasks(imageShepherd)) {
+                                                    if (tasks.contains(t)) continue;
+                                                    if (t.deepContains(ann)!=null) tasks.add(t);
+                                                    //System.out.println("Task ID: "+t.getId());
                                                 }
 
                                                 Collections.sort(tasks, new Comparator<Task>() {
