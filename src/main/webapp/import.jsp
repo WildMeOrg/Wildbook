@@ -267,10 +267,10 @@ try{
 	        	if(annot.getMatchAgainst())numMatchAgainst++;
 	        	
 	        	//let's look for match results we can easily link for the user
-	        	List<Task> relatedTasks = Task.getRootTasksFor(annot, myShepherd);
-	        	if(relatedTasks!=null && relatedTasks.size()>0){
-	        		for(Task task:relatedTasks){
-	        			if(!tasks.contains(task)){
+                        List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
+                        if(relatedTasks!=null && relatedTasks.size()>0){
+                            for(Task task:relatedTasks){
+                                    if(!tasks.contains(task) && task.hasChildren()){
 	        				tasks.add(task);
 	        				annotTypesByTask.put(task.getId(),iaClass);
 	        			}
