@@ -3149,7 +3149,7 @@ if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
 %>
-    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+    <a target="_new" href="../import.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
 itq.closeAll();

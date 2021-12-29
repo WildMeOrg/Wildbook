@@ -3,12 +3,15 @@ package org.ecocean.servlet.importer;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.ia.Task;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -24,6 +27,7 @@ public class ImportTask implements java.io.Serializable {
     private String parameters;
     private List<String> log;
     private String status;
+    private Task iaTask;
 
     public ImportTask() {
         this((User)null);
@@ -162,5 +166,52 @@ public class ImportTask implements java.io.Serializable {
     
     public void setId(String id) {this.id=id;}
 
+    public Task getIATask() {
+        return this.iaTask;
+    }
+    public void setIATask(Task t) {
+        this.iaTask = t;
+    }
 
+    // some (potentially) useful methods about our IA Task
+
+    public boolean iaTaskStarted() {
+        if (iaTask == null) return false;
+        return iaTask.hasChildren();
+    }
+    public boolean iaTaskRequestedIdentification() {
+        if (iaTask == null) return false;
+        if (iaTask.getParameters() == null) return true;  // has no skipIdent, so i guess?
+        return !iaTask.getParameters().optBoolean("skipIdent", false);
+    }
+
+    public Map<String,Integer> stats() {
+        if (iaTask == null) return null;
+        Map<String,Integer> stats = new HashMap<String,Integer>();
+        stats.put("countLeafTasks", iaTask.getLeafTasks().size());
+        stats.put("countChildTasks", iaTask.numChildren());
+        return stats;
+    }
+    public Map<String,Integer> statsMediaAssets() {
+        if (iaTask == null) return null;
+        List<Task> tasks = iaTask.findNodesWithMediaAssets();
+        Map<String,Integer> stats = new HashMap<String,Integer>();
+        stats.put("count", tasks.size());
+        for (Task task : tasks) {
+            Map<String,Integer> tsum = task.detectionStatusSummary();
+            stats = Util.mapAdd(stats, tsum);
+        }
+        return stats;
+    }
+    public Map<String,Integer> statsAnnotations() {
+        if (iaTask == null) return null;
+        List<Task> tasks = iaTask.findNodesWithAnnotations();
+        Map<String,Integer> stats = new HashMap<String,Integer>();
+        stats.put("count", tasks.size());
+        for (Task task : tasks) {
+            Map<String,Integer> tsum = task.identificationStatusSummary();
+            stats = Util.mapAdd(stats, tsum);
+        }
+        return stats;
+    }
 }
