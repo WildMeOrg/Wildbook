@@ -4019,7 +4019,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     public static Encounter fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         Encounter enc = new Encounter(false);
 
-        enc.setTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("time", null)));
+        //enc.setTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("time", null)));
 
 /*
         org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
@@ -4074,6 +4074,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
 
+/*
         if (time != null) {
             obj.put("time", time.toIso8601());
         } else if (this.hasIncompleteTime()) {
@@ -4083,6 +4084,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             ComplexDateTime cdt = deriveComplexDateTime();
             if (cdt != null) obj.put("time", cdt.toIso8601());
         }
+*/
 
         org.json.JSONObject indObj = new org.json.JSONObject();
         if (this.getIndividual()!=null) {
@@ -4139,9 +4141,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
-                case "time":
-                    this.setTime( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
-                    break;
                 case "sex":
                     this.setSex((String)valueObj);
                     break;
@@ -4224,7 +4223,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 //these cases are all equivalent to add
-                case "time":
                 case "sex":
                 case "decimalLatitude":
                 case "decimalLongitude":
@@ -4272,9 +4270,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
-                case "time":
-                    this.setTime(null);
-                    break;
                 case "sex":
                     this.setSex(null);
                     break;

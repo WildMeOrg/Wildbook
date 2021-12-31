@@ -1531,8 +1531,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
 
+/*
         occ.setStartTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("startTime", null)));
         occ.setEndTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("endTime", null)));
+*/
 
         try {
             occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
@@ -1620,12 +1622,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("version", this.getVersion());
         obj.put("comments", this.getComments());
         obj.put("createdEDM", this.getDateTimeCreated());
+/*
         //ComplexDateTime st = getStartTimeSomehow();
         //ComplexDateTime et = getEndTimeSomehow();
         ComplexDateTime st = this.getStartTime();
         ComplexDateTime et = this.getEndTime();
         if (st != null) obj.put("startTime", st.toIso8601());
         if (et != null) obj.put("endTime", et.toIso8601());
+*/
 
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
             org.json.JSONObject encCounts = new org.json.JSONObject();
@@ -1705,7 +1709,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public org.json.JSONArray apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         org.json.JSONArray rtn = super.apiPatch(myShepherd, jsonIn);
         if (!this.isJDODeleted()) {
-            this._validateStartEndTimes();
+            //this._validateStartEndTimes();
             this._validateLocations();
         }
         return rtn;
@@ -1731,12 +1735,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         SystemLog.debug("apiPatch op={} on {}, with path={}, valueObj={}, jsonIn={}", opName, this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
-                case "startTime":
-                    this.setStartTimeNoCheck( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
-                    break;
-                case "endTime":
-                    this.setEndTimeNoCheck( (valueObj == null) ? null : new ComplexDateTime((String)valueObj) );
-                    break;
                 case "decimalLatitude":
                     this.setDecimalLatitude( (valueObj == null) ? null : tryDouble(valueObj) );
                     break;
@@ -1824,8 +1822,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 //these cases are all equivalent to add
-                case "startTime":
-                case "endTime":
                 case "decimalLatitude":
                 case "decimalLongitude":
                 case "locationId":
@@ -1872,12 +1868,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         SystemLog.debug("apiPatchRemove on {}, with path={}, jsonIn={}", this, path, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
-                case "startTime":
-                    this.setStartTime(null);
-                    break;
-                case "endTime":
-                    this.setEndTime(null);
-                    break;
                 case "decimalLatitude":
                     this.setDecimalLatitude(null);
                     break;
