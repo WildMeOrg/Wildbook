@@ -53,6 +53,19 @@
 							},
 							"locationID": []
 						},
+						
+						{
+							"name": "Bushrangers Bay, Shellharbour",
+							"id": "Bushrangers Bay, Shellharbour",
+							"geospatialInfo": {
+								"lat": -34.6,
+								"long": 150.9
+							},
+							"locationID": []
+						},
+						
+						
+						
 						{
 							"name": "Cherubs Cave",
 							"id": "CC",
@@ -522,6 +535,22 @@
 			  
 			  {
 			  "name": "6b", "id": "6b", "prefix": "TW-", "prefixDigitPadding": 3 },
+			  
+
+			  {
+				"name": "Atlantic Ocean (North)",
+			  "locationID": [
+			  
+				  {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID": [
+				  
+						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []}
+				  
+				  ]}
+			  
+			  
+			  
+			  ]},
+
 			  
 			  {
 			  "name": "Pacific Ocean", "id": "7", "locationID":[
