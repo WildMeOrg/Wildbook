@@ -394,6 +394,20 @@
 			  "name": "2g", "id": "2g", "prefix": "USA-", "prefixDigitPadding": 3 },
 			  
 			  {
+				"name": "Atlantic Ocean (North)", "id": "Atlantic Ocean (North)",
+			  "locationID": [
+			  
+				  {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID": [
+				  
+						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []}
+				  
+				  ]}
+			  
+			  
+			  
+			  ]},
+			  
+			  {
 			  "name": "South Atlantic", "id": "2h", "prefix": "SHA-", "prefixDigitPadding": 3, "locationID":[
 				  {
 				  "name": "St. Helena Island", "id": "2h1", "prefix": "SHA-", "prefixDigitPadding": 3 },
@@ -537,19 +551,7 @@
 			  "name": "6b", "id": "6b", "prefix": "TW-", "prefixDigitPadding": 3 },
 			  
 
-			  {
-				"name": "Atlantic Ocean (North)",
-			  "locationID": [
-			  
-				  {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID": [
-				  
-						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []}
-				  
-				  ]}
-			  
-			  
-			  
-			  ]},
+
 
 			  
 			  {
