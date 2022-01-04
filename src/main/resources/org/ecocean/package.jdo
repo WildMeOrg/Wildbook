@@ -279,9 +279,8 @@
         <column length="100"/>
       </field>
 
-      <field name="PUBLICATION_REMARK" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.PUBLICATION_REMARK"/>
-        <join/>
+ 	 <field name="PUBLICATION_REMARK" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
       </field>
     </class>
 
