@@ -166,15 +166,12 @@ $(document).ready(function(){
 	})
 	$codeEnabled = 0;
 	$("#switchCode").click(function(){
-		if($codeEnabled == 0){
-			$codeEnabled = 1;
 			var s = $(".ql-editor").html();
 			$("#code").val(s);
 			var d = $("#code").val();
 			$(".editor1").html(d);
 			$("#RemarksId").val(d);
 			alert($("#RemarksId").val());
-// 			$("#switchCode").text("SHOW TEXT");
 			var flag=true;
 			if(flag)
 			{
@@ -187,38 +184,7 @@ $(document).ready(function(){
                  .fail(function (response) {
                 	 alert("FAILS");
                  });
-
-				
-				 /* $.ajax({
-					url: '../PublicationNote',
-					type: 'POST',
-					dataType: 'json',
-					contentType: 'application/javascript',
-					data : $('#PublicationFormId').serialize(),
-					success: function(data) {  
-						if(data!=null)  
-						{
-							alert(data);
-						}
-						else
-						{
-							alert(data);
-						}
-					  },
-					error: function (x, y, z) {
-						console.warn('abc error');
-					},
-				}); */
 			}
-		}
-		else{
-			$codeEnabled = 0;
-			var s = $(".ql-editor").text();
-			$("#code").val(s);
-			var d = $("#code").val();
-			$(".ql-editor").html(d);
-			$("#switchCode").text("SHOW HTML");
-		}
 	})
 	
 	$('body').append("<div id='addImgAttr'>	<table><tr><td><input type='number' placeholder='width' id='imgWidth' min='100' style='width:60px;height:30px' /></td><td><input type='number' placeholder='height' id='imgHeight' style='width:60px;height:30px' /></td><td><input type='number' placeholder='hspace' id='imgHspace' style='width:60px;height:30px' /></td><td><input type='number' placeholder='vspace' id='imgVspace' style='width:60px;height:30px' /></td><td><select id='imAlign' style='width:60px;height:30px'><option value='unset'>Unset</option><option value='left'>Left</option><option value='right'>Right</option><option value='top'>Top</option><option value='bottom'>Bottom</option><option value='middle'>Middle</option></select></td><td><input type='button' value='Close' id='imgSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
