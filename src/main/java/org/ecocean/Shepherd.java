@@ -357,6 +357,21 @@ public class Shepherd {
       return false;
     }
   }
+  
+  public Publication storePulicatioRemarks(Publication task) {
+    Publication bo = null;
+    beginDBTransaction();
+    try {
+       bo=  pm.makePersistent(task);
+      commitDBTransaction();
+      return bo;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("Somthing Went's wrong");
+      return bo;
+    }
+  }
 
   public boolean storeNewCollaboration(Collaboration collab) {
     beginDBTransaction();

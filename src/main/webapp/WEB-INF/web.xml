@@ -2448,4 +2448,14 @@
       <servlet-name>ValidateEmail</servlet-name>
       <url-pattern>/ValidateEmail</url-pattern>
   </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>PublicationNote</servlet-name>
+    <servlet-class>org.ecocean.servlet.PublicationNote</servlet-class>
+  </servlet>
+
+    <servlet-mapping>
+      <servlet-name>PublicationNote</servlet-name>
+      <url-pattern>/PublicationNote</url-pattern>
+  </servlet-mapping>
 </web-app>

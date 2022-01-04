@@ -1,5 +1,40 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<link href="https://cdn.quilljs.com/latest/quill.snow.css" rel="stylesheet"> 
+<script src="https://cdn.quilljs.com/latest/quill.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style type="text/css">
+	.center {
+	  display: block;
+	  margin-left: auto;
+	  margin-right: auto;
+	}
+</style>
+<script>
+  var quill = new Quill('#editor', {
+  modules: {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['image', 'blockquote'],
+	  ['link','table'],
+	  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+	  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+	  [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+	  [{ 'direction': 'rtl' }],                         // text direction
+
+	  [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+	  [{ 'font': [] }],
+	  [{ 'align': [] }],
+
+	  ['clean']      
+    ]
+  },
+  placeholder: 'Compose an epic...',
+  theme: 'snow'  // or 'bubble'
+});
+
+</script>
 <%
 
     String context = "context0";
@@ -19,21 +54,208 @@
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
-
+  <style type="text/css">
+		.center {
+		  display: block;
+		  margin-left: auto;
+		  margin-right: auto;
+		}
+	</style>
+<link href="https://cdn.quilljs.com/latest/quill.snow.css" rel="stylesheet"> 
 <div class="container maincontent">
-
+	
+	 <form name="PublicationNote" id="PublicationFormId" method="post">
+	    <div id="editor"></div>
+		<div class="editor1"> </div>
+		<input type="hidden" name="Remarks" id="RemarksId">
+	</form>
     <h2>Publications</h2>
     <%--<ul>
     <li><a href="#acknowl">Acknowledging Wildbook for Whale Sharks in a publication</a></li>
     <li><a href="#scipubs">Scientific publications</a></li>
     </ul>--%>
 
-
+	<div id="editor"></div>
+	
     <p>Our validation study on cat photo identification accuracy is currently awaiting peer review at an academic
         journal. We presented a poster on our results at the International Urban Wildlife Conference and CitSciVirtual
         in 2021.<br/>
     </p>
+    
+<!--     jaydeep start -->
+<script src="https://cdn.quilljs.com/latest/quill.js"></script>
+<script src="<c:url value="/resources/js/quil.js"/>"></script>
 
+<script>
+$(document).ready(function(){
+	$('body').append("<textarea id='code'></textarea>");
+	$("#code").hide();
+	$(".ql-toolbar").append("<button style='float:right;margin-right:20px;width:auto;' id='switchCode'>SHOW HTML</button>");
+	
+	$(".ql-editor").on("click", "img", function (e){
+		e.preventDefault();
+		$('#addImgAttr').css( 'position', 'absolute' );
+		$('#addImgAttr').css( 'top', e.pageY);
+		$('#addImgAttr').css( 'left', e.pageX );
+		$('#addImgAttr').css( 'z-index','1');
+		$('#addImgAttr').show();
+		
+		var imgElem = $(this)
+		$("#imgWidth").val('');
+		$("#imgHeight").val('');
+		$("#imgVspace").val('');
+		$("#imgHspace").val('');
+		
+		$("#imgWidth").change(function(){
+			var imWidth = $("#imgWidth").val();
+			if(imWidth > 99)
+				imgElem.attr('width',imWidth);
+			else
+				alert("Width Must be greater than 100")
+		})
+		$("#imgHeight").change(function(){
+			var imgHeight = $("#imgHeight").val();
+			if(imgHeight > 99)
+				imgElem.attr('height',imgHeight);
+			else
+				alert("Height Must be greater than 100")
+		})
+		$("#imgVspace").change(function(){
+			var imgVspace = $("#imgVspace").val();
+			if(imgVspace > 1)
+				imgElem.attr('vspace',imgVspace);
+		})
+		$("#imgHspace").change(function(){
+			var imgHspace = $("#imgHspace").val();
+			if(imgHspace > 1)
+				imgElem.attr('hspace',imgHspace);
+		})
+		$("#imAlign").change(function(){
+			var imAlign = $("#imAlign").val();
+			if(imAlign == 'middle'){
+				imgElem.attr('class','center')
+			}
+			else{
+				imgElem.attr('align',imAlign);
+				imgElem.attr('class','')
+			}
+			
+		})
+		$("#imgSetBtn").click(function(){
+			$('#addImgAttr').hide();
+		})
+	})
+	$(".ql-editor").on("click", "a", function (e){
+		e.preventDefault();
+		$('#addLinkAttr').css( 'position', 'absolute' );
+		$('#addLinkAttr').css( 'top', e.pageY + 60);
+		$('#addLinkAttr').css( 'left', e.pageX );
+		$('#addLinkAttr').css( 'z-index','1');
+		$('#addLinkAttr').show();
+		
+		var linkElem = $(this);
+		$("#linkAttr").val('')
+		$("#linkAttr").change(function(){
+			var t = $("#linkAttr").val();
+			linkElem.attr('target',t);
+		})
+		$("#linkSetBtn").click(function(){
+			$('#addLinkAttr').hide();
+		})
+		
+	})
+	$codeEnabled = 0;
+	$("#switchCode").click(function(){
+		if($codeEnabled == 0){
+			$codeEnabled = 1;
+			var s = $(".ql-editor").html();
+			$("#code").val(s);
+			var d = $("#code").val();
+			$(".editor1").html(d);
+			$("#RemarksId").val(d);
+			alert($("#RemarksId").val());
+// 			$("#switchCode").text("SHOW TEXT");
+			var flag=true;
+			if(flag)
+			{
+				 $.post("../PublicationNote", {
+                     "Remarks": d
+                 },
+                 function () {
+                     alert("SUCCESS");
+                 })
+                 .fail(function (response) {
+                	 alert("FAILS");
+                 });
+
+				
+				 /* $.ajax({
+					url: '../PublicationNote',
+					type: 'POST',
+					dataType: 'json',
+					contentType: 'application/javascript',
+					data : $('#PublicationFormId').serialize(),
+					success: function(data) {  
+						if(data!=null)  
+						{
+							alert(data);
+						}
+						else
+						{
+							alert(data);
+						}
+					  },
+					error: function (x, y, z) {
+						console.warn('abc error');
+					},
+				}); */
+			}
+		}
+		else{
+			$codeEnabled = 0;
+			var s = $(".ql-editor").text();
+			$("#code").val(s);
+			var d = $("#code").val();
+			$(".ql-editor").html(d);
+			$("#switchCode").text("SHOW HTML");
+		}
+	})
+	
+	$('body').append("<div id='addImgAttr'>	<table><tr><td><input type='number' placeholder='width' id='imgWidth' min='100' style='width:60px;height:30px' /></td><td><input type='number' placeholder='height' id='imgHeight' style='width:60px;height:30px' /></td><td><input type='number' placeholder='hspace' id='imgHspace' style='width:60px;height:30px' /></td><td><input type='number' placeholder='vspace' id='imgVspace' style='width:60px;height:30px' /></td><td><select id='imAlign' style='width:60px;height:30px'><option value='unset'>Unset</option><option value='left'>Left</option><option value='right'>Right</option><option value='top'>Top</option><option value='bottom'>Bottom</option><option value='middle'>Middle</option></select></td><td><input type='button' value='Close' id='imgSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
+	$('#addImgAttr').hide();
+	$('body').append("<div id='addLinkAttr'><table><tr><td><select id='linkAttr' style='width:60px;height:30px'><option value=''>Default</option><option value='_blank'>Blank</option><option value='_self'>Self</option></select></td><td><input type='button' value='Close' id='linkSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
+	$('#addLinkAttr').hide();
+})
+
+</script>
+
+<script>
+	
+  var quill = new Quill('#editor', {
+  modules: {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['image', 'blockquote'],
+	  ['link','table'],
+	  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+	  [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+	  [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+	  [{ 'direction': 'rtl' }],                         // text direction
+
+	  [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+	  [{ 'font': [] }],
+	  [{ 'align': [] }],
+
+	  ['clean']      
+    ]
+  },
+  placeholder: 'Compose an epic...',
+  theme: 'snow'  // or 'bubble'
+});
+
+</script>
+<!-- jaydeep end -->
     <%--<a name="acknowl"></a><strong>Acknowledging Wildbook for Whale Sharks in a publication</strong>
     <p><em>If use of the Wildbook for Whale Sharks library made a significant contribution to a research project, please
         make the following acknowledgement in any resulting publication: </em></p>

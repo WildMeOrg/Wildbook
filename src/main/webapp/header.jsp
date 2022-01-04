@@ -120,6 +120,7 @@ if (thisUser == null) {
         <script src="https://cdn.quilljs.com/2.0.0-dev.2/quill.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/quil.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>

@@ -273,6 +273,17 @@
 
 
     </class>
+    <class name="Publication" identity-type="application" table="PUBLICATION">
+      <inheritance strategy="new-table"/>
+      <field name="PUBLICATION_ID" primary-key="true">
+        <column length="100"/>
+      </field>
+
+      <field name="PUBLICATION_REMARK" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.PUBLICATION_REMARK"/>
+        <join/>
+      </field>
+    </class>
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
 	
