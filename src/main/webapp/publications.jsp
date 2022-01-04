@@ -178,11 +178,11 @@ $(document).ready(function(){
 				 $.post("../PublicationNote", {
                      "Remarks": d
                  },
-                 function () {
-                     alert("SUCCESS");
+                 function (response) {
+                     alert("SUCCESS"+response);
                  })
                  .fail(function (response) {
-                	 alert("FAILS");
+                	 alert("FAILS"+response);
                  });
 			}
 	})
