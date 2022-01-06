@@ -1,4 +1,4 @@
-$(document).ready(function(){
+/*$(document).ready(function(){
 	$('body').append("<textarea id='code'></textarea>");
 	$("#code").hide();
 	$(".ql-toolbar").append("<button style='float:right;margin-right:20px;width:auto;' id='switchCode'>SHOW HTML</button>");
@@ -100,4 +100,4 @@ $(document).ready(function(){
 	$('#addImgAttr').hide();
 	$('body').append("<div id='addLinkAttr'><table><tr><td><select id='linkAttr' style='width:60px;height:30px'><option value=''>Default</option><option value='_blank'>Blank</option><option value='_self'>Self</option></select></td><td><input type='button' value='Close' id='linkSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
 	$('#addLinkAttr').hide();
-})
+})*/
