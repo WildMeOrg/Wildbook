@@ -176,7 +176,7 @@ $(document).ready(function(){
 			if(flag)
 			{
 				 $.post("../PublicationNote", {
-                     "Remarks": d
+                     "Remarks": d 
                  },
                  function (response) {
                      alert("SUCCESS"+response);
