@@ -113,6 +113,10 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
 
 private String occSql(Occurrence occ, Shepherd myShepherd) {
     if (!Util.stringExists(occ.getId())) return "";
+
+    // this is necessary cuz we couldnt compute ComplexDateTime without encounters any way?
+    if (Util.collectionIsEmptyOrNull(occ.getEncounters())) return "-- EMPTY encounters on " + occ + "; skipping\n\n";
+
     String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name, time_guid) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getId());
     Long vers = occ.getVersion();
@@ -123,14 +127,11 @@ private String occSql(Occurrence occ, Shepherd myShepherd) {
     // since sighting.time is required, we had better have a complex_date_time setup via datetime.jsp!
     sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.partnerGuid(occ.getId()));
 
-    // are we allowing empty sightings in codex??  TODO
-    if (!Util.collectionIsEmptyOrNull(occ.getEncounters())) {
-        Set<String> encIds = new HashSet<String>();
-        for (Encounter enc : occ.getEncounters()) {
-            encIds.add(enc.getId());
-        }
-        if (encIds.size() > 0) sqlIns += "UPDATE encounter SET sighting_guid='" + occ.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
+    Set<String> encIds = new HashSet<String>();
+    for (Encounter enc : occ.getEncounters()) {
+        encIds.add(enc.getId());
     }
+    sqlIns += "UPDATE encounter SET sighting_guid='" + occ.getId() + "' WHERE guid IN ('" + String.join("', '", encIds) + "');\n";
 
     return "\n" + sqlIns;
 }

@@ -80,7 +80,7 @@ public class MigrationUtil {
     }
 
     // gives a matchable guid but different!
-    private static String partnerGuid(String guid) {
+    public static String partnerGuid(String guid) {
         if (guid == null) return null;
         char[] c = guid.toCharArray();
         char tmp = c[35];

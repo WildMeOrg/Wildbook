@@ -49,6 +49,40 @@ private String cdtSql(ComplexDateTime cdt, Occurrence occ) {
     return "-- foo\n";
 }
 
+
+private String occSql(Occurrence occ, String tz) {
+    if (occ == null) return "";
+    if (Util.collectionIsEmptyOrNull(occ.getEncounters())) return "-- OUCH: " + occ + " has no encounters\n\n";
+    Encounter first = null;
+    long start = System.currentTimeMillis() * 2l;
+    for (Encounter enc : occ.getEncounters()) {
+        ComplexDateTime cdt = enc.deriveComplexDateTime(tz);
+        if (cdt == null) continue;
+        Long gmt = cdt.gmtLong();
+        if (gmt < start) {
+            start = gmt;
+            first = enc;
+        }
+    }
+
+    String sqlIns = "INSERT INTO complex_date_time (guid, datetime, timezone, specificity) VALUES (?, ?, ?, ?);";
+    sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.partnerGuid(occ.getId()));
+    if (first == null) {
+        sqlIns = MigrationUtil.sqlSub(sqlIns, "2000-01-01 01:23:45.6789");
+        sqlIns = MigrationUtil.sqlSub(sqlIns, "UTC+0000");
+        sqlIns = MigrationUtil.sqlSub(sqlIns, "year");
+        return "-- OOF: " + occ + " could not get date/time from encounters; using fallback\n" + sqlIns + "\n\n";
+    }
+
+    ComplexDateTime cdt = first.deriveComplexDateTime(tz);
+    String dt = cdt.gmtZonedDateTime().toString().substring(0,16).replaceFirst("T", " ");
+    sqlIns = MigrationUtil.sqlSub(sqlIns, dt);
+    sqlIns = MigrationUtil.sqlSub(sqlIns, "UTC" + simpleOffset(cdt));
+    sqlIns = MigrationUtil.sqlSub(sqlIns, specificity(first));
+    return "-- " + cdt + " on " + occ + " from " + first + "\n" + sqlIns + "\n\n";
+}
+
+
 /*
                  guid                 |          datetime          | timezone | specificity 
 --------------------------------------+----------------------------+----------+-------------
@@ -112,8 +146,7 @@ Default time zone is <b><%=tz%></b> (can be overridden with <i class="code">?tim
 <%
 
 String jdoql = "SELECT FROM org.ecocean.Encounter ORDER BY id";
-//if (!commit) jdoql += " RANGE 0,25";
-jdoql += " RANGE 0,125";
+if (!commit) jdoql += " RANGE 0,25";
 
 String fname = "houston_04_ComplexDateTimes.sql";
 if (commit) MigrationUtil.writeFile(fname, "");
@@ -126,6 +159,14 @@ System.out.println("migration/datetime.jsp DONE");
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
 List<Encounter> all = new ArrayList<Encounter>(c);
+query.closeAll();
+
+// now occurrences/sightings
+jdoql = "SELECT FROM org.ecocean.Occurrence ORDER BY id";
+if (!commit) jdoql += " RANGE 0,50";
+query = myShepherd.getPM().newQuery(jdoql);
+c = (Collection) (query.execute());
+List<Occurrence> allOcc = new ArrayList<Occurrence>(c);
 query.closeAll();
 
 out.println("<ul>");
@@ -146,20 +187,43 @@ for (Encounter enc : all) {
 }
 out.println("</ul>");
 
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
+
+
 
 if (commit) {
     content += "\n\nEND;\n";
     MigrationUtil.appendFile(fname, content);
-    out.println(filePreview(fname));
 } else {
 %>
 <hr /><p><b>commit=false</b>, not modifying anything</p>
 <p><a href="?commit=true&timeZone=<%=tz%>">Migrate DateTime values for Encounters and Occurrences</a></p>
 <%
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
+
+
+
+content = "BEGIN;\n\n";
+ct = 0;
+for (Occurrence occ : allOcc) {
+    ct++;
+    content += occSql(occ, tz);
+    if (ct % 100 == 0) {
+        System.out.println("migration/datetime.jsp [" + ct + "/" + allOcc.size() + "] occurrences processed");
+        MigrationUtil.appendFile(fname, content);
+        content = "";
+    }
+}
+content += "\n\nEND;\n";
+
+MigrationUtil.appendFile(fname, content);
+out.println(filePreview(fname));
+
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+
 
 %>
 
