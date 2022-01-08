@@ -79,6 +79,15 @@ public class MigrationUtil {
         return sqlSub(inSql, rs, false);
     }
 
+    // gives a matchable guid but different!
+    private static String partnerGuid(String guid) {
+        if (guid == null) return null;
+        char[] c = guid.toCharArray();
+        char tmp = c[35];
+        c[35] = c[34];
+        c[34] = tmp;
+        return new String(c);
+    }
 
     public static String toUUID(String s) {  // h/t https://stackoverflow.com/a/19399768
         return UUID.fromString(

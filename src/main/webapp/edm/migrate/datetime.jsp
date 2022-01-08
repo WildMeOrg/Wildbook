@@ -8,12 +8,76 @@ java.util.Arrays,
 org.json.JSONObject,
 org.ecocean.MigrationUtil,
 java.lang.reflect.*,
+java.time.ZonedDateTime,
+java.time.ZoneOffset,
+java.io.BufferedReader,
+java.io.FileReader,
+java.io.File,
 
 org.ecocean.api.ApiCustomFields,
 org.ecocean.customfield.*,
 
 org.ecocean.media.*
               "
+%><%!
+
+private String filePreview(String name) throws java.io.IOException {
+    File path = new File(MigrationUtil.getDir(), name);
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    String content = "";
+    String line;
+    while ( ((line = br.readLine()) != null) && (content.length() < 3500) ) {
+        content += line + "\n";
+    }
+    String rtn = content;
+    if (rtn.length() > 3000) rtn = rtn.substring(0, 3000) + "\n\n   [... preview truncated ...]";
+    return "<div>This file located at: <i class=\"code\">" + path.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
+}
+
+private String cdtSql(ComplexDateTime cdt, Encounter enc) {
+    if (cdt == null) return "";
+    String sqlIns = "INSERT INTO complex_date_time (guid, datetime, timezone, specificity) VALUES (?, ?, ?, ?);";
+    sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.partnerGuid(enc.getId()));
+    String dt = cdt.gmtZonedDateTime().toString().substring(0,16).replaceFirst("T", " ");
+    sqlIns = MigrationUtil.sqlSub(sqlIns, dt);
+    sqlIns = MigrationUtil.sqlSub(sqlIns, "UTC" + simpleOffset(cdt));
+    sqlIns = MigrationUtil.sqlSub(sqlIns, specificity(enc));
+    return "-- " + cdt + " on " + enc + "\n" + sqlIns + "\n\n";
+}
+
+private String cdtSql(ComplexDateTime cdt, Occurrence occ) {
+    return "-- foo\n";
+}
+
+/*
+                 guid                 |          datetime          | timezone | specificity 
+--------------------------------------+----------------------------+----------+-------------
+ 42515161-da4d-41f7-9ea8-f574016a6326 | 2021-12-29 16:43:52.247568 | UTC+0000 | time
+ f1b57c93-4e5d-4794-8e3f-aa339aee8e6b | 2014-01-01 09:00:00        | UTC+0000 | time
+ d718d685-0652-4d24-a90e-982fd803aaf6 | 2014-01-01 09:00:00        | UTC+0000 | time
+*/
+
+
+private String specificity(Encounter enc) {
+    String spec = "time";
+    if (enc.getHour() < 0) spec = "day";
+    if (enc.getDay() < 1) spec = "month";
+    if (enc.getMonth() < 1) spec = "year";
+    return spec;
+}
+
+private String simpleOffset(ComplexDateTime cdt) {
+    if (cdt == null) return null;
+    ZonedDateTime zdt = cdt.getZonedDateTime();
+    if (zdt == null) return null;
+    ZoneOffset zo = zdt.getOffset();
+    if (zo == null) return null;
+    return zo.toString().replaceFirst(":", "");
+}
+
+
+            ////if ((st == null) || (st.gmtLong() > enct.gmtLong())) st = enct;
+
 %><html>
 <head>
     <title>Codex Date/Time Migration Helper</title>
@@ -31,7 +95,7 @@ This will help migrate to Codex ComplexDateTime values.
 
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 String tz = request.getParameter("timeZone");
-if (tz == null) tz = "Z";
+if (tz == null) tz = "UTC+00:00";
 
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
@@ -47,9 +111,17 @@ Default time zone is <b><%=tz%></b> (can be overridden with <i class="code">?tim
 <hr />
 <%
 
-String jdoql = "SELECT FROM org.ecocean.Encounter WHERE time == null ORDER BY id";
-if (!commit) jdoql += " RANGE 0,25";
+String jdoql = "SELECT FROM org.ecocean.Encounter ORDER BY id";
+//if (!commit) jdoql += " RANGE 0,25";
+jdoql += " RANGE 0,125";
 
+String fname = "houston_04_ComplexDateTimes.sql";
+if (commit) MigrationUtil.writeFile(fname, "");
+String content = "BEGIN;\n";
+
+myShepherd.rollbackDBTransaction();
+
+System.out.println("migration/datetime.jsp DONE");
 
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
@@ -58,73 +130,37 @@ query.closeAll();
 
 out.println("<ul>");
 int ct = 0;
-int gap = 1000;
-int nextCommit = gap;
 for (Encounter enc : all) {
     ct++;
     ComplexDateTime cdt = enc.deriveComplexDateTime(tz);
     if (cdt == null) continue;
     out.println("<li>" + enc.getCatalogNumber() + " " + enc.getDate() + " => <b>" + cdt + "</b></li>");
     if (commit) {
-        enc.setTime(cdt);
-        if (ct % 50 == 0) System.out.println("datetime.jsp: [" + ct + "/" + all.size() + "] migrated " + cdt + " on " + enc);
-        if (ct > nextCommit) {
-            System.out.println("datetime.jsp: COMMIT");
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            nextCommit += gap;
+        content += cdtSql(cdt, enc);
+        if (ct % 100 == 0) {
+            System.out.println("migration/datetime.jsp [" + ct + "/" + all.size() + "] encounters processed");
+            MigrationUtil.appendFile(fname, content);
+            content = "";
         }
     }
 }
 out.println("</ul>");
 
-if (!commit) {
-    myShepherd.rollbackDBTransaction();
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+
+if (commit) {
+    content += "\n\nEND;\n";
+    MigrationUtil.appendFile(fname, content);
+    out.println(filePreview(fname));
+} else {
 %>
 <hr /><p><b>commit=false</b>, not modifying anything</p>
-<p><a href="?commit=true">Migrate DateTime values for Encounters and Occurrences</a></p>
+<p><a href="?commit=true&timeZone=<%=tz%>">Migrate DateTime values for Encounters and Occurrences</a></p>
 <%
     return;
 }
 
-myShepherd.commitDBTransaction();  //persists all encounter data
-
-
-myShepherd.beginDBTransaction();
-
-jdoql = "SELECT FROM org.ecocean.Occurrence WHERE encounters.size() > 0 ORDER BY id";
-//jdoql += " RANGE 0,15";  //debug only
-
-
-query = myShepherd.getPM().newQuery(jdoql);
-c = (Collection) (query.execute());
-List<Occurrence> occs = new ArrayList<Occurrence>(c);
-query.closeAll();
-
-out.println("<ul>");
-ct = 0;
-nextCommit = gap;
-for (Occurrence occ : occs) {
-    ct++;
-    boolean changed = occ.setTimesFromEncounters();  //no override so wont touch existing values, which would be weird to exist, but...
-    if (!changed) continue;  //nothing to report really
-    ComplexDateTime st = occ.getStartTime();
-    ComplexDateTime et = occ.getEndTime();
-    int encNum = Util.collectionSize(occ.getEncounters());
-    out.println("<li>" + occ.getId() + " (" + encNum + " encs) => <b>" + st + "</b> | <b>" + et + "</b> (dur " + (et.gmtLong() - st.gmtLong()) + ")</li>");
-    if (ct % 50 == 0) System.out.println("datetime.jsp: [" + ct + "/" + occs.size() + "] migrated " + st + "/" + et + " on " + occ);
-    if (ct > nextCommit) {
-        System.out.println("datetime.jsp: COMMIT");
-        myShepherd.commitDBTransaction();
-        myShepherd.beginDBTransaction();
-        nextCommit += gap;
-    }
-}
-
-
-myShepherd.commitDBTransaction();  //persists all occurrence data
-
-myShepherd.closeDBTransaction();
 %>
 
 

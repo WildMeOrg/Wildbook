@@ -97,6 +97,9 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
         sqlIns = "-- could not find owner for " + enc + "\n-- " + sqlIns;
     }
 
+    // this will set the time_guid *when* there is one to set (since encounter.time is optional)
+    sqlIns += "UPDATE encounter SET time_guid = (SELECT guid FROM complex_date_time WHERE guid='" + MigrationUtil.partnerGuid(enc.getId()) + "');\n";
+
     if (enc.hasAnnotations()) {
         Set<String> annIds = new HashSet<String>();
         for (Annotation ann : enc.getAnnotations()) {
@@ -110,13 +113,15 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
 
 private String occSql(Occurrence occ, Shepherd myShepherd) {
     if (!Util.stringExists(occ.getId())) return "";
-    String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
+    String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name, time_guid) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getId());
     Long vers = occ.getVersion();
     if (vers == null) vers = 3L;  //better than null, i say?
     sqlIns = MigrationUtil.sqlSub(sqlIns, vers);
     sqlIns = MigrationUtil.sqlSub(sqlIns, "processed");
     sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getAlternateId());
+    // since sighting.time is required, we had better have a complex_date_time setup via datetime.jsp!
+    sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.partnerGuid(occ.getId()));
 
     // are we allowing empty sightings in codex??  TODO
     if (!Util.collectionIsEmptyOrNull(occ.getEncounters())) {
@@ -217,7 +222,7 @@ if (!commit) {
 }
 
 
-String fname = filename("houston_04_encounters.sql");
+String fname = filename("houston_05_encounters.sql");
 MigrationUtil.writeFile(fname, "");
 String content = "BEGIN;\n";
 int ct = 0;
@@ -233,7 +238,7 @@ MigrationUtil.appendFile(fname, content);
 out.println(filePreview(fname));
 
 
-fname = filename("houston_05_occurrences.sql");
+fname = filename("houston_06_occurrences.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;
@@ -249,7 +254,7 @@ MigrationUtil.appendFile(fname, content);
 out.println(filePreview(fname));
 
 
-fname = filename("houston_06_individuals.sql");
+fname = filename("houston_07_individuals.sql");
 MigrationUtil.writeFile(fname, "");
 content = "BEGIN;\n";
 ct = 0;

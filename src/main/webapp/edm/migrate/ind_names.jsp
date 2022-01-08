@@ -162,7 +162,7 @@ if (!commit) {
 }
 
 
-String fname = "houston_07_ind_names.sql";
+String fname = "houston_08_ind_names.sql";
 MigrationUtil.writeFile(fname, "");
 String content = "BEGIN;\n";
 int ct = 0;
