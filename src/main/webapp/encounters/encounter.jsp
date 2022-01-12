@@ -417,7 +417,9 @@ function setIndivAutocomplete(el) {
 
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -447,6 +449,29 @@ function setIndivAutocomplete(el) {
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
@@ -871,9 +896,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
@@ -1902,7 +1933,8 @@ function checkIdDisplay() {
             function setUpIdActionOnClick(){
               $(".id-action").click(function(event) {
                         event.preventDefault();
-                        if(globalEncSpecies === notAvailable || !globalEncSpecies){
+
+                        if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(CommonConfiguration.getProperty("showTaxonomy",context).equals("true")) %>&&(!globalEncSpecies || globalEncSpecies === notAvailable)){
                           window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
                       		return false;
                         }
@@ -1930,6 +1962,18 @@ function checkIdDisplay() {
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
+                          const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
+                          const user = $("#autoUser").val();
+                          $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
+                          function() {
+                            $("#autoCommentErrorDiv").hide();
+                            $("#autoCommentsDiv").prepend("<p>" + encNewNameComments + "</p>");
+                            $("#autoComments").val("");
+                          })
+                          .fail(function(response) {
+                            $("#autoCommentErrorDiv").show();
+                            $("#autoCommentErrorDiv").html(response.responseText);
+                          });
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
@@ -2665,7 +2709,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
@@ -3105,7 +3149,7 @@ if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
 %>
-    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+    <a target="_new" href="../import.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
 itq.closeAll();
@@ -3917,15 +3961,20 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <!-- START TAXONOMY ATTRIBUTE -->
-<%
+
+    <script type="text/javascript">
+      var globalEncSpecies = null;
+      var notAvailable = null;
+    </script>
+    <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
     %>
     <script type="text/javascript">
-      var globalEncSpecies = '<%=genusSpeciesFound%>';
-      var notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+      globalEncSpecies = '<%=genusSpeciesFound%>';
+      notAvailable = '<%=encprops.getProperty("notAvailable")%>';
     </script>
     <%
     %>
@@ -6832,9 +6881,9 @@ String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), l
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
 //this is a sanity check for missed locationIDs !!
-for (String l : locCount.keySet()) {
-    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-}
+//for (String l : locCount.keySet()) {
+//    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+//}
 %>
 
     </div>

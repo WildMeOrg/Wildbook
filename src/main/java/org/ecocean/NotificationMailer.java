@@ -725,6 +725,7 @@ public final class NotificationMailer implements Runnable {
       map.put("@INDIVIDUAL_NICKNAME@", ind.getNickName());
       map.put("@INDIVIDUAL_NICKNAMER@", ind.getNickNamer());
       map.put("@INDIVIDUAL_COMMENTS@", ind.getComments());
+      map.put("@INDIVIDUAL_SPECIES@", ind.getTaxonomyString());
     }
   }
 
@@ -786,6 +787,7 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmails().toString());
       map.put("@ENCOUNTER_COMMENTS@", enc.getComments());
       map.put("@ENCOUNTER_USER@", enc.getAssignedUsername());
+      map.put("@ENCOUNTER_SPECIES@", enc.getTaxonomyString());
     }
   }
 
