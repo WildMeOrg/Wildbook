@@ -721,11 +721,16 @@
 			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] }
 
 		  ] },
+		 {"name": "Persian Gulf", "id": "Persian Gulf" },
 		 {
-		  "name": "Persian Gulf", "id": "Persian Gulf" },
-		 {
-		  "name": "Red Sea", "id":"Red Sea",
-		  "locationID":[]
+		  "name": "Red Sea", "id":"Red Sea", "locationID":[
+		  
+			{"name": "Sha'ab Satayah", "id": "Sha'ab Satayah","defaultLatitutde": 24.1720639,"defaultLongitude": 35.7016139 },
+			{"name": "Wadi El Gimal Island", "id": "Wadi El Gimal Island","defaultLatitutde": 24.6581417,"defaultLongitude": 35.1581250 },
+			{"name": "Sha'ab Samadai", "id": "Sha'ab Samadai","defaultLatitutde": 24.9888222,"defaultLongitude": 34.9968083 },
+			{"name": "Sha'ab Marsa Alam", "id": "Sha'ab Marsa Alam","defaultLatitutde": 25.0731889,"defaultLongitude": 34.9374639 }
+		  
+			]
 		  },
 		 {
 		  "name": "Timor Sea" , "id": "Timor Sea"
