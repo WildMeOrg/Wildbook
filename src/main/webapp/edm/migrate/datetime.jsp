@@ -154,7 +154,6 @@ String content = "BEGIN;\n";
 
 myShepherd.rollbackDBTransaction();
 
-System.out.println("migration/datetime.jsp DONE");
 
 Query query = myShepherd.getPM().newQuery(jdoql);
 Collection c = (Collection) (query.execute());
@@ -225,6 +224,7 @@ myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
 
+System.out.println("migration/datetime.jsp DONE");
 %>
 
 

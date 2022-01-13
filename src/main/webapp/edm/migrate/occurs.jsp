@@ -91,7 +91,7 @@ for (String encId : all) {
         occ.addEncounterAndUpdateIt(sib);
     }
     occ.setLocationIdFromEncounters();
-    occ.setTimesFromEncounters();
+    ////occ.setTimesFromEncounters();  // do not need to do now -- datetime.jsp will base off of encounters
     myShepherd.getPM().makePersistent(occ);
 
     out.println("<p>" + enc.getId() + ": <b>" + showOcc(occ) + "</b>" + ((sibs.size() == 0) ? "" : " (+ " + sibs.size() + " sib encs)") + "</p>");
