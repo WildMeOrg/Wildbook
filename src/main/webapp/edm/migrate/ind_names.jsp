@@ -44,14 +44,6 @@ private String filePreview(String name) throws java.io.IOException {
     return "<div>This file located at: <i class=\"code\">" + path.toString() + "</i><br /><textarea class=\"preview\">" + rtn + "</textarea></div>";
 }
 
-private String coerceOwnerId(Encounter enc, Shepherd myShepherd) {
-    String sub = enc.getSubmitterID();
-    if (sub == null) return null;
-    User user = myShepherd.getUser(sub);
-    if (user != null) return user.getUUID();
-    return null;
-}
-
 private String namesSql(Shepherd myShepherd, MarkedIndividual indiv) {
     if (!Util.stringExists(indiv.getId()) || (indiv.getNames() == null)) return "";
     JSONObject names = indiv.getNames().getValues();

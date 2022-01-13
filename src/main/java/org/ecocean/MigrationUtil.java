@@ -26,7 +26,14 @@ public class MigrationUtil {
         return migDir;
     }
     public static String checkDir() {
-        if (!migDir.exists()) return migDir.toString() + " (does not exist)";
+        if (!migDir.exists()) throw new RuntimeException("YOU MUST CREATE " + migDir + " AS A WRITEABLE DIRECTORY FIRST");
+        try {
+            writeFile(".test", "test");
+        } catch (java.io.IOException ex) {
+            throw new RuntimeException("YOU MUST CREATE " + migDir + " AS A WRITEABLE DIRECTORY FIRST; could not create test file: " + ex.toString());
+        }
+        File test = new File(getDir(), ".test");
+        if (!test.exists()) throw new RuntimeException("YOU MUST CREATE " + migDir + " AS A WRITEABLE DIRECTORY FIRST; could not create test file");
         return migDir.toString();
     }
 

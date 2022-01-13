@@ -127,6 +127,7 @@ This will help migrate to Codex ComplexDateTime values.
 
 <%
 
+MigrationUtil.checkDir();
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 String tz = request.getParameter("timeZone");
 if (tz == null) tz = "UTC+00:00";

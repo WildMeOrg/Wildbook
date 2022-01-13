@@ -94,7 +94,7 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
 
     if (err) {
         System.out.println("migration/occ_enc_ind.jsp: could not find owner for " + enc);
-        sqlIns = "-- could not find owner for " + enc + "\n-- " + sqlIns;
+        sqlIns = "-- could not find owner for " + enc + " [submitterID=" + enc.getSubmitterID() + "]\n-- " + sqlIns;
     }
 
     // this will set the time_guid *when* there is one to set (since encounter.time is optional)
