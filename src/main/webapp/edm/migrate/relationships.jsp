@@ -127,8 +127,12 @@ private String relationshipSql(Relationship rel) {
 
     String guid = Util.generateUUID();
     sqlIns = MigrationUtil.sqlSub(sqlIns, guid);
-    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(rel.getStartTime()));
-    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(rel.getEndTime()));
+    Long st = rel.getStartTime();
+    Long et = rel.getEndTime();
+    if (st < 1L) st = null;
+    if (et < 1L) et = null;
+    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(st));
+    sqlIns = MigrationUtil.sqlSub(sqlIns, Util.millisToIso8601StringNoTimezone(et));
     sqlIns = MigrationUtil.sqlSub(sqlIns, rel.getType());
 
     if (!typeRoleMap.containsKey(rel.getType())) typeRoleMap.put(rel.getType(), new HashSet<String>());
