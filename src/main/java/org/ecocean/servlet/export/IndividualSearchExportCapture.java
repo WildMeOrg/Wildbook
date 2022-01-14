@@ -55,93 +55,107 @@ public class IndividualSearchExportCapture extends HttpServlet{
  
  
     try {
-      int startYear=(new Integer(request.getParameter("year1"))).intValue();
-      int startMonth=(new Integer(request.getParameter("month1"))).intValue();
-      int endMonth=(new Integer(request.getParameter("month2"))).intValue();
-      int endYear=(new Integer(request.getParameter("year2"))).intValue();
-
       
+      //WB-1909 start and end date required
+      if(request.getParameter("year1")!=null && request.getParameter("month1")!=null && request.getParameter("year2")!=null && request.getParameter("month2")!=null){
+        
+        int startYear=(new Integer(request.getParameter("year1"))).intValue();
+        int startMonth=(new Integer(request.getParameter("month1"))).intValue();
+        int endMonth=(new Integer(request.getParameter("month2"))).intValue();
+        int endYear=(new Integer(request.getParameter("year2"))).intValue();
+  
+        
+        
+        //check for seasons wrapping over years
+        int wrapsYear=0;
+        if(startMonth>endMonth) {wrapsYear=1;}
+  
+        int numYearsCovered=endYear-startYear-wrapsYear+1;
+        out.println("task read captures x matrix occasions="+numYearsCovered);
+  
+        //now, let's print out our capture histories
+  
+        //out.println("<br><br>Capture histories for live recaptures modeling: "+startYear+"-"+endYear+", months "+startMonth+"-"+endMonth+"<br><br><pre>");
       
-      //check for seasons wrapping over years
-      int wrapsYear=0;
-      if(startMonth>endMonth) {wrapsYear=1;}
-
-      int numYearsCovered=endYear-startYear-wrapsYear+1;
-      out.println("task read captures x matrix occasions="+numYearsCovered);
-
-      //now, let's print out our capture histories
-
-      //out.println("<br><br>Capture histories for live recaptures modeling: "+startYear+"-"+endYear+", months "+startMonth+"-"+endMonth+"<br><br><pre>");
-    
-      
-      int maxLengthID=0;
-      for(int p=0;p<numIndividuals;p++) {
-        MarkedIndividual s=rIndividuals.get(p);
-        if(s.getIndividualID().length()>maxLengthID){maxLengthID=s.getIndividualID().length();}
-      }
-      
-      out.println("format='(a"+maxLengthID+","+numYearsCovered+"f1.0)'");
-      out.println("read input data");
-      
-      
-      for(int i=0;i<numIndividuals;i++) {
-        MarkedIndividual s=rIndividuals.get(i);
-
-        if (hiddenData.contains(s)) continue;
-
-        boolean wasSightedInRequestedLocation=false;
-        if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
-          wasSightedInRequestedLocation=s.wasSightedInLocationCode(locCode);
-        }
-        else{
-          wasSightedInRequestedLocation=true;
+        
+        int maxLengthID=0;
+        for(int p=0;p<numIndividuals;p++) {
+          MarkedIndividual s=rIndividuals.get(p);
+          if(s.getIndividualID().length()>maxLengthID){maxLengthID=s.getIndividualID().length();}
         }
         
-        if((wasSightedInRequestedLocation)&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
-          boolean wasReleased=false;
-          StringBuffer sb=new StringBuffer();
-
-          //lets print out each shark's capture history
-          for(int f=startYear;f<=(endYear-wrapsYear);f++) {
-            boolean sharkWasSeen=false;
-            
-
+        out.println("format='(a"+maxLengthID+","+numYearsCovered+"f1.0)'");
+        out.println("read input data");
+        
+        
+        for(int i=0;i<numIndividuals;i++) {
+          MarkedIndividual s=rIndividuals.get(i);
+  
+          if (hiddenData.contains(s)) continue;
+  
+          boolean wasSightedInRequestedLocation=false;
+          if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
+            wasSightedInRequestedLocation=s.wasSightedInLocationCode(locCode);
+          }
+          else{
+            wasSightedInRequestedLocation=true;
+          }
+          
+          if((wasSightedInRequestedLocation)&&(s.wasSightedInPeriod(startYear,startMonth,endYear,endMonth))) {
+            boolean wasReleased=false;
+            StringBuffer sb=new StringBuffer();
+  
+            //lets print out each shark's capture history
+            for(int f=startYear;f<=(endYear-wrapsYear);f++) {
+              boolean sharkWasSeen=false;
               
-              if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
-                sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode);
+  
+                
+                if((request.getParameter("locationCodeField")!=null)&&(!request.getParameter("locationCodeField").trim().equals(""))){
+                  sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31, locCode);
+                }
+                else{
+                  sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31);
+                }
+                
+            
+              if(sharkWasSeen){
+                
+  
+                sb.append("1");
+                wasReleased=true;
               }
               else{
-                sharkWasSeen=s.wasSightedInPeriod(f,startMonth,1,(f+wrapsYear),endMonth, 31);
+                sb.append("0");
+                
               }
+            }
+            if(wasReleased) {
+  
+                
+                String adjustedID=s.getIndividualID();
+                while(adjustedID.length()<maxLengthID){adjustedID+="X";}
               
+                out.println(adjustedID+sb.toString());
+         
+              numSharks++;
+            }
           
-            if(sharkWasSeen){
-              
-
-              sb.append("1");
-              wasReleased=true;
-            }
-            else{
-              sb.append("0");
-              
-            }
-          }
-          if(wasReleased) {
-
-              
-              String adjustedID=s.getIndividualID();
-              while(adjustedID.length()<maxLengthID){adjustedID+="X";}
-            
-              out.println(adjustedID+sb.toString());
-       
-            numSharks++;
-          }
+          } //end if
+        } //end while
+  
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         
-        } //end if
-      } //end while
-
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+        out.println("task closure test<br/>task model selection");
+        //out.println("task population estimate ALL");
+        //out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
+        out.println("task population estimate ALL");
+        
+      }
+      else {
+        out.println("<p><strong>Refine your search to include a start year and month as well as an end year and month.</strong></p>");
+      }
 
 
     }
@@ -153,10 +167,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
       myShepherd.closeDBTransaction();
     }
     
-    out.println("task closure test<br/>task model selection");
-    //out.println("task population estimate ALL");
-    //out.println("task population estimate NULL JACKKNIFE REMOVAL ZIPPEN MT-CH MH-CH MTH-CH");
-    out.println("task population estimate ALL");
+
     out.close();
   }
 
