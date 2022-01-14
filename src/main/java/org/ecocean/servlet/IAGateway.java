@@ -35,6 +35,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.User;
 import org.ecocean.AccessControl;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -1400,6 +1401,21 @@ System.out.println("qjob => " + qjob);
         if (res == null) throw new RuntimeException("IAGateway.handleBulkImport() called without res passed in");
         if (baseUrl == null) return res;
         if (jin == null) return res;
+
+        JSONObject taskParameters = jin.optJSONObject("taskParameters");
+        String importTaskId = null;
+        if (taskParameters != null) importTaskId = taskParameters.optString("importTaskId", null);
+        ImportTask itask = null;
+        Task parentTask = null;
+        if (importTaskId != null) itask = myShepherd.getImportTask(importTaskId);
+        if (itask != null) {
+            parentTask = new Task();  // root task to hold all others, to connect to ImportTask
+            parentTask.setParameters(taskParameters);
+            myShepherd.storeNewTask(parentTask);
+            itask.setIATask(parentTask);
+            System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask + " to link to " + itask);
+        }
+
         JSONObject maMap = jin.optJSONObject("bulkImport");
         System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
         if (maMap == null) return res;  // "should never happen"
@@ -1418,8 +1434,9 @@ System.out.println("qjob => " + qjob);
                 continue;
             }
             Task task = new Task();
-            task.setParameters(jin.optJSONObject("taskParameters"));
+            task.setParameters(taskParameters);
             myShepherd.storeNewTask(task);
+            if (parentTask != null) parentTask.addChild(task);
             myShepherd.commitDBTransaction();
             System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
             JSONObject qjob = new JSONObject(jin.toString());  //clone it to start with so we get all same content
