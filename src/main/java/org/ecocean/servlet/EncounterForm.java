@@ -640,9 +640,15 @@ System.out.println("about to do enc()");
                 }
               }
             }
+            //WB-1899 don't understand this error yet, but catching it might help unblock users when it happens
+            catch(IllegalArgumentException iae) {
+            	System.out.println("WB-1899: caught the project add encounter exception.");
+                iae.printStackTrace();
+            }
             catch(Exception g) {
               g.printStackTrace();
             }
+
 
 
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
