@@ -78,7 +78,7 @@ private Occurrence getSomeOccurrence(Shepherd myShepherd, MediaAsset ma) {
 private String encSql(Encounter enc, Shepherd myShepherd) {
     boolean err = false;
     if (!Util.stringExists(enc.getId())) return "";
-    String sqlIns = "INSERT INTO encounter (created, updated, viewed, guid, version, owner_guid, public) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
+    String sqlIns = "INSERT INTO encounter (created, updated, viewed, guid, version, owner_guid, submitter_guid, public) VALUES (now(), now(), now(), ?, ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, enc.getId());
     Long vers = enc.getVersion();
     if (vers == null) vers = 3L;  //better than null, i say?
@@ -86,8 +86,10 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
     String oid = coerceOwnerId(enc, myShepherd);
     if (oid == null) {
         sqlIns = MigrationUtil.sqlSub(sqlIns, "__NO_OWNER_FOUND__");
+        sqlIns = MigrationUtil.sqlSub(sqlIns, (String)null);  // submitter_guid
         err = true;
     } else {
+        sqlIns = MigrationUtil.sqlSub(sqlIns, oid);
         sqlIns = MigrationUtil.sqlSub(sqlIns, oid);
     }
     sqlIns = MigrationUtil.sqlSub(sqlIns, MigrationUtil.getPublicUserId(myShepherd).equals(oid));
