@@ -98,7 +98,7 @@ private String encSql(Encounter enc, Shepherd myShepherd) {
     }
 
     // this will set the time_guid *when* there is one to set (since encounter.time is optional)
-    sqlIns += "UPDATE encounter SET time_guid = (SELECT guid FROM complex_date_time WHERE guid='" + MigrationUtil.partnerGuid(enc.getId()) + "');\n";
+    sqlIns += "UPDATE encounter SET time_guid = (SELECT guid FROM complex_date_time WHERE guid='" + MigrationUtil.partnerGuid(enc.getId()) + "') WHERE guid='" + enc.getId() + "';\n";
 
     if (enc.hasAnnotations()) {
         Set<String> annIds = new HashSet<String>();
@@ -117,7 +117,7 @@ private String occSql(Occurrence occ, Shepherd myShepherd) {
     // this is necessary cuz we couldnt compute ComplexDateTime without encounters any way?
     if (Util.collectionIsEmptyOrNull(occ.getEncounters())) return "-- EMPTY encounters on " + occ + "; skipping\n\n";
 
-    String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name, time_guid) VALUES (now(), now(), now(), ?, ?, ?, ?);\n";
+    String sqlIns = "INSERT INTO sighting (created, updated, viewed, guid, version, stage, name, time_guid) VALUES (now(), now(), now(), ?, ?, ?, ?, ?);\n";
     sqlIns = MigrationUtil.sqlSub(sqlIns, occ.getId());
     Long vers = occ.getVersion();
     if (vers == null) vers = 3L;  //better than null, i say?
@@ -272,7 +272,7 @@ out.println(filePreview(fname));
 
 myShepherd.rollbackDBTransaction();
 
-System.out.println("migration/oc_enc_ind.jsp DONE");
+System.out.println("migration/occ_enc_ind.jsp DONE");
 %>
 
 <h1>DONE</h1>
