@@ -165,6 +165,7 @@ try{
 	<th>#</th>
 	<th>Annotation ACM ID</th>
 	<th>Encounters</th>
+	<th>Users</th>
 </tr>
 
     <%
@@ -196,14 +197,18 @@ try{
 			        List<Encounter> results2 = new ArrayList<Encounter>(c2);
 			        q2.closeAll();
 			        
+			        String userString = "";
+			        
 			        list+="<td><ul>";
 			        for(Encounter enc:results2){
 			        	String indy="";
+			        	
 			        	if(enc.getIndividual()!=null)indy=" ("+enc.getIndividual().getDisplayName()+")";
+			        	if(enc.getSubmitterID()!=null && !enc.getSubmitterID().trim().equals("") && userString.indexOf(enc.getSubmitterID())<0)userString += "<li>"+enc.getSubmitterID()+"</li>";
 			        	list+="<li><a target=\"_blank\" href=\"../encounters/encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+indy+"</a></li>";
 			        }
 			        list+="</ul></td>";
-			
+					list+="<td><ul>"+userString+"</ul></td>";
 				    list+="</tr>";
 				    out.println(list);
 					ct++;

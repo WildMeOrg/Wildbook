@@ -144,6 +144,7 @@ function drawFeature(id) {
 	<th>Annotation ACM ID</th>
 	<th>Individual 1</th>
 	<th>Individual 2</th>
+	<th>Related Users</th>
 	<th>Merge Individuals?</th>
 </tr>
 <%
@@ -185,7 +186,9 @@ try{
 		        	MediaAsset ma=annot.getMediaAsset();
 		        	Feature f=null;
 		        	String fid="";
-
+		        	ArrayList<String> relatedUsers = indy.getAllAssignedUsers();
+		        	relatedUsers.addAll(prevy.getAllAssignedUsers());
+		        	
 		        	if(annot.getFeatures()!=null && annot.getFeatures().size()>0){
 		        		f=annot.getFeatures().get(0);
 		        		fid=f.getId();
@@ -196,6 +199,8 @@ try{
 		        	list+="<td><a target=\"_new\" href=\"../obrowse.jsp?type=Annotation&acmid=" + acmId + "\">" + id + "</a></td>";
 		        	list+="<td><a target=\"_blank\" href=\"../individuals.jsp?id=PREVIOUSID\">PREVIOUS_DISPLAYNAME</a></td>";
 		        	list+="<td><a target=\"_blank\" href=\"../individuals.jsp?id=CURRENTID\">CURRENT_DISPLAYNAME</a></td>";
+		        	list+="<td>RELATED_USERS</td>";
+		        	
 		        	list+="<td><a target=\"_blank\" href=\"../merge.jsp?individualA=CURRENTID&individualB=PREVIOUSID\">link</a>";
 		        	//if(f!=null)list+= "<script>addFeature('" + fid + "', " + f.getParametersAsString() + ");</script>";
 		        	list+="</td>";     
@@ -204,6 +209,7 @@ try{
 		        	list=list.replaceAll("CURRENTID",indy.getIndividualID());
 		        	list=list.replaceAll("CURRENT_DISPLAYNAME",indy.getDisplayName());
 		        	list=list.replaceAll("PREVIOUS_DISPLAYNAME",prevy.getDisplayName());
+		        	list=list.replaceAll("RELATED_USERS",relatedUsers.toString());
 	        		out.println(list);
 	        		ct++;
 		        }
