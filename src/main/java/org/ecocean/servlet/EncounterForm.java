@@ -119,7 +119,6 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
-private List<Project> projects = new ArrayList<Project>();
 
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(Map formValues, String key) {
@@ -237,6 +236,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
   @Override
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        List<Project> projects = new ArrayList<Project>();
 
         Map formValues = new HashMap();
 
@@ -385,7 +385,7 @@ System.out.println("*** trying redirect?");
                 }
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
-                
+
                 //Adding to a project should not generate an error that blocks data capture
                 //throw exception and move on
                 try {
@@ -401,9 +401,9 @@ System.out.println("*** trying redirect?");
                 catch(Exception e) {
                   e.printStackTrace();
                 }
-                
-                
-                
+
+
+
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
