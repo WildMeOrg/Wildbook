@@ -54,6 +54,7 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
 
 int numMarkedIndividuals=0;
 int numEncounters=0;
+int numSightings=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
@@ -72,6 +73,7 @@ try{
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
+    numSightings=myShepherd.getNumOccurrences();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
@@ -96,14 +98,14 @@ catch(Exception e){
 #fullScreenDiv{
     width:100%;
    /* Set the height to match that of the viewport. */
-    
+
     width: auto;
     padding:0!important;
     margin: 0!important;
     position: relative;
 }
-#video{    
-    width: 100vw; 
+#video{
+    width: 100vw;
     height: auto;
     object-fit: cover;
     left: 0px;
@@ -113,7 +115,7 @@ catch(Exception e){
 
 h2.vidcap {
 	font-size: 2.4em;
-	
+
 	color: #fff;
 	font-weight:300;
 	text-shadow: 1px 2px 2px #333;
@@ -141,43 +143,43 @@ h2.vidcap {
 
 @media screen and (max-width: 850px) and (min-width: 551px) {
 
-	
+
 	#fullScreenDiv{
 	    width:100%;
 	   /* Set the height to match that of the viewport. */
-	    
+
 	    width: auto;
 	    padding-top:50px!important;
 	    margin: 0!important;
 	    position: relative;
 	}
-	
+
 	h2.vidcap {
 	    font-size: 2.4em;
 	    margin-top: 55%;
 	}
-	
+
 }
 @media screen and (max-width: 550px) {
 
-	
+
 	#fullScreenDiv{
 	    width:100%;
 	   /* Set the height to match that of the viewport. */
-	    
+
 	    width: auto;
 	    padding-top:150px!important;
 	    margin: 0!important;
 	    position: relative;
 	}
-	
+
 	h2.vidcap {
 	    font-size: 1.8em;
 	    margin-top: 100%;
 	}
-	
+
 }
- 
+
 
 </style>
 
@@ -204,22 +206,22 @@ h2.vidcap {
 	<h2 class="section-header"><%=props.getProperty("howItWorksH") %></h2>
 
   	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
-  	
+
   	<!-- <h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3> -->
   	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/index_detection.jpg" />
-		  	
+
   	<!--
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/leopard_howitworks2.jpg" />
-		
-		
+
+
 	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/puppy_with_big_ears.JPG" />
     -->
-      
+
 </section>
 
 <div class="container-fluid relative data-section">
@@ -387,9 +389,9 @@ h2.vidcap {
                 <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numSightings %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
-            
+
             <%
 			if(numUsersWithRoles>0){
 			%>
@@ -397,18 +399,18 @@ h2.vidcap {
 
                 <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
             </section>
-            
+
             <%
 }
-            
+
             if(numDataContributors>0){
-            
+
             %>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
             </section>
-            
+
             <%
             }
             %>
@@ -420,12 +422,12 @@ h2.vidcap {
             <article class="text-center">
                 <div class="row">
                     <img src="cust/mantamatcher/img/tico_meeting.jpg" data-src="cust/mantamatcher/img/tico_meeting.jpg" alt="Tico McNutt Quote Image" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
-                   
+
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
                             <i>“Iconic, rare, spectacular and fearsome, Africa's large predators are among our planet's most revered - and most threatened. Knowledge about these predators' population connectivity is critical to mapping the strategy to ensure their future and the health of the ecosystems Africans and Africa's wildlife depend on. The ACW is the tool that will enable conservationists and wildlife ecologists to document that critical connectivity.”</i><br>- JW McNutt, <i>PhD., Director, Wild Entrust; Founder and Director, Botswana Predator Conservation</i></p>
-                        
+
                     </div>
                 </div>
             </article>
