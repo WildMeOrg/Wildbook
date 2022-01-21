@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import org.ecocean.configuration.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.UUID;
@@ -139,6 +140,36 @@ public class MigrationUtil {
         List<String> sort = new ArrayList<String>(in);
         Collections.sort(sort, String.CASE_INSENSITIVE_ORDER);
         return sort;
+    }
+
+
+    public static String getOrMakeCustomFieldCategory(Shepherd myShepherd, String type, String label) throws DataDefinitionException, ConfigurationException {
+        if ((type == null) || (label == null)) throw new IllegalArgumentException("type and label must not be null");
+        String confKey = "site.custom.customFieldCategories";
+        Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, confKey);
+        JSONArray cats = new JSONArray();
+        if (conf != null) cats = conf.getValueAsJSONArray();
+        for (int i = 0 ; i < cats.length() ; i++) {
+            JSONObject c = cats.optJSONObject(i);
+            if (c == null) continue;
+            String cid = c.optString("id", null);
+            String clabel = c.optString("label", null);
+            String ctype = c.optString("type", null);
+            if ((cid == null) || (clabel == null) || (ctype == null)) {
+                System.out.println("WARNING: CustomFieldCategory got wonky entry: " + c);
+                continue;
+            }
+            if (ctype.equals(type) && clabel.equals(label)) return cid;
+        }
+        JSONObject newCat = new JSONObject();
+        newCat.put("id", Util.generateUUID());
+        newCat.put("type", type);
+        newCat.put("label", label);
+        newCat.put("timeCreated", System.currentTimeMillis());
+        cats.put(newCat);
+        conf = ConfigurationUtil.setConfigurationValue(myShepherd, confKey, cats);
+        ConfigurationUtil.resetValueCache("site");
+        return newCat.getString("id");
     }
 
 }

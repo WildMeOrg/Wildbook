@@ -57,23 +57,31 @@ if ((className == null) || (fieldName == null)) {
 }
 
 Class cls = null;
+String categoryType = null;
 switch (className) {
     case "Encounter":
         cls = Encounter.class;
+        categoryType = "encounter";
         break;
     case "Occurrence":
         cls = Occurrence.class;
+        categoryType = "sighting";
         break;
     case "MarkedIndividual":
+        categoryType = "individual";
         cls = MarkedIndividual.class;
 }
 
 if (cls == null) throw new RuntimeException("invalid className= passed");
 
 Field field = cls.getDeclaredField(fieldName);
+String categoryId = MigrationUtil.getOrMakeCustomFieldCategory(myShepherd, categoryType, "General");
+JSONObject schema = new JSONObject();
+schema.put("category", categoryId);
+schema.put("_migration", System.currentTimeMillis());
 
-CustomFieldDefinition cfd = new CustomFieldDefinition(field);
-out.println("<p>new cfd: <b>" + cfd + "</b></p>");
+CustomFieldDefinition cfd = new CustomFieldDefinition(field, schema);
+out.println("<p>new cfd: <b>" + cfd + "</b><xmp>" + cfd.toJSONObject().toString(4) + "</xmp></p>");
 CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfd);
 if (found != null) {
     out.println("<p>collision with existing cfd: <b>" + found + "</b></p>");

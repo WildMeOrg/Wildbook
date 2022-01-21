@@ -43,26 +43,41 @@ public class CustomFieldDefinition implements java.io.Serializable {
         this.multiple = mult;
     }
     public CustomFieldDefinition(Field field) throws CustomFieldException {
+        this(field, null);
+    }
+    public CustomFieldDefinition(Field field, JSONObject schema) throws CustomFieldException {
         this();
+        if (schema == null) schema = new JSONObject();
         boolean mult = false;
         String className = field.getDeclaringClass().getCanonicalName();
         String name = field.getName();
         Class<?> clsType = field.getType();
         String type = clsType.getName();
+        schema.put("displayType", type);
         if (type.equals("java.util.List")) {  // h/t https://stackoverflow.com/a/1942680
             mult = true;
             ParameterizedType ltype = (ParameterizedType)field.getGenericType();
             Class<?> lclass = (Class<?>)ltype.getActualTypeArguments()[0];
             type = lclass.getName();
+            schema.put("displayType", "multiselect");
         }
-        if (type.startsWith("java.lang.")) type = type.substring(10).toLowerCase();
+        if (type.startsWith("java.lang.")) {
+            type = type.substring(10).toLowerCase();
+            schema.put("displayType", type);
+        }
         SystemLog.debug("CustomFieldDefinition from Field using className={}, name={}, type={}, mult={}", className, name, type, mult);
         if (!validClassName(className)) throw new CustomFieldException("CustomFieldDefinition() invalid className in constructor");
         if (!DataDefinition.isValidType(type)) throw new CustomFieldException("CustomFieldDefinition() invalid type in constructor");
+        schema.put("label", name);
+        schema.put("description", name);
+        JSONObject params = new JSONObject();
+        params.put("required", false);
+        params.put("schema", schema);
         this.className = className;
         this.name = name;
         this.type = type;
         this.multiple = mult;
+        this.parameters = params.toString();
     }
 
     public String getId() {
