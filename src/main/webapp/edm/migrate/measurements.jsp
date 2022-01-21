@@ -12,6 +12,7 @@ java.lang.reflect.*,
 org.ecocean.MigrationUtil,
 org.ecocean.Util.MeasurementDesc,
 org.ecocean.api.ApiCustomFields,
+org.ecocean.configuration.*,
 org.ecocean.customfield.*,
 
 org.ecocean.media.*
@@ -119,6 +120,13 @@ for (Encounter enc : all) {
     ect++;
 }
 
+//update configuration to reflect changes in CustomFieldDefinitions
+String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+for (String cfcls : classes) {
+    String key = "site.custom.customFields." + cfcls;
+    ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
+}
+ConfigurationUtil.resetValueCache("site");
 
 myShepherd.commitDBTransaction();
 

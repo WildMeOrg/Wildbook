@@ -9,6 +9,7 @@ org.json.JSONObject,
 java.lang.reflect.*,
 
 org.ecocean.api.ApiCustomFields,
+org.ecocean.configuration.*,
 org.ecocean.customfield.*,
 org.ecocean.MigrationUtil,
 
@@ -112,6 +113,14 @@ for (ApiCustomFields obj : all) {
     System.out.println("customFields.jsp: [" + ct + "/" + all.size() + "] migrated " + cfd + " on " + obj);
     ct++;
 }
+
+//update configuration to reflect changes in CustomFieldDefinitions
+String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+for (String cfcls : classes) {
+    String key = "site.custom.customFields." + cfcls;
+    ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
+}
+ConfigurationUtil.resetValueCache("site");
 
 
 myShepherd.commitDBTransaction();

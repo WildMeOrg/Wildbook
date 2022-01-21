@@ -14,6 +14,7 @@ org.ecocean.MigrationUtil,
 java.lang.reflect.*,
 org.ecocean.Util.MeasurementDesc,
 org.ecocean.api.ApiCustomFields,
+org.ecocean.configuration.*,
 org.ecocean.customfield.*,
 
 org.ecocean.media.*
@@ -144,6 +145,13 @@ for (MediaAsset ma : allMA) {
 out.println("</ul></p>");
 }
 
+//update configuration to reflect changes in CustomFieldDefinitions
+String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+for (String cfcls : classes) {
+    String key = "site.custom.customFields." + cfcls;
+    ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
+}
+ConfigurationUtil.resetValueCache("site");
 
 myShepherd.commitDBTransaction();
 

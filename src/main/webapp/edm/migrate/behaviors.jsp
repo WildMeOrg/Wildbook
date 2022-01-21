@@ -16,6 +16,7 @@ java.lang.reflect.*,
 org.ecocean.Util.MeasurementDesc,
 org.ecocean.api.ApiCustomFields,
 org.ecocean.datacollection.Instant,
+org.ecocean.configuration.*,
 org.ecocean.customfield.*,
 org.joda.time.DateTime,
 
@@ -221,6 +222,14 @@ for (Occurrence occ : occAll) {
     System.out.println("behaviors.jsp: [" + ct + "/" + occAll.size() + "] migrated (Instant) behaviors on " + occ);
     ct++;
 }
+
+//update configuration to reflect changes in CustomFieldDefinitions
+String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+for (String cfcls : classes) {
+    String key = "site.custom.customFields." + cfcls;
+    ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
+}
+ConfigurationUtil.resetValueCache("site");
 
 
 myShepherd.commitDBTransaction();
