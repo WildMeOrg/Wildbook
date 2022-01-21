@@ -11,6 +11,7 @@ java.util.HashMap,
 java.util.Set,
 java.util.HashSet,
 org.json.JSONObject,
+org.json.JSONArray,
 org.ecocean.MigrationUtil,
 java.lang.reflect.*,
 org.ecocean.Util.MeasurementDesc,
@@ -31,6 +32,17 @@ private String measDesc(MeasurementDesc desc) {
     d += " / " + desc.getUnits();
     d += " / " + desc.getUnitsLabel();
     return d;
+}
+
+private JSONArray makeChoices(Set<String> set) {
+    JSONArray arr = new JSONArray();
+    for (String s : MigrationUtil.setSort(set)) {
+        JSONObject c = new JSONObject();
+        c.put("label", s);
+        c.put("value", s);
+        arr.put(c);
+    }
+    return arr;
 }
 
 private String cfdNameFromMeasurementDesc(MeasurementDesc desc) {
@@ -115,13 +127,17 @@ for (Occurrence occ : bOccs) {
 %>
 <form method="POST" action="behaviors.jsp">
 <h2>Encounters</h2>
+<!--
 <input type="checkbox" name="enc-dropdown" /> Use list below as dropdown
+-->
 <textarea name="enc-choices">
 <%=String.join("\n", MigrationUtil.setSort(encMap.keySet()))%>
 </textarea>
 
 <h2>Sightings/Occurrences</h2>
+<!--
 <input type="checkbox" name="occ-dropdown" /> Use list below as dropdown
+-->
 <textarea name="occ-choices">
 <%=String.join("\n", MigrationUtil.setSort(occMap.keySet()))%>
 </textarea>
@@ -130,6 +146,18 @@ for (Occurrence occ : bOccs) {
 MigrationUtil.writeFile("behaviors_encounter_choices.txt", String.join("\n", MigrationUtil.setSort(encMap.keySet())));
 MigrationUtil.writeFile("behaviors_occurrence_choices.txt", String.join("\n", MigrationUtil.setSort(occMap.keySet())));
 
+String encCatId = MigrationUtil.getOrMakeCustomFieldCategory(myShepherd, "encounter", "Behavior");
+String occCatId = MigrationUtil.getOrMakeCustomFieldCategory(myShepherd, "sighting", "Behavior");
+JSONObject schema = new JSONObject();
+schema.put("displayType", "multiselect");
+schema.put("label", "Behavior");
+schema.put("description", "Behavior");
+schema.put("category", encCatId);
+schema.put("_migration", System.currentTimeMillis());
+schema.put("choices", makeChoices(encMap.keySet()));
+JSONObject params = new JSONObject();
+params.put("schema", schema);
+
 CustomFieldDefinition cfdEnc = new CustomFieldDefinition("org.ecocean.Encounter", "string", "behaviors", true);
 CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfdEnc);
 if (found != null) {
@@ -137,6 +165,7 @@ if (found != null) {
     myShepherd.rollbackDBTransaction();
     return;
 }
+cfdEnc.setParameters(params);
 
 CustomFieldDefinition cfdOcc = new CustomFieldDefinition("org.ecocean.Occurrence", "string", "behaviors", true);
 found = CustomFieldDefinition.find(myShepherd, cfdOcc);
@@ -145,10 +174,13 @@ if (found != null) {
     myShepherd.rollbackDBTransaction();
     return;
 }
+params.getJSONObject("schema").put("category", occCatId);
+params.getJSONObject("schema").put("choices", makeChoices(occMap.keySet()));
+cfdOcc.setParameters(params);
 
 %>
-<p>Encounter: <%=cfdEnc%></p>
-<p>Occurrence: <%=cfdOcc%></p>
+<p>Encounter: <%=cfdEnc%><xmp><%=cfdEnc.toJSONObject().toString(4)%></xmp></p>
+<p>Occurrence: <%=cfdOcc%><xmp><%=cfdOcc.toJSONObject().toString(4)%></xmp></p>
 <hr />
 <%
 
@@ -233,6 +265,7 @@ ConfigurationUtil.resetValueCache("site");
 
 
 myShepherd.commitDBTransaction();
+System.out.println("behaviors.jsp: DONE");
 
 %>
 

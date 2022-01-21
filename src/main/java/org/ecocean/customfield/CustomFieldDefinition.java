@@ -64,6 +64,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
         if (type.startsWith("java.lang.")) {
             type = type.substring(10).toLowerCase();
             schema.put("displayType", type);
+            if (type.equals("double")) schema.put("displayType", "float");
         }
         SystemLog.debug("CustomFieldDefinition from Field using className={}, name={}, type={}, mult={}", className, name, type, mult);
         if (!validClassName(className)) throw new CustomFieldException("CustomFieldDefinition() invalid className in constructor");
