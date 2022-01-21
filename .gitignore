@@ -36,3 +36,4 @@ src/main/webapp/javascript/dev/Relationship.json
 .classpath
 
 catalina.base_IS_UNDEFINED
+.buildx.cache
