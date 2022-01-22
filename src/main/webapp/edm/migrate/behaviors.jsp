@@ -34,16 +34,6 @@ private String measDesc(MeasurementDesc desc) {
     return d;
 }
 
-private JSONArray makeChoices(Set<String> set) {
-    JSONArray arr = new JSONArray();
-    for (String s : MigrationUtil.setSort(set)) {
-        JSONObject c = new JSONObject();
-        c.put("label", s);
-        c.put("value", s);
-        arr.put(c);
-    }
-    return arr;
-}
 
 private String cfdNameFromMeasurementDesc(MeasurementDesc desc) {
     String cfdName = desc.getType();
@@ -154,7 +144,8 @@ schema.put("label", "Behavior");
 schema.put("description", "Behavior");
 schema.put("category", encCatId);
 schema.put("_migration", System.currentTimeMillis());
-schema.put("choices", makeChoices(encMap.keySet()));
+schema.put("choices", MigrationUtil.makeChoices(encMap.keySet()));
+schema.put("defaultValue", new JSONArray());
 JSONObject params = new JSONObject();
 params.put("schema", schema);
 
@@ -175,7 +166,7 @@ if (found != null) {
     return;
 }
 params.getJSONObject("schema").put("category", occCatId);
-params.getJSONObject("schema").put("choices", makeChoices(occMap.keySet()));
+params.getJSONObject("schema").put("choices", MigrationUtil.makeChoices(occMap.keySet()));
 cfdOcc.setParameters(params);
 
 %>
@@ -256,7 +247,7 @@ for (Occurrence occ : occAll) {
 }
 
 //update configuration to reflect changes in CustomFieldDefinitions
-String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+String[] classes = {"Encounter", "Occurrence"};
 for (String cfcls : classes) {
     String key = "site.custom.customFields." + cfcls;
     ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));

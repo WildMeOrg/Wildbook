@@ -50,6 +50,16 @@ Shepherd myShepherd = new Shepherd(context);
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 myShepherd.beginDBTransaction();
 
+String encCatId = MigrationUtil.getOrMakeCustomFieldCategory(myShepherd, "encounter", "Labeled Keywords");
+JSONObject schema = new JSONObject();
+schema.put("displayType", "string");
+schema.put("category", encCatId);
+schema.put("_migration", System.currentTimeMillis());
+JSONObject params = new JSONObject();
+params.put("schema", schema);
+
+List<MeasurementDesc> descs = Util.findMeasurementDescs("en", context);
+
 Set<String> kwIds = new HashSet<String>();
 Set<String> kwLabels = new HashSet<String>();
 List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
@@ -62,7 +72,10 @@ for (LabeledKeyword lkw : lkws) {
 Map<String,CustomFieldDefinition> cfdMap = new HashMap<String,CustomFieldDefinition>();
 for (String label : kwLabels) {
     CustomFieldDefinition cfd = new CustomFieldDefinition("org.ecocean.Encounter", "string", label);
-    out.println("<p><b>" + label + ":</b> " + cfd + "</p>");
+    params.getJSONObject("schema").put("label", label);
+    params.getJSONObject("schema").put("description", label);
+    cfd.setParameters(params);
+    out.println("<p><b>" + label + ":</b> " + cfd + "<xmp>" + cfd.toJSONObject().toString(4) + "</xmp></p>");
     CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfd);
     if (found != null) {
         out.println("<p>collision with existing cfd: <b>" + found + "</b></p>");
@@ -146,7 +159,7 @@ out.println("</ul></p>");
 }
 
 //update configuration to reflect changes in CustomFieldDefinitions
-String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+String[] classes = {"Encounter"};
 for (String cfcls : classes) {
     String key = "site.custom.customFields." + cfcls;
     ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
@@ -154,6 +167,7 @@ for (String cfcls : classes) {
 ConfigurationUtil.resetValueCache("site");
 
 myShepherd.commitDBTransaction();
+System.out.println("labeledKeywords.jsp: DONE");
 
 %>
 <h3>done</h3>

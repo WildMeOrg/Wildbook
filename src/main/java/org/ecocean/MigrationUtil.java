@@ -142,6 +142,17 @@ public class MigrationUtil {
         return sort;
     }
 
+    public static JSONArray makeChoices(Set<String> set) {
+        JSONArray arr = new JSONArray();
+        for (String s : setSort(set)) {
+            JSONObject c = new JSONObject();
+            c.put("label", s);
+            c.put("value", s);
+            arr.put(c);
+        }
+        return arr;
+    }
+
 
     public static String getOrMakeCustomFieldCategory(Shepherd myShepherd, String type, String label) throws DataDefinitionException, ConfigurationException {
         if ((type == null) || (label == null)) throw new IllegalArgumentException("type and label must not be null");

@@ -54,20 +54,32 @@ Shepherd myShepherd = new Shepherd(context);
 boolean commit = Util.requestParameterSet(request.getParameter("commit"));
 myShepherd.beginDBTransaction();
 
+String encCatId = MigrationUtil.getOrMakeCustomFieldCategory(myShepherd, "encounter", "Measurements");
+JSONObject schema = new JSONObject();
+schema.put("displayType", "float");
+schema.put("category", encCatId);
+schema.put("_migration", System.currentTimeMillis());
+JSONObject params = new JSONObject();
+params.put("schema", schema);
+
 List<MeasurementDesc> descs = Util.findMeasurementDescs("en", context);
 List<CustomFieldDefinition> cfds = new ArrayList<CustomFieldDefinition>();
 for (MeasurementDesc desc : descs) {
-    CustomFieldDefinition cfd = new CustomFieldDefinition("org.ecocean.Encounter", "double", cfdNameFromMeasurementDesc(desc));
+    String name = cfdNameFromMeasurementDesc(desc);
+    CustomFieldDefinition cfd = new CustomFieldDefinition("org.ecocean.Encounter", "double", name);
     CustomFieldDefinition found = CustomFieldDefinition.find(myShepherd, cfd);
     if (found != null) {
         out.println("<p>collision with existing cfd: <b>" + found + "</b></p>");
         myShepherd.rollbackDBTransaction();
         return;
     }
+    params.getJSONObject("schema").put("label", name);
+    params.getJSONObject("schema").put("description", name);
+    cfd.setParameters(params);
     cfds.add(cfd);
     String show = measDesc(desc);
     %>
-<p><b><%=show%></b><br /><%=cfd.toString()%></p>
+<p><b><%=show%></b><br /><%=cfd.toString()%><xmp><%=cfd.toJSONObject().toString(4)%></xmp></p>
     <%
 }
 
@@ -121,7 +133,7 @@ for (Encounter enc : all) {
 }
 
 //update configuration to reflect changes in CustomFieldDefinitions
-String[] classes = {"Encounter", "Occurrence", "MarkedIndividual"};
+String[] classes = {"Encounter"};
 for (String cfcls : classes) {
     String key = "site.custom.customFields." + cfcls;
     ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cfcls));
@@ -129,6 +141,7 @@ for (String cfcls : classes) {
 ConfigurationUtil.resetValueCache("site");
 
 myShepherd.commitDBTransaction();
+System.out.println("measurements.jsp: DONE");
 
 %>
 

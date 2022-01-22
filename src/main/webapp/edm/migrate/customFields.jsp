@@ -132,6 +132,7 @@ ConfigurationUtil.resetValueCache("site");
 
 
 myShepherd.commitDBTransaction();
+System.out.println("customFields.jsp: DONE");
 
 %>
 
