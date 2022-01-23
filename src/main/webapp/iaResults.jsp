@@ -133,7 +133,7 @@ if (request.getParameter("acmId") != null) {
 		rtn.put("error", "unknown error");
 	} else {
 		JSONArray janns = new JSONArray();
-		//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 		Project project = null;
 		if (Util.stringExists(projectIdPrefix)) {
 			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
