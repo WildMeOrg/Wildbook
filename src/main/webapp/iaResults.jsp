@@ -27,7 +27,7 @@ private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
     ImportTask itask = null;
     if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
     query.closeAll();
-System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+	System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
     if (itask == null) return;
     String svKey = "rapid_completed_" + itask.getId();
     myShepherd.beginDBTransaction();
@@ -35,7 +35,7 @@ System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
     if (m == null) m = new JSONObject();
     for (Annotation ann : enc.getAnnotations()) {
         m.put(ann.getId(), true);
-System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+		System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
     }
     SystemValue.set(myShepherd, svKey, m);
     myShepherd.commitDBTransaction();
@@ -1283,7 +1283,7 @@ console.info('%d ===> %s', num, acmId);
 	let paramString = 'iaResults.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId!=""&&projectId!=undefined) {
-		paramString += "&projectIdPrefix="+projectId;
+		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
 	}
 
 
