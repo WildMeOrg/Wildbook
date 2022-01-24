@@ -271,7 +271,7 @@ try{
                         if(relatedTasks!=null && relatedTasks.size()>0){
                             for(Task task:relatedTasks){
                             	
-                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1){
+                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
 	                            	//System.out.println("I am a task with only one algorithm");
                             		if(!tasks.contains(task)){
 		        						tasks.add(task);
