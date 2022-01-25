@@ -7,6 +7,9 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.ecocean.security.HiddenIndividualReporter;
 
 import java.lang.StringBuffer;
@@ -57,12 +60,16 @@ public class IndividualSearchExportCapture extends HttpServlet{
     try {
       
       //WB-1909 start and end date required
-      if(request.getParameter("year1")!=null && request.getParameter("month1")!=null && request.getParameter("year2")!=null && request.getParameter("month2")!=null){
+      if((request.getParameter("datepicker1")!=null)&&(!request.getParameter("datepicker1").trim().equals(""))&&(request.getParameter("datepicker2")!=null)&&(!request.getParameter("datepicker2").trim().equals(""))){
+
+        DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+        DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+        DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
         
-        int startYear=(new Integer(request.getParameter("year1"))).intValue();
-        int startMonth=(new Integer(request.getParameter("month1"))).intValue();
-        int endMonth=(new Integer(request.getParameter("month2"))).intValue();
-        int endYear=(new Integer(request.getParameter("year2"))).intValue();
+        int startYear=date1.getYear();
+        int startMonth=date1.getMonthOfYear();
+        int endMonth=date2.getYear();
+        int endYear=date2.getMonthOfYear();
   
         
         
