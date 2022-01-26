@@ -1487,9 +1487,11 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    System.out.println("     localPath: "+localPath);
     if (Util.stringExists(localPath)){
       localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
     }
+    System.out.println("     localPath2: "+localPath);
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -1517,15 +1519,20 @@ public class StandardImport extends HttpServlet {
       fullPath = photoDirectory+"/"+localPath;
       fullPath = fullPath.replace("//","/");
       resolvedPath = resolveHumanEnteredFilename(fullPath);
-
+      System.out.println("     resolvedPath: "+resolvedPath);
       if (resolvedPath!=null) {
-        String suffix = resolvedPath.split(".")[resolvedPath.length()-1].toLowerCase();
-        if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
-          feedback.logParseError(assetColIndex(i, allColsMap), "Bad Img Type: "+localPath, row);
-          return null;
+        String[] arr = resolvedPath.split(".");
+        if(arr.length>1) {
+          String suffix = arr[arr.length-1].toLowerCase();
+          System.out.println("     suffix: "+suffix);
+          if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
+            feedback.logParseError(assetColIndex(i, allColsMap), "Bad Img Type: "+localPath, row);
+            return null;
+          }
         }
       }
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
     }
 
@@ -1585,7 +1592,8 @@ public class StandardImport extends HttpServlet {
       }
       // keywording
 
-    } catch (java.io.IOException ioEx) {
+    } 
+    catch (java.io.IOException ioEx) {
 
       System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
