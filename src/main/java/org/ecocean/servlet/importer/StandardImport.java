@@ -114,7 +114,7 @@ public class StandardImport extends HttpServlet {
 
 
     // need to initialize (initColIndexVariables()), this is useful to have everywhere
-    int numCols=0;
+    //int numCols=0;
 
     
     
@@ -194,22 +194,25 @@ public class StandardImport extends HttpServlet {
 
 
     if (dataFound) {
-      doImport(filename, dataFile, request, response, numFolderRows, committing, out,sheet, context, individualCache, verbose, isUserUpload, photoDirectory, individualScope,allColsMap, numCols);
-    } else {
+      doImport(filename, dataFile, request, response, numFolderRows, committing, out,sheet, context, individualCache, verbose, isUserUpload, photoDirectory, individualScope,allColsMap);
+    } 
+    else {
       out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
     }
 
     ServletContext sc = getServletContext();
     try {
-    // eh?
-    System.out.println("Trying to take you to the results...");
+      // eh?
+      System.out.println("Trying to take you to the results...");
       //sc.getRequestDispatcher("/import/results.jsp").forward(request, response);
       if(!committing)sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
       if(!committing)sc.getRequestDispatcher("/footer.jsp").include(request, response);
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
-    } finally {
+    } 
+    finally {
       System.out.println("Forwarding, I hope...");
 
     }
@@ -220,8 +223,9 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out,Sheet sheet, String context, Map<String,String> individualCache, boolean verbose, Boolean isUserUpload, String photoDirectory, String individualScope, HashMap<String,Integer> allColsMap, int numCols) {
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out,Sheet sheet, String context, Map<String,String> individualCache, boolean verbose, Boolean isUserUpload, String photoDirectory, String individualScope, HashMap<String,Integer> allColsMap) {
     
+    System.out.println("debug3: doImport");
     HashMap<User, List<MarkedIndividual>> userIndividualCache = new  HashMap<>();
     
  // indexes of columns determined to have no values for quick skipping
@@ -229,7 +233,7 @@ public class StandardImport extends HttpServlet {
     
     int numAnnots=0; // for loggin'
     
-    Integer numMediaAssets = null;
+    //Integer numMediaAssets = Integer.getInteger(-1);
     
     Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
     
@@ -264,10 +268,12 @@ public class StandardImport extends HttpServlet {
     Workbook wb = null;
     try {
       wb = WorkbookFactory.create(dataFile);
-    } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
+    } 
+    catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
       out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
       return;
-    } catch (java.io.IOException ioEx) {
+    } 
+    catch (java.io.IOException ioEx) {
       out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
       ioEx.printStackTrace();
       return;
@@ -283,11 +289,53 @@ public class StandardImport extends HttpServlet {
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
     TabularFeedback feedback = null;
-    initColIndexVariables(firstRow, colIndexMap, unusedColumns,numCols, skipCols, allColsMap, feedback, sheet); // IMPORTANT: this initializes the TabularFeedback
+    
+    //initColIndexVariables(firstRow, colIndexMap, unusedColumns, skipCols, allColsMap, feedback, sheet, committing, out); // IMPORTANT: this initializes the TabularFeedback
+    
+    //colIndexMap = makeColIndexMap(firstRow, skipCols, allColsMap, feedback, sheet, committing, out);
+    Map<String,Integer> colMap = new HashMap<String, Integer>();
+    int numCols = firstRow.getLastCellNum();
+    System.out.println("We're making colIndexMap: numCols: "+numCols);
+    String[] headers = new String[numCols];
+    
+    for (int i=0; i<=numCols; i++) {
+      String colName = getStringNoLog(firstRow, i);
+      System.out.println("Are there any values in this colum? "+i);
+      allColsMap.put(colName,i);
+      if (colName==null || colName.length()<4 || !anyValuesInColumn(i, feedback, sheet)) {
+        System.out.println("skipCols adding column named: "+colName+" with index "+i);
+        skipCols.add(i);
+        continue;
+      }
+      System.out.println("yes, "+colName+" has at least one value");
+      headers[i] = colName;
+      colMap.put(colName, i);
+    }
+
+    feedback = new TabularFeedback(headers, committing, out, skipCols);
+    System.out.println("headers = "+headers);
+    System.out.println("feedback headers = "+feedback.getColNames());
+    colIndexMap = colMap;
+    
+    System.out.println("debug4: makeColIndexMap");
+    
+    System.out.println("feedback getColNames() = "+feedback.getColNames());
+    
+    unusedColumns = new HashSet<String>();
+    //Set<String> col = colIndexMap.keySet();
+    // have to manually copy-in like this because keySet returns a POINTER (!!!)
+    for (String colName: colIndexMap.keySet()) {
+      // length restriction removes colnames like "F21"
+      if (colName!=null && colName.length()>3) {
+        unusedColumns.add(colName);
+      }
+    }
+    
+    
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
     
-
+    System.out.println("debug3: committing: "+committing);
 
     if(committing) {
       Shepherd myShepherd = new Shepherd(context);
@@ -350,10 +398,16 @@ public class StandardImport extends HttpServlet {
     int printPeriod = 1;
     //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>",committing,out);
-    //System.out.println("debug0");
-    System.out.println("feedback headers = "+feedback.getColNames());
+    System.out.println("debug0:committing: "+committing);
+    try {
+      System.out.println("debug5:getColNames: "+feedback.getColNames());
+    }
+    catch(Exception he) {
+      he.printStackTrace();
+    }
+    System.out.println("feedback headers += "+feedback.getColNames());
     if (!committing) feedback.printStartTable();
-    //System.out.println("debug1");
+    System.out.println("debug1: got past printSTartTable");
     // one encounter per-row. We keep these running.
 
     List<String> encsCreated = new ArrayList<String>();
@@ -367,6 +421,7 @@ public class StandardImport extends HttpServlet {
 
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
+      System.out.println("StandardImport.java_rowLoopNum_"+i);
       myShepherd.beginDBTransaction();
       if(taskID!=null)itask=myShepherd.getImportTask(taskID);
       if(itask!=null)itask.setStatus("Importing "+i);
@@ -379,7 +434,7 @@ public class StandardImport extends HttpServlet {
 
         if (!committing) feedback.startRow(row, i);
         Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
-        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets, colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos, photoDirectory, feedback, isUserUpload, committing, missingPhotos,context, numMediaAssets, allColsMap, skipCols);
+        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets, colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos, photoDirectory, feedback, isUserUpload, committing, missingPhotos,context, allColsMap, skipCols);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns,defaultSubmitterID,committing, feedback);
         occ = loadOccurrence(row, occ, enc, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
         mark = loadIndividual(row, enc, myShepherd, committing, individualCache, colIndexMap, unusedColumns, verbose, missingColumns, userIndividualCache, individualScope, out, feedback,request);
@@ -434,7 +489,8 @@ public class StandardImport extends HttpServlet {
 
 
 
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
         myShepherd.rollbackDBTransaction();
@@ -445,7 +501,7 @@ public class StandardImport extends HttpServlet {
 
     }
 
-
+    System.out.println("debug2");
     if (committing) {
 
       Shepherd myShepherd = new Shepherd(context);
@@ -480,13 +536,15 @@ public class StandardImport extends HttpServlet {
 
         if(itask!=null)out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
 
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         e.printStackTrace();
       }
 
-    } else {
+    } 
+    else {
       feedback.printEndTable();
     }
 
@@ -1273,16 +1331,18 @@ public class StandardImport extends HttpServlet {
           fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
         }
       }
-    } catch (Exception e) {}
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, List<String> foundPhotos, String photoDirectory, TabularFeedback feedback, Boolean isUserUpload, boolean committing, List<String> missingPhotos,String context, Integer numMediaAssets, HashMap<String,Integer> allColsMap, List<Integer> skipCols) {
+  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, List<String> foundPhotos, String photoDirectory, TabularFeedback feedback, Boolean isUserUpload, boolean committing, List<String> missingPhotos,String context, HashMap<String,Integer> allColsMap, List<Integer> skipCols) {
     AssetStore astore = getAssetStore(myShepherd);
 
     //if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
     ArrayList<Annotation> annots = new ArrayList<Annotation>();
-    for (int i=0; i<getNumMediaAssets(colIndexMap, numMediaAssets); i++) {
+    for (int i=0; i<getNumMediaAssets(colIndexMap); i++) {
       MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap, verbose, missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory, foundPhotos, committing, missingPhotos,context, allColsMap, skipCols);
       if (ma==null) continue;
 
@@ -1742,10 +1802,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return (filename.replace(" - .", "."));
   }
 
-  private int getNumMediaAssets(Map<String,Integer> colIndexMap, Integer numMediaAssets) {
-    setNumMediaAssets(colIndexMap, numMediaAssets);
-    return numMediaAssets.intValue();
+  private int getNumMediaAssets(Map<String,Integer> colIndexMap) {
+    //setNumMediaAssets(colIndexMap);
+    int numAssets = 0;
+    for (String col: colIndexMap.keySet()) {
+      if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
+    }
+    //numMediaAssets=numAssets;
+    //return numMediaAssets.intValue();
+    return numAssets;
   }
+  
+  /*
   private void setNumMediaAssets(Map<String,Integer> colIndexMap, Integer numMediaAssets) {
     int numAssets = 0;
     for (String col: colIndexMap.keySet()) {
@@ -1753,6 +1821,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     numMediaAssets=numAssets;
   }
+  */
 
 
 
@@ -1905,10 +1974,13 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-
-  private void initColIndexVariables(Row firstRow, Map<String,Integer> colIndexMap, Set<String> unusedColumns, int numCols, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet) {
-    colIndexMap = makeColIndexMap(firstRow, numCols, skipCols, allColsMap, feedback, sheet);
-
+/*
+  private void initColIndexVariables(Row firstRow, Map<String,Integer> colIndexMap, Set<String> unusedColumns, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter out) {
+    colIndexMap = makeColIndexMap(firstRow, skipCols, allColsMap, feedback, sheet, committing, out);
+    System.out.println("debug4: makeColIndexMap");
+    
+    System.out.println("feedback getColNames() = "+feedback.getColNames());
+    
     unusedColumns = new HashSet<String>();
     //Set<String> col = colIndexMap.keySet();
     // have to manually copy-in like this because keySet returns a POINTER (!!!)
@@ -1919,15 +1991,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
     }
   }
+  */
 
   // Returns a map from each column header to the integer col number
 
+  /*
   // i need to ensure we have all unused columns added to visible list
-  private Map<String,Integer> makeColIndexMap(Row firstRow, int numCols, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet) {
+  private Map<String,Integer> makeColIndexMap(Row firstRow, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter out) {
     Map<String,Integer> colMap = new HashMap<String, Integer>();
-    numCols = firstRow.getLastCellNum();
+    int numCols = firstRow.getLastCellNum();
+    System.out.println("We're making colIndexMap: numCols: "+numCols);
     String[] headers = new String[numCols];
-    System.out.println("We're making colIndexMap!");
+    
     for (int i=0; i<=numCols; i++) {
       String colName = getStringNoLog(firstRow, i);
       System.out.println("Are there any values in this colum? "+i);
@@ -1942,11 +2017,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       colMap.put(colName, i);
     }
 
-    
+    feedback = new TabularFeedback(headers, committing, out, skipCols);
     System.out.println("headers = "+headers);
     System.out.println("feedback headers = "+feedback.getColNames());
     return colMap;
   }
+  */
 
   private boolean anyValuesInColumn(int colIndex, TabularFeedback feedback, Sheet sheet) {
     int numRows = sheet.getPhysicalNumberOfRows();
