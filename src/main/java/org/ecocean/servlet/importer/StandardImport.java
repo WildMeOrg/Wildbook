@@ -225,7 +225,7 @@ public class StandardImport extends HttpServlet {
 
   public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out,Sheet sheet, String context, Map<String,String> individualCache, boolean verbose, Boolean isUserUpload, String photoDirectory, String individualScope, HashMap<String,Integer> allColsMap) {
     
-    System.out.println("debug3: doImport");
+    //System.out.println("debug3: doImport");
     HashMap<User, List<MarkedIndividual>> userIndividualCache = new  HashMap<>();
     
  // indexes of columns determined to have no values for quick skipping
@@ -317,9 +317,9 @@ public class StandardImport extends HttpServlet {
     System.out.println("feedback headers = "+feedback.getColNames());
     colIndexMap = colMap;
     
-    System.out.println("debug4: makeColIndexMap");
+    //System.out.println("debug4: makeColIndexMap");
     
-    System.out.println("feedback getColNames() = "+feedback.getColNames());
+    //System.out.println("feedback getColNames() = "+feedback.getColNames());
     
     unusedColumns = new HashSet<String>();
     //Set<String> col = colIndexMap.keySet();
@@ -335,7 +335,7 @@ public class StandardImport extends HttpServlet {
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
     
-    System.out.println("debug3: committing: "+committing);
+    //System.out.println("debug3: committing: "+committing);
 
     if(committing) {
       Shepherd myShepherd = new Shepherd(context);
@@ -398,6 +398,7 @@ public class StandardImport extends HttpServlet {
     int printPeriod = 1;
     //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>",committing,out);
+    /*
     System.out.println("debug0:committing: "+committing);
     try {
       System.out.println("debug5:getColNames: "+feedback.getColNames());
@@ -405,9 +406,10 @@ public class StandardImport extends HttpServlet {
     catch(Exception he) {
       he.printStackTrace();
     }
+    */
     System.out.println("feedback headers += "+feedback.getColNames());
     if (!committing) feedback.printStartTable();
-    System.out.println("debug1: got past printSTartTable");
+    //System.out.println("debug1: got past printSTartTable");
     // one encounter per-row. We keep these running.
 
     List<String> encsCreated = new ArrayList<String>();
@@ -501,7 +503,7 @@ public class StandardImport extends HttpServlet {
 
     }
 
-    System.out.println("debug2");
+    //System.out.println("debug2");
     if (committing) {
 
       Shepherd myShepherd = new Shepherd(context);
