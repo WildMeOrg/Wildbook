@@ -1279,7 +1279,7 @@ console.info('%d ===> %s', num, acmId);
 
 	let paramString = 'iaResults.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
-	if (projectId!=""&&projectId!=undefined) {
+	if (projectId!==""&&projectId!=undefined) {
 		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
 	}
 
