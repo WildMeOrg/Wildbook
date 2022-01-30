@@ -162,6 +162,12 @@ try {
 			}
 		}
 	        
+			//make sure that at least the root indy is there
+			if(request.getParameter("individualID")!=null){
+				MarkedIndividual originalIndy = myShepherd.getMarkedIndividual(request.getParameter("individualID"));
+				if(originalIndy!=null && !uniqueIndividuals.contains(originalIndy))uniqueIndividuals.add(originalIndy);
+			}
+			
 	        for(MarkedIndividual indy:uniqueIndividuals){
 	        	jarray.put(uiJson(indy,request));
 	        }
