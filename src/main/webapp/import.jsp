@@ -270,10 +270,21 @@ try{
                         List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
                         if(relatedTasks!=null && relatedTasks.size()>0){
                             for(Task task:relatedTasks){
-                                    if(!tasks.contains(task) && task.hasChildren()){
-	        				tasks.add(task);
-	        				annotTypesByTask.put(task.getId(),iaClass);
-	        			}
+                            	
+                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
+	                            	//System.out.println("I am a task with only one algorithm");
+                            		if(!tasks.contains(task)){
+		        						tasks.add(task);
+		        						annotTypesByTask.put(task.getId(),iaClass);
+		        					}
+                            	}
+                            	else if(task.getChildren()!=null && task.getChildren().size()>0){
+                            		//System.out.println("I am a task with child ID tasks.");
+	                            	if(!tasks.contains(task)){
+		        						tasks.add(task);
+		        						annotTypesByTask.put(task.getId(),iaClass);
+		        					}
+                            	}
 	        		}
 	        	}		
 	        	

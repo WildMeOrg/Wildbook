@@ -1102,6 +1102,7 @@ public class Shepherd {
       if(isAdmin) filter = "SELECT FROM org.ecocean.Project";
       query = getPM().newQuery(filter);
       query.declareParameters("User user");
+      query.setOrdering("researchProjectName ascending NULLS LAST");
       Collection c = (Collection)query.execute(user);
       projectIter = c.iterator();
       while (projectIter.hasNext()) {
@@ -1110,9 +1111,11 @@ public class Shepherd {
         }
         projectArr.add(projectIter.next());
       }
-    } catch (JDOException jdoe) {
+    } 
+    catch (JDOException jdoe) {
       jdoe.printStackTrace();
-    } finally {
+    } 
+    finally {
       query.closeAll();
     }
     return projectArr;
@@ -3520,6 +3523,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       jdoe.printStackTrace();
     }
     Query projectQuery = pm.newQuery(projectClass);
+    projectQuery.setOrdering("researchProjectName ascending NULLS LAST");
     Collection c = (Collection) (projectQuery.execute());
     ArrayList<Project> list = new ArrayList<>(c);
     projectQuery.closeAll();
