@@ -164,5 +164,74 @@
 				}
 			]
 		},
+		{
+			"name": "Northern Weser Hills",
+			"id": "Northern Weser Hills",
+			"locationID": [
+				{
+					"name": "Liekwegen",
+					"id": "LIE",
+					"locationID": []
+				},
+				{
+					"name": "Bernsen",
+					"id": "BNS",
+					"locationID": []
+				},
+				{
+					"name": "Rohden",
+					"id": "ROD",
+					"locationID": []
+				},
+				{
+					"name": "Segelhorst",
+					"id": "SGH",
+					"locationID": []
+				},
+				{
+					"name": "Messingberg",
+					"id": "MES",
+					"locationID": []
+				},
+				{
+					"name": "Brinkmeier/Edler",
+					"id": "BRM",
+					"locationID": []
+				},
+				{
+					"name": "Obernkirchener SSB",
+					"id": "OSB",
+					"locationID": []
+				},
+				{
+					"name": "Nato-Station Reinsdorf",
+					"id": "NAT",
+					"locationID": []
+				},
+				{
+					"name": "Wuelpker Egge",
+					"id": "WLP",
+					"locationID": []
+				},
+				{
+					"name": "Bückeberg",
+					"id": "BKB",
+					"locationID": []
+				},
+				{
+					"name": "Hils-Klinkerwerk",
+					"id": "HKB",
+					"locationID": []
+				},
+				{
+					"name": "Holzhauser Mark",
+					"id": "HHM",
+					"locationID": []
+				}
+			
+			
+			
+			]
+		}
   ]
 }
