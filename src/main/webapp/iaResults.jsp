@@ -1606,9 +1606,32 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
-					var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
-					//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
-					$(selector).append(illustrationHtml);
+          const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
+          const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
+					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+          const illustrationFailHtml = '<span class="illustrationLink" style="float:right;">inspection image unavailable (likely outdated)</span>';
+          $(selector).append(loadingText);
+          $.ajax({
+            url: illustrationUrl,
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(data) {
+              const statusCode = data?.status?.code;
+              $('#loadingText').remove();
+              if(statusCode===200) $(selector).append(illustrationHtml);
+              if(statusCode===400) $(selector).append(illustrationFailHtml);
+            },
+            error: function(data){
+              const statusCode = data?.status; //I was still getting status 200s in here with a slightly different returned data structure. Handling below (again)
+              $('#loadingText').remove();
+              if(statusCode===200){
+                $(selector).append(illustrationHtml);
+              } else{
+                $(selector).append(errorText);
+              }
+            }
+          });
 				}
             }
 
