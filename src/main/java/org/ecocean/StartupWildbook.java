@@ -152,6 +152,16 @@ public class StartupWildbook implements ServletContextListener {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
+
+        // this ensures we have these tables
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        for (String cls : new String[] {"Date", "String", "Integer", "Double"}) {
+            javax.jdo.Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.customfield.CustomFieldValue" + cls);
+            query.execute();
+        }
+        myShepherd.commitDBTransaction();
+
         initAdminUser(context);
         if (context != null) {
             System.out.println("- SKIPPED initialization because of next-gen");
