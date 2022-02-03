@@ -18,7 +18,7 @@ helps us track populations trends for this endangered fish and understand more a
 what habitats are important to this species. Thank you for this contribution and we
 encourage you to continue to submit more images to help improve this research project.
 
-Thanks again for your critical help.
+Thanks again for your critical help. If you're interested, we welcome you to nickname this fish. Contact our team at spottinggiantseabass@gmail.com with your suggested nickname.
 
 Regards,
 Spotting Giant Seabass Research Team
@@ -37,4 +37,4 @@ Individuo nuevo: @INDIVIDUAL_ID@
 Encuentro: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Gracias de nuevo por tu ayuda.
+Gracias de nuevo por tu ayuda. Te invitamos a ponerle un apodo a este pez. Póngate en contacto con nuestro equipo por medio de spottinggiantseabass@gmail.com con un apodo sugerido.
