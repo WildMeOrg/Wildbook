@@ -302,8 +302,26 @@ public class ApiCustomFields {
         if (cfd == null) throw new IOException("trySetting() cannot load id=" + id);
         if (!this.getClass().getName().equals(cfd.getClassName())) throw new IOException("definition id=" + id + " not valid for this class");
 //////////// FIXME how do we decide *flavor* of Value to set here?
-        CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
-        addCustomFieldValue(cfv);
+        if (value instanceof JSONArray) {
+            JSONArray varr = (JSONArray)value;
+            if (varr.length() < 1) {
+                SystemLog.warn("trySetting id={} passed empty array for value; ignoring", id);
+                return;
+            } else if (!cfd.getMultiple()) {
+                SystemLog.warn("trySetting id={} passed array of values but not multiple; using first", id);
+                CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, varr.get(0));
+                addCustomFieldValue(cfv);
+            } else {
+                SystemLog.info("trySetting id={} passed array of values; iterating", id);
+                for (int i = 0 ; i < varr.length() ; i++) {
+                    CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, varr.get(i));
+                    addCustomFieldValue(cfv);
+                }
+            }
+        } else {
+            CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
+            addCustomFieldValue(cfv);
+        }
     }
 
     //convenience method
