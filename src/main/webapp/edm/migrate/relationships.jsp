@@ -122,7 +122,7 @@ private String relationshipSql(Relationship rel) {
     MarkedIndividual indiv2 = rel.getMarkedIndividual2();
     if ((indiv1 == null) || (indiv2 == null)) return "-- unable to get individual(s) on " + rel.toString() + "\n\n";
 
-    String sqlIns = "INSERT INTO relationship (created, updated, guid, start_date, end_date, type) VALUES (now(), now(), ?, ?, ?, ?);";
+    String sqlIns = "INSERT INTO relationship (created, updated, viewed, guid, start_date, end_date, type) VALUES (now(), now(), now(), ?, ?, ?, ?);";
     String memSqlIns = "INSERT INTO relationship_individual_member (created, updated, viewed, guid, relationship_guid, individual_guid, individual_role) VALUES (now(), now(), now(), ?, ?, ?, ?);";
 
     String guid = Util.generateUUID();
