@@ -288,6 +288,14 @@ System.out.println("######>>>>>> payload=" + payload);
                             }
                             rtn.put("organizations", jarr);
                         }
+                        List<Role> roles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
+                        if (roles.size() > 0) {
+                            JSONArray jarr = new JSONArray();
+                            for (Role role : roles) {
+                                jarr.put(role.getRolename());
+                            }
+                            rtn.put("roles", jarr);
+                        }
                         if (user.getUserImage() != null) rtn.put("profileImageUrl", "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/" + user.getUsername() + "/" + user.getUserImage().getFilename());
                     } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
                         myShepherd.rollbackDBTransaction();
