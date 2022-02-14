@@ -153,6 +153,13 @@
 					"name": "Ruma NP",
 					"id": "Ruma NP",
 					"description": "Ruma NP"
+				},
+				{
+					"name": "Sera Conservancy",
+					"id": "Sera Conservancy",
+					"description": "Sera Conservancy",
+					"prefix": "SER",
+					"prefixDigitPadding": 3,
 				}
 			]
 		},
