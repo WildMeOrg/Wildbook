@@ -172,8 +172,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
 }
 %>
 
-<h1 class="intro"><strong><span class="para">
-		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+<h1 class="intro">
   <%=titleString%>
 </h1>
 </p>
@@ -1353,9 +1352,7 @@ else {
 
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
-      	List<String> users = myShepherd.getAllNativeUsernames();
-      	users.remove(null);
-      	Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
+        List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
         int numUsers = users.size();
 
       %>
@@ -1363,10 +1360,15 @@ else {
       <select multiple size="5" name="username" id="username">
         <option value="None"></option>
         <%
+          List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(users);
           for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n);
+            String username = sortedUsers.get(n).getUsername();
+            String userFullName=username;
+            if(sortedUsers.get(n).getFullName()!=null){
+              userFullName=sortedUsers.get(n).getFullName();
+            }
         	%>
-        	<option value="<%=username%>"><%=username%></option>
+        	<option value="<%=username%>"><%=userFullName%></option>
         	<%
           }
         %>

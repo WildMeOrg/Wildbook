@@ -107,8 +107,8 @@ public class MetricsBot {
     
     
     public static String buildGauge(String filter, String name, String help, String context, String label) {
-      System.out.println("-- Collecting metrics for: "+ name);
-      System.out.println("        "+ filter);
+      //System.out.println("-- Collecting metrics for: "+ name);
+      //System.out.println("        "+ filter);
       String line=null;
       
       Shepherd myShepherd=new Shepherd(context);
@@ -131,7 +131,7 @@ public class MetricsBot {
         myShepherd.rollbackAndClose();
         
       }
-      System.out.println("   -- Done: "+ line);
+      //System.out.println("   -- Done: "+ line);
       return line;
     }
     

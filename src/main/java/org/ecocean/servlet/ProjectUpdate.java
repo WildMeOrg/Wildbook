@@ -67,7 +67,6 @@ public class ProjectUpdate extends HttpServlet {
                         Project project = myShepherd.getProject(projectUUID);
                         System.out.println("project is " + project.toString());
                         if (project!=null){
-
                             boolean canAddEncounters = isUserAuthorizedToAddEncounters(project, myShepherd, request);
                             System.out.println("canAddEncounters is " + canAddEncounters);
                             JSONArray encountersToAddJSONArr = projectJSON.optJSONArray("encountersToAdd");
@@ -76,11 +75,9 @@ public class ProjectUpdate extends HttpServlet {
                                 System.out.println("Authorized to add and encounters exist. Adding or removing encounters from project.... ");
                                 addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add", res, request);
                             }
-
                             boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd, request);
                             System.out.println("is authorized to update project is " + canUpdate);
                             if (canUpdate) {
-
                                 String projectIdPrefix = projectJSON.optString("projectIdPrefix", null);
                                 System.out.println("projectIdPrefix is " + projectIdPrefix);
                                 System.out.println("project.getProjectIdPrefix is " + project.getProjectIdPrefix());
