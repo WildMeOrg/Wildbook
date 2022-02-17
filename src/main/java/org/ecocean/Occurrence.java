@@ -1537,7 +1537,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 */
 
         try {
-            occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+            if (jsonIn.has("customFields")) occ.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("customFields"), false);
         } catch (Exception ex) {
             throw new ApiValueException(ex.toString(), "customFields");
         }
@@ -1784,10 +1784,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     this.addEncounter(enc);
                     break;
                 case "customFields":
-                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
-                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
-                    //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
-                    this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                    this.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("value"), false);
                     break;
                 default:
                     throw new Exception("apiPatch op=" + opName + " unknown path " + path);
@@ -1835,12 +1832,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 // currently not going to support op=replace for encounter; instead should use move + remove
                 case "customFields":
-                    org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
-                    if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
-                    //since this is replace, we will want to zero out listy-types
-                    String cfdId = cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_");
-                    this.resetCustomFieldValues(cfdId);
-                    this.trySetting(myShepherd, cfdId, cfj.opt("value"));
+                    this.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("value"), true);
                     break;
                 default:
                     throw new Exception("apiPatchReplace unknown path " + path);
@@ -1885,6 +1877,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "comments":
                     this.setComments(null);
+                    break;
+                case "customFields":
+                    this.removeCustomField(myShepherd, jsonIn.optString("value", null));
                     break;
                 case "taxonomies":
 /*

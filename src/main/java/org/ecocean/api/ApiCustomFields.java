@@ -284,35 +284,49 @@ public class ApiCustomFields {
         return cust;
     }
 
-    //this will iterate over multiple custom fields
-    public int trySetting(Shepherd myShepherd, JSONObject all) throws IOException {
+    /*
+        passed can take two formats:
+        - { "id": "cfdId", "value": "some value" }
+        - { "cfdId0": "value0", ..., "cfdIdN": "valueN" }
+        the second form will (attempt to) set multiple customFields
+        replace=true means multi-value should be reset first (rather than appended, like in op=add)
+        (will return number that were set)
+    */
+    public int trySettingCustomFields(Shepherd myShepherd, JSONObject passed, boolean replace) throws IOException {
+        if (passed == null) throw new IOException("must pass value of {id=cfdId, value=content} or {cfdIdX: valueX, ... } for customFields");
+        // first try single id/value style
+        if (passed.has("value")) {
+            String cfdId = passed.optString("id", null);
+            if (cfdId == null) throw new IOException("invalid id/value syntax for customFields");
+            this.trySettingOneCustomField(myShepherd, cfdId, passed.get("value"), replace);
+            return 1;
+        }
+        // otherwise hope its {cfd: value, ...} format
         int ct = 0;
-        if (all == null) return ct;
-        Iterator<String> it = all.keys();
+        Iterator<String> it = passed.keys();
         while (it.hasNext()) {
             String id = it.next();
-            trySetting(myShepherd, id, all.get(id));
+            this.trySettingOneCustomField(myShepherd, id, passed.get(id), replace);
             ct++;
         }
         return ct;
     }
-    //this just tries one
-    public void trySetting(Shepherd myShepherd, String id, Object value) throws IOException {
+    public void trySettingOneCustomField(Shepherd myShepherd, String id, Object value, boolean replace) throws IOException {
         CustomFieldDefinition cfd = CustomFieldDefinition.load(myShepherd, id);
-        if (cfd == null) throw new IOException("trySetting() cannot load id=" + id);
+        if (cfd == null) throw new IOException("trySettingOne() cannot load definition id=" + id);
         if (!this.getClass().getName().equals(cfd.getClassName())) throw new IOException("definition id=" + id + " not valid for this class");
-//////////// FIXME how do we decide *flavor* of Value to set here?
+        if (replace) this.resetCustomFieldValues(id);
         if (value instanceof JSONArray) {
             JSONArray varr = (JSONArray)value;
             if (varr.length() < 1) {
-                SystemLog.warn("trySetting id={} passed empty array for value; ignoring", id);
+                SystemLog.warn("trySettingOne id={} passed empty array for value; ignoring", id);
                 return;
             } else if (!cfd.getMultiple()) {
-                SystemLog.warn("trySetting id={} passed array of values but not multiple; using first", id);
+                SystemLog.warn("trySettingOne id={} passed array of values but not multiple; using first", id);
                 CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, varr.get(0));
                 addCustomFieldValue(cfv);
             } else {
-                SystemLog.info("trySetting id={} passed array of values; iterating", id);
+                SystemLog.info("trySettingOne id={} passed array of values; iterating", id);
                 for (int i = 0 ; i < varr.length() ; i++) {
                     CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, varr.get(i));
                     addCustomFieldValue(cfv);
@@ -322,6 +336,13 @@ public class ApiCustomFields {
             CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
             addCustomFieldValue(cfv);
         }
+    }
+
+    public void removeCustomField(Shepherd myShepherd, String id) throws IOException {
+        CustomFieldDefinition cfd = CustomFieldDefinition.load(myShepherd, id);
+        if (cfd == null) throw new IOException("removeCustomField() cannot load definition id=" + id);
+        if (!this.getClass().getName().equals(cfd.getClassName())) throw new IOException("definition id=" + id + " not valid for this class");
+        this.resetCustomFieldValues(id);
     }
 
     //convenience method

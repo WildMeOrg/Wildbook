@@ -2723,6 +2723,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           e.printStackTrace();
         } 
 
+        try {
+            if (jsonIn.has("customFields")) indiv.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("customFields"), false);
+        } catch (Exception ex) {
+            throw new ApiValueException(ex.toString(), "customFields");
+        }
+
         return indiv;
     }
 
@@ -2802,10 +2808,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                   break;
 
               case "customFields":
-                  org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
-                  if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
-                  //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
-                  this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                  this.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("value"), false);
                   break;
               case "sex":
                   String sex = jsonIn.optString("sex");
@@ -2872,11 +2875,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 this.setComments((String)valueObj);
                 break;
             case "customFields":
-                org.json.JSONObject cfj = jsonIn.optJSONObject("value");
-                if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
-                String cfdId = cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_");
-                this.resetCustomFieldValues(cfdId);
-                this.trySetting(myShepherd, cfdId, cfj.opt("value"));
+                this.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("value"), true);
                 break;
             default:
                 throw new Exception("apiPatchReplace unknown path " + path);
@@ -2952,10 +2951,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 break;
 
             case "customFields":
-                org.json.JSONObject cfj = jsonIn.optJSONObject("value");  // should be: { id: cf_id, value: value_to_set }
-                if (cfj == null) throw new ApiValueException("value must contain { id, value }", "customFields");
-                //this should attempt to set this value, which will *append* if list-y, which is fine for op=add
-                this.trySetting(myShepherd, cfj.optString("id", "_NO_CUSTOMFIELD_ID_GIVEN_"), cfj.opt("value"));
+                this.removeCustomField(myShepherd, jsonIn.optString("value", null));
                 break;
 
             default:
