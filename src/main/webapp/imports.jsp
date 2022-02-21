@@ -49,7 +49,7 @@ private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 	//long startTime=System.currentTimeMillis();
 	int num=0;	
-	String filter="select count(this) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	String filter="select count(distinct asset.id) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
 	Query query = myShepherd.getPM().newQuery(filter);
 	try{
 		num=((Long) query.execute()).intValue();
