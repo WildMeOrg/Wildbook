@@ -37,8 +37,6 @@ myShepherd.beginDBTransaction();
 
 try{
 	
-	System.out.println("calling iaLogs.jsp");
-	
 	ArrayList<IdentityServiceLog> logs = null;
 	if (id != null) {
 		logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", id, myShepherd);
