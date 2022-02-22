@@ -724,6 +724,14 @@ if (sharky.getNames() != null) {
         if (newKey===oldKey && newVal===oldVal) return;
 
         var indID = "<%=id%>";
+        var userId = 'null';
+        <%
+        if(myShepherd.getUser(request)!=null){
+        %>
+        userId = '<%=myShepherd.getUser(request).getUsername() %>';
+        <%
+        }
+        %>
         var rememberMe = this;
 
         $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "newKey": newKey, "newValue": newVal},
@@ -731,7 +739,6 @@ if (sharky.getNames() != null) {
           console.log("SUCCESSFUL callback on individualSetName. this = ");
           console.log(this);
           const indNewNameComments = "Changed name to: " + newVal + " for key: " + newKey + " individual: " + indID;
-          const userId = '<%= myShepherd.getUser(request).getId()%>';
           $.post("../IndividualAddComment", {"individual": indID, "user": userId, "comments": indNewNameComments},
           function() {
             $("#autoCommentErrorDiv").hide();
