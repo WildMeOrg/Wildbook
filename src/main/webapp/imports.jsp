@@ -292,10 +292,8 @@ try{
 			           		{
 			           			key: 'date',
 			           			label: 'Date',
-			           			value: _colDate,
-			           			sortValue: function(a,b){
-			           				return (a.created < b.created) ? -1 : ((a.created > b.created) ? 1 : 0);
-			           			}
+			           			value: _colCreated,
+			           			sortValue: _colCreatedSort
 			           		},
 
 			           		{
@@ -344,6 +342,21 @@ try{
 			
 			
 			var sTable = false;
+			
+			function _colCreated(o) {
+				if (!o.created) return '';
+				if (o.created === "-1") return '';
+				return o.created;
+			}
+
+			function _colCreatedSort(o) {
+				var m = o.created;
+				if (!m) return '';
+				//var d = wildbook.parseDate(m);
+				//if (!wildbook.isValidDate(d)) return '';
+				//return d.getTime();
+				return m;
+			}
 
 			
 			function doTable() {
@@ -382,7 +395,7 @@ try{
 				sTable.initValues();
 
 
-				newSlice(sortCol);
+				newSlice(sortCol, sortReverse);
 
 				$('#progress').hide();
 				sTable.sliderInit();
