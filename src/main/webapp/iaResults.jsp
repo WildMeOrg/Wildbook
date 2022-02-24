@@ -27,7 +27,7 @@ private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
     ImportTask itask = null;
     if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
     query.closeAll();
-System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+	System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
     if (itask == null) return;
     String svKey = "rapid_completed_" + itask.getId();
     myShepherd.beginDBTransaction();
@@ -35,22 +35,13 @@ System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
     if (m == null) m = new JSONObject();
     for (Annotation ann : enc.getAnnotations()) {
         m.put(ann.getId(), true);
-System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+		System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
     }
     SystemValue.set(myShepherd, svKey, m);
     myShepherd.commitDBTransaction();
 }
 
-String rotationInfo(MediaAsset ma) {
-    if ((ma == null) || (ma.getMetadata() == null)) return null;
-    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
-    if (orient == null) return null;
-    for (String k : orient.keySet()) {
-        if (orient.get(k).matches(".*90.*")) return orient.get(k);
-        if (orient.get(k).matches(".*270.*")) return orient.get(k);
-    }
-    return null;
-}
+
 %>
 
 <%
@@ -118,86 +109,7 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-//this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
-if (request.getParameter("acmId") != null) {
-	String acmId = request.getParameter("acmId");
-	myShepherd = new Shepherd(context);
-	myShepherd.setAction("iaResults.jsp1");
-	myShepherd.beginDBTransaction();
-    ArrayList<Annotation> anns = null;
-	JSONObject rtn = new JSONObject("{\"success\": false}");
-	try {
-		anns = myShepherd.getAnnotationsWithACMId(acmId);
-	} catch (Exception ex) {}
-	if ((anns == null) || (anns.size() < 1)) {
-		rtn.put("error", "unknown error");
-	} else {
-		JSONArray janns = new JSONArray();
-		//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
-		Project project = null;
-		if (Util.stringExists(projectIdPrefix)) {
-			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
-		}
-		String locationIdPrefix = null;
-		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
-        for (Annotation ann : anns) {
-			if (ann.getMatchAgainst()==true) {
-				JSONObject jann = new JSONObject();
-				jann.put("id", ann.getId());
-				jann.put("acmId", ann.getAcmId());
-				Encounter enc = ann.findEncounter(myShepherd);
-	 			if (enc != null) {
-	 				jann.put("encounterId", enc.getCatalogNumber());
-	 				jann.put("encounterLocationId", enc.getLocationID());
-          jann.put("encounterDate", enc.getDate());
-					locationIdPrefix = enc.getPrefixForLocationID();
-					jann.put("encounterLocationIdPrefix", locationIdPrefix);
-					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
-					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
-					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
 
-	 			}
-				MediaAsset ma = ann.getMediaAsset();
-				if (ma != null) {
-			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
-                                    if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
-                                    jm.put("rotation", rotationInfo(ma));
-			            jann.put("asset", jm);
-				}
-				if (project!=null) {
-					try {
-
-						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
-							System.out.println("num encounters in project: "+project.getEncounters().size());
-							MarkedIndividual individual = enc.getIndividual();
-							if (individual!=null) {
-								List<String> projectNames = individual.getNamesList(projectIdPrefix);
-								jann.put("incrementalProjectId", projectNames.get(0));
-								jann.put("projectIdPrefix", projectIdPrefix);
-								jann.put("projectUUID", project.getId());
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				janns.put(jann);
-			}
-		}
-	    rtn.put("success", true);
-        rtn.put("annotations", janns);
-	}
-/*
-	if ((qann != null) && (qann.getMediaAsset() != null)) {
-		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
-        	enc = Encounter.findByAnnotation(qann, myShepherd2);
-		num = enc.getCatalogNumber();
-	}
-*/
-	myShepherd.rollbackAndClose();
-	out.println(rtn.toString());
-	return;
-}
 
 
 //TODO security for this stuff, obvs?
@@ -1277,10 +1189,10 @@ console.info('%d ===> %s', num, acmId);
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 
-	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
-	if (projectId!=""&&projectId!=undefined) {
-		paramString += "&projectIdPrefix="+projectId;
+	if (projectId!==""&&projectId!=undefined) {
+		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
 	}
 
 
@@ -1606,9 +1518,32 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
-					var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
-					//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
-					$(selector).append(illustrationHtml);
+          const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
+          const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
+					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+          const illustrationFailHtml = '<span class="illustrationLink" style="float:right;">inspection image unavailable (likely outdated)</span>';
+          $(selector).append(loadingText);
+          $.ajax({
+            url: illustrationUrl,
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(data) {
+              const statusCode = data?.status?.code;
+              $('#loadingText').remove();
+              if(statusCode===200) $(selector).append(illustrationHtml);
+              if(statusCode===400) $(selector).append(illustrationFailHtml);
+            },
+            error: function(data){
+              const statusCode = data?.status; //I was still getting status 200s in here with a slightly different returned data structure. Handling below (again)
+              $('#loadingText').remove();
+              if(statusCode===200){
+                $(selector).append(illustrationHtml);
+              } else{
+                $(selector).append(errorText);
+              }
+            }
+          });
 				}
             }
 

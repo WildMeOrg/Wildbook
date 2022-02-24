@@ -99,9 +99,12 @@ String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contain
 
 String individualIDFilter="";
 if(request.getParameter("individualID")!=null){
-	individualIDFilter = request.getParameter("individualID");
+	//individualIDFilter = request.getParameter("individualID");
+	individualIDFilter=" && enc.individual.individualID == '"+request.getParameter("individualID")+"'";
+	
 	//filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this || rel.individual2==this) && (rel.markedIndividualName1 =='"+request.getParameter("individualID")+"' || rel.markedIndividualName2 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
-	filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this && rel.markedIndividualName2 =='"+request.getParameter("individualID")+"') || (rel.individual2==this && rel.markedIndividualName1 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+	//filter="SELECT FROM org.ecocean.MarkedIndividual where individualID == '"+request.getParameter("individualID")+"' || ((rel.individual1 == this && rel.markedIndividualName2 =='"+request.getParameter("individualID")+"') || (rel.individual2==this && rel.markedIndividualName1 =='"+request.getParameter("individualID")+"')) VARIABLES org.ecocean.social.Relationship rel";
+	filter="SELECT FROM org.ecocean.Occurrence where encounters.size() > 1 && encounters.contains(enc) && enc.individual != null "+individualIDFilter+" VARIABLES org.ecocean.Encounter enc";
 
 }
 
@@ -142,13 +145,30 @@ try {
 	
 		
 		myShepherd.beginDBTransaction();
+		
+		ArrayList<MarkedIndividual> uniqueIndividuals=new ArrayList<MarkedIndividual>();
 	
 		Collection result = (Collection)query.execute();
-		ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>(result);
+		ArrayList<Occurrence> occurs=new ArrayList<Occurrence>(result);
 		
 		JSONArray jarray=new JSONArray();
+		
+		for(Occurrence occur:occurs){
+			for(Encounter enc:occur.getEncounters()){
+				if(enc.getIndividual()!=null){
+					MarkedIndividual indy = enc.getIndividual();
+					if(!uniqueIndividuals.contains(indy))uniqueIndividuals.add(indy);
+				}
+			}
+		}
 	        
-	        for(MarkedIndividual indy:indies){
+			//make sure that at least the root indy is there
+			if(request.getParameter("individualID")!=null){
+				MarkedIndividual originalIndy = myShepherd.getMarkedIndividual(request.getParameter("individualID"));
+				if(originalIndy!=null && !uniqueIndividuals.contains(originalIndy))uniqueIndividuals.add(originalIndy);
+			}
+			
+	        for(MarkedIndividual indy:uniqueIndividuals){
 	        	jarray.put(uiJson(indy,request));
 	        }
 	        
