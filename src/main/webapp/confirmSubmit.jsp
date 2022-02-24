@@ -105,6 +105,7 @@ new_message.append("<html><body>");
       //}
       new_message.append("Location: " + enc.getLocation() + "<br>");
       new_message.append("Date: " + enc.getDate() + "<br>");
+      new_message.append("Species: " + enc.getTaxonomyString() + "<br>");
       if(enc.getSex()!=null){
       	new_message.append("Sex: " + enc.getSex() + "<br>");
       }

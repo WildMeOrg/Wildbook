@@ -903,6 +903,10 @@
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
+	<servlet>
+		<servlet-name>UserCheck</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserCheck</servlet-class>
+</servlet>
     <servlet>
       <servlet-name>UserCreateSocial</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
@@ -1893,6 +1897,10 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+	<servlet-mapping>
+			<servlet-name>UserCheck</servlet-name>
+			<url-pattern>/UserCheck</url-pattern>
+</servlet-mapping>
       <servlet-mapping>
           <servlet-name>UserCreateSocial</servlet-name>
           <url-pattern>/UserCreateSocial</url-pattern>
