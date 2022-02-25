@@ -256,7 +256,8 @@ public class MetricsBot {
         else if(contributorsLabels.endsWith(",")) {contributorsLabels="\""+contributorsLabels.substring(0,(contributorsLabels.length()-1))+"\"";}
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_total","Number of public data contributors",context,contributorsLabels));
         
-        
+        // Machine learning tasks
+        addTasksToCsv(csvLines, context);
         
         //write the file
         //set up the output stream
@@ -279,6 +280,22 @@ public class MetricsBot {
        System.out.println("Exception in MetricsBot!");
        f.printStackTrace();
      } 
+    }
+
+    private static void addTasksToCsv(ArrayList<String> csvLines, String context)
+    {
+        // Total tasks
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task", "wildbook_tasks_total", "Number of machine learning tasks", context));
+        
+        // Detection tasks
+        csvLines.add(buildGauge("SELECT \"PARAMETERS\" from \"TASK\" WHERE \"PARAMETERS\" LIKE '%\"ibeis.detection\":true%';","wildbook_detection_tasks","Number of detection tasks", context));
+        // Identification tasks
+        
+        // specific algorithm: x
+
+        // specific species
+
+        // specific user
     }
 
 
