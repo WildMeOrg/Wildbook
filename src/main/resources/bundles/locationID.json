@@ -5,33 +5,15 @@
 
 	{"name":"Africa - All","id":"Africa","locationID":[
 
-		{"name":"Africa - South","id":"Africa - South","locationID":[
+		{"name":"Africa - South","id":"Africa - South","locationID":[]},
 
+		{"name":"Africa - East","id":"Africa - East","locationID":[]},
+		
+		{"name":"Africa - Central","id":"Africa - Central","locationID":[]},
 
-			{ "name":"Angola", "id":"Angola", "locationID":[] },
-			{ "name":"Botswana", "id":"Botswana", "locationID":[] },
-			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
-			{ "name":"Namibia", "id":"Namibia", "locationID":[] },
-			{ "name":"South Africa", "id":"South Africa", "locationID":[] },
-			{ "name":"Zambia", "id":"Zambia", "locationID":[] },
-			{ "name":"Zimbabwe", "id":"Zimbabwe", "locationID":[] }
-
-
-			]},
-
-			{"name":"Africa - East","id":"Africa - East","locationID":[
-
-				{ "name":"Kenya", "id":"Kenya", "locationID":[] },
-				{ "name":"Malawi", "id":"Malawi", "locationID":[] },
-				{ "name":"Somalia", "id":"Somalia", "locationID":[] },
-				{ "name":"Tanzania", "id":"Tanzania", "locationID":[] }
-
-		]},
-
-		{"name":"Africa - West","id":"Africa - West","locationID":[
-
-
-		]}
+		{"name":"Africa - West","id":"Africa - West","locationID":[]},
+		
+		{"name":"Africa - North","id":"Africa - North","locationID":[]}
 
 	]}
   ]
