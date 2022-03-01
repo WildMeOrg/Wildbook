@@ -4178,10 +4178,15 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                         throw new ApiValueException(ex.getMessage(), "taxonomy");
                     }
 */
-                    try {
-                        this.setTaxonomy(resolveTaxonomyString(myShepherd, jsonIn.optString("value", null)));
-                    } catch (IllegalArgumentException ex) {
-                        throw new ApiValueException(ex.getMessage(), "taxonomy");
+                    String txVal = jsonIn.optString("value", null);
+                    if (txVal == null) {
+                        this.setTaxonomy(null);
+                    } else {
+                        try {
+                            this.setTaxonomy(resolveTaxonomyString(myShepherd, txVal));
+                        } catch (IllegalArgumentException ex) {
+                            throw new ApiValueException(ex.getMessage(), "taxonomy");
+                        }
                     }
                     break;
                 case "customFields":

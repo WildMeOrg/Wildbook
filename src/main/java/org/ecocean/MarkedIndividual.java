@@ -2810,12 +2810,26 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               case "customFields":
                   this.trySettingCustomFields(myShepherd, jsonIn.optJSONObject("value"), false);
                   break;
+              case "taxonomy":
+                    String txVal = jsonIn.optString("value", null);
+                    if (txVal == null) {
+                        this.setTaxonomy(null);
+                    } else {
+                        try {
+                            this.setTaxonomy(resolveTaxonomyString(myShepherd, txVal));
+                        } catch (IllegalArgumentException ex) {
+                            throw new ApiValueException(ex.getMessage(), "taxonomy");
+                        }
+                    }
+                  break;
               case "sex":
-                  String sex = jsonIn.optString("sex");
+                  String sex = jsonIn.optString("sex", null);
                   this.setSex(sex);
+                  break;
               case "comments":
-                  String comments = jsonIn.optString("comments");
+                  String comments = jsonIn.optString("comments", null);
                   this.addComments(comments);
+                  break;
               case "timeOfBirth":
                   try {
                     this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfBirth")));
@@ -2823,6 +2837,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     nfe.printStackTrace();
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfBirth");
                   }
+                  break;
               case "timeOfDeath":
                   try {
                     this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfDeath")));
@@ -2830,6 +2845,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     nfe.printStackTrace();
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfDeath");
                   }
+                  break;
               default:
                   throw new Exception("apiPatch op=" + opName + " unknown path " + path);
           }
