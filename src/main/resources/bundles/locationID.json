@@ -64,6 +64,8 @@
 				{
 					"name": "Lewa",
 					"id": "Lewa",
+					"prefix": "lew",
+					"prefixDigitPadding": 3,
 					"geospatialInfo":{
 		 			 	"lat":0.2,
 		 			 	"long":37.41
@@ -72,6 +74,8 @@
 				{
 					"name": "Loisaba",
 					"id": "Loisaba",
+					"prefix": "loi",
+					"prefixDigitPadding": 3,
 					"geospatialInfo":{
 		 			 	"lat":0.612208,
 		 			 	"long":36.802823
@@ -80,26 +84,36 @@
 				{
 					"name": "Mara",
 					"id": "Mara",
+					"prefix": "mnr",
+					"prefixDigitPadding": 3,
 					"description": "Mara",
 					"locationID":[
 						{
 							"name": "Mara North",
 							"id": "Mara North",
+							"prefix": "mnc",
+							"prefixDigitPadding": 3,
 							"description": "Mara North"
 						},
 						{
 							"name": "Naboisho",
 							"id": "Naboisho",
+							"prefix": "nab",
+							"prefixDigitPadding": 3,
 							"description": "Naboisho"
 						},
 						{
 							"name": "Olarro",
+							"prefix": "olc",
+							"prefixDigitPadding": 3,
 							"id": "Olarro",
 							"description": "Olarro"
 						},
 						{
 							"name": "Ol Kinyei",
 							"id": "Ol Kinyei",
+							"prefix": "olk",
+							"prefixDigitPadding": 3,
 							"description": "Ol Kinyei"
 						}
 					]
@@ -111,6 +125,8 @@
 				{
 					"name": "Mugie",
 					"id": "Mugie",
+					"prefix": "mug",
+					"prefixDigitPadding": 4,
 					"geospatialInfo":{
 		 			 	"lat":0.2,
 		 			 	"long":37.41
@@ -118,12 +134,16 @@
 				},
 				{
 					"name": "Mwea NR",
+					"prefix": "MWE",
+					"prefixDigitPadding": 3,
 					"id": "Mwea NR",
 					"description": "Mwea NR"
 				},
 				{
 					"name": "Namunyak",
 					"id": "Namunyak",
+					"prefix": "nam",
+					"prefixDigitPadding": 3,
 					"description": "Namunyak Wildlife Conservancy",
 					"geospatialInfo":{
 		 			 	"lat":1.270203,
@@ -144,6 +164,8 @@
 				{
 					"name": "Ol Pejeta",
 					"id": "Ol Pejeta",
+					"prefix": "opc",
+					"prefixDigitPadding": 3,
 					"geospatialInfo":{
 		 			 	"lat":0.0,
 		 			 	"long":37
@@ -152,6 +174,8 @@
 				{
 					"name": "Ruma NP",
 					"id": "Ruma NP",
+					"prefix": "RUMA",
+					"prefixDigitPadding": 3,
 					"description": "Ruma NP"
 				},
 				{
@@ -159,7 +183,7 @@
 					"id": "Sera Conservancy",
 					"description": "Sera Conservancy",
 					"prefix": "SER",
-					"prefixDigitPadding": 3,
+					"prefixDigitPadding": 3
 				}
 			]
 		},
@@ -201,6 +225,8 @@
 				{
 					"name": "Akagera",
 					"id": "Akagera",
+					"prefix": "aka",
+					"prefixDigitPadding": 3,
 					"description": "Akagera"
 				}
 			]
@@ -271,6 +297,8 @@
 				{
 					"name": "Kruger National Park",
 					"id": "Kruger National Park",
+					"prefix": "knp",
+					"prefixDigitPadding": 4,
 					"description": "Kruger National Park"
 				},
 				 {
