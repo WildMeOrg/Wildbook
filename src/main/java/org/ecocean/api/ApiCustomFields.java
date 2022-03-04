@@ -590,6 +590,12 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
 
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 
+    protected static void validateSexValue(String sexVal) {
+        List<String> valid = Arrays.asList("male", "female", "unknown");
+        if ((sexVal == null) || valid.contains(sexVal)) return;
+        throw new ApiValueException("invalid value '" + sexVal + "'; must be one of: NULL, " + String.join(", ", valid), "sex");
+    }
+
     public void delete(Shepherd myShepherd) throws IOException {
         this.delete(myShepherd, false, false);  //play cautious when not passed cascade booleans
     }

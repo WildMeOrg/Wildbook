@@ -995,6 +995,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
    * Sets the sex of this MarkedIndividual.
    */
   public void setSex(String newSex) {
+    validateSexValue(newSex);  // throws ApiValueException if invalid
     if(newSex!=null){sex = newSex;}
     else{sex=null;}
 

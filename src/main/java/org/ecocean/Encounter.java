@@ -856,6 +856,7 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
    * Acceptable values are "Male" or "Female"
    */
   public void setSex(String thesex) {
+    validateSexValue(thesex);  // throws ApiValueException if invalid
     if(thesex!=null){sex = thesex;}
     else{sex=null;}
   }
