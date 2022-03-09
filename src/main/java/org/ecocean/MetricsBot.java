@@ -286,13 +286,32 @@ public class MetricsBot {
     {
         // Total tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task", "wildbook_tasks_total", "Number of machine learning tasks", context));
-        
+
         // Detection tasks
-        csvLines.add(buildGauge("SELECT \"PARAMETERS\" from \"TASK\" WHERE \"PARAMETERS\" LIKE '%\"ibeis.detection\":true%';","wildbook_detection_tasks","Number of detection tasks", context));
+        //csvLines.add(buildGauge("SELECT count(this) from org.ecocean.ia.Task where parameters contains \"ibeis.detection\":true","wildbook_detection_tasks","Number of detection tasks", context));
         // Identification tasks
         
-        // specific algorithm: x
+        /* Different algorithms:
+        * Hotspotter
+        * PieTwo
+        * PieOne
+        * CurvRankTwoDorsal
+        * CurveRankTwoFluke
+        * OC_WDTW
+        * Finfindr
+        * Deepsense
+        */
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"sv_on\"')>-1", "wildbook_tasks_hotspotter", "Number of tasks using Hotspotter algorithm", context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Pie')>-1 && parameters.indexOf('PieTwo')==-1", "wildbook_tasks_pieOne", "Number of tasks using PieOne algorithm", context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('PieTwo')>-1", "wildbook_tasks_pieTwo", "Number of tasks using PieTwo algorithm", context));
 
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoDorsal')>-1", "wildbook_tasks_curveRankTwoDorsal", "Number of tasks using CurveRankTwoDorsal algorithm", context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoFluke')>-1", "wildbook_tasks_curveRankTwoFluke", "Number of tasks using CurveRankTwoFluke algorithm", context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('OC_WDTW')>-1", "wildbook_tasks_oc_wdtw", "Number of tasks using OC_WDTW algorithm", context));
+
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Finfindr')>-1", "wildbook_tasks_finFindr", "Number of tasks using FinFindr algorithm", context));
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
+        
         // specific species
 
         // specific user
