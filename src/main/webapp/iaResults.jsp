@@ -1118,7 +1118,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
-
+			console.log("isSelected: "+isSelected);
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
 			}
@@ -2119,11 +2119,19 @@ $(document).ready(function(){
 });
 
 function isProjectSelected() {
-	let dropdownVal = $("#projectDropdown").val();
-	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!=NONE_SELECTED) {
+	<%
+	if(request.getParameter("projectIdPrefix")!=null && !request.getParameter("projectIdPrefix").trim().equals("")&& !request.getParameter("projectIdPrefix").trim().equals("None Selected")){
+	%>
 		return true;
+	
+	<%
 	}
-	return false;
+	else{
+	%>
+		return false;
+	<%
+	}
+	%>
 }
 
 $('#projectDropdown').on('change', function() {
