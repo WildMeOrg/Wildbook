@@ -11,6 +11,7 @@ import org.ecocean.configuration.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.UUID;
+import org.apache.shiro.crypto.hash.Sha256Hash;
 
 
 public class MigrationUtil {
@@ -47,6 +48,12 @@ public class MigrationUtil {
         File file = new File(getDir(), fname);
         Util.appendToFile(contents, file.getAbsolutePath());
         return file;
+    }
+
+    // mirrors utils.get_stored_filename() in houston
+    public static String getStoredFilename(String inputFilename) {
+        if (inputFilename == null) return null;
+        return new Sha256Hash(inputFilename).toHex();
     }
 
 /*
