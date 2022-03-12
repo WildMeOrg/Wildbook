@@ -110,16 +110,7 @@ public class GetCurrentIAInfo extends HttpServlet {
             annIA.put("assetDetectionStatus", ma.getDetectionStatus());
             annIA.put("assetWebURL", Util.scrubURL(ma.webURL()));
             
-            //List<Task> rootTasks = ann.getRootIATasks(myShepherd);
-            //if (rootTasks!=null&&!rootTasks.isEmpty()) {
-              
-              //WB-1812 - previously (commented out right above) we were only ever exposing the first root task
-              //instead, let's be consistent with encounterMediaGallery.jsp and return the most recent IA task
-              /*for (Task t : ma.getRootIATasks(myShepherd)) {
-                  if (rootTasks.contains(t)) continue;
-                  if (t.deepContains(ann)!=null) rootTasks.add(t);
-              }
-              */
+
                //let's look for match results we can easily link for the user
                ArrayList<Task> tasks=new ArrayList<Task>();
                List<Task> relatedTasks = Task.getTasksFor(ann, myShepherd);
@@ -144,11 +135,9 @@ public class GetCurrentIAInfo extends HttpServlet {
                   Collections.reverse(tasks); // now desc, ez
                   annIA.put("lastTaskId", tasks.get(0).getId());
               }
-              
 
-
-            //}
-        } catch (NullPointerException npe) {
+        } 
+        catch (NullPointerException npe) {
             npe.printStackTrace();
         }
         return annIA;
