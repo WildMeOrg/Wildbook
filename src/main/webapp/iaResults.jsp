@@ -1026,9 +1026,6 @@ function showTaskResult(res, taskId) {
                 else if (algoInfo == 'CurvRankTwoDorsal') {
                     algoDesc = 'trailing edge (CurvRank v2)';
                 }
-                else if (algoInfo == 'CurvRankTwoRidge') {
-                    algoDesc = 'dorsal ridge edge (CurvRank v2)';
-                }
                 else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
                 }
@@ -1194,7 +1191,7 @@ console.info('%d ===> %s', num, acmId);
 
 	let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
-	if (projectId!=""&&projectId!=undefined) {
+	if (projectId!==""&&projectId!=undefined) {
 		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
 	}
 

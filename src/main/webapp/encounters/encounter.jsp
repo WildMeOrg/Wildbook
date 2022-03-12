@@ -1963,6 +1963,18 @@ function checkIdDisplay() {
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
+                          const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
+                          const user = $("#autoUser").val();
+                          $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
+                          function() {
+                            $("#autoCommentErrorDiv").hide();
+                            $("#autoCommentsDiv").prepend("<p>" + encNewNameComments + "</p>");
+                            $("#autoComments").val("");
+                          })
+                          .fail(function(response) {
+                            $("#autoCommentErrorDiv").show();
+                            $("#autoCommentErrorDiv").html(response.responseText);
+                          });
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
@@ -6872,9 +6884,9 @@ String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), l
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
 //this is a sanity check for missed locationIDs !!
-for (String l : locCount.keySet()) {
-    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-}
+//for (String l : locCount.keySet()) {
+//    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+//}
 %>
 
     </div>

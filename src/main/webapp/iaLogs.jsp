@@ -22,9 +22,6 @@ org.ecocean.media.*
 <%
 
 
-
-response.setHeader("Access-Control-Allow-Origin", "*");
-
 String id = request.getParameter("id");
 String taskId = request.getParameter("taskId");
 String projectId = request.getParameter("projectId");
@@ -39,8 +36,6 @@ myShepherd.setAction("iaLogs.jsp");
 myShepherd.beginDBTransaction();
 
 try{
-	
-	System.out.println("calling iaLogs.jsp");
 	
 	ArrayList<IdentityServiceLog> logs = null;
 	if (id != null) {
