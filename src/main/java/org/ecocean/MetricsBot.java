@@ -280,20 +280,23 @@ public class MetricsBot {
 
           //WBIA turnaround time all task types
           String regexTT="wbia_turnaround_seconds\\{endpoint=\"\\*\".*\\} \\d*\\.\\d*";
-          if(getWBIAPrometheusClientValue(wbiaMetrics, regexTT)!=null) {
-            csvLines.add("wildbook_wbia_turnaroundtime"+","+getWBIAPrometheusClientValue(wbiaMetrics, regexTT)+","+"gauge"+","+"WBIA job queue turnaround time");
+          String promValueTT = getWBIAPrometheusClientValue(wbiaMetrics, regexTT);
+          if(promValueTT!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime"+","+promValueTT+","+"gauge"+","+"WBIA job queue turnaround time");
           }
           
           //WBIA turnaround time detection (lightnet) tasks
           String regexTTdetect="wbia_turnaround_seconds\\{endpoint=\"/api/engine/detect/cnn/lightnet/\".*\\} \\d*\\.\\d*";
-          if(getWBIAPrometheusClientValue(wbiaMetrics, regexTTdetect)!=null) {
-            csvLines.add("wildbook_wbia_turnaroundtime_detection"+","+getWBIAPrometheusClientValue(wbiaMetrics, regexTTdetect)+","+"gauge"+","+"WBIA job queue turnaround time for detection tasks");
+          String promValueDetect = getWBIAPrometheusClientValue(wbiaMetrics, regexTTdetect);
+          if(promValueDetect!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime_detection"+","+promValueDetect+","+"gauge"+","+"WBIA job queue turnaround time for detection tasks");
           }
           
           //WBIA turnaround time ID (graph) tasks
           String regexTTgraph="wbia_turnaround_seconds\\{endpoint=\"/api/engine/query/graph/\".*\\} \\d*\\.\\d*";
-          if(getWBIAPrometheusClientValue(wbiaMetrics, regexTTgraph)!=null) {
-            csvLines.add("wildbook_wbia_turnaroundtime_id"+","+getWBIAPrometheusClientValue(wbiaMetrics, regexTTgraph)+","+"gauge"+","+"WBIA job queue turnaround time for ID tasks");
+          String promValueID = getWBIAPrometheusClientValue(wbiaMetrics, regexTTgraph);
+          if(promValueID!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime_id"+","+promValueID+","+"gauge"+","+"WBIA job queue turnaround time for ID tasks");
           }
           
         }
