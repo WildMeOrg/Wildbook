@@ -181,6 +181,7 @@ URLCodec urlCodec = new URLCodec();
   Properties collabProps = new Properties();
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
+  Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
 
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
@@ -896,6 +897,35 @@ if(enc.getLocation()!=null){
 	</span>
 </span>
 
+<%
+String stuID = enc.getStudySiteID();
+System.out.println("***   Encounter.jsp: got stuID = "+stuID);
+StudySite stu = myShepherd.getStudySite(stuID);
+String displayStu = "none";
+if (stu!=null) {
+    // build hyperlink to studysite page
+    String stuUrl = "//"+CommonConfiguration.getURLLocation(request) + "/studySite.jsp?number="+stuID;
+    displayStu = "<a href="+stuUrl+">"+stu.getName()+"</a>";
+}
+%>
+
+
+<em><%=encprops.getProperty("studySiteID")%>: <span id="displayStudySiteID"><%=displayStu%></span></em>
+<br>
+
+<%
+String governmentAreaStr = enc.getGovernmentArea();
+if (governmentAreaStr == null) governmentAreaStr = "";
+%>
+<em><%=encprops.getProperty("governmentArea")%>: <span id="displayGovernmentArea"><%=governmentAreaStr%></span></em>
+<br>
+
+<%
+String huntingStateStr = enc.getHuntingState();
+if (huntingStateStr == null) huntingStateStr = "";
+%>
+<em><%=encprops.getProperty("huntingState")%>: <span id="displayHuntingState"><%=huntingStateStr%></span></em>
+
 <br>
 <%
 if(CommonConfiguration.showProperty("showCountry",context)){
@@ -912,7 +942,106 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
   }
+
+if (stu!=null) {
+%>
+<!-- show/hide buttons and trapping station data div -->
+<a id="showStuMetaBtn"><strong><b><%=stuprops.getProperty("showStuMetadata")%></b></strong></a>
+<a id="hideStuMetaBtn"><strong><b><%=stuprops.getProperty("hideStuMetadata")%></b></strong></a>
+
+<div id="trappingStationMetadata">
+
+    <em><%=stuprops.getProperty("governmentArea") %></em>
+    <%
+    String gArea = stu.getGovernmentArea();
+    if(gArea == null) gArea = "";
     %>
+    <span>: <span id="displayGovernmentArea"><%=gArea%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("population") %></em>
+    <%
+    String pop = stu.getPopulation();
+    if(pop == null) pop = "";
+    %>
+    <span>: <span id="displayPopulation"><%=pop%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("daysNotWorking") %></em>
+    <%
+    Integer dnwInt = stu.getDaysNotWorking();
+    String dnw = "";
+    if(dnwInt != null) {
+      dnw = String.valueOf(dnwInt);
+    }
+    %>
+    <span>: <span id="displayDNW"><%=dnw%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("lure") %></em>
+    <%
+    String lure = stu.getLure();
+    if(lure == null) lure = "";
+    %>
+    <span>: <span id="displayLure"><%=lure%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("reward") %></em>
+    <%
+    String reward = stu.getReward();
+    if(reward == null) reward = "";
+    %>
+    <span>: <span id="displayReward"><%=reward%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("typeOfCamera") %></em>
+    <%
+    String toc = stu.getTypeOfCamera();
+    if(toc == null) toc = "";
+    %>
+    <span>: <span id="displayTOC"><%=toc%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("trapsPerNight") %></em>
+    <%
+    Double tpnDoub = stu.getTrapsPerNight();
+    String tpn = "";
+    if (tpn != null) {
+      tpn = String.valueOf(tpnDoub);
+    }
+    %>
+    <span>: <span id="displayTPN"><%=tpn%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("comments") %></em>
+    <%
+    String comments = stu.getComments();
+    if (comments == null) comments = "";
+    %>
+    <span>: <span id="displayComments"><%=comments%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("stationStart") %></em>
+    <%
+    String stationStart = stu.getDateString("yyyy-MM-dd");
+    if (stationStart == null) stationStart = "";
+    %>
+    <span>: <span id="displayStationStart"><%=stationStart%></span></span>
+    <br>
+
+    <em><%=stuprops.getProperty("stationEnd") %></em>
+    <%
+    String stationEnd = stu.getDateEndString("yyyy-MM-dd");
+    if (stationEnd == null) stationEnd = "";
+    %>
+    <span>: <span id="displayStationEnd"><%=stationEnd%></span></span>
+    <br>
+</div>
+<%
+}
+%>
+<!-- end trapping station div -->
+    
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -939,6 +1068,26 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <!-- start location  -->
 <script type="text/javascript">
+
+// Show hide study site (trapping station) metadata
+$(window).on('load',function() {
+  $("#trappingStationMetadata").hide();
+  $("#hideStuMetaBtn").hide();
+  $("#showStuMetaBtn").show();
+  $("#showStuMetaBtn").click(function(event) {
+    $("#trappingStationMetadata").slideDown();
+    $("#showStuMetaBtn").hide();
+    $("#hideStuMetaBtn").show();
+  });
+  $("#hideStuMetaBtn").click(function(event) {
+    $("#trappingStationMetadata").slideUp();
+    $("#showStuMetaBtn").show();
+    $("#hideStuMetaBtn").hide();
+  });
+});
+
+// show/hide location editing
+
   $(window).on('load',function() {
     $("#addLocation").click(function(event) {
       event.preventDefault();
