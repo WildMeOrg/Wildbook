@@ -719,7 +719,7 @@ if (sharky.getNames() != null) {
         var newKey = $(this).siblings("input.nameKey").val();
         var newVal = $(this).siblings("input.nameValue").val();
 
-        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+        console.log("namebutton 1 was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
 
         if (newKey===oldKey && newVal===oldVal) return;
 
@@ -728,7 +728,20 @@ if (sharky.getNames() != null) {
 
         $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "newKey": newKey, "newValue": newVal},
         function() {
-          console.log("SUCCESSFUL callback on individualSetName. this = "+this);
+          console.log("SUCCESSFUL callback on individualSetName. this = ");
+          console.log(this);
+          const indNewNameComments = "Changed name to: " + newVal + " for key: " + newKey + " individual: " + indID;
+          const userId = '<%= myShepherd.getUser(request).getId()%>';
+          $.post("../IndividualAddComment", {"individual": indID, "user": userId, "comments": indNewNameComments},
+          function() {
+            $("#autoCommentErrorDiv").hide();
+            $("#autoCommentsDiv").prepend("<p>" + indNewNameComments + "</p>");
+            $("#autoComments").val("");
+          })
+          .fail(function(response) {
+            $("#autoCommentErrorDiv").show();
+            $("#autoCommentErrorDiv").html(response.responseText);
+          });
           // show success and checkbox
           $(rememberMe).siblings("input.name").addClass("has-success");
           $(rememberMe).siblings(".nameCheck, nameColon").show();
@@ -783,7 +796,7 @@ if (sharky.getNames() != null) {
         }
 
 
-        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+        console.log("namebutton 2 was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
 
         if (newKey===oldKey && newVal===oldVal) return;
 

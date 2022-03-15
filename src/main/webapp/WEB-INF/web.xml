@@ -198,7 +198,7 @@
 
 				/BatchUpload/** = authc, roles[admin]
 				/appadmin/batch* = authc, roles[admin]
-				/EncounterSetSubmitterID = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[researcher]
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
@@ -455,6 +455,9 @@
 		/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
+			/import.jsp = authc, roles[researcher]
+			/iaResultsNoMatch.jsp = = authc, roles[researcher]
+			/iaResultsSetID.jsp = = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
@@ -906,6 +909,10 @@
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
+	<servlet>
+		<servlet-name>UserCheck</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserCheck</servlet-class>
+</servlet>
     <servlet>
       <servlet-name>UserCreateSocial</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
@@ -1938,6 +1945,10 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+	<servlet-mapping>
+			<servlet-name>UserCheck</servlet-name>
+			<url-pattern>/UserCheck</url-pattern>
+</servlet-mapping>
       <servlet-mapping>
           <servlet-name>UserCreateSocial</servlet-name>
           <url-pattern>/UserCreateSocial</url-pattern>

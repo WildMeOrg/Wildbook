@@ -122,7 +122,6 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
-private List<Project> projects = new ArrayList<Project>();
 
 
     //little helper function for pulling values as strings even if null (not set via form)
@@ -271,6 +270,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
   @Override
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        List<Project> projects = new ArrayList<Project>();
 
         HashMap formValues = new HashMap();
 

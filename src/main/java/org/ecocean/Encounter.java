@@ -1385,7 +1385,7 @@ public class Encounter implements java.io.Serializable {
   public boolean wasInPeriod(DateTime start, DateTime end) {
     Long thisTime = getDateInMilliseconds();
     if (thisTime==null) return false;
-    return (start.getMillis()<=thisTime && end.getMillis()>thisTime);
+    return (start.getMillis()<=thisTime && end.getMillis()>=thisTime);
   }
 
 

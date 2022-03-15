@@ -914,8 +914,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 }  //end if showCountry
 
 %>
-
-<div class="col-xs-12 col-lg-12">
+<em><%=props.getProperty("gps_title") %></em>
+<div>
     <p id="map">
     <!--
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
@@ -1240,7 +1240,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </div>
         -->
 
-
+<!--
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
 						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
@@ -1250,6 +1250,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+-->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">

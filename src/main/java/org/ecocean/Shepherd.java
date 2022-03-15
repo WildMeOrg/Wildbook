@@ -57,6 +57,8 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 
 
 /**
@@ -1208,6 +1210,8 @@ public class Shepherd implements AutoCloseable {
   }
 
   public boolean doesUserHaveRole(String username, String rolename, String context) {
+    username = username.replaceAll("\\'", "\\\\'");
+    rolename = rolename.replaceAll("\\'", "\\\\'");
     String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "' && this.context == '"+context+"'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
@@ -1324,13 +1328,16 @@ public class Shepherd implements AutoCloseable {
   }
 
   public ArrayList<Project> getProjectsForUser(User user) {
+    Boolean isAdmin = user.hasRoleByName("admin", this);
     Query query = null;
     Iterator<Project> projectIter = null;
     ArrayList<Project> projectArr = null;
     try {
       String filter = "SELECT FROM org.ecocean.Project WHERE users.contains(user)";
+      if(isAdmin) filter = "SELECT FROM org.ecocean.Project";
       query = getPM().newQuery(filter);
       query.declareParameters("User user");
+      query.setOrdering("researchProjectName ascending NULLS LAST");
       Collection c = (Collection)query.execute(user);
       projectIter = c.iterator();
       while (projectIter.hasNext()) {
@@ -1339,9 +1346,11 @@ public class Shepherd implements AutoCloseable {
         }
         projectArr.add(projectIter.next());
       }
-    } catch (JDOException jdoe) {
+    } 
+    catch (JDOException jdoe) {
       jdoe.printStackTrace();
-    } finally {
+    } 
+    finally {
       query.closeAll();
     }
     return projectArr;
@@ -1417,6 +1426,19 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   }
 
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
+  public List<User> getNativeUsersWithoutAnonymous() {
+    List<User> users = getNativeUsers("username ascending NULLS LAST");
+    CollectionUtils.filter(users, new Predicate<User>() { // from https://stackoverflow.com/questions/122105/how-to-filter-a-java-collection-based-on-predicate
+       @Override
+       public boolean evaluate(User user) {
+          if(user.getUsername().contains("Anonymous_")) {
+             return false;
+          }
+          return true;
+       }
+    });
+    return users;
+  }
   public List<User> getNativeUsers() {
     return getNativeUsers("username ascending NULLS LAST");
   }
@@ -3745,6 +3767,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       jdoe.printStackTrace();
     }
     Query projectQuery = pm.newQuery(projectClass);
+    projectQuery.setOrdering("researchProjectName ascending NULLS LAST");
     Collection c = (Collection) (projectQuery.execute());
     ArrayList<Project> list = new ArrayList<>(c);
     projectQuery.closeAll();
@@ -5804,7 +5827,7 @@ public Long countMediaAssets(Shepherd myShepherd){
         if (u != null) return u;
         return getUserByEmailAddress(value);  //see note below about uniqueness, alas
     }
-    
+
     public JSONArray getAllProjectACMIdsJSON(String projectId) {
       JSONArray allAnnotIds = new JSONArray();
       String filter="SELECT FROM org.ecocean.Annotation WHERE acmId!=null && enc.annotations.contains(this) && project.id=='"+projectId+"' && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc;org.ecocean.Project project";
@@ -5816,10 +5839,10 @@ public Long countMediaAssets(Shepherd myShepherd){
       for (String ann :al) {
             allAnnotIds.put(ann);
     }
-      
+
       return allAnnotIds;
     }
-    
+
 
 
 } //end Shepherd class
