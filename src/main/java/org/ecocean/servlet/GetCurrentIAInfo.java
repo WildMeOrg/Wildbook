@@ -110,23 +110,34 @@ public class GetCurrentIAInfo extends HttpServlet {
             annIA.put("assetDetectionStatus", ma.getDetectionStatus());
             annIA.put("assetWebURL", Util.scrubURL(ma.webURL()));
             
-             List<Task> rootTasks = ann.getRootIATasks(myShepherd);
-            if (rootTasks!=null&&!rootTasks.isEmpty()) {
-              
-              //WB-1812 - previously (commented out right above) we were only ever exposing the first root task
-              //instead, let's be consistent with encounterMediaGallery.jsp and return the most recent IA task
-              for (Task t : ma.getRootIATasks(myShepherd)) {
-                  if (rootTasks.contains(t)) continue;
-                  if (t.deepContains(ann)!=null) rootTasks.add(t);
-              }
-              Comparator<Task> byRanking = 
-                  (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
-              Collections.sort(rootTasks, byRanking);
-              Collections.reverse(rootTasks); // now desc, ez
-              annIA.put("lastTaskId", rootTasks.get(0).getId());
 
-            }
-        } catch (NullPointerException npe) {
+               //let's look for match results we can easily link for the user
+               ArrayList<Task> tasks=new ArrayList<Task>();
+               List<Task> relatedTasks = Task.getTasksFor(ann, myShepherd);
+               if(relatedTasks!=null && relatedTasks.size()>0){
+                 for(Task task:relatedTasks){  
+                   if(task.getParent()!=null && task.getParent().getChildren().size()==1){
+                        //System.out.println("I am a task with only one algorithm");
+                        if(!tasks.contains(task)){
+                            tasks.add(task);
+                        }
+                   }
+                   else if(task.getChildren()!=null && task.getChildren().size()>0){
+                        //System.out.println("I am a task with child ID tasks.");
+                        if(!tasks.contains(task)){
+                            tasks.add(task);
+                         }
+                    }
+                 }
+                  Comparator<Task> byRanking = 
+                      (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
+                  Collections.sort(tasks, byRanking);
+                  Collections.reverse(tasks); // now desc, ez
+                  annIA.put("lastTaskId", tasks.get(0).getId());
+              }
+
+        } 
+        catch (NullPointerException npe) {
             npe.printStackTrace();
         }
         return annIA;

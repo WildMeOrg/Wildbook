@@ -453,6 +453,8 @@
 		/ProjectUpdate = authc
 		/ProjectIA = authc
 			/import.jsp = authc, roles[researcher]
+			/iaResultsNoMatch.jsp = = authc, roles[researcher]
+			/iaResultsSetID.jsp = = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
