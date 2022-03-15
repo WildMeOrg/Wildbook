@@ -49,13 +49,10 @@ private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
 private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
 	//long startTime=System.currentTimeMillis();
 	int num=0;	
-	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_OID\" from \"ENCOUNTER_ANNOTATIONS\" where \"CATALOGNUMBER_OID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"'));";
-	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
-
+	String filter="select count(distinct asset.id) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	Query query = myShepherd.getPM().newQuery(filter);
 	try{
-		List results = query.executeList();
-		num = ((Long) results.iterator().next()).intValue();
-		
+		num=((Long) query.execute()).intValue();
 	}
 	catch(Exception e){
 		e.printStackTrace();
@@ -295,10 +292,8 @@ try{
 			           		{
 			           			key: 'date',
 			           			label: 'Date',
-			           			value: _colDate,
-			           			sortValue: function(a,b){
-			           				return (a.created < b.created) ? -1 : ((a.created > b.created) ? 1 : 0);
-			           			}
+			           			value: _colCreated,
+			           			sortValue: _colCreatedSort
 			           		},
 
 			           		{
@@ -347,6 +342,21 @@ try{
 			
 			
 			var sTable = false;
+			
+			function _colCreated(o) {
+				if (!o.created) return '';
+				if (o.created === "-1") return '';
+				return o.created;
+			}
+
+			function _colCreatedSort(o) {
+				var m = o.created;
+				if (!m) return '';
+				//var d = wildbook.parseDate(m);
+				//if (!wildbook.isValidDate(d)) return '';
+				//return d.getTime();
+				return m;
+			}
 
 			
 			function doTable() {
@@ -385,7 +395,7 @@ try{
 				sTable.initValues();
 
 
-				newSlice(sortCol);
+				newSlice(sortCol, sortReverse);
 
 				$('#progress').hide();
 				sTable.sliderInit();

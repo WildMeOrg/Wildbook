@@ -13,16 +13,32 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
+import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.concurrent.ScheduledFuture;
 import io.prometheus.client.CollectorRegistry;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
+import org.json.JSONObject;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;
@@ -256,6 +272,34 @@ public class MetricsBot {
         else if(contributorsLabels.endsWith(",")) {contributorsLabels="\""+contributorsLabels.substring(0,(contributorsLabels.length()-1))+"\"";}
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_total","Number of public data contributors",context,contributorsLabels));
         
+        //WBIA Metrics pull
+        String metricsURL = IA.getProperty(context, "IBEISIARestUrlAddImages");
+        if(metricsURL!=null) {
+          metricsURL=metricsURL.replaceAll("/api/image/json/","")+"/metrics";
+          String wbiaMetrics=httpGetRemoteText(metricsURL);
+
+          //WBIA turnaround time all task types
+          String regexTT="wbia_turnaround_seconds\\{endpoint=\"\\*\".*\\} \\d*\\.\\d*";
+          String promValueTT = getWBIAPrometheusClientValue(wbiaMetrics, regexTT);
+          if(promValueTT!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime"+","+promValueTT+","+"gauge"+","+"WBIA job queue turnaround time");
+          }
+          
+          //WBIA turnaround time detection (lightnet) tasks
+          String regexTTdetect="wbia_turnaround_seconds\\{endpoint=\"/api/engine/detect/cnn/lightnet/\".*\\} \\d*\\.\\d*";
+          String promValueDetect = getWBIAPrometheusClientValue(wbiaMetrics, regexTTdetect);
+          if(promValueDetect!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime_detection"+","+promValueDetect+","+"gauge"+","+"WBIA job queue turnaround time for detection tasks");
+          }
+          
+          //WBIA turnaround time ID (graph) tasks
+          String regexTTgraph="wbia_turnaround_seconds\\{endpoint=\"/api/engine/query/graph/\".*\\} \\d*\\.\\d*";
+          String promValueID = getWBIAPrometheusClientValue(wbiaMetrics, regexTTgraph);
+          if(promValueID!=null) {
+            csvLines.add("wildbook_wbia_turnaroundtime_id"+","+promValueID+","+"gauge"+","+"WBIA job queue turnaround time for ID tasks");
+          }
+          
+        }
         
         
         //write the file
@@ -274,6 +318,7 @@ public class MetricsBot {
         metricsExtractor.getValues(); 
         
         
+        
      }
      catch(Exception f) {
        System.out.println("Exception in MetricsBot!");
@@ -282,5 +327,47 @@ public class MetricsBot {
     }
 
 
+    public static String httpGetRemoteText(String url) {
+      String responseString = "";
+
+      try {
+
+          CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+  
+          URIBuilder uriBuilder = new URIBuilder(url);
+  
+          URI uri = uriBuilder.build();
+          HttpGet request = new HttpGet(uri);
+
+          // Make the API call and get the response entity.
+          HttpResponse response = httpClient.execute(request);
+          HttpEntity entity = response.getEntity();
+          if (entity != null) {
+              responseString = EntityUtils.toString(entity);
+          }
+
+      }
+      catch (Exception e) {
+          System.out.println("Failed to get a response posting MediaAsset with URL: "+url);
+          e.printStackTrace();
+      }   
+      return responseString;
+    }
+    
+    public static String getWBIAPrometheusClientValue(String parseMe, String regex) {
+      Pattern pattern = Pattern.compile(regex);
+      Matcher matcher = pattern.matcher(parseMe);
+      if(matcher.find()){
+        String tt=matcher.group(0); 
+        StringTokenizer str=new StringTokenizer(tt," ");
+        if(str.countTokens()>1) {
+          String definition = str.nextToken();
+          String value = str.nextToken();
+          return value;
+        }
+      }
+      return null;
+    }
+    
 
 }
