@@ -893,6 +893,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+-->
 
 
         <div class="form-group">
