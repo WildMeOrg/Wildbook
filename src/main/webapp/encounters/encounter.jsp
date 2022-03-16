@@ -1679,14 +1679,11 @@ function resetIdButtons() {
     if (newId) {
         $('#AddNewDisabled').hide();
         $('#AddNew').show();
-        // $('#AddToExistingDisabled').show();
     } else if (existId) {
-      console.log('deleteMe got here b2 existId is: ' + existId);
 //console.log('existId=%s', existId);
         if (lastIndivAutoData[existId]) {
             $('#AddToExistingDisabled').hide();
             $('#Add').show();
-            // $('#AddNewDisabled').show();
         } else {
             console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
         }
@@ -1842,7 +1839,6 @@ function checkIdDisplay() {
 
                         $.post("../IndividualRemoveEncounter", {"number": number},
                         function(response) {
-                          console.log('deleteMe got here c1');
                           $("#setRemoveResultDiv").show();
                           $("#removeSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successRemove") %>");
                           $("#removeErrorDiv").empty();
@@ -1967,12 +1963,6 @@ function checkIdDisplay() {
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
-<<<<<<< HEAD
-                          console.log('deleteMe got here a4 and data is:');
-                          console.log(data);
-
-
-=======
                           const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
                           const user = $("#autoUser").val();
                           $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
@@ -1985,7 +1975,6 @@ function checkIdDisplay() {
                             $("#autoCommentErrorDiv").show();
                             $("#autoCommentErrorDiv").html(response.responseText);
                           });
->>>>>>> master
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
@@ -2721,11 +2710,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<<<<<<< HEAD
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
-=======
 <% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
->>>>>>> master
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>

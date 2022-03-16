@@ -82,89 +82,7 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-<<<<<<< HEAD
-//this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
-if (request.getParameter("acmId") != null) {
-	String acmId = request.getParameter("acmId");
-	myShepherd = new Shepherd(context);
-	myShepherd.setAction("iaResults.jsp1");
-	myShepherd.beginDBTransaction();
-    ArrayList<Annotation> anns = null;
-	JSONObject rtn = new JSONObject("{\"success\": false}");
-	try {
-		anns = myShepherd.getAnnotationsWithACMId(acmId);
-	} catch (Exception ex) {}
-	if ((anns == null) || (anns.size() < 1)) {
-		rtn.put("error", "unknown error");
-	} else {
-		JSONArray janns = new JSONArray();
-		//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
-		Project project = null;
-		if (Util.stringExists(projectIdPrefix)) {
-			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
-		}
-		String locationIdPrefix = null;
-		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
-        for (Annotation ann : anns) {
-			if (ann.getMatchAgainst()==true) {
-				JSONObject jann = new JSONObject();
-				jann.put("id", ann.getId());
-				jann.put("acmId", ann.getAcmId());
-				Encounter enc = ann.findEncounter(myShepherd);
-	 			if (enc != null) {
-	 				jann.put("encounterId", enc.getCatalogNumber());
-	 				jann.put("encounterLocationId", enc.getLocationID());
-					locationIdPrefix = enc.getPrefixForLocationID();
-					jann.put("encounterLocationIdPrefix", locationIdPrefix);
-					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
-					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
-					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
 
-	 			}
-				MediaAsset ma = ann.getMediaAsset();
-				if (ma != null) {
-			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
-                                    if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
-                                    jm.put("rotation", rotationInfo(ma));
-			            jann.put("asset", jm);
-				}
-				if (project!=null) {
-					try {
-
-						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
-							System.out.println("num encounters in project: "+project.getEncounters().size());
-							MarkedIndividual individual = enc.getIndividual();
-							if (individual!=null) {
-								List<String> projectNames = individual.getNamesList(projectIdPrefix);
-								jann.put("incrementalProjectId", projectNames.get(0));
-								jann.put("projectIdPrefix", projectIdPrefix);
-								jann.put("projectUUID", project.getId());
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				janns.put(jann);
-			}
-		}
-	    rtn.put("success", true);
-        rtn.put("annotations", janns);
-	}
-/*
-	if ((qann != null) && (qann.getMediaAsset() != null)) {
-		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
-        	enc = Encounter.findByAnnotation(qann, myShepherd2);
-		num = enc.getCatalogNumber();
-	}
-*/
-	myShepherd.rollbackAndClose();
-	out.println(rtn.toString());
-	return;
-}
-=======
-
->>>>>>> master
 
 
 //TODO security for this stuff, obvs?
@@ -1498,7 +1416,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 	for (var i = 0 ; i < score_list.length ; i++) {
 		if (score_list[i] < 0) continue;
-		sorta.push(score_list[i] * 1000 + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']+ ' ' + dannot_extern_list[i]);
+		sorta.push(score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__'] + ' ' + dannot_extern_list[i]);
 	}
 	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
@@ -1865,7 +1783,7 @@ function isProjectSelected() {
 	if(request.getParameter("projectIdPrefix")!=null && !request.getParameter("projectIdPrefix").trim().equals("")&& !request.getParameter("projectIdPrefix").trim().equals("None Selected")){
 	%>
 		return true;
-
+	
 	<%
 	}
 	else{
