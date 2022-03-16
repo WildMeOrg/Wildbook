@@ -129,7 +129,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -139,7 +139,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatementDetection = "Each detection job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatementDetection = "Each detection job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -149,7 +149,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
