@@ -16,6 +16,7 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
+org.ecocean.metrics.*,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -121,13 +122,37 @@ try{
 	  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	
-	/*
-	//setup our Properties object to hold all properties
-	  Properties props = new Properties();
-	  //String langCode = "en";
-	  String langCode=ServletUtilities.getLanguageCode(request);
-	  props = ShepherdProperties.getProperties("login.properties", langCode,context);
-	*/
+	  //gather details about WBIA queue
+	  	String queueStatement="";
+	  	if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
+	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
+	  		try{
+	  			Double d = Double.parseDouble(val);
+	  			d=d/60.0;
+	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  		}
+	  		catch(Exception de){de.printStackTrace();}
+	  	}
+	  	String queueStatementDetection="";
+	  	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_detection")!=null){
+	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+	  		try{
+	  			Double d = Double.parseDouble(val);
+	  			d=d/60.0;
+	  			queueStatementDetection = "Each detection job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  		}
+	  		catch(Exception de){de.printStackTrace();}
+	  	}
+	  	String queueStatementID="";
+	  	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	  		try{
+	  			Double d = Double.parseDouble(val);
+	  			d=d/60.0;
+	  			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  		}
+	  		catch(Exception de){de.printStackTrace();}
+	  	}
 	  
 	
 	
@@ -373,13 +398,13 @@ try{
         		iaStatusString="detection complete";
         	}
         	else{
-        		iaStatusString="detection requests sent ("+numDetectionComplete+"/"+allAssets.size()+" complete)";
+        		iaStatusString="detection requests sent ("+numDetectionComplete+"/"+allAssets.size()+" complete). " +queueStatementDetection;
         		shouldRefresh=true;
         	}
         }
         //ID Task
         else{
-        	iaStatusString="identification requests sent (see below)";
+        	iaStatusString="identification requests sent (see table below for links to each matching job). "+queueStatementID;
         	if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
         	System.out.println("heerios!");
         }
@@ -496,10 +521,13 @@ try{
 	if (allowIA || forcePushIA) { 
 	%>
 	    <div id="ia-send-div">
+	    <p><strong>Image Analysis</strong></p>
 	    
 		    <%
 		    if (allAssets.size() > 0) {
+		    
 		    %>
+		    	<p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		
 		    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
@@ -515,6 +543,7 @@ try{
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
 	if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 		    %>
+		    <p><strong>Delete this bulk import?</strong></p>
 		    	<div style="margin-bottom: 20px;">
 		    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
 		              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />

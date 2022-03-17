@@ -25,7 +25,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
-         java.util.Collections,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -1044,7 +1044,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           <%
           if (useCustomProperties) {
             List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
-            Collections.sort(countries);
             for (String country: countries) {
               %>
               <option value="<%=country%>"><%=country%></option>
@@ -1052,15 +1051,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
             }
           } else {
             String[] locales = Locale.getISOCountries();
-            List<String> countriesFromLocales = new ArrayList<String>();
-            for (String countryCode : locales) { //implementing a java analog to js's .map here is not worth the pain for such a small for loop; just populating a new List with just country names herein
+            for (String countryCode : locales) {
               Locale obj = new Locale("", countryCode);
-              countriesFromLocales.add(obj.getDisplayCountry());
-            }
-            Collections.sort(countriesFromLocales);
-            for (String countryFromLocale : countriesFromLocales) {
               %>
-              <option value="<%=countryFromLocale %>"><%=countryFromLocale %></option>
+              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
               <%
             }
           }
@@ -1168,10 +1162,6 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   });
 </script>
 
-<%
-if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-%>
-
 <div>
   <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
 
@@ -1193,9 +1183,6 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
   </form>
 </div>
 
-<%
-}
-%>
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
 <%
@@ -2991,17 +2978,14 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-            List<User> nonAnonUsers=myShepherd.getNativeUsersWithoutAnonymous();
-            List<User> sortedUsers = User.sortUsersByFullnameDefaultUsername(nonAnonUsers);
-            int numUsers=sortedUsers.size();
+            List<String> usernames=myShepherd.getAllUsernames();
+            usernames.remove(null);
+            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
+            int numUsers=usernames.size();
             for(int i=0;i<numUsers;i++){
-                String thisUsername=sortedUsers.get(i).getUsername();
-                String userFullName=thisUsername;
-                if(sortedUsers.get(i).getFullName()!=null){
-                  userFullName=sortedUsers.get(i).getFullName();
-                }
+                String thisUsername=usernames.get(i);
                 	%>
-              		<option value="<%=thisUsername%>"><%=userFullName%></option>
+              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
               		<%
             }
             %>
@@ -6853,6 +6837,24 @@ $(window).on('load',function() {
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<%
+
+	String queueStatementID="";
+	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		try{
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+		}
+		catch(Exception de){de.printStackTrace();}
+	}
+	if(!queueStatementID.equals("")){
+	%>
+	<p><em><%=queueStatementID %></em></p>
+	<%
+	}
+	%>
   <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
     <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
   </div>
