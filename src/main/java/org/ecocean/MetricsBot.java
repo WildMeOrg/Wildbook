@@ -290,12 +290,10 @@ public class MetricsBot {
 
         // Detection tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks","Number of detection tasks", context));        
-        //csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters LIKE %\"ibeis.detection\":true%","wildbook_detection_tasks","Number of detection tasks", context));
-
+  
         // Identification tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
-        //csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parent==null && parameters.indexOf('ibeis.identification') > -1","Number of identification tasks", context));
-
+      
         /* Different algorithms:
         * Hotspotter
         * PieTwo
@@ -318,8 +316,6 @@ public class MetricsBot {
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
         
         // specific species
-        //SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('equus_grevyi') > -1"
-        //"SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && objectAnnotations.contains(annot)
         
         Shepherd myShepherd=new Shepherd(context);
         myShepherd.setAction("MetricsBot_ML_Tasks");
@@ -357,8 +353,7 @@ public class MetricsBot {
 
 
         // specific user
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task (parameters.indexOf('admin') > -1","wildbook_admin_tasks","Number of tasks from user admin", context)); 
-         //SELECT count(this) FROM org.ecocean.ia.Task where "PARAMETERS" LIKE('"username":"tomcat"'')
+        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('tomcat') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_admin_tasks","Number of tasks from user admin", context)); 
     }
 
 
