@@ -61,7 +61,9 @@ private String namesSql(Shepherd myShepherd, MarkedIndividual indiv) {
     for (Object k : names.keySet()) {
         String key = (String)k;
         String context = key;
-        if (context.equals("*")) context = "default";
+        // these mappings via DEX-848
+        if (context.equals("*")) context = "FirstName";
+        if (context.equals("Nickname")) context = "AdoptionName";
         if (!Util.stringExists(context)) {
             sqlRtn += "-- oops empty context\n";
             continue;
