@@ -18,7 +18,7 @@ function pageableTable(opts) {
 		var hd = '<thead><tr>';
 		_.each(this.opts.columns, function(cstruct, c) { hd += '<th class="ptcol-' + c + '">' + cstruct.label + '</th>'; });
 		opts.tableElement.append(hd + '</tr></thead>').append(this.tableBody);
-		opts.tableElement.on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
+		opts.tableElement.on('wheel', function(ev) {  //firefox? DOMMouseScroll
 			if (!me.opts.sliderElement) return;
 			ev.preventDefault();
 			var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));

@@ -59,10 +59,10 @@ public class MediaAssetContext extends HttpServlet {
       } else {
         System.out.println("WorkspaceMetadata successfully grabbed MediaAsset with id="+id);
       }
-  
+
       //
       JSONObject res = new JSONObject("{id:"+mAsset.getId()+"}");
-  
+
       JSONObject encs = new JSONObject();
       HashSet<String> individualIDs = new HashSet<String>();
       HashSet<String> occurrenceIDs = new HashSet<String>();
@@ -77,10 +77,10 @@ public class MediaAssetContext extends HttpServlet {
         if (enc.getOccurrenceID()!=null && !enc.getOccurrenceID().equals("")) {
           occurrenceIDs.add(enc.getOccurrenceID());
         }
-  
+
       }
       res.put("Encounters", encs);
-  
+
       JSONObject inds = new JSONObject();
       for (String indID : individualIDs) {
         MarkedIndividual indie = myShepherd.getMarkedIndividual(indID);
@@ -89,8 +89,8 @@ public class MediaAssetContext extends HttpServlet {
         }
       }
       res.put("MarkedIndividuals", inds);
-  
-  
+
+
       JSONObject anns = new JSONObject();
       ArrayList<Annotation> annotations = mAsset.getAnnotations();
       for(Annotation ann : annotations) {
@@ -98,7 +98,7 @@ public class MediaAssetContext extends HttpServlet {
       }
       // get attached Annotations
       res.put("Annotations", anns);
-  
+
       JSONObject occs = new JSONObject();
       for (String occID : occurrenceIDs) {
         Occurrence occie = myShepherd.getOccurrence(occID);
@@ -107,14 +107,14 @@ public class MediaAssetContext extends HttpServlet {
         }
       }
       res.put("Occurrences", occs);
-  
+
       res.put("IAStatus", Util.toggleJSONObject(mAsset.getIAStatus()));
       out.println(res);
 
-  } 
+  }
   catch (JSONException jsoe) {
     // curse datanucleus for demanding we handle this exception
-  } 
+  }
   catch (Exception e) {
     out.println(e.getMessage());
   }

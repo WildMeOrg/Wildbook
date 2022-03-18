@@ -221,14 +221,22 @@ public class Collaboration implements java.io.Serializable {
 		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
 		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
 		Shepherd myShepherd = new Shepherd(context);
+		ArrayList<Collaboration> results=new ArrayList<Collaboration>();
 		myShepherd.setAction("collaborationBetweenUsers");
 		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
-		Collection c=(Collection)query.execute();
-		ArrayList<Collaboration> results=new ArrayList<Collaboration>(c);
-		query.closeAll();
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
+		try {
+		  Collection c=(Collection)query.execute();
+	    results=new ArrayList<Collaboration>(c);
+		}
+		catch(Exception e) {
+		  e.printStackTrace();
+		}
+		finally {
+		  query.closeAll();
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
+		}
 
 		if (results == null || results.size()<1) return null;
 		return ((Collaboration) results.get(0));
