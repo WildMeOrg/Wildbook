@@ -686,6 +686,9 @@ function showTaskResult(res, taskId) {
                 else if (algoInfo == 'CurvRankTwoDorsal') {
                     algoDesc = 'trailing edge (CurvRank v2)';
                 }
+                else if (algoInfo == 'CurvRankTwoRidge') {
+                    algoDesc = 'dorsal ridge (CurvRank v2)';
+                }
                 else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
                 }
