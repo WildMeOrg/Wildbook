@@ -22,7 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 10;
+  int maxPages = 250;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -63,7 +63,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		<li>Scroll to the bottom of the page before printing, or some images will not render in pdf</li>
 	</ul></em></p>
 
-	<p class="instructions"> Your Flukebook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
+	<p class="instructions"> Your Wildbook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
 
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -203,9 +203,16 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		desiredKeywords.add("Tail Fluke");
-		desiredKeywords.add("Right Dorsal Fin");
-		desiredKeywords.add("Left Dorsal Fin");
+
+		desiredKeywords = CommonConfiguration.getIndexedPropertyValues("pictureBookKeywords", context);
+
+		// if misconfigured you can get null so lets be safe
+		if (desiredKeywords==null||desiredKeywords.size()==0) {
+			desiredKeywords.add("Left");
+			desiredKeywords.add("Right");
+			desiredKeywords.add("Top");
+			desiredKeywords.add("Front");
+		}
 
 	for (MarkedIndividual mark: rIndividuals) {
 
@@ -284,7 +291,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					<th>Biopsy</th>
 					<th>S. skin</th>
 					<th>Location</th>
-					<!--<th>Fluke photo</th>-->
 					<th>Nickname</th>
 					<th>Sex</th>
 					<th>Satellite Tag</th>
@@ -311,7 +317,6 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= biopsy ? "checked" : ""%> /></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= sloughedSkin ? "checked" : ""%> /></td>
 						<td><%=location%></td>
-						<!--<td><%=flukePhoto%></td>-->
 						<td><%=nickname%></td>
 						<td><%=sex%></td>
 						<td class="checkboxInput"><input type="checkbox" onclick="return false;" <%= satelliteTag ? "checked" : ""%> /></td>

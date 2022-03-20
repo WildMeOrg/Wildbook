@@ -25,6 +25,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -449,6 +450,29 @@ function setIndivAutocomplete(el) {
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
@@ -1939,6 +1963,18 @@ function checkIdDisplay() {
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
+                          const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
+                          const user = $("#autoUser").val();
+                          $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
+                          function() {
+                            $("#autoCommentErrorDiv").hide();
+                            $("#autoCommentsDiv").prepend("<p>" + encNewNameComments + "</p>");
+                            $("#autoComments").val("");
+                          })
+                          .fail(function(response) {
+                            $("#autoCommentErrorDiv").show();
+                            $("#autoCommentErrorDiv").html(response.responseText);
+                          });
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
@@ -3114,7 +3150,7 @@ if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
 %>
-    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+    <a target="_new" href="../import.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
 itq.closeAll();
@@ -6801,6 +6837,24 @@ $(window).on('load',function() {
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<%
+
+	String queueStatementID="";
+	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		try{
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+		}
+		catch(Exception de){de.printStackTrace();}
+	}
+	if(!queueStatementID.equals("")){
+	%>
+	<p><em><%=queueStatementID %></em></p>
+	<%
+	}
+	%>
   <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
     <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
   </div>
@@ -6846,9 +6900,9 @@ String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), l
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
 //this is a sanity check for missed locationIDs !!
-for (String l : locCount.keySet()) {
-    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-}
+//for (String l : locCount.keySet()) {
+//    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+//}
 %>
 
     </div>

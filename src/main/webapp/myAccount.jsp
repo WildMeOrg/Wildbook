@@ -352,7 +352,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 			jsonRequest['checkForExistingEmailDesired'] = true;
 			jsonRequest['emailAddress'] = emailAddress;
 			$.ajax({
-				url: wildbookGlobals.baseUrl + '../UserCreate',
+				url: wildbookGlobals.baseUrl + '../UserCheck',
 				type: 'POST',
 				data: JSON.stringify(jsonRequest),
 				dataType: 'json',
