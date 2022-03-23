@@ -6850,7 +6850,7 @@ $(window).on('load',function() {
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue .Each ID job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Each ID job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}
