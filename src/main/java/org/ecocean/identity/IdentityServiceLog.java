@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.ia.WbiaQueueUtil;
 
 
 public class IdentityServiceLog implements java.io.Serializable {
@@ -299,6 +300,8 @@ public class IdentityServiceLog implements java.io.Serializable {
         j.put("timestamp", this.getTimestamp());
         if (this.getObjectIDs() != null) j.put("objectIds", new JSONArray(this.getObjectIDs()));
         j.put("status", this.getStatusJson());
+        String queueStatus = WbiaQueueUtil.getStatusWBIAJob(this.getTaskID(), false);
+        if(queueStatus!=null)j.put("queueStatus", queueStatus);
         return j;
     }
 
