@@ -35,7 +35,7 @@ public class WbiaQueueUtil {
       }
       else{
           URL wbiaQueueUrl = IBEISIA.iaURL(context, "api/engine/job/status/");
-          wbiaQueue = Util.toggleJSONObject(RestClient.get(wbiaQueueUrl));
+          wbiaQueue = Util.toggleJSONObject(RestClient.get(wbiaQueueUrl,5000));
           CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(wbiaQueue));
           cq.nextExpirationTimeout=System.currentTimeMillis()+30000;
           qc.addCachedQuery(cq);
