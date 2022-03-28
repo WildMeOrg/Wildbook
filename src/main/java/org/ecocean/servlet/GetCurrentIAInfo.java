@@ -122,7 +122,7 @@ public class GetCurrentIAInfo extends HttpServlet {
                             tasks.add(task);
                         }
                    }
-                   else if(task.getChildren()!=null && task.getChildren().size()>0){
+                   else if(task.getChildren()!=null && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
                         //System.out.println("I am a task with child ID tasks.");
                         if(!tasks.contains(task)){
                             tasks.add(task);
