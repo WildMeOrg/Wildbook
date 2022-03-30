@@ -362,14 +362,12 @@ public class MetricsBot {
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
         
         // specific species
-        
         Shepherd myShepherd=new Shepherd(context);
         myShepherd.setAction("MetricsBot_ML_Tasks");
       
         IAJsonProperties iaConfig = new IAJsonProperties();
 	      List<Taxonomy> taxes=iaConfig.getAllTaxonomies(myShepherd);
         String filter3 = "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) ";
-        //int count = 100;
         String scientificName = "";
         for(Taxonomy tax:taxes)
         { 
@@ -412,21 +410,14 @@ public class MetricsBot {
         List<User> users = myShepherd.getAllUsers();
         String userFilter = "";
         String name = "";
-        int countNull = 0;
         for(User user:users){
           
+          //try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
           try
             {
               name = user.getFullName(); 
               userFilter = (String) user.getUsername();
-              //I just added this to start trying to extract the first letter from the last name
-              // String arr[] = name.split(" ", 2);
-              // String firstName = arr[0];
-              // String lastName = arr[1];
-              // char lastNameFirstLet = lastName.charAt(0);
-              // String lastNameInitial = Character.toString(lastNameFirstLet);
-              // name = firstName + lastNameInitial;
-             
+
               //truncate user's full name to first name and last initial, and replace space w/ underscore 
               if (name.contains(" ")){
                 int spaceIndex = name.indexOf(" ");
@@ -437,11 +428,8 @@ public class MetricsBot {
             }
             catch(NullPointerException e)
             {
-              System.out.println("Null Pointer Exception in Tasks by User");
-              name = "anonymous user " + countNull;
-              countNull++;
+              System.out.println("Null Pointer in Tasks by User, likely from anonymous user");
             }
-            System.out.println("ANON USERS " + countNull);
         }
     }
 
