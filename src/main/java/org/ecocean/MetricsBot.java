@@ -370,7 +370,7 @@ public class MetricsBot {
 	      List<Taxonomy> taxes=iaConfig.getAllTaxonomies(myShepherd);
         String filter3 = "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) ";
         //int count = 100;
-
+        String scientificName = "";
         for(Taxonomy tax:taxes)
         { 
           List<String> iaClasses=iaConfig.getValidIAClassesIgnoreRedirects(tax);
@@ -388,18 +388,61 @@ public class MetricsBot {
                 allowedIAClasses+=" || annot.iaClass == '"+str+"' ";
               }
             }
+            
+            try
+            {
+              scientificName = tax.getScientificName();
+            }
+            catch(NullPointerException e)
+            {
+              System.out.println("Null Pointer Exception in Species Tasks");
+            }
+
+            scientificName = scientificName.replaceAll("\\s+", "_"); //replace space w/ underscore for prometheus syntax
+
+            System.out.println("SCIENTIFIC NAME: "+ scientificName);
             allowedIAClasses+=" )";
             String filter = filter3 +" && objectAnnotations.contains(annot) "+
               allowedIAClasses+" VARIABLES org.ecocean.Annotation annot";
-            csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_"+tax.getScientificName(), "Number of ID tasks by species " + tax.getScientificName(), context));
-            //Replace space?
-            //count++;
+            csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_"+scientificName, "Number of ID tasks by species " + scientificName, context));
           }
         }
 
-
         // specific user
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('tomcat') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_admin_tasks","Number of tasks from user admin", context)); 
+        List<User> users = myShepherd.getAllUsers();
+        String userFilter = "";
+        String name = "";
+        int countNull = 0;
+        for(User user:users){
+          
+          try
+            {
+              name = user.getFullName(); 
+              userFilter = (String) user.getUsername();
+              //I just added this to start trying to extract the first letter from the last name
+              // String arr[] = name.split(" ", 2);
+              // String firstName = arr[0];
+              // String lastName = arr[1];
+              // char lastNameFirstLet = lastName.charAt(0);
+              // String lastNameInitial = Character.toString(lastNameFirstLet);
+              // name = firstName + lastNameInitial;
+             
+              //truncate user's full name to first name and last initial, and replace space w/ underscore 
+              if (name.contains(" ")){
+                int spaceIndex = name.indexOf(" ");
+                name = (name.substring(0,spaceIndex) + "_" + name.charAt(spaceIndex+1)).toLowerCase();
+              }
+              System.out.println("NAME: "+ name);
+              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
+            }
+            catch(NullPointerException e)
+            {
+              System.out.println("Null Pointer Exception in Tasks by User");
+              name = "anonymous user " + countNull;
+              countNull++;
+            }
+            System.out.println("ANON USERS " + countNull);
+        }
     }
 
 
