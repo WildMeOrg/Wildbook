@@ -128,7 +128,9 @@ if (request.getParameter("acmId") != null) {
 											MarkedIndividual individual = enc.getIndividual();
 											if (individual!=null) {
 												List<String> projectNames = individual.getNamesList(projectIdPrefix);
-												jann.put("incrementalProjectId", projectNames.get(0));
+												if(projectNames!=null && projectNames.size()>0){
+													jann.put("incrementalProjectId", projectNames.get(0));
+												}
 												jann.put("projectIdPrefix", projectIdPrefix);
 												jann.put("projectUUID", project.getId());
 											}

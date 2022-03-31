@@ -129,7 +129,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -139,7 +139,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatementDetection = "Each detection job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatementDetection = "Each detection job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -149,7 +149,7 @@ try{
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+	  			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -293,6 +293,8 @@ try{
 	        	
 	        	//let's look for match results we can easily link for the user
                         List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
+	     
+	        			
                         if(relatedTasks!=null && relatedTasks.size()>0){
                             for(Task task:relatedTasks){
                             	
@@ -303,7 +305,7 @@ try{
 		        						annotTypesByTask.put(task.getId(),iaClass);
 		        					}
                             	}
-                            	else if(task.getChildren()!=null && task.getChildren().size()>0){
+                            	else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
                             		//System.out.println("I am a task with child ID tasks.");
 	                            	if(!tasks.contains(task)){
 		        						tasks.add(task);
