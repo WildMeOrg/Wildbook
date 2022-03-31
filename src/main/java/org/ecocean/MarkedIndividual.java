@@ -2082,7 +2082,7 @@ public void doNotSetLocalHaplotypeReflection(String myHaplo) {
 }
 
 public long getTimeOfBirth(){return timeOfBirth;}
-public long getTimeofDeath(){return timeOfDeath;}
+public long getTimeOfDeath(){return timeOfDeath;}
 
 public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
@@ -2820,24 +2820,24 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                     }
                   break;
               case "sex":
-                  String sex = jsonIn.optString("sex", null);
+                  String sex = jsonIn.optString("value", null);
                   this.setSex(sex);
                   break;
               case "comments":
-                  String comments = jsonIn.optString("comments", null);
+                  String comments = jsonIn.optString("value", null);
                   this.addComments(comments);
                   break;
               case "timeOfBirth":
                   try {
-                    this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfBirth")));
+                    this.setTimeOfBirth(Long.parseLong(jsonIn.optString("value")));
                   } catch (NumberFormatException nfe) {
                     nfe.printStackTrace();
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfBirth");
                   }
                   break;
               case "timeOfDeath":
-                  try {
-                    this.setTimeOfBirth(Long.parseLong(jsonIn.optString("timeOfDeath")));
+                try {
+                    this.setTimeOfDeath(Long.parseLong(jsonIn.optString("value")));
                   } catch (NumberFormatException nfe) {
                     nfe.printStackTrace();
                     throw new ApiValueException("value must be convertable to a Long { id, value }", "timeOfDeath");
