@@ -329,6 +329,12 @@ public class MetricsBot {
      } 
     }
 
+    /* 
+    * addTasksToCsv
+    *  
+    * Helper method for adding machine learning tasks related metrics 
+    * Written by 2022 Captstone team: Gabe Marcial, Joanna Hoang, Sarah Schibel
+    */
     private static void addTasksToCsv(ArrayList<String> csvLines, String context) throws FileNotFoundException
     {
         // Total tasks
@@ -340,50 +346,46 @@ public class MetricsBot {
         // Identification tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
       
-        /* Different algorithms:
-        * Hotspotter
-        * PieTwo
-        * PieOne
-        * CurvRankTwoDorsal
-        * CurveRankTwoFluke
-        * OC_WDTW
-        * Finfindr
-        * Deepsense
-        */
+        // Hotspotter, PieTwo, PieOne 
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"sv_on\"')>-1", "wildbook_tasks_hotspotter", "Number of tasks using Hotspotter algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Pie')>-1 && parameters.indexOf('PieTwo')==-1", "wildbook_tasks_pieOne", "Number of tasks using PieOne algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('PieTwo')>-1", "wildbook_tasks_pieTwo", "Number of tasks using PieTwo algorithm", context));
-
+        
+        // CurvRankTwoDorsal, CurveRankTwoFluke, OC_WDTW
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoDorsal')>-1", "wildbook_tasks_curveRankTwoDorsal", "Number of tasks using CurveRankTwoDorsal algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('CurvRankTwoFluke')>-1", "wildbook_tasks_curveRankTwoFluke", "Number of tasks using CurveRankTwoFluke algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('OC_WDTW')>-1", "wildbook_tasks_oc_wdtw", "Number of tasks using OC_WDTW algorithm", context));
-
+        
+        // Finfindr, Deepsense
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Finfindr')>-1", "wildbook_tasks_finFindr", "Number of tasks using FinFindr algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
         
-        // specific species
-        Shepherd myShepherd=new Shepherd(context);
+        // Species tasks
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MetricsBot_ML_Tasks");
       
         IAJsonProperties iaConfig = new IAJsonProperties();
-	      List<Taxonomy> taxes=iaConfig.getAllTaxonomies(myShepherd);
+	      List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
         String filter3 = "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) ";
         String scientificName = "";
-        for(Taxonomy tax:taxes)
+
+        // Iterate through our species
+        for (Taxonomy tax:taxes)
         { 
-          List<String> iaClasses=iaConfig.getValidIAClassesIgnoreRedirects(tax);
-          if(iaClasses!=null && iaClasses.size()>0)
+          // Logic for extracting IA classes comes from taskQueryTests.jsp
+          List<String> iaClasses = iaConfig.getValidIAClassesIgnoreRedirects(tax);
+          if (iaClasses!=null && iaClasses.size()>0)
           {
-            String allowedIAClasses="&& ( ";
-            for(String str:iaClasses)
+            String allowedIAClasses = "&& ( ";
+            for (String str:iaClasses)
             {
-              if(allowedIAClasses.indexOf("iaClass")==-1)
+              if (allowedIAClasses.indexOf("iaClass") == -1)
               {
-                allowedIAClasses+=" annot.iaClass == '"+str+"' ";
+                allowedIAClasses +=" annot.iaClass == '" + str + "' ";
               }
               else
               {
-                allowedIAClasses+=" || annot.iaClass == '"+str+"' ";
+                allowedIAClasses += " || annot.iaClass == '" + str + "' ";
               }
             }
             
@@ -391,45 +393,41 @@ public class MetricsBot {
             {
               scientificName = tax.getScientificName();
             }
-            catch(NullPointerException e)
+            catch (NullPointerException e)
             {
               System.out.println("Null Pointer Exception in Species Tasks");
             }
 
-            scientificName = scientificName.replaceAll("\\s+", "_"); //replace space w/ underscore for prometheus syntax
+            // Replace space w/ underscore for prometheus syntax
+            scientificName = scientificName.replaceAll("\\s+", "_"); 
 
-            System.out.println("SCIENTIFIC NAME: "+ scientificName);
-            allowedIAClasses+=" )";
-            String filter = filter3 +" && objectAnnotations.contains(annot) "+
-              allowedIAClasses+" VARIABLES org.ecocean.Annotation annot";
-            csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_"+scientificName, "Number of ID tasks by species " + scientificName, context));
+            allowedIAClasses += " )";
+            String filter = filter3 + " && objectAnnotations.contains(annot) " + allowedIAClasses + " VARIABLES org.ecocean.Annotation annot";
+            csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_" + scientificName, "Number of ID tasks by species " + scientificName, context));
           }
         }
 
-        // specific user
+        // Tasks by users
         List<User> users = myShepherd.getAllUsers();
         String userFilter = "";
         String name = "";
-        for(User user:users){
-          
-          //try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
+        for (User user:users)
+        {  
+          // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
           try
-            {
-              name = user.getFullName(); 
-              userFilter = (String) user.getUsername();
+          {
+            name = user.getFullName(); 
+            userFilter = (String) user.getUsername();
 
-              //truncate user's full name to first name and last initial, and replace space w/ underscore 
-              if (name.contains(" ")){
-                int spaceIndex = name.indexOf(" ");
-                name = (name.substring(0,spaceIndex) + "_" + name.charAt(spaceIndex+1)).toLowerCase();
-              }
-              System.out.println("NAME: "+ name);
-              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
-            }
-            catch(NullPointerException e)
+            // Truncate user's full name to first name and last initial, and replace space w/ underscore 
+            if (name.contains(" "))
             {
-              System.out.println("Null Pointer in Tasks by User, likely from anonymous user");
+              int spaceIndex = name.indexOf(" ");
+              name = (name.substring(0,spaceIndex) + "_" + name.charAt(spaceIndex+1)).toLowerCase();
             }
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
+          }
+          catch (NullPointerException e) { }
         }
     }
 
