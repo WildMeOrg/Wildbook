@@ -1259,6 +1259,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public boolean hasLatLon() {
       return (decimalLongitude!=null && decimalLatitude!=null);
     }
+    public boolean hasLatOrLon() {
+      return (decimalLongitude!=null || decimalLatitude!=null);
+    }
     public void setDecimalLongitude(Double decimalLongitude) {
         if ((decimalLongitude != null) && !Util.isValidDecimalLongitude(decimalLongitude)) throw new ApiValueException("invalid longitude value", "decimalLongitude");
       this.decimalLongitude = decimalLongitude;
@@ -1678,7 +1681,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
         obj.put("customFields", this.getCustomFieldJSONObject());
 
-        if (hasLatLon()) {
+        if (hasLatOrLon()) {
             obj.put("decimalLatitude", getDecimalLatitude());
             obj.put("decimalLongitude", getDecimalLongitude());
         } else {
