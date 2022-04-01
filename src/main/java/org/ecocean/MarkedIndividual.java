@@ -68,8 +68,7 @@ public class MarkedIndividual extends org.ecocean.api.ApiCustomFields implements
   private String comments = "None";
 
   //sex of the MarkedIndividual
-  public final String DEFAULT_SEX = "unknown";
-  private String sex = DEFAULT_SEX;
+  private String sex = null;
 
     //these are deprecated for favoring taxonomy below
   private String genus = "";
@@ -998,12 +997,11 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     validateSexValue(newSex);  // throws ApiValueException if invalid
     if(newSex!=null){sex = newSex;}
     else{sex=null;}
-
   }
 
   public boolean hasSex() {
     String thisSex = getSex();
-    return (thisSex!=null && !thisSex.equals(DEFAULT_SEX));
+    return (thisSex!=null && !thisSex.equals("unknown"));
   }
 
     public String getGenus() {
@@ -2700,10 +2698,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             indiv.setComments(jcomments);
           }
   
-          String jsex = jsonIn.optString("sex");
-          if (jsex!=null&&!"".equals(jsex)) {
-            indiv.setSex(jsex);
-          }
+          String jsex = jsonIn.optString("sex",null);
+          indiv.setSex(jsex);
 
           String jbirthTime= jsonIn.optString("timeOfBirth");
           String jdeathTime= jsonIn.optString("timeOfDeath");
