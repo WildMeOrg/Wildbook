@@ -57,6 +57,11 @@
  			 },
 			"locationID": [
 				{
+					"name": "Garissa",
+					"id": "Garissa",
+					"description": "Garissa"
+				},
+				{
 					"name": "Lake Nakuru",
 					"id": "Lake Nakuru",
 					"description": "Lake Nakuru"
