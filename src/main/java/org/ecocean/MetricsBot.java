@@ -134,17 +134,12 @@ public class MetricsBot {
       myShepherd.beginDBTransaction();
       try {
         Long myValue=null;
-        if(filter.equals("~")){
-          line=name+","+"500"+","+"gauge"+","+help;
-          if(label!=null)line+=","+label;
-        }else{
+       
         Query q=myShepherd.getPM().newQuery(filter);
         myValue=(Long) q.execute();
         q.closeAll();
         if(myValue!=null) {line=name+","+myValue.toString()+","+"gauge"+","+help;}
         if(label!=null)line+=","+label;
-        }
-        
       }
       catch(Exception e) {
         e.printStackTrace();
@@ -439,12 +434,9 @@ public class MetricsBot {
           }
           catch (NullPointerException e) { }
         }
-        String testName = "Lukáš_Holásek";
-        System.out.println("NAME:" + testName);
-        String normalizedText = stripAccents(testName);
-        System.out.println("NAME:" + normalizedText);
-        csvLines.add(buildGauge("~","wildbook_user_tasks_"+normalizedText, "Number of tasks from user " + normalizedText, context)); 
     }
+
+    //Helper method for normalizing characters
     public static String stripAccents(String input){
     return input == null ? null :
             Normalizer.normalize(input, Normalizer.Form.NFD)
