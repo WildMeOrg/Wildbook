@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.ScheduledFuture;
+import java.text.Normalizer;
 import io.prometheus.client.CollectorRegistry;
 
 import org.apache.http.HttpEntity;
@@ -133,12 +134,12 @@ public class MetricsBot {
       myShepherd.beginDBTransaction();
       try {
         Long myValue=null;
+       
         Query q=myShepherd.getPM().newQuery(filter);
         myValue=(Long) q.execute();
         q.closeAll();
         if(myValue!=null) {line=name+","+myValue.toString()+","+"gauge"+","+help;}
         if(label!=null)line+=","+label;
-        
       }
       catch(Exception e) {
         e.printStackTrace();
@@ -400,6 +401,7 @@ public class MetricsBot {
 
             // Replace space w/ underscore for prometheus syntax
             scientificName = scientificName.replaceAll("\\s+", "_"); 
+            scientificName = scientificName.replaceAll("\\+", "_"); 
 
             allowedIAClasses += " )";
             String filter = filter3 + " && objectAnnotations.contains(annot) " + allowedIAClasses + " VARIABLES org.ecocean.Annotation annot";
@@ -422,14 +424,24 @@ public class MetricsBot {
             // Truncate user's full name to first name and last initial, and replace space w/ underscore 
             if (name.contains(" "))
             {
-              int spaceIndex = name.indexOf(" ");
-              name = (name.substring(0,spaceIndex) + "_" + name.charAt(spaceIndex+1)).toLowerCase();
+              String normalizedName = stripAccents(name);
+              int spaceIndex = normalizedName.indexOf(" ");
+              name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
+              System.out.println("NAME:" + name);
+              
             }
             csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
           }
           catch (NullPointerException e) { }
         }
     }
+
+    //Helper method for normalizing characters
+    public static String stripAccents(String input){
+    return input == null ? null :
+            Normalizer.normalize(input, Normalizer.Form.NFD)
+                    .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+}
 
 
     public static String httpGetRemoteText(String url) {
