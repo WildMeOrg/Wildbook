@@ -1064,7 +1064,12 @@
 
 		  ] },
 		  
-		  { "name":"Western Australia", "id":"Western Australia", "locationID":[] },
+		  { "name":"Western Australia", "id":"Western Australia", "locationID":[
+		  
+		  
+			{ "name":"Bremer Bay", "id":"Bremer Bay", "locationID":[] }
+		  
+		  ] },
 
 		  {"name":"Yemen","id":"Yemen","locationID":[
 
