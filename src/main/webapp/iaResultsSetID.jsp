@@ -132,6 +132,10 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		indiv = myShepherd.getMarkedIndividual(enc);
 		// from target enc
 		indiv2 = myShepherd.getMarkedIndividual(enc2);
+		
+		//if target enc2 is null and therefore indiv2 is null, use individualID
+		if(indiv2==null)indiv2=myShepherd.getMarkedIndividual(individualID);
+		
 		indyUUID = request.getParameter("newIndividualUUID");
 		//should take care of getting an indy stashed in the URL params
 		if (indiv==null) {
@@ -159,7 +163,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 	}
 
 	// allow flow either way if one or the other has an ID
-	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
+	if ((indiv == null || indiv2 == null) && (enc != null)) {
 
 		System.out.println("indiv OR indiv2 is null, and two viable enc have been selected!");
 
@@ -206,15 +210,15 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 					res.put("individualName", indiv.getDisplayName(request, myShepherd));
 					res.put("individualId", indiv.getId());
 					enc.setIndividual(indiv);
-					enc2.setIndividual(indiv);
-					indiv.addEncounter(enc2);
+					if(enc2!=null)enc2.setIndividual(indiv);
+					if(enc2!=null)indiv.addEncounter(enc2);
 
 					myShepherd.updateDBTransaction();
-                                        setImportTaskComplete(myShepherd, enc);
-                                        setImportTaskComplete(myShepherd, enc2);
+                    setImportTaskComplete(myShepherd, enc);
+                    if(enc2!=null)setImportTaskComplete(myShepherd, enc2);
                     indiv.refreshNamesCache();
 
-                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
+                    if(enc2!=null)IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
                     IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
 
 
@@ -226,12 +230,16 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			// query enc has indy, or already stashed in URL params
 			if (indiv!=null&&indiv2==null) {
 				System.out.println("CASE 2: query enc indy is null");
-				enc2.setIndividual(indiv);
-				indiv.addEncounter(enc2);
+				if(enc2!=null){
+					 enc2.setIndividual(indiv);
+				 	indiv.addEncounter(enc2);
+				}
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
-                                setImportTaskComplete(myShepherd, enc2);
+				 if(enc2!=null){
+					IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
+				 	setImportTaskComplete(myShepherd, enc2);
+				 }
 			}
 
 			// target enc has indy
@@ -251,7 +259,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
 			enc.setMatchedBy(matchMsg);
-			enc2.setMatchedBy(matchMsg);
+			 if(enc2!=null)enc2.setMatchedBy(matchMsg);
 
 			if (res.optString("error", null) == null) res.put("success", true);
 
