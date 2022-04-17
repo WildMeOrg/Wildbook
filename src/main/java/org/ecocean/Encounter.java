@@ -3615,6 +3615,14 @@ throw new Exception();
             occ.addEncounter(enc);
             enc.setOccurrenceID(occ.getOccurrenceID());
         }
+        
+        //WB-1949: clone into same projects too
+        ArrayList<Project> projects=myShepherd.getAllProjectsForEncounter(this);
+        if(projects!=null && projects.size()>0) {
+          for(Project proj:projects) {
+            proj.addEncounter(enc);
+          }
+        }
 
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
