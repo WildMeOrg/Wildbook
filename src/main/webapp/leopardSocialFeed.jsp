@@ -36,16 +36,18 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request, Shep
   if(rels!=null){
 	  JSONArray jArray =new JSONArray();
 	  for(Relationship rel:rels){
-		  JSONObject jobjRel = new JSONObject();
-		  jobjRel.put("type",rel.getType());
-		  jobjRel.put("markedIndividualUUID1",rel.getMarkedIndividualName1());
-		  jobjRel.put("markedIndividualDisplayName1",rel.getMarkedIndividual1().getDisplayName());
-		  jobjRel.put("markedIndividualUUID2",rel.getMarkedIndividualName2());
-		  jobjRel.put("markedIndividualDisplayName2",rel.getMarkedIndividual2().getDisplayName());
-		  jobjRel.put("markedIndividual1Role",rel.getMarkedIndividualRole1());
-		  jobjRel.put("markedIndividual2Role",rel.getMarkedIndividualRole2());
-		  jobjRel.put("relatedComments",rel.getRelatedComments());
-		  jArray.put(jobjRel);
+		  if(rel.getMarkedIndividual1()!=null && rel.getMarkedIndividual2()!=null && rel.getMarkedIndividual1().getEncounters()!=null && rel.getMarkedIndividual1().getEncounters().size()>0 && rel.getMarkedIndividual2().getEncounters()!=null && rel.getMarkedIndividual2().getEncounters().size()>0){
+			  JSONObject jobjRel = new JSONObject();
+			  jobjRel.put("type",rel.getType());
+			  jobjRel.put("markedIndividualUUID1",rel.getMarkedIndividualName1());
+			  jobjRel.put("markedIndividualDisplayName1",rel.getMarkedIndividual1().getDisplayName());
+			  jobjRel.put("markedIndividualUUID2",rel.getMarkedIndividualName2());
+			  jobjRel.put("markedIndividualDisplayName2",rel.getMarkedIndividual2().getDisplayName());
+			  jobjRel.put("markedIndividual1Role",rel.getMarkedIndividualRole1());
+			  jobjRel.put("markedIndividual2Role",rel.getMarkedIndividualRole2());
+			  jobjRel.put("relatedComments",rel.getRelatedComments());
+			  jArray.put(jobjRel);
+		  }
 	  }
 	  jobj.put("relationships",jArray);
   }
