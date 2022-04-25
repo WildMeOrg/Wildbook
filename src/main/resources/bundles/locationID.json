@@ -7,7 +7,7 @@
 
 	{ "name":"NSW- Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
-	{ "name":"NSW-Eden", "id":"NSW-Eden", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	{ "name":"NSW-Eden-Chipmill", "id":"NSW-Eden-Chipmill", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Jervis Bay-Bowen Island", "id":"NSW-Jervis Bay-Bowen Island", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
@@ -41,19 +41,20 @@
 
 { "name":"SA-Wool Bay", "id":"SA-Wool Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-{ "name":"SA-Adelaide", "id":"SA-Adelaide", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
+
 
 { "name":"SA-Goolwa Beach", "id":"SA-Goolwa Beach", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
+
+{ "name":"SA-Kangaroo Is-Kingscote Jetty", "id":"SA-Kangaroo Is-Kingscote Jetty", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
 { "name":"SA-Streaky Bay", "id":"SA-Streaky Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
 { "name":"SA-Coffin Bay", "id":"SA-Coffin Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-{ "name":"SA-Reevesby Island", "id":"SA-Reevesby Island", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
 { "name":"SA-Edithburgh", "id":"SA-Edithburgh", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-{ "name":"SA-Pearson Island", "id":"SA-Pearson Island", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
+
 
 { "name":"SA-Tumby Bay Jetty", "id":"SA-Tumby Bay Jetty", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
@@ -66,6 +67,7 @@
 { "name":"TAS-Hobart-Blackmans Bay", "id":"TAS-Hobart-Blackmans Bay", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
 
 { "name":"TAS-Hobart-Kingston", "id":"TAS-Hobart-Kingston", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
+{ "name":"TAS-EagleHawk Neck-DGBay", "id":"TAS-EagleHawk Neck-DGBay", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
 
 { "name":"VIC-Blairgowrie", "id":"VIC-Blairgowrie", "locationID":[],"prefix": "VIC-", "prefixDigitPadding": 4 },
 
@@ -98,7 +100,7 @@
 
 { "name":"WA-Albany-Mistaken Island", "id":"WA-Albany-Mistaken Island", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA-Albany: Shelter Island", "id":"WA-Albany: Shelter Island", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+{ "name":"WA-Albany-Shelter Island", "id":"WA-Albany-Shelter Island", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Augusta-Landing Place", "id":"WA-Augusta-Landing Place", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 { "name":"WA-Augusta-Whale Memorial", "id":"WA-Augusta-Whale Memorial", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
@@ -113,14 +115,13 @@
 	{ "name":"WA-Bremer Bay- Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 
-{ "name":"WA-Canal Rocks", "id":"WA-Canal Rocks", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+{ "name":"WA-Cape Naturaliste-Canal Rocks", "id":"WA-Cape Naturaliste-Canal Rocks", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 
 
 { "name":"WA-Cape Naturaliste-Shelley Cove", "id":"WA-Cape Naturaliste-Shelley Cove", "locationID":[], "prefix": "WA-", "prefixDigitPadding": 4 },
 
 
-{ "name":"WA-Dunsborough", "id":"WA-Dunsborough", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Esperance-Lucky Bay", "id":"WA-Esperance-Lucky Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -131,6 +132,8 @@
 { "name":"WA-Perth-Hillarys Boat Harbour", "id":"WA-Perth-Hillarys Boat Harbour", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Perth-Iluka", "id":"WA-Perth-Iluka", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-31.74237642234693,"long":115.72202177982662}},
+
+{ "name":"WA-Perth-Leighton", "id":"WA-Perth-Leighton", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA- Perth- Marmion Angling and Aquatic Club", "id":"WA- Perth- Marmion Angling and Aquatic Club", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -148,10 +151,7 @@
 
 { "name":"WA-Perth-Sandtracks", "id":"WA-Perth-Sandtracks", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
-
-{ "name":"WA-Perth-Ammo Jetty", "id":"WA-Perth-Ammo Jetty", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 }
-
+{ "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 }
 
 
 
