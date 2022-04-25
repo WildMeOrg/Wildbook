@@ -11,7 +11,18 @@
 	{ "name":"Costa Rica", "id":"Costa Rica","geospatialInfo":{
 	 			 	"lat":9.748917,
 	 			 	"long":-83.753428
- 			 }, "locationID":[] },
+ 			 }, 
+			 "locationID":[
+			 
+			 		{ "name":"El Jobo", "id":"El Jobo", "locationID":[] },
+					{ "name":"Flamingo-Catalinas", "id":"Flamingo-Catalinas", "locationID":[] },
+					{ "name":"Isla Loros", "id":"Isla Loros", "locationID":[] },
+					{ "name":"Isla Munecos", "id":"Isla Munecos", "locationID":[] },
+					{ "name":"Islas Murcielago", "id":"Islas Murcielago", "locationID":[] },
+					{ "name":"Matapelito", "id":"Matapelito", "locationID":[] }
+			 
+			] 
+	},
   { "name":"Guam", "id":"Guam","geospatialInfo":{
 	 			 	"lat":13.444302,
 	 			 	"long":144.793744
@@ -125,12 +136,17 @@
 		{ "name":"Mexico (Revillagigedos)", "id":"Mexico (Revillagigedos)","geospatialInfo":{
 	 			 	"lat":18.826848,
 	 			 	"long":-112.76657
- 			 }, "locationID":[] },
+ 			 }, "locationID":[] 
+		},
 
 		{ "name":"Mexico (Yucatan)", "id":"Mexico (Yucatan)","geospatialInfo":{
 	 			 	"lat":22.664003,
 	 			 	"long":-89.461295
- 			 }, "locationID":[] },
+ 			 }, "locationID":[] 
+		},
+		
+		{ "name":"Mexico (Bahia de Banderas)", "id":"BAHIA DE BANDERAS", "locationID":[] 
+		},
 
 		{ "name":"Micronesia", "id":"Micronesia", "locationID":[] },
 
