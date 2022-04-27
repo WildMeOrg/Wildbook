@@ -5,7 +5,7 @@
 
 
 
-	{ "name":"NSW- Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	{ "name":"NSW-Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Eden-Chipmill", "id":"NSW-Eden-Chipmill", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
@@ -15,9 +15,9 @@
 
 	{ "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
-	{ "name":"NSW-Henry’s Head", "id":"NSW- Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	{ "name":"NSW-Henry’s Head", "id":"NSW-Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
-	{ "name":"NSW-Magic Point", "id":"NSW- Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	{ "name":"NSW-Magic Point", "id":"NSW-Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW- Shellharbour-Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
@@ -31,7 +31,7 @@
 
 
 
-{ "name":"SA-Adelaide-Second Valley", "id":"SA- Adelaide- Second Valley", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
+{ "name":"SA-Adelaide-Second Valley", "id":"SA-Adelaide-Second Valley", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
 { "name":"SA-Encounter Bay", "id":"SA-Encounter Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
@@ -110,7 +110,7 @@
 
 { "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-	{ "name":"WA-Bremer Bay- Back Beach Bommie", "id":"WA-Bremer Bay- Back Beach Bommie", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+	{ "name":"WA-Bremer Bay-Back Beach Bommie", "id":"WA-Bremer Bay-Back Beach Bommie", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 	{ "name":"WA-Bremer Bay- Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -135,7 +135,9 @@
 
 { "name":"WA-Perth-Leighton", "id":"WA-Perth-Leighton", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA- Perth- Marmion Angling and Aquatic Club", "id":"WA- Perth- Marmion Angling and Aquatic Club", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+{ "name":"WA-Perth-Marmion Angling and Aquatic Club", "id":"WA-Perth-Marmion Angling and Aquatic Club", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+
+{ "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -151,7 +153,7 @@
 
 { "name":"WA-Perth-Sandtracks", "id":"WA-Perth-Sandtracks", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 }
+{ "name":"WA-Perth-Watermans", "id":"WA-Perth-Watermans", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 }
 
 
 
