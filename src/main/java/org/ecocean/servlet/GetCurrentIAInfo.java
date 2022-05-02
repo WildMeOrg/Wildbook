@@ -129,13 +129,7 @@ public class GetCurrentIAInfo extends HttpServlet {
                                      tasks.add(task);
                                   }
                      }
-                     else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
-                       //System.out.println("I am a task with child ID tasks.");
-                       if(!tasks.contains(task)){
-                           tasks.add(task);
-                        }
-                     }
-                 }
+                   }
                   Comparator<Task> byRanking = 
                       (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
                   Collections.sort(tasks, byRanking);
