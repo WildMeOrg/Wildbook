@@ -14,7 +14,7 @@ import org.ecocean.security.HiddenIndividualReporter;
 import jxl.write.*;
 import jxl.*;
 
-import org.ecocean.Util.MeasurementDesc;
+import org.ecocean.Util.MeasurementEventDesc;
 
 
 //adds spots to a new encounter
@@ -147,7 +147,7 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel9 = new Label(6, 0, "RecaptureStatus");
         sheet2.addCell(popLabel9);
         
-        List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
+        List<MeasurementEventDesc> measurementTypes=Util.findMeasurementEventDescs("en",context);
         int numMeasurementTypes=measurementTypes.size();
         for(int j=0;j<numMeasurementTypes;j++){
           String measureName=measurementTypes.get(j).getType();
@@ -155,7 +155,7 @@ public class SOCPROGExport extends HttpServlet{
           sheet2.addCell(popLabelX);
         }
          
-        List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
+        List<MeasurementEventDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
         int numBioMeasurementTypes=bioMeasurementTypes.size();
         for(int j=0;j<numBioMeasurementTypes;j++){
           String measureName=bioMeasurementTypes.get(j).getType();
@@ -301,7 +301,7 @@ public class SOCPROGExport extends HttpServlet{
                       
                       for(int m=0;m<numMeasurementTypes;m++){
                         String measureName=measurementTypes.get(m).getType();
-                        if((enc.hasMeasurement(measureName))&&(enc.getMeasurement(measureName)!=null)){
+                        if((enc.hasMeasurementEvent(measureName))&&(enc.getMeasurement(measureName)!=null)){
                           Measurement mmnt=enc.getMeasurement(measureName);
                           jxl.write.Number popLabelX = new jxl.write.Number((m+7), count, mmnt.getValue(),numbersFormat);
                           sheet2.addCell(popLabelX);
