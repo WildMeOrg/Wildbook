@@ -312,6 +312,13 @@ try{
 		        						annotTypesByTask.put(task.getId(),iaClass);
 		        					}
                             	}
+                                else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
+                                    //System.out.println("I am a task with child ID tasks.");
+                                    if(!tasks.contains(task)){
+                                        tasks.add(task);
+                                        annotTypesByTask.put(task.getId(),iaClass);
+                                     }
+                                  }
 	        		}
 	        	}		
 	        	
