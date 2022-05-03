@@ -174,14 +174,11 @@ The number of new accounts that can be provided each year is limited by:
 <h2>Requesting access</h2>
 
 <p>
-To <b>request access to GiraffeSpotter</b>, please fill out the following form.
-Someone at GiraffeSpotter will review your request and respond to the email you provide below. 
+To <b>request access to GiraffeSpotter</b>, please see the section
+<a target="_new" href="https://wildme.org/#/contact"><i>Request a Wildbook account</i> on this page</a>.
 
-<p>
-<input type="button" value="Show request form" id="request-access-button" onClick="return toggleForm();" />
-</p>
 
-<div id="request-access-div">
+<div style="display: none;" id="request-access-div">
 
 <% if (errorMessage != null) out.println("<div class=\"request-form-error error\">" + errorMessage + "</div>"); %>
 
