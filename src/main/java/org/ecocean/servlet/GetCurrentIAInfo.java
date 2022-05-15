@@ -143,6 +143,12 @@ public class GetCurrentIAInfo extends HttpServlet {
                            tasks.add(task);
                         }
                      }
+                     else if((task.getChildren()==null || task.getChildren().size()==0) && task.getParent()==null){
+                       //System.out.println("I am a task with child ID tasks.");
+                       if(!tasks.contains(task)){
+                           tasks.add(task);
+                        }
+                     }
 
                  }
                   Comparator<Task> byRanking = 
