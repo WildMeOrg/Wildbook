@@ -73,6 +73,8 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request, Shep
 				jobjAnnot.put("viewpoint",annot.getViewpoint());
 				jobjAnnot.put("acmID",annot.getAcmId());
 				jobjAnnot.put("sourceMediaAssetAcmID",annot.getMediaAsset().getAcmId());
+				jobjAnnot.put("sourceMediaAssetURL",annot.getMediaAsset().webURL().toString());
+				jobjAnnot.put("sourceMediaAssetFilename",annot.getMediaAsset().getFilename());
 				annotArray.put(jobjAnnot);
 			}
 			jobjEnc.put("annotations",annotArray);
