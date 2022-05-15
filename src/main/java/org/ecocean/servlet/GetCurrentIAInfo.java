@@ -114,6 +114,14 @@ public class GetCurrentIAInfo extends HttpServlet {
                //let's look for match results we can easily link for the user
                ArrayList<Task> tasks=new ArrayList<Task>();
                List<Task> relatedTasks = Task.getTasksFor(ann, myShepherd);
+               
+               //also add the media asset tasks
+               for (Task t : ma.getRootIATasks(myShepherd)) {
+                   if (relatedTasks.contains(t)) continue;
+                   if (t.deepContains(ann)!=null) relatedTasks.add(t);
+                   //System.out.println("Task ID: "+t.getId());
+               }
+               
                if(relatedTasks!=null && relatedTasks.size()>0){
                  for(Task task:relatedTasks){
                                
@@ -129,12 +137,13 @@ public class GetCurrentIAInfo extends HttpServlet {
                                      tasks.add(task);
                                   }
                      }
-                     else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
+                     else if(task.getChildren()!=null && task.getChildren().size()>=1 && task.getParent()==null){
                        //System.out.println("I am a task with child ID tasks.");
                        if(!tasks.contains(task)){
                            tasks.add(task);
                         }
                      }
+
                  }
                   Comparator<Task> byRanking = 
                       (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
