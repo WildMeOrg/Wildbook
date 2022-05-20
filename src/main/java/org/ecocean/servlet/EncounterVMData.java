@@ -132,24 +132,25 @@ public class EncounterVMData extends HttpServlet {
       			else if (request.getParameter("candidates") != null) {
       				rtn.put("_wantCandidates", true);
       				ArrayList candidates = new ArrayList();
-      				String filter = "select from org.ecocean.Encounter where this.catalogNumber != '" + enc.getCatalogNumber() + "'";
-                                      filter += " && this.genus == '" + enc.getGenus() + "'";
-                                      filter += " && this.specificEpithet == '" + enc.getSpecificEpithet() + "'";
+      				String filter = "select from org.ecocean.Encounter where catalogNumber != '" + enc.getCatalogNumber() + "'";
+                                      filter += " && genus == '" + enc.getGenus() + "'";
+                                      filter += " && specificEpithet == '" + enc.getSpecificEpithet() + "'";
       				String[] fields = {"locationID", "sex", "patterningCode"};
       				for (String f : fields) {
       					String val = request.getParameter(f);
-      					if (val != null) filter += " && this." + f + " == '" + val + "'";  //TODO safely quote!  sql injection etc
+      					if (val != null) filter += " && " + f + " == '" + val + "'";  //TODO safely quote!  sql injection etc
       				}
       				String mma = request.getParameter("mmaCompatible");
       				if ((mma != null) && !mma.equals("")) {
       					if (mma.equals("true")) {
-      						filter += " && this.mmaCompatible == true";
+      						filter += " && mmaCompatible == true";
       					} else {
-      						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
+      						filter += " && (mmaCompatible == false || mmaCompatible == null)";
       					}
       				}
              
       				System.out.println("candidate filter => " + filter);
+      				long startTime=System.currentTimeMillis();
       				Query q= myShepherd.getPM().newQuery(filter);
       				ArrayList<Encounter> results=new ArrayList<Encounter>();
       				try {
@@ -164,6 +165,7 @@ public class EncounterVMData extends HttpServlet {
       				  q.closeAll();
       				}
       				int resultsSize=results.size();
+      				System.out.println("EncounterVM query took "+(System.currentTimeMillis()-startTime)+" milliseconds. Result set was: "+resultsSize);
       				int numConsidered=0;
       				//Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
       				//while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
@@ -194,6 +196,8 @@ public class EncounterVMData extends HttpServlet {
       				if(numConsidered < MAX_MATCH)maxCandidatesReached=false;
               rtn.put("maximumCandidatesReached", maxCandidatesReached);
       				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
+      				
+      				System.out.println("EncounterVM total execution time: "+(System.currentTimeMillis()-startTime)+" milliseconds");
       
       			} 
       			else {
