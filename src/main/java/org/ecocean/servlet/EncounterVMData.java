@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -171,6 +172,7 @@ public class EncounterVMData extends HttpServlet {
       				//while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
       				for(int i=0;((i<resultsSize) && (candidates.size() < MAX_MATCH));i++) {
       				  //Encounter cand = all.next();
+      				  System.out.println("     i="+i);
       					Encounter cand=results.get(i);
       					numConsidered++;
       				  HashMap e = new HashMap();
@@ -259,19 +261,19 @@ public class EncounterVMData extends HttpServlet {
 
     private void addImages(Encounter enc, HashMap m, Shepherd myShepherd, HttpServletRequest request) {
         if (enc == null) return;
+        long startTime = System.currentTimeMillis();
         ArrayList mas = new ArrayList();
         for (MediaAsset ma : enc.getMedia()) {
             HashMap i = new HashMap();
             i.put("id", ma.getId());
-            i.put("url", ma.safeURL(myShepherd, request));
-            i.put("thumbUrl", ma.safeURL(myShepherd, request));
-/*
-            i.put("url", ma.webURL());
-            i.put("thumbUrl", ma.webURL());
-*/
-            i.put("keywords", ma.getKeywords());
+            URL safe = ma.safeURL(myShepherd, request);
+            i.put("url", safe);
+            i.put("thumbUrl", safe);
+
+           //ma.put("keywords", ma.getKeywords());
             mas.add(i);
         }
         if (mas.size() > 0) m.put("images", mas);
+        System.out.println("     add images for "+mas.size()+" took: "+(System.currentTimeMillis()-startTime));
     }
 }
