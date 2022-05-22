@@ -266,10 +266,11 @@ public class EncounterVMData extends HttpServlet {
         for (MediaAsset ma : enc.getMedia()) {
             HashMap i = new HashMap();
             i.put("id", ma.getId());
-            URL safe = ma.safeURL(myShepherd, request);
+            //URL safe = ma.safeURL(myShepherd, request);
+            URL safe = ma.webURL();
             i.put("url", safe);
             i.put("thumbUrl", safe);
-
+            //keywords are not actually displayed anywhere. uncomment if we ever use them here.
            //ma.put("keywords", ma.getKeywords());
             mas.add(i);
         }
