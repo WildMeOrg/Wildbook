@@ -3618,7 +3618,7 @@ throw new Exception();
         
         //WB-1949: clone into same projects too
         ArrayList<Project> projects=myShepherd.getAllProjectsForEncounter(this);
-        if(projects!=null && projects.size()>0) {
+        if(projects!=null) {
           for(Project proj:projects) {
             proj.addEncounter(enc);
           }
