@@ -25,6 +25,7 @@
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -6836,6 +6837,24 @@ $(window).on('load',function() {
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<%
+
+	String queueStatementID="";
+	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		try{
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+		}
+		catch(Exception de){de.printStackTrace();}
+	}
+	if(!queueStatementID.equals("")){
+	%>
+	<p><em><%=queueStatementID %></em></p>
+	<%
+	}
+	%>
   <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
     <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
   </div>

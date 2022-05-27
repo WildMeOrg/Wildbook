@@ -36,7 +36,7 @@
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
-  <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
+
   <%
   try{
 
@@ -94,16 +94,17 @@
 	                  </div>
 	                  <div id="table-div" style="display: none;">
 	                              <p>Total encounters: <%=encounters.size() %></p>
-	                    <table class="row project-style">
+	                    <table class="row project-style js-sort-table" >
 	                      <thead>
 	                        <tr>
+	                          <th class="project-style"><%= projectProps.getProperty("OccurrenceTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
+	                          <th class="project-style" data-js-sort-colnum="0"><%= projectProps.getProperty("IndividualTableHeader")%></th>
+	                          <th class="project-style js-sort-date" data-js-sort-colnum="1"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("ProjectIdTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("ActionTableHeader")%></th>
+	                          <th class="project-style js-sort-none"><%= projectProps.getProperty("ActionTableHeader")%></th>
 	                        </tr>
 	                      </thead>
 	                      <tbody id="encounterList">
@@ -119,6 +120,8 @@
 
             </div>
           </div>
+          
+           
 
 <script type="text/javascript">
 
@@ -284,6 +287,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
+  let occurrenceUUID = json.occurrenceUUID;
   let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
@@ -292,8 +296,9 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
-  projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
-  projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
+  projectHTML +=  '<td id="occurrenceID-'+encounterId+'" class="project-style"><a target="_new" href="../occurrence.jsp?number='+occurrenceUUID+'">'+occurrenceUUID+'</a></td>';
+  projectHTML +=  '<td id="catalogNumber-'+encounterId+'" class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
+  projectHTML +=  '<td id="indivID-'+encounterId+'" class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
@@ -613,9 +618,11 @@ function openIaResultsOptions(el) {
   if (isHidden(menuRow)) {
     $(el).html(txt.close);
     getIAInfoForEncounterData(el, null);
+    menuRow.detach();
+    encRow.after(menuRow);
     menuRow.show();
   } else {
-    $(el).html(txt.iaResults);
+    $(el).html(txt.matchResults);
     menuRow.hide();
   }
 }
@@ -655,8 +662,14 @@ function getIAInfoForEncounterData(optionalEl, optionalEncId) {
 
 $(document).ready( function() {
   getEncounterJSON();
+  //hide results row if we're sorting on column headers
+  $("th").click(function() {
+	  $(".visitResultsButton").html(txt.matchResults);
+	  $(".iaResultsMenuRow").hide();
+  });
 });
 </script>
+ <script src="../javascript/sort-table.js"></script>
 	            <%
 
 	          } // end if project

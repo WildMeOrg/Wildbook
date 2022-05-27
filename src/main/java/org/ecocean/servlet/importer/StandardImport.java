@@ -58,65 +58,6 @@ import java.util.regex.Pattern;
 
 public class StandardImport extends HttpServlet {
 
-  Boolean isUserUpload = false;
-
-  // scope to match an individual ID within before deciding to create a new one
-  String individualScope = "user"; //accepts 'user', 'organization' and 'global'- default to only matching in user catalog
-
-	// variables shared by any single import instance
-
-	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
-  Set<String> unusedColumns;
-	Set<String> missingColumns; // columns we look for but don't find
-  List<String> invalidColumns = new ArrayList<String>();
-	List<String> missingPhotos = new ArrayList<String>();
-	List<String> foundPhotos = new ArrayList<String>();
-	int numFolderRows = 0;
-	boolean committing = false;
-  boolean generateChildrenAssets = false;
-	PrintWriter out;
-	// verbose variable can be switched on/off throughout the import for debugging
-	boolean verbose = false;
-	String photoDirectory;
-  String dataSource;
-
-  int numAnnots=0; // for loggin'
-
-  // these prefixes are added to any individualID, occurrenceID, or sightingID imported
-  String individualPrefix="";
-  String occurrencePrefix="";
-  String sightingPlatformPrefix="";
-  String defaultSubmitterID=null; // leave null to not set a default
-  String defaultCountry=null;
-
-  String context = "";
-
-  String uploadDirectory = "/data/upload/";
-
-
-  HttpServletRequest request;
-
-	// just for lazy loading a var used on each row
-	Integer numMediaAssets;
-
-  //Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
-
-  Map<String,String> individualCache = new HashMap<String,String>();
-
-  List<User> userCache = new ArrayList<>();
-  HashMap<User, List<MarkedIndividual>> userIndividualCache = new  HashMap<>();
-
-  TabularFeedback feedback;
-
-  // need to initialize (initColIndexVariables()), this is useful to have everywhere
-  int numCols;
-
-  // indexes of columns determined to have no values for quick skipping
-  List<Integer> skipCols = new ArrayList<Integer>();
-
-  HashMap<String,Integer> allColsMap = new HashMap<String,Integer>();
-
-  Sheet sheet = null;
 
   final static String[] acceptedImageTypes = {"jpg", "jpeg", "png", "bmp", "gif"};
 
@@ -130,6 +71,60 @@ public class StandardImport extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
 
+    
+
+    Boolean isUserUpload = false;
+
+    // scope to match an individual ID within before deciding to create a new one
+    String individualScope = "user"; //accepts 'user', 'organization' and 'global'- default to only matching in user catalog
+
+    // variables shared by any single import instance
+
+    
+
+    int numFolderRows = 0;
+    boolean committing = false;
+    boolean generateChildrenAssets = false;
+    PrintWriter out = null;
+    // verbose variable can be switched on/off throughout the import for debugging
+    boolean verbose = false;
+
+    
+
+    
+
+
+
+    String context = "";
+
+    String uploadDirectory = "/data/upload/";
+
+
+    //HttpServletRequest request;
+
+    // just for lazy loading a var used on each row
+    
+
+    //Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+
+    Map<String,String> individualCache = new HashMap<String,String>();
+
+    List<User> userCache = new ArrayList<>();
+
+
+
+    // need to initialize (initColIndexVariables()), this is useful to have everywhere
+    //int numCols=0;
+
+    
+    
+
+
+    HashMap<String,Integer> allColsMap = new HashMap<String,Integer>();
+
+    Sheet sheet = null;
+    
+    
     isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
     committing = Util.requestParameterSet(request.getParameter("commit"));
@@ -140,7 +135,7 @@ public class StandardImport extends HttpServlet {
       System.out.println("IS USER UPLOAD! ---> uploadDirectory = "+uploadDirectory);
     }
 
-    this.request = request; // so we can access this elsewhere without passing it around
+    //this.request = request; // so we can access this elsewhere without passing it around
     //String importId = Util.generateUUID();
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
@@ -190,35 +185,34 @@ public class StandardImport extends HttpServlet {
 
     //String subdir = Util.safePath(request.getParameter("subdir"));
     //if (subdir != null) uploadDir += subdir;
-    photoDirectory = uploadDir+"/";
+    String photoDirectory = uploadDir+"/";
 
     boolean dataFound = dataFile.exists();
 
-    missingColumns = new HashSet<String>();
-    missingPhotos = new ArrayList<String>();
-		foundPhotos = new ArrayList<String>();
-		numFolderRows = 0;
-    numAnnots = 0;
+
 
 
 
     if (dataFound) {
-      doImport(filename, dataFile, request, response);
-    } else {
+      doImport(filename, dataFile, request, response, numFolderRows, committing, out,sheet, context, individualCache, verbose, isUserUpload, photoDirectory, individualScope,allColsMap);
+    } 
+    else {
       out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
     }
 
     ServletContext sc = getServletContext();
     try {
-    // eh?
-    System.out.println("Trying to take you to the results...");
+      // eh?
+      System.out.println("Trying to take you to the results...");
       //sc.getRequestDispatcher("/import/results.jsp").forward(request, response);
       if(!committing)sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
       if(!committing)sc.getRequestDispatcher("/footer.jsp").include(request, response);
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
-    } finally {
+    } 
+    finally {
       System.out.println("Forwarding, I hope...");
 
     }
@@ -229,8 +223,42 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response) {
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out,Sheet sheet, String context, Map<String,String> individualCache, boolean verbose, Boolean isUserUpload, String photoDirectory, String individualScope, HashMap<String,Integer> allColsMap) {
+    
+    //System.out.println("debug3: doImport");
+    HashMap<User, List<MarkedIndividual>> userIndividualCache = new  HashMap<>();
+    
+ // indexes of columns determined to have no values for quick skipping
+    List<Integer> skipCols = new ArrayList<Integer>();
+    
+    int numAnnots=0; // for loggin'
+    
+    //Integer numMediaAssets = Integer.getInteger(-1);
+    
+    Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
+    
+    Set<String> unusedColumns;
+    Set<String> missingColumns; // columns we look for but don't find
+    List<String> invalidColumns = new ArrayList<String>();
+    List<String> missingPhotos = new ArrayList<String>();
+    List<String> foundPhotos = new ArrayList<String>();
+    unusedColumns = new HashSet<String>();
     missingColumns = new HashSet<String>();
+    missingPhotos = new ArrayList<String>();
+    foundPhotos = new ArrayList<String>();
+    numFolderRows = 0;
+    numAnnots = 0;
+    
+
+    
+    // these prefixes are added to any individualID, occurrenceID, or sightingID imported
+    
+    
+    
+    String defaultSubmitterID=null; // leave null to not set a default
+    String defaultCountry=null;
+    
+    
     numFolderRows = 0;
     boolean dataFound = (dataFile!=null && dataFile.exists());
     committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
@@ -240,10 +268,12 @@ public class StandardImport extends HttpServlet {
     Workbook wb = null;
     try {
       wb = WorkbookFactory.create(dataFile);
-    } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
+    } 
+    catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
       out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
       return;
-    } catch (java.io.IOException ioEx) {
+    } 
+    catch (java.io.IOException ioEx) {
       out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
       ioEx.printStackTrace();
       return;
@@ -258,9 +288,54 @@ public class StandardImport extends HttpServlet {
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     Row firstRow = sheet.getRow(0);
-    initColIndexVariables(firstRow); // IMPORTANT: this initializes the TabularFeedback
+    TabularFeedback feedback = null;
+    
+    //initColIndexVariables(firstRow, colIndexMap, unusedColumns, skipCols, allColsMap, feedback, sheet, committing, out); // IMPORTANT: this initializes the TabularFeedback
+    
+    //colIndexMap = makeColIndexMap(firstRow, skipCols, allColsMap, feedback, sheet, committing, out);
+    Map<String,Integer> colMap = new HashMap<String, Integer>();
+    int numCols = firstRow.getLastCellNum();
+    System.out.println("We're making colIndexMap: numCols: "+numCols);
+    String[] headers = new String[numCols];
+    
+    for (int i=0; i<=numCols; i++) {
+      String colName = getStringNoLog(firstRow, i);
+      System.out.println("Are there any values in this colum? "+i);
+      allColsMap.put(colName,i);
+      if (colName==null || colName.length()<4 || !anyValuesInColumn(i, feedback, sheet)) {
+        System.out.println("skipCols adding column named: "+colName+" with index "+i);
+        skipCols.add(i);
+        continue;
+      }
+      System.out.println("yes, "+colName+" has at least one value");
+      headers[i] = colName;
+      colMap.put(colName, i);
+    }
+
+    feedback = new TabularFeedback(headers, committing, out, skipCols);
+    System.out.println("headers = "+headers);
+    System.out.println("feedback headers = "+feedback.getColNames());
+    colIndexMap = colMap;
+    
+    //System.out.println("debug4: makeColIndexMap");
+    
+    //System.out.println("feedback getColNames() = "+feedback.getColNames());
+    
+    unusedColumns = new HashSet<String>();
+    //Set<String> col = colIndexMap.keySet();
+    // have to manually copy-in like this because keySet returns a POINTER (!!!)
+    for (String colName: colIndexMap.keySet()) {
+      // length restriction removes colnames like "F21"
+      if (colName!=null && colName.length()>3) {
+        unusedColumns.add(colName);
+      }
+    }
+    
+    
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
+    
+    //System.out.println("debug3: committing: "+committing);
 
     if(committing) {
       Shepherd myShepherd = new Shepherd(context);
@@ -322,11 +397,19 @@ public class StandardImport extends HttpServlet {
 
     int printPeriod = 1;
     //if (committing) myShepherd.beginDBTransaction();
-    outPrnt("<h2>Parsed Import Table</h2>");
-    //System.out.println("debug0");
-    System.out.println("feedback headers = "+feedback.getColNames());
+    outPrnt("<h2>Parsed Import Table</h2>",committing,out);
+    /*
+    System.out.println("debug0:committing: "+committing);
+    try {
+      System.out.println("debug5:getColNames: "+feedback.getColNames());
+    }
+    catch(Exception he) {
+      he.printStackTrace();
+    }
+    */
+    System.out.println("feedback headers += "+feedback.getColNames());
     if (!committing) feedback.printStartTable();
-    //System.out.println("debug1");
+    //System.out.println("debug1: got past printSTartTable");
     // one encounter per-row. We keep these running.
 
     List<String> encsCreated = new ArrayList<String>();
@@ -340,6 +423,7 @@ public class StandardImport extends HttpServlet {
 
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
+      System.out.println("StandardImport.java_rowLoopNum_"+i);
       myShepherd.beginDBTransaction();
       if(taskID!=null)itask=myShepherd.getImportTask(taskID);
       if(itask!=null)itask.setStatus("Importing "+i);
@@ -352,11 +436,11 @@ public class StandardImport extends HttpServlet {
 
         if (!committing) feedback.startRow(row, i);
         Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
-        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets);
-        Encounter enc = loadEncounter(row, annotations, context, myShepherd);
-        occ = loadOccurrence(row, occ, enc, myShepherd);
-        mark = loadIndividual(row, enc, myShepherd, committing, individualCache);
-        SocialUnit socUnit = loadSocialUnit(row, mark, myShepherd, committing);
+        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets, colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos, photoDirectory, feedback, isUserUpload, committing, missingPhotos,context, allColsMap, skipCols);
+        Encounter enc = loadEncounter(row, annotations, context, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns,defaultSubmitterID,committing, feedback);
+        occ = loadOccurrence(row, occ, enc, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+        mark = loadIndividual(row, enc, myShepherd, committing, individualCache, colIndexMap, unusedColumns, verbose, missingColumns, userIndividualCache, individualScope, out, feedback,request);
+        SocialUnit socUnit = loadSocialUnit(row, mark, myShepherd, committing, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
 
         if (committing) {
 
@@ -407,7 +491,8 @@ public class StandardImport extends HttpServlet {
 
 
 
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
         myShepherd.rollbackDBTransaction();
@@ -418,7 +503,7 @@ public class StandardImport extends HttpServlet {
 
     }
 
-
+    //System.out.println("debug2");
     if (committing) {
 
       Shepherd myShepherd = new Shepherd(context);
@@ -444,7 +529,7 @@ public class StandardImport extends HttpServlet {
         }
         
         //let's register acmIDs for MediaAssets
-        if(itask!=null)sendforACMID(itask, myShepherd);
+        if(itask!=null)sendforACMID(itask, myShepherd,context);
         
         //let's finish up and be done
         if(itask!=null)itask.setStatus("complete");
@@ -453,13 +538,15 @@ public class StandardImport extends HttpServlet {
 
         if(itask!=null)out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
 
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         e.printStackTrace();
       }
 
-    } else {
+    } 
+    else {
       feedback.printEndTable();
     }
 
@@ -526,9 +613,9 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd, boolean committing) {
+  public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd, boolean committing, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
 
-    String suName = getString(row, "SocialUnit.socialUnitName");
+    String suName = getString(row, "SocialUnit.socialUnitName", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (suName!=null) {
 
       System.out.println("----> suName not null: "+suName);
@@ -545,8 +632,8 @@ public class StandardImport extends HttpServlet {
           if (!su.hasMarkedIndividualAsMember(mark)) {
             Membership ms = new Membership(mark);
             if(committing)myShepherd.storeNewMembership(ms);
-            if (getString(row, "Membership.role")!=null) {
-              ms.setRole(getString(row, "Membership.role"));
+            if (getString(row, "Membership.role", colIndexMap, verbose, missingColumns, unusedColumns, feedback)!=null) {
+              ms.setRole(getString(row, "Membership.role", colIndexMap, verbose, missingColumns, unusedColumns, feedback));
             }
 
            // myShepherd.beginDBTransaction();
@@ -567,17 +654,17 @@ public class StandardImport extends HttpServlet {
     return null;
   }
 
-  public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd) {
-    String sciName = getString(row, "Taxonomy.scientificName");
+  public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    String sciName = getString(row, "Taxonomy.scientificName", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (sciName==null) return null;
     Taxonomy taxy = myShepherd.getOrCreateTaxonomy(sciName);
-    String commonName = getString(row, "Taxonomy.commonName");
+    String commonName = getString(row, "Taxonomy.commonName", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (commonName!=null) taxy.addCommonName(commonName);
     return taxy;
   }
 
-  public Taxonomy loadTaxonomy1(Row row, Shepherd myShepherd) {
-    String sciName = getString(row, "Occurrence.taxonomy1");
+  public Taxonomy loadTaxonomy1(Row row, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    String sciName = getString(row, "Occurrence.taxonomy1", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (sciName==null) return null;
     return myShepherd.getOrCreateTaxonomy(sciName);
   }
@@ -585,136 +672,139 @@ public class StandardImport extends HttpServlet {
     return (latOrLon!=null && latOrLon!=0.0);
   }
 
-  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd) {
+  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
 
-  	Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd);
-  	// would love to have a more concise way to write following couplets, c'est la vie
+    String sightingPlatformPrefix="";
+    Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    // would love to have a more concise way to write following couplets, c'est la vie
 
-  	Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
-    if (seaSurfaceTemp == null) seaSurfaceTemp = getDouble(row, "Occurrence.seaSurfaceTemp");
-  	if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
+    Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (seaSurfaceTemp == null) seaSurfaceTemp = getDouble(row, "Occurrence.seaSurfaceTemp", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
 
-  	Integer individualCount = getInteger(row, "Occurrence.individualCount");
-  	if (individualCount!=null) occ.setIndividualCount(individualCount);
+    Integer individualCount = getInteger(row, "Occurrence.individualCount",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (individualCount!=null) occ.setIndividualCount(individualCount);
 
     // covers a typo on some decimalLatitude headers ("decimalLatitiude" note the extra i in Latitiude)
-  	Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude");
-  	if (validCoord(decimalLatitiude)) occ.setDecimalLatitude(decimalLatitiude);
-  	Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
+    Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (validCoord(decimalLatitiude)) occ.setDecimalLatitude(decimalLatitiude);
+    Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (validCoord(decimalLatitude)) occ.setDecimalLatitude(decimalLatitude);
-  	Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
+    Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (validCoord(decimalLongitude)) occ.setDecimalLongitude(decimalLongitude);
 
-  	String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
+    String fieldStudySite = getString(row, "Occurrence.fieldStudySite", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     // fieldStudySite defaults to locationID
-    if (fieldStudySite==null) fieldStudySite = getString(row, "Encounter.locationID");
-  	if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
+    if (fieldStudySite==null) fieldStudySite = getString(row, "Encounter.locationID", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
 
-  	String groupComposition = getString(row, "Occurrence.groupComposition");
-  	if (groupComposition!=null) occ.setGroupComposition(groupComposition);
+    String groupComposition = getString(row, "Occurrence.groupComposition", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (groupComposition!=null) occ.setGroupComposition(groupComposition);
 
-    String groupBehavior = getString(row, "Occurrence.groupBehavior");
+    String groupBehavior = getString(row, "Occurrence.groupBehavior", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     // if no groupBehavior we want the behavior from an Encounter to copy over for occurrence searches
     // this makes sense semantically since many people view the world occurrence-first
-    if (groupBehavior==null) groupBehavior = getString(row, "Encounter.behavior");
+    if (groupBehavior==null) groupBehavior = getString(row, "Encounter.behavior", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
 
-  	String fieldSurveyCode = getStringOrInt(row, "Survey.id");
-    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode");
-  	if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
+    String fieldSurveyCode = getStringOrInt(row, "Survey.id", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (fieldSurveyCode==null) fieldSurveyCode = getString(row, "Occurrence.fieldSurveyCode", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
 
-  	String sightingPlatform = getString(row, "Survey.vessel");
-    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation");
-  	if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
-    String surveyComments = getString(row, "Survey.comments");
+    String sightingPlatform = getString(row, "Survey.vessel", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (sightingPlatform==null) sightingPlatform = getString(row, "Platform Designation",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatformPrefix+sightingPlatform);
+    String surveyComments = getString(row, "Survey.comments", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (surveyComments!=null && !occ.getComments().contains(surveyComments)) occ.addComments(surveyComments);
 
-    String comments = getString(row, "Occurrence.comments");
+    String comments = getString(row, "Occurrence.comments", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (comments!=null && !occ.getComments().contains(comments)) occ.addComments(comments);
 
-    Integer numAdults = getInteger(row, "Occurrence.numAdults");
+    Integer numAdults = getInteger(row, "Occurrence.numAdults", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (numAdults!=null) occ.setNumAdults(numAdults);
 
-    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate");
+    Integer minGroupSize = getInteger(row, "Occurrence.minGroupSizeEstimate",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (minGroupSize!=null) occ.setMinGroupSizeEstimate(minGroupSize);
-    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate");
+    Integer maxGroupSize = getInteger(row, "Occurrence.maxGroupSizeEstimate",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (maxGroupSize!=null) occ.setMaxGroupSizeEstimate(maxGroupSize);
-    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate");
+    Double bestGroupSize = getDouble(row, "Occurrence.bestGroupSizeEstimate", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (bestGroupSize!=null) occ.setBestGroupSizeEstimate(bestGroupSize);
 
-    Integer numCalves = getInteger(row, "Occurrence.numCalves");
+    Integer numCalves = getInteger(row, "Occurrence.numCalves", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (numCalves!=null) occ.setNumCalves(numCalves);
-    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles");
+    Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
 
 
-    Double bearing = getDouble(row, "Occurrence.bearing");
+    Double bearing = getDouble(row, "Occurrence.bearing", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (bearing!=null) occ.setBearing(bearing);
-    Double distance = getDouble(row, "Occurrence.distance");
+    Double distance = getDouble(row, "Occurrence.distance", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (distance!=null) occ.setDistance(distance);
 
-    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
+    Double swellHeight = getDouble(row, "Occurrence.swellHeight", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (swellHeight!=null) occ.setSwellHeight(swellHeight);
-    String seaState = getString(row, "Occurrence.seaState");
+    String seaState = getString(row, "Occurrence.seaState", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (seaState==null) {
-      Integer intSeaState = getInteger(row, "Occurrence.seaState");
+      Integer intSeaState = getInteger(row, "Occurrence.seaState", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
       if (intSeaState!=null) seaState = intSeaState.toString();
     }
     if (seaState!=null) occ.setSeaState(seaState);
-    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
+    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (visibilityIndex==null) {
-      Integer visIndexInt = getIntFromMap(row, "Occurrence.visibilityIndex");
+      Integer visIndexInt = getIntFromMap(row, "Occurrence.visibilityIndex", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
       if (visIndexInt!=null) visibilityIndex = visIndexInt.doubleValue();
     }
     if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
 
-    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
+    Double transectBearing = getDouble(row, "Occurrence.transectBearing", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (transectBearing!=null) occ.setTransectBearing(transectBearing);
-    String transectName = getString(row, "Occurrence.transectName");
+    String transectName = getString(row, "Occurrence.transectName", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (transectName!=null) occ.setTransectName(transectName);
 
-    String initialCue = getString(row, "Occurrence.initialCue");
-    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
+    String initialCue = getString(row, "Occurrence.initialCue", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    String humanActivity = getString(row, "Occurrence.humanActivityNearby", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
-    Double effortCode = getDouble(row, "Occurrence.effortCode");
+    Double effortCode = getDouble(row, "Occurrence.effortCode", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (effortCode!=null) occ.setEffortCode(effortCode);
 
-    String observer = getString(row, "Occurrence.observer");
+    String observer = getString(row, "Occurrence.observer", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (observer!=null&&!"".equals(observer)) occ.setObserver(observer);
 
-    Taxonomy taxy = loadTaxonomy0(row, myShepherd);
+    Taxonomy taxy = loadTaxonomy0(row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
-    Taxonomy taxy1 = loadTaxonomy1(row, myShepherd);
+    Taxonomy taxy1 = loadTaxonomy1(row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (taxy1!=null) occ.addTaxonomy(taxy1);
 
-  	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
-  	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
+    String surveyTrackVessel = getString(row, "SurveyTrack.vesselID", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
 
-  	Long millis = getLong(row, "Encounter.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.millis");
-  	if (millis!=null) occ.setDateTimeLong(millis);
+    Long millis = getLong(row, "Encounter.dateInMilliseconds", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (millis==null) millis = getLong(row, "Occurrence.millis", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (millis!=null) occ.setDateTimeLong(millis);
 
     //String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
     //if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
 
-  	if (enc!=null) {
+    if (enc!=null) {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
       occ.setSubmitterIDFromEncs(false);
     }
 
-  	return occ;
+    return occ;
 
   }
 
-  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context, Shepherd myShepherd) {
+  public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,String defaultSubmitterID, boolean committing, TabularFeedback feedback) {
 
+    String dataSource=null;
+    
     // try to load encounter by indID and occID, make a new one if it doesn't exist.
-    String individualID = getIndividualID(row);
-    String occurrenceID = getOccurrenceID(row);
+    String individualID = getIndividualID(row,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    String occurrenceID = getOccurrenceID(row, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     Encounter enc = null;
     if (Util.stringExists(individualID) && Util.stringExists(occurrenceID)) enc = myShepherd.getEncounterByIndividualAndOccurrence(individualID, occurrenceID);
 
@@ -723,43 +813,43 @@ public class StandardImport extends HttpServlet {
 
     if (occurrenceID!=null) enc.setOccurrenceID(occurrenceID);
 
-  	// since we need access to the encounter ID
+    // since we need access to the encounter ID
     String encID = enc.getCatalogNumber();
-  	if (!Util.stringExists(encID)) {
+    if (!Util.stringExists(encID)) {
       encID = Util.generateUUID();
-  	  enc.setEncounterNumber(encID);
+      enc.setEncounterNumber(encID);
     }
 
     // Data source
     if (dataSource!=null) enc.setDataSource(dataSource);
 
-  	// Time
-  	Integer year = getInteger(row, "Encounter.year");
-    if (year==null) year = getInteger(row, "Occurrence.year");
-  	if (year!=null) enc.setYear(year);
+    // Time
+    Integer year = getInteger(row, "Encounter.year",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (year==null) year = getInteger(row, "Occurrence.year", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (year!=null) enc.setYear(year);
 
-  	Integer month = getInteger(row, "Encounter.month");
-    if (month==null) month = getInteger(row, "Occurrence.month");
-  	if (month!=null) enc.setMonth(month);
+    Integer month = getInteger(row, "Encounter.month", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (month==null) month = getInteger(row, "Occurrence.month", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (month!=null) enc.setMonth(month);
 
-  	Integer day = getInteger(row, "Encounter.day");
-    if (day==null) day = getInteger(row, "Occurrence.day");
-  	if (day!=null) enc.setDay(day);
+    Integer day = getInteger(row, "Encounter.day", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (day==null) day = getInteger(row, "Occurrence.day", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (day!=null) enc.setDay(day);
 
-  	Integer hour = getInteger(row, "Encounter.hour");
-    if (hour==null) hour = getInteger(row, "Occurrence.hour");
-  	if (hour!=null) enc.setHour(hour);
+    Integer hour = getInteger(row, "Encounter.hour", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (hour==null) hour = getInteger(row, "Occurrence.hour", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (hour!=null) enc.setHour(hour);
 
-  	String minutes = getIntAsString(row,"Encounter.minutes");
-    if (minutes==null) minutes = getIntAsString(row, "Occurrence.minutes");
-  	if (minutes!=null) enc.setMinutes(minutes);
+    String minutes = getIntAsString(row,"Encounter.minutes",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (minutes==null) minutes = getIntAsString(row, "Occurrence.minutes",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (minutes!=null) enc.setMinutes(minutes);
 
 
     // setting milliseconds last means that (if provided) the exif/millis data will always take precedence
     // if we set it before, enc.setMinutes & others would reset millis
-    Long millis = getLong(row, "Encounter.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
-    if (millis==null) millis = getLong(row, "Occurrence.millis");
+    Long millis = getLong(row, "Encounter.dateInMilliseconds", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (millis==null) millis = getLong(row, "Occurrence.millis",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     boolean hasTimeCategories = (year!=null || month!=null || day!=null || hour!=null || minutes!=null);
 
     //added sanity check for millis between 1900 and 2100.. some excel was giving 0 for millis and making date stuff wierd
@@ -769,93 +859,93 @@ public class StandardImport extends HttpServlet {
     }
 
     //depth
-    Double depth = getDouble(row,"Encounter.depth");
+    Double depth = getDouble(row,"Encounter.depth",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if(depth!=null) enc.setDepth(depth);
 
 
 
-  	// Location
-  	Double latitude = getDouble(row,"Encounter.latitude");
-    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude");
-    if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude");
-    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitiude");
+    // Location
+    Double latitude = getDouble(row,"Encounter.latitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (latitude==null) latitude = getDouble(row,"Occurrence.decimalLatitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (latitude==null) latitude = getDouble(row,"Encounter.decimalLatitiude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (validCoord(latitude)) enc.setDecimalLatitude(latitude);
 
-  	Double longitude = getDouble(row, "Encounter.longitude");
-    if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude");
-    if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude");
+    Double longitude = getDouble(row, "Encounter.longitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (longitude==null) longitude = getDouble(row,"Encounter.decimalLongitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (longitude==null) longitude = getDouble(row,"Occurrence.decimalLongitude",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (validCoord(longitude)) enc.setDecimalLongitude(longitude);
 
-  	String locationID = getString(row, "Encounter.locationID");
-  	if (Util.stringExists(locationID)) enc.setLocationID(locationID);
+    String locationID = getString(row, "Encounter.locationID",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (Util.stringExists(locationID)) enc.setLocationID(locationID);
 
-    String country = getString(row, "Encounter.country");
+    String country = getString(row, "Encounter.country",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (country!=null) enc.setCountry(country);
 
-  	// String fields
-  	String otherCatalogNumbers = getStringOrInt(row, "Encounter.otherCatalogNumbers");
-  	if (otherCatalogNumbers!=null) enc.setOtherCatalogNumbers(otherCatalogNumbers);
+    // String fields
+    String otherCatalogNumbers = getStringOrInt(row, "Encounter.otherCatalogNumbers",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (otherCatalogNumbers!=null) enc.setOtherCatalogNumbers(otherCatalogNumbers);
 
-  	String sex = getString(row, "Encounter.sex");
-  	if (sex!=null) enc.setSex(sex);
+    String sex = getString(row, "Encounter.sex",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (sex!=null) enc.setSex(sex);
 
-  	String genus = getString(row, "Encounter.genus");
-  	if (genus!=null) enc.setGenus(genus);
+    String genus = getString(row, "Encounter.genus",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (genus!=null) enc.setGenus(genus);
 
-  	String specificEpithet = getString(row, "Encounter.specificEpithet");
-  	if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
+    String specificEpithet = getString(row, "Encounter.specificEpithet",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
 
-  	String submitterOrganization = getString(row, "Encounter.submitterOrganization");
-  	if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
+    String submitterOrganization = getString(row, "Encounter.submitterOrganization",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
 
-  	String submitterName = getString(row, "Encounter.submitterName");
-  	if (submitterName!=null) enc.setSubmitterName(submitterName);
+    String submitterName = getString(row, "Encounter.submitterName",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (submitterName!=null) enc.setSubmitterName(submitterName);
 
-  	String patterningCode = getString(row, "Encounter.patterningCode");
-  	if (patterningCode!=null) enc.setPatterningCode(patterningCode);
+    String patterningCode = getString(row, "Encounter.patterningCode",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (patterningCode!=null) enc.setPatterningCode(patterningCode);
 
-  	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
-  	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
+    String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
 
-  	String submitterID = getString(row, "Encounter.submitterID");
+    String submitterID = getString(row, "Encounter.submitterID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     // don't commit this line
     if (submitterID==null) submitterID = defaultSubmitterID;
-  	if (submitterID!=null) enc.setSubmitterID(submitterID);
+    if (submitterID!=null) enc.setSubmitterID(submitterID);
 
-  	String behavior = getString(row, "Encounter.behavior");
-  	if (behavior!=null) enc.setBehavior(behavior);
+    String behavior = getString(row, "Encounter.behavior",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (behavior!=null) enc.setBehavior(behavior);
 
-  	String lifeStage = getString(row, "Encounter.lifeStage");
-  	if (lifeStage!=null) enc.setLifeStage(lifeStage);
+    String lifeStage = getString(row, "Encounter.lifeStage",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (lifeStage!=null) enc.setLifeStage(lifeStage);
 
-  	//WB-466
-    String livingStatus = getString(row, "Encounter.livingStatus");
+    //WB-466
+    String livingStatus = getString(row, "Encounter.livingStatus",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (livingStatus!=null) enc.setLivingStatus(livingStatus);
 
     //WB-468
-    String identificationRemarks = getString(row, "Encounter.identificationRemarks");
+    String identificationRemarks = getString(row, "Encounter.identificationRemarks",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (identificationRemarks!=null) enc.setIdentificationRemarks(identificationRemarks);
 
-    String groupRole = getString(row, "Encounter.groupRole");
+    String groupRole = getString(row, "Encounter.groupRole",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (groupRole!=null) enc.setGroupRole(groupRole);
 
-    String researcherComments = getString(row, "Encounter.researcherComments");
+    String researcherComments = getString(row, "Encounter.researcherComments",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (researcherComments!=null) enc.addComments(researcherComments);
 
 
-  	String verbatimLocality = getString(row, "Encounter.verbatimLocality");
-  	if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
+    String verbatimLocality = getString(row, "Encounter.verbatimLocality",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
 
 
 
 
 
-  	String nickname = getString(row, "MarkedIndividual.nickname");
-    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
-  	//if (nickname!=null) enc.setAlternateID(nickname);
+    String nickname = getString(row, "MarkedIndividual.nickname",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    //if (nickname!=null) enc.setAlternateID(nickname);
 
-    String alternateID = getString(row, "Encounter.alternateID");
+    String alternateID = getString(row, "Encounter.alternateID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (alternateID!=null) enc.setAlternateID(alternateID);
 
     /*
@@ -871,7 +961,7 @@ public class StandardImport extends HttpServlet {
 
       // by index
       String colName="Encounter.measurement"+bg;
-      Double val = getDouble(row, colName);
+      Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
       if (val!=null) {
         Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
         if (committing) enc.setMeasurement(valMeas, myShepherd);
@@ -880,7 +970,7 @@ public class StandardImport extends HttpServlet {
 
       // by name
       colName = "Encounter.measurement."+measureVals.get(bg);
-      val = getDouble(row, colName);
+      val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
       if (val!=null) {
         Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
         if (committing) enc.setMeasurement(valMeas, myShepherd);
@@ -902,7 +992,7 @@ public class StandardImport extends HttpServlet {
      int startIter=0;
      while(hasSubmitters){
        String colEmail="Encounter.submitter"+startIter+".emailAddress";
-       String val=getString(row,colEmail);
+       String val=getString(row,colEmail,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
        if(val!=null){
          boolean newUser = true;
          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
@@ -921,9 +1011,9 @@ public class StandardImport extends HttpServlet {
           if (newUser) {
             User thisPerson=new User(val.trim(),Util.generateUUID());
             if (committing) enc.addSubmitter(thisPerson);
-            val2=getString(row,colFullName);
+            val2=getString(row,colFullName,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
             if(val2!=null) thisPerson.setFullName(val2.trim());
-            val3=getString(row,colAffiliation);
+            val3=getString(row,colAffiliation,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
             if(val3!=null) thisPerson.setAffiliation(val3.trim());
           }
           if (unusedColumns!=null) unusedColumns.remove(colEmail);
@@ -947,7 +1037,7 @@ public class StandardImport extends HttpServlet {
       startIter=0;
       while(hasPhotographers){
         String colEmail="Encounter.photographer"+startIter+".emailAddress";
-        String val=getString(row,colEmail);
+        String val=getString(row,colEmail,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
         if(val!=null){
           boolean newUser = true;
           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
@@ -967,9 +1057,9 @@ public class StandardImport extends HttpServlet {
             if (newUser) {
               User thisPerson=new User(val.trim(),Util.generateUUID());
               if (committing) enc.addPhotographer(thisPerson);
-              val2=getString(row,colFullName);
+              val2=getString(row,colFullName,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
               if(val2!=null) thisPerson.setFullName(val2.trim());
-              val3=getString(row,colAffiliation);
+              val3=getString(row,colAffiliation,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
               if(val3!=null) thisPerson.setAffiliation(val3.trim());
             }
             if (unusedColumns!=null) unusedColumns.remove(colEmail);
@@ -996,7 +1086,7 @@ public class StandardImport extends HttpServlet {
       startIter=0;
       while(hasInformOthers){
         String colEmail="Encounter.informOther"+startIter+".emailAddress";
-        String val=getString(row,colEmail);
+        String val=getString(row,colEmail,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
         if(val!=null){
           boolean newUser = true;
           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
@@ -1016,9 +1106,9 @@ public class StandardImport extends HttpServlet {
             if (newUser) {
               User thisPerson=new User(val.trim(),Util.generateUUID());
               if (committing) enc.addInformOther(thisPerson);
-              val2=getString(row,colFullName);
+              val2=getString(row,colFullName,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
               if(val2!=null) thisPerson.setFullName(val2.trim());
-              val3=getString(row,colAffiliation);
+              val3=getString(row,colAffiliation,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
               if(val3!=null) thisPerson.setAffiliation(val3.trim());
             }
             if (unusedColumns!=null) unusedColumns.remove(colEmail);
@@ -1044,11 +1134,11 @@ public class StandardImport extends HttpServlet {
       while (hasAnotherProject) {
         try {
           String projectIdPrefixKey = "Encounter.project"+projectIncrement+".projectIdPrefix";
-          String projectIdPrefix = getString(row,projectIdPrefixKey);
+          String projectIdPrefix = getString(row,projectIdPrefixKey,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
           String researchProjectNameKey = "Encounter.project"+projectIncrement+".researchProjectName";
-          String researchProjectName = getString(row,researchProjectNameKey);
+          String researchProjectName = getString(row,researchProjectNameKey,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
           String ownerNameKey = "Encounter.project"+projectIncrement+".ownerUsername";
-          String ownerName = getString(row,ownerNameKey);
+          String ownerName = getString(row,ownerNameKey,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
           if (Util.stringExists(projectIdPrefix)&&Util.stringExists(researchProjectName)) {
             projectIdPrefix = projectIdPrefix.trim();
             //if this project already exists, use it. bail on other specifics.
@@ -1097,24 +1187,24 @@ public class StandardImport extends HttpServlet {
 
       // end add to projects
 
-  	String scar = getStringOrInt(row, "Encounter.distinguishingScar");
-  	if (scar!=null) enc.setDistinguishingScar(scar);
+    String scar = getStringOrInt(row, "Encounter.distinguishingScar",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (scar!=null) enc.setDistinguishingScar(scar);
 
-  	// SAMPLES
+    // SAMPLES
     TissueSample sample = null;
-  	String tissueSampleID = getStringOrInt(row, "TissueSample.sampleID");
+    String tissueSampleID = getStringOrInt(row, "TissueSample.sampleID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     // we need to make sure we have a sampleID whenever we have a microsat marker
-    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
+    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     // same for sex analysis
-    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
+    if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     System.out.println("tissueSampleID=(" + tissueSampleID + ")");
-  	if (tissueSampleID!=null) {
+    if (tissueSampleID!=null) {
       sample = myShepherd.getTissueSample(tissueSampleID, encID);
-  		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
-  	}
+      if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
+    }
 
-  	//genotype
-  	/*
+    //genotype
+    /*
     String markerAnalysisID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // we need to add uniqueness to the parsed string bc it's a primary key
     // but adding full encID is too long of a string.
@@ -1128,11 +1218,11 @@ public class StandardImport extends HttpServlet {
       } // if microMark was grabbed from Shepherd correctly there is no further data to store.
     }
     */
-  	
-  	MicrosatelliteMarkersAnalysis markers = null;
-  	String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames");
-  	String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0");
-  	String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1");
+    
+    MicrosatelliteMarkersAnalysis markers = null;
+    String alleleNames=getString(row, "MicrosatelliteMarkersAnalysis.alleleNames",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    String alleleZeroes=getString(row, "MicrosatelliteMarkersAnalysis.alleles0",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    String alleleOnes=getString(row, "MicrosatelliteMarkersAnalysis.alleles1",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if(sample!=null 
         && alleleNames!=null && !alleleNames.trim().equals("")
             && alleleZeroes!=null && !alleleZeroes.trim().equals("")
@@ -1167,8 +1257,8 @@ public class StandardImport extends HttpServlet {
             System.out.println("names and alleles sizes don't match!");
           }
     }
-  	
- 	
+    
+  
 
     //Sex Analysis import
     /*
@@ -1188,19 +1278,19 @@ public class StandardImport extends HttpServlet {
       } else sexAnal.setSex(sexAnalSex);
     }
     */
-  	SexAnalysis sexAnal=null;
-  	String sexAnalSex = getString(row, "SexAnalysis.sex");
-  	if(sample!=null && sexAnalSex!=null && !sexAnalSex.trim().equals("")) {
-  	  sexAnal = new SexAnalysis(Util.generateUUID(), sexAnalSex, encID, tissueSampleID);
-  	  if(committing) {
-  	    myShepherd.getPM().makePersistent(sexAnal);
-  	  }
-  	  sample.addGeneticAnalysis(sexAnal);
-  	}
-  	
-  	//add haplotype
-  	MitochondrialDNAAnalysis haplo=null;
-    String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype");
+    SexAnalysis sexAnal=null;
+    String sexAnalSex = getString(row, "SexAnalysis.sex",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if(sample!=null && sexAnalSex!=null && !sexAnalSex.trim().equals("")) {
+      sexAnal = new SexAnalysis(Util.generateUUID(), sexAnalSex, encID, tissueSampleID);
+      if(committing) {
+        myShepherd.getPM().makePersistent(sexAnal);
+      }
+      sample.addGeneticAnalysis(sexAnal);
+    }
+    
+    //add haplotype
+    MitochondrialDNAAnalysis haplo=null;
+    String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if(sample!=null && haplotype!=null && !haplotype.trim().equals("")) {
       haplo = new MitochondrialDNAAnalysis(Util.generateUUID(), haplotype, encID, tissueSampleID);
       if(committing) {
@@ -1208,97 +1298,99 @@ public class StandardImport extends HttpServlet {
       }
       sample.addGeneticAnalysis(haplo);
     }
-  	
+    
 
     if (sample!=null) enc.addTissueSample(sample);
     // END SAMPLES
 
 
-  	String satelliteTag = getString(row, "SatelliteTag.serialNumber");
-  	if (satelliteTag!=null) {
-  		SatelliteTag tag = new SatelliteTag("",satelliteTag,""); //note the empty fields. sat tags are weird.
-  		enc.setSatelliteTag(tag);
-  	}
+    String satelliteTag = getString(row, "SatelliteTag.serialNumber",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (satelliteTag!=null) {
+      SatelliteTag tag = new SatelliteTag("",satelliteTag,""); //note the empty fields. sat tags are weird.
+      enc.setSatelliteTag(tag);
+    }
 
-    String caudalType = getIntAsString(row, "Type caudale Mn");
+    String caudalType = getIntAsString(row, "Type caudale Mn", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (caudalType!=null) {
       enc.setDynamicProperty("caudal type",caudalType);
     }
 
-    String state = getString(row, "Encounter.state");
+    String state = getString(row, "Encounter.state",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (state!=null && !state.trim().equals("")) enc.setState(state);
     else {
       enc.setState("approved");
     }
 
-  	return enc;
+    return enc;
   }
 
 
-  public Set<String> getColumnFieldsForClass(String className) {
-  	Set<String> fieldNames = new HashSet<String>();
-  	try {
-  		for (String columnHeader: colIndexMap.keySet()) {
-  			if (columnHeader.contains(className+".")) {
-  				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}
-  		}
-  	} catch (Exception e) {}
-  	return fieldNames;
+  public Set<String> getColumnFieldsForClass(String className, Map<String,Integer> colIndexMap) {
+    Set<String> fieldNames = new HashSet<String>();
+    try {
+      for (String columnHeader: colIndexMap.keySet()) {
+        if (columnHeader.contains(className+".")) {
+          fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
+  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, List<String> foundPhotos, String photoDirectory, TabularFeedback feedback, Boolean isUserUpload, boolean committing, List<String> missingPhotos,String context, HashMap<String,Integer> allColsMap, List<Integer> skipCols) {
     AssetStore astore = getAssetStore(myShepherd);
 
-  	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
+    //if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
     ArrayList<Annotation> annots = new ArrayList<Annotation>();
-  	for (int i=0; i<getNumMediaAssets(); i++) {
-  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets);
-  		if (ma==null) continue;
+    for (int i=0; i<getNumMediaAssets(colIndexMap); i++) {
+      MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap, verbose, missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory, foundPhotos, committing, missingPhotos,context, allColsMap, skipCols);
+      if (ma==null) continue;
 
-  		String species = getSpeciesString(row);
-  		Annotation ann = new Annotation(species, ma);
-  		ann.setIsExemplar(true);
+      String species = getSpeciesString(row,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+      Annotation ann = new Annotation(species, ma);
+      ann.setIsExemplar(true);
 
-      Double quality = getDouble(row, "Encounter.quality"+i);
+      Double quality = getDouble(row, ("Encounter.quality"+i),colIndexMap, verbose, missingColumns, unusedColumns,feedback);
       if (quality != null) ann.setQuality(quality);
 
       //ann.setMatchAgainst(true);
-  		annots.add(ann);
+      annots.add(ann);
 
-  	}
-  	if (annots.size()>0) {
+    }
+    if (annots.size()>0) {
       for (int i=0; i<annots.size(); i++) {
         String maName = "Encounter.mediaAsset"+i;
-        String localPath = getString(row, maName);
+        String localPath = getString(row, maName,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
         if (localPath!=null) foundPhotos.add(photoDirectory+"/"+localPath);
       }
-  	}
+    }
     return annots;
   }
 // TODO add column to point to an image directory
 //   // for when the provided image filename is actually a folder of images
 //   private ArrayList<Annotation> loadAnnotationsFolderRow(Row row, AssetStore astore, Shepherd myShepherd) {
-//   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
-//   	String localPath = getString(row, "Encounter.mediaAsset0");
-//   	if (localPath==null) return annots;
-//   	localPath = localPath.substring(0,localPath.length()-1).trim(); // removes trailing asterisk
-// //  	localPath = fixGlobiceFullPath(localPath)+"/";
-// //  	localPath = localPath.replace(" ","\\ ");
-//   	String fullPath = photoDirectory+localPath;
-//   	fullPath = fullPath.replaceAll("//","/");
-//   	System.out.println(fullPath);
-//   	// Globice fix!
-//   	// now fix spaces
-//   	File photoDir = new File(fullPath);
+//    ArrayList<Annotation> annots = new ArrayList<Annotation>();
+//    String localPath = getString(row, "Encounter.mediaAsset0");
+//    if (localPath==null) return annots;
+//    localPath = localPath.substring(0,localPath.length()-1).trim(); // removes trailing asterisk
+// //   localPath = fixGlobiceFullPath(localPath)+"/";
+// //   localPath = localPath.replace(" ","\\ ");
+//    String fullPath = photoDirectory+localPath;
+//    fullPath = fullPath.replaceAll("//","/");
+//    System.out.println(fullPath);
+//    // Globice fix!
+//    // now fix spaces
+//    File photoDir = new File(fullPath);
 //     if (!photoDir.exists()||!photoDir.isDirectory()||photoDir.listFiles()==null) {
-//     	boolean itExists = photoDir.exists();
-//     	boolean isDirectory = (itExists) && photoDir.isDirectory();
-//     	boolean hasFiles = isDirectory && photoDir.listFiles()!=null;
-//     	System.out.println("StandardImport ERROR: loadAnnotationsFolderRow called on non-directory (or empty?) path "+fullPath);
-//     	System.out.println("		itExists: "+itExists);
-//     	System.out.println("		isDirectory: "+isDirectory);
-//     	System.out.println("		hasFiles: "+hasFiles);
+//      boolean itExists = photoDir.exists();
+//      boolean isDirectory = (itExists) && photoDir.isDirectory();
+//      boolean hasFiles = isDirectory && photoDir.listFiles()!=null;
+//      System.out.println("StandardImport ERROR: loadAnnotationsFolderRow called on non-directory (or empty?) path "+fullPath);
+//      System.out.println("    itExists: "+itExists);
+//      System.out.println("    isDirectory: "+isDirectory);
+//      System.out.println("    hasFiles: "+hasFiles);
 
 //       feedback.addMissingPhoto(localPath);
 
@@ -1306,99 +1398,102 @@ public class StandardImport extends HttpServlet {
 //     }
 
 
-// 	  // if there are keywords we apply to all photos in encounter
-// 	  String keyword0 = getString(row, "Encounter.keyword00");
-// 	  Keyword key0 = (keyword0==null) ? null : myShepherd.getOrCreateKeyword(keyword0);
-// 	  String keyword1 = getString(row, "Encounter.keyword01");
-// 	  Keyword key1 = (keyword1==null) ? null : myShepherd.getOrCreateKeyword(keyword1);
+//    // if there are keywords we apply to all photos in encounter
+//    String keyword0 = getString(row, "Encounter.keyword00");
+//    Keyword key0 = (keyword0==null) ? null : myShepherd.getOrCreateKeyword(keyword0);
+//    String keyword1 = getString(row, "Encounter.keyword01");
+//    Keyword key1 = (keyword1==null) ? null : myShepherd.getOrCreateKeyword(keyword1);
 
-// 	  String species = getSpeciesString(row);
-// 	  for (File f: photoDir.listFiles()) {
-// 	  	MediaAsset ma = null;
-// 	  	try {
-// 	  		JSONObject assetParams = astore.createParameters(f);
-// 	  		System.out.println("		have assetParams");
-// 	  		assetParams.put("_localDirect", f.toString());
-// 	  		System.out.println("		about to create mediaAsset");
-// 			  ma = astore.copyIn(f, assetParams);
-// 	  	} catch (Exception e) {
-// 	  		System.out.println("IOException creating MediaAsset for file "+f.getPath() + ": " + e.toString());
+//    String species = getSpeciesString(row);
+//    for (File f: photoDir.listFiles()) {
+//      MediaAsset ma = null;
+//      try {
+//        JSONObject assetParams = astore.createParameters(f);
+//        System.out.println("    have assetParams");
+//        assetParams.put("_localDirect", f.toString());
+//        System.out.println("    about to create mediaAsset");
+//        ma = astore.copyIn(f, assetParams);
+//      } catch (Exception e) {
+//        System.out.println("IOException creating MediaAsset for file "+f.getPath() + ": " + e.toString());
 //         feedback.addMissingPhoto(localPath);
 
-// 	  		continue; // skips the rest of loop for this file
-// 	  	}
-// 	  	if (ma==null) continue;
-// 	  	if (key0!=null) ma.addKeyword(key0);
-// 	  	if (key1!=null) ma.addKeyword(key1);
-//   		Annotation ann = new Annotation(species, ma);
-//   		ann.setIsExemplar(true);
-//   		annots.add(ann);
-// 	  }
-// 	  if (annots.size()>0) foundPhotos.add(fullPath);
-// 	  return annots;
+//        continue; // skips the rest of loop for this file
+//      }
+//      if (ma==null) continue;
+//      if (key0!=null) ma.addKeyword(key0);
+//      if (key1!=null) ma.addKeyword(key1);
+//      Annotation ann = new Annotation(species, ma);
+//      ann.setIsExemplar(true);
+//      annots.add(ann);
+//    }
+//    if (annots.size()>0) foundPhotos.add(fullPath);
+//    return annots;
 //   }
 
   //
   // capitolizes the final directory in path
   // private String fixGlobiceFullPath(String path) {
-  // 	String fixed = capitolizeLastFilepart(path);
-  // 	fixed = removeExtraGlobiceString(fixed);
-  // 	return fixed;
+  //  String fixed = capitolizeLastFilepart(path);
+  //  fixed = removeExtraGlobiceString(fixed);
+  //  return fixed;
   // }
 
   // private String removeExtraGlobiceString(String path) {
-  // 	// we somehow got an extra instance of the word "globice" in the path string, right before a 1
-  // 	return (path.replace("Globice1","1"));
+  //  // we somehow got an extra instance of the word "globice" in the path string, right before a 1
+  //  return (path.replace("Globice1","1"));
   // }
 
   // private String capitolizeLastFilepart(String path) {
-  // 	String[] parts = path.split("/");
-  // 	String lastPart = parts[parts.length-1];
-  // 	String firstPart = path.substring(0, path.indexOf(lastPart));
-  // 	return firstPart + lastPart.toUpperCase();
+  //  String[] parts = path.split("/");
+  //  String lastPart = parts[parts.length-1];
+  //  String firstPart = path.substring(0, path.indexOf(lastPart));
+  //  return firstPart + lastPart.toUpperCase();
   // }
 
 
   // TODO add column to point to an image directory
   // // most rows have a single image, but some have an image folder
   // private boolean isFolderRow(Row row) {
-  // 	String path = getString(row, "Encounter.mediaAsset0");
-  // 	if (path==null) return false;
-  // 	boolean ans = path.endsWith("*");
-  // 	if (ans) numFolderRows++;
-  // 	return ans;
+  //  String path = getString(row, "Encounter.mediaAsset0");
+  //  if (path==null) return false;
+  //  boolean ans = path.endsWith("*");
+  //  if (ans) numFolderRows++;
+  //  return ans;
   // }
 
-  public String getSpeciesString(Row row) {
-  	String genus = getString(row, "Encounter.genus");
-  	String species = getString(row, "Encounter.specificEpithet");
-		String total = genus+" "+species;
-		if (total==null||total.equals(" ")) total = "unknown";
-		return total;
+  public String getSpeciesString(Row row, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
+    String genus = getString(row, "Encounter.genus",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    String species = getString(row, "Encounter.specificEpithet",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    String total = genus+" "+species;
+    if (total==null||total.equals(" ")) total = "unknown";
+    return total;
   }
 
-  public String getIndividualID(Row row) {
-  	String indID =           getStringOrInt(row, "Encounter.individualID");
-    if (indID==null) indID = getStringOrInt(row, "MarkedIndividual.individualID");
+  public String getIndividualID(Row row, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    String individualPrefix="";
+    String indID =           getStringOrInt(row, "Encounter.individualID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (indID==null) indID = getStringOrInt(row, "MarkedIndividual.individualID",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (!Util.stringExists(indID)) return indID;
     return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback, Boolean isUserUpload, String photoDirectory, List<String> foundPhotos, boolean committing, List<String> missingPhotos, String context, HashMap<String,Integer> allColsMap, List<Integer> skipCols) {
 
     try {
-      if (emptyAssetColumn(i)) {
-        feedback.logParseNoValue(assetColIndex(i));
+      if (emptyAssetColumn(i,allColsMap, skipCols)) {
+        feedback.logParseNoValue(assetColIndex(i, allColsMap));
         return null;
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
 
-    String localPath = getString(row, "Encounter.mediaAsset"+i);
+    String localPath = getString(row, "Encounter.mediaAsset"+i, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    System.out.println("     localPath: "+localPath);
     if (Util.stringExists(localPath)){
       localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
     }
+    System.out.println("     localPath2: "+localPath);
 
     if (isUserUpload) {
       // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
@@ -1418,7 +1513,7 @@ public class StandardImport extends HttpServlet {
     try {
 
       if (localPath==null||"null".equals(localPath)) {
-        feedback.logParseError(assetColIndex(i), localPath, row);
+        feedback.logParseError(assetColIndex(i, allColsMap), localPath, row);
         return null;
       }
 
@@ -1426,15 +1521,20 @@ public class StandardImport extends HttpServlet {
       fullPath = photoDirectory+"/"+localPath;
       fullPath = fullPath.replace("//","/");
       resolvedPath = resolveHumanEnteredFilename(fullPath);
-
+      System.out.println("     resolvedPath: "+resolvedPath);
       if (resolvedPath!=null) {
-        String suffix = resolvedPath.split(".")[resolvedPath.length()-1].toLowerCase();
-        if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
-          feedback.logParseError(assetColIndex(i), "Bad Img Type: "+localPath, row);
-          return null;
+        String[] arr = resolvedPath.split(".");
+        if(arr.length>1) {
+          String suffix = arr[arr.length-1].toLowerCase();
+          System.out.println("     suffix: "+suffix);
+          if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
+            feedback.logParseError(assetColIndex(i, allColsMap), "Bad Img Type: "+localPath, row);
+            return null;
+          }
         }
       }
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
     }
 
@@ -1447,7 +1547,7 @@ public class StandardImport extends HttpServlet {
           String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
           feedback.addMissingPhoto(locInFile);
           foundPhotos.remove(fullPath);
-          feedback.logParseError(assetColIndex(i), localPath, row);
+          feedback.logParseError(assetColIndex(i, allColsMap), localPath, row);
         }
       } catch (NullPointerException npe) {
         npe.printStackTrace();
@@ -1469,17 +1569,17 @@ public class StandardImport extends HttpServlet {
         }
     }
 
-	  // create MediaAsset and return it
-	  JSONObject assetParams = astore.createParameters(f);
+    // create MediaAsset and return it
+    JSONObject assetParams = astore.createParameters(f);
     assetParams.put("_localDirect", f.toString());
 
-	  MediaAsset ma = null;
-	  try {
+    MediaAsset ma = null;
+    try {
 
       System.out.println("Trying to create NEW asset!");
 
-      ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
-      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd);
+      ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd,context,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
 
 
       if (committing) {
@@ -1492,33 +1592,34 @@ public class StandardImport extends HttpServlet {
         }
 
       }
-	    // keywording
+      // keywording
 
-	  } catch (java.io.IOException ioEx) {
+    } 
+    catch (java.io.IOException ioEx) {
 
-	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
+      System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
 
       //feedback.addMissingPhoto(localPath);
       if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) {
         String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
         feedback.addMissingPhoto(locInFile);
-        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i, colIndexMap), localPath, row);
         missingPhotos.add(localPath);
         foundPhotos.remove(fullPath);
       }
       return null;
-	  }
+    }
     myAssets.put(fileHash(f), ma);
 
-	  // Keyword keyword = null;
-	  // String keywordI = getString(row, "Encounter.keyword"+i);
-	  // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-	  // String keywordOIKey = "Encounter.keyword0"+i;
-	  // String keywordOI = getString(row, keywordOIKey);
-	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-	  // if (keyword!=null) ma.addKeyword(keyword);
-	  return ma;
+    // Keyword keyword = null;
+    // String keywordI = getString(row, "Encounter.keyword"+i);
+    // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
+    // String keywordOIKey = "Encounter.keyword0"+i;
+    // String keywordOI = getString(row, keywordOIKey);
+    // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
+    // if (keyword!=null) ma.addKeyword(keyword);
+    return ma;
   }
 
 
@@ -1564,9 +1665,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
   */
 
-  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
-    String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
+    String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     //if keywords are just blobbed together with an underscore delimiter
     if(kwsName!=null) {
       StringTokenizer str=new StringTokenizer(kwsName,"_");
@@ -1580,10 +1681,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
     } else {
       String kwColName = "Encounter.keyword"+n;
-      String kwName = getString(row, kwColName);
+      String kwName = getString(row, kwColName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
       if (kwName==null) {
         kwColName = "Encounter.keyword0"+n;
-        kwName = getString(row, kwColName);
+        kwName = getString(row, kwColName,colIndexMap, verbose, missingColumns, unusedColumns, feedback);
       }
       if (kwName==null) return ans;
       Keyword kw = myShepherd.getOrCreateKeyword(kwName);
@@ -1593,13 +1694,13 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
 
-  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd, String context, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
     ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
 
     List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
     for(String label:kwLabels) {
       System.out.println("eval "+label);
-      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
+      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label,colIndexMap, verbose, missingColumns, unusedColumns,feedback);
       if(kwsValue!=null) {
           kwsValue=kwsValue.replaceAll(".0","");
           List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
@@ -1621,9 +1722,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
 
-  private int getNumAssets(Row row) {
+  private int getNumAssets(Row row, String context, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
     int n=0;
-    while(getString(row,"Encounter.mediaAsset"+n)!=null) {n++;}
+    while(getString(row,"Encounter.mediaAsset"+n,colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null) {n++;}
     return n;
   }
 
@@ -1671,23 +1772,23 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
 
   private String uppercaseBeforeJpg(String filename) {
-  	// uppercases the section between final slash and .jpg
-  	if (filename==null) return null;
-  	int indexOfDotJpg = filename.indexOf(".jpg");
-  	if (indexOfDotJpg == -1) indexOfDotJpg = filename.indexOf(".JPG");
-  	int indexOfLastSlash = filename.lastIndexOf("/");
-  	if (indexOfDotJpg==-1 || indexOfLastSlash==-1) return filename;
+    // uppercases the section between final slash and .jpg
+    if (filename==null) return null;
+    int indexOfDotJpg = filename.indexOf(".jpg");
+    if (indexOfDotJpg == -1) indexOfDotJpg = filename.indexOf(".JPG");
+    int indexOfLastSlash = filename.lastIndexOf("/");
+    if (indexOfDotJpg==-1 || indexOfLastSlash==-1) return filename;
 
-  	String beforePart      = filename.substring(0,indexOfLastSlash+1);
-  	String capitolizedPart = filename.substring(indexOfLastSlash+1,indexOfDotJpg).toUpperCase();
-  	String afterPart       = filename.substring(indexOfDotJpg);
+    String beforePart      = filename.substring(0,indexOfLastSlash+1);
+    String capitolizedPart = filename.substring(indexOfLastSlash+1,indexOfDotJpg).toUpperCase();
+    String afterPart       = filename.substring(indexOfDotJpg);
 
-  	return (beforePart+capitolizedPart+afterPart);
+    return (beforePart+capitolizedPart+afterPart);
   }
 
   private String lowercaseJpg(String filename) {
-  	if (filename==null) return null;
-  	return (filename.replace(".JPG",".jpg"));
+    if (filename==null) return null;
+    return (filename.replace(".JPG",".jpg"));
   }
   private String uppercaseJpg(String filename) {
     if (filename==null) return null;
@@ -1702,8 +1803,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return (filename.replace(" .jpg",".jpg"));
   }
   // private String removeTailingSpace(String filename) {
-  // 	if (filename==null) return null;
-  // 	return (filename.replace(" .jpg", ".jpg"));
+  //  if (filename==null) return null;
+  //  return (filename.replace(" .jpg", ".jpg"));
   // }
 
   private String removeSpaceDashSpaceBeforeDot(String filename) {
@@ -1711,34 +1812,43 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return (filename.replace(" - .", "."));
   }
 
-	private int getNumMediaAssets() {
-		setNumMediaAssets();
-		return numMediaAssets.intValue();
-	}
-	private void setNumMediaAssets() {
-		int numAssets = 0;
-		for (String col: colIndexMap.keySet()) {
-			if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
-		}
-		numMediaAssets=numAssets;
-	}
+  private int getNumMediaAssets(Map<String,Integer> colIndexMap) {
+    //setNumMediaAssets(colIndexMap);
+    int numAssets = 0;
+    for (String col: colIndexMap.keySet()) {
+      if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
+    }
+    //numMediaAssets=numAssets;
+    //return numMediaAssets.intValue();
+    return numAssets;
+  }
+  
+  /*
+  private void setNumMediaAssets(Map<String,Integer> colIndexMap, Integer numMediaAssets) {
+    int numAssets = 0;
+    for (String col: colIndexMap.keySet()) {
+      if ((col != null) && (col.indexOf("mediaAsset")>-1)) numAssets++;
+    }
+    numMediaAssets=numAssets;
+  }
+  */
 
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,String> individualCache) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,String> individualCache, Map<String,Integer> colIndexMap, Set<String> unusedColumns, boolean verbose, Set<String> missingColumns, HashMap<User, List<MarkedIndividual>> userIndividualCache, String individualScope, PrintWriter out, TabularFeedback feedback, HttpServletRequest request) {
 
 
-  	boolean newIndividual = false;
-  	String individualID = getIndividualID(row);
-  	if (individualID==null) {
+    boolean newIndividual = false;
+    String individualID = getIndividualID(row, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (individualID==null) {
       return null;
     }
 
 
-    User u = getUserForRowOrCurrent(row, myShepherd);
+    User u = getUserForRowOrCurrent(row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns,feedback,request);
     if (!userIndividualCache.containsKey(u)&&"user".equals(individualScope)) {
-      createMarkedIndividualCacheForUser(myShepherd, u);
+      createMarkedIndividualCacheForUser(myShepherd, u, userIndividualCache);
     }
     Iterator uIt = userIndividualCache.keySet().iterator();
     while (uIt.hasNext()) {
@@ -1755,18 +1865,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     String uuid=individualCache.get(individualID);
 
     // this is fine UNLESS you have two same species, same name individuals assigned to two different users in the excel
-  	if(myShepherd.isMarkedIndividual(uuid)) {
+    if(myShepherd.isMarkedIndividual(uuid)) {
       mark = myShepherd.getMarkedIndividual(uuid);
     }
 
     // ID not in cache.. withName gets the first choice that matches species so caution and require global
-  	if (mark==null&&"global".equals(individualScope)) {
+    if (mark==null&&"global".equals(individualScope)) {
       mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
     }
 
     // if nothing yet, look in user's cache for indy name and use species if present
     if (mark==null&&"user".equals(individualScope)) {
-      MarkedIndividual shallowMark = getIndividualByNameFromUserIndividualCache(u, individualID, enc.getGenus(), enc.getSpecificEpithet());
+      MarkedIndividual shallowMark = getIndividualByNameFromUserIndividualCache(u, individualID, enc.getGenus(), enc.getSpecificEpithet(), userIndividualCache);
       if (shallowMark!=null) {
         mark = myShepherd.getMarkedIndividual(shallowMark.getId());
         myShepherd.getPM().refresh(mark);
@@ -1780,26 +1890,26 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // }
 
     if (mark==null) { // new individual
-	    mark = new MarkedIndividual(enc);
+      mark = new MarkedIndividual(enc);
       if (!mark.hasName(individualID))mark.addName(individualID);
 
-	    if(committing) {
-	      myShepherd.getPM().makePersistent(mark);
-	      myShepherd.commitDBTransaction();
-	      myShepherd.beginDBTransaction();
+      if(committing) {
+        myShepherd.getPM().makePersistent(mark);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
         mark.refreshNamesCache();
         mark.setTaxonomyFromEncounters(true);
         individualCache.put(individualID, mark.getIndividualID());
 
         if ("user".equals(individualScope)) {
-          addIndividualToUserIndividualCache(u,mark);
+          addIndividualToUserIndividualCache(u,mark, userIndividualCache);
         }
 
-	      //out.println("persisting new individual");
+        //out.println("persisting new individual");
       }
 
-	    newIndividual = true;
-	  }
+      newIndividual = true;
+    }
 
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     //Organization org = getOrganizationForRow(row, myShepherd);
@@ -1816,7 +1926,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (!newIndividual) {
         mark.addEncounter(enc);
         enc.setIndividual(mark);
-        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName(request, myShepherd));
+        //System.out.println("loadIndividual notnew individual: "+mark.getDisplayName(request, myShepherd));
       }
       else {
         enc.setIndividual(mark);
@@ -1832,40 +1942,40 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     //String alternateID = getString(row, "Encounter.alternateID");
     //if (alternateID!=null) mark.setAlternateID(alternateID);
 
-  	String nickname = getString(row, "MarkedIndividual.nickname");
-    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
-  	if (nickname!=null) mark.setNickName(nickname);
+    String nickname = getString(row, "MarkedIndividual.nickname",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (nickname!=null) mark.setNickName(nickname);
 
-  	//let's support importing name labels from columns
-  	//MarkedIndividual.nameX.label and MarkedIndividual.nameX.value
-  	int t=0;
-  	while(getStringOrInt(row,"MarkedIndividual.name"+t+".label")!=null && getStringOrInt(row,"MarkedIndividual.name"+t+".value")!=null && !getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim().equals("")) {
+    //let's support importing name labels from columns
+    //MarkedIndividual.nameX.label and MarkedIndividual.nameX.value
+    int t=0;
+    while(getStringOrInt(row,"MarkedIndividual.name"+t+".label",colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && !getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns,feedback).trim().equals("")) {
 
-  	  String label=getStringOrInt(row,"MarkedIndividual.name"+t+".label").trim();
-  	  String value=getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim();
-  	  if(mark.getName(label)!=null) {
+      String label=getStringOrInt(row,"MarkedIndividual.name"+t+".label",colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
+      String value=getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
+      if(mark.getName(label)!=null) {
         mark.getNames().removeValuesByKey(label, mark.getName(label));
         mark.addName(label, value);
-  	  }
-  	  else {
+      }
+      else {
         mark.addName(label, value);
-  	  }
-  	  mark.refreshNamesCache();
-  	  t++;
-  	}
+      }
+      mark.refreshNamesCache();
+      t++;
+    }
 
 
-  	return mark;
+    return mark;
 
   }
 
 
   // check if oldOcc is the same occurrence as the occurrence on this row
   // if so, return oldOcc. If not, return parseOccurrence(row)
-  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd) {
-  	String occID = getOccurrenceID(row);
-  	if (oldOcc!=null && oldOcc.getOccurrenceID()!=null && oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
-  	Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
+  public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
+    String occID = getOccurrenceID(row, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (oldOcc!=null && oldOcc.getOccurrenceID()!=null && oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
+    Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
 
     return occ;
     // if (isOccurrenceOnRow(oldOcc, row)) return oldOcc;
@@ -1874,50 +1984,57 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-
-  private void initColIndexVariables(Row firstRow) {
-    colIndexMap = makeColIndexMap(firstRow);
-
-  	unusedColumns = new HashSet<String>();
+/*
+  private void initColIndexVariables(Row firstRow, Map<String,Integer> colIndexMap, Set<String> unusedColumns, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter out) {
+    colIndexMap = makeColIndexMap(firstRow, skipCols, allColsMap, feedback, sheet, committing, out);
+    System.out.println("debug4: makeColIndexMap");
+    
+    System.out.println("feedback getColNames() = "+feedback.getColNames());
+    
+    unusedColumns = new HashSet<String>();
     //Set<String> col = colIndexMap.keySet();
-  	// have to manually copy-in like this because keySet returns a POINTER (!!!)
-  	for (String colName: colIndexMap.keySet()) {
+    // have to manually copy-in like this because keySet returns a POINTER (!!!)
+    for (String colName: colIndexMap.keySet()) {
       // length restriction removes colnames like "F21"
-  		if (colName!=null && colName.length()>3) {
+      if (colName!=null && colName.length()>3) {
         unusedColumns.add(colName);
       }
-  	}
+    }
   }
+  */
 
   // Returns a map from each column header to the integer col number
 
+  /*
   // i need to ensure we have all unused columns added to visible list
-  private Map<String,Integer> makeColIndexMap(Row firstRow) {
-  	Map<String,Integer> colMap = new HashMap<String, Integer>();
-    numCols = firstRow.getLastCellNum();
+  private Map<String,Integer> makeColIndexMap(Row firstRow, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter out) {
+    Map<String,Integer> colMap = new HashMap<String, Integer>();
+    int numCols = firstRow.getLastCellNum();
+    System.out.println("We're making colIndexMap: numCols: "+numCols);
     String[] headers = new String[numCols];
-    System.out.println("We're making colIndexMap!");
-  	for (int i=0; i<=numCols; i++) {
+    
+    for (int i=0; i<=numCols; i++) {
       String colName = getStringNoLog(firstRow, i);
       System.out.println("Are there any values in this colum? "+i);
       allColsMap.put(colName,i);
-      if (colName==null || colName.length()<4 || !anyValuesInColumn(i)) {
+      if (colName==null || colName.length()<4 || !anyValuesInColumn(i, feedback, sheet)) {
         System.out.println("skipCols adding column named: "+colName+" with index "+i);
         skipCols.add(i);
         continue;
       }
       System.out.println("yes, "+colName+" has at least one value");
       headers[i] = colName;
-  		colMap.put(colName, i);
+      colMap.put(colName, i);
     }
 
     feedback = new TabularFeedback(headers, committing, out, skipCols);
     System.out.println("headers = "+headers);
     System.out.println("feedback headers = "+feedback.getColNames());
-  	return colMap;
+    return colMap;
   }
+  */
 
-  private boolean anyValuesInColumn(int colIndex) {
+  private boolean anyValuesInColumn(int colIndex, TabularFeedback feedback, Sheet sheet) {
     int numRows = sheet.getPhysicalNumberOfRows();
     System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
     for (int i=1; i<numRows; i++) {
@@ -1945,17 +2062,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return false;
   }
 
-  public String getOccurrenceID(Row row) {
+  public String getOccurrenceID(Row row, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
     // some custom data-fixing just for our aswn data blend
-    String occID = getStringOrInt(row,"Occurrence.occurrenceID");
-    if (!Util.stringExists(occID)) occID = getStringOrInt(row, "Encounter.occurrenceID");
+    String occurrencePrefix="";
+    String occID = getStringOrInt(row,"Occurrence.occurrenceID", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (!Util.stringExists(occID)) occID = getStringOrInt(row, "Encounter.occurrenceID", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (!Util.stringExists(occID)) return occID;
     occID = occID.replace("LiveVesselSighting","");
     return (occurrencePrefix+occID);
   }
 
-  public boolean isOccurrenceOnRow(Occurrence occ, Row row) {
-    return (occ!=null && !occ.getOccurrenceID().equals(getOccurrenceID(row)));
+  public boolean isOccurrenceOnRow(Occurrence occ, Row row, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    return (occ!=null && !occ.getOccurrenceID().equals(getOccurrenceID(row, colIndexMap, verbose, missingColumns, unusedColumns, feedback)));
   }
 
 
@@ -1969,14 +2087,14 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
   };
 
-  public Integer getIntFromMap(Row row, String colName) {
-    String key = getString(row, colName);
+  public Integer getIntFromMap(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    String key = getString(row, colName, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (key == null || !qualityMap.containsKey(key)) return null;
     return qualityMap.get(key);
   }
 
   // following 'get' functions swallow errors
-  public Integer getInteger(Row row, int i) {
+  public Integer getInteger(Row row, int i, TabularFeedback feedback) {
     if ((row != null) && (row.getCell(i) != null) && (row.getCell(i).getCellType() == Cell.CELL_TYPE_BLANK)) return null;
     try {
       int val = (int) row.getCell(i).getNumericCellValue();
@@ -1987,7 +2105,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       //e.printStackTrace();
       try {
-        String str = getString(row, i);
+        String str = getString(row, i, feedback);
         System.out.println("Trying to get INTEGER????? ------> "+str);
         if (str==null) return null;
         try {
@@ -2007,7 +2125,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return null;
   }
 
-  public Long getLong(Row row, int i) {
+  public Long getLong(Row row, int i, TabularFeedback feedback) {
     try {
       long val = (long) row.getCell(i).getNumericCellValue();
       System.out.println("extracted long for line "+i);
@@ -2016,7 +2134,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     } catch (Exception e){
       //e.printStackTrace();
       try {
-        String str = getString(row, i);
+        String str = getString(row, i, feedback);
         System.out.println("Did you get a long for this thing??? ----> "+str+" found on column "+i);
         if (str==null) return null;
         try {
@@ -2037,7 +2155,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return null;
   }
 
-  public Double getDouble(Row row, int i) {
+  public Double getDouble(Row row, int i, TabularFeedback feedback) {
     String originalString = null; // i'd like to make a copy of what actually resides in the field for feedback before i try to crush it into a double
     try {
       // maybe things will just be perfect
@@ -2049,7 +2167,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       String str = null;
       try {
-        originalString = getString(row, i);
+        originalString = getString(row, i, feedback);
         if (originalString==null||originalString.isEmpty()) {
           feedback.logParseNoValue(i);
           return null;
@@ -2078,7 +2196,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   // 1. allowed values for strings
   // 2. image file presence for filenames
 
-  public String getString(final Row row, final int i) {
+  public String getString(final Row row, final int i, TabularFeedback feedback) {
     System.out.println("Calling getString on row "+row.getRowNum()+" with cell "+i+" value "+String.valueOf(row.getCell(i)));
     final Cell cell = row.getCell(i);
     String str = null;
@@ -2104,9 +2222,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return str.trim();
   }
 
-  public Boolean getBooleanFromString(Row row, int i) {
+  public Boolean getBooleanFromString(Row row, int i, TabularFeedback feedback) {
     try {
-      String boolStr = getString(row, i).trim().toLowerCase();
+      String boolStr = getString(row, i, feedback).trim().toLowerCase();
       if (boolStr==null || boolStr.equals("")) {
         return null;
       } else {
@@ -2119,7 +2237,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return null;
   }
 
-  public Date getDate(Row row, int i) {
+  public Date getDate(Row row, int i, TabularFeedback feedback) {
     try {
       Date date = row.getCell(i).getDateCellValue();
       feedback.logParseValue(i, date, row);
@@ -2129,64 +2247,64 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return null;
   }
 
-  public DateTime getDateTime(Row row, int i) {
-    Date date = getDate(row, i);
+  public DateTime getDateTime(Row row, int i, TabularFeedback feedback) {
+    Date date = getDate(row, i,feedback);
     if (date == null) return null;
     return new DateTime(date);
   }
 
   // Below methods are *not* static and work from column names rather than column numbers
   // IMPORTANT: ONLY WORKS IF colIndexMap HAS BEEN INITIALIZED
-  public String getString(Row row, String colName) {
+  public String getString(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
     if (!colIndexMap.containsKey(colName)) {
       if (verbose) missingColumns.add(colName);
       return null;
     }
     System.out.println("getString colName = "+colName);
-    String ans = getString(row, colIndexMap.get(colName));
+    String ans = getString(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public String getIntAsString(Row row, String colName) {
-  	Integer i = getInteger(row,colName);
+  public String getIntAsString(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
+    Integer i = getInteger(row,colName, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (i==null) return null;
     System.out.println("getIntAsString colName = "+colName);
-  	return i.toString();
+    return i.toString();
   }
 
-  public String getStringOrInt(Row row, String colName) {
+  public String getStringOrInt(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
     if (!colIndexMap.containsKey(colName)) {
       if (verbose) missingColumns.add(colName);
       return null;
     }
     System.out.println("getStringOrInt colName = "+colName);
-    String ans = getStringOrInt(row, colIndexMap.get(colName));
+    String ans = getStringOrInt(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public String getStringOrInt(Row row, int i) {
+  public String getStringOrInt(Row row, int i,TabularFeedback feedback) {
     String ans = null;
     try {
-      ans = getString(row, i);
+      ans = getString(row, i,feedback);
       if (ans==null) {
-        Integer inty = getInteger(row,i);
+        Integer inty = getInteger(row,i,feedback);
         if (inty!=null) ans = String.valueOf(inty);
       }
     } catch (IllegalStateException ise) {}
     return ans;
   }
 
-  public Organization getOrganizationForRow(Row row, Shepherd myShepherd) {
-    String orgID = getString(row, "Encounter.submitterOrganization");
+  public Organization getOrganizationForRow(Row row, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, boolean committing, TabularFeedback feedback) {
+    String orgID = getString(row, "Encounter.submitterOrganization", colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (orgID==null) return null;
     Organization org = myShepherd.getOrCreateOrganizationByName(orgID, committing);
     return org;
   }
 
-  private User getUserForRowOrCurrent(Row row, Shepherd myShepherd) {
-    String submitterID = getString(row, "Encounter.submitterID");
+  private User getUserForRowOrCurrent(Row row, Shepherd myShepherd, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback, HttpServletRequest request) {
+    String submitterID = getString(row, "Encounter.submitterID", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     User u = null;
     if (submitterID!=null) {
       submitterID = submitterID.trim();
@@ -2216,14 +2334,14 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return uniqueIndys;
   }
 
-  private void createMarkedIndividualCacheForUser(Shepherd myShepherd, User u) {
+  private void createMarkedIndividualCacheForUser(Shepherd myShepherd, User u, HashMap<User, List<MarkedIndividual>> userIndividualCache) {
     List<MarkedIndividual> mis = getAllMarkedIndividualsForUser(myShepherd, u);
     if (!userIndividualCache.containsKey(u)) {
       userIndividualCache.put(u, mis);
     }
   }
 
-  private void addIndividualToUserIndividualCache(User u, MarkedIndividual mi) {
+  private void addIndividualToUserIndividualCache(User u, MarkedIndividual mi, HashMap<User, List<MarkedIndividual>> userIndividualCache) {
     List<MarkedIndividual> mis = userIndividualCache.get(u);
     if (!mis.contains(mi)) {
       mis.add(mi);
@@ -2231,7 +2349,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     userIndividualCache.put(u, mis);
   }
 
-  private MarkedIndividual getIndividualByNameFromUserIndividualCache(User u, String name, String genus, String specificEpithet) {
+  private MarkedIndividual getIndividualByNameFromUserIndividualCache(User u, String name, String genus, String specificEpithet, HashMap<User, List<MarkedIndividual>> userIndividualCache) {
     if (userIndividualCache.get(u)!=null) {
       List<MarkedIndividual> mis = userIndividualCache.get(u);
       for (MarkedIndividual mi : mis) {
@@ -2271,57 +2389,57 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   // }
 
 
-  public Integer getInteger(Row row, String colName) {
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) missingColumns.add(colName);
-  		return null;
+  public Integer getInteger(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
     }
     System.out.println("getInteger colName = "+colName);
-    Integer ans = getInteger(row, colIndexMap.get(colName));
+    Integer ans = getInteger(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public Long getLong(Row row, String colName) {
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) missingColumns.add(colName);
-  		return null;
+  public Long getLong(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
     }
     System.out.println("getLong colName = "+colName);
-    Long ans = getLong(row, colIndexMap.get(colName));
+    Long ans = getLong(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public Double getDouble(Row row, String colName) {
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) missingColumns.add(colName);
-  		return null;
+  public Double getDouble(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,TabularFeedback feedback) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
     }
     System.out.println("getDouble colName = "+colName);
-    Double ans = getDouble(row, colIndexMap.get(colName));
+    Double ans = getDouble(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public Date getDate(Row row, String colName) {
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) missingColumns.add(colName);
-  		return null;
+  public Date getDate(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
     }
     System.out.println("getDate colName = "+colName);
-    Date ans = getDate(row, colIndexMap.get(colName));
+    Date ans = getDate(row, colIndexMap.get(colName), feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
 
-  public DateTime getDateTime(Row row, String colName) {
-  	if (!colIndexMap.containsKey(colName)) {
-  		if (verbose) missingColumns.add(colName);
-  		return null;
+  public DateTime getDateTime(Row row, String colName, Map<String,Integer> colIndexMap, boolean verbose, Set<String> missingColumns,Set<String> unusedColumns, TabularFeedback feedback) {
+    if (!colIndexMap.containsKey(colName)) {
+      if (verbose) missingColumns.add(colName);
+      return null;
     }
     System.out.println("getDateTime colName = "+colName);
-    DateTime ans = getDateTime(row, colIndexMap.get(colName));
+    DateTime ans = getDateTime(row, colIndexMap.get(colName),feedback);
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
@@ -2361,7 +2479,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
             return false;
     }
     return true;
-	}
+  }
 
 
   public static boolean isBlank(Cell cell) {
@@ -2379,21 +2497,21 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   // PARSING UTILITIES
 
-	// This would be cool to put in Encounter or something.
-	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
-	public static String getEncounterURL(Encounter enc) {
-		if (enc==null || enc.getCatalogNumber()==null) return null;
-		return "encounters/encounter.jsp?number="+enc.getCatalogNumber();
-	}
+  // This would be cool to put in Encounter or something.
+  // tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
+  public static String getEncounterURL(Encounter enc) {
+    if (enc==null || enc.getCatalogNumber()==null) return null;
+    return "encounters/encounter.jsp?number="+enc.getCatalogNumber();
+  }
 
-	// gives us a nice link if we're
-	public String getEncounterDisplayString(Encounter enc) {
-		if (enc==null) return null;
-		if (committing) {
-			return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.toString()+"</a>";
-		}
-		return enc.toString();
-	}
+  // gives us a nice link if we're
+  public String getEncounterDisplayString(Encounter enc, boolean committing) {
+    if (enc==null) return null;
+    if (committing) {
+      return "<a href=\""+getEncounterURL(enc)+"\" >"+enc.toString()+"</a>";
+    }
+    return enc.toString();
+  }
 
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
@@ -2443,6 +2561,34 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
       catch (Exception e) {}
       return str;
+    }
+    
+    //returns file so you can use .getName() or .lastModified() etc
+    public static File importXlsFile(String rootDir, HttpServletRequest request) {
+        File dir = new File(rootDir, "import");
+        File f=null;
+        if(ServletUtilities.useCustomStyle(request, "IndoCet")) {
+          f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
+        }
+        else {
+          f = new File(dir, "WildbookStandardFormat.xlsx");
+        }
+        if (f!=null && f.isFile()) {return f;}
+        else {
+          System.out.println("ERROR: importXlsFile() rootDir=" + rootDir+";f is: "+f);
+          return null;
+        }
+
+        /*
+        try {
+            for (final File f : dir.listFiles()) {
+                if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
+            }
+        } catch (Exception ex) {
+            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString());
+            return null;
+        }
+        */
     }
 
 
@@ -2499,11 +2645,11 @@ public static String getCellValueAsString(Row row, int num) {
     return (directoryPath+"/"+filename);
   }
 
-  private void outPrnt(String str) {
+  private void outPrnt(String str, boolean committing, PrintWriter out) {
     if (!committing&&str!=null) out.println(str);
   }
 
-  private Integer getColIndexFromColName(String colName) {
+  private Integer getColIndexFromColName(String colName, Map<String,Integer> colIndexMap) {
     try {
       if (colName!=null) {
         if (colIndexMap==null) {
@@ -2520,21 +2666,21 @@ public static String getCellValueAsString(Row row, int num) {
     return null;
   }
 
-  private boolean emptyAssetColumn(int i) {
+  private boolean emptyAssetColumn(int i, HashMap<String,Integer> allColsMap, List<Integer> skipCols) {
     // FIX THIS: necessary because skipCols doesn't well handle open ended col names, like mediaAsset
-    Integer result = assetColIndex(i);
+    Integer result = assetColIndex(i, allColsMap);
     if (skipCols.contains(result)) return true;
     return false;
   }
 
-  private Integer assetColIndex(int i) {
+  private Integer assetColIndex(int i, HashMap<String,Integer> allColsMap) {
     if  (allColsMap.containsKey("Encounter.mediaAsset"+i)) {
       return allColsMap.get("Encounter.mediaAsset"+i);
     }
     return null;
   }
   
-  private void sendforACMID(ImportTask itask, Shepherd myShepherd) {
+  private void sendforACMID(ImportTask itask, Shepherd myShepherd, String context) {
     
     try{
       
