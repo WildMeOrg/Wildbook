@@ -6845,7 +6845,7 @@ $(window).on('load',function() {
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+d+" minutes.";
+			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}
