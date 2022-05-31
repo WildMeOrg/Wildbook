@@ -27,14 +27,16 @@ String langCode = ServletUtilities.getLanguageCode(request);
 String queueStatementID="";
 int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
 if(wbiaIDQueueSize==0){
-	queueStatementID = "The machine learning queue is empty.";
+	queueStatementID = "The machine learning queue is working.";
 }
 else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
 	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
 	try{
-		Double d = Double.parseDouble(val);
-		d=d/60.0;
-		queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Each ID job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+		if(wbiaIDQueueSize>1){
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+		}
 	}
 	catch(Exception de){de.printStackTrace();}
 }
