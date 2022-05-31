@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -412,7 +413,14 @@ public class MetricsBot {
           }
   
           // Tasks by users
-          List<User> users = myShepherd.getAllUsers();
+          //WB-1968: filter to only users who have logged in
+          //List<User> users = myShepherd.getAllUsers();
+          String filterTasksUsers="SELECT FROM org.ecocean.User where lastLogin > 0";
+          Query filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
+          Collection c = (Collection)filterTasksUsersQuery.execute();
+          List<User> users = new ArrayList<User>(c);
+          filterTasksUsersQuery.closeAll();
+          //end WB-1968
           String userFilter = "";
           String name = "";
           for (User user:users)
@@ -432,7 +440,7 @@ public class MetricsBot {
                 System.out.println("NAME:" + name);
                 
               }
-              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
+              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
             catch (NullPointerException e) { }
           }
