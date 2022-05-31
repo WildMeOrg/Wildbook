@@ -17,6 +17,7 @@ org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
 org.ecocean.metrics.*,
+org.ecocean.ia.WbiaQueueUtil,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -124,12 +125,17 @@ try{
 	
 	  //gather details about WBIA queue
 	  	String queueStatement="";
-	  	if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
+		int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+		int wbiaDetectionQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
+		if(wbiaIDQueueSize==0 && wbiaDetectionQueueSize == 0){
+			queueStatement = "The machine learning queue is empty and ready for work.";
+		}
+		else if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
 	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
