@@ -1654,7 +1654,7 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 */
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir) {
         //WB:1966 - is this an annotation we already have? then let's pull it and skip the creation part
-        if(isDuplicateDetection(asset, jann)) {
+        if(duplicateDetection(asset, jann)) {
           String acmID=fromFancyUUID(jann.optJSONObject("uuid"));
           if(acmID==null)return null;
           List<Annotation> anns=myShepherd.getAnnotationsWithACMId(acmID);
