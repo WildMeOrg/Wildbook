@@ -547,9 +547,9 @@ try{
 		    %>
 		 	<p><strong>Reset annotations for this bulk import?</strong></p>
 		    	<div style="margin-bottom: 20px;">
-		    		<form onsubmit="return confirm('Are you sure you want to reset these annotations?');" name="resetImportTask" class="editFormMeta" method="get" action="ResetImportTask">
+		    		<form onsubmit="return confirm('Are you sure you want to reset these annotations?');" name="resetImportTask" class="editFormMeta" method="get" action="appadmin/resetImportAnnotations.jsp">
 		              	<input name="importTaskID" type="hidden" value="<%=itask.getId()%>" />
-		              	<input style="width: 200px;" align="absmiddle" name="resetIT" type="submit" class="btn btn-sm btn-block resetEncounterBtn" id="resetAnnotationsButton" value="Reset ImportTask" />
+		              	<input style="width: 200px;" align="absmiddle" name="resetIT" type="submit" class="btn btn-sm btn-block resetEncounterBtn" id="resetAnnotationsButton" value="Reset Annotations" />
 		        	</form>
 		    	</div>
 		    <p><strong>Delete this bulk import?</strong></p>
