@@ -124,7 +124,7 @@ try{
 			<%
 			}
 			%>
-			<p><a href="../import.jsp?number=<%=importTaskID %>">Return to import task.</a></p>
+			<p><a href="../import.jsp?taskId=<%=importTaskID %>">Return to import task.</a></p>
 			<%
 			myShepherd.beginDBTransaction();
 		}
