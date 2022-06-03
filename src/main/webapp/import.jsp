@@ -558,13 +558,21 @@ try{
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
 	if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 		    %>
+		 	<p><strong>Reset annotations for this bulk import?</strong></p>
+		    	<div style="margin-bottom: 20px;">
+		    		<form onsubmit="return confirm('Are you sure you want to reset these annotations?');" name="resetImportTask" class="editFormMeta" method="get" action="ResetImportTask">
+		              	<input name="importTaskID" type="hidden" value="<%=itask.getId()%>" />
+		              	<input style="width: 200px;" align="absmiddle" name="resetIT" type="submit" class="btn btn-sm btn-block resetEncounterBtn" id="resetAnnotationsButton" value="Reset ImportTask" />
+		        	</form>
+		    	</div>
 		    <p><strong>Delete this bulk import?</strong></p>
 		    	<div style="margin-bottom: 20px;">
 		    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
 		              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
-		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
+		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" style="background-color: yellow;" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
 		        	</form>
 		    	</div>
+
 	<%
 	}
 	%>
