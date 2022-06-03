@@ -26,6 +26,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
 
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -33,7 +34,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Iterator;
@@ -130,28 +133,49 @@ public class EncounterVMData extends HttpServlet {
       			else if (request.getParameter("candidates") != null) {
       				rtn.put("_wantCandidates", true);
       				ArrayList candidates = new ArrayList();
-      				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
-                                      filter += " && this.genus == \"" + enc.getGenus() + "\"";
-                                      filter += " && this.specificEpithet == \"" + enc.getSpecificEpithet() + "\"";
+      				String filter = "select from org.ecocean.Encounter where catalogNumber != '" + enc.getCatalogNumber() + "'";
+                                      filter += " && genus == '" + enc.getGenus() + "'";
+                                      filter += " && specificEpithet == '" + enc.getSpecificEpithet() + "'";
       				String[] fields = {"locationID", "sex", "patterningCode"};
       				for (String f : fields) {
       					String val = request.getParameter(f);
-      					if (val != null) filter += " && this." + f + " == \"" + val + "\"";  //TODO safely quote!  sql injection etc
+      					if (val != null) filter += " && " + f + " == '" + val + "'";  //TODO safely quote!  sql injection etc
       				}
       				String mma = request.getParameter("mmaCompatible");
       				if ((mma != null) && !mma.equals("")) {
       					if (mma.equals("true")) {
-      						filter += " && this.mmaCompatible == true";
+      						filter += " && mmaCompatible == true";
       					} else {
-      						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
+      						filter += " && (mmaCompatible == false || mmaCompatible == null)";
       					}
       				}
-      //System.out.println("candidate filter => " + filter);
-      
-      				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
-      				while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
-      					Encounter cand = all.next();
-      					HashMap e = new HashMap();
+             
+      				System.out.println("candidate filter => " + filter);
+      				long startTime=System.currentTimeMillis();
+      				Query q= myShepherd.getPM().newQuery(filter);
+      				ArrayList<Encounter> results=new ArrayList<Encounter>();
+      				try {
+      				  Collection c = (Collection)q.execute();
+      				  results=new ArrayList<Encounter>(c);
+      				}
+      				catch(Exception p) {
+      				  System.out.println("EncounterVMData exception caught!");
+      				  p.printStackTrace();
+      				}
+      				finally {
+      				  q.closeAll();
+      				}
+      				int resultsSize=results.size();
+      				System.out.println("EncounterVM query took "+(System.currentTimeMillis()-startTime)+" milliseconds. Result set was: "+resultsSize);
+      				int numConsidered=0;
+      				//Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
+      				//while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
+      				for(int i=0;((i<resultsSize) && (candidates.size() < MAX_MATCH));i++) {
+      				  //Encounter cand = all.next();
+      				  System.out.println("     i="+i);
+      					Encounter cand=results.get(i);
+      					numConsidered++;
+      				  HashMap e = new HashMap();
       					e.put("id", cand.getCatalogNumber());
       					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
       					e.put("locationID", cand.getLocationID());
@@ -167,48 +191,18 @@ public class EncounterVMData extends HttpServlet {
       					e.put("sex", cand.getSex());
       					e.put("mmaCompatible", cand.getMmaCompatible());
       
-      /*
-      					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
-      					ArrayList images = new ArrayList();
-      					String dataDir = CommonConfiguration.getDataDirectoryName(context);
-      					for (SinglePhotoVideo s : spvs) {
-      						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-      							HashMap i = new HashMap();
-      							i.put("fullsizeUrl", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
-       							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + "-mid.jpg");
-       							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + ".jpg");
-      							List k = s.getKeywords();
-      							i.put("keywords", k);
-      							images.add(i);
-      						}
-      					}
-      					if (!images.isEmpty()) e.put("images", images);
-      */
-                                              addImages(cand, e, myShepherd, request);
+                addImages(cand, e, myShepherd, request);
       					candidates.add(e);
       				}
-                                      rtn.put("maximumCandidatesReached", all.hasNext());
+      				boolean maxCandidatesReached=true;
+      				if(numConsidered < MAX_MATCH)maxCandidatesReached=false;
+              rtn.put("maximumCandidatesReached", maxCandidatesReached);
       				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
+      				
+      				System.out.println("EncounterVM total execution time: "+(System.currentTimeMillis()-startTime)+" milliseconds");
       
       			} 
       			else {
-      /*
-      				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-      				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
-      
-      				ArrayList images = new ArrayList();
-      				for (SinglePhotoVideo s : spvs) {
-      					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-      						HashMap i = new HashMap();
-      						i.put("fullsizeUrl", "/" + dataDir + "/" + s.getFilename());
-       						i.put("url", "/" + dataDir + "/" + s.getDataCollectionEventID() + "-mid.jpg");
-       						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
-      						List k = s.getKeywords();
-      						i.put("keywords", k);
-      						images.add(i);
-      					}
-      				}
-      */
                                       addImages(enc, rtn, myShepherd, request);
       				rtn.put("id", enc.getCatalogNumber());
       				rtn.put("patterningCode", enc.getPatterningCode());
@@ -267,19 +261,20 @@ public class EncounterVMData extends HttpServlet {
 
     private void addImages(Encounter enc, HashMap m, Shepherd myShepherd, HttpServletRequest request) {
         if (enc == null) return;
+        long startTime = System.currentTimeMillis();
         ArrayList mas = new ArrayList();
         for (MediaAsset ma : enc.getMedia()) {
             HashMap i = new HashMap();
             i.put("id", ma.getId());
-            i.put("url", ma.safeURL(myShepherd, request));
-            i.put("thumbUrl", ma.safeURL(myShepherd, request));
-/*
-            i.put("url", ma.webURL());
-            i.put("thumbUrl", ma.webURL());
-*/
-            i.put("keywords", ma.getKeywords());
+            //URL safe = ma.safeURL(myShepherd, request);
+            URL safe = ma.webURL();
+            i.put("url", safe);
+            i.put("thumbUrl", safe);
+            //keywords are not actually displayed anywhere. uncomment if we ever use them here.
+           //ma.put("keywords", ma.getKeywords());
             mas.add(i);
         }
         if (mas.size() > 0) m.put("images", mas);
+        System.out.println("     add images for "+mas.size()+" took: "+(System.currentTimeMillis()-startTime));
     }
 }

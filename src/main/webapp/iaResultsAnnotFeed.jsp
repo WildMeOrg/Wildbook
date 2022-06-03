@@ -149,7 +149,7 @@ if (request.getParameter("acmId") != null) {
 					//out.println(rtn.toString());
 			        
 			        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
-			        cq.nextExpirationTimeout=System.currentTimeMillis()+120000;
+			        cq.nextExpirationTimeout=System.currentTimeMillis()+20000;
 			        qc.addCachedQuery(cq);
 						
 					}
