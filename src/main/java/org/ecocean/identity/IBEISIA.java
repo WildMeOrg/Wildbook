@@ -1653,20 +1653,6 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
         shouldUpdateSpeciesFromIa() no longer gets called here and thus should be called once all annots are made, i guess/
 */
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir) {
-        //WB:1966 - is this an annotation we already have? then let's pull it and skip the creation part
-        if(isDuplicateDetection(asset, jann)) {
-          String acmID=fromFancyUUID(jann.optJSONObject("uuid"));
-          if(acmID==null)return null;
-          List<Annotation> anns=myShepherd.getAnnotationsWithACMId(acmID);
-          if(anns==null || anns.size()<1)return null;
-          for(Annotation annot:anns) {
-            if(annot.getMediaAsset()!=null && annot.getMediaAsset().getId()==asset.getId()) {
-              return annot;
-            }
-          }
-          return null;
-        }
-        //ok, if we didn't exit above, then we need to create a new annotation
         Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
         if (ann == null) return null;
         myShepherd.getPM().makePersistent(ann);
@@ -1765,7 +1751,7 @@ System.out.println("updateSpeciesOnIA(): " + species);
 
     // here's where we'll attach viewpoint from IA's detection results
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
-        if (iaResult == null) return null;
+        if (iaResult == null||duplicateDetection(ma, iaResult)) return null;
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
