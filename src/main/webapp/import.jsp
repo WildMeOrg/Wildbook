@@ -406,7 +406,7 @@ try{
 	//let's determine the IA Status
 	String iaStatusString="not started";
 	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
-	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
+	if(request.isUserInRole("admin") && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
