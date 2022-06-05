@@ -28,8 +28,10 @@ String importIdTask = request.getParameter("importIdTask");
 List<String> locationIDs = new ArrayList<String>(); 
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
-  //System.out.println("locationIds: "+);
   locationIDs = Arrays.asList(vals);
+  System.out.println("ZZZZZZZ");
+  System.out.println("ZZZZZZZ"+locationIDs.toString());
+  System.out.println("ZZZZZZZ");
 }
 
 try {
@@ -50,7 +52,16 @@ try {
        		JSONObject taskParameters = j.optJSONObject("taskParameters");
        		if (taskParameters == null) taskParameters = new JSONObject(); 
       	  	taskParameters.optString("importTaskId", itask.getId());
-            Task parentTask = new Task();  // root task to hold all others, to connect to ImportTask
+            
+            JSONObject tp = new JSONObject();
+            JSONObject mf = new JSONObject();
+            //matchingSetFilter = { locationIds: locationIds }
+            if(locationIDs!=null && locationIDs.size()>0)mf.put("locationIds",locationIDs);
+            //mf.put("projectId", project.getId());
+            taskParameters.put("matchingSetFilter", mf);
+
+      	  	
+      	  	Task parentTask = new Task();  // root task to hold all others, to connect to ImportTask
             parentTask.setParameters(taskParameters);
             myShepherd.storeNewTask(parentTask);
             myShepherd.updateDBTransaction();
@@ -80,15 +91,10 @@ try {
 
               if(matchMeAnns.size()>0){
             	  
-	              JSONObject tp = new JSONObject();
-	              JSONObject mf = new JSONObject();
-	              //matchingSetFilter = { locationIds: locationIds }
-	              if(locationIDs!=null && locationIDs.size()>0)mf.put("locationIds",locationIDs);
-	              //mf.put("projectId", project.getId());
-	              tp.put("matchingSetFilter", mf);
-	
+
 	
 	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask);
+	              
 	              myShepherd.storeNewTask(childTask);
 	              myShepherd.updateDBTransaction();
 	              subParentTask.addChild(childTask);
