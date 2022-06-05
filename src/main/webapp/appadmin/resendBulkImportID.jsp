@@ -29,9 +29,6 @@ List<String> locationIDs = new ArrayList<String>();
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
   locationIDs = Arrays.asList(vals);
-  System.out.println("ZZZZZZZ");
-  System.out.println("ZZZZZZZ"+locationIDs.toString());
-  System.out.println("ZZZZZZZ");
 }
 
 try {
