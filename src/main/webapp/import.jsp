@@ -16,7 +16,7 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
-org.ecocean.metrics.*,
+org.ecocean.metrics.*,java.util.Collections,java.util.Comparator,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -301,6 +301,9 @@ try{
 	     
 	        			
                         if(relatedTasks!=null && relatedTasks.size()>0){
+                        	
+
+                        
                             for(Task task:relatedTasks){
                             	
                             	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
@@ -325,10 +328,20 @@ try{
 	        
 	        out.println("<td>");
 	        if(tasks.size()>0){
+	        	
+            	//put the newest tasks at the top
+                Collections.sort(tasks, new Comparator<Task>() {
+                    @Override public int compare(Task tsk1, Task tsk2) {
+                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                    }
+                });
+                Collections.reverse(tasks); 		
+	        	
+	        
 	        	out.println("     <ul>");
-	        	for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >"+annotTypesByTask.get(task.getId())+"</a>");
-	        	}
+	        	//for(Task task:tasks){
+	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
+	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
 	        }			
@@ -525,7 +538,7 @@ try{
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
 	    $.ajax({
-	        url: wildbookGlobals.baseUrl + '/appadmin/testBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
+	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
 	        dataType: 'json',
 	        type: 'GET',
 	        contentType: 'application/javascript',
