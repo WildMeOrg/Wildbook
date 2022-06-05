@@ -50,6 +50,10 @@ function confirmCommit() {
 	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
 }
 
+function confirmCommitID() {
+	return confirm("Resend to ID? This process may take a long time and block other users from using detection and ID quickly.");
+}
+
 function confirmDelete() {
 	return confirm("Delete this ImportTask PERMANENTLY? Please consider carefully whether you want to delete all of this imported data.");
 }
@@ -102,6 +106,7 @@ myShepherd.beginDBTransaction();
 
 //should the user see the detect and/or detect+ID buttons?
 boolean allowIA=false;
+boolean allowReID=false;
 
 try{
 	User user = AccessControl.getUser(request, myShepherd);
@@ -388,6 +393,7 @@ try{
 	//let's determine the IA Status
 	String iaStatusString="not started";
 	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
+	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
@@ -505,6 +511,34 @@ try{
 	        }
 	    });
 	}
+	
+	function resendToID() {
+	    if (!confirmCommitID()) return;
+	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+	    var locationIds = $('#id-locationids').val();
+	    var locationIds = '';
+	    $("#id-locationids > option").each(function(){
+	    	locationIds+='&locationID='+this.value;
+	    });
+	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
+	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+	
+	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    $.ajax({
+	        url: wildbookGlobals.baseUrl + '/appadmin/testBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
+	        dataType: 'json',
+	        type: 'GET',
+	        contentType: 'application/javascript',
+	        complete: function(x) {
+	            console.log('resendToID() response: %o', x);
+		    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+		        $('#ia-send-wait').html('<i>ID requests resubmitted successfully. Refresh this page to track progress.</i>');
+		    } else {
+		        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+		    }
+	        }
+	    });
+	}
 	 
 	</script>
 	</p>
@@ -518,11 +552,11 @@ try{
 	    <a style="margin-left: 20px;" class="button">generate children image formats</a>
 	<% } %>
 	</p>
-	
+	<div id="ia-send-div">
 	<% 
-	if (allowIA || forcePushIA) { 
+	if (allowIA) { 
 	%>
-	    <div id="ia-send-div">
+	    
 	    <p><strong>Image Analysis</strong></p>
 	    
 		    <%
@@ -532,26 +566,34 @@ try{
 		    	<p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		
+		<div style="margin-bottom: 20px;">
 		    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
 		    	<select multiple id="id-locationids" style="vertical-align: top;">
 		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
 		        	<option value="">ALL locations</option>
 		    	</select>
+		 </div>
+	 	<% 
+		    }
+	}
+		if (allowReID) { 
+		%>
+		 <div style="margin-bottom: 20px;">   	
+		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Resend to identification</a> matching against <b>location(s):</b>
+		    	<select multiple id="id-locationids" style="vertical-align: top;">
+		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
+		        	<option value="">ALL locations</option>
+		    	</select>
+		   </div>
 		    	
 		    <%
 		    }
-	 } //end if admin mode
+
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
 	if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 		    %>
-		 	<p><strong>Reset annotations for this bulk import?</strong></p>
-		    	<div style="margin-bottom: 20px;">
-		    		<form onsubmit="return confirm('Are you sure you want to reset these annotations?');" name="resetImportTask" class="editFormMeta" method="get" action="appadmin/resetImportAnnotations.jsp">
-		              	<input name="importTaskID" type="hidden" value="<%=itask.getId()%>" />
-		              	<input style="width: 200px;" align="absmiddle" name="resetIT" type="submit" class="btn btn-sm btn-block resetEncounterBtn" id="resetAnnotationsButton" value="Reset Annotations" />
-		        	</form>
-		    	</div>
+
 		    <p><strong>Delete this bulk import?</strong></p>
 		    	<div style="margin-bottom: 20px;">
 		    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
