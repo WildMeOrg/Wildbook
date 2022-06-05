@@ -1793,6 +1793,10 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         }
         return ann;
     }
+    
+    private static boolean isDuplicateDetection(MediaAsset ma, JSONObject iaResult ) {
+      return duplicateDetection(ma, iaResult );
+    }
 
     private static Annotation getDuplicateDetection(MediaAsset ma, JSONObject iaResult ) {
         // jann is iaResult
