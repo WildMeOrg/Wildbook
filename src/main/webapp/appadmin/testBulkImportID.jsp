@@ -26,8 +26,9 @@ JSONObject res = new JSONObject();
 //String queryEncounterId = null;
 String importIdTask = request.getParameter("importIdTask");
 List<String> locationIDs = new ArrayList<String>(); 
-if(request.getParameterValues("id-locationids")!=null) {
-  String[] vals=request.getParameterValues("id-locationids");
+if(request.getParameterValues("locationID")!=null) {
+  String[] vals=request.getParameterValues("locationID");
+  //System.out.println("locationIds: "+);
   locationIDs = Arrays.asList(vals);
 }
 
@@ -44,8 +45,10 @@ try {
         //Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
         if (itask!=null) {
         	
-       		JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-      	  	JSONObject taskParameters = j.optJSONObject("taskParameters");
+       		//JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+      	  	JSONObject j = new JSONObject();
+       		JSONObject taskParameters = j.optJSONObject("taskParameters");
+       		if (taskParameters == null) taskParameters = new JSONObject(); 
       	  	taskParameters.optString("importTaskId", itask.getId());
             Task parentTask = new Task();  // root task to hold all others, to connect to ImportTask
             parentTask.setParameters(taskParameters);
@@ -58,6 +61,12 @@ try {
             //List<Annotation> targetAnns = new ArrayList<>();
             JSONArray initiatedJobs = new JSONArray();
             for(Encounter queryEnc:targetEncs) {
+            	
+            	Task subParentTask = new Task();  
+                
+                subParentTask.setParameters(taskParameters);
+                myShepherd.storeNewTask(subParentTask);
+                myShepherd.updateDBTransaction();
             
               List<Annotation> matchMeAnns = new ArrayList<Annotation>();
               for (Annotation queryAnn : queryEnc.getAnnotations()) {
@@ -79,10 +88,10 @@ try {
 	              tp.put("matchingSetFilter", mf);
 	
 	
-	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, parentTask);
+	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask);
 	              myShepherd.storeNewTask(childTask);
 	              myShepherd.updateDBTransaction();
-	              parentTask.addChild(childTask);
+	              subParentTask.addChild(childTask);
 	              myShepherd.updateDBTransaction();
 	              JSONObject jobJSON = new JSONObject();
 	              jobJSON.put("topTaskId", parentTask.getId());
