@@ -16,7 +16,11 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
+
 org.ecocean.metrics.*,
+org.ecocean.ia.WbiaQueueUtil,
+java.util.Collections,java.util.Comparator,
+
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -48,6 +52,10 @@ public String dumpTask(Task task) {
 
 function confirmCommit() {
 	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
+}
+
+function confirmCommitID() {
+	return confirm("Resend to ID? This process may take a long time and block other users from using detection and ID quickly.");
 }
 
 function confirmDelete() {
@@ -102,6 +110,7 @@ myShepherd.beginDBTransaction();
 
 //should the user see the detect and/or detect+ID buttons?
 boolean allowIA=false;
+boolean allowReID=false;
 
 try{
 	User user = AccessControl.getUser(request, myShepherd);
@@ -124,12 +133,17 @@ try{
 	
 	  //gather details about WBIA queue
 	  	String queueStatement="";
-	  	if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
+		int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+		int wbiaDetectionQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
+		if(wbiaIDQueueSize==0 && wbiaDetectionQueueSize == 0){
+			queueStatement = "The machine learning queue is empty and ready for work.";
+		}
+		else if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
 	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "Each job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -296,6 +310,9 @@ try{
 	     
 	        			
                         if(relatedTasks!=null && relatedTasks.size()>0){
+                        	
+
+                        
                             for(Task task:relatedTasks){
                             	
                             	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
@@ -327,10 +344,20 @@ try{
 	        
 	        out.println("<td>");
 	        if(tasks.size()>0){
+	        	
+            	//put the newest tasks at the top
+                Collections.sort(tasks, new Comparator<Task>() {
+                    @Override public int compare(Task tsk1, Task tsk2) {
+                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                    }
+                });
+                Collections.reverse(tasks); 		
+	        	
+	        
 	        	out.println("     <ul>");
-	        	for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+task.getId()+"\" >"+annotTypesByTask.get(task.getId())+"</a>");
-	        	}
+	        	//for(Task task:tasks){
+	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
+	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
 	        }			
@@ -395,6 +422,7 @@ try{
 	//let's determine the IA Status
 	String iaStatusString="not started";
 	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
+	if(request.isUserInRole("admin") && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
@@ -512,6 +540,34 @@ try{
 	        }
 	    });
 	}
+	
+	function resendToID() {
+	    if (!confirmCommitID()) return;
+	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+	    var locationIds = $('#id-locationids').val();
+	    var locationIds = '';
+	    $("#id-locationids > option").each(function(){
+	    	locationIds+='&locationID='+this.value;
+	    });
+	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
+	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+	
+	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    $.ajax({
+	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
+	        dataType: 'json',
+	        type: 'GET',
+	        contentType: 'application/javascript',
+	        complete: function(x) {
+	            console.log('resendToID() response: %o', x);
+		    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+		        $('#ia-send-wait').html('<i>ID requests resubmitted successfully. Refresh this page to track progress.</i>');
+		    } else {
+		        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+		    }
+	        }
+	    });
+	}
 	 
 	</script>
 	</p>
@@ -525,11 +581,11 @@ try{
 	    <a style="margin-left: 20px;" class="button">generate children image formats</a>
 	<% } %>
 	</p>
-	
+	<div id="ia-send-div">
 	<% 
-	if (allowIA || forcePushIA) { 
+	if (allowIA) { 
 	%>
-	    <div id="ia-send-div">
+	    
 	    <p><strong>Image Analysis</strong></p>
 	    
 		    <%
@@ -539,26 +595,42 @@ try{
 		    	<p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		
+		<div style="margin-bottom: 20px;">
 		    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
 		    	<select multiple id="id-locationids" style="vertical-align: top;">
 		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
 		        	<option value="">ALL locations</option>
 		    	</select>
+		 </div>
+	 	<% 
+		    }
+	}
+		if (allowReID) { 
+		%>
+		 <div style="margin-bottom: 20px;">   	
+		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Resend to identification</a> matching against <b>location(s):</b>
+		    	<select multiple id="id-locationids" style="vertical-align: top;">
+		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
+		        	<option value="">ALL locations</option>
+		    	</select>
+		   </div>
 		    	
 		    <%
 		    }
-	 } //end if admin mode
+
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
 	if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 		    %>
+
 		    <p><strong>Delete this bulk import?</strong></p>
 		    	<div style="margin-bottom: 20px;">
 		    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
 		              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
-		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
+		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" style="background-color: yellow;" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
 		        	</form>
 		    	</div>
+
 	<%
 	}
 	%>
