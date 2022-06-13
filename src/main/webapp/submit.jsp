@@ -1494,6 +1494,10 @@ if (tagSwitch == true) {
       </div>
 
   <hr>
+  
+  <p class="text-center">
+          Please review our <a target="_blank" href="SpottingGiantSeaBassUserAgreementFeb2022.pdf">User Agreement</a> before submitting.
+        </p>
 
          <%
          if(request.getRemoteUser()==null){
