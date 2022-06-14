@@ -114,26 +114,48 @@ public class GetCurrentIAInfo extends HttpServlet {
                //let's look for match results we can easily link for the user
                ArrayList<Task> tasks=new ArrayList<Task>();
                List<Task> relatedTasks = Task.getTasksFor(ann, myShepherd);
+               
+               //also add the media asset tasks
+               for (Task t : ma.getRootIATasks(myShepherd)) {
+                   if (relatedTasks.contains(t)) continue;
+                   if (t.deepContains(ann)!=null) relatedTasks.add(t);
+                   //System.out.println("Task ID: "+t.getId());
+               }
+               
                if(relatedTasks!=null && relatedTasks.size()>0){
-                 for(Task task:relatedTasks){  
-                   if(task.getParent()!=null && task.getParent().getChildren().size()==1){
-                        //System.out.println("I am a task with only one algorithm");
-                        if(!tasks.contains(task)){
-                            tasks.add(task);
+                 for(Task task:relatedTasks){
+                               
+                     if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
+                                 //System.out.println("I am a task with only one algorithm");
+                                 if(!tasks.contains(task)){
+                                     tasks.add(task);
+                                  }
+                     }
+                     else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
+                                 //System.out.println("I am a task with child ID tasks.");
+                                 if(!tasks.contains(task)){
+                                     tasks.add(task);
+                                  }
+                     }
+                     else if(task.getChildren()!=null && task.getChildren().size()>=1 && task.getParent()==null){
+                       //System.out.println("I am a task with child ID tasks.");
+                       if(!tasks.contains(task)){
+                           tasks.add(task);
                         }
-                   }
-                   else if(task.getChildren()!=null && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
-                        //System.out.println("I am a task with child ID tasks.");
-                        if(!tasks.contains(task)){
-                            tasks.add(task);
-                         }
-                    }
+                     }
+                     else if((task.getChildren()==null || task.getChildren().size()==0) && task.getParent()==null){
+                       //System.out.println("I am a task with child ID tasks.");
+                       if(!tasks.contains(task)){
+                           tasks.add(task);
+                        }
+                     }
+
                  }
                   Comparator<Task> byRanking = 
                       (Task tsk1, Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
                   Collections.sort(tasks, byRanking);
                   Collections.reverse(tasks); // now desc, ez
-                  annIA.put("lastTaskId", tasks.get(0).getId());
+                  if(tasks.size()>0)annIA.put("lastTaskId", tasks.get(0).getId());
               }
 
         } 
