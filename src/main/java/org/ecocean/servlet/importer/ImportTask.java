@@ -177,7 +177,7 @@ public class ImportTask implements java.io.Serializable {
 
     public boolean iaTaskStarted() {
         if (iaTask == null) return false;
-        return iaTask.hasChildren();
+        return true;
     }
     public boolean iaTaskRequestedIdentification() {
         if (iaTask == null) return false;
