@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -364,75 +365,89 @@ public class MetricsBot {
         // Species tasks
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MetricsBot_ML_Tasks");
-      
-        IAJsonProperties iaConfig = new IAJsonProperties();
-	      List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
-        String filter3 = "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) ";
-        String scientificName = "";
-
-        // Iterate through our species
-        for (Taxonomy tax:taxes)
-        { 
-          // Logic for extracting IA classes comes from taskQueryTests.jsp
-          List<String> iaClasses = iaConfig.getValidIAClassesIgnoreRedirects(tax);
-          if (iaClasses!=null && iaClasses.size()>0)
-          {
-            String allowedIAClasses = "&& ( ";
-            for (String str:iaClasses)
+        myShepherd.beginDBTransaction();
+        try {
+        
+          IAJsonProperties iaConfig = new IAJsonProperties();
+  	      List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
+          String filter3 = "SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) ";
+          String scientificName = "";
+  
+          // Iterate through our species
+          for (Taxonomy tax:taxes)
+          { 
+            // Logic for extracting IA classes comes from taskQueryTests.jsp
+            List<String> iaClasses = iaConfig.getValidIAClassesIgnoreRedirects(tax);
+            if (iaClasses!=null && iaClasses.size()>0)
             {
-              if (allowedIAClasses.indexOf("iaClass") == -1)
+              String allowedIAClasses = "&& ( ";
+              for (String str:iaClasses)
               {
-                allowedIAClasses +=" annot.iaClass == '" + str + "' ";
+                if (allowedIAClasses.indexOf("iaClass") == -1)
+                {
+                  allowedIAClasses +=" annot.iaClass == '" + str + "' ";
+                }
+                else
+                {
+                  allowedIAClasses += " || annot.iaClass == '" + str + "' ";
+                }
               }
-              else
+              
+              try
               {
-                allowedIAClasses += " || annot.iaClass == '" + str + "' ";
+                scientificName = tax.getScientificName();
               }
+              catch (NullPointerException e)
+              {
+                System.out.println("Null Pointer Exception in Species Tasks");
+              }
+  
+              // Replace space w/ underscore for prometheus syntax
+              scientificName = scientificName.replaceAll("\\s+", "_"); 
+              scientificName = scientificName.replaceAll("\\+", "_"); 
+  
+              allowedIAClasses += " )";
+              String filter = filter3 + " && objectAnnotations.contains(annot) " + allowedIAClasses + " VARIABLES org.ecocean.Annotation annot";
+              csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_" + scientificName, "Number of ID tasks by species " + scientificName, context));
             }
-            
+          }
+  
+          // Tasks by users
+          //WB-1968: filter to only users who have logged in
+          //List<User> users = myShepherd.getAllUsers();
+          String filterTasksUsers="SELECT FROM org.ecocean.User where lastLogin > 0";
+          Query filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
+          Collection c = (Collection)filterTasksUsersQuery.execute();
+          List<User> users = new ArrayList<User>(c);
+          filterTasksUsersQuery.closeAll();
+          //end WB-1968
+          String userFilter = "";
+          String name = "";
+          for (User user:users)
+          {  
+            // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
             try
             {
-              scientificName = tax.getScientificName();
+              name = user.getFullName(); 
+              userFilter = (String) user.getUsername();
+  
+              // Truncate user's full name to first name and last initial, and replace space w/ underscore 
+              if (name.contains(" "))
+              {
+                String normalizedName = stripAccents(name);
+                int spaceIndex = normalizedName.indexOf(" ");
+                name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
+                System.out.println("NAME:" + name);
+                
+              }
+              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
-            catch (NullPointerException e)
-            {
-              System.out.println("Null Pointer Exception in Species Tasks");
-            }
-
-            // Replace space w/ underscore for prometheus syntax
-            scientificName = scientificName.replaceAll("\\s+", "_"); 
-            scientificName = scientificName.replaceAll("\\+", "_"); 
-
-            allowedIAClasses += " )";
-            String filter = filter3 + " && objectAnnotations.contains(annot) " + allowedIAClasses + " VARIABLES org.ecocean.Annotation annot";
-            csvLines.add(buildGauge(filter, "wildbook_tasks_idSpecies_" + scientificName, "Number of ID tasks by species " + scientificName, context));
+            catch (NullPointerException e) { }
           }
         }
-
-        // Tasks by users
-        List<User> users = myShepherd.getAllUsers();
-        String userFilter = "";
-        String name = "";
-        for (User user:users)
-        {  
-          // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
-          try
-          {
-            name = user.getFullName(); 
-            userFilter = (String) user.getUsername();
-
-            // Truncate user's full name to first name and last initial, and replace space w/ underscore 
-            if (name.contains(" "))
-            {
-              String normalizedName = stripAccents(name);
-              int spaceIndex = normalizedName.indexOf(" ");
-              name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
-              System.out.println("NAME:" + name);
-              
-            }
-            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
-          }
-          catch (NullPointerException e) { }
+        catch(Exception exy) {exy.printStackTrace();}
+        finally {
+          myShepherd.rollbackAndClose();
         }
     }
 

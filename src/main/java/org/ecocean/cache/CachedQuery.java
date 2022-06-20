@@ -71,6 +71,12 @@ public class CachedQuery {
       }
       
     }
+    
+    public CachedQuery(String name,JSONObject jsonSerializedQueryResult){
+      this.name=name;
+      this.jsonSerializedQueryResult=jsonSerializedQueryResult;
+      
+    }
   
   
     //primary key, persistent, String, not null
