@@ -476,6 +476,7 @@ finally{
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/whoAreWe.jsp"><%=props.getProperty("whoAreWe")%></a></li>
+							<li><a target="_blank" href="<%=urlLoc %>/SpottingGiantSeaBassUserAgreementFeb2022.pdf">User Agreement</a></li>
 
                         </ul>
                       </li>
