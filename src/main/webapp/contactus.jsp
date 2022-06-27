@@ -25,7 +25,7 @@
           <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
             <p>
               In case of questions about the Fire salamander project - <a
-                href="https://www.uni-bielefeld.de/biologie/crc212/projects/A04.html">The Department of Behavioural Ecology at
+                href="https://www.uni-bielefeld.de/fakultaeten/biologie/forschung/arbeitsgruppen/behav_eco/wildbook/index.xml">The Department of Behavioural Ecology at
                 Bielefeld University</a> /
               <a href="https://ekvv.uni-bielefeld.de/pers_publ/publ/PersonDetail.jsp?personId=5514336">Barbara Caspers</a>
         
