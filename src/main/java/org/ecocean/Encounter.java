@@ -349,7 +349,7 @@ public class Encounter implements java.io.Serializable {
   // (not necessarily an individual name from the WB database)
   private String fieldID;
 
-  // This is a standard 1-5 color scale used by amphibian or reptile researchers
+  // This is a standard 1-5 color scale used by cetacean researchers
   private Integer flukeType;
 
   // added by request for ASWN, this is the role an individual served in its occurrence
@@ -3614,6 +3614,14 @@ throw new Exception();
         if (occ != null) {
             occ.addEncounter(enc);
             enc.setOccurrenceID(occ.getOccurrenceID());
+        }
+        
+        //WB-1949: clone into same projects too
+        ArrayList<Project> projects=myShepherd.getAllProjectsForEncounter(this);
+        if(projects!=null) {
+          for(Project proj:projects) {
+            proj.addEncounter(enc);
+          }
         }
 
         enc.setRecordedBy(this.getRecordedBy());

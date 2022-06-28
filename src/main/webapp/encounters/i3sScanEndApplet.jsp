@@ -233,20 +233,19 @@ td, th {
 
       side2 = "right";
       fileSider = "&rightSide=true";
-    } else {
+    } 
+    else {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
-
-
     }
 
     if (finalXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
-    Groth (Full)</a></li>
-
-  <%
+	  %>
+	  <li><a
+	    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
+	    Groth (Full)</a></li>
+	
+	  <%
     }
   %>
   <li><a class="active">I3S</a></li>
@@ -274,7 +273,8 @@ td, th {
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
 
         side = "right";
-      } else {
+      } 
+      else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       }
@@ -282,7 +282,8 @@ td, th {
       root = doc.getRootElement();
       scanDate = root.attributeValue("scanDate");
       xmlOK = true;
-    } catch (Exception ioe) {
+    } 
+	catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults=myShepherd.matches;
@@ -429,11 +430,15 @@ $(document).ready(function() {
                     nameShepherd.setAction("i3ScanEndApplet.jsp displayName render");
                     nameShepherd.beginDBTransaction();
                     try{
-                    	localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
-                    }catch(Exception e){
-                      System.out.println("Error retrieving local display name in the case where xml is not OK");
+                    	if(nameShepherd.getMarkedIndividual(localIndividualName)!=null){
+                    		localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    	}
+                    }
+                    catch(Exception e){
+                      System.out.println("Error retrieving display name in the case where xml is not OK for individual UUID: "+localIndividualName);
                       e.printStackTrace();
-                    } finally{
+                    } 
+                    finally{
                       nameShepherd.rollbackDBTransaction();
                     	nameShepherd.closeDBTransaction();
                       nameShepherd=null;
@@ -471,7 +476,8 @@ $(document).ready(function() {
           }
 
 //or use XML output here
-        } else {
+        } 
+          else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
 

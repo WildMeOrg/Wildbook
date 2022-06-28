@@ -12,6 +12,8 @@ org.ecocean.SystemValue,
 org.ecocean.ia.Task,
 java.util.HashMap,
 javax.jdo.Query,
+org.ecocean.ia.WbiaQueueUtil,
+org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
@@ -21,6 +23,23 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 String context = ServletUtilities.getContext(request);
 String langCode = ServletUtilities.getLanguageCode(request);
+
+String queueStatementID="";
+int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+if(wbiaIDQueueSize==0){
+	queueStatementID = "The machine learning queue is working.";
+}
+else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	try{
+		if(wbiaIDQueueSize>1){
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+		}
+	}
+	catch(Exception de){de.printStackTrace();}
+}
 
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
@@ -253,7 +272,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 	<div id="initial-waiter" class="waiting throbbing">
-		<p>waiting for results</p>
+		<p>Waiting for results. <%=queueStatementID %></p>
 	</div>
 
 
@@ -534,7 +553,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					$('#initial-waiter').remove();
 				}
 				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
-				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">Waiting for results. <%=queueStatementID %></p>');
 				if (jobIdMap[tid]) {
 					var tooLong = 15 * 60 * 1000;
 					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
