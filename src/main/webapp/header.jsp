@@ -382,9 +382,7 @@ finally{
                       </label>
                     </div>
                   </div>
-                  <div class="navbar-local-wrapper">
-                    <a target="_blank" href="<%=urlLoc %>" class="navbar-local"><%=props.getProperty("wildbookTitle")%></a>
-                  </div>
+                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
