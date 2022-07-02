@@ -265,6 +265,15 @@
 			
 			
 			]
+		},
+		{
+			"name": "Wasserburgertal",
+			"id": "WBT",
+			"geospatialInfo": {
+				"lat": 47.896,
+				"long": 8.853
+			},
+			"locationID": []
 		}
   ]
 }
