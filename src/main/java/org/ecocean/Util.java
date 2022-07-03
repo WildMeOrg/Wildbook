@@ -799,7 +799,7 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
+      return (str!=null && !str.trim().equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
     }
     public static boolean stringsEqualish(String s1, String s2) {
       if (!stringExists(s1)) {
