@@ -12,6 +12,10 @@
 	{ "name":"NSW-Jervis Bay-Bowen Island", "id":"NSW-Jervis Bay-Bowen Island", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Jervis Bay-Nursery", "id":"NSW-Jervis Bay-Nursery", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Jervis Bay-Pinnacle Cave", "id":"NSW-Jervis Bay-Pinnacle Cave", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	
 
 	{ "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
@@ -68,6 +72,7 @@
 
 { "name":"TAS-Hobart-Kingston", "id":"TAS-Hobart-Kingston", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
 { "name":"TAS-EagleHawk Neck-DGBay", "id":"TAS-EagleHawk Neck-DGBay", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
+{ "name":"TAS-Eaglehawk Neck-Waterfall Bay", "id":"TAS-Eaglehawk Neck-Waterfall Bay", "locationID":[],"prefix": "TAS-", "prefixDigitPadding": 4 },
 
 { "name":"VIC-Blairgowrie", "id":"VIC-Blairgowrie", "locationID":[],"prefix": "VIC-", "prefixDigitPadding": 4 },
 
