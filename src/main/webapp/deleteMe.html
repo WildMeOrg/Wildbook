@@ -13,7 +13,7 @@
         your adopted shark a nickname and will recieve email updates when the
         shark is sighted again by other citizen divers like you!
       </p>
-      <div
+      <!-- <div
         style="
           display: flex;
           justify-content: flex-end;
@@ -22,10 +22,10 @@
       >
         <a href="<%=urlLoc %>/adoptananimal.jsp">
           <button class="btn btn-md">
-            Adopt Today!<span class="button-icon" aria-hidden="true"> </span>
+            Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
           </button>
         </a>
-      </div>
+      </div> -->
       <div
         style="
           display: flex;
@@ -36,9 +36,22 @@
       >
         <p>Thank you for participating in Spot A Shark USA!</p>
       </div>
+      <div
+        style="
+          display: flex;
+          justify-content: flex-end;
+          background-color: blueviolet;
+        "
+      >
+        <a href="<%=urlLoc %>/adoptananimal.jsp">
+          <button class="btn btn-md">
+            Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
+          </button>
+        </a>
+      </div>
       <div id="learn-about-the-sharks-section"">
         <h3 style="color: #549fdf">Learn about the sharks....</h3>
-        <div id="shark-image-grid-row1" style="display: flex; justify-content: space-around ;">
+        <div id="shark-image-grid-row1" style="display: flex; justify-content: space-around; margin-bottom: 20px;">
             <div id="image-plus-text-container" style="
                 position: relative;
                 text-align: center;"
@@ -76,7 +89,7 @@
                 >Maylon</div>
             </div>
         </div>
-        <div id="shark-image-grid-row2" style="display: flex; justify-content: space-around;">
+        <div id="shark-image-grid-row2" style="display: flex; justify-content: space-around; margin-bottom: 20px;">
             <div id="image-plus-text-container" style="
                 position: relative;
                 text-align: center;"
@@ -117,6 +130,77 @@
     </div>
     <hr style="border-top: 8px solid black;
   border-radius: 5px;">
+    </div>
+    <div id="animal-descriptions-section" style="background-color: red;">
+        <div id="single-animal-description" style="background-color: greenyellow">
+            <div style="display: flex; justify-content: flex-space;">
+                <div style="margin-right: 15px;">
+                    <h1 style="color: #549fdf; font-size: 50;">Cecil</h1>
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                        <button class="btn btn-md">
+                            Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
+                        </button>
+                    </a>
+                </div>
+                <div id="single-animal-images" style="display: flex; max-width: 300px">
+                    <div id="image-plus-text-container">
+                        <img src="https://www.australiangeographic.com.au/wp-content/uploads/2021/10/grey-nurse-shark-facts.jpg" style="max-height: 200px; max-width: 300px; background-color: black"/>
+                    </div>
+                    <div id="image-plus-text-container">
+                        <img src="https://sneakyscience.files.wordpress.com/2015/07/sand-tiger-shark-swimming.jpg" style="max-height: 200px; max-width: 300px; background-color: black"/>
+                    </div>
+                    <div id="image-plus-text-container">
+                        <img src="https://underwater.com.au/content/10664/grey_nurse_shark_1.jpg" style="max-height: 200px; max-width: 300px; background-color: black"/>
+                    </div>
+                </div>
+            </div>
+            <p style="max-width: 400px">
+            Cecil (USA-L0199) was named by Dr. Carol Price after her father. Carol is the research scientist that manages Spot A Shark USA.
+            </p>
+            <div id="single-animal-table">
+                <table>
+                    <tr>
+                        <th style="text-align: left; padding: 0 15px">SAS ID</th>
+                        <th style="text-align: left; padding: 0 15px">Alternate ID</th>
+                        <th style="text-align: left; padding: 0 15px">Date</th>
+                        <th style="text-align: left; padding: 0 15px">Location ID</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0 15px">USA-L0199</td>
+                        <td style="padding: 0 15px"></td>
+                        <td style="padding: 0 15px">2020-07-17</td>
+                        <td style="padding: 0 15px">British Splendour</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0 15px">USA-L0199</td>
+                        <td style="padding: 0 15px">Cecil</td>
+                        <td style="padding: 0 15px">2019-06-28</td>
+                        <td style="padding: 0 15px">Aeolus (AR-305)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0 15px">USA-L0199</td>
+                        <td style="padding: 0 15px"></td>
+                        <td style="padding: 0 15px">2016-06-01</td>
+                        <td style="padding: 0 15px">Aeolus (AR-305)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0 15px">USA-L0199</td>
+                        <td style="padding: 0 15px"></td>
+                        <td style="padding: 0 15px">2016-09-27</td>
+                        <td style="padding: 0 15px">Aeolus (AR-305)</td>
+                    </tr>
+                </table>
+            </div>
+            <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
+                <div id="image-before-interesting-fact">
+                    <img src="https://underwater.com.au/content/10664/grey_nurse_shark_1.jpg" style="margin-left: 15px; max-height: 200px; max-width: 300px; background-color: black"/>
+                </div>
+                <div style="margin-left: 15px; display: flex; flex-direction: column;">
+                    <h2 style="color: #549fdf">Interesting Facts</h2>
+                    <p>This shark was first thought to be a female when sighted in 2016. By 2019, small claspers were visible indicating this was a young male. In 2020, the claspers were fully developed, indicating a TODO... scratches and scrapes in the photos taken in 2016. We often see these kinds of scars on sand tiger sharks.</p>
+                </div>
+            </div>
+        </div>
     </div>
   </body>
 </html>
