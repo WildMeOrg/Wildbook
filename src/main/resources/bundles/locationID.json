@@ -13,6 +13,14 @@
 			  "name": "Bohai Sea", "id": "Bohai Sea" },
 			 {
 			  "name": "Bohol Sea", "id": "Bohol Sea" },
+			  
+			  {
+			  "name": "French Polynesia", "id": "French Polynesia", "locationID":[
+					{"name": "Bora Bora", "id": "Bora Bora" }
+			  
+			  
+			  ] },
+			  
 			 {
 			  "name": "Mindanao Sea", "id": "Mindanao Sea" },
 			 {
