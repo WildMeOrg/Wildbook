@@ -4,6 +4,15 @@
   "locationID": [
 
 		{
+			"name": "Botanischer Garten Bielefeld",
+			"id": "BGBi",
+			"geospatialInfo": {
+				"lat": 52.014671,
+				"long": 8.510555
+			},
+			"locationID": []
+		},
+		{
 			"name": "Kruppwald Essen",
 			"id": "KE",
 			"geospatialInfo": {
