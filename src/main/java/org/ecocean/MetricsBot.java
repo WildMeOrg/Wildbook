@@ -437,9 +437,10 @@ public class MetricsBot {
                 String normalizedName = stripAccents(name);
                 int spaceIndex = normalizedName.indexOf(" ");
                 name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
-                System.out.println("NAME:" + name);
-                
               }
+              name+="_"+user.getUUID().substring(0,8);
+              name=name.replaceAll("-", "_");
+              System.out.println("NAME:" + name);
               csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
             catch (NullPointerException e) { }
@@ -456,7 +457,7 @@ public class MetricsBot {
     return input == null ? null :
             Normalizer.normalize(input, Normalizer.Form.NFD)
                     .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-}
+    }
 
 
     public static String httpGetRemoteText(String url) {

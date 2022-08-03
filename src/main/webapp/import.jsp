@@ -16,9 +16,11 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
+
 org.ecocean.metrics.*,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
+
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -285,59 +287,60 @@ try{
 	        ArrayList<Task> tasks=new ArrayList<Task>();
 	        HashMap<String,String> annotTypesByTask=new HashMap<String,String>();
 	        for(Annotation annot:enc.getAnnotations()){
-	        	String viewpoint="null";
-	        	String iaClass="null";
-	        	if(annot.getViewpoint()!=null)viewpoint=annot.getViewpoint();
-	        	if(annot.getIAClass()!=null)iaClass=annot.getIAClass();
-	        	HashMap<String,String> thisMap=new HashMap<String,String>();
-	        	thisMap.put(iaClass,viewpoint);
-	        	if(!annotsMap.containsKey(thisMap)){
-	        		annotsMap.put(thisMap,Integer.parseInt("1"));
-	        		numAnnotations++;
-	        	}
-	        	else{
-	        		Integer numInts = annotsMap.get(thisMap);
-	        		numInts = new Integer(numInts.intValue() + 1);
-	        		annotsMap.put(thisMap,numInts);
-	        		numAnnotations++;
-	        	}
-	        	if(annot.getMatchAgainst())numMatchAgainst++;
-	        	
-	        	//let's look for match results we can easily link for the user
-                        List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
-	     
-	        			
-                        if(relatedTasks!=null && relatedTasks.size()>0){
-                        	
-
-                        
-                            for(Task task:relatedTasks){
-                            	
-                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
-	                            	//System.out.println("I am a task with only one algorithm");
-                            		if(!tasks.contains(task)){
-		        						tasks.add(task);
-		        						annotTypesByTask.put(task.getId(),iaClass);
-		        					}
-                            	}
-                            	else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
-                            		//System.out.println("I am a task with child ID tasks.");
-	                            	if(!tasks.contains(task)){
-		        						tasks.add(task);
-		        						annotTypesByTask.put(task.getId(),iaClass);
-		        					}
-                            	}
-                                else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
-                                    //System.out.println("I am a task with child ID tasks.");
-                                    if(!tasks.contains(task)){
-                                        tasks.add(task);
-                                        annotTypesByTask.put(task.getId(),iaClass);
-                                     }
-                                  }
-	        		}
-	        	}		
-	        	
-	        	
+	        	if(!annot.isTrivial()){
+		        	String viewpoint="null";
+		        	String iaClass="null";
+		        	if(annot.getViewpoint()!=null)viewpoint=annot.getViewpoint();
+		        	if(annot.getIAClass()!=null)iaClass=annot.getIAClass();
+		        	HashMap<String,String> thisMap=new HashMap<String,String>();
+		        	thisMap.put(iaClass,viewpoint);
+		        	if(!annotsMap.containsKey(thisMap)){
+		        		annotsMap.put(thisMap,Integer.parseInt("1"));
+		        		numAnnotations++;
+		        	}
+		        	else{
+		        		Integer numInts = annotsMap.get(thisMap);
+		        		numInts = new Integer(numInts.intValue() + 1);
+		        		annotsMap.put(thisMap,numInts);
+		        		numAnnotations++;
+		        	}
+		        	if(annot.getMatchAgainst())numMatchAgainst++;
+		        	
+		        	//let's look for match results we can easily link for the user
+	                        List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
+		     
+		        			
+	                        if(relatedTasks!=null && relatedTasks.size()>0){
+	                        	
+	
+	                        
+	                            for(Task task:relatedTasks){
+	                            	
+	                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
+		                            	//System.out.println("I am a task with only one algorithm");
+	                            		if(!tasks.contains(task)){
+			        						tasks.add(task);
+			        						annotTypesByTask.put(task.getId(),iaClass);
+			        					}
+	                            	}
+	                            	else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
+	                            		//System.out.println("I am a task with child ID tasks.");
+		                            	if(!tasks.contains(task)){
+			        						tasks.add(task);
+			        						annotTypesByTask.put(task.getId(),iaClass);
+			        					}
+	                            	}
+	                                else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
+	                                    //System.out.println("I am a task with child ID tasks.");
+	                                    if(!tasks.contains(task)){
+	                                        tasks.add(task);
+	                                        annotTypesByTask.put(task.getId(),iaClass);
+	                                     }
+	                                  }
+		        		}
+		        	}		
+		        	
+	        	} //end if
 	        } //end for
 	        
 	        out.println("<td>");
@@ -351,7 +354,7 @@ try{
                 });
                 Collections.reverse(tasks); 		
 	        	
-	        
+	        	System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
 	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
