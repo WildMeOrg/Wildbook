@@ -36,16 +36,7 @@
   // Set up references to our file system components
   String rootWebappPath = getServletContext().getRealPath("/");
   String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-/*
-  File webappsDir = new File(rootWebappPath).getParentFile();
-  File encounterDir = new File(imageEnc.dir(baseDir));
-  File encounterDir = new File(encountersDir, num);
-  String rootWebappPath = getServletContext().getRealPath("/");
-  String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
-*/
 
-  //GregorianCalendar cal = new GregorianCalendar();
-  //int nowYear = cal.get(1);
 
   // Handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -65,67 +56,58 @@
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterVM.jsp");
+  myShepherd.beginDBTransaction();
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-  boolean proceed = true;
-  boolean haveRendered = false;
+  try{
+  
+  	boolean proceed = true;
+  	boolean haveRendered = false;
 
-  pageContext.setAttribute("set", encprops.getProperty("set"));
-%>
-
-
-
-<jsp:include page="../header.jsp" flush="true"/>
-
-
-<link href="../css/encounterVM.css" rel="stylesheet" type="text/css" />
-<script src="../javascript/encounterVM.js"></script>
+  	pageContext.setAttribute("set", encprops.getProperty("set"));
+	%>
+	<jsp:include page="../header.jsp" flush="true"/>
+	<link href="../css/encounterVM.css" rel="stylesheet" type="text/css" />
+	<script src="../javascript/encounterVM.js"></script>
 
 
-<script>
+	<script>
         var mediaAssetId = <%=((mediaAssetId == null) ? "false" : mediaAssetId)%>;
-	var patterningCodes = [
-<%
-    List<String> pcodes = myShepherd.getAllPatterningCodes();
-    for (String c : pcodes) {
-        if ((c == null) || c.equals("")) continue;
-        out.println("'" + c + "',\n");
-    }
-%>
-	];
+		var patterningCodes = [
+		<%
+    	List<String> pcodes = myShepherd.getAllPatterningCodes();
+    	for (String c : pcodes) {
+        	if ((c == null) || c.equals("")) continue;
+        	out.println("'" + c + "',\n");
+    	}
+		%>
+		];
 
-<%
-    /* note: used to use commonconfig, e.g.
+		<%
+    	/* note: used to use commonconfig, e.g.
 		String l = CommonConfiguration.getProperty("locationID" + i, context);
         but now getting this way (from encounter fields)
-    */
-    String locs = "";
-    List<String> lids = myShepherd.getAllLocationIDs();
-    for (String l : lids) {
-        locs += "\t'" + l + "',\n";
-    }
-%>
+    	*/
+    	String locs = "";
+    	List<String> lids = myShepherd.getAllLocationIDs();
+    	for (String l : lids) {
+        	locs += "\t'" + l + "',\n";
+    	}
+		%>
 
-	var regions = [
-<%=locs%>];
+		var regions = [
+		<%=locs%>];
+		var encounterNumber = false;
+		$('body').ready(function() {
+			initVM($('#vm-content'), encounterNumber);
+		});
+	</script>
 
-	var encounterNumber = false;
-	$('body').ready(function() {
-		initVM($('#vm-content'), encounterNumber);
-	});
-</script>
-
-<div class="container maincontent">
-
-
-<div id="candidate-full-zoom"></div>
-
+	<div class="container maincontent">
+	<div id="candidate-full-zoom"></div>
 
 			<%
-  			myShepherd.beginDBTransaction();
-
   			if (myShepherd.isEncounter(num)) {
-    			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
       			pageContext.setAttribute("enc", enc);
@@ -141,36 +123,25 @@
       			catch(NullPointerException nullLogged){}
       			
       			String headerBGColor="FFFFFC";
-      			//if(CommonConfiguration.getProperty(()){}
     			%>
- 
+				<script>encounterNumber = '<%=enc.getCatalogNumber()%>';</script>
+				<div id="vm-content"></div>
 
-<script>encounterNumber = '<%=enc.getCatalogNumber()%>';</script>
-<div id="vm-content"></div>
-
-<div>
-	<span id="zoom-message"></span>
-</div>
+				<div>
+					<span id="zoom-message"></span>
+				</div>
 
 
 
-<%
+				<%
 
-kwQuery.closeAll();
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-kwQuery=null;
-myShepherd=null;
-
-}
-catch(Exception e){
-	e.printStackTrace();
-	%>
-	<p>Hit an error.<br /> <%=e.toString()%></p>
+				kwQuery.closeAll();
+				myShepherd.rollbackDBTransaction();
+				myShepherd.closeDBTransaction();
+				kwQuery=null;
+				myShepherd=null;
 
 
-<%
-}
 
 	}  //end if this is an encounter
     else {
@@ -179,16 +150,24 @@ catch(Exception e){
 		%>
 		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
 
-<%
+	<%
+	}
+	%>
+	</div>
+
+
+
+	<jsp:include page="../footer.jsp" flush="true"/>
+	
+	<%
+
+}
+catch(Exception w){w.printStackTrace();}
+finally{
+	kwQuery.closeAll();
+	myShepherd.rollbackAndClose();
 }
 %>
-
-
-</div>
-
-
-
-<jsp:include page="../footer.jsp" flush="true"/>
 
 
 

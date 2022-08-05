@@ -21,11 +21,13 @@
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
+         org.ecocean.ia.WbiaQueueUtil,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -423,7 +425,9 @@ function setIndivAutocomplete(el) {
 
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
+                }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 lastIndivAutoData[item.value] = label;
@@ -453,6 +457,29 @@ function setIndivAutocomplete(el) {
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
@@ -590,7 +617,7 @@ var encounterNumber = '<%=num%>';
 	              // remove any potentially-sensitive data, labeled with the secure-field class
 	              %>
 	              <script type="text/javascript">
-	                $(document).ready(function() {
+	                $(window).on('load',function() {
 	                  $('.secure-field').remove();
 	                });
 	              </script>
@@ -617,9 +644,9 @@ var encounterNumber = '<%=num%>';
 
 					cmsg = cmsg.replace("'", "\\'");
 					if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
-						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
+						blocker = "<script>$(window).on('load',function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
 					} else {
-						blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
+						blocker = "<script>$(window).on('load',function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
 					}
 					out.println(blocker);
 				} //end if !visible
@@ -811,7 +838,7 @@ $(function() {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
     buttons.toggle();
   });
@@ -876,9 +903,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
@@ -912,7 +945,7 @@ if(enc.getLocation()!=null){
 
 <!-- start location  -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addLocation").click(function(event) {
       event.preventDefault();
 
@@ -972,7 +1005,7 @@ if(enc.getLocation()!=null){
 
 <!-- start country -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#countryFormBtn").click(function(event) {
       event.preventDefault();
 
@@ -1036,7 +1069,7 @@ if(enc.getLocation()!=null){
 
 <!-- start locationID -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#setLocationBtn").click(function(event) {
       event.preventDefault();
 
@@ -1093,7 +1126,7 @@ if(enc.getLocation()!=null){
 
 <!-- start depth -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#AddDepth").click(function(event) {
       event.preventDefault();
 
@@ -1174,7 +1207,7 @@ if(enc.getLocation()!=null){
 %>
 <!-- start elevation -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#AddElev").click(function(event) {
       event.preventDefault();
 
@@ -1351,7 +1384,7 @@ if(enc.getLocation()!=null){
 %>
 
       <script type="text/javascript">
-        $(document).ready(function() {
+        $(window).on('load',function() {
 
           //form submission
           $("#setGPSbutton").click(function(event) {
@@ -1477,7 +1510,7 @@ if(enc.getLocation()!=null){
 
 
 	        <script type="text/javascript">
-	        $(document).ready(function() {
+	        $(window).on('load',function() {
 	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
 	            buttons.toggle();
 	          });
@@ -1556,7 +1589,7 @@ if(enc.getLocation()!=null){
 
 
                     <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#matchedBy option[value='Pattern match']").attr('selected','selected');
 
                       $("#setMB").click(function(event) {
@@ -1634,14 +1667,18 @@ function switchIdMode(bid) {
 function resetIdButtons() {
 //console.info('resetIdButtons()');
     $('.id-action').hide();
+    $('#AddNewDisabled').show();
+    $('#AddToExistingDisabled').show();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
 //console.log('newId=%s / existId=%s', newId, existId);
     if (newId) {
+        $('#AddNewDisabled').hide();
         $('#AddNew').show();
     } else if (existId) {
 //console.log('existId=%s', existId);
         if (lastIndivAutoData[existId]) {
+            $('#AddToExistingDisabled').hide();
             $('#Add').show();
         } else {
             console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
@@ -1650,68 +1687,9 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
-
-
-                      $(".id-action").click(function(event) {
-                        event.preventDefault();
-                        var forceNew = false;
-                        var individual = $("#individualAddEncounterInput").val();
-                        if (!individual) {
-                            individual = $("#individualNewAddEncounterInput").val();
-                            forceNew = true;
-                        }
-                        if (!individual) return false;  //both blank, i guess
-
-                        $(".id-action").hide();
-
-                        var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
-                        var matchType = $("#matchType").val();
-
-                        var noemail = false;
-                        if ($("#noEmailCheckbox").is(":checked")) {
-                          noemail = true;
-                        }
-
-                        var action = $("#individualAddEncounterAction").val();
-                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
-                        console.info('sendData=%o', sendData);
-
-                        $.post("../IndividualAddEncounter", sendData,
-                        function(data) {
-
-
-                          $("#individualErrorDiv").hide();
-                          $("#individualDiv").addClass("has-success");
-                          $("#individualCheck, #matchedByCheck").show();
-                          $("#displayIndividualID").html(individual);
-
-                          //change the display in the Encounter page nearby link
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $('#displayIndividualID').closest('a').text(data.displayName);
-
-                          //change the name in the topbar
-                          //$('#topid').text(data.displayName);
-                          //$("#topid").html(data.displayName);
-                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $("#topid").text(data.displayName);
-
-                          $(".add2shark").hide();
-        				  $(".removeFromShark").show();
-
-                          $("#displayMatchedBy").html(matchType);
-                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
-
-
-                        })
-                        .fail(function(response) {
-                        	$("#addSuccessDiv").hide();
-                          	$("#individualDiv").addClass("has-error");
-                          	$("#individualErrorDiv").html(response.responseText);
-                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
-
-                        });
-                      });
+                      populateNewIndWithDisabledButton();
+                      populateAddToExistingIndWithDisabledButton();
+                      setUpIdActionOnClick();
 
                       $("#individualAddEncounterInput, #matchType").click(function() {
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
@@ -1764,8 +1742,8 @@ function resetIdButtons() {
                           <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
-                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
-
+                        <div id="new-ind-button-section">
+                        </div>
                       </div>
 
                     <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
@@ -1778,8 +1756,8 @@ function resetIdButtons() {
                           <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
                           <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
                         </div>
-
-                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          <div id="add-to-existing-ind-section">
+                          </div>
                       </div>
 
                       <div class="form-group row" id="matchedByDiv">
@@ -1815,7 +1793,7 @@ function checkIdDisplay() {
     $('#individualAddEncounterInput').val('');
     resetIdButtons();
 }
-	                    $(document).ready(function() {
+	                    $(window).on('load',function() {
 
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
@@ -1844,7 +1822,7 @@ function checkIdDisplay() {
 
 
              <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
@@ -1877,6 +1855,10 @@ function checkIdDisplay() {
                             //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
+
+                            populateNewIndWithDisabledButton();
+                            populateAddToExistingIndWithDisabledButton();
+                            setUpIdActionOnClick();
 
                         })
                         .fail(function(response) {
@@ -1931,6 +1913,97 @@ function checkIdDisplay() {
 
 
           <script type="text/javascript">
+            function populateNewIndWithDisabledButton(){
+              let newIndHtml = '';
+              newIndHtml += '<input disabled="true" name="AddNewDisabled" type="button" id="AddNewDisabled" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              newIndHtml += '<input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#new-ind-button-section').empty();
+              $('#new-ind-button-section').append(newIndHtml);
+            }
+            function populateAddToExistingIndWithDisabledButton(){
+              let addToExistingHtml = '';
+              addToExistingHtml += '<input disabled="true" name="AddToExistingDisabled" type="button" id="AddToExistingDisabled" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark" style="background-color: grey;" />'
+              addToExistingHtml += '<input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action" style="display: none;" />';
+              $('#add-to-existing-ind-section').empty();
+              $('#add-to-existing-ind-section').append(addToExistingHtml);
+            }
+            function setUpIdActionOnClick(){
+              $(".id-action").click(function(event) {
+                        event.preventDefault();
+
+                        if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(CommonConfiguration.getProperty("showTaxonomy",context).equals("true")) %>&&(!globalEncSpecies || globalEncSpecies === notAvailable)){
+                          window.setTimeout(function() { alert('Species must be set for encounter to be added to an individual.'); }, 100);
+                      		return false;
+                        }
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
+                        $(".id-action").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
+                        var matchType = $("#matchType").val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
+                        var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
+
+                        $.post("../IndividualAddEncounter", sendData,
+                        function(data) {
+                          const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
+                          const user = $("#autoUser").val();
+                          $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
+                          function() {
+                            $("#autoCommentErrorDiv").hide();
+                            $("#autoCommentsDiv").prepend("<p>" + encNewNameComments + "</p>");
+                            $("#autoComments").val("");
+                          })
+                          .fail(function(response) {
+                            $("#autoCommentErrorDiv").show();
+                            $("#autoCommentErrorDiv").html(response.responseText);
+                          });
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+                          $("#displayIndividualID").html(individual);
+
+                          //change the display in the Encounter page nearby link
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $('#displayIndividualID').closest('a').text(data.displayName);
+
+                          //change the name in the topbar
+                          //$('#topid').text(data.displayName);
+                          //$("#topid").html(data.displayName);
+                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $("#topid").text(data.displayName);
+
+                          $(".add2shark").hide();
+        				  $(".removeFromShark").show();
+
+                          $("#displayMatchedBy").html(matchType);
+                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
+
+
+                        })
+                        .fail(function(response) {
+                        	$("#addSuccessDiv").hide();
+                          	$("#individualDiv").addClass("has-error");
+                          	$("#individualErrorDiv").html(response.responseText);
+                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
+
+                        });
+                      });
+            }
+
             $(document).ready(function() {
               $("#setAltIDbtn").click(function(event) {
                 event.preventDefault();
@@ -2019,7 +2092,7 @@ function checkIdDisplay() {
                 if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && (isOwner || isPublic)) {
               %>
               <script type="text/javascript">
-                $(document).ready(function() {
+                $(window).on('load',function() {
 
                   $("#removeOccurrenceBtn").click(function(event) {
                     event.preventDefault();
@@ -2079,7 +2152,7 @@ function checkIdDisplay() {
                 if( (isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
                 <script type="text/javascript">
-                  $(document).ready(function() {
+                  $(window).on('load',function() {
                     $("#createOccur").click(function(event) {
                       event.preventDefault();
 
@@ -2137,7 +2210,7 @@ function checkIdDisplay() {
                   <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
 
                   <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#addOccurrence").click(function(event) {
                         event.preventDefault();
 
@@ -2213,7 +2286,7 @@ function checkIdDisplay() {
 
 
           <script type="text/javascript">
-          $(document).ready(function() {
+          $(window).on('load',function() {
             var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
               buttons.toggle();
             });
@@ -2517,7 +2590,7 @@ function checkIdDisplay() {
                   	<br>
                   	 <!--  remake for Users removal -->
 		         <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       //$("button.editUsers").click(function(event) {
@@ -2563,7 +2636,7 @@ function checkIdDisplay() {
 
                  <!--  remake for User addition -->
 		         <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
 
 
                       $("button.addUser").click(function(event) {
@@ -2633,7 +2706,7 @@ function checkIdDisplay() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || request.isUserInRole("orgAdmin")) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
   <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
@@ -2642,7 +2715,7 @@ function checkIdDisplay() {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editMeta, #closeEditMeta").on("click", function(){
     buttons.toggle();
   });
@@ -2699,7 +2772,7 @@ else {
 									%>
 
                   <script type="text/javascript">
-                    $(document).ready(function() {
+                    $(window).on('load',function() {
                       $("#selectState option[value='<%=state %>']").attr('selected','selected');
 
                       $("#editWork").click(function(event) {
@@ -2944,7 +3017,7 @@ else {
 if (isOwner) {
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#tapirApprove").click(function(event) {
       event.preventDefault();
 
@@ -2994,7 +3067,7 @@ if(request.getUserPrincipal()!=null){
 %>
 <!-- start autocomments -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#manualAdd").click(function(event) {
       event.preventDefault();
 
@@ -3073,7 +3146,7 @@ if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
 %>
-    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+    <a target="_new" href="../import.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
 itq.closeAll();
@@ -3108,7 +3181,7 @@ itq.closeAll();
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editMeasure, #closeEditMeasure").on("click", function(){
     buttons.toggle();
   });
@@ -3274,7 +3347,7 @@ else {
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editTracking, #closeEditTracking").on("click", function(){
     buttons.toggle();
   });
@@ -3522,7 +3595,7 @@ else {
 
 
       <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         var buttons = $("#editDate, #closeEditDate").on("click", function(){
           buttons.toggle();
         });
@@ -3596,7 +3669,7 @@ else {
     <br>
         <!-- start date -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#addResetDate").click(function(event) {
           event.preventDefault();
 
@@ -3655,7 +3728,7 @@ else {
 
     <!-- start releaseDate -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#AddDate").click(function(event) {
           event.preventDefault();
 
@@ -3717,7 +3790,7 @@ else {
     <br>
     <!-- start verbatim event date -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#setVerbatimEventDateBtn").click(function(event) {
           event.preventDefault();
 
@@ -3854,7 +3927,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     var buttons = $("#editObservation, #closeEditObservation").on("click", function(){
       buttons.toggle();
     });
@@ -3885,11 +3958,22 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <!-- START TAXONOMY ATTRIBUTE -->
-<%
+
+    <script type="text/javascript">
+      var globalEncSpecies = null;
+      var notAvailable = null;
+    </script>
+    <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     String genusSpeciesFound=encprops.getProperty("notAvailable");
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
+    %>
+    <script type="text/javascript">
+      globalEncSpecies = '<%=genusSpeciesFound%>';
+      notAvailable = '<%=encprops.getProperty("notAvailable")%>';
+    </script>
+    <%
     %>
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
@@ -3909,7 +3993,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
             assets[i].taxonomyString = newValue;
         }
     }
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#taxBtn").click(function(event) {
           event.preventDefault();
 
@@ -4010,7 +4094,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     %>
 <!-- start set living status -->
   <script type="text/javascript">
-    $(document).ready(function() {
+    $(window).on('load',function() {
       $("#addStatus").click(function(event) {
         event.preventDefault();
 
@@ -4081,7 +4165,7 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 <%
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addSex").click(function(event) {
       event.preventDefault();
 
@@ -4161,7 +4245,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
  %>
 
  <script type="text/javascript">
-   $(document).ready(function() {
+   $(window).on('load',function() {
      $("#addScar").click(function(event) {
        event.preventDefault();
 
@@ -4236,7 +4320,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
     <!-- start set behavior popup -->
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $("#editBehavior").click(function(event) {
           event.preventDefault();
 
@@ -4327,7 +4411,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
     <!-- start set groupRole popup -->
   <script type="text/javascript">
-    $(document).ready(function() {
+    $(window).on('load',function() {
       $("#editGroupRole").click(function(event) {
         event.preventDefault();
 
@@ -4423,7 +4507,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
 <!-- start set patterning code -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#editPattern").click(function(event) {
       event.preventDefault();
 
@@ -4538,7 +4622,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     %>
 <!-- start set life stage -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#addLife").click(function(event) {
       event.preventDefault();
 
@@ -4631,7 +4715,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 %>
 
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#editComment").click(function(event) {
       event.preventDefault();
 
@@ -4698,7 +4782,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <script type="text/javascript">
-$(document).ready(function() {
+$(window).on('load',function() {
   var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
     buttons.toggle();
   });
@@ -5152,7 +5236,7 @@ if(!isOwner){isOwnerValue="false";}
 if(loggedIn){
 %>
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addBioSample").click(function() {
       $("#dialogSample").toggle();
     });
@@ -5428,7 +5512,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#haplo<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogHaplotype<%=thisSample.getSampleID() %>").toggle();
     });
@@ -5706,7 +5790,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 
 <!-- start ms marker popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $("#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
       $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
     });
@@ -6044,7 +6128,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		</table>
 
     <script type="text/javascript">
-      $(document).ready(function() {
+      $(window).on('load',function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
           var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
           if (x.style.display === "none") {
@@ -6067,7 +6151,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
     });
@@ -6171,7 +6255,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start sat tag metadata -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
       $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
     });
@@ -6298,7 +6382,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 
 <!-- start genetic sex popup -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addSex<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
 
@@ -6421,7 +6505,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex -->
 <script type="text/javascript">
-  $(document).ready(function() {
+  $(window).on('load',function() {
     $(".addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
       $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
 
@@ -6741,7 +6825,7 @@ function adjustLocationCheckboxes(el) {
     return true;
 }
 
-$(document).ready(function() {
+$(window).on('load',function() {
     adjustLocationCheckboxes( $('.ul-root input:checked')[0] );  //this will check all below the default-checked one
     iaMatchFilterLocationCountUpdate();
     $('.ul-root input[type="checkbox"]').on('change', function(ev) {
@@ -6758,6 +6842,28 @@ $(document).ready(function() {
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<%
+
+	String queueStatementID="";
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	if(wbiaIDQueueSize==0){
+		queueStatementID = "The machine learning queue is empty and ready for work.";
+	}
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		try{
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+		}
+		catch(Exception de){de.printStackTrace();}
+	}
+	if(!queueStatementID.equals("")){
+	%>
+	<p><em><%=queueStatementID %></em></p>
+	<%
+	}
+	%>
   <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
     <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
   </div>
@@ -6802,10 +6908,7 @@ List<String> locIds = new ArrayList<String>();  //filled as we traverse
 String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
-//this is a sanity check for missed locationIDs !!
-for (String l : locCount.keySet()) {
-    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-}
+
 %>
 
     </div>

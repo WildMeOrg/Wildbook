@@ -22,6 +22,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.ecocean.datacollection.Instant;
+
 import org.joda.time.DateTime;
 
 import org.ecocean.media.AssetStoreType;
@@ -53,33 +54,23 @@ public class Occurrence implements java.io.Serializable {
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
+  //private String locationID;
   private String dateTimeCreated;
 
-
-    private String browseType;
-
-    private String observer;
-    private String submitterID;   //not sure if this should atrophy, now that we have .submitters ???  TODO what does Encounter do?
-    private Double distance;
-    private Double decimalLatitude;
-    private Double decimalLongitude;
-    private Double bearing;
-    private DateTime dateTime;
-    private String vegetation;
-    private String terrain;
-    private String monitoringZone;
-    private Integer groupSize;
-    private Integer numAdultMales;
-    private Integer numAdultFemales;
-    private Integer numAdults;
-    private Integer numSubMales;
-    private Integer numSubFemales;
-    private Integer numSubAdults;
-    private Integer numCalves;
-    private Integer wp;  //i think this is waypoint???
-
+  // ASWN fields
+  private String fieldStudySite;
+  private String fieldSurveyCode;  // i.e. project-specific sighting no. (redundant w/ id, or is that UUID?o)
+  private String sightingPlatform; // e.g. vessel name
+  private String groupComposition; // categorical
+  private String humanActivityNearby; // drop-down, e.g. artisanal fishing, commercial shipping, tourism
+  private String initialCue; // blow, splash, birds, dorsal fin etc
+  private String seaState; //beaufort categories
+  private Double seaSurfaceTemp;
+  private Double swellHeight;
+  private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
+  
   // Variables used in the Survey, SurveyTrack, Path, Location model
-
+  
   private String correspondingSurveyTrackID;
   private String correspondingSurveyID;
   //social media registration fields for AI-created occurrences
@@ -87,15 +78,40 @@ public class Occurrence implements java.io.Serializable {
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
+  private Double effortCode; // 1-5;
+
+  private Double decimalLatitude;
+  private Double decimalLongitude;
+  private String transectName;
+  private Double transectBearing;
+  private Double distance;
+  private Double bearing;
+
+  private Integer minGroupSizeEstimate;
+  private Integer maxGroupSizeEstimate;
+  private Double bestGroupSizeEstimate;
+  private Integer numAdults;
+  private Integer numJuveniles;
+  private Integer numCalves;
+  private String observer;
+
+  private String submitterID;   //not sure if this should atrophy, now that we have .submitters ???  TODO what does Encounter do?
   private List<User> submitters;
   private List<User> informOthers;
 
   // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
   // while convenience string-only methods with noun "Species"
   private List<Taxonomy> taxonomies;
+    private String source;  //this is for SpotterConserveIO mostly but...
+
+  // do we have these?
+
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
   private Long millis;
+
+
+  private Long dateTimeLong; // this is for searching
 
 
   //empty constructor used by the JDO enhancer
@@ -162,10 +178,10 @@ public class Occurrence implements java.io.Serializable {
     return isNew;
 
   }
-
+  
   //private void updateNumberOfEncounters() {
   //  if (individualCount!=null) {
-  //    individualCount = encounters.size();
+  //    individualCount = encounters.size();      
   //  }
   //}
 
@@ -208,31 +224,24 @@ public class Occurrence implements java.io.Serializable {
     return isNew;
 
   }
-
-  // public void setSubmitterIDFromEncs(boolean overwrite) {
-  //   if (!overwrite && Util.stringExists(getSubmitterID())) return;
-  //   setSubmitterIDFromEncs();
-  // }
-  // public void setSubmitterIDFromEncs(){
-  //   for (Encounter enc: encounters) {
-  //     if (Util.stringExists(enc.getSubmitterID())) {
-  //       setSubmitterID(enc.getSubmitterID());
-  //       return;
-  //     }
-  //   }
-  // }
-
-  public void setSubmitterID(String submitterID) {
-   this.submitterID = submitterID;
- }
-
-
-    //this is a bit of a hack for backward compatibility. you probably shouldnt use this.
-    public String getSubmitterID() {
-        System.out.println("WARNING: occ.getSubmitterID() is deprecated due to .submitters");
-        if (Util.collectionIsEmptyOrNull(submitters)) return null;
-        return submitters.get(0).getUsername();
+  public void setSubmitterIDFromEncs(boolean overwrite) {
+    if (!overwrite && Util.stringExists(getSubmitterID())) return;
+    setSubmitterIDFromEncs();
+  }
+  public void setSubmitterIDFromEncs(){
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getSubmitterID())) {
+        setSubmitterID(enc.getSubmitterID());
+        return;
+      }
     }
+  }
+  public void setSubmitterID(String submitterID) {
+    this.submitterID = submitterID;
+  }
+  public String getSubmitterID() {
+    return submitterID;
+  }
 
     public List<User> getSubmitters() {
         return submitters;
@@ -271,6 +280,13 @@ public class Occurrence implements java.io.Serializable {
     }
     public void setInformOthers(List<User> users) {
         this.informOthers=users;
+    }
+    
+    public String getSource() {
+        return source;
+    }
+    public void setSource(String s) {
+        source = s;
     }
 
   public void setAssets(List<MediaAsset> assets) {
@@ -337,21 +353,6 @@ public class Occurrence implements java.io.Serializable {
     return (latStr+", "+lonStr);
   }
 
-
-    public double[] getComputedLatLon() {
-        return Util.getComputedLatLon(this.decimalLatitude, this.decimalLongitude, this.bearing, this.distance);
-    }
-    public Double getComputedLatitude() {
-        double[] cll = getComputedLatLon();
-        if (cll == null) return null;
-        return cll[0];
-    }
-    public Double getComputedLongitude() {
-        double[] cll = getComputedLatLon();
-        if (cll == null) return null;
-        return cll[1];
-    }
-
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
     ArrayList<String> names=new ArrayList<String>();
     try{
@@ -359,7 +360,7 @@ public class Occurrence implements java.io.Serializable {
 
       for(int i=0;i<size;i++){
         Encounter enc=encounters.get(i);
-        if (enc.hasMarkedIndividual() && !names.contains(enc.getIndividualID())) names.add(enc.getIndividualID());
+        if((enc.getIndividualID()!=null)&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
       }
     }
     catch(Exception e){e.printStackTrace();}
@@ -380,7 +381,7 @@ public class Occurrence implements java.io.Serializable {
   public String getWebUrl(HttpServletRequest req) {
     return getWebUrl(getOccurrenceID(), req);
   }
-
+  
   public String getOccurrenceID(){
     return occurrenceID;
   }
@@ -388,7 +389,7 @@ public class Occurrence implements java.io.Serializable {
   public void setOccurrenceID(String id){
     occurrenceID = id;
   }
-
+  
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}
@@ -473,62 +474,6 @@ public class Occurrence implements java.io.Serializable {
     }
   }
 
-    public DateTime getDateTime() {
-        return this.dateTime;
-    }
-
-    public void setDateTime(DateTime dt) {
-        this.dateTime = dt;
-    }
-
-
-    public void setBrowseType(String bt) {
-        browseType = bt;
-    }
-
-    public String getBrowseType() {
-        return browseType;
-
-    }
-
-
-
-
-	public String getObserver() {
-		return this.observer;
-	}
-	public void setObserver(String o) {
-		this.observer = o;
-	}
-
-	public Double getDistance() {
-		return this.distance;
-	}
-	public void setDistance(Double d) {
-		this.distance = d;
-	}
-
-	public String getVegetation() {
-		return this.vegetation;
-	}
-	public void setVegetation(String h) {
-		this.vegetation = h;
-	}
-
-	public String getTerrain() {
-		return this.terrain;
-	}
-	public void setTerrain(String h) {
-		this.terrain = h;
-	}
-
-	public String getMonitoringZone() {
-		return this.monitoringZone;
-	}
-	public void setMonitoringZone(String h) {
-		this.monitoringZone = h;
-        }
-
 
   public void setMillis(Long millis) {this.millis = millis;}
   public Long getMillis() {return this.millis;}
@@ -569,79 +514,6 @@ public class Occurrence implements java.io.Serializable {
     if (getMillisFromEncounters()!=null) return getMillisFromEncounters();
     return null;
   }
-
-
-	public Integer getGroupSize() {
-		return this.groupSize;
-	}
-	public void setGroupSize(Integer s) {
-		this.groupSize = s;
-	}
-
-	public Integer getNumAdultMales() {
-		return this.numAdultMales;
-	}
-	public void setNumAdultMales(Integer s) {
-		this.numAdultMales = s;
-	}
-
-	public Integer getNumAdultFemales() {
-		return this.numAdultFemales;
-	}
-	public void setNumAdultFemales(Integer s) {
-		this.numAdultFemales = s;
-	}
-
-        public Integer getNumAdults() {
-            return this.numAdults;
-        }
-        public void setNumAdults(Integer n) {
-            this.numAdults = n;
-        }
-
-	public Integer getNumSubMales() {
-		return this.numSubMales;
-	}
-	public void setNumSubMales(Integer s) {
-		this.numSubMales = s;
-	}
-
-	public Integer getNumSubFemales() {
-		return this.numSubFemales;
-	}
-	public void setNumSubFemales(Integer s) {
-		this.numSubFemales = s;
-        }
-
-	public Integer getNumSubAdults() {
-		return this.numSubAdults;
-	}
-	public void setNumSubAdults(Integer s) {
-		this.numSubAdults = s;
-	}
-
-	public Integer getNumCalves() {
-		return this.numCalves;
-	}
-	public void setNumCalves(Integer c) {
-		this.numCalves = c;
-	}
-
-	public Double getBearing() {
-		return this.bearing;
-	}
-	public void setBearing(Double b) {
-		this.bearing = b;
-	}
-
-	public Integer getWp() {
-		return this.wp;
-	}
-	public void setWp(Integer s) {
-		this.wp = s;
-	}
-
-
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
@@ -761,7 +633,7 @@ public class Occurrence implements java.io.Serializable {
     }
     return null;
   }
-
+  
   public void setCorrespondingSurveyTrackID(String id) {
     if (id != null && !id.equals("")) {
       correspondingSurveyTrackID = id;
@@ -774,20 +646,20 @@ public class Occurrence implements java.io.Serializable {
     }
     return null;
   }
-
+  
   public void setCorrespondingSurveyID(String id) {
     if (id != null && !id.equals("")) {
       correspondingSurveyID = id;
     }
   }
-
+  
   public String getCorrespondingSurveyID() {
     if (correspondingSurveyID != null) {
       return correspondingSurveyID;
     }
     return null;
   }
-
+  
   public Survey getSurvey(Shepherd myShepherd) {
     Survey sv = null;
     if (correspondingSurveyID!=null) {
@@ -880,71 +752,75 @@ public class Occurrence implements java.io.Serializable {
     return Collaboration.canUserAccessOccurrence(this, request);
   }
 
-  public org.json.JSONObject uiJson(HttpServletRequest request) throws org.json.JSONException {
-    org.json.JSONObject jobj = new org.json.JSONObject();
+  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+    JSONObject jobj = new JSONObject();
     jobj.put("individualCount", this.getNumberEncounters());
 
-    org.json.JSONObject encounterInfo = new org.json.JSONObject();
+    JSONObject encounterInfo = new JSONObject();
     for (Encounter enc : this.encounters) {
-      encounterInfo.put(enc.getOccurrenceID(), new org.json.JSONObject("{url: "+enc.getUrl(request)+"}"));
+      JSONObject urlInfo = new JSONObject();
+      urlInfo.put("url", enc.getUrl(request));
+      if(enc.getOccurrenceID()!=null) encounterInfo.put(enc.getOccurrenceID(), urlInfo);
     }
     jobj.put("encounters", encounterInfo);
     jobj.put("assets", this.assets);
 
     jobj.put("groupBehavior", this.getGroupBehavior());
-    return jobj;
-
+    return sanitizeJson(request, decorateJson(request, jobj));
   }
 
-// via master:
-/*  this was messing up the co-occur js (d3?), so lets kill for now?
-  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-            return sanitizeJson(request, jobj, true);
-        }
-
-  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-    jobj.put("ID", this.getID());
-    jobj.put("encounters", this.encounters);
-    if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
-        JSONArray jarr = new JSONArray();
-  ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-        //but for *now* (see note way above) this is all we need for gallery/image display js:
-        for (Encounter enc : this.getEncounters()) {
-            JSONObject je = new JSONObject();
-            je.put("id", enc.getID());
-            if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
-            if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-                JSONArray ja = new JSONArray();
-                for (Annotation ann : enc.getAnnotations()) {
-                    ja.put(ann.getId());
-                }
-                je.put("annotations", ja);
-            }
-            jarr.put(je);
-        }
-        jobj.put("encounters", jarr);
-    }
-    int[] assetIds = new int[this.assets.size()];
-    for (int i=0; i<this.assets.size(); i++) {
-      if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
-    }
-    jobj.put("assets", assetIds);
-    return jobj;
-
-  }
-*/
+// /*  this was messing up the co-occur js (d3?), so lets kill for now?
+  // public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+  //               org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+  //           return sanitizeJson(request, jobj, true);
+  //       }
+  //
+  // public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+  //   jobj.put("ID", this.occurrenceID);
+  //   jobj.put("encounters", this.encounters);
+  //   if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
+  //       JSONArray jarr = new JSONArray();
+  // ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  //       //but for *now* (see note way above) this is all we need for gallery/image display js:
+  //       for (Encounter enc : this.getEncounters()) {
+  //           JSONObject je = new JSONObject();
+  //           je.put("id", enc.getID());
+  //           if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
+  //           if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
+  //               JSONArray ja = new JSONArray();
+  //               for (Annotation ann : enc.getAnnotations()) {
+  //                   ja.put(ann.getId());
+  //               }
+  //               je.put("annotations", ja);
+  //           }
+  //           jarr.put(je);
+  //       }
+  //       jobj.put("encounters", jarr);
+  //   }
+  //   int[] assetIds = new int[this.assets.size()];
+  //   for (int i=0; i<this.assets.size(); i++) {
+  //     if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
+  //   }
+  //   jobj.put("assets", assetIds);
+  //   return jobj;
+  //
+  // }
 
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", occurrenceID)
+                .append("fieldStudySite",fieldStudySite)
+                .append("fieldSurveyCode",fieldSurveyCode)
+                .append("sightingPlatform",sightingPlatform)
+                .append("decimalLatitude",decimalLatitude)
+                .append("decimalLongitude",decimalLongitude)
                 .append("individualCount",individualCount)
                 .append("numEncounters", (encounters == null) ? 0 : encounters.size())
                 .toString();
     }
 
-    public ArrayList<JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
-      ArrayList<JSONObject> al=new ArrayList<JSONObject>();
+    public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
       //boolean haveProfilePhoto=false;
       for (Encounter enc : this.getDateSortedEncounters(false)) {
         //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
@@ -1002,15 +878,83 @@ public class Occurrence implements java.io.Serializable {
         System.out.println(">>>>>> detection created " + this);
     }
 
-    public JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+    public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
 
-      ArrayList<JSONObject> al=getExemplarImages(req);
+      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
       if(al.size()>0){return al.get(0);}
       return new JSONObject();
 
 
     }
 
+    // ASWN field getters/setters
+    public String getFieldStudySite() {
+      return fieldStudySite;
+    }
+    public void setFieldStudySite(String fieldStudySite) {
+      this.fieldStudySite = fieldStudySite;
+    }
+    public String getFieldSurveyCode() {
+      return fieldSurveyCode;
+    }
+    public void setFieldSurveyCode(String fieldSurveyCode) {
+      this.fieldSurveyCode = fieldSurveyCode;
+    }
+    public String getSightingPlatform() {
+      return sightingPlatform;
+    }
+    public void setSightingPlatform(String sightingPlatform) {
+      this.sightingPlatform = sightingPlatform;
+    }
+    public String getGroupComposition() {
+      return groupComposition;
+    }
+    public void setGroupComposition(String groupComposition) {
+      this.groupComposition = groupComposition;
+    }
+    public String getHumanActivityNearby() {
+      return humanActivityNearby;
+    }
+    public void setHumanActivityNearby(String humanActivityNearby) {
+      this.humanActivityNearby = humanActivityNearby;
+    }
+    public String getInitialCue() {
+      return initialCue;
+    }
+    public void setInitialCue(String initialCue) {
+      this.initialCue = initialCue;
+    }
+    public String getSeaState() {
+      return seaState;
+    }
+    public void setSeaState(String seaState) {
+      this.seaState = seaState;
+    }
+
+    public Double getSeaSurfaceTemp() {
+      return seaSurfaceTemp;
+    }
+    public void setSeaSurfaceTemp(Double seaSurfaceTemp) {
+      this.seaSurfaceTemp = seaSurfaceTemp;
+    }
+    public Double getSwellHeight() {
+      return swellHeight;
+    }
+    public void setSwellHeight(Double swellHeight) {
+      this.swellHeight = swellHeight;
+    }
+    public Double getVisibilityIndex() {
+      return visibilityIndex;
+    }
+    public void setVisibilityIndex(Double visibilityIndex) {
+      this.visibilityIndex = visibilityIndex;
+    }
+    public Double getEffortCode() {
+      return effortCode;
+    }
+    public void setEffortCode(Double effortCode) {
+      this.effortCode = effortCode;
+    }
     public Double getDecimalLatitude() {
       return decimalLatitude;
     }
@@ -1027,7 +971,70 @@ public class Occurrence implements java.io.Serializable {
       this.decimalLongitude = decimalLongitude;
     }
 
-/*   from master, but hosed coz of diff fields
+    public String getTransectName() {
+      return transectName;
+    }
+    public void setTransectName(String transectName) {
+      this.transectName = transectName;
+    }
+
+    public Double getTransectBearing() {
+      return transectBearing;
+    }
+    public void setTransectBearing(Double transectBearing) {
+      this.transectBearing = transectBearing;
+    }
+    public Double getDistance() {
+      return distance;
+    }
+    public void setDistance(Double distance) {
+      this.distance = distance;
+    }
+    public Double getBearing() {
+      return bearing;
+    }
+    public void setBearing(Double bearing) {
+      this.bearing = bearing;
+    }
+
+    public Integer getMinGroupSizeEstimate() {
+      return minGroupSizeEstimate;
+    }
+
+
+    public void setMinGroupSizeEstimate(Integer minGroupSizeEstimate) {
+      this.minGroupSizeEstimate = minGroupSizeEstimate;
+    }
+    public Integer getMaxGroupSizeEstimate() {
+      return maxGroupSizeEstimate;
+    }
+    public void setMaxGroupSizeEstimate(Integer maxGroupSizeEstimate) {
+      this.maxGroupSizeEstimate = maxGroupSizeEstimate;
+    }
+    public Double getBestGroupSizeEstimate() {
+      return bestGroupSizeEstimate;
+    }
+    public void setBestGroupSizeEstimate(Double bestGroupSizeEstimate) {
+      this.bestGroupSizeEstimate = bestGroupSizeEstimate;
+    }
+    public Integer getNumAdults() {
+      return numAdults;
+    }
+    public void setNumAdults(Integer numAdults) {
+      this.numAdults = numAdults;
+    }
+    public Integer getNumJuveniles() {
+      return numJuveniles;
+    }
+    public void setNumJuveniles(Integer numJuveniles) {
+      this.numJuveniles = numJuveniles;
+    }
+    public Integer getNumCalves() {
+      return numCalves;
+    }
+    public void setNumCalves(Integer numCalves) {
+      this.numCalves = numCalves;
+    }
     //this tries to be a way to get number even when individualCount is not set...
     public Integer getGroupSizeCalculated() {
         if (individualCount != null) return individualCount;
@@ -1039,15 +1046,20 @@ public class Occurrence implements java.io.Serializable {
         /// not sure if we want to do something like:  if (getNumberEncounters() > s) return getNumberEncounters() ???
         return s;
     }
-*/
+    public String getObserver() {
+      return observer;
+    }
+    public void setObserver(String observer) {
+      this.observer = observer;
+    }
+
+
 
     public Long getDateTimeLong() {
-        if (dateTime == null) return null;
-        return dateTime.getMillis();
+      return dateTimeLong;
     }
     public void setDateTimeLong(Long dateTimeLong) {
-        if (dateTimeLong == null) return;
-        dateTime = new DateTime(dateTimeLong);
+      this.dateTimeLong = dateTimeLong;
     }
     public void setDateFromEncounters() {
       for (Encounter enc: encounters) {
@@ -1058,16 +1070,24 @@ public class Occurrence implements java.io.Serializable {
         }
       }
     }
-
+    public DateTime getDateTime() {
+      if (dateTimeLong == null) return null;
+      return new DateTime(dateTimeLong);
+    }
+    public void setDateTime(DateTime dt) {
+      if (dt == null) dateTimeLong = null;
+      else dateTimeLong = dt.getMillis();
+    }
+    
     //social media registration fields for AI-created occurrences
     public String getSocialMediaSourceID(){return socialMediaSourceID;};
     public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
-
-
+    
+    
     public String getSocialMediaQueryCommentID(){return socialMediaQueryCommentID;};
     public void setSocialMediaQueryCommentID(String id){socialMediaQueryCommentID=id;};
     //each night we look for one occurrence that has commentid but not commentresponseid.
-
+    
     public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
 
@@ -1076,13 +1096,13 @@ public class Occurrence implements java.io.Serializable {
       if(getMediaAssetsOfType(aType).size()>0){return true;}
       return false;
     }
-
+    
     public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
-      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
       try{
         int numEncs=encounters.size();
         for(int k=0;k<numEncs;k++){
-
+          
           ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
           int numAssets=assets.size();
           for(int i=0;i<numAssets;i++){
@@ -1094,12 +1114,12 @@ public class Occurrence implements java.io.Serializable {
       catch(Exception e){e.printStackTrace();}
       return results;
     }
-
+    
     public boolean hasMediaAssetFromRootStoreType(Shepherd myShepherd, AssetStoreType aType){
       try{
         int numEncs=encounters.size();
         for(int k=0;k<numEncs;k++){
-
+          
           ArrayList<MediaAsset> assets=encounters.get(k).getMedia();
           int numAssets=assets.size();
           for(int i=0;i<numAssets;i++){
@@ -1117,9 +1137,9 @@ public class Occurrence implements java.io.Serializable {
     }
     public void addObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
-        observations=arr;
+        observations=arr;      
       } else {
-       observations.addAll(arr);
+       observations.addAll(arr); 
       }
     }
     public void addObservation(Observation obs) {
@@ -1134,9 +1154,9 @@ public class Occurrence implements java.io.Serializable {
                break;
             }
           }
-        }
+        } 
         if (!found) {
-          observations.add(obs);
+          observations.add(obs);        
         }
       } else {
         observations.add(obs);
@@ -1147,7 +1167,7 @@ public class Occurrence implements java.io.Serializable {
         for (Observation ob : observations) {
           if (ob.getName() != null) {
             if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
-              return ob;
+              return ob;            
             }
           }
         }
@@ -1178,17 +1198,14 @@ public class Occurrence implements java.io.Serializable {
           }
           counter++;
         }
-      }
-    }
-
+      }  
+    } 
+    
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
-
       jobj.put("_sanitized", true);
-
       return jobj;
   }
-
+    
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
       if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
@@ -1202,32 +1219,6 @@ public class Occurrence implements java.io.Serializable {
 
       return jobj;
   }
-
-/*
-    this block is a bunch of setters (ok, and one getter) for properties which were long-ago removed from giraffespotter
-    however, merging with master constantly causes grief during compilation (especially around import java classes)
-    so i am putting them in to make merging / compilation easier.
-*/
-	public Double getVisibilityIndex() { return null; }
-	public void setBestGroupSizeEstimate(Double x) {}
-	public void setEffortCode(Double x) {}
-	public void setFieldStudySite(String x) {}
-	public void setFieldSurveyCode(String x) {}
-	public void setGroupComposition(String x) {}
-	public void setHumanActivityNearby(String x) {}
-	public void setMaxGroupSizeEstimate(Integer x) {}
-	public void setMinGroupSizeEstimate(Integer x) {}
-	public void setNumJuveniles(Integer x) {}
-	public void setSeaState(String x) {}
-	public void setSeaSurfaceTemp(Double x) {}
-	public void setSightingPlatform(String x) {}
-	public void setSubmitterIDFromEncs(boolean x) {}
-	public void setSwellHeight(Double x) {}
-	public void setTransectBearing(Double x) {}
-	public void setTransectName(String x) {}
-	public void setVisibilityIndex(Double x) {}
-//  end hacky setters
-
 
   public org.json.JSONObject getJSONSummary() {
       org.json.JSONObject json = new org.json.JSONObject();
@@ -1262,6 +1253,7 @@ public class Occurrence implements java.io.Serializable {
       } catch (Exception e) {
         e.printStackTrace();
       }
+      // return sanitizeJson(request, decorateJson(request, json));
       return json;
   }
 

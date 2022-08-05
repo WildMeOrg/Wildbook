@@ -12,51 +12,34 @@ org.ecocean.SystemValue,
 org.ecocean.ia.Task,
 java.util.HashMap,
 javax.jdo.Query,
+org.ecocean.ia.WbiaQueueUtil,
+org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
-<%!
-//try to see if encounter was part of ImportTask so we can mark complete
-//  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
-private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
-    if ((enc == null) || (enc.numAnnotations() < 1)) return;
-    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
-    Query query = myShepherd.getPM().newQuery(jdoql);
-    query.setOrdering("created desc");
-    List results = (List)query.execute();
-    ImportTask itask = null;
-    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
-    query.closeAll();
-System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
-    if (itask == null) return;
-    String svKey = "rapid_completed_" + itask.getId();
-    myShepherd.beginDBTransaction();
-    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
-    if (m == null) m = new JSONObject();
-    for (Annotation ann : enc.getAnnotations()) {
-        m.put(ann.getId(), true);
-System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
-    }
-    SystemValue.set(myShepherd, svKey, m);
-    myShepherd.commitDBTransaction();
-}
 
-String rotationInfo(MediaAsset ma) {
-    if ((ma == null) || (ma.getMetadata() == null)) return null;
-    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
-    if (orient == null) return null;
-    for (String k : orient.keySet()) {
-        if (orient.get(k).matches(".*90.*")) return orient.get(k);
-        if (orient.get(k).matches(".*270.*")) return orient.get(k);
-    }
-    return null;
-}
-%>
 
 <%
 
 String context = ServletUtilities.getContext(request);
 String langCode = ServletUtilities.getLanguageCode(request);
+
+String queueStatementID="";
+int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+if(wbiaIDQueueSize==0){
+	queueStatementID = "The machine learning queue is working.";
+}
+else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	try{
+		if(wbiaIDQueueSize>1){
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+		}
+	}
+	catch(Exception de){de.printStackTrace();}
+}
 
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
@@ -69,7 +52,7 @@ String nResultsStr = request.getParameter("nResults");
 
 // some logic related to generating names for individuals
 Shepherd myShepherd = new Shepherd(request);
-myShepherd.setAction("matchResults nameKey getter");
+myShepherd.setAction("iaResults.jsp: matchResults nameKey getter");
 myShepherd.beginDBTransaction();
 User user = myShepherd.getUser(request);
 String currentUsername = "";
@@ -118,433 +101,12 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-//this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
-if (request.getParameter("acmId") != null) {
-	String acmId = request.getParameter("acmId");
-	myShepherd = new Shepherd(context);
-	myShepherd.setAction("iaResults.jsp1");
-	myShepherd.beginDBTransaction();
-    ArrayList<Annotation> anns = null;
-	JSONObject rtn = new JSONObject("{\"success\": false}");
-	try {
-		anns = myShepherd.getAnnotationsWithACMId(acmId);
-	} catch (Exception ex) {}
-	if ((anns == null) || (anns.size() < 1)) {
-		rtn.put("error", "unknown error");
-	} else {
-		JSONArray janns = new JSONArray();
-		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
-		Project project = null;
-		if (Util.stringExists(projectIdPrefix)) {
-			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
-		}
-		String locationIdPrefix = null;
-		int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
-        for (Annotation ann : anns) {
-			if (ann.getMatchAgainst()==true) {
-				JSONObject jann = new JSONObject();
-				jann.put("id", ann.getId());
-				jann.put("acmId", ann.getAcmId());
-				Encounter enc = ann.findEncounter(myShepherd);
-	 			if (enc != null) {
-	 				jann.put("encounterId", enc.getCatalogNumber());
-	 				jann.put("encounterLocationId", enc.getLocationID());
-					locationIdPrefix = enc.getPrefixForLocationID();
-					jann.put("encounterLocationIdPrefix", locationIdPrefix);
-					locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
-					jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
-					jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
 
-	 			}
-				MediaAsset ma = ann.getMediaAsset();
-				if (ma != null) {
-			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
-                                    if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
-                                    jm.put("rotation", rotationInfo(ma));
-			            jann.put("asset", jm);
-				}
-				if (project!=null) {
-					try {
-
-						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
-							System.out.println("num encounters in project: "+project.getEncounters().size());
-							MarkedIndividual individual = enc.getIndividual();
-							if (individual!=null) {
-								List<String> projectNames = individual.getNamesList(projectIdPrefix);
-								jann.put("incrementalProjectId", projectNames.get(0));
-								jann.put("projectIdPrefix", projectIdPrefix);
-								jann.put("projectUUID", project.getId());
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				janns.put(jann);
-			}
-		}
-	    rtn.put("success", true);
-        rtn.put("annotations", janns);
-	}
-/*
-	if ((qann != null) && (qann.getMediaAsset() != null)) {
-		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
-        	enc = Encounter.findByAnnotation(qann, myShepherd2);
-		num = enc.getCatalogNumber();
-	}
-*/
-	myShepherd.rollbackAndClose();
-	out.println(rtn.toString());
-	return;
-}
 
 
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
-boolean useLocation = Util.requestParameterSet(request.getParameter("useLocation"));
-if ((request.getParameter("number") != null) && ((request.getParameter("individualID") != null) || useLocation)) {
-	JSONObject res = new JSONObject("{\"success\": false}");
-	res.put("encounterId", request.getParameter("number"));
-	res.put("encounterId2", request.getParameter("enc2"));
-	res.put("individualId", request.getParameter("individualID"));
-        res.put("useLocation", useLocation);
-	res.put("taskId", taskId);
-	String projectId = null;
-	if (Util.stringExists(request.getParameter("projectId"))) {
-		res.put("projectId", request.getParameter("projectId"));
-		projectId = request.getParameter("projectId");
-	}
-
-	myShepherd = new Shepherd(context);
-	myShepherd.setAction("iaResults.jsp2");
-	myShepherd.beginDBTransaction();
-
-	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-	if (enc == null) {
-		res.put("error", "no such encounter: " + request.getParameter("number"));
-		out.println(res.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-	}
-	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
-		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
-		out.println(res.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-	} else if (useLocation && !Util.stringExists(enc.getLocationID())) {
-		res.put("error", "Empty locationID with useLocation=true for encounter: " + request.getParameter("number"));
-		out.println(res.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-	}
-
-	Encounter enc2 = null;
-	if (request.getParameter("enc2") != null) {
-		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
-		myShepherd.getPM().refresh(enc2);
-
-		if (enc2 == null) {
-			res.put("error", "no such encounter: " + request.getParameter("enc2"));
-			out.println(res.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
-		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
-			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
-			out.println(res.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
-		}
-	}
-	/* now, making an assumption here (and the UI does as well):
-	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
-	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
-	   use an *existing* indiv in those cases (but allow a new one in the other)
-
-            addendum via WB-1216: the NEW INDIVIDUAL case can now allow for useLocation=true option.
-	*/
-
-	// once you assign an id to one, it will still ask for input on another.
-
-	String indyUUID = null;
-	MarkedIndividual indiv = null;
-	MarkedIndividual indiv2 = null;
-	String individualID = null;
-	try {
-
-		individualID = request.getParameter("individualID");
-		if (individualID!=null) individualID = individualID.trim();
-		// from query enc
-		indiv = myShepherd.getMarkedIndividual(enc);
-		// from target enc
-		indiv2 = myShepherd.getMarkedIndividual(enc2);
-		indyUUID = request.getParameter("newIndividualUUID");
-		//should take care of getting an indy stashed in the URL params
-		if (indiv==null) {
-			indiv = myShepherd.getMarkedIndividualQuiet(indyUUID);
-		}
-
-		System.out.println("got ID: "+indyUUID+" from header set previous match");
-
-		System.out.println("did you get indiv? "+indiv+" did you get indiv2? "+indiv2);
-
-		// if both have an id, throw an error. any deecision to override would be arbitrary
-		// should get to MERGE option instead of getting here anyway
-		if (indiv!=null&&indiv2!=null) {
-
-
-			// need nuance here.. if both individuals are present but there is not a project ID allow set
-
-			res.put("error", "Both encounters already have an ID. You must remove one or reassign from the Encounter page.");
-			out.println(res.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-		}
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
-
-	// allow flow either way if one or the other has an ID
-	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
-
-		System.out.println("indiv OR indiv2 is null, and two viable enc have been selected!");
-
-		try {
-
-
-			//enc.setState("approved");
-			//enc2.setState("approved");
-
-			// neither have an individual
-			if (indiv==null&&indiv2==null) {
-                                //note that useLocation flavor has slight race condition possible here...
-                                // might be better to have way to *create* indiv with new loc-based name
-                                if (useLocation) {
-                                    String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
-									int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
-                                    individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
-                                }
-				if (Util.stringExists(individualID)) {
-					System.out.println("CASE 1: both indy null");
-					if (Util.isUUID(individualID)) {
-						indiv = myShepherd.getMarkedIndividual(individualID);
-					}
-					if (indiv==null) {
-						indiv = new MarkedIndividual(individualID, enc);
-					}
-
-
-
-
-
-					myShepherd.getPM().makePersistent(indiv);
-					//check for project to add new name with prefix
-					if (projectId!=null) {
-						Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
-						if (project!=null&&project.getNextIncrementalIndividualId().equals(individualID)) {
-							project.getNextIncrementalIndividualIdAndAdvance();
-							myShepherd.updateDBTransaction();
-						}
-
-						indiv.addNameByKey(projectId, individualID);
-						res.put("newIncrementalId", indiv.getDisplayName(projectId));
-					}
-					myShepherd.updateDBTransaction();
-					//res.put("newIndividualUUID", indiv.getId());
-					res.put("individualName", indiv.getDisplayName(request, myShepherd));
-					res.put("individualId", indiv.getId());
-					enc.setIndividual(indiv);
-					enc2.setIndividual(indiv);
-					indiv.addEncounter(enc2);
-
-					myShepherd.updateDBTransaction();
-                                        setImportTaskComplete(myShepherd, enc);
-                                        setImportTaskComplete(myShepherd, enc2);
-                    indiv.refreshNamesCache();
-
-                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
-                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
-
-
-				} else {
-					res.put("error", "Please enter a new Individual ID for both encounters.");
-				}
-			}
-
-			// query enc has indy, or already stashed in URL params
-			if (indiv!=null&&indiv2==null) {
-				System.out.println("CASE 2: query enc indy is null");
-				enc2.setIndividual(indiv);
-				indiv.addEncounter(enc2);
-				res.put("individualName", indiv.getDisplayName(request, myShepherd));
-				myShepherd.updateDBTransaction();
-				IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
-                                setImportTaskComplete(myShepherd, enc2);
-			}
-
-			// target enc has indy
-			if (indiv==null&&indiv2!=null) {
-				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);
-				indiv2.addEncounter(enc);
-				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
-				myShepherd.updateDBTransaction();
-
-				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
-                                setImportTaskComplete(myShepherd, enc);
-			}
-
-
-			String matchMsg = enc.getMatchedBy();
-			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg);
-			enc2.setMatchedBy(matchMsg);
-
-			if (res.optString("error", null) == null) res.put("success", true);
-
-		} catch (Exception e) {
-			//enc.setState("unapproved");
-			//enc2.setState("unapproved");
-			e.printStackTrace();
-			res.put("error", "Please enter a different Individual ID.");
-		}
-
-		//indiv.addComment(????)
-		out.println(res.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-
-        // case where we are just assigning new location-based indiv to single enc
-	} else if ((indiv == null || indiv2 == null) && (enc != null) && useLocation) {
-            System.out.println("CASE 4: new location-based indiv to " + enc);
-            String locPrefix = LocationID.getPrefixForLocationID(enc.getLocationID(), null);
-            int prefixPadding = LocationID.getPrefixDigitPaddingForLocationID(enc.getLocationID(), null);
-            individualID = MarkedIndividual.nextNameByPrefix(locPrefix, prefixPadding);
-            indiv = new MarkedIndividual(individualID, enc);
-            myShepherd.getPM().makePersistent(indiv);
-            res.put("individualName", indiv.getDisplayName(request, myShepherd));
-            res.put("individualId", indiv.getId());
-            enc.setIndividual(indiv);
-            myShepherd.updateDBTransaction();
-            setImportTaskComplete(myShepherd, enc);
-            indiv.refreshNamesCache();
-            IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
-            String matchMsg = enc.getMatchedBy();
-            if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-            matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-            enc.setMatchedBy(matchMsg);
-            res.put("success", true);
-            out.println(res.toString());
-            myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
-            return;
-        }
-
-	if (indiv == null && indiv2 == null) {
-		res.put("error", "No valid record could be found or created for name: " + individualID);
-		out.println(res.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-	}
-
-	if (myShepherd.getPM().currentTransaction().isActive()) {
-		myShepherd.commitDBTransaction();
-		myShepherd.closeDBTransaction();
-	}
-
-	res.put("error", "Unknown error setting individual " + individualID);
-	out.println(res.toString());
-	return;
-}
-
-// confirm no match and set next automatic name
-if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null) {
-
-	try {
-		String encId = request.getParameter("encId");
-		myShepherd = new Shepherd(request);
-		myShepherd.setAction("iaResults.jsp - no match case");
-		myShepherd.beginDBTransaction();
-		JSONObject rtn = new JSONObject("{\"success\": false}");
-		Encounter enc = myShepherd.getEncounter(encId);
-		if (enc==null) {
-			rtn.put("error", "could not find Encounter "+encId+" in the database.");
-			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
-		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
-			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
-			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
-		}
-
-		String useNextProjectId = request.getParameter("useNextProjectId");
-		boolean validToName = false;
-
-		System.out.println("useNextProjectId= "+useNextProjectId+" Util.stringExists(nextNameKey)="+Util.stringExists(nextNameKey)+"  Util.stringExists(nextName)= "+Util.stringExists(nextName)+"");
-
-		if (("true".equals(useNextProjectId) || Util.stringExists(nextNameKey) ) && Util.stringExists(nextName)) {
-			validToName = true;
-		}
-
-		if (!validToName) {
-			rtn.put("error", "Was unable to set the next automatic name. Got key="+nextNameKey+" and val="+nextName);
-			out.println(rtn.toString());
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
-		}
-
-		MarkedIndividual mark = enc.getIndividual();
-
-		if (mark==null) {
-			mark = new MarkedIndividual(enc);
-			myShepherd.getPM().makePersistent(mark);
-			myShepherd.updateDBTransaction();
-			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
-
-		}
-
-		if (validToName&&"true".equals(useNextProjectId)) {
-			System.out.println("trying to set next PROJECT automatic name.......");
-			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
-			mark.addIncrementalProjectId(projectForAutoNaming);
-		} else {
-			System.out.println("trying to set USER BASED automatic name.......");
-			// old user based id
-			mark.addName(nextNameKey, nextName);
-		}
-
-		System.out.println("RTN for no match naming: "+rtn.toString());
-
-		rtn.put("success",true);
-		out.println(rtn.toString());
-		myShepherd.commitDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
-
-}
-
-
-
-  //session.setMaxInactiveInterval(6000);
 
 %>
 
@@ -710,7 +272,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 	<div id="initial-waiter" class="waiting throbbing">
-		<p>waiting for results</p>
+		<p>Waiting for results. <%=queueStatementID %></p>
 	</div>
 
 
@@ -991,7 +553,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					$('#initial-waiter').remove();
 				}
 				//$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results <span onClick="manualCallback(\'' + tid + '\')" style="float: right">*</span></p>');
-				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">waiting for results</p>');
+				$('#task-' + tid).append('<p id="wait-message-' + tid + '" title="' + (mostRecent? mostRecent : '[unknown status]') + '" class="waiting throbbing">Waiting for results. <%=queueStatementID %></p>');
 				if (jobIdMap[tid]) {
 					var tooLong = 15 * 60 * 1000;
 					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
@@ -1143,6 +705,9 @@ function showTaskResult(res, taskId) {
                 else if (algoInfo == 'CurvRankTwoDorsal') {
                     algoDesc = 'trailing edge (CurvRank v2)';
                 }
+                else if (algoInfo == 'CurvRankTwoRidge') {
+                    algoDesc = 'dorsal ridge (CurvRank v2)';
+                }
                 else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
                 }
@@ -1235,7 +800,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
-
+			console.log("isSelected: "+isSelected);
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
 			}
@@ -1306,10 +871,10 @@ console.info('%d ===> %s', num, acmId);
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 
-	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
-	if (projectId!=""&&projectId!=undefined) {
-		paramString += "&projectIdPrefix="+projectId;
+	if (projectId!==""&&projectId!=undefined) {
+		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
 	}
 
 
@@ -1414,7 +979,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
                         constrainDuringPan: true,
-                        animationTime: 0,
+                        animationTime: 0.01,
 
                 	});
 
@@ -1433,6 +998,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
+                        if(ft.parameters.theta)elt.setAttribute("theta", ft.parameters.theta);
+
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
 
@@ -1443,6 +1010,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
 
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
+
                 	});
 
                 	viewer.addHandler('full-screen', event => {
@@ -1452,6 +1026,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.01
+                      		);
 
                 	    }
                 	});
@@ -1470,13 +1050,38 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
+
+                	   	//rotate annots
+                	   	setTimeout(
+                  				updateFeatureTheta(viewer)
+                  				, 0.01
+                  		);
+
                 	});
 
+                	  viewer.addHandler("update-viewport", function(){
+
+                    	   	//rotate annots
+                    	   	setTimeout(
+                      				updateFeatureTheta(viewer)
+                      				, 0.1
+                      		);
+                      });
+
+                	  viewer.addHandler("animation", function(){
+                  	   	//rotate annots
+                  	   	setTimeout(
+                    				updateFeatureTheta(viewer)
+                    				, 0.01
+                    		);
+                      });
 
 
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
+
+
 
 
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
@@ -1485,8 +1090,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
-            if (mainAsset.dateTime) {
-                imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
+            if(res.responseJSON.annotations[0] && res.responseJSON.annotations[0].encounterDate){
+                imgInfo += ' <b>' + res.responseJSON.annotations[0].encounterDate.substring(0,16) + '</b> ';
             }
             if (mainAsset.filename) {
                 var fn = mainAsset.filename;
@@ -1505,7 +1110,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
+                <%
+                if(user != null){
+                %>
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
+                <%
+                }
+                %>
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
@@ -1518,13 +1129,6 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
 
                 if (encId) {
-                    if (isQueryAnnot) {
-	                let loc = annotData[acmIdPassed] && annotData[acmIdPassed][0] && annotData[acmIdPassed][0].encounterLocationId;
-                        if (loc) {
-	                    let nextVal = annotData[acmIdPassed][0].encounterLocationNextValue;
-                            h += '<input style="position: absolute; left: -20px; top: 230px; transform: scale(0.7);" type="button" value="Set new name (' + nextVal + ') for just this Encounter" onClick="$(this).hide(); return approvalButtonClick(\'' + encId + '\', \'\', \'\', \'' + taskId + '\', \'\', true);" />';
-                        }
-                    }
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
@@ -1596,9 +1200,32 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
-					var illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
-					//console.log("trying to attach illustrationHtml "+illustrationHtml+" with selector "+selector);
-					$(selector).append(illustrationHtml);
+          const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
+          const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
+					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+          const illustrationFailHtml = '<span class="illustrationLink" style="float:right;">inspection image unavailable (likely outdated)</span>';
+          $(selector).append(loadingText);
+          $.ajax({
+            url: illustrationUrl,
+            type: 'GET',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(data) {
+              const statusCode = data?.status?.code;
+              $('#loadingText').remove();
+              if(statusCode===200) $(selector).append(illustrationHtml);
+              if(statusCode===400) $(selector).append(illustrationFailHtml);
+            },
+            error: function(data){
+              const statusCode = data?.status; //I was still getting status 200s in here with a slightly different returned data structure. Handling below (again)
+              $('#loadingText').remove();
+              if(statusCode===200){
+                $(selector).append(illustrationHtml);
+              } else{
+                $(selector).append(errorText);
+              }
+            }
+          });
 				}
             }
 
@@ -1720,7 +1347,7 @@ function locationBasedCheckbox(el, qann) {
 		$('#new-name-input').attr('placeholder', $('#new-name-input').data('placeholder-orig')).removeAttr('disabled');
 		return true;
 	}
-	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId;
+	let loc = qann && annotData[qann] && annotData[qann][0] && annotData[qann][0].encounterLocationId
 	if (!loc) return;
 	$('#new-name-input').data('placeholder-orig', $('#new-name-input').attr('placeholder'));
 	$('#new-name-input').attr('placeholder', annotData[qann][0].encounterLocationNextValue).attr('disabled', 'disabled');
@@ -1818,7 +1445,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 }
 
 function findMyFeature(annotAcmId, asset) {
-console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+//console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
     if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
     for (var i = 0 ; i < asset.features.length ; i++) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
@@ -1829,6 +1456,14 @@ console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmI
 function imageLoaded(imgEl, ft, asset) {
     if (imgEl.getAttribute('data-feature-drawn')) return;
     drawFeature(imgEl, ft, asset);
+}
+
+function updateFeatureTheta(viewer){
+	    viewer.currentOverlays.forEach(overlay => {
+			if(overlay.element.hasAttribute("theta")){
+					overlay.element.style.transform = 'rotate('+overlay.element.getAttribute("theta")+'rad)';
+			}
+	    });
 }
 
 function drawFeature(imgEl, ft, asset) {
@@ -1980,8 +1615,8 @@ console.warn(inds);
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
 function approvalButtonClick(encID, indivID, encID2, taskId, displayName, useLocation) {
+console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o)', encID, indivID, encID2, taskId, displayName, useLocation);
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
-console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=%o, displayName=%o, useLocation=%o, loc=%o)', encID, indivID, encID2, taskId, displayName, useLocation, loc);
 	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 
@@ -1996,7 +1631,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
-	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+	var url = 'iaResultsSetID.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
         if (useLocation) url += '&useLocation=true';
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId&&projectId!=NONE_SELECTED) {
@@ -2054,37 +1689,47 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
+	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
+		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
+		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
 	}
-	confirmMsg+= ' to record your decision.';
+	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
 	if (projectId&&projectId.length) {
-		paramStr += '&useNextProjectId=true&projectIdPrefix='+projectId;
+		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
 	}
 
 	console.log("paramStr for 'negativeButtonClick' : "+paramStr);
 
 	if (confirm(confirmMsg)) {
 		$.ajax({
-			url: 'iaResults.jsp?' + paramStr,  //hacktacular!
+			url: 'iaResultsNoMatch.jsp?' + paramStr,  //hacktacular!
 			type: 'GET',
 			dataType: 'json',
 			complete: function(d) {
 				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
-				updateNameCallback(d, oldDisplayName);
+				updateNameCallback(d, oldDisplayName, encId);
 			}
 		})
 	}
 }
 
-function updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName, encId) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
-	alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+  let alertMsg = "Something went wrong with assigning the new name to the individual containing encounter " + encDisplayString(encId);
+  if(d && d.responseJSON && d.responseJSON.success){
+    if(oldDisplayName!=="undefined" && oldDisplayName){
+        alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName;
+    } else{
+      alertMsg = "Success! Added name <%=nextNameKey%>: <%=nextName%> to the new individual.";
+    }
+
+  }
+	alert(alertMsg);
+  location.reload(); // there was an issue where the new individual name was not appearing until the iaResults pages was reloaded. I don't know why, but this solves the problem.
 }
 
 function addNegativeButton(encId, oldDisplayName) {
@@ -2156,11 +1801,19 @@ $(document).ready(function(){
 });
 
 function isProjectSelected() {
-	let dropdownVal = $("#projectDropdown").val();
-	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!=NONE_SELECTED) {
+	<%
+	if(request.getParameter("projectIdPrefix")!=null && !request.getParameter("projectIdPrefix").trim().equals("")&& !request.getParameter("projectIdPrefix").trim().equals("None Selected")){
+	%>
 		return true;
+	
+	<%
 	}
-	return false;
+	else{
+	%>
+		return false;
+	<%
+	}
+	%>
 }
 
 $('#projectDropdown').on('change', function() {

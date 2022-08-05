@@ -107,10 +107,6 @@
     	/match.jsp = authc
 
 
-		 /encounters/encounter.jsp = roles[researcher]
-		 /occurrence.jsp = roles[researcher]
-		 /individuals.jsp = roles[researcher]
-
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
@@ -183,6 +179,7 @@
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
 		         /UserCreate = authc, roles[admin]
+						 /UserCheck = authc
 				 /UserDelete = authc, roles[admin]
 				/ResetCommonConfiguration = authc, roles[admin]
 				/ResurrectDeletedEncounter = authc, roles[admin]
@@ -202,7 +199,7 @@
 
 				/BatchUpload/** = authc, roles[admin]
 				/appadmin/batch* = authc, roles[admin]
-				/EncounterSetSubmitterID = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[researcher]
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
@@ -410,6 +407,7 @@
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 
+
 				/AnnotationEdit = authc, roles[admin]
 
 				/EncounterSetString = authc
@@ -455,6 +453,9 @@
 		/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
+			/import.jsp = authc, roles[researcher]
+			/iaResultsNoMatch.jsp = = authc, roles[researcher]
+			/iaResultsSetID.jsp = = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
@@ -730,7 +731,6 @@
     <servlet-name>RestKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>AddLabeledKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.AddLabeledKeyword</servlet-class>
@@ -745,25 +745,25 @@
     <servlet-name>ImportIA</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>ImportAccess</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportAccess</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>StandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>UpdateStandard</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.UpdateStandard</servlet-class>
   </servlet>
-
   <servlet>
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>WebImport</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
   </servlet>
 
 
@@ -906,7 +906,10 @@
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
-
+	<servlet>
+		<servlet-name>UserCheck</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserCheck</servlet-class>
+</servlet>
     <servlet>
       <servlet-name>UserCreateSocial</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
@@ -1233,6 +1236,7 @@
   </servlet-mapping>
 
 
+
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.RelationshipDelete</servlet-class>
@@ -1328,6 +1332,11 @@
     <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
   </servlet>
 
+
+    <servlet>
+      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
+  </servlet>
   <!--
 
   <servlet>
@@ -1357,12 +1366,6 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 -->
-
-      <servlet>
-      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
-  </servlet>
-
 
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
@@ -1760,6 +1763,11 @@
     <url-pattern>/OccurrenceSearchExportGtm</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
+    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
+
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
@@ -1892,6 +1900,10 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+	<servlet-mapping>
+			<servlet-name>UserCheck</servlet-name>
+			<url-pattern>/UserCheck</url-pattern>
+</servlet-mapping>
       <servlet-mapping>
           <servlet-name>UserCreateSocial</servlet-name>
           <url-pattern>/UserCreateSocial</url-pattern>
@@ -2126,6 +2138,14 @@
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>WebImport</servlet-name>
+      <url-pattern>/WebImport</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+      <servlet-name>WebImport</servlet-name>
+      <url-pattern>/import/upload</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

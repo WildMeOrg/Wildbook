@@ -900,7 +900,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 }  //end if showCountry
 
 %>
-
+<em><%=props.getProperty("gps_title") %></em>
 <div>
     <p id="map">
     <!--
@@ -1151,7 +1151,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
         -->
-
 
 <!--
 				<div class="form-group">

@@ -96,9 +96,9 @@ class JSONQuerier {
      * @param {diagramIds} [List] - Diagrams to appends graphs to
      */
     async preFetchData(iId, genus, epithet, callbacks, diagramIds, parsers=[]) {
-	await this.queryNodeData(genus, epithet);
-	await this.queryRelationshipData(genus);
-	await this.queryOccurrences(genus);
+	await this.queryIndividualIDNodeData(iId);
+	await this.queryIndividualIDRelationshipData(iId);
+	await this.queryIndividualIDOccurrences(iId);
 	
 	//Graph data
 	for (let i = 0; i < callbacks.length; i ++) {
@@ -125,6 +125,22 @@ class JSONQuerier {
     }
 
     /**
+     * Query wrapper for the storage of MarkedIndividual data
+     * @param {individualID} [String] - The individualID of the central node being graphed
+     * @return {queryData} [array] - All MarkedIndividual data in the Wildbook DB
+     */
+    queryIndividualIDNodeData(individualID) {
+	let query;
+	if (!this.localFiles) {
+	    query = wildbookGlobals.baseUrl  + "/encounters/socialJson.jsp?";
+	    if (individualID) query += "individualID=" + individualID;
+	}
+	else query = "./MarkedIndividual.json";
+	return this.queryData("nodeData", query, this.storeQueryAsDict);
+    }
+
+
+    /**
      * Query wrapper for the storage of Relationship data
      * @param {genus} [String] - The genus of the central node being graphed
      * @returns {queryData} [array] - All Relationship data in the Wildbook DB
@@ -140,13 +156,39 @@ class JSONQuerier {
     }
 
     /**
+     * Query wrapper for the storage of Relationship data
+     * @param {individualID} [String] - The individualID of the central node being graphed
+     * @returns {queryData} [array] - All Relationship data in the Wildbook DB
+     */
+    queryIndividualIDRelationshipData(individualID) {
+	let query;
+	if (!this.localFiles) {
+	    query = wildbookGlobals.baseUrl + "/encounters/relationshipJSON.jsp?"
+	    if (individualID) query += "individualID=" + individualID;
+	}
+	else query = "./Relationship.json";
+	return this.queryData("relationshipData", query);
+    }
+
+    /**
      * Query wrapper for the storage of Occurrence data
      * @param {genus} [String] - The genus of the central node being graphed
-     * @returns {queryData} [array] - All Relationship data in the Wildbook DB
+     * @returns {queryData} [array] - All Occurrence data in the Wildbook DB
      */
     queryOccurrences(genus) {
 	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?'
 	if (genus) query += "genus=" + genus;
+	return this.queryData("occurrenceData", query);
+    }
+
+    /**
+     * Query wrapper for the storage of Occurrence data
+     * @param {individualID} [String] - The individualID of the central node being graphed
+     * @returns {queryData} [array] - All occurrence data in the Wildbook DB
+     */
+    queryIndividualIDOccurrences(individualID) {
+	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?'
+	if (individualID) query += "individualID=" + individualID;
 	return this.queryData("occurrenceData", query);
     }
 
