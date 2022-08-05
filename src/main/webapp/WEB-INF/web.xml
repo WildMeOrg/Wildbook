@@ -456,6 +456,7 @@
 			/import.jsp = authc, roles[researcher]
 			/iaResultsNoMatch.jsp = = authc, roles[researcher]
 			/iaResultsSetID.jsp = = authc, roles[researcher]
+			/appadmin/resendBulkImportID.jsp = authc, roles[researcher]
 			</param-value>
         </init-param>
     </filter>
