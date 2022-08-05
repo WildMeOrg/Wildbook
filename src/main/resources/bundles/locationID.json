@@ -23,6 +23,7 @@
 			 
 			] 
 	},
+		{ "name":"Dubai", "id":"Dubai", "locationID":[] },
   { "name":"Guam", "id":"Guam","geospatialInfo":{
 	 			 	"lat":13.444302,
 	 			 	"long":144.793744
