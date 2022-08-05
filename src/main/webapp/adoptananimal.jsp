@@ -21,13 +21,14 @@ context=ServletUtilities.getContext(request);
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
 %>
 <jsp:include page="header.jsp" flush="true" />
 <link rel="stylesheet" href="css/createadoption.css">
 
-<div class="container maincontent adoption-page">
+<div style="margin: 0; padding: 0;">
 	<div id="adopt-a-sand-tiger-shark-header" style="background-image: url('./images/ncaquariums/AdoptaSharkBanner.png'); min-height:297px; background-size: contain; background-repeat: no-repeat;">
       <h2 style="position: absolute; padding-top: 7%; left: 100px; font-size: 3vw; color: white; text-shadow: 0.3vw 0.3vh black;">Adopt a Sand Tiger Shark</h2>
     </div>
@@ -57,7 +58,7 @@ context=ServletUtilities.getContext(request);
           padding-right: 8vw;
         "
       >
-        <a href="<%=urlLoc %>/adoptananimal.jsp">
+        <a href="<%=urlLoc %>/createadoption.jsp">
           <button class="btn btn-md">
             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
           </button>
@@ -147,12 +148,12 @@ context=ServletUtilities.getContext(request);
     </div>
     <hr style="border-top: 8px solid black;
   border-radius: 5px; margin: 0">
-    <div id="animal-descriptions-section" style="background-color: red;">
+    <div id="animal-descriptions-section">
         <div id="single-animal-description" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Cecil</h1>
-                    <a style="margin-left: 20px; margin-top: 50p; display:inline-block;" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50p; display:inline-block;" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
@@ -222,10 +223,10 @@ context=ServletUtilities.getContext(request);
         <hr style="border-top: 8px solid black;
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; flex-flow:row wrap; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; flex-flow:row wrap; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 46vw; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Claud</h1>
-                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
@@ -289,10 +290,10 @@ context=ServletUtilities.getContext(request);
         <hr style="border-top: 8px solid black;
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Maylon</h1>
-                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
@@ -333,10 +334,10 @@ context=ServletUtilities.getContext(request);
         </div>
         <hr style="border-top: 8px solid black; border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Ginger Bear</h1>
-                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
@@ -365,10 +366,10 @@ context=ServletUtilities.getContext(request);
         <hr style="border-top: 8px solid black;
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Tippy</h1>
-                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
@@ -430,10 +431,10 @@ context=ServletUtilities.getContext(request);
         <hr style="border-top: 8px solid black;
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
-            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh;">
+            <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
                 <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Rip Torn</h1>
-                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/adoptananimal.jsp">
+                    <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
