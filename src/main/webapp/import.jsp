@@ -418,7 +418,13 @@ try{
 			
 		</ul>
 		</p>
-	<%
+		<% 
+		if (numDetectionComplete > 0) { 
+		%>
+    		<p><a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">View Rapid Assessment</a></p>
+		<% 
+		} 
+	
 	
 	//let's determine the IA Status
 	String iaStatusString="not started";
@@ -534,7 +540,8 @@ try{
 	        complete: function(x) {
 	            console.log('sendToIA() response: %o', x);
 		    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-		        $('#ia-send-wait').html('<i>Images sent successfully. Refresh this page to track progress.</i>');
+		        //$('#ia-send-wait').html('<i>Images sent successfully. Refresh this page to track progress.</i>');
+		    	$('#ia-send-wait').html('<i>Images sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
 		    } else {
 		        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
 		    }
