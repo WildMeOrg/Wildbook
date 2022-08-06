@@ -735,6 +735,39 @@ public class StandardImport extends HttpServlet {
     Integer numJuveniles = getInteger(row, "Occurrence.numJuveniles", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (numJuveniles!=null) occ.setNumJuveniles(numJuveniles);
 
+    
+    /*
+     * GIRAFFESPOTTER CUSTOMIZATIONS
+     */
+    String obs = getString(row, "Occurrence.observer",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (obs != null) occ.setObserver(obs);
+
+    String veg = getString(row, "Occurrence.vegetation",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (veg != null) occ.setVegetation(veg);
+
+    String ter = getString(row, "Occurrence.terrain",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (ter != null) occ.setTerrain(ter);
+
+    Integer gsize = getInteger(row, "Occurrence.groupSize",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (gsize != null) occ.setGroupSize(gsize);
+
+    Integer naf = getInteger(row, "Occurrence.numAdultFemales",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (naf != null) occ.setNumAdultFemales(naf);
+
+    Integer nam = getInteger(row, "Occurrence.numAdultMales",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (nam != null) occ.setNumAdultMales(nam);
+
+    Integer nsa = getInteger(row, "Occurrence.numSubAdults",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (nsa != null) occ.setNumSubAdults(nsa);
+
+    Integer nsf = getInteger(row, "Occurrence.numSubFemales",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (nsf != null) occ.setNumSubFemales(nsf);
+
+    Integer nsm = getInteger(row, "Occurrence.numSubMales",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
+    if (nsm != null) occ.setNumSubMales(nsm);
+    /*
+    GIRAFFESPOTTER CUSTOMIZATIONS
+    */
 
     Double bearing = getDouble(row, "Occurrence.bearing", colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (bearing!=null) occ.setBearing(bearing);
