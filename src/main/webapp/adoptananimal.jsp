@@ -71,7 +71,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/Cecil_07.17.2020.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black;"/>
+                <img src="./images/ncaquariums/Cecil_07.17.2020.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; ;"/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -83,7 +83,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/ClaudNC_200626_3056.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black"/>
+                <img src="./images/ncaquariums/ClaudNC_200626_3056.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; "/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -95,7 +95,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/MaylonIMG_7759.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black"/>
+                <img src="./images/ncaquariums/MaylonIMG_7759.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; "/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -109,7 +109,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/GingerBear2.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black"/>
+                <img src="./images/ncaquariums/GingerBear2.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; "/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -123,7 +123,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/Tippy 11-10-2019.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black"/>
+                <img src="./images/ncaquariums/Tippy 11-10-2019.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; "/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -135,7 +135,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 position: relative;
                 text-align: center;"
             >
-                <img src="./images/ncaquariums/RipTorn_20_2084.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; background-color: black"/>
+                <img src="./images/ncaquariums/RipTorn_20_2084.png" style="width: 400px; height: 300px; object-fit: cover; box-shadow: 0.5vw 1.2vh 0.5vw black; "/>
                 <div style=" position: absolute;
                     bottom: 35px;
                     left: 16px;
@@ -158,21 +158,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
                     </a>
-                    <p style="width: 38vw; font-size: 1.7vw; margin: 0;">
+                    <p style="width: 37vw; font-size: 1.7vw; margin: 0;">
                         Cecil (USA-L0199) was named by Dr. Carol Price after her father. Carol is the research scientist that manages Spot A Shark USA.
                     </p>
                 </div>
                 <div id="single-animal-images" style="display: flex; justify-content: space-around; flex-grow: 1;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Cecil_1.png" style="height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                        <img src="./images/ncaquariums/Cecil_1.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Cecil_2.png" style="height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                        <img src="./images/ncaquariums/Cecil_2.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
                 </div>
             </div>
             
-            <h1 style="font-size: 2.5vw; margin-left: 15px;">Encounters</h1>
+            <h1 style="font-size: 2.5vw;">Encounters</h1>
             <div style="display: flex; justify-content: space-around;">
                     <table id="single-animal-table">
                         <tr>
@@ -206,15 +206,15 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             <td style="padding: 0 15px; font-size: 1.7vw;">Aeolus (AR-305)</td>
                         </tr>
                     </table>
-                    <div id="image-plus-text-container" style="margin-left: 10vw;">
-                        <img src="./images/ncaquariums/Cecil_07.17.2020.png" style="height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                    <div id="image-plus-text-container" style="margin-left: 20vw;">
+                        <img src="./images/ncaquariums/Cecil_07.17.2020.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/Cecil_3.png" style="margin-left: 15px; height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                    <img src="./images/ncaquariums/Cecil_3.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                 </div>
-                <div style="margin-left: 15px; display: flex; flex-direction: column;">
+                <div style="margin-left: 15px; display: flex; flex-direction: column; margin-bottom: 1vh;">
                     <h2 style="color: #549fdf; margin-top: 0; margin-bottom: 0; font-size: 2.5vw">Interesting Facts</h2>
                     <p style="max-width: 65vw; font-size: 1.7vw">This shark was first thought to be a female when sighted in 2016. By 2019, small claspers were visible indicating this was a young male. In 2020, the claspers were fully developed, indicating a mature adult male. Interestlingly, this shark was spotted at the same wreck until 2020, when he was photographed about 57 miles northeast at the British Splendour. Note that he has many scratches and scrapes in the photos taken in 2016. We often see these kinds of scars on sand tiger sharks.</p>
                 </div>
@@ -231,29 +231,29 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
                     </a>
-                    <p style="max-width: 50vw; font-size: 1.7vw; margin: 0">
+                    <p style="width: 35vw; font-size: 1.7vw; margin: 0">
                         Claud (USA-R0128) was named by Tanya Houppermans after Claud Hull, who was one of the first SCUBA divers off the NC coast. He helped locate many of the popular shipwreck sites that sand tigers are known to visit. Claude took what may be the first sand tiger shark photograph at the NC wreck in the early 1960s.
                     </p>
                 </div>
                 
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Claud_1.png" style="height: 200px; width: 300px; object-fit: cover; margin-right: 4vw;"/>
+                        <img src="./images/ncaquariums/Claud_1.png" style="height: 300px; width: 400px; object-fit: cover; margin-right: 4vw;"/>
                     </div>
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Claud_2.png" style="height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                        <img src="./images/ncaquariums/Claud_2.png" style="height: 300px; width: 400px; object-fit: cover; margin-right:0.4vw;"/>
                     </div>
                     <div id="row-break" style="flex-basis: 100%; height: 0;"></div>
                     <div id="stand-in-1" style="margin-right: 15px; width: 500px"></div>
-                    <div id="stand-in-2" style="height: 200px; width: 300px; margin-right: 4vw;"></div>
+                    <div id="stand-in-2" style="height: 300px; width: 400px; margin-right: 4vw;"></div>
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Claud_3.png" style="height: 200px; width: 300px; object-fit: cover; background-color: black"/>
+                        <img src="./images/ncaquariums/Claud_3.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
             </div>
             
             
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/ClaudNC_200626_3056.png" style="margin-left: 15px; max-height: 200px; max-width: 300px; background-color: black"/>
+                    <img src="./images/ncaquariums/ClaudNC_200626_3056.png" style="margin-left: 15px; height: 300px; width: 400px; object-fit: cover; "/>
                 </div>
                 <div style="margin-left: 15px; display: flex; flex-direction: column;">
                     <h2 style="color: #549fdf; margin-top: 0; font-size: 2.5vw">Interesting Facts</h2>
@@ -261,10 +261,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 </div>
             </div>
 
-            <h1 style="font-size: 2.5vw; margin-left: 15px;">Encounters</h1>
+            <h1 style="font-size: 2.5vw; margin-left: 29vw;">Encounters</h1>
             <div style="display: flex; justify-content: flex-start; padding-bottom: 3.5vh;">
                 <div id="image-before-table">
-                    <img src="./images/ncaquariums/Claud_4.png" style="margin-left: 15px; max-height: 200px; max-width: 300px; padding-bottom: 2vh"/>
+                    <img src="./images/ncaquariums/Claud_4.png" style="margin-left: 15px; height: 300px; width: 400px; padding-bottom: 2vh"/>
                 </div>
                     <table id="single-animal-table" style="flex-grow: 1;">
                         <tr>
@@ -291,35 +291,35 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
             <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
-                <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
+                <div style="margin-right: 15px; width: 46vw;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Maylon</h1>
                     <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
                     </a>
-                    <p style="width: 65vw; font-size: 1.7vw">
+                    <p style="width: 53vw; font-size: 1.7vw">
                     Maylon (USA-L0186) is named in honor of Maylon White, the Director of the North Carolina Aquariums Division since March 2019. We only have photos of Maylon (the shark) from one day, 9 June 2018, taken at the wreck of the Indra, a US Navy ship active during WWII. The Indra was sunk in 1992 to serve as an artificial reef in 60 feet of water about 10 miles off Emerald Isle, NC.
                     </p>
                 </div>
-                <div id="single-animal-images" style="display: flex; justify-content: space-around; flex-grow: 1;">
+                <div id="single-animal-images" style="display: flex; justify-content: space-around;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Maylon_1.png" style="padding-left: 25vw; height: 200px; width: 300px; object-fit: cover;"/>
+                        <img src="./images/ncaquariums/Maylon_1.png" style="margin-left: 15vw; height: 300px; width: 400px; object-fit: cover;"/>
                     </div>
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-start;">
                     <!-- <div id="image-plus-text-container" style="flex-grow: 1; margin-left: 610px">
-                        <img src="https://underwater.com.au/content/10664/grey_nurse_shark_1.jpg" style="max-height: 200px; max-width: 300px; background-color: black"/>
+                        <img src="https://underwater.com.au/content/10664/grey_nurse_shark_1.jpg" style="max-height: 200px; max-width: 300px; "/>
                     </div> -->
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start; padding-bottom: 3.5vh;">
                 <div style="display: flex; flex-direction: column;">
                     <div id="image-before-interesting-fact">
-                        <img src="./images/ncaquariums/Maylon_2.png" style="margin-left: 15px; height: 200px; width: 300px; object-fit: cover; padding-bottom: 2vh;"/>
+                        <img src="./images/ncaquariums/Maylon_2.png" style="margin-left: 15px; height: 300px; width: 400px; object-fit: cover; padding-bottom: 2vh;"/>
                     </div>
                     <div id="image-before-interesting-fact">
-                        <img src="./images/ncaquariums/Maylon_3.png" style="margin-left: 15px; height: 200px; width: 300px; object-fit: cover; padding-bottom: 2vh;"/>
+                        <img src="./images/ncaquariums/Maylon_3.png" style="margin-left: 15px; height: 300px; width: 400px; object-fit: cover; padding-bottom: 2vh;"/>
                     </div>
                 </div>
                 <div style="margin-left: 15px; display: flex; flex-direction: column;">
@@ -328,7 +328,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <p style="width: 40vw; font-size: 1.7vw">Do you think Maylon and Maylon look alike?</p>
                 </div>
                 <div id="image-plus-text-container" style="flex-grow: 1; margin-left: 20px">
-                        <img src="./images/ncaquariums/MaylonWhite.png" style="height: 400px; width: 200px; object-fit: cover; background-color: black"/>
+                        <img src="./images/ncaquariums/MaylonWhite.png" style="height: 400px; width: 200px; object-fit: cover; "/>
                     </div>
             </div>
         </div>
@@ -348,12 +348,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 </div>
                 <div id="single-animal-images" style="display: flex; justify-content: space-around; flex-grow: 1;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/GingerBear_1.png" style="max-height: 200px; max-width: 300px; background-color: black"/>
+                        <img src="./images/ncaquariums/GingerBear_1.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
                 </div>
             </div>
             
-            <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start; padding-bottom: 3.5vh;">
+            <div id="pic-and-interesting-facts" style="margin-left: 15px; margin-top: 20px; display: flex; justify-content: flex-start; padding-bottom: 3.5vh;">
                 <div id="image-before-interesting-fact">
                     <img src="./images/ncaquariums/GingerBear_2.png" style="height: 400px; width: 300px; object-fit: cover; padding-bottom: 2vh;"/>
                 </div>
@@ -367,29 +367,29 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   border-radius: 5px; margin: 0">
         <div id="single-animal-description2" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain;">
             <div style="display: flex; justify-content: flex-space; padding-top: 2.5vh; padding-bottom: 2.5vh; padding-left: 4vw;">
-                <div style="margin-right: 15px; max-width: 500px; flex-grow: 1;">
+                <div style="margin-right: 15px; max-width: 500px;">
                     <h1 style="color: #549fdf; font-size: 50; display:inline-block; margin-bottom: 1vh;">Tippy</h1>
                     <a style="margin-left: 20px; margin-top: 50px" href="<%=urlLoc %>/createadoption.jsp">
                         <button class="btn btn-md">
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
                     </a>
-                    <p style="width: 65vw; font-size: 1.7vw">
+                    <p style="width: 55vw; font-size: 1.7vw">
                         Tippy (USA-R0272) has been seen from 2014 to 2021 on 14 different days. Often, she is photographed multiple times on the same day.
                     </p>
-                    <p style="width: 65vw; font-size: 1.7vw">
+                    <p style="width: 55vw; font-size: 1.7vw">
                         Tippy has only been observed by the undewater live camera at the Frying Pan Tower site. Screenshots from the live feed are submitted to Spot A Shark.
                     </p>
                 </div>
                 <div id="single-animal-images" style="display: flex; justify-content: space-around; flex-grow: 1;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/Tippy_1.png" style="height: 200px; width: 300px; object-fit: cover; padding-left: 20vw;"/>
+                        <img src="./images/ncaquariums/Tippy_1.png" style="height: 300px; width: 400px; object-fit: cover; margin-left: 20vw;"/>
                     </div>
                 </div>
             </div>
-            <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
+            <div id="pic-and-interesting-facts" style="margin-left: 15px; margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/Tippy_2.png" style="height: 200px; width: 300px; object-fit: cover; padding-bottom: 2.5vh;"/>
+                    <img src="./images/ncaquariums/Tippy_2.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh;"/>
                 </div>
                 <div style="margin-left: 15px; display: flex; flex-direction: column;">
                     <h2 style="color: #549fdf; font-size: 2.5vw">Interesting Facts</h2>
@@ -398,7 +398,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             </div>
             <div style="display: flex; justify-content: flex-start; padding-bottom: 3.5vh;">
                 <div id="image-plus-text-container" style="margin-left: 15px">
-                    <img src="./images/ncaquariums/Tippy_3.png" style="height: 200px; width: 300px; object-fit: cover; padding-bottom: 2.5vh;"/>
+                    <img src="./images/ncaquariums/Tippy_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh;"/>
                 </div>
                 <div style="flex-grow: 1; margin-left: 20px;">
                     <h2 style="font-size: 2.5vw">Encounters</h2>
@@ -439,13 +439,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             Adopt a Shark Today!<span class="button-icon" aria-hidden="true"> </span>
                         </button>
                     </a>
-                    <p style="width: 65vw; font-size: 1.7vw">
+                    <p style="width: 53vw; font-size: 1.7vw">
                         Rip Torn (USA-R0610) was named after Elmore Rual “Rip” Torn, an American actor whose career spanned more than 60 years. He won two CableACE Awards for his work, including one for his role as Zed in the Men in Black franchise (1997–2002).
                     </p>
                 </div>
-                <div id="single-animal-images" style="display: flex; justify-content: space-around; flex-grow: 1;">
+                <div id="single-animal-images" style="display: flex; justify-content: space-around;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/RipTorn_1.png" style="height: 200px; width: 300px; object-fit: cover; padding-left: 20vw;"/>
+                        <img src="./images/ncaquariums/RipTorn_1.png" style="height: 300px; width: 400px; object-fit: cover; margin-left: 20vw;"/>
                     </div>
                 </div>
             </div>
@@ -467,13 +467,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </tr>
                     </table>
                 </div>
-                <div id="image-plus-text-container" style="margin-left: 15px; padding-left: 52.2vw; padding-bottom: 2.5vh;">
-                    <img src="./images/ncaquariums/RipTorn_2.png" style="height: 200px; width: 300px; object-fit: cover; padding-bottom: 2.5vh;"/>
+                <div id="image-plus-text-container" style="padding-left: 45.7vw; padding-bottom: 2.5vh;">
+                    <img src="./images/ncaquariums/RipTorn_2.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh;"/>
                 </div>
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 200px; width: 300px; object-fit: cover; padding-bottom: 2.5vh; padding-left: 67vw;"/>
+                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh; margin-left: 59.7vw;"/>
                 </div>
             </div>
             
