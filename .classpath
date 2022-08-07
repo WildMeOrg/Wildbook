@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry including="**/*.java" kind="src" path="src/main/java"/>
 	<classpathentry excluding="**/*.java" kind="src" path="src/main/resources"/>
+	<classpathentry kind="var" path="M2_REPO/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/activation/activation/1.1/activation-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/mail/mail/1.4.1/mail-1.4.1.jar"/>
@@ -9,11 +10,16 @@
 	<classpathentry kind="var" path="M2_REPO/javax/transaction/transaction-api/1.1/transaction-api-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/measure/unit-api/1.0/unit-api-1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/media/jai_core/1.1.3/jai_core-1.1.3.jar"/>
-	<classpathentry kind="var" path="M2_REPO/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/servlet/javax.servlet-api/3.0.1/javax.servlet-api-3.0.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="M2_REPO/com/rabbitmq/amqp-client/5.1.2/amqp-client-5.1.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient/0.10.0/simpleclient-0.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient_hotspot/0.10.0/simpleclient_hotspot-0.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient_httpserver/0.10.0/simpleclient_httpserver-0.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient_common/0.10.0/simpleclient_common-0.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient_pushgateway/0.10.0/simpleclient_pushgateway-0.10.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/io/prometheus/simpleclient_servlet/0.10.0/simpleclient_servlet-0.10.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/lz4/lz4-java/1.4.0/lz4-java-1.4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/healthmarketscience/jackcess/jackcess/3.5.0/jackcess-3.5.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar"/>
@@ -145,8 +151,8 @@
 	<classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-io/8.1.14.v20131031/jetty-io-8.1.14.v20131031.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/eclipse/jetty/jetty-http/8.1.14.v20131031/jetty-http-8.1.14.v20131031.jar"/>
 	<classpathentry kind="var" path="M2_REPO/net/sourceforge/jwebunit/jwebunit-core/3.2/jwebunit-core-3.2.jar"/>
-	<classpathentry kind="var" path="M2_REPO/junit/junit/4.11/junit-4.11.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+	<classpathentry kind="var" path="M2_REPO/junit/junit/4.10/junit-4.10.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/regexp/regexp/1.3/regexp-1.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/jcl-over-slf4j/1.6.6/jcl-over-slf4j-1.6.6.jar"/>
@@ -157,6 +163,10 @@
 	<classpathentry kind="var" path="M2_REPO/stax/stax-api/1.0.1/stax-api-1.0.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/dilib/dilib/1.0/dilib-1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/sqljdbc4/sqljdbc4/1.0/sqljdbc4-1.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/junit/jupiter/junit-jupiter-api/5.8.0-M1/junit-jupiter-api-5.8.0-M1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apiguardian/apiguardian-api/1.1.1/apiguardian-api-1.1.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/junit/platform/junit-platform-commons/1.8.0-M1/junit-platform-commons-1.8.0-M1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/geotools/gt-shapefile/23.0/gt-shapefile-23.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/geotools/gt-main/23.0/gt-main-23.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/geotools/gt-referencing/23.0/gt-referencing-23.0.jar"/>
