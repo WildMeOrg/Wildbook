@@ -447,7 +447,7 @@
 
 		/ProjectCreate = authc
 		/ProjectDelete = authc
-		/ProjectGet = authc
+		#/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
 			/import.jsp = authc, roles[researcher]

@@ -98,7 +98,11 @@ $(document).ready( function() {
 	}
 	else{
 		%>
-
+		let userId = 'RSPvolunteers';
+		let requestForProjectNames = {};
+		//requestForProjectNames['ownerId'] = userId;
+		requestForProjectNames['participantId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
 		<%
 	}
 	%>
