@@ -249,7 +249,12 @@
 		 {
 		  "name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
 
-			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] }
+			{ "name":"Mozambique", "id":"Mozambique", "locationID":[
+			
+				{"name": "Jangamo Bay", "id": "Jangamo Bay" }
+			
+			
+			] }
 
 		  ] },
 		 {
