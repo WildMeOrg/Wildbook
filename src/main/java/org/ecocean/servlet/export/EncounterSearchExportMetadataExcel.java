@@ -218,10 +218,10 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
           measurementColTitlesRanked.add(currentIndexInMeasureVals); // an array of indeces, a copy of which will be sorted
         }
         List<Integer> measurementColTitlesRankedSorted = measurementColTitlesRanked;
-        if(measurementColTitlesRankedSorted.size()>0) {
+        if(measurementColTitlesRankedSorted!=null && measurementColTitlesRankedSorted.size()>0) {
         	Collections.sort(measurementColTitlesRankedSorted);
 	        for(Integer currentIndex : measurementColTitlesRankedSorted){
-	          sortedMeasurementColTitles.add(measureVals.get(currentIndex.intValue()));
+	          if(currentIndex!=null && currentIndex.intValue()!=-1)sortedMeasurementColTitles.add(measureVals.get(currentIndex.intValue()));
 	        }
         }
       }
