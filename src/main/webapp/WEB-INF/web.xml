@@ -78,7 +78,7 @@
 				/appadmin/automatedUserReconciliation.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
-
+				/appadmin/resendBulkImportID.jsp = authc, roles[researcher]
                 /appadmin/** = authc, roles[admin]
                 #/MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
@@ -457,6 +457,7 @@
 			/import.jsp = authc, roles[researcher]
 			/iaResultsNoMatch.jsp = = authc, roles[researcher]
 			/iaResultsSetID.jsp = = authc, roles[researcher]
+			
 			</param-value>
         </init-param>
     </filter>
