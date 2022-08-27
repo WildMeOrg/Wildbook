@@ -3890,7 +3890,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
   }
 
   public void setInformOthers(List<User> users) {
-    if(informOthers==null){this.informOthers=null;}
+    if(users==null){this.informOthers=null;}
     else{
       this.informOthers=users;
     }
