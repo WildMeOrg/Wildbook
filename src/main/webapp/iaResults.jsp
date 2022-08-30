@@ -17,7 +17,43 @@ org.ecocean.metrics.Prometheus,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
+<%!
+//try to see if encounter was part of ImportTask so we can mark complete
+//  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
+private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
+    if ((enc == null) || (enc.numAnnotations() < 1)) return;
+    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering("created desc");
+    List results = (List)query.execute();
+    ImportTask itask = null;
+    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
+    query.closeAll();
+System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+    if (itask == null) return;
+    String svKey = "rapid_completed_" + itask.getId();
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    for (Annotation ann : enc.getAnnotations()) {
+        m.put(ann.getId(), true);
+System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+    }
+    SystemValue.set(myShepherd, svKey, m);
+    myShepherd.commitDBTransaction();
+}
 
+String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
+}
+%>
 
 <%
 
@@ -148,6 +184,7 @@ String taskId = request.getParameter("taskId");
 			</ul></p>
 		</div>
 	</div>
+	<div id="rapidId"></div>
 <style type="text/css">
 /* this .search-collapse-header .rotate-chevron logic doesn't work
  because animatedcollapse.js is eating the click event (I think.).
@@ -918,6 +955,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
         var mainAsset = false;
         var otherAnnots = [];
         var h = 'Matching results';
+        var rapidId = '';
 		var acmId;
 		var incrementalProjectId;
 		var projectUUID;
@@ -1132,6 +1170,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
+
+					
 					// make whole encounter line clickable
 					thisResultLine.click(function(event) {
 						let tar = $(event.target);
@@ -1147,6 +1187,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					if (!indivId) {
 						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
 					}
+					
+                    if (isQueryAnnot) {
+    	                let loc = annotData[acmIdPassed] && annotData[acmIdPassed][0] && annotData[acmIdPassed][0].encounterLocationId;
+                            if (loc && !indivId) {
+    	                    	let nextVal = annotData[acmIdPassed][0].encounterLocationNextValue;
+                                rapidId += '<input type="button" value="Set new name (' + nextVal + ') for just this Encounter" onClick="$(this).hide(); return approvalButtonClick(\'' + encId + '\', \'\', \'\', \'' + taskId + '\', \'\', true);" />';
+                            }
+                    }
+					
 				}
 
 				if (isProjectSelected()) {
@@ -1178,6 +1227,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
                     if (h) $('#encounter-info .enc-title').html(h);
+                    if (rapidId) $('#rapidId').html(rapidId);
                     if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) imgInfo = '<span class="img-info-type">TARGET</span> ' + imgInfo;
                     var qdata = {
                         annotId: mainAnnId,
