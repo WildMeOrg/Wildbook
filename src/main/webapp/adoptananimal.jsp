@@ -28,8 +28,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 <jsp:include page="header.jsp" flush="true" />
 <link rel="stylesheet" href="css/createadoption.css">
 
-<div style="margin: 0; padding: 0;">
-	<div id="adopt-a-sand-tiger-shark-header" style="background-image: url('./images/ncaquariums/AdoptaSharkBanner.png'); min-height:297px; background-size: contain; background-repeat: no-repeat;">
+<div style="margin-top: 6vw; padding: 0;">
+	<div id="adopt-a-sand-tiger-shark-header" style="background-image: url('./images/ncaquariums/AdoptaSharkBanner.png'); min-height:297px; background-repeat: no-repeat;">
       <h2 style="position: absolute; padding-top: 7%; left: 100px; font-size: 3vw; color: white; text-shadow: 0.3vw 0.3vh black;">Adopt a Sand Tiger Shark</h2>
     </div>
     <div id="description-section" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain; padding-left: 4vw">
@@ -206,12 +206,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             <td style="padding: 0 15px; font-size: 1.7vw;">Aeolus (AR-305)</td>
                         </tr>
                     </table>
-                    <div id="image-plus-text-container" style="margin-left: 20vw;">
+                    <div id="image-plus-text-container" style="margin-left: 10vw;">
                         <img src="./images/ncaquariums/Cecil_07.17.2020.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                     </div>
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
-                <div id="image-before-interesting-fact">
+                <div id="image-before-interesting-fact" style="margin-left: 1vw">
                     <img src="./images/ncaquariums/Cecil_3.png" style="height: 300px; width: 400px; object-fit: cover; "/>
                 </div>
                 <div style="margin-left: 15px; display: flex; flex-direction: column; margin-bottom: 1vh;">
@@ -445,7 +445,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 </div>
                 <div id="single-animal-images" style="display: flex; justify-content: space-around;">
                     <div id="image-plus-text-container">
-                        <img src="./images/ncaquariums/RipTorn_1.png" style="height: 300px; width: 400px; object-fit: cover; margin-left: 20vw;"/>
+                        <img src="./images/ncaquariums/RipTorn_1.png" style="height: 300px; width: 400px; object-fit: cover; margin-left: 26vw;"/>
                     </div>
                 </div>
             </div>
@@ -473,7 +473,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh; margin-left: 59.7vw;"/>
+                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh; margin-left: 59.5vw;"/>
                 </div>
             </div>
             
