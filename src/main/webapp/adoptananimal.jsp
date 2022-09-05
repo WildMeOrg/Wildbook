@@ -473,7 +473,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             </div>
             <div id="pic-and-interesting-facts" style="margin-top: 20px; display: flex; justify-content: flex-start;">
                 <div id="image-before-interesting-fact">
-                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh; margin-left: 5vw;"/>
+                    <img src="./images/ncaquariums/RipTorn_3.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh; margin-left: 59.5vw;"/>
                 </div>
             </div>
             
