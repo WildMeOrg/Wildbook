@@ -30,7 +30,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 <div style="margin-top: 6vw; padding: 0;">
 	<div id="adopt-a-sand-tiger-shark-header" style="background-image: url('./images/ncaquariums/AdoptaSharkBanner.png'); min-height:297px; background-repeat: no-repeat;">
-      <h2 style="position: absolute; padding-top: 7%; left: 100px; font-size: 3vw; color: white; text-shadow: 0.3vw 0.3vh black;">Adopt a Sand Tiger Shark</h2>
+      <h2 style="position: absolute; padding-top: 5%; left: 100px; font-size: 3vw; color: white; text-shadow: 0.3vw 0.3vh black;">Adopt a Sand Tiger Shark</h2>
     </div>
     <div id="description-section" style="background-image: url('./images/ncaquariums/SchoolingSandTigersTanyaHouppermansBnW.png'); background-size: contain; padding-left: 4vw">
       
@@ -467,7 +467,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </tr>
                     </table>
                 </div>
-                <div id="image-plus-text-container" style="padding-left: 45.7vw; padding-bottom: 2.5vh;">
+                <div id="image-plus-text-container" style="padding-left: 46vw; padding-bottom: 2.5vh;">
                     <img src="./images/ncaquariums/RipTorn_2.png" style="height: 300px; width: 400px; object-fit: cover; padding-bottom: 2.5vh;"/>
                 </div>
             </div>
