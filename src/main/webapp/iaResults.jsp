@@ -1107,6 +1107,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
+				var socialUnitName = res.responseJSON.annotations[0].socialUnitName;
 
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
@@ -1159,8 +1160,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				}
 
 				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    h += '<a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                    
+                    //add social unit name
+                    console.log("socialunit name: "+socialUnitName);
+                    if(socialUnitName){
+                    	
+                    	thisResultLine.append('<a class="indiv-link" target="_new" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                    }
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
@@ -1245,6 +1253,10 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 	console.log("another encId = "+encId);
                 }
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
+                //add social unit name
+                if(socialUnitName){
+                	thisResultLine.append('<a class="indiv-link" target="_new" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                }
             }
             imgInfo += '</li>';
         }
