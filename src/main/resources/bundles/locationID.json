@@ -123,20 +123,7 @@
 						}
 					]
 				},
-								{
-					"name": "Mpala",
-					"id": "Mpala"
-				},
-				{
-					"name": "Mugie",
-					"id": "Mugie",
-					"prefix": "mug",
-					"prefixDigitPadding": 4,
-					"geospatialInfo":{
-		 			 	"lat":0.2,
-		 			 	"long":37.41
-		 			 }
-				},
+
 				{
 					"name": "Mwea NR",
 					"prefix": "MWE",
@@ -145,36 +132,92 @@
 					"description": "Mwea NR"
 				},
 				{
-					"name": "Namunyak",
-					"id": "Namunyak",
-					"prefix": "nam",
+					"name": "Northen Kenya",
+					"id": "Northen Kenya",
+					"prefix": "NoKe",
 					"prefixDigitPadding": 3,
-					"description": "Namunyak Wildlife Conservancy",
+					"description": "Northern Kenya",
 					"geospatialInfo":{
 		 			 	"lat":1.270203,
 		 			 	"long":37.382723
- 			 		}
-				},
-				{
-					"name": "Ol Jogi",
-					"id": "Ol Jogi",
-					"description": "Ol Jogi Conservancy",
-					"prefix": "OlJo",
-					"prefixDigitPadding": 4,
-					"geospatialInfo":{
-		 			 	"lat":0.3,
-		 			 	"long":37
-		 			 }
-				},
-				{
-					"name": "Ol Pejeta",
-					"id": "Ol Pejeta",
-					"prefix": "opc",
-					"prefixDigitPadding": 3,
-					"geospatialInfo":{
-		 			 	"lat":0.0,
-		 			 	"long":37
-		 			 }
+ 			 		},
+					"locationID": [
+						{
+							"name": "Lewa",
+							"id": "Lewa",
+							"prefix": "lew",
+							"prefixDigitPadding": 3,
+							"geospatialInfo":{
+								"lat":0.2,
+								"long":37.41
+							 }
+						},
+						{
+							"name": "Loisaba",
+							"id": "Loisaba",
+							"prefix": "loi",
+							"prefixDigitPadding": 3,
+							"geospatialInfo":{
+								"lat":0.612208,
+								"long":36.802823
+							 }
+						},
+						{
+							"name": "Mpala",
+							"id": "Mpala"
+						},
+						{
+							"name": "Mugie",
+							"id": "Mugie",
+							"prefix": "mug",
+							"prefixDigitPadding": 4,
+							"geospatialInfo":{
+								"lat":0.2,
+								"long":37.41
+							}
+						},
+						{
+							"name": "Namunyak",
+							"id": "Namunyak",
+							"prefix": "nam",
+							"prefixDigitPadding": 3,
+							"description": "Namunyak Wildlife Conservancy",
+							"geospatialInfo":{
+								"lat":1.270203,
+								"long":37.382723
+							}		
+						},
+						{
+							"name": "Ol Jogi",
+							"id": "Ol Jogi",
+							"description": "Ol Jogi Conservancy",
+							"prefix": "OlJo",
+							"prefixDigitPadding": 4,
+							"geospatialInfo":{
+								"lat":0.3,
+								"long":37
+							 }
+						},
+						{
+							"name": "Ol Pejeta",
+							"id": "Ol Pejeta",
+							"prefix": "opc",
+							"prefixDigitPadding": 3,
+							"geospatialInfo":{
+								"lat":0.0,
+								"long":37
+							 }
+						},
+						{
+							"name": "Sera Conservancy",
+							"id": "Sera Conservancy",
+							"description": "Sera Conservancy",
+							"prefix": "SER",
+							"prefixDigitPadding": 3
+						}
+					
+					
+					]
 				},
 				{
 					"name": "Ruma NP",
@@ -182,14 +225,8 @@
 					"prefix": "RUMA",
 					"prefixDigitPadding": 3,
 					"description": "Ruma NP"
-				},
-				{
-					"name": "Sera Conservancy",
-					"id": "Sera Conservancy",
-					"description": "Sera Conservancy",
-					"prefix": "SER",
-					"prefixDigitPadding": 3
 				}
+
 			]
 		},
 		{
