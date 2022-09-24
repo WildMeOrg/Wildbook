@@ -13,6 +13,7 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.media.*,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,
+org.ecocean.social.SocialUnit,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%!
@@ -74,7 +75,7 @@ if (request.getParameter("acmId") != null) {
 		}
 		else{
 				Shepherd myShepherd = new Shepherd(context);
-				myShepherd.setAction("iaResults.jsp1");
+				myShepherd.setAction("iaResultsAnnotFeed.jsp1");
 				myShepherd.beginDBTransaction();
 				try{
 					
@@ -120,19 +121,33 @@ if (request.getParameter("acmId") != null) {
 	                                jm.put("rotation", rotationInfo(ma));
 							        jann.put("asset", jm);
 								}
+								MarkedIndividual individual = enc.getIndividual();
+								if (individual!=null) {
+									//SocialUnit-related info
+									List<SocialUnit> socialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(individual);
+									if(socialUnits!=null && socialUnits.size()>0){
+										//deliberate decision to only show 1, which is the vast majority of animals, revisit assumption in CODEX
+										jann.put("socialUnitName", socialUnits.get(0).getSocialUnitName());
+									}
+								}
 								if (project!=null) {
 									try {
 		
 										if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 											System.out.println("num encounters in project: "+project.getEncounters().size());
-											MarkedIndividual individual = enc.getIndividual();
+											//MarkedIndividual individual = enc.getIndividual();
 											if (individual!=null) {
+												
+												//Project-related info
 												List<String> projectNames = individual.getNamesList(projectIdPrefix);
 												if(projectNames!=null && projectNames.size()>0){
 													jann.put("incrementalProjectId", projectNames.get(0));
 												}
 												jann.put("projectIdPrefix", projectIdPrefix);
 												jann.put("projectUUID", project.getId());
+												
+
+												
 											}
 										}
 									} catch (Exception e) {
@@ -149,7 +164,7 @@ if (request.getParameter("acmId") != null) {
 					//out.println(rtn.toString());
 			        
 			        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
-			        cq.nextExpirationTimeout=System.currentTimeMillis()+20000;
+			        cq.nextExpirationTimeout=System.currentTimeMillis()+60000;
 			        qc.addCachedQuery(cq);
 						
 					}
@@ -177,7 +192,7 @@ if (request.getParameter("acmId") != null) {
 }
 else{
 	%>
-	<p>You must specicify the ?acmId= paramater.</p>
+	<p>You must specify the ?acmId= parameter.</p>
 	<%
 }
 %>
