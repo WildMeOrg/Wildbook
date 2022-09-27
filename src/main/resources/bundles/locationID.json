@@ -67,26 +67,6 @@
 					"description": "Lake Nakuru"
 				},
 				{
-					"name": "Lewa",
-					"id": "Lewa",
-					"prefix": "lew",
-					"prefixDigitPadding": 3,
-					"geospatialInfo":{
-		 			 	"lat":0.2,
-		 			 	"long":37.41
-		 			 }
-				},
-				{
-					"name": "Loisaba",
-					"id": "Loisaba",
-					"prefix": "loi",
-					"prefixDigitPadding": 3,
-					"geospatialInfo":{
-		 			 	"lat":0.612208,
-		 			 	"long":36.802823
-		 			 }
-				},
-				{
 					"name": "Mara",
 					"id": "Mara",
 					"prefix": "mnr",
@@ -132,8 +112,8 @@
 					"description": "Mwea NR"
 				},
 				{
-					"name": "Northen Kenya",
-					"id": "Northen Kenya",
+					"name": "Northern Kenya",
+					"id": "Northern Kenya",
 					"prefix": "NoKe",
 					"prefixDigitPadding": 3,
 					"description": "Northern Kenya",
