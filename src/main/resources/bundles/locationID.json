@@ -123,6 +123,30 @@
  			 		},
 					"locationID": [
 						{
+							"name": "Borana",
+							"id": "Borana",
+							"prefix": "bor",
+							"prefixDigitPadding": 3
+						},
+						{
+							"name": "Il Mamusi",
+							"id": "Il Mamusi",
+							"prefix": "IlMa",
+							"prefixDigitPadding": 3
+						},
+						{
+							"name": "Il Ngwesi",
+							"id": "Il Ngwesi",
+							"prefix": "IlNg",
+							"prefixDigitPadding": 3
+						},
+						{
+							"name": "Kirimon",
+							"id": "Kirimon",
+							"prefix": "kir",
+							"prefixDigitPadding": 3
+						},
+						{
 							"name": "Lewa",
 							"id": "Lewa",
 							"prefix": "lew",
@@ -143,6 +167,12 @@
 							 }
 						},
 						{
+							"name": "Loldaiga",
+							"id": "Loldaiga",
+							"prefix": "lol",
+							"prefixDigitPadding": 3
+						},
+						{
 							"name": "Mpala",
 							"id": "Mpala"
 						},
@@ -157,6 +187,12 @@
 							}
 						},
 						{
+							"name": "Naibunga",
+							"id": "Naibunga",
+							"prefix": "NAI",
+							"prefixDigitPadding": 4
+						},
+						{
 							"name": "Namunyak",
 							"id": "Namunyak",
 							"prefix": "nam",
@@ -166,6 +202,18 @@
 								"lat":1.270203,
 								"long":37.382723
 							}		
+						},
+						{
+							"name": "Nareto",
+							"id": "Nareto",
+							"prefix": "nar",
+							"prefixDigitPadding": 3	
+						},
+						{
+							"name": "Nasuulu",
+							"id": "Nasuulu",
+							"prefix": "nas",
+							"prefixDigitPadding": 3
 						},
 						{
 							"name": "Ol Jogi",
@@ -179,6 +227,13 @@
 							 }
 						},
 						{
+							"name": "Ol Malo",
+							"id": "Ol Malo",
+							"description": "Ol Malo",
+							"prefix": "OlMa",
+							"prefixDigitPadding": 4
+						},
+						{
 							"name": "Ol Pejeta",
 							"id": "Ol Pejeta",
 							"prefix": "opc",
@@ -187,6 +242,12 @@
 								"lat":0.0,
 								"long":37
 							 }
+						},
+						{
+							"name": "Segera",
+							"id": "Segera",
+							"prefix": "SEG",
+							"prefixDigitPadding": 3
 						},
 						{
 							"name": "Sera Conservancy",
