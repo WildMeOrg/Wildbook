@@ -30,6 +30,8 @@
 	{ "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Sydney-Oak Park", "id":"NSW-Sydney-Oak Park", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Sydney-Voodoo", "id":"NSW-Sydney-Voodoo", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-34.0421495,"long":151.2124331} },
 
   { "name":"NSW-Terrigal Haven", "id":"NSW-Terrigal Haven", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-33.44324321481046,"long":151.4484855323446} },
 
