@@ -37,6 +37,25 @@
 		  {
 		  "name": "Ifaty" ,"id": "Ifaty" 
 		  },
+		  {"name":"Kenya","id":"Kenya",
+		  "locationID":[
+				  {
+				  "name": "Kwale" ,"id": "Kwale" 
+				  },
+				  {
+				  "name": "Mombasa" ,"id": "Mombasa" 
+				  },		  
+				  {
+				  "name": "Kilifi" ,"id": "Kilifi"
+				  },
+				  {
+				  "name": "Tana River" ,"id": "Tana River"
+				  },
+				  {
+				  "name": "Lamu" ,"id": "Lamu"
+				  }
+			  ]
+			},
 		  {
 		  "name": "Mahajanga" ,"id": "Mahajanga" 
 		  },
