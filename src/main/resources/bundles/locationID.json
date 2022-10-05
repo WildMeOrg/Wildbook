@@ -738,23 +738,28 @@
 		 {
 		  "name": "Timor Sea" , "id": "Timor Sea"
 		  },
-		  {"name":"Madagascar","id":"Madagascar",
+		  		  {"name":"Kenya","id":"Kenya",
 		  "locationID":[
-					{
-				  "name": "Mahajanga (Majunga)" ,"id": "Majunga"
+				  {
+				  "name": "Kwale" ,"id": "Kwale" 
 				  },
 				  {
-				  "name": "Nosy Be" ,"id": "Nosy Be"
+				  "name": "Mombasa" ,"id": "Mombasa" 
+				  },		  
+				  {
+				  "name": "Kilifi" ,"id": "Kilifi"
 				  },
 				  {
-				  "name": "Nosy Iranja" ,"id": "Nosy Iranja"
+				  "name": "Tana River" ,"id": "Tana River"
 				  },
 				  {
-				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
+				  "name": "Lamu" ,"id": "Lamu"
 				  }
 			  ]
 			},
-		  {
+		  {"name":"Madagascar","id":"Madagascar",
+		  "locationID":[
+							  {
 		  "name": "Antongil Bay" ,"id": "Antongil Bay"
 		  },
 		  {
@@ -772,6 +777,18 @@
 		  {
 		  "name": "Mahajanga" ,"id": "Mahajanga"
 		  },
+				  {
+				  "name": "Nosy Be" ,"id": "Nosy Be"
+				  },
+				  {
+				  "name": "Nosy Iranja" ,"id": "Nosy Iranja"
+				  },
+				  {
+				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
+				  }
+			  ]
+			},
+
 		  {
 		  "name": "Reunion" ,"id": "Reunion"
 		  },
@@ -1058,11 +1075,38 @@
 
 			]
 		  },
-		   { "name":"Seychelles", "id":"Seychelles", "locationID":[
 
-				{ "name":"Aldabra Atoll", "id":"Aldabra Atoll", "locationID":[] }
-
-		  ] },
+		  
+		 {"name": "Seychelles", "id": "Seychelles", "locationID":[
+		  
+			{
+			"name": "Aldabra Atoll", "id": "Aldabra Atoll"
+			},
+			{
+			"name": "Alphonse", "id": "Alphonse"
+			},
+			{
+			"name": "Cosmoledo", "id": "Cosmoledo"
+			},
+			{
+			"name": "Desroches", "id": "Desroches"
+			},
+			{
+			"name": "Farquhar", "id": "Farquhar"
+			},
+			{
+			"name": "La Digue", "id": "La Digue"
+			},
+			{
+			"name": "Mahé", "id": "Mahé"
+			},
+			{
+			"name": "Praslin", "id": "Praslin"
+			},
+			{
+			"name": "Silhouette", "id": "Silhouette"
+			}
+		  ]},
 		  
 		  { "name":"Western Australia", "id":"Western Australia", "locationID":[
 		  
