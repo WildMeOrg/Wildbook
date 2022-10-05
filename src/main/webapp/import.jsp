@@ -55,7 +55,7 @@ function confirmCommit() {
 }
 
 function confirmCommitID() {
-	return confirm("Resend to ID? This process may take a long time and block other users from using detection and ID quickly.");
+	return confirm("Send to ID? This process may take a long time and block other users from using detection and ID quickly.");
 }
 
 function confirmDelete() {
@@ -111,6 +111,7 @@ myShepherd.beginDBTransaction();
 //should the user see the detect and/or detect+ID buttons?
 boolean allowIA=false;
 boolean allowReID=false;
+String iaStatusString="not started";
 
 try{
 	User user = AccessControl.getUser(request, myShepherd);
@@ -421,9 +422,9 @@ try{
 	<%
 	
 	//let's determine the IA Status
-	String iaStatusString="not started";
+	
 	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
-	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
+
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
@@ -588,28 +589,28 @@ try{
 	%>
 	    
 	    <p><strong>Image Analysis</strong></p>
-	    
+	    <p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
 		    <%
 		    if (allAssets.size() > 0) {
 		    
 		    %>
-		    	<p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
+		    	
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		
-		<div style="margin-bottom: 20px;">
-		    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
-		 </div>
+
 	 	<% 
 		    }
 	}
-		if (allowReID) { 
+	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) 
+			&& itask.getIATask()!=null 
+			&& itask.getStatus()!=null
+			&& itask.getStatus().equals("complete") 
+			&& (iaStatusString.startsWith("identification")||iaStatusString.equals("detection complete"))) {allowReID=true;}
+
+	if (allowReID) { 
 		%>
 		 <div style="margin-bottom: 20px;">   	
-		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Resend to identification</a> matching against <b>location(s):</b>
+		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
 		    	<select multiple id="id-locationids" style="vertical-align: top;">
 		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
 		        	<option value="">ALL locations</option>
@@ -617,7 +618,7 @@ try{
 		   </div>
 		    	
 		    <%
-		    }
+	}
 
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
