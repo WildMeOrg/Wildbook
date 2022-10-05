@@ -8,6 +8,10 @@
 	{ "name":"NSW-Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Eden-Chipmill", "id":"NSW-Eden-Chipmill", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Eden-North", "id":"NSW-Eden-North", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Eden-West", "id":"NSW-Eden-West", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Jervis Bay-Bowen Island", "id":"NSW-Jervis Bay-Bowen Island", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
