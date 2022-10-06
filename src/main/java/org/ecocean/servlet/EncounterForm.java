@@ -452,7 +452,7 @@ System.out.println("*** trying redirect?");
           spamFields.append(getVal(formValues, spamFieldsToCheck[i]));
             }
 
-      if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
+      if (spamFields.toString().toLowerCase().indexOf("porn") != -1 && request.getRemoteUser() == null) {
         spamBot = true;
       }
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
