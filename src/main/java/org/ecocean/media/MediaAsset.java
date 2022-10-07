@@ -1328,6 +1328,18 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         if (keywords==null) return 0;
         return keywords.size();
     }
+    
+    public int numLabeledKeywords() {
+      if (keywords==null) return 0;
+      //iterate keywords for labeled keywords
+      int numLabeled=0;
+      for(Keyword kw:keywords) {
+        if(kw instanceof LabeledKeyword) {
+          numLabeled++;
+        }
+      }
+      return numLabeled;
+    }
 
     public Keyword getKeyword(int i) {
         return keywords.get(i);
@@ -1336,6 +1348,27 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
+    
+    public ArrayList<LabeledKeyword> getLabeledKeywords() {
+      if(keywords==null)return null;
+      ArrayList<LabeledKeyword> lkws=new ArrayList<LabeledKeyword>();
+      for(Keyword kw:keywords) {
+        if(kw instanceof LabeledKeyword) {
+          lkws.add((LabeledKeyword)kw);
+        }
+      }
+      return lkws;
+    }
+    
+    public String getLabeledKeywordValue(String label) {
+      ArrayList<LabeledKeyword> lkws = getLabeledKeywords();
+      if(lkws==null || lkws.size()==0)return null;
+      for(LabeledKeyword lkw:lkws) {
+        if(lkw.getLabel().equals(label)) return lkw.getValue();
+      }
+      return null;
+    }
+    
     public List<String> getKeywordNames() {
         List<String> names = new ArrayList<String>();
         if (getKeywords()==null) return names;
