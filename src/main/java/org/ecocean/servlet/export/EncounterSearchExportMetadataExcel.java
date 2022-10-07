@@ -63,13 +63,13 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       int numMedia = mas.size();
       if (numMedia > maxNumMedia) maxNumMedia = numMedia;
       for (MediaAsset ma : mas) {
-        int numKw = ma.numKeywords();
+        int numKw = ma.numKeywordsStrict();
         int numLabeledKw=0;
         if(ma.getLabeledKeywords()!=null) {
           List<LabeledKeyword> lkws = ma.getLabeledKeywords(); 
           numLabeledKw=lkws.size();
         }
-        if ((numKw-numLabeledKw) > maxNumKeywords) maxNumKeywords = numKw;
+        if (numKw > maxNumKeywords) maxNumKeywords = numKw;
         if (numLabeledKw > maxNumLabeledKeywords) maxNumLabeledKeywords = numLabeledKw;
       }
       MarkedIndividual id = enc.getIndividual();
@@ -216,7 +216,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         List<String> labels = myShepherd.getAllKeywordLabels();
         for(String label:labels) {
           String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
-          ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, labeledKeywordGetValue, columns);
+          ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName, labeledKeywordGetValue, columns);
           keywordCol.setMaNum(maNum);
           keywordCol.setLabeledKwName(label);
           
@@ -295,18 +295,6 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             if (ma == null) continue; // on to next column
             exportCol.writeLabel(ma, row, sheet);
           }
-          else if (exportCol.isFor(Keyword.class)) {
-            int maNum = exportCol.getMaNum();
-            if (maNum >= mas.size()) continue;
-            MediaAsset ma = mas.get(maNum);
-            if (ma == null) continue; // on to next column
-            int kwNum = exportCol.getKwNum();
-            if (kwNum >= ma.numKeywords()) continue;
-            Keyword kw = ma.getKeyword(kwNum);
-            if (kw == null) continue;
-            exportCol.writeLabel(kw, row, sheet);
-          }
-          
           //add labeled keywords
           else if (exportCol.isFor(LabeledKeyword.class)) {
             int maNum = exportCol.getMaNum();
@@ -322,6 +310,19 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             exportCol.writeLabel(lkw, row, sheet);
           }
           //end add labeled keywords
+          else if (exportCol.isFor(Keyword.class)) {
+            int maNum = exportCol.getMaNum();
+            if (maNum >= mas.size()) continue;
+            MediaAsset ma = mas.get(maNum);
+            if (ma == null) continue; // on to next column
+            int kwNum = exportCol.getKwNum();
+            if (kwNum >= ma.numKeywordsStrict() || kwNum==-1) continue;
+            Keyword kw = ma.getKeywordStrict(kwNum);
+            if (kw == null) continue;
+            exportCol.writeLabel(kw, row, sheet);
+          }
+          
+
           
           else if (exportCol.isFor(Measurement.class)) {
             int measurementNumber = exportCol.getMeasurementNum();
