@@ -33,6 +33,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
   private int numMediaAssetCols = 0;
   private int numKeywords = 0;
+  private List<String> labeledKeywords = new ArrayList<String>();
   private int numMeasurements = 0;
   private int numNameCols = 0;
   private List<String> measurementColTitles = new ArrayList<String>();
@@ -43,6 +44,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
     System.out.println("EncounterSearchExportMetadataExcel: setting environment vars for "+Math.max(rEncounters.size(), rowLimit)+" encs.");
     int maxNumMedia = 0;
     int maxNumKeywords = 0;
+    int maxNumLabeledKeywords = 0;
     int maxNumNames = 0;
     int maxNumMeasurements = 0;
     Set<String> individualIDsChecked = new HashSet<String>();
@@ -62,7 +64,13 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       if (numMedia > maxNumMedia) maxNumMedia = numMedia;
       for (MediaAsset ma : mas) {
         int numKw = ma.numKeywords();
-        if (numKw > maxNumKeywords) maxNumKeywords = numKw;
+        int numLabeledKw=0;
+        if(ma.getLabeledKeywords()!=null) {
+          List<LabeledKeyword> lkws = ma.getLabeledKeywords(); 
+          numLabeledKw=lkws.size();
+        }
+        if ((numKw-numLabeledKw) > maxNumKeywords) maxNumKeywords = numKw;
+        if (numLabeledKw > maxNumLabeledKeywords) maxNumLabeledKeywords = numLabeledKw;
       }
       MarkedIndividual id = enc.getIndividual();
       if (id!=null && !individualIDsChecked.contains(id.getIndividualID())) {
@@ -189,6 +197,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
       // This will include labels in a labeledKeyword value
       Method keywordGetName   = Keyword.class.getMethod("getDisplayName");
+      Method labeledKeywordGetValue   = LabeledKeyword.class.getMethod("getValue");
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
         String mediaAssetColName = "Encounter.mediaAsset"+maNum;
         String fullPathName = "Encounter.mediaAsset"+maNum+".filePath";
@@ -203,6 +212,16 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
           keywordCol.setMaNum(maNum);
           keywordCol.setKwNum(kwNum);
         }
+        
+        List<String> labels = myShepherd.getAllKeywordLabels();
+        for(String label:labels) {
+          String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
+          ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, labeledKeywordGetValue, columns);
+          keywordCol.setMaNum(maNum);
+          keywordCol.setLabeledKwName(label);
+          
+        }
+        
 
       }
 
@@ -287,6 +306,23 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             if (kw == null) continue;
             exportCol.writeLabel(kw, row, sheet);
           }
+          
+          //add labeled keywords
+          else if (exportCol.isFor(LabeledKeyword.class)) {
+            int maNum = exportCol.getMaNum();
+            if (maNum >= mas.size()) continue;
+            MediaAsset ma = mas.get(maNum);
+            if (ma == null) continue; // on to next column
+            //String kwNum = exportCol.getLabeledKwName();
+            //if (kwNum >= ma.numKeywords()) continue;
+            String lkwValue = ma.getLabeledKeywordValue(exportCol.getlabeledKwName());
+            if(lkwValue==null)continue;
+            LabeledKeyword lkw = myShepherd.getLabeledKeyword(exportCol.getlabeledKwName(),lkwValue);
+            if (lkw == null) continue;
+            exportCol.writeLabel(lkw, row, sheet);
+          }
+          //end add labeled keywords
+          
           else if (exportCol.isFor(Measurement.class)) {
             int measurementNumber = exportCol.getMeasurementNum();
             if(measurementNumber < 0) continue;
