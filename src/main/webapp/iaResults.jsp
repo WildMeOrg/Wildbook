@@ -1209,11 +1209,12 @@ console.info('qdata[%s] = %o', taskId, qdata);
             url: illustrationUrl,
             type: 'GET',
             dataType: 'json',
-            contentType: 'application/json',
+            //contentType: 'application/json',
             success: function(data) {
               const statusCode = data?.status?.code;
               $('#loadingText').remove();
               if(statusCode===200) $(selector).append(illustrationHtml);
+              if(statusCode===405) $(selector).append(illustrationHtml);
               if(statusCode===400) $(selector).append(illustrationFailHtml);
             },
             error: function(data){
@@ -1221,7 +1222,11 @@ console.info('qdata[%s] = %o', taskId, qdata);
               $('#loadingText').remove();
               if(statusCode===200){
                 $(selector).append(illustrationHtml);
-              } else{
+              } 
+              else if(statusCode===405){
+                  $(selector).append(illustrationHtml);
+                } 
+              else{
                 $(selector).append(errorText);
               }
             }
