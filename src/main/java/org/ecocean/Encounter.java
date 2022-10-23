@@ -2066,7 +2066,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setMaximumElevationInMeters(Double newElev) {
-    this.maximumElevationInMeters = newElev;
+    if(newElev!=null){this.maximumElevationInMeters = newElev;}
+    else{maximumElevationInMeters = null;}
   }
 
 
