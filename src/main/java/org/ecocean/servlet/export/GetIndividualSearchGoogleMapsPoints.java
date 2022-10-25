@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -12,6 +13,9 @@ import java.util.Random;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.json.*;
@@ -129,7 +133,8 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       //JSONObject address;
       indieMappedPoints.put("features", featureList);
       
-      
+      //let's get our haplotype map
+      HashMap<String,String> haploMap = getIndividualHaplotypeMap(myShepherd);
       
       for(int i=0;i<numIndividuals;i++) {
         MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(i);
@@ -158,8 +163,9 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
         }
           
         //set the haplotype color
-        if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
-            if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
+        String haploValue=haploMap.get(indie.getIndividualID());
+        if((haploValue!=null)&&(haploprops.getProperty(haploValue)!=null)){
+            haploColor = haploprops.getProperty(haploValue);
         }
         //set the species color
         if(indie.getGenusSpecies()!=null){
@@ -319,5 +325,29 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     
   }
 
+  private HashMap<String,String> getIndividualHaplotypeMap(Shepherd myShepherd){
+    HashMap<String,String> haploMap = new HashMap<String,String>();
+    String filter="select distinct individual.individualID,analysis.haplotype from org.ecocean.Encounter where tissueSamples.contains(dce) && dce.analyses.contains(analysis) && ( analysis.haplotype !=null ) VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";
+    Query q = myShepherd.getPM().newQuery(filter);
+    try {
+      Collection c=(Collection)q.execute();
+      ArrayList<Object[]> al=new ArrayList<Object[]>(c);
+      q.closeAll(); 
+      
+      int numResults=al.size();
+      for(int i=0;i<numResults;i++){
+        String indyID = (String)(al.get(i)[0]);
+        String haplo = (String)(al.get(i)[1]);
+        haploMap.put(indyID,haplo);
+      }
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      q.closeAll();
+    }
+    return haploMap;
+  }
   
 }

@@ -1343,7 +1343,7 @@ public class Encounter implements java.io.Serializable {
   public boolean wasInPeriod(DateTime start, DateTime end) {
     Long thisTime = getDateInMilliseconds();
     if (thisTime==null) return false;
-    return (start.getMillis()<=thisTime && end.getMillis()>thisTime);
+    return (start.getMillis()<=thisTime && end.getMillis()>=thisTime);
   }
 
 
@@ -3344,7 +3344,6 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
   }
 
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
     jobj=decorateJsonNoAnnots(request,jobj);
 
     jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
@@ -3582,7 +3581,7 @@ throw new Exception();
         public String getPrefixForLocationID(){ //convenience function
           return LocationID.getPrefixForLocationID(this.getLocationID(), null);
         }
-        
+
         public int getPrefixDigitPaddingForLocationID() { // convenience function
           return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
         }
@@ -3708,6 +3707,14 @@ throw new Exception();
         if (occ != null) {
             occ.addEncounter(enc);
             enc.setOccurrenceID(occ.getOccurrenceID());
+        }
+        
+        //WB-1949: clone into same projects too
+        ArrayList<Project> projects=myShepherd.getAllProjectsForEncounter(this);
+        if(projects!=null) {
+          for(Project proj:projects) {
+            proj.addEncounter(enc);
+          }
         }
 
         enc.setRecordedBy(this.getRecordedBy());
@@ -3976,7 +3983,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
   }
 
   public void setInformOthers(List<User> users) {
-    if(informOthers==null){this.informOthers=null;}
+    if(users==null){this.informOthers=null;}
     else{
       this.informOthers=users;
     }

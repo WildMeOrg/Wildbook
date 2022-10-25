@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 org.ecocean.media.*,
@@ -102,7 +102,7 @@ java.util.Properties" %>
 				if (enc!=null) {
 					h += "<li><a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\">Encounter " + enc.getCatalogNumber() + "</a>";
 					h+= showEncounter(enc, req);
-					h+= "</li>";	
+					h+= "</li>";
 				} else {
 					h += "<li>NULL Emcpimter!</li>";
 				}
@@ -369,7 +369,7 @@ java.util.Properties" %>
 String id = request.getParameter("id");
 String type = request.getParameter("type");
 
-// IA debuggin use.. Can retrieve Annotations 
+// IA debuggin use.. Can retrieve Annotations
 String acmid = request.getParameter("acmid");
 
 if (!rawOutput(type)) {
@@ -522,6 +522,7 @@ if (Util.requestParameterSet(request.getParameter("evict"))) {
 }
 
 Shepherd myShepherd = new Shepherd(context);
+shown = new ArrayList<Object>();
 myShepherd.setAction("obrowse.jsp");
 myShepherd.beginDBTransaction();
 
@@ -532,7 +533,7 @@ context=ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
 
 //set up the file input stream
@@ -611,12 +612,12 @@ if (type.equals("Encounter")) {
 			out.println("<p>ERROR: " + e.toString() + "</p>");
 			needForm = true;
 		}
-		
-	}
-	
 
-	
-	
+	}
+
+
+
+
 
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmid==null) {

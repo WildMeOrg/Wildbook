@@ -33,16 +33,16 @@
     String occsJson="";
     String prettyPrint="";
     String jdoqlRep="";
-    
+
     myShepherd.beginDBTransaction();
     try{
-    
+
     	numOccurrences=myShepherd.getNumOccurrences();
-    
+
     	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-    
+
     	jdoqlRep=result.getJDOQLRepresentation();
-    	
+
     	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
     	rOccurrences = result.getResult();
 
@@ -50,7 +50,7 @@
 		HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request, true,myShepherd);
 		rOccurrences = hiddenData.viewableResults(rOccurrences, true,myShepherd);
 
-	
+
 	   Vector histories = new Vector();
 	    int rOccurrencesSize=rOccurrences.size();
 
@@ -66,7 +66,9 @@
 		JSONArray jsonobj = new JSONArray();
 		for (Occurrence occ : rOccurrences) {
 			JSONObject occObject = occ.getJSONSummary();
-			jsonobj.put(occObject);
+      occObject.put("_sanitized", !occ.canUserAccess(request));
+      // jsonobj.put(occ.uiJson(request));
+      jsonobj.put(occObject);
 		}
 
 		occsJson = jsonobj.toString();
@@ -80,7 +82,7 @@
 		myShepherd.closeDBTransaction();
 	}
 
-		
+
 
   %>
 
@@ -225,7 +227,6 @@ $(document).keydown(function(k) {
 // functor!
 function _notUndefined(fieldName) {
   function _helperFunc(o) {
-	console.log("the fucking 'o' variable: "+JSON.stringify(o));  	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
@@ -257,7 +258,7 @@ function _date(o) {
 
 var colDefn = [
 
- 
+
   {
     key: 'ID',
     label: '<%=occProps.getProperty("ID")%>',
@@ -314,14 +315,12 @@ var counts = {
 };
 
 var sTable = false;
-//var searchResultsObjects = [];
+var searchResultsObjects = [];
 
 function doTable() {
-/*
 	for (var i = 0 ; i < searchResults.length ; i++) {
 		searchResultsObjects[i] = new wildbook.Model.Occurrence(searchResults[i]);
 	}
-*/
 
 	sTable = new SortTable({
 		data: searchResults,
@@ -433,6 +432,15 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
+    var privateResults = searchResultsObjects[results[i]].get('_sanitized') || false;
+    var title = 'Occurrence ' + searchResults[results[i]].occurrenceID;
+    if (privateResults) {
+      title += ' [private]';
+      $($('#results-table tbody tr')[i]).addClass('collab-private');
+    } else {
+      $($('#results-table tbody tr')[i]).removeClass('collab-private');
+    }
+    $('#results-table tbody tr')[i].title = title;
 		//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].occurrenceID);
 		for (var c = 0 ; c < colDefn.length ; c++) {
@@ -456,7 +464,7 @@ function show() {
 
 function computeCounts() {
 	counts.total = sTable.matchesFilter.length;
-	return;  
+	return;
 }
 
 

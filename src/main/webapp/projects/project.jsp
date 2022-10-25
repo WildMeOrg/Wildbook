@@ -36,7 +36,7 @@
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
-  <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
+
   <%
   try{
 
@@ -94,16 +94,17 @@
 	                  </div>
 	                  <div id="table-div" style="display: none;">
 	                              <p>Total encounters: <%=encounters.size() %></p>
-	                    <table class="row project-style">
+	                    <table class="row project-style js-sort-table" >
 	                      <thead>
 	                        <tr>
+	                          <th class="project-style"><%= projectProps.getProperty("OccurrenceTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
+	                          <th class="project-style" data-js-sort-colnum="0"><%= projectProps.getProperty("IndividualTableHeader")%></th>
+	                          <th class="project-style js-sort-date" data-js-sort-colnum="1"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
 	                          <th class="project-style"><%= projectProps.getProperty("ProjectIdTableHeader")%></th>
-	                          <th class="project-style"><%= projectProps.getProperty("ActionTableHeader")%></th>
+	                          <th class="project-style js-sort-none"><%= projectProps.getProperty("ActionTableHeader")%></th>
 	                        </tr>
 	                      </thead>
 	                      <tbody id="encounterList">
@@ -119,10 +120,13 @@
 
             </div>
           </div>
+          
+           
 
 <script type="text/javascript">
 
-var projTxt = getText("project.properties");
+var annotIdTaskIdAdapter = {};
+var txt = getText("project.properties");
 
 let projIdPrefix = '';
 let countOfIncrementalIdRowPopulated = 0;
@@ -202,6 +206,11 @@ function disableNewButton(encounterId){
   $('#disabled-mark-new-button_' + encounterId).show();
 }
 
+function disableStartMatchButton(encounterId){
+  $('#encId-' + encounterId).hide();
+  $('#disabled-encId-' + encounterId).show();
+}
+
 function enableNewButton(encounterId){
   $('#disabled-mark-new-button_' + encounterId).hide();
   $('#mark-new-button_' + encounterId).show();
@@ -211,6 +220,13 @@ function dismissAlert(encounterId){
   if(encounterId){
     $('#'+'alert-div_'+ encounterId).hide();
     $('#'+'alert-div-warn_'+encounterId).hide();
+  }
+}
+
+function dismissAlertForMatchStart(encounterId){
+  if(encounterId){
+    $('#'+'match-start-alert-div_'+ encounterId).hide();
+    $('#'+'match-start-alert-div_-warn_'+encounterId).hide();
   }
 }
 
@@ -237,6 +253,8 @@ function getEncounterJSON() {
               for (let j=0;j<thisProject.encounters.length;j++) {
                 let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j], thisProject.encounters, j);
                 $("#encounterList").append(projectHTML);
+                // enable Match Results as needed ?
+                // getIAInfoForEncounterData(null, thisProject.encounters[j].encounterId);
               }
 
             }
@@ -269,6 +287,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
+  let occurrenceUUID = json.occurrenceUUID;
   let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
@@ -277,8 +296,9 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
-  projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
-  projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
+  projectHTML +=  '<td id="occurrenceID-'+encounterId+'" class="project-style"><a target="_new" href="../occurrence.jsp?number='+occurrenceUUID+'">'+occurrenceUUID+'</a></td>';
+  projectHTML +=  '<td id="catalogNumber-'+encounterId+'" class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
+  projectHTML +=  '<td id="indivID-'+encounterId+'" class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
@@ -303,12 +323,15 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML +=  '<div class="row">';
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
               // add JS check for ia availability onload
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+projTxt.startMatch+'</button>';
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this, \'' + encounterId + '\')">'+txt.startMatch+'</button>';
+  projectHTML +=  '     <button id="disabled-encId-'+encounterId+'" class="disabled-btn proj-action-btn" style="display: none;">'+txt.startMatch+'</button>';
   projectHTML +=  '     </br>';
   projectHTML +=  '   </div>';
               // add JS check for exisitng results onload (add .disabled-btn if appropriate)
+
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+projTxt.matchResults+'</button>';
+  projectHTML +=  '     <button id="disabled-match-results-encId-'+encounterId+'" style="display: none;" class="disabled-btn visitResultsButton proj-action-btn">'+txt.matchResults+'</button>';
+  projectHTML +=  '     <button id="match-results-encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.matchResults+'</button>';
   projectHTML +=  '     </br>';
   projectHTML +=  '   </div>';
   projectHTML +=  '</div>';
@@ -335,7 +358,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML += '   </div>';
 
   projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+projTxt.remove+'</button>';
+  projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+txt.remove+'</button>';
   projectHTML += '    <span class="deleteMessage text-danger"></span>';
   projectHTML += '   </div>';
   projectHTML += '</div>';
@@ -350,6 +373,16 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML += '  <button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
   projectHTML += '  <%= projectProps.getProperty("IdNotAdded")%>';
   projectHTML += '</div>';
+  projectHTML += '<div id="match-start-adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;">' + txt.matchingIntiatedWait + '</div>';
+  projectHTML += '<div id="match-start-alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
+  projectHTML += '  <button type="button" class="close" onclick="dismissAlertForMatchStart(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += '  <strong>' + txt.Success + '</strong> ' + txt.matchStartedSuccessfully;
+  projectHTML += '</div>';
+  projectHTML += '<div id="match-start-alert-div-warn_'+encounterId+'" class="alert alert-danger" role="alert" style="display: none;">';
+  projectHTML += '  <button type="button" class="close" onclick="dismissAlertForMatchStart(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += txt.matchStartFailed;
+  projectHTML += '</div>';
+
   projectHTML += '</td>';
   projectHTML += '</tr>';
 
@@ -400,7 +433,15 @@ function populateEncounterRowWithIncrementalId(incrementalIdResults, encounters,
   $('#incremental-id-' + encounters[currentEncounterIndex].encounterId).append(incrementalIdResults[0].projectIncrementalId);
 }
 
-function startMatchForEncounter(el) {
+function startMatchForEncounter(el, currentEncounterId) {
+  $('#match-start-adding-div_' + currentEncounterId).show();
+  disableStartMatchButton(currentEncounterId);
+  disableMatchResultsButton(currentEncounterId);
+  let menuRow = $('#iaResultsMenu-'+currentEncounterId);
+  if (!isHidden(menuRow)) {
+    menuRow.hide(); // note that this HAS to close and be re-opened in order to run getIAInfoForEncounterData again which in turn runs generateIALinkingMenu which looks for taskId updates from this startMatch logic herein
+    $("#match-results-encId-"+currentEncounterId).html(txt.matchResults);
+  }
   let elId = $(el).attr('id');
   console.log("--> el id for starting match: "+elId);
   let encId = elId.replace('encId-','');
@@ -419,8 +460,19 @@ function startMatchForEncounter(el) {
         success: function(d) {
           $(el).val('Sent');
           $(el).css('background-color', 'red');
-          console.log("response from ProjectIA : "+JSON.stringify(d));
-          // do something to indicate success -CK
+          console.log("response from ProjectIA : ");
+          console.log(d);
+          if(d){
+            if(d.success){
+              $('#match-start-adding-div_' + currentEncounterId).hide();
+              $('#match-start-alert-div_'+currentEncounterId).show();
+              populateAnnotIdTaskIdAdapter(d, currentEncounterId);
+              enableMatchResultsButton(currentEncounterId);
+            }else{
+              $('#match-start-adding-div_' + currentEncounterId).hide();
+              $('#match-start-alert-div-warn_'+currentEncounterId).show();
+            }
+          }
         },
         error: function(x,y,z) {
             console.warn('%o %o %o', x, y, z);
@@ -429,8 +481,33 @@ function startMatchForEncounter(el) {
   }
 }
 
+function enableMatchResultsButton(encId){
+  $("#disabled-match-results-encId-" + encId).hide();
+  $("#match-results-encId-" + encId).show();
+}
+
+function disableMatchResultsButton(encId){
+  $("#match-results-encId-" + encId).hide();
+  $("#disabled-match-results-encId-" + encId).show();
+}
+
+function populateAnnotIdTaskIdAdapter(data, encounterId){
+  if(data.success){
+    const initiatedJobs = data.initiatedJobs;
+    if(initiatedJobs.length > 0){
+      for(let i = 0; i<initiatedJobs.length; i++){
+        const currentJob = initiatedJobs[i];
+        const currentQueryAnnId = currentJob.queryAnnId;
+        const currentChildTaskId = currentJob.childTaskId;
+        annotIdTaskIdAdapter[currentQueryAnnId] = currentChildTaskId;
+      }
+    }
+  }
+
+}
+
 function removeEncounterFromProject(el) {
-  let confirmed = confirm(projTxt.youSure);
+  let confirmed = confirm(txt.youSure);
   if (confirmed) {
     removeEncounterFromProjectAjax(el);
   }
@@ -459,19 +536,19 @@ function removeEncounterFromProjectAjax(el) {
         if (d.success==true&&d.modified==true) {
           encRow.remove();
         } else {
-          encRow.find(".deleteMessage").text(projTxt.unauthorized);
+          encRow.find(".deleteMessage").text(txt.unauthorized);
         }
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
-          encRow.find(".deleteMessage").text(projTxt.error);
+          encRow.find(".deleteMessage").text(txt.error);
       }
   });
 }
 
 function goToIAResults(taskId) {
-  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
-  window.location.replace('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+projIdPrefix);
+	  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
+	  window.open('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+encodeURIComponent(projIdPrefix), "_blank");
 }
 
 function generateIALinkingMenu(json, encId) {
@@ -481,26 +558,32 @@ function generateIALinkingMenu(json, encId) {
   if (json) {
     for (i=0;i<json.length;i++) {
       let annData = json[i];
-
       // lets flag some bad detection states
 
       let needsIaClass = true;
-      let iaClassEl = '<p>'+projTxt.iaClass+': <span style="color:white;background-color:darkred;"> '+projTxt.none+' </span></p>';
+      let iaClassEl = '<p>'+txt.iaClass+': <span style="color:white;background-color:darkred;"> '+txt.none+' </span></p>';
       if (annData.iaClass!=''||annData.iaClass!='undefined'||annData!=undefined) {
         needsIaClass = false;
-        iaClassEl = '<p>'+projTxt.iaClass+': '+annData.iaClass+'</p>';
+        iaClassEl = '<p>'+txt.iaClass+': '+annData.iaClass+'</p>';
       }
 
       let needsDetection = false;
-      let detectionStatusEl = '<p>'+projTxt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
+      let detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
       if (annData.assetDetectionStatus=='initiated'||annData.assetDetectionStatus=='error') {
         needsDetection = true;
-        detectionStatusEl = '<p>'+projTxt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+projTxt.needDetection+'</span></p>'
+        detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+txt.needDetection+'</span></p>'
+      }
+      let resultsLink = '<div id="visitBtnDiv-' + annData.id + '"><p>'+txt.latestResults+': <button class="disabled-btn btn-sm visitIaBtn">'+txt.view+'</button></p></div>'; // let's be very paranoid and start with a disabled view button
+      if(annData.lastTaskId){ // check for a last taskId
+        resultsLink = '<div id="visitBtnDiv-' + annData.id + '"><p>'+txt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annData.lastTaskId+'\')">'+txt.view+'</button></p></div>';
       }
 
-      let resultsLink = '<p>'+projTxt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annData.lastTaskId+'\')">'+projTxt.view+'</button></p>';
+      if(annotIdTaskIdAdapter[annData.id]){ // but if a taskId generated by the "Start Match" button is generated, use that more recent taskId instead
+        resultsLink = '<div id="visitBtnDiv-' + annData.id + '"><p>'+txt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annotIdTaskIdAdapter[annData.id]+'\')">'+txt.view+'</button></p></div>';
+      }
+
       if (needsIaClass||needsDetection) {
-        resultsLink = '<p>'+projTxt.latestResults+':<button class="disabled-btn btn-sm visitIaBtn">'+projTxt.noneAvailable+'</button></p>';
+        resultsLink = '<p>'+txt.latestResults+':<button class="disabled-btn btn-sm visitIaBtn">'+txt.noneAvailable+'</button></p>';
       }
 
       content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
@@ -508,7 +591,7 @@ function generateIALinkingMenu(json, encId) {
       content += '    <p>ID: '+annData.id+'</p>';
       content += iaClassEl;
       content += detectionStatusEl;
-      content += "    <p>"+projTxt.identificationStatus+": "+annData.identificationStatus+"</p>";
+      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
       content += resultsLink;
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
@@ -518,7 +601,7 @@ function generateIALinkingMenu(json, encId) {
     }
   } else {
     content += '<div>';
-      content += '  <p>'+projTxt.noResults+'</p>';
+      content += '  <p>'+txt.noResults+'</p>';
     content += '</div>';
   }
   menuContentDiv.empty();
@@ -533,11 +616,13 @@ function openIaResultsOptions(el) {
 
 
   if (isHidden(menuRow)) {
-    $(el).html(projTxt.close);
-    getIAInfoForEncounterData(el);
+    $(el).html(txt.close);
+    getIAInfoForEncounterData(el, null);
+    menuRow.detach();
+    encRow.after(menuRow);
     menuRow.show();
   } else {
-    $(el).html(projTxt.iaResults);
+    $(el).html(txt.matchResults);
     menuRow.hide();
   }
 }
@@ -546,12 +631,16 @@ function isHidden(el) {
   return $(el).css('display') == 'none';
 }
 
-function getIAInfoForEncounterData(el) {
+function getIAInfoForEncounterData(optionalEl, optionalEncId) {
   let requestJSON = {};
   requestJSON['action'] = 'getIAInfoForEncounter';
   requestJSON['onlyIdentifiable'] = 'true';
-  let encRow = $(el).closest('.encounterRow');
-  let encId = encRow.attr('id').replace('enc-', '');
+  let encId = optionalEncId;
+  if(optionalEl && !optionalEncId){
+    let encRow = $(optionalEl).closest('.encounterRow');
+    encId = encRow.attr('id').replace('enc-', '');
+  }
+
   requestJSON['encounterId'] = encId;
   $.ajax({
     url: wildbookGlobals.baseUrl + '../GetCurrentIAInfo',
@@ -560,11 +649,12 @@ function getIAInfoForEncounterData(el) {
     dataType: 'json',
     contentType: 'application/json',
     success: function(d) {
-      console.log("what is the response from GetCurrentIAInfo? : "+JSON.stringify(d));
+      console.log("what is the response from GetCurrentIAInfo? : ");
+      console.log(d);
       generateIALinkingMenu(d.IAInfo, encId);
     },
     error: function(x,y,z) {
-        conole.log('error getting some ia options!');
+        console.log('error getting some ia options!');
         console.warn('%o %o %o', x, y, z);
     }
   });
@@ -572,8 +662,14 @@ function getIAInfoForEncounterData(el) {
 
 $(document).ready( function() {
   getEncounterJSON();
+  //hide results row if we're sorting on column headers
+  $("th").click(function() {
+	  $(".visitResultsButton").html(txt.matchResults);
+	  $(".iaResultsMenuRow").hide();
+  });
 });
 </script>
+ <script src="../javascript/sort-table.js"></script>
 	            <%
 
 	          } // end if project

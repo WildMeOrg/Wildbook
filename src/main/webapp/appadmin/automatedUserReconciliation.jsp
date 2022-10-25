@@ -46,7 +46,7 @@ try{
     displayProgressBar("Loading");
     let headerTxt = getText("header.properties");
     $(document).ready(function() {
-      populateNewButtonAndDisplay(null, '<h4>Step 1. Deduplicate Less Complete Accounts</h4>', '<button onclick="ajaxDedupeLessCompleteWrapper()">Do It</button>');
+      populateNewButtonAndDisplay(null, '<h4>Step 1. Deduplicate Less Complete Accounts</h4>', '<button onclick="ajaxDedupeLessCompleteWrapper()">Do It</button>', '<button onclick="skipTo(2)">Skip Step</button>');
       populateCounts("User counts", "originalCounts", false);
     });
 
@@ -87,12 +87,23 @@ try{
       populateCounts("Current counts", 'updateCounts', true);
     }
 
-    function populateNewButtonAndDisplay(data, headerText, buttonText){
+    function populateNewButtonAndDisplay(data, headerText, buttonText, skipButtonText){
       let theHtml = '';
         theHtml += headerText;
         theHtml += buttonText;
+        if(skipButtonText != null) theHtml += skipButtonText;
       $('#content-container').empty();
       $('#content-container').append(theHtml);
+    }
+
+    function skipTo(stepNumber){
+      if(stepNumber == null) return;
+      if(stepNumber ===2){
+        populateNewButtonAndDisplay(null, '<h4>Step 2. Suspend Lower-credentialed Accounts</h4>', '<button onclick="ajaxSuspendLowerCredentialedWrapper()">Do It</button>', '<button onclick="skipTo(3)">Skip Step</button>');
+      }
+      if(stepNumber ===3){
+        populateNewButtonAndDisplay(null, '<h4>Step 3. Assign Orphan Encounters to a Public Account</h4>', '<button onclick="ajaxOrphanEncountersToPublicWrapper()">Do It</button>');
+      }
     }
 
     function populateErrorAndDisplay(errorMsg) {

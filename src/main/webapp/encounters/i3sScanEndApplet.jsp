@@ -59,35 +59,12 @@ context=ServletUtilities.getContext(request);
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
-  File shepherdDataDir = new File(webappsDir, "wildbook_data_dir");
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
-
-    // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-  boolean usaUser = false;
-  String userName = "";
-  Shepherd userShepherd = new Shepherd(context);
-  if (request.getUserPrincipal()!=null) {
-    userName = request.getUserPrincipal().getName();
-    userShepherd.beginDBTransaction();
-    List<Role> roles = userShepherd.getAllRolesForUser(userName);
-    for (Role role : roles) {
-      if (role.getRolename().equals("spotasharkusa")) {
-        usaUser = true;
-      }
-    }
-    userShepherd.rollbackDBTransaction();
-    userShepherd.closeDBTransaction();
-  }
-
-  // Part Two hackety hack to switch URLs for US users
-  String linkURLBase = CommonConfiguration.getURLLocation(request);
-  if (usaUser) {
-    linkURLBase = "ncaquariums.wildbook.org";
-  }
 
 %>
 
@@ -256,20 +233,19 @@ td, th {
 
       side2 = "right";
       fileSider = "&rightSide=true";
-    } else {
+    } 
+    else {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
-
-
     }
 
     if (finalXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
-    Groth (Full)</a></li>
-
-  <%
+	  %>
+	  <li><a
+	    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
+	    Groth (Full)</a></li>
+	
+	  <%
     }
   %>
   <li><a class="active">I3S</a></li>
@@ -297,7 +273,8 @@ td, th {
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
 
         side = "right";
-      } else {
+      } 
+      else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       }
@@ -305,7 +282,8 @@ td, th {
       root = doc.getRootElement();
       scanDate = root.attributeValue("scanDate");
       xmlOK = true;
-    } catch (Exception ioe) {
+    } 
+	catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults=myShepherd.matches;
@@ -435,8 +413,8 @@ $(document).ready(function() {
         </thead>
         <tbody>
         <%
-          Shepherd nameShepherd = new Shepherd(context);
           if (!xmlOK) {
+
             I3SMatchObject[] results = new I3SMatchObject[1];
             results = matches;
             Arrays.sort(results, new I3SMatchComparator());
@@ -448,19 +426,33 @@ $(document).ready(function() {
                 <%
                   String localIndividualName = results[p].getIndividualName();
                   if (Util.isUUID(localIndividualName)) {
-                    localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    Shepherd nameShepherd=new Shepherd(context);
+                    nameShepherd.setAction("i3ScanEndApplet.jsp displayName render");
+                    nameShepherd.beginDBTransaction();
+                    try{
+                    	if(nameShepherd.getMarkedIndividual(localIndividualName)!=null){
+                    		localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    	}
+                    }
+                    catch(Exception e){
+                      System.out.println("Error retrieving display name in the case where xml is not OK for individual UUID: "+localIndividualName);
+                      e.printStackTrace();
+                    } 
+                    finally{
+                      nameShepherd.rollbackDBTransaction();
+                    	nameShepherd.closeDBTransaction();
+                      nameShepherd=null;
+                    }
                   }
                 %>
-                <a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
+                <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
                 </a></td>
 
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
-          <%} else {
-            %>
+          <%} else {%>
           <td><a
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>">Link
           </a></td>
           <%
             }
@@ -484,7 +476,8 @@ $(document).ready(function() {
           }
 
 //or use XML output here
-        } else {
+        } 
+          else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
 
@@ -498,22 +491,35 @@ $(document).ready(function() {
             String enc1IndId = enc1.attributeValue("assignedToShark");
             String localIndividualName = enc1IndId;
             if(enc1IndId != null && !enc1IndId.equals("")){
-              localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              Shepherd nameShepherd=new Shepherd(context);
+              nameShepherd.setAction("i3ScanEndApplet.jsp displayName render 2");
+              nameShepherd.beginDBTransaction();
+              try{
+                localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              }catch(Exception e){
+                System.out.println("Error retrieving local display name in the case where xml is OK");
+                e.printStackTrace();
+              }finally{
+                nameShepherd.rollbackDBTransaction();
+                nameShepherd.closeDBTransaction();
+                nameShepherd=null;
+              }
             }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
 
-                <td width="60" align="left"><a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=localIndividualName%>
+                <td width="60" align="left">
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            	<%=localIndividualName%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
-          <td><a
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+          <td><a target="_new" title="open Encounter"
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }

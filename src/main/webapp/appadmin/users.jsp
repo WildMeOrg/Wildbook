@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.List,org.ecocean.*, 
-         java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, 
-         org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, 
+         import="org.ecocean.servlet.ServletUtilities,java.util.List,org.ecocean.*,
+         java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList,
+         org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject,
          org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager,
          org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*,
          org.datanucleus.ExecutionContext, org.datanucleus.PersistenceNucleusContext,
@@ -57,44 +57,44 @@ myShepherd.beginDBTransaction();
 String currentUUID = request.getParameter("uuid")	;
 
 try {
-  	
-	String order ="lastLogin DESC NULLS LAST";	    
+
+	String order ="lastLogin DESC NULLS LAST";
 
   	users = myShepherd.getAllUsers(order);
-	numResults=users.size();	
+	numResults=users.size();
 
 	List<Role> allRoles=myShepherd.getAllRoles();
 	//int numRoles=allRoles.size();
 
 	  %>
-	  
-	  
 
-	
-	
+
+
+
+
 	<jsp:include page="../header.jsp" flush="true"/>
-	
+
 	<script src="../javascript/underscore-min.js"></script>
 	<script src="../javascript/backbone-min.js"></script>
 	<script src="../javascript/core.js"></script>
 	<script src="../javascript/classes/Base.js"></script>
-	
+
 	<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-	
+
 	<link rel="stylesheet" href="../css/pageableTable.css" />
 	<script src="../javascript/tsrt.js"></script>
-	
-	
+
+
 	<div class="container maincontent">
-	
-	
+
+
 	      <h1 class="intro">
 	        <%=props.getProperty("title")%>
 	      </h1>
 
-	
+
 	  <%
-	
+
     //set up the statistics counters
 
 
@@ -107,25 +107,25 @@ try {
     	jsonobj.put(user.uiJson(request, true));
     }
 
-		
+
 		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)users, ec);
 		String indsJson = jsonobj.toString();
-		
+
 	   JSONArray rolesobj=	RESTUtils.getJSONArrayFromCollection((Collection)allRoles, ec);
 		String rolesJson = rolesobj.toString();
-	
-	
+
+
 	%>
 
 	<script type="text/javascript">
-	
+
 	var searchResults = <%=indsJson%>;
 	var allRoles=<%=rolesJson%>;
-	
-	
+
+
 	var resultsTable;
-	
-	
+
+
 	$(document).keydown(function(k) {
 		if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
 		if (k.which == 38) return tableDn();
@@ -133,7 +133,7 @@ try {
 		if (k.which == 33) return nudge(-howMany);
 		if (k.which == 34) return nudge(howMany);
 	});
-	
+
 	var colDefn = [
 
 		{
@@ -142,7 +142,7 @@ try {
 			value: _colUsername,
 			sortValue: function(o) { return o.username; },
 		},
-	
+
 		{
 			key: 'fullName',
 			label: '<%=props.getProperty("fullname")%>',
@@ -169,38 +169,38 @@ try {
 			label: '<%=props.getProperty("roles")%>',
 			value: _getRolesForUser
 		}
-	
+
 	];
-	
-	
+
+
 	var howMany = 10;
 	var start = 0;
 	var results = [];
-	
+
 	var sortCol = 4;
 	var sortReverse = true;
-	
-	
+
+
 	var counts = {
 		total: 0,
 		ided: 0,
 		unid: 0,
 		dailydup: 0,
 	};
-	
+
 	var sTable = false;
 	//var searchResultsObjects = [];
-	
+
 	function doTable() {
 
-	
+
 		sTable = new SortTable({
 			data: searchResults,
 			perPage: howMany,
 			sliderElement: $('#results-slider'),
 			columns: colDefn,
 		});
-	
+
 		$('#results-table').addClass('tablesorter').addClass('pageableTable');
 		var th = '<thead><tr>';
 			for (var c = 0 ; c < colDefn.length ; c++) {
@@ -223,19 +223,19 @@ try {
 			r += '</tr>';
 			$('#results-table').append(r);
 		}
-	
+
 		sTable.initSort();
 		sTable.initValues();
-	
-	
+
+
 		newSlice(sortCol);
-	
+
 		$('#progress').hide();
 		sTable.sliderInit();
 		show();
 		computeCounts();
 		displayCounts();
-	
+
 		$('#results-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
 			if (!sTable.opts.sliderElement) return;
 			ev.preventDefault();
@@ -243,16 +243,16 @@ try {
 			if (delta != 0) nudge(-delta);
 		});
 		nudge(-1);
-	
+
 	}
-	
+
 	function rowClick(el) {
 		console.log(el);
 		var w = window.open('users.jsp?isEdit=true&uuid=' + el.getAttribute('data-id')+'#editUser', '_self');
 		w.focus();
 		return false;
 	}
-	
+
 	function headerClick(ev, c) {
 		start = 0;
 		ev.preventDefault();
@@ -263,7 +263,7 @@ try {
 			sortReverse = false;
 		}
 		sortCol = c;
-	
+
 		$('#results-table th.headerSortDown').removeClass('headerSortDown');
 		$('#results-table th.headerSortUp').removeClass('headerSortUp');
 		if (sortReverse) {
@@ -275,12 +275,12 @@ try {
 		newSlice(sortCol, sortReverse);
 		show();
 	}
-	
-	
 
-	
-	
-	
+
+
+
+
+
 	function show() {
 		$('#results-table td').html('');
 		$('#results-table tbody tr').show();
@@ -299,13 +299,13 @@ try {
 		} else {
 			$('#results-slider').show();
 		}
-	
+
 		//if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
 		sTable.sliderSet(100 - (start / (sTable.matchesFilter.length - howMany)) * 100);
 		displayPagePosition();
 	}
-	
-	
+
+
 	function computeCounts() {
 		counts.total = sTable.matchesFilter.length;
 		return;  //none of the below applies here! (cruft from encounters for prosperity)
@@ -313,7 +313,7 @@ try {
 		counts.ided = 0;
 		counts.dailydup = 0;
 		var uniq = {};
-	
+
 		for (var i = 0 ; i < counts.total ; i++) {
 			console.log('>>>>> what up? %o', searchResults[sTable.matchesFilter[i]]);
 			var iid = searchResults[sTable.matchesFilter[i]].individualID;
@@ -330,21 +330,21 @@ try {
 			}
 		}
 	}
-	
-	
+
+
 	function displayCounts() {
 		for (var w in counts) {
 			$('#count-' + w).html(counts[w]);
 		}
 	}
-	
-	
+
+
 	function displayPagePosition() {
 		if (sTable.matchesFilter.length < 1) {
 			$('#table-info').html('<b>no matches found</b>');
 			return;
 		}
-	
+
 		var max = start + howMany;
 		if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
 		$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
@@ -352,9 +352,9 @@ try {
 	function newSlice(col, reverse) {
 		results = sTable.slice(col, start, start + howMany, reverse);
 	}
-	
-	
-	
+
+
+
 	function nudge(n) {
 		start += n;
 		if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
@@ -363,7 +363,7 @@ try {
 		newSlice(sortCol, sortReverse);
 		show();
 	}
-	
+
 	function tableDn() {
 		return nudge(-1);
 		start--;
@@ -371,7 +371,7 @@ try {
 		newSlice(sortCol, sortReverse);
 		show();
 	}
-	
+
 	function tableUp() {
 		return nudge(1);
 		start++;
@@ -379,62 +379,62 @@ try {
 		newSlice(sortCol, sortReverse);
 		show();
 	}
-	
-	
-	
+
+
+
 	////////
 	$(document).ready( function() {
 		wildbook.init(function() { doTable(); });
 	});
-	
-	
+
+
 	var tableContents = document.createDocumentFragment();
-	
-	
+
+
 	function _colUsername(o) {
 		if (o.username == undefined) return '';
 		var i = '<b>' + o.username + '</b>';
 		return i;
-	}	
-	
+	}
+
 	function _colFullName(o) {
 		if (o.fullName == undefined) return '';
 		return o.fullName;
 	}
-	
+
 	function _colEmailAddress(o) {
 		if (o.emailAddress == undefined) return '';
 		return o.emailAddress;
 	}
-	
+
 	function _colOrganization(o) {
 		if (o.organizations == undefined) return '';
 		var orgs=JSON.parse("["+o.organizations+"]");
 		var result='';
 		for(var i = 0; i < orgs.length; i++) {
 		    result = result+orgs[i].name+'<br>';
-		    
+
 		}
 		return result;
 	}
 
 
-	
-	
+
+
 	function _colRowNum(o) {
 		return o._rowNum;
 	}
-	
 
-	
-	
+
+
+
 	function _colLastLogin(o) {
 		if (!o.lastLogin) return '';
 		if (o.lastLogin === "-1") return '';
 		var s = new Date(parseInt(o.lastLogin)).toString();
 		return s;
 	}
-	
+
 	function _colLastLoginSort(o) {
 		var m = o.lastLogin;
 		if (!m) return '';
@@ -443,15 +443,15 @@ try {
 		//return d.getTime();
 		return m;
 	}
-	
-	
+
+
 	function _textExtraction(n) {
 		var s = $(n).text();
 		var skip = new RegExp('^(none|unassigned|)$', 'i');
 		if (skip.test(s)) return 'zzzzz';
 		return s;
 	}
-	
+
 	function applyFilter() {
 		var t = $('#filter-text').val();
 		console.log(t);
@@ -462,7 +462,7 @@ try {
 		computeCounts();
 		displayCounts();
 	}
-	
+
 	function _getRolesForUser(o){
 		if(!o.username) return '';
 		var uName=o.username;
@@ -472,7 +472,7 @@ try {
 			  if(val.username === uName) myRoles=myRoles+'<br>'+val.context+':'+val.rolename;
 		});
 		return myRoles.replace('<br>','');
-		
+
 	}
 
 	//Checkbox switch for delete user
@@ -486,29 +486,29 @@ try {
 		}
 	}
 
-	
+
 	</script>
-	
+
 	<p class="table-filter-text">
 	<input placeholder="<%=props.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
 	<input type="button" value="<%=props.getProperty("filter") %>" />
 	<input type="button" value="<%=props.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 	<span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 	</p>
-	
+
 	<div class="pageableTable-wrapper">
 		<div id="progress">loading...</div>
 		<table id="results-table"></table>
 		<div id="results-slider"></div>
 	</div>
-	
-	
+
+
 	<%
 	    boolean includeZeroYears = true;
 	    numResults = count;
 	  %>
 
-	
+
 	<p>
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
 	  <tr>
@@ -532,9 +532,9 @@ try {
 	String isEditAddition="";
 	if(request.getParameter("isEdit")!=null){isEditAddition="&isEdit=true";}
 	%>
-    	
+
     <table class="tissueSample">
-    
+
     <%
     //let's set up any pre-defined values if appropriate
     String localAffiliation="";
@@ -546,7 +546,7 @@ try {
     String uuid="";
     String receiveEmails="checked=\"checked\"";
     boolean hasProfilePhoto=false;
-    
+
     if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)){
     	User thisUser=myShepherd.getUserByUUID(request.getParameter("uuid"));
     	if(thisUser.getUsername()!=null){
@@ -577,12 +577,12 @@ try {
     	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
     	uuid=thisUser.getUUID();
     }
-    else if (request.getParameter("uuid")==null){ 	
+    else if (request.getParameter("uuid")==null){
        uuid=Util.generateUUID();
     }
-    
+
     %>
-    
+
     <tr>
     	<td style="width: 200px;">
     		<table style="border: solid 0;">
@@ -597,7 +597,7 @@ try {
     			<tr>
     					<td style="border: solid 0">
     						<form action="../UserAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
-								<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto")%><br /> 
+								<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto")%><br />
     						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
 								<input name="file2add" type="file" style="width: 200px"/>
 								<input name="addtlFile" type="submit" id="addtlFile" value="Upload" />
@@ -608,18 +608,18 @@ try {
     				if(hasProfilePhoto){
     				%>
     					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile")%>&nbsp;<a href="../UserRemoveProfileImage?username=<%=localUsername%>"><img src="../images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
-    			
+
     				<%
     				}
     			}
     			%>
     			</table>
     	</td>
-    	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser" accept-charset="UTF-8">	    
+    	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser" accept-charset="UTF-8">
     	<td><table width="100%" class="tissueSample">
 			<tr><td colspan="3"><em><%=props.getProperty("functionalFormDescription")%></em></td></tr>
 			<tr>
-    			
+
         <%
         String disabled="";
         String readonly="";
@@ -628,16 +628,16 @@ try {
         	readonly="readonly=\"readonly\"";
         }
     		%>
-   	 		<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />       												
-		
+   	 		<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />
+
 		<div class="form-group required">
 			<td><%=props.getProperty("username")%> <input autocomplete="off" name="username" id="username_input" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
 		</div>
-   		
-        
+
+
         <td><%=props.getProperty("password")%> <input name="password" type="password" size="15" maxlength="90" autocomplete="new-password"></input></td>
         <td><%=props.getProperty("confirm")%> <input autocomplete="off" name="password2" type="password" size="15" maxlength="90"></input></td>
-                
+
     	</tr>
 
       <tr><td colspan="3"><%=props.getProperty("fullname")%> <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
@@ -646,15 +646,15 @@ try {
 		<tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" id="emailAddress_input" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
 	</div>
 
-        
+
       <tr><td colspan="3"><%=props.getProperty("affiliation")%> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-        
+
       <tr><td colspan="3"><%=props.getProperty("researchProject")%> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
-                  
+
       <tr><td colspan="3"><%=props.getProperty("projectURL")%> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
- 
-			<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement")%> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
-            
+
+			<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement")%> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
+
       <tr>
 				<td colspan="3">
 					<input class="btn btn-sm btn-block" type="button" name="Create"  id="Create" value="<%=props.getProperty("save")%>" onclick="sendButtonClicked();" />
@@ -664,7 +664,7 @@ try {
     </td>
     <td>
     <table>
-   
+
     	<%
 	    List<String> contexts=ContextConfiguration.getContextNames();
 	    int numContexts=contexts.size();
@@ -672,11 +672,11 @@ try {
     	%>
     	<tr>
     		<td style="border-style: none;">
-    			<%=props.getProperty("rolesFor")%> <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select) 
+    			<%=props.getProperty("rolesFor")%> <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select)
     		</td>
     	</tr>
     	<tr>
-    		<td style="border-style: none;">	
+    		<td style="border-style: none;">
 	          <select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5">
 	            <option value=""></option>
 							<%
@@ -687,23 +687,23 @@ try {
 										selected="selected=\"true\"";
 									}
 								}
-								
+
 								//now one last check: only let someone who has a role assign the role
 								if(request.isUserInRole("admin") || request.isUserInRole(roles.get(q))){
 									%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
 								}
-							}%>          
+							}%>
 	    			</select>
     		</td>
     	</tr>
     	<tr><td style="border-style: none;"><%=props.getProperty("organizationMembership")%></td></tr>
     	<tr>
     		<td style="border-style: none;">
-    	
+
     			<select multiple="multiple" name="organization" id="organization" size="5">
 		            <option value=""></option>
 	    	    	<%
-	    	    	
+
 		    		List<Organization> orgs=new ArrayList<Organization>();
 	    	    	User orgAdminUser=myShepherd.getUser(request);
 		    		if(request.isUserInRole("admin")){orgs=myShepherd.getAllOrganizations();}
@@ -719,44 +719,44 @@ try {
 								selected="selected=\"true\"";
 							}
 						}
-						
+
 						%>
 						<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
 						<%
 					}
-					%>          
+					%>
 	    		</select>
 
     		</td>
     	</tr>
-    	
-    	
-    	
-    <%	
+
+
+
+    <%
     }
     %>
     </table>
 
-    </td>	
+    </td>
     </form>
     </tr>
     </table>
-    	
+
     </p>
-    
+
     <%
 
     if(		request.getParameter("isEdit")!=null
     		&& request.getParameter("uuid") != null
-    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null 
+    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
     	    && request.getUserPrincipal().getName()!=null
     	    && myShepherd.getUsername(request)!=null
     	    && myShepherd.getUser(myShepherd.getUsername(request))!=null
     	    //to delete a user either be admin or orgAdmin in at least one of the same orgs
-    	    && ( 
-    	              request.isUserInRole("admin") 
+    	    && (
+    	              request.isUserInRole("admin")
     	              || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
-    	    )) 
+    	    ))
     ){
     %>
     <h2><%=props.getProperty("deleteUserQuestion")%></h2>
@@ -766,7 +766,7 @@ try {
       		<form onsubmit="return confirm('<%=props.getProperty("sureDelete")%>');" name="deleteUser" class="editFormMeta" method="post" action="../UserDelete?context=context0" >
 	          <input name="uuid" type="hidden" value="<%=uuid%>" />
 	          <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteUserBtn" id="deleteUserButton" style="background-color: red;" value="<%=props.getProperty("deleteUser")%>" />
-        	</form> 	
+        	</form>
 	      </td>
 	    </tr>
 		</table>
@@ -777,7 +777,7 @@ try {
 	%>
 	<p>Exception on page!</p>
 	<p><%=e.getMessage() %></p>
-	<%	
+	<%
 }
 finally{
   myShepherd.rollbackDBTransaction();
@@ -852,7 +852,7 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 		jsonRequest['checkForExistingUsernameDesired'] = true;
 		jsonRequest['username'] = username;
 		$.ajax({
-			url: wildbookGlobals.baseUrl + '../UserCreate',
+			url: wildbookGlobals.baseUrl + '../UserCheck',
 			type: 'POST',
 			data: JSON.stringify(jsonRequest),
 			dataType: 'json',
@@ -885,7 +885,7 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 			jsonRequest['checkForExistingEmailDesired'] = true;
 			jsonRequest['emailAddress'] = emailAddress;
 			$.ajax({
-				url: wildbookGlobals.baseUrl + '../UserCreate',
+				url: wildbookGlobals.baseUrl + '../UserCheck',
 				type: 'POST',
 				data: JSON.stringify(jsonRequest),
 				dataType: 'json',
@@ -915,4 +915,3 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 </script>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-

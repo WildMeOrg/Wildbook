@@ -5,14 +5,112 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
+org.json.JSONObject,
 java.util.Set,
 java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
+java.util.Iterator,
 org.ecocean.security.Collaboration,
 java.util.HashMap,
+org.ecocean.ia.Task,
+java.util.HashMap,
+java.util.LinkedHashSet,
+java.util.Collection,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+
+<%!
+
+private int getNumIndividualsForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
+	int num=0;
+	String filter="select count(distinct(\"INDIVIDUALID_OID\")) from \"MARKEDINDIVIDUAL_ENCOUNTERS\" where \"CATALOGNUMBER_EID\" in (select \"CATALOGNUMBER_EID\" from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"');";
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",filter);
+	try{
+		List results = query.executeList();
+		num = ((Long) results.iterator().next()).intValue();
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
+	finally{
+		query.closeAll();
+	}
+	//System.out.println("getNumIndividualsForTask: "+(System.currentTimeMillis()-startTime));
+	return num;
+}
+
+%>
+
+<%!
+//Use Feature as a proxy for MediaAssets since they have a 1-to-1 correspondence
+//and we thereby have one less table lookup in the query
+private int getNumMediaAssetsForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
+	int num=0;	
+	String filter="select count(distinct asset.id) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	Query query = myShepherd.getPM().newQuery(filter);
+	try{
+		num=((Long) query.execute()).intValue();
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
+	finally{
+		query.closeAll();
+	}
+	//System.out.println("getNumMediaAssetsForTask: "+(System.currentTimeMillis()-startTime));
+	return num;
+}
+%>
+
+<%!
+private int getNumMediaAssetsForTaskDetectionComplete(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
+	int num=0;	
+	String filter="select count(this) from org.ecocean.media.Feature where itask.id == '"+taskID+"' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.detectionStatus == 'complete' VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+	Query query=myShepherd.getPM().newQuery(filter);
+	
+	try{
+		num=((Long) query.execute()).intValue();
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
+	finally{
+		query.closeAll();
+	}
+	//System.out.println("getNumMediaAssetsForTaskDetectionComplete: "+(System.currentTimeMillis()-startTime));
+	return num;
+}
+%>
+
+<%!
+
+private int getNumEncountersForTask(String taskID, Shepherd myShepherd){
+	//long startTime=System.currentTimeMillis();
+	int num=0;
+	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select count(*) from \"IMPORTTASK_ENCOUNTERS\" where \"ID_OID\" = '"+taskID+"';");
+
+	try{
+		List results = query.executeList();
+		num = ((Long) results.iterator().next()).intValue();
+		
+	}
+	catch(Exception e){
+		e.printStackTrace();
+	}
+	finally{
+		query.closeAll();
+	}
+	
+	//System.out.println("getNumEncountersForTask: "+(System.currentTimeMillis()-startTime));
+	return num;
+}
+
+%>
+
 <%
 
 String context = ServletUtilities.getContext(request);
@@ -28,8 +126,6 @@ if (user == null) {
 }
 boolean adminMode = request.isUserInRole("admin");
 if(request.isUserInRole("orgAdmin"))adminMode=true;
-boolean forcePushIA=false;
-if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -37,30 +133,11 @@ if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
-/*
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  props = ShepherdProperties.getProperties("login.properties", langCode,context);
-*/
-  
-
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
 
-<script>
 
-function confirmCommit() {
-	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
-}
-
-function confirmDelete() {
-	return confirm("Delete this ImportTask PERMANENTLY? Please consider carefully whether you want to delete all of this imported data.");
-}
-
-</script>
 
 <style>
 .bootstrap-table {
@@ -93,80 +170,58 @@ a.button:hover {
 </style>
 
 
-    <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
-    <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
+	<script src="javascript/underscore-min.js"></script>
+	<script src="javascript/backbone-min.js"></script>
+	<script src="javascript/core.js"></script>
+	<script src="javascript/classes/Base.js"></script>
+
+	<link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+
+	<link rel="stylesheet" href="css/pageableTable.css" />
+	<script src="javascript/tsrt.js"></script>
 
 
 <div class="container maincontent">
-
+<h2>Import Tasks</h2>
 <%
-
-String taskId = request.getParameter("taskId");
-String jdoql = null;
-ImportTask itask = null;
-
-if (taskId != null) {
-    try {
-        itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
-    } catch (Exception ex) {}
-    if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
-        out.println("<h1 class=\"error\">taskId " + taskId + " may be invalid</h1><p>Try refreshing this page if you arrived on this page from an import that you just kicked off.</p>");
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return;
-    }
+if(adminMode && request.getParameter("showAll")!=null){
+	%>
+	<p>The following is a full list of bulk import tasks. <a id="showMine" href="imports.jsp" onclick="$('body,#showMine').css('cursor', 'progress');">Click here to filter to just your bulk imports.</a></p>	    
+	<%
+}
+else if(adminMode){
+	%>
+	<p><p>The following is a list of your bulk imports. <a id="showAll" href="imports.jsp?showAll=true" onclick="$('body,#showAll').css('cursor', 'progress');">Click here to see all bulk imports.</a></p>
+	<%
+}
+else {
+	%>
+	<p><p>The following is a list of your bulk imports.</p>
+	<%
 }
 
-Set<String> locationIds = new HashSet<String>();
 
-if (itask == null) {
-    DateTime cutoff = new DateTime(System.currentTimeMillis() - (62L * 24L * 60L * 60L * 1000L));
-    out.println("<p style=\"font-size: 0.8em; color: #888;\">Since <b>" + cutoff.toString().substring(0,10) + "</b></p>");
-    out.println("<table id=\"import-table\" xdata-page-size=\"6\" data-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+try{
+	Set<String> locationIds = new HashSet<String>();
+	
     String uclause = "";
-    if (!adminMode) uclause = " creator.uuid == '" + user.getUUID() + "' && ";
-    jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE " + uclause + " created > cutoff_datetime PARAMETERS DateTime cutoff_datetime import org.joda.time.DateTime";
+    if (request.getParameter("showAll")==null) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
-    //query.range(0,100);
-    Collection c = (Collection) (query.execute(cutoff));
+    Collection c = (Collection) (query.execute());
     List<ImportTask> tasks = new ArrayList<ImportTask>(c);
     query.closeAll();
 
-    String[] headers = new String[]{"Import ID", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
-    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?", "Status"};
-    for (int i = 0 ; i < headers.length ; i++) {
-        out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
-    }
-
-    out.println("</tr></thead><tbody>");
+    
+    //set up the JSON object for our table
+    JSONArray jsonobj = new JSONArray();
+    
     for (ImportTask task : tasks) {
     	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
-	        List<Encounter> encs = task.getEncounters();
-	        List<MediaAsset> mas = task.getMediaAssets();
-	        boolean foundChildren = false;
-	        String hasChildren = "<td class=\"dim\">-</td>";
-	        int iaStatus = 0;
-	        if (Util.collectionSize(mas) > 0) {
-	            for (MediaAsset ma : mas) {
-	                if (ma.getDetectionStatus() != null) iaStatus++;
-	                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) {
-	                    hasChildren = "<td class=\"yes\">yes</td>";
-	                    foundChildren = true;
-	                    break;
-	                }
-	            }
-	            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
-	        }
-	
-	        int indivCount = 0;
-	        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
-	            if (enc.hasMarkedIndividual()) indivCount++;
-	        }
-	
-	        out.println("<tr>");
-	        out.println("<td><a title=\"" + task.getId() + "\" href=\"imports.jsp?taskId=" + task.getId() + "\">" + task.getId().substring(0,8) + "</a></td>");
-	        if (adminMode) {
+	        //int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
+	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
+			String taskID = task.getId();
 	            User tu = task.getCreator();
 	            String uname = "(guest)";
 	            if (tu != null) {
@@ -175,243 +230,390 @@ if (itask == null) {
 	                if (uname == null) uname = tu.getUUID();
 	                if (uname == null) uname = Long.toString(tu.getUserID());
 	            }
-	            out.println("<td>" + uname + "</td>");
+
+	        int numEncs=getNumEncountersForTask(task.getId(),myShepherd);
+	        String created=task.getCreated().toString().substring(0,10);
+	      
+	        int numMediaAssets=getNumMediaAssetsForTask(task.getId(),myShepherd);
+	        String iaStatusString="";
+
+	        if (task.getIATask() !=null) {
+	            if(!task.iaTaskRequestedIdentification())iaStatusString="detection";
+	            else{iaStatusString="identification";}
 	        }
-	        out.println("<td>" + task.getCreated().toString().substring(0,10) + "</td>");
-	        out.println("<td class=\"ct" + Util.collectionSize(encs) + "\">" + Util.collectionSize(encs) + "</td>");
-	        out.println("<td class=\"ct" + indivCount + "\">" + indivCount + "</td>");
-	        out.println("<td class=\"ct" + Util.collectionSize(mas) + "\">" + Util.collectionSize(mas) + "</td>");
-	        out.println(hasChildren);
-	        if (iaStatus < 1) {
-	            out.println("<td class=\"no\">no</td>");
-	        } else {
-	            int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
-	            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
-	        }
-	        if(adminMode)out.println("<td>"+task.getStatus()+"</td>");
-	        out.println("</tr>");
+	        String status=task.getStatus();
+	        
+	        //let's build this Task's JSON
+	        JSONObject jobj = new JSONObject();
+	        jobj.put("iaStatus", iaStatusString);
+	        jobj.put("numMediaAssets", numMediaAssets);
+	        jobj.put("numEncs", numEncs);
+	        jobj.put("created", created);
+	        jobj.put("uname", uname);
+	        jobj.put("taskID", taskID);
+	        jobj.put("indivCount", indivCount);
+	        jobj.put("status", status);
+	        
+	        jsonobj.put(jobj);
+
     	}
-    }
-
-%>
-<!-- jdoql(<%=jdoql%>) -->
-</tbody></table>
-
-<%
-} else { //end listing
-
-    out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
-    out.println("<br>Status: "+itask.getStatus());
-    if(itask.getParameters()!=null){
-    	out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-    }	
-    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
-    for (int i = 0 ; i < headers.length ; i++) {
-        out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
-    }
-
-    out.println("</tr></thead><tbody>");
+    } //end for loop of tasks
     
     
-    //if incomplete refresh
-    if(itask.getStatus()!=null && !itask.getStatus().equals("complete")){
     %>
-	    
-	    <p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
-	  <script type="text/javascript">
-	  (function countdown(remaining) {
-		    if(remaining === 0)location.reload(true);
-		    document.getElementById('countdown').innerHTML = remaining;
-		    setTimeout(function(){ countdown(remaining - 1); }, 1000);
-	
-		})
-		    (60);	
-		    
-	  </script>
-	    
-	    
-	    <%
-    }
-
-    List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
-    int numIA = 0;
-    boolean foundChildren = false;
-
-    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
-    if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
-       
-    	JSONArray jarr=new JSONArray();
-    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
-        out.println("<tr>");
-        out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
-        out.println("<td>" + enc.getDate() + "</td>");
-        if (adminMode) {
-            List<User> subs = enc.getSubmitters();
-            if (Util.collectionSize(subs) < 1) {
-                out.println("<td class=\"dim\">-</td>");
-            } else {
-                List<String> names = new ArrayList<String>();
-                for (User u : subs) {
-                    names.add(u.getDisplayName());
-                }
-                out.println("<td>" + String.join(", ", names) + "</td>");
-            }
-        }
-        if (enc.getOccurrenceID() == null) {
-            out.println("<td class=\"dim\">-</td>");
-        } else {
-            out.println("<td><a title=\"" + enc.getOccurrenceID() + "\" href=\"occurrence.jsp?number=" + enc.getOccurrenceID() + "\">" + (Util.isUUID(enc.getOccurrenceID()) ? enc.getOccurrenceID().substring(0,8) : enc.getOccurrenceID()) + "</a></td>");
-        }
-        if (enc.hasMarkedIndividual()) {
-            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividual().getDisplayName(request, myShepherd) + "</a></td>");
-        } else {
-            out.println("<td class=\"dim\">-</td>");
-        }
-
-        ArrayList<MediaAsset> mas = enc.getMedia();
-        if (Util.collectionSize(mas) < 1) {
-            out.println("<td class=\"dim\">0</td>");
-        } else {
-            out.println("<td>" + Util.collectionSize(mas) + "</td>");
-            for (MediaAsset ma : mas) {
-                if (!allAssets.contains(ma)) {
-                    allAssets.add(ma);
-                    jarr.put(ma.getId());
-                    if (ma.getDetectionStatus() != null) numIA++;
-                }
-                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
-            }
-        }
-
-        out.println("</tr>");
-        
-        jarrs.put(enc.getCatalogNumber(), jarr);
-        
-    }
-    int percent = -1;
-    if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
-%>
-</tbody></table>
-<p>
-Total MediAssets: <b><%=allAssets.size()%></b><br>
-<ul>
-<%
-int numWithACMID=0;
-int numDetectionComplete=0;
-for(MediaAsset asset:allAssets){
-	if(asset.getAcmId()!=null)numWithACMID++;
-	if(asset.getDetectionStatus()!=null && asset.getDetectionStatus().equals("complete")) numDetectionComplete++;
-}
-%>
-<li>Number with acmIDs: <%=numWithACMID %></li>
-<li>Number that have completed detection: <%=numDetectionComplete %></li>
-</ul>
-
-<script>
-let js_jarrs = new Map();
-<%
-for(String key:jarrs.keySet()){
-%>
-	js_jarrs.set('<%=key %>',<%=jarrs.get(key).toString() %>);
-<%
-}
-%>
-
-function sendToIA(skipIdent) {
-    if (!confirmCommit()) return;
-    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-    var locationIds = $('#id-locationids').val();
-
-    // some of this borrowed from core.js sendMediaAssetsToIA()
-    // but now we send bulkImport as the entire js_jarrs value
-    var data = {
-        taskParameters: { skipIdent: skipIdent || false },
-        bulkImport: {}
-    };
-    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
-    if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
-
-    console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
-    $.ajax({
-        url: wildbookGlobals.baseUrl + '/ia',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        type: 'POST',
-        contentType: 'application/javascript',
-        complete: function(x) {
-            console.log('sendToIA() response: %o', x);
-	    if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-	        $('#ia-send-wait').html('<i>Images sent successfully.</i>');
-	    } else {
-	        $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
-	    }
-        }
-    });
-}
- 
-</script>
-</p>
-
-<p>
-Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-
-<p>
-Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
-<% if (!foundChildren && (allAssets.size() > 0)) { %>
-    <a style="margin-left: 20px;" class="button">generate children image formats</a>
-<% } %>
-</p>
-
-<% if (adminMode) { 
-%>
-    <div id="ia-send-div">
     
-	    <%
-	    if ((numIA < 1 || forcePushIA) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
-	    %>
-	    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
-	
-	    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
-	    	<select multiple id="id-locationids" style="vertical-align: top;">
-	        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-	        	<option value="">ALL locations</option>
-	    	</select>
-	    	
-	    <%
-	    }
- } //end if admin mode
+    	<script type="text/javascript">
 
-//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
-if((itask.getStatus()!=null &&"complete".equals(itask.getStatus())) || (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
-	    %>
-	    	<div style="margin-bottom: 20px;">
-	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
-	              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
-	              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
-	        	</form>
-	    	</div>
+			var searchResults = <%=jsonobj.toString() %>;
+			var resultsTable;
+
+			$(document).keydown(function(k) {
+				if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
+				if (k.which == 38) return tableDn();
+				if (k.which == 40) return tableUp();
+				if (k.which == 33) return nudge(-howMany);
+				if (k.which == 34) return nudge(howMany);
+			});
+			
+			var colDefn = [
+			           		{
+			           			key: 'taskID',
+			           			label: 'Import ID',
+			           			value: _colTask,
+			           			sortValue: function(o) { return o.taskID; },
+			           		},
+			           		{
+			           			key: 'uname',
+			           			label: 'User',
+			           			value: _colUser,
+			           			sortValue: function(o) { return o.uname; },
+			           		},
+
+			           		{
+			           			key: 'date',
+			           			label: 'Date',
+			           			value: _colCreated,
+			           			sortValue: _colCreatedSort
+			           		},
+
+			           		{
+			           			key: 'numberEncounters',
+			           			label: 'Encounters',
+			           			value: _colNumberEncounters,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'numberIndividuals',
+			           			label: 'Individuals',
+			           			value: _colNumberIndividuals,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'numberImages',
+			           			label: 'Images',
+			           			value: _colNumberImages,
+			           			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+			           		},
+			           		{
+			           			key: 'status',
+			           			label: 'Import Status',
+			           			value: _colStatus,
+			           			sortValue: function(o) { return o.status; },
+	
+			           		},
+			           		{
+			           			key: 'iaStatus',
+			           			label: 'IA?',
+			           			value: _colIA,
+			           			sortValue: function(o) { return o.iaStatus; },
+			     
+			           		}
+
+
+
+			];
+			
+			var howMany = 10;
+			var start = 0;
+			var results = [];
+
+			var sortCol = 2;
+			var sortReverse = true;
+			
+			
+			var sTable = false;
+			
+			function _colCreated(o) {
+				if (!o.created) return '';
+				if (o.created === "-1") return '';
+				return o.created;
+			}
+
+			function _colCreatedSort(o) {
+				var m = o.created;
+				if (!m) return '';
+				//var d = wildbook.parseDate(m);
+				//if (!wildbook.isValidDate(d)) return '';
+				//return d.getTime();
+				return m;
+			}
+
+			
+			function doTable() {
+
+				sTable = new SortTable({
+					data: searchResults,
+					perPage: howMany,
+					sliderElement: $('#results-slider'),
+					columns: colDefn,
+				});
+
+				$('#results-table').addClass('tablesorter').addClass('pageableTable');
+				var th = '<thead><tr>';
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						var cls = 'ptcol-' + colDefn[c].key;
+						if (!colDefn[c].nosort) {
+							if (sortCol < 0) { //init
+								sortCol = c;
+								cls += ' headerSortUp';
+							}
+							cls += ' header" onClick="return headerClick(event, ' + c + ');';
+						}
+						th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
+					}
+				$('#results-table').append(th + '</tr></thead>');
+				for (var i = 0 ; i < howMany ; i++) {
+					var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
+					}
+					r += '</tr>';
+					$('#results-table').append(r);
+				}
+
+				sTable.initSort();
+				sTable.initValues();
+
+
+				newSlice(sortCol, sortReverse);
+
+				$('#progress').hide();
+				sTable.sliderInit();
+				show();
+
+				$('#results-table').on('wheel', function(ev) {  //firefox? DOMMouseScroll
+					if (!sTable.opts.sliderElement) return;
+					ev.preventDefault();
+					var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+					if (delta != 0) nudge(-delta);
+				});
+				
+
+			} //end doTable
+			
+			function rowClick(el) {
+				console.log(el);
+				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), '_blank');
+				w.focus();
+				return false;
+			}
+
+			function headerClick(ev, c) {
+				start = 0;
+				ev.preventDefault();
+				console.log(c);
+				if (sortCol == c) {
+					sortReverse = !sortReverse;
+				} else {
+					sortReverse = false;
+				}
+				sortCol = c;
+
+				$('#results-table th.headerSortDown').removeClass('headerSortDown');
+				$('#results-table th.headerSortUp').removeClass('headerSortUp');
+				if (sortReverse) {
+					$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
+				} else {
+					$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
+				}
+			console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+
+			function show() {
+				$('#results-table td').html('');
+				$('#results-table tbody tr').show();
+				for (var i = 0 ; i < results.length ; i++) {
+
+		      var title = 'Individual ' + searchResults[results[i]].id;
+		  		
+		  			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+		  		
+		  		$('#results-table tbody tr')[i].title = title;
+					//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+					$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].taskID);
+					for (var c = 0 ; c < colDefn.length ; c++) {
+						$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
+					}
+				}
+				if (results.length < howMany) {
+					$('#results-slider').hide();
+					for (var i = 0 ; i < (howMany - results.length) ; i++) {
+						$('#results-table tbody tr')[i + results.length].style.display = 'none';
+					}
+				} else {
+					$('#results-slider').show();
+				}
+
+				//if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
+				sTable.sliderSet(100 - (start / (sTable.matchesFilter.length - howMany)) * 100);
+				displayPagePosition();
+			}
+			
+			function displayPagePosition() {
+				if (sTable.matchesFilter.length < 1) {
+					$('#table-info').html('<b>no matches found</b>');
+					return;
+				}
+
+				var max = start + howMany;
+				if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
+				$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
+			}
+			function newSlice(col, reverse) {
+				results = sTable.slice(col, start, start + howMany, reverse);
+			}
+
+
+
+			function nudge(n) {
+				start += n;
+				if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
+				if (start < 0) start = 0;
+			console.log('start -> %d', start);
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+			function tableDn() {
+				return nudge(-1);
+				start--;
+				if (start < 0) start = 0;
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+
+			function tableUp() {
+				return nudge(1);
+				start++;
+				if (start > sTable.matchesFilter.length - 1) start = sTable.matchesFilter.length - 1;
+				newSlice(sortCol, sortReverse);
+				show();
+			}
+			
+			////////
+			$(document).ready( function() {
+				wildbook.init(function() { doTable(); });
+			});
+
+
+			var tableContents = document.createDocumentFragment();
+			
+			function _textExtraction(n) {
+				var s = $(n).text();
+				var skip = new RegExp('^(none|unassigned|)$', 'i');
+				if (skip.test(s)) return 'zzzzz';
+				return s;
+			}
+
+			function applyFilter() {
+				var t = $('#filter-text').val();
+				console.log(t);
+				sTable.filter(t);
+				start = 0;
+				newSlice(1);
+				show();
+			}
+			
+			function _colTask(o) {
+				if (o.taskID == undefined) return '';
+				return o.taskID;
+			}
+			
+			function _colUser(o) {
+				if (o.uname == undefined) return '';
+				return o.uname;
+			}
+			
+			function _colDate(o) {
+				if (o.created == undefined) return '';
+				return o.created;
+			}
+			
+			function _colNumberEncounters(o) {
+				if (o.numEncs == undefined) return '';
+				return o.numEncs;
+			}
+			
+			function _colNumberIndividuals(o) {
+				if (o.indivCount == undefined) return '';
+				return o.indivCount;
+			}
+			
+			function _colNumberImages(o) {
+				if (o.numMediaAssets == undefined) return '';
+				return o.numMediaAssets;
+			}
+			
+			function _colIA(o) {
+				if (o.iaStatus == undefined) return '';
+				return o.iaStatus;
+			}
+			
+			function _colStatus(o) {
+				if (o.status == undefined) return '';
+				return o.status;
+			}
+			
+
+			
+		</script>
+		
+		<p class="table-filter-text">
+			<input placeholder="Filter by text" id="filter-text" onChange="return applyFilter()" />
+			<input type="button" value="Filter" />
+			<input type="button" value="Clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+			<span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
+		</p>
+
+		<div class="pageableTable-wrapper">
+			<div id="progress">loading...</div>
+			<table id="results-table"></table>
+			<div id="results-slider"></div>
+		</div>
+
 <%
 }
+catch(Exception n){
+	n.printStackTrace();
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+}
 %>
+
+
+
     	
     </div>
 
-</p>
 
 
-
-<%
-}   //end final else
-%>
-
-</div>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
-<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-%>
+
 

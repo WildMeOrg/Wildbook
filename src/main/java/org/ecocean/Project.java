@@ -302,6 +302,8 @@ public class Project implements java.io.Serializable {
                   JSONObject encMetadata = new JSONObject();
                     String individualName = "";
                     String individualUUID = "";
+                    String occurrenceUUID = "";
+                    if(enc.getOccurrenceID()!=null)occurrenceUUID=enc.getOccurrenceID();
                     String individualProjectId = "";
                     boolean hasNameKeyMatchingProject = false;
                     MarkedIndividual individual = enc.getIndividual();
@@ -319,6 +321,7 @@ public class Project implements java.io.Serializable {
                     }
                     //System.out.println("Here json3b");
                     encMetadata.put("individualUUID", individualUUID);
+                    encMetadata.put("occurrenceUUID", occurrenceUUID);
                     encMetadata.put("individualDisplayName", individualName);
                     encMetadata.put("hasNameKeyMatchingProject", hasNameKeyMatchingProject);
                     encMetadata.put("encounterDate", enc.getDate());
