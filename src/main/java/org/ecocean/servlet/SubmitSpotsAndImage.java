@@ -172,6 +172,8 @@ System.out.println("====> params = " + params);
     ArrayList<Annotation> annList = new ArrayList<Annotation>();
     annList.add(ann);
     try {
+      //WBIA is not used for this species
+      /*
       System.out.println("    + sending asset to IA");
       IBEISIA.sendMediaAssetsNew(maList, context);
       myShepherd.updateDBTransaction();
@@ -179,6 +181,7 @@ System.out.println("====> params = " + params);
       IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
       myShepherd.updateDBTransaction();
       System.out.println("    + annot sent.");
+      */
     } 
     catch (Exception e) {
       e.printStackTrace();
