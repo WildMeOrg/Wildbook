@@ -178,9 +178,9 @@
 		        # /SinglePhotoVideoAddKeyword = authc, roles[researcher]
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
-		         /UserCreate = authc, roles[admin]
+		         /UserCreate = authc, roles[orgAdmin]
 						 /UserCheck = authc
-				 /UserDelete = authc, roles[admin]
+				 /UserDelete = authc, roles[orgAdmin]
 				/ResetCommonConfiguration = authc, roles[admin]
 				/ResurrectDeletedEncounter = authc, roles[admin]
                	/UserResetAcceptedUserAgreement = authc, roles[admin]
