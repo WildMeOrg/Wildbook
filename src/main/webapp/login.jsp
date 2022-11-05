@@ -133,20 +133,26 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
         <a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
      </td></tr>
      
-    </table>
-</form>
               <%
-              if(props.getProperty("newAccountEmail")!=null){
+              if(props.getProperty("newAccountEmailTitle")!=null){
               %>
-             	<p><%=props.getProperty("newAccountEmail") %></p>
+              	<tr><td colspan="2" align="left">
+             	        <strong><%=props.getProperty("newAccountEmailTitle") %></strong><br />
+        				<%=props.getProperty("newAccountEmail") %>
+     			</td></tr>
              <%
               }
              %>
+     
+    </table>
+</form>
+             
 
 
 
               <p>&nbsp;</p>
               
             </div>
+
             
           <jsp:include page="footer.jsp" flush="true"/>
