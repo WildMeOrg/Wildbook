@@ -1190,7 +1190,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
   %>
-  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%> </span><%=encprops.getProperty("meters")%> <%
   } else {
   %>
   <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
@@ -1252,8 +1252,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <span class="form-control-feedback" id="elevationCheck">&check;</span>
         <span class="form-control-feedback" id="elevationError">X</span>
       </div>
+    <div class="col-sm-3">
+    	<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm"/>
     </div>
-    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+ </div>
   </form>
 </div>
 <!-- end elevation  -->
