@@ -475,6 +475,11 @@
 							"name": "Luangwa North",
 							"id": "Luangwa North",
 							"description": "Luangwa North"
+						},
+						{
+							"name": "Lower Luangwa",
+							"id": "Lower Luangwa",
+							"description": "Lower Luangwa"
 						}
 					]
 				}
