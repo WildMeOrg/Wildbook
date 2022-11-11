@@ -135,8 +135,13 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
      
     </table>
 </form>
-              
-              </p>
+              <%
+              if(props.getProperty("newAccountEmail")!=null){
+              %>
+             	<p><%=props.getProperty("newAccountEmail") %></p>
+             <%
+              }
+             %>
 
 
 

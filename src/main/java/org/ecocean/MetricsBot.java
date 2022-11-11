@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -412,7 +413,14 @@ public class MetricsBot {
           }
   
           // Tasks by users
-          List<User> users = myShepherd.getAllUsers();
+          //WB-1968: filter to only users who have logged in
+          //List<User> users = myShepherd.getAllUsers();
+          String filterTasksUsers="SELECT FROM org.ecocean.User where lastLogin > 0";
+          Query filterTasksUsersQuery = myShepherd.getPM().newQuery(filterTasksUsers);
+          Collection c = (Collection)filterTasksUsersQuery.execute();
+          List<User> users = new ArrayList<User>(c);
+          filterTasksUsersQuery.closeAll();
+          //end WB-1968
           String userFilter = "";
           String name = "";
           for (User user:users)
@@ -429,10 +437,11 @@ public class MetricsBot {
                 String normalizedName = stripAccents(name);
                 int spaceIndex = normalizedName.indexOf(" ");
                 name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
-                System.out.println("NAME:" + name);
-                
               }
-              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
+              name+="_"+user.getUUID().substring(0,8);
+              name=name.replaceAll("-", "_");
+              System.out.println("NAME:" + name);
+              csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
             catch (NullPointerException e) { }
           }
@@ -448,7 +457,7 @@ public class MetricsBot {
     return input == null ? null :
             Normalizer.normalize(input, Normalizer.Form.NFD)
                     .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-}
+    }
 
 
     public static String httpGetRemoteText(String url) {

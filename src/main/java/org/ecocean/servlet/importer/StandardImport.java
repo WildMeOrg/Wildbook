@@ -861,6 +861,10 @@ public class StandardImport extends HttpServlet {
     //depth
     Double depth = getDouble(row,"Encounter.depth",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if(depth!=null) enc.setDepth(depth);
+    
+    //elevation
+    Double elevation = getDouble(row,"Encounter.elevation",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if(elevation!=null) enc.setMaximumElevationInMeters(elevation);
 
 
 

@@ -16,17 +16,27 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-<%@ page contentType="application/json; charset=utf-8" language="java" trimDirectiveWhitespaces="true" %>
-<%@ page import="java.io.File" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.security.Collaboration" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+
+
+<%@ page contentType="application/json; charset=utf-8" language="java"
+trimDirectiveWhitespaces="true"
+         import="
+java.util.zip.*,
+java.io.OutputStream,
+org.ecocean.*,org.ecocean.social.*,
+org.ecocean.servlet.ServletUtilities,java.io.File,
+java.io.IOException,
+java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson
+" %>
+
 <%@include file="dataLib.jsp"%>
+
 <%
-  String encsJson = "";
-  String blocker = "";
-  String context = ServletUtilities.getContext(request);
+
+String encsJson = "";
+String blocker = "";
+String context="context0";
+context=ServletUtilities.getContext(request);
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -42,9 +52,22 @@
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
 
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
+//setup our Properties object to hold all properties
+  Properties props = new Properties();
+  //String langCode = "en";
+  String langCode=ServletUtilities.getLanguageCode(request);
 
+
+
+  //load our variables for the submit page
+
+ // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
+
+	Properties collabProps = new Properties();
+ 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  
+	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
