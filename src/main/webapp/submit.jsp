@@ -128,6 +128,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		}else{
 			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
+		projectNameHtml += '<option value=""></option>';
 		if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
