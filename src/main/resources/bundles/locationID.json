@@ -26,6 +26,8 @@
 	{ "name":"NSW-Henry’s Head", "id":"NSW-Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Magic Point", "id":"NSW-Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Sydney-Old Mans Hat", "id":"NSW-Sydney-Old Mans Hat", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW- Shellharbour-Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
