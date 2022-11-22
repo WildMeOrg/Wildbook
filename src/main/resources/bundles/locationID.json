@@ -345,7 +345,8 @@
 			  
 			  ]},
 
-			  
+			  {
+			  "name": "Brunei", "id": "Brunei", "prefix": "BN-", "prefixDigitPadding": 3 },
 			  {
 			  "name": "ChristmasIsland", "id": "ChristmasIsland", "prefix": "X-", "prefixDigitPadding": 3 },
 			  
