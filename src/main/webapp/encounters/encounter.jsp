@@ -20,6 +20,7 @@
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
+         org.ecocean.ia.WbiaQueueUtil,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
@@ -1194,7 +1195,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
   %>
-  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%> </span><%=encprops.getProperty("meters")%> <%
   } else {
   %>
   <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
@@ -1256,8 +1257,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <span class="form-control-feedback" id="elevationCheck">&check;</span>
         <span class="form-control-feedback" id="elevationError">X</span>
       </div>
+    <div class="col-sm-3">
+    	<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm"/>
     </div>
-    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+ </div>
   </form>
 </div>
 <!-- end elevation  -->
@@ -6840,12 +6843,16 @@ $(window).on('load',function() {
 <%
 
 	String queueStatementID="";
-	if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	if(wbiaIDQueueSize==0){
+		queueStatementID = "The machine learning queue is empty and ready for work.";
+	}
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
 		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "Each ID job in the queue is currently averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}
@@ -6899,10 +6906,7 @@ List<String> locIds = new ArrayList<String>();  //filled as we traverse
 String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
-//this is a sanity check for missed locationIDs !!
-//for (String l : locCount.keySet()) {
-//    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-//}
+
 %>
 
     </div>

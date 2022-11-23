@@ -12,11 +12,8 @@ org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.identity.*,
 org.ecocean.Project,
-org.ecocean.media.*
-              "
+org.ecocean.media.*"
 %>
-
-
 
 
 <%

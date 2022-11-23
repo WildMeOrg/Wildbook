@@ -96,56 +96,62 @@ public class UserResetPasswordSendEmail extends HttpServlet {
         
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("UserResetPasswordSendEmail.class");
-        
-        
-      
+          
         myShepherd.beginDBTransaction();
         
-        User myUser=null;
-      
-        //let's see if we have a user
-        if(myShepherd.getUser(username)!=null){
-          myUser=myShepherd.getUser(username);
-        }
-        else if(myShepherd.getUserByEmailAddress(username)!=null){
-          myUser=myShepherd.getUserByEmailAddress(username);
-        }
+        try {
         
-        if((myUser!=null)&&(myUser.getEmailAddress()!=null)){
+          User myUser=null;
+        
+          //let's see if we have a user
+          if(myShepherd.getUser(username)!=null){
+            myUser=myShepherd.getUser(username);
+          }
+          else if(myShepherd.getUserByEmailAddress(username)!=null){
+            myUser=myShepherd.getUserByEmailAddress(username);
+          }
           
-          //time
-          LocalDateTime dt = new LocalDateTime();
-          long time=dt.toDateTime().getMillis();
-          
-          //OTP string
-          
-          String otpString=myUser.getPassword()+time+myUser.getSalt();
-          otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
-          
-          // Build the link and send email.
-          final String npLink = String.format(request.getScheme()+"://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
-          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-          Map<String, String> tagMap = new HashMap<String, String>(){{
-            put("@RESET_LINK@", npLink);
-          }};
-          String mailTo = myUser.getEmailAddress();
-          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap, true);  //override user.receiveEmails
-          es.execute(mailer);
-          es.shutdown();
-          
-          out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
+          if((myUser!=null)&&(myUser.getEmailAddress()!=null)){
+            
+            //time
+            LocalDateTime dt = new LocalDateTime();
+            long time=dt.toDateTime().getMillis();
+            
+            //OTP string
+            
+            String otpString=myUser.getPassword()+time+myUser.getSalt();
+            otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
+            
+            // Build the link and send email.
+            final String npLink = String.format(request.getScheme()+"://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Map<String, String> tagMap = new HashMap<String, String>(){{
+              put("@RESET_LINK@", npLink);
+            }};
+            String mailTo = myUser.getEmailAddress();
+            NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap, true);  //override user.receiveEmails
+            es.execute(mailer);
+            es.shutdown();
+            
+            out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
+            
+          }
+          else{
+            out.println("No email address was registered with that username. Please contact a system administrator to reset your password.");
+            
+          }
           
         }
-        else{
-          out.println("No email address was registered with that username. Please contact a system administrator to reset your password.");
+        catch(Exception e) {
+          e.printStackTrace();
+          out.println("An unknown error occurred. Please contact your Wildbook administrator.");
           
         }
-        
-        
-
-        myShepherd.rollbackDBTransaction();    
-        myShepherd.closeDBTransaction();
-        myShepherd=null;
+        finally {
+          myShepherd.rollbackDBTransaction();    
+          myShepherd.closeDBTransaction();
+          myShepherd=null;
+        }
         
      
 
