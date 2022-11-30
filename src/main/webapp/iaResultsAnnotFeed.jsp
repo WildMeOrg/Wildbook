@@ -121,7 +121,13 @@ if (request.getParameter("acmId") != null) {
 	                                jm.put("rotation", rotationInfo(ma));
 							        jann.put("asset", jm);
 								}
-								MarkedIndividual individual = enc.getIndividual();
+								MarkedIndividual individual = null;
+								//found data edge cases where this can throw an exception. catching for safety.
+								//leaving individual as null is acceptable if exception thrown
+								try{
+										individual=enc.getIndividual();
+								}
+								catch(Exception dd){}
 								if (individual!=null) {
 									//SocialUnit-related info
 									List<SocialUnit> socialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(individual);
