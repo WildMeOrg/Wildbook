@@ -384,9 +384,11 @@ try{
 	<%
 	try{
 		int numWithACMID=0;
+		int numAllowedIA=0;
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
+			if(asset.validateSourceImage()){numAllowedIA++;}
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
@@ -394,6 +396,7 @@ try{
 		Total media assets: <%=allAssets.size()%><br>
 		<ul>
 			<li>Number with acmIDs: <%=numWithACMID %></li>
+			<li>Number valid for image analysis: <%=numAllowedIA %></li>
 			<li>Number that have completed detection: <%=numDetectionComplete %></li>
 		</ul>
 	</p>
@@ -433,7 +436,7 @@ try{
         //detection-only Task
 		//if(hasIdentificationBenRun(itask)){
 		if(!itask.iaTaskRequestedIdentification()){
-        	if(numDetectionComplete==allAssets.size()){
+        	if(numDetectionComplete==numAllowedIA){
         		iaStatusString="detection complete";
         	}
         	else{
