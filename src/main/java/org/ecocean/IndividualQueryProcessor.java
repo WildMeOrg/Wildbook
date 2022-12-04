@@ -278,7 +278,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       
       //set the jdoql variable used by both
-      filter+=(" && enc452.annotations.contains(annot46)");
+      filter+=(" && encounters.contains(enc452) && enc452.annotations.contains(annot46)");
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";org.ecocean.Annotation annot46;org.ecocean.Encounter enc452;";
       }
