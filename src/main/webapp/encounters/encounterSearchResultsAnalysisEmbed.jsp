@@ -215,6 +215,7 @@
  					
  		
  	int numPhotos=0;
+ 	int numAnnotations=0;
  	//int numContributors=0;
  	int numIdentified=0;
  	
@@ -234,10 +235,13 @@
  		 //iterate up unique encounters number
  		 numUniqueEncounters++;
 
- 		 //calculate number photos collected
- 		 if(thisEnc.getAdditionalImageNames()!=null){
- 		 	numPhotos=numPhotos+thisEnc.getAnnotations().size();
+ 		 //calculate number photos and annotations collected
+ 		 if(thisEnc.getAnnotations()!=null){
+ 		 	numAnnotations=numAnnotations+thisEnc.getAnnotations().size();
  		 }
+ 		 if(thisEnc.getMedia()!=null){
+  		 	numPhotos=numPhotos+thisEnc.getMedia().size();
+  		 }
  			
  		//calculate the number of submitter contributors
  		if(thisEnc.getSubmitters()!=null) {
@@ -980,6 +984,7 @@
  	<li><%=encprops.getProperty("numberIdentified") %> <%=numIdentified %></li>
  	<li><%=encprops.getProperty("numberMarkedIndividuals") %> <%=markedIndividuals.size() %></li>
  	<li><%=encprops.getProperty("numMediaAssets") %> <%=numPhotos %></li>
+ 	<li><%=encprops.getProperty("numAnnotations") %> <%=numAnnotations %></li>
  	<li><%=encprops.getProperty("numContributors") %> <%=(publicContributors.size()+researchStaff.size()) %></li>
  </ul>
 

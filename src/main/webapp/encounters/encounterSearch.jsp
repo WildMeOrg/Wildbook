@@ -1016,7 +1016,51 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             <%
               }
             %>
-
+            <tr><td><strong><%=encprops.getProperty("viewpointFilter") %></strong></td></tr>
+			<tr>
+				<td>
+					<select multiple name="hasViewpoint" id="hasViewpoint" size="10">
+						<option value=""></option>
+						<%
+						Query q32 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
+						List results = (List)q32.execute();
+						Iterator it = results.iterator();
+						while (it.hasNext()) {
+						    String v = (String)it.next();
+						    if (!Util.stringExists(v)) continue;
+						    %>
+						    <option value="<%=v %>"><%=v  %></option>
+							<%
+						}
+						q32.closeAll();
+				
+						%>
+					</select>
+				</td>
+			</tr>
+			<tr><td><strong><%=encprops.getProperty("iaClassFilter") %></strong></td></tr>
+			<tr>
+				<td>
+					<select multiple name="hasIAClass" id="hasIAClass" size="10">
+						<option value=""></option>
+						<%
+						Query q33 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+						List results2 = (List)q33.execute();
+						Iterator it2 = results2.iterator();
+						while (it2.hasNext()) {
+						    String v = (String)it2.next();
+						    if (!Util.stringExists(v)) continue;
+						    %>
+						    <option value="<%=v %>"><%=v  %></option>
+							<%
+						}
+						q33.closeAll();
+				
+						%>
+					</select>
+				</td>
+			</tr>
+			
 
 			</table>
 		</div>
