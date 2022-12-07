@@ -121,10 +121,10 @@ try{
 	    myShepherd.closeDBTransaction();
 	    return;
 	}
-	boolean adminMode = request.isUserInRole("admin");
-	if(request.isUserInRole("orgAdmin"))adminMode=true;
-	boolean forcePushIA=false;
-	if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
+	boolean adminMode = false;
+	if(request.isUserInRole("admin")||request.isUserInRole("orgAdmin"))adminMode=true;
+	//boolean forcePushIA=false;
+	//if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
 	
 	  //handle some cache-related security
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -426,7 +426,7 @@ try{
 	
 	//let's determine the IA Status
 	
-	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
+	if("complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
 
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
