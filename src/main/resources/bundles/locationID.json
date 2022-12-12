@@ -2,6 +2,11 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
+		{
+			"name": "Doberg",
+			"id": "DOB",
+			"locationID": []
+		},
 
 		{
 			"name": "Botanischer Garten Bielefeld",
