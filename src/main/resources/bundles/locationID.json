@@ -62,6 +62,17 @@
 					"description": "Garissa"
 				},
 				{
+					"name": "Hells Gate National Park",
+					"id": "Hells Gate National Park",
+					"description": "Hells Gate National Park"
+				},
+				{
+					"name": "Lake Naivasha",
+					"id": "Lake Naivasha",
+					"description": "Lake Naivasha"
+				},
+				
+				{
 					"name": "Lake Nakuru",
 					"id": "Lake Nakuru",
 					"description": "Lake Nakuru"
@@ -173,6 +184,12 @@
 							"prefixDigitPadding": 3
 						},
 						{
+							"name": "Meru National Park",
+							"prefix": "mer",
+							"prefixDigitPadding": 3,
+							"id": "Meru National Park"
+						},
+						{
 							"name": "Mpala",
 							"id": "Mpala"
 						},
@@ -216,6 +233,12 @@
 							"prefixDigitPadding": 3
 						},
 						{
+							"name": "National Reserve",
+							"prefix": "nat",
+							"prefixDigitPadding": 3,
+							"id": "National Reserve"
+						},
+						{
 							"name": "Ol Jogi",
 							"id": "Ol Jogi",
 							"description": "Ol Jogi Conservancy",
@@ -255,6 +278,12 @@
 							"description": "Sera Conservancy",
 							"prefix": "SER",
 							"prefixDigitPadding": 3
+						},						
+						{
+							"name": "Solio Ranch Conservancy",
+							"prefix": "sol",
+							"prefixDigitPadding": 3,
+							"id": "Solio Ranch Conservancy"
 						}
 					
 					
