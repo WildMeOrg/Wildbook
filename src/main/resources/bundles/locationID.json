@@ -295,6 +295,31 @@
 					"prefix": "RUMA",
 					"prefixDigitPadding": 3,
 					"description": "Ruma NP"
+				},
+				{
+					"name": "Tsavo National Park",
+					"id": "Tsavo National Park",
+					"prefix": "TSAVO",
+					"prefixDigitPadding": 3,
+					"description": "Tsavo National Park",
+					"locationID": [
+						{
+						"name": "Tsavo East National Park",
+						"id": "Tsavo East National Park",
+						"prefix": "TSAVO",
+						"prefixDigitPadding": 3,
+						"description": "Tsavo East National Park"
+						},
+						{
+						"name": "Tsavo West National Park",
+						"id": "Tsavo West National Park",
+						"prefix": "TSAVO",
+						"prefixDigitPadding": 3,
+						"description": "Tsavo West National Park"
+						}
+		
+					
+					]
 				}
 
 			]
