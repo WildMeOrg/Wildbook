@@ -325,6 +325,17 @@
 			]
 		},
 		{
+			"name": "Mozambique",
+			"id": "Mozambique",
+
+			"locationID": [
+				{
+					"name": "Zinave National Park",
+					"id": "Zinave National Park"
+				}
+			]
+		},
+		{
 			"name": "Namibia",
 			"id": "Namibia",
 			"geospatialInfo":{
