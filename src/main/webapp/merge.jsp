@@ -16,19 +16,22 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
-props = ShepherdProperties.getProperties("merge.properties", langCode,context);
-myShepherd.setAction("merge.jsp");
-User currentUser = AccessControl.getUser(request, myShepherd);
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
-String newId = indIdA;
-MarkedIndividual markA = myShepherd.getMarkedIndividualQuiet(indIdA);
-MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
-MarkedIndividual[] inds = {markA, markB};
-String fullNameA = indIdA;
-if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
-String fullNameB = indIdB;
-if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
+props = ShepherdProperties.getProperties("merge.properties", langCode,context);
+myShepherd.setAction("merge.jsp");
+myShepherd.beginDBTransaction();
+try{
+	User currentUser = AccessControl.getUser(request, myShepherd);
+
+	String newId = indIdA;
+	MarkedIndividual markA = myShepherd.getMarkedIndividualQuiet(indIdA);
+	MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
+	MarkedIndividual[] inds = {markA, markB};
+	String fullNameA = indIdA;
+	if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
+	String fullNameB = indIdB;
+	if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -185,16 +188,17 @@ table.compareZone tr th {
   function populateProjectIdRow(incrementalIds, projName, projUuid, projId, projOwner){
     let projectIdHtml = '';
     <% for (int i=0; i<inds.length; i++) {%>
-    projectIdHtml += '<td class="col-md-2 diff_check">';
-    if(incrementalIds && incrementalIds[<%=i%>] && incrementalIds[<%=i%>].projectIncrementalId !== ""){
-      projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
-    }else{
-      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
-    }
-    projectIdHtml += '</td>';
+	    projectIdHtml += '<td class="col-md-2 diff_check">';
+	    if(incrementalIds && incrementalIds[<%=i%>] && incrementalIds[<%=i%>].projectIncrementalId != undefined && incrementalIds[<%=i%>].projectIncrementalId !== ""){
+	      projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
+	    }
+	    else{
+	      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
+	    }
+	    projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
-    if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[1].projectIncrementalId !== ""){
+    if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[1].projectIncrementalId !== ""){
       // two incremental IDs for projName
       if(!conflictingProjs.includes(projName)){
         conflictingProjs.push(projName);
@@ -210,17 +214,19 @@ table.compareZone tr th {
       }
       projectIdHtml += '</td>';
       $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
-    } else{
-      if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
+    } 
+    else{
+      if(incrementalIds && incrementalIds.length>0 && ( (incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[0].projectIncrementalId !== "") || (incrementalIds.length>1 && incrementalIds[1].projectIncrementalId !== undefined && incrementalIds[1].projectIncrementalId !== ""))){ //one incremental ID is missing
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
         projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
-        let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
+        let betterVal = betterValWithTieBreaker(incrementalIds[0], incrementalIds[1]);
         projectIdHtml += betterVal;
         projectIdHtml += '</span>'
         projectIdHtml += '</td>';
         projectIdHtml += '<td>';
         $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
-      }else{
+      }
+      else{
         //populate with no incremental IDs, but give it the IDs and names required to still fetch this value upon form submission
         projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
         projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
@@ -232,22 +238,22 @@ table.compareZone tr th {
     }
   }
   function betterValWithTieBreaker(candidate1, candidate2){
-    if (candidate1!=null && candidate2!=null && candidate1.trim() === candidate2.trim()) {
+    if (candidate1!=null && candidate1.projectIncrementalId !== undefined && candidate2!=null && candidate2.projectIncrementalId !== undefined && candidate1.projectIncrementalId.trim() === candidate2.projectIncrementalId.trim()) {
       // return shorter string (less whitespace)
       if (candidate1.length()<candidate2.length()){
-        return candidate1;
+        return candidate1.projectIncrementalId;
       }
       else{
-        return candidate2;
+        return candidate2.projectIncrementalId;
       }
     }
-    if (!candidate2){
-      return candidate1;
+    if (!candidate2 || !candidate2.projectIncrementalId){
+      return candidate1.projectIncrementalId;
     }
-    if (!candidate1){
-      return candidate2;
+    if (!candidate1  || !candidate1.projectIncrementalId){
+      return candidate2.projectIncrementalId;
     }
-    return candidate1;
+    return candidate1.projectIncrementalId;
   }
   function getDeprecatedIncrementalIdFromOptions (stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds, arrayOfOptionElements){
     let returnVal = "_";
@@ -335,9 +341,6 @@ table.compareZone tr th {
     //System.out.println("Merge.jsp has queryString "+queryString);
     // consider including an enc media gallery below?
     %>
-    <%
-    try {
-    	%>
       <h1>Marked Individual Merge Tool</h1>
       <p class="instructions">Confirm the merged values for each of the fields below.</p>
       <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
@@ -523,7 +526,8 @@ table.compareZone tr th {
     	});
     	</script>
     	<%
-    } catch (Exception e) {
+    } 
+	catch (Exception e) {
     	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
     	myShepherd.rollbackDBTransaction();
     } finally {
