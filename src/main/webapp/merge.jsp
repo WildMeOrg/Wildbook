@@ -370,22 +370,36 @@ table.compareZone tr th {
     		<tr class="row names">
     			<th><%= props.getProperty("Names") %></th>
     			<% for (MarkedIndividual ind: inds) {%>
-    			<td class="col-md-2">
-    				<% for (String key: ind.getNameKeys()) {
-    					String nameStr = String.join(", ", ind.getNamesList(key));
-    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-    				}
-    				%>
-    			</td>
+	    			<td class="col-md-2">
+	    				<% 
+	    				for (String key: ind.getNameKeys()) {
+	    					String nameStr = String.join(", ", ind.getNamesList(key));
+	    					%>
+	    					<span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/>
+	    					<%
+	    				}
+	    				%>
+	    			</td>
     			<%}%>
     			<td class="col-md-2 mergedNames">
     				<%
     				MultiValue allNames = MultiValue.merge(markA.getNames(), markB.getNames());
     				for (String key: allNames.getKeys()) {
     					String nameStr = String.join(", ", allNames.getValuesAsList(key));
-    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
+    					%>
+    					<span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/>
+    					<%
     				}
     				%>
+    				<br>
+    				New default name:
+    				<select name="default-ID-dropdown" id="default-ID-dropdown" class="">
+                		<% for (MarkedIndividual ind: inds) {%>
+    						<option value="<%=ind.getIndividualID() %>">
+								<%=ind.getDefaultName() %>    							
+    						</option>
+    					<%}%>
+                	</select>
     			</td>
     		</tr>
           <!--populated by JS after page load-->
@@ -417,10 +431,12 @@ table.compareZone tr th {
             if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
               %>
                 <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
-                <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
-                <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+                	<option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
+                	<option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+                </select>
               <%
-            }else{
+            }
+            else{
               System.out.println("getting here");
               %>
               <%= mergeTaxy%>
@@ -442,10 +458,12 @@ table.compareZone tr th {
             if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
               %>
                 <select name="sex-dropdown" id="sex-dropdown" class="">
-                <option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
-                <option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+                	<option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
+                	<option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+                </select>
               <%
-            }else{
+            }
+            else{
               %>
               <%= mergeSex%>
               <%
@@ -461,10 +479,27 @@ table.compareZone tr th {
       $(document).ready(function() {
         $("#mergeBtn").click(function(event) {
           event.preventDefault();
+          
         	let id1="<%=indIdA%>";
         	let id2="<%=indIdB%>";
         	let fullNameA = '<%=fullNameA%>';
         	let fullNameB = '<%=fullNameB%>';
+          
+        	//let's check the dropdown
+        	var nameSelect = document.getElementById("default-ID-dropdown").value;
+        	console.log("nameSelect="+nameSelect);
+        	if(id2===nameSelect){
+        		id2=id1;
+        		id1=nameSelect;
+        		let tempHolder=fullNameB;
+        		fullNameB=fullNameA;
+        		fullNameA=tempHolder;
+        		
+        	}
+        	console.log("id1="+id1);
+        	console.log("id2="+id2);
+        	
+        	
           let sex = $("#sex-dropdown").val();
           if(!sex){
             //It's because they match
@@ -504,7 +539,9 @@ table.compareZone tr th {
             currentOptionElems = [];
           }
         	$("#mergeForm").attr("action", "MergeIndividual"); // Is this necessary given <form's already-existing attributes? -MF
-          $.post("/MergeIndividual", {
+          
+        
+           $.post("/MergeIndividual", {
           	"id1": id1,
           	"id2": id2,
           	"sex": sex,
@@ -522,6 +559,7 @@ table.compareZone tr th {
           .fail(function(response) {
           	alert("FAILURE!!");
           });
+        	
     	  });
     	});
     	</script>
