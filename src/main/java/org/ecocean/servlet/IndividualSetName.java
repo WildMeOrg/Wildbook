@@ -115,8 +115,6 @@ public class IndividualSetName extends HttpServlet {
         System.out.println("In the try block A");
         if (noChange) {
           out.println("<strong>No action!</strong> Added a name with label \""+newKey+"\" and value \""+newValue+"\" on Marked Individual "+indID+".</p>");
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
           return;
         }
         System.out.println("In the try block B. delete = "+delete);
@@ -128,14 +126,12 @@ public class IndividualSetName extends HttpServlet {
           // just removing one value from this multivalue
           if (Util.stringExists(oldValue) && mark.getNames().getValuesByKey(oldKey) !=null && mark.getNames().getValuesByKey(oldKey).size()>1) {
             mark.getNames().removeValuesByKey(oldKey, oldValue);
-            myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
+            myShepherd.updateDBTransaction();
             System.out.println("Got both oldVal and oldKey! removed the value \""+oldValue+"\" from the names labeled \""+oldKey+"\" on individual "+indID);
             out.println("<strong>Success!</strong> removed the value \""+oldValue+"\" from the names labeled \""+oldKey+"\" on individual "+indID);
           } else {
             mark.getNames().removeKey(oldKey);
-            myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
+            myShepherd.updateDBTransaction();
             System.out.println("Only oldkey provided! removed the name labeled \""+oldKey+"\" on individual "+indID);
             out.println("<strong>Success!</strong> removed the name labeled \""+oldKey+"\" on individual "+indID);
           }
@@ -153,16 +149,14 @@ public class IndividualSetName extends HttpServlet {
             mark.refreshNamesCache();
             out.println("<strong>Success!</strong> Added \""+newValue+"\" to the default names for Marked Individual "+indID+".</p>");
           }
-          myShepherd.commitDBTransaction();
-          myShepherd.closeDBTransaction();
+          myShepherd.updateDBTransaction();
           return;
         }
         else if (changeValueOnly) {
           mark.getNames().removeValuesByKey(newKey, oldValue);
           mark.addName(newKey, newValue);
           mark.refreshNamesCache();
-          myShepherd.commitDBTransaction();
-          myShepherd.closeDBTransaction();
+          myShepherd.updateDBTransaction();
           out.println("<strong>Success!</strong> I have successfully changed the name labeled \""+newKey+"\" from \""+oldValue+"\" to \""+newValue+"\" on Marked Individual "+indID+".</p>");
           return;
         }
@@ -170,15 +164,14 @@ public class IndividualSetName extends HttpServlet {
           mark.getNames().removeKey(oldKey);
           mark.addName(newKey, newValue);
           mark.refreshNamesCache();
-          myShepherd.commitDBTransaction();
-          myShepherd.closeDBTransaction();
+          myShepherd.updateDBTransaction();
           out.println("<strong>Success!</strong> I have successfully changed the label for name \""+newValue+"\" from \""+oldValue+"\" to \""+newValue+"\" on Marked Individual "+indID+".</p>");
           return;
         }
         else {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Failure!</strong> The IndividualSetName servlet has no behavior defined for the provided variables: newKey="+newKey+", newValue="+newValue+", oldKey="+oldKey+", oldValue="+oldValue+", newName="+newName+", changeValueOnly="+changeValueOnly+", changeKeyOnly="+changeKeyOnly+".  This is a bug, please contact an administrator with this error.");
-          myShepherd.rollbackAndClose();
+          
           return;
         }
 
@@ -187,14 +180,11 @@ public class IndividualSetName extends HttpServlet {
         System.out.println("Exception on IndividualSetName!!!");
         le.printStackTrace();
         locked = true;
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
       } 
       finally {
-        if (!locked) {
-          myShepherd.commitDBTransaction();
+          myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
-        } else {
+        if(locked) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Failure!</strong> This record is currently being modified by another user. Please wait a few seconds before trying again.");
         }
