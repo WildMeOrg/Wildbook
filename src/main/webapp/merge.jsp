@@ -41,6 +41,11 @@ try{
 <style>
 table td,th {
 	padding: 10px;
+	vertical-align: top;
+	text-align: left;
+	font-size: 1em;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 #mergeBtn {
 	float: right;
@@ -283,7 +288,7 @@ table.compareZone tr th {
     if(projectNames.length>0){
       for(let i =0; i<projectNames.length; i++){
         projectIdHtml += '<tr class="row projectId check_for_diff" data-id="project-id-table-row-' + projectNames[i] + '">';
-        projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
+        projectIdHtml += '<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("ProjectId") %></h4>';
         projectIdHtml += '<span data-id="current-proj-id-display-' + projectNames[i] + '"><em> ' + projectNames[i] + '</em></span>';
         projectIdHtml += '</th>';
         projectIdHtml += '</tr>';
@@ -323,7 +328,7 @@ table.compareZone tr th {
 
 <div class="container maincontent">
   <div id="progress-div">
-    <h4><%= props.getProperty("Loading")%></h4>
+    <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Loading")%></h4>
     <div class="progress">
       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
         <span class="sr-only"><%= props.getProperty("PercentComplete")%></span>
@@ -331,7 +336,7 @@ table.compareZone tr th {
     </div>
   </div>
   <div id="not-permitted" style="display: none;">
-    <h4><%= props.getProperty("NotPermitted")%></h4>
+    <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("NotPermitted")%></h4>
     <div id="proj-contact-list"></div>
   </div>
   <div id="everything-else" style="display: none;">
@@ -359,16 +364,20 @@ table.compareZone tr th {
     		<tr class="row header">
     			<th class="col-md-2"></th>
     			<% for (MarkedIndividual ind: inds) {%>
-    			<th class="col-md-2"><h2>
-    				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName(request, myShepherd)%></a>
-    			</h2></th>
+    			<th class="col-md-2">
+    				<h4 style="margin-top: 0px; margin-bottom: 0px;">
+    					<a target="_blank" href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName(request, myShepherd)%></a>
+    				</h4>
+    			</th>
     			<%}%>
-    			<th><h2>
-    				<%= props.getProperty("MergedIndividual") %>
-    			</h2></th>
+    			<th>
+    				<h4 style="margin-top: 0px; margin-bottom: 0px;">
+    					<%= props.getProperty("MergedIndividual") %>
+    				</h4>
+    			</th>
     		</tr>
     		<tr class="row names">
-    			<th><%= props.getProperty("Names") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Names") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
 	    			<td class="col-md-2">
 	    				<% 
@@ -404,7 +413,7 @@ table.compareZone tr th {
     		</tr>
           <!--populated by JS after page load-->
     		<tr class="row encounters">
-    			<th><%= props.getProperty("NumEncounters") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("NumEncounters") %></h4></th>
     			<% int totalEncs = 0;
     			for (MarkedIndividual ind: inds) {
     				int encs = ind.numEncounters();
@@ -419,7 +428,7 @@ table.compareZone tr th {
     			</td>
     		</tr>
     		<tr class="row species check_for_diff">
-    			<th><%= props.getProperty("Species") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Species") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<td class="col-md-2 diff_check">
     				<%=ind.getGenusSpeciesDeep()%>
@@ -428,7 +437,7 @@ table.compareZone tr th {
     			<td class="merge-field">
     				<%
     				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-            if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
+            		if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
               %>
                 <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
                 	<option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
@@ -446,7 +455,7 @@ table.compareZone tr th {
     			</td>
     		</tr>
         <tr class="row sex check_for_diff">
-    			<th><%= props.getProperty("Sex") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Sex") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<td class="col-md-2 diff_check">
     				<%=ind.getSex()%>
