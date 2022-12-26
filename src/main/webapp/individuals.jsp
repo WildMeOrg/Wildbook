@@ -492,12 +492,6 @@ if (sharky.getNames() != null) {
     String defaultName = sharky.getDefaultName();
     String nickyName = sharky.getNickName();
 
-
-
-    // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
-
-    System.out.println("displayName="+sharky.getDisplayName(request, myShepherd));
-
     %>
     <div class="namesection default">
       <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" data-oldvalue="<%=defaultName%>" value="Default" placeholder="Default" >
@@ -505,7 +499,7 @@ if (sharky.getNames() != null) {
       <%
       if(defaultName!=null){
       %>
-      	<span class="nameValue default" data-oldvalue="<%=defaultName%>"><%=defaultName%></span>
+      	<span style="font-weight: bold;" class="nameValue default" data-oldvalue="<%=defaultName%>"><%=defaultName %></span>
       <%
       }
       else{defaultName="";}
@@ -515,6 +509,13 @@ if (sharky.getNames() != null) {
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+      <%
+      if(names.size()>1){
+      %>
+      <br><%=props.getProperty("previousNames") %> <%=names.toString().replaceAll(defaultName+",", "").replaceAll("[","").replaceAll("]","").trim() %>
+      <%
+		}
+      %>
     </div>
 
     <div class="namesection nickname">
@@ -523,7 +524,7 @@ if (sharky.getNames() != null) {
       <%
       if(nickyName!=null){
       %>
-      	<span class="nameValue" data-oldvalue="<%=nickyName%>"><%=nickyName %></span>
+      	<span style="font-weight: bold;" class="nameValue" data-oldvalue="<%=nickyName%>"><%=nickyName %></span>
       <%
       }
       else{nickyName="";}
@@ -533,6 +534,14 @@ if (sharky.getNames() != null) {
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+      <%
+      List<String> nicknames=sharky.getNamesList(MarkedIndividual.NAMES_KEY_NICKNAME);
+      if(nicknames!=null && nicknames.size()>1){
+      %>
+      <br><em><%=props.getProperty("previousNames") %> <%=nicknames.toString().replaceAll(nicknames.get(0)+",", "").replaceAll("[","").replaceAll("]","").trim() %></em>
+      <%
+		}
+      %>
     </div>
 
 
@@ -541,71 +550,75 @@ if (sharky.getNames() != null) {
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
     	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
-      boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
+      	boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
-	      if (MultiValue.isDefault(nameKey)) continue;
-	      if (nameKey.equals("Nickname")) continue;
-        if(StringUtils.isBlank(nameKey)){ //blanks needed to be caught and skipped
-          continue;
-        }
-	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
-        MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
-        List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
-        if(nameKey.trim().contains("Merged") && (sharky.getName(nameKey) == null || sharky.getName(nameKey).equals(""))){ //skip the "merged" nameKeys if they're empty
-          continue;
-        }
-        if (projects!=null&&projects.size()>0) {
-          for(Project currentProject: projects){
-            String researchProjId = currentProject.getProjectIdPrefix();
-            if (nameKey.contains(researchProjId) && !nameKey.contains("Merged")){
-              inProjectsAndWillGetDisplayedInSeparateSection = true;
-              continue;
-            }
-          }
-        }
-        if(inProjectsAndWillGetDisplayedInSeparateSection == true){
-          inProjectsAndWillGetDisplayedInSeparateSection = false;
-          continue;
-        }
+	      	if (MultiValue.isDefault(nameKey)) continue;
+	      	if (nameKey.equals("Nickname")) continue;
+        	if(StringUtils.isBlank(nameKey)){ //blanks needed to be caught and skipped
+          		continue;
+        	}
+	      	if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+        	MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+        	List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+        	if(nameKey.trim().contains("Merged") && (sharky.getName(nameKey) == null || sharky.getName(nameKey).equals(""))){ //skip the "merged" nameKeys if they're empty
+          		continue;
+        	}
+        	if (projects!=null&&projects.size()>0) {
+          		for(Project currentProject: projects){
+            		String researchProjName = currentProject.getResearchProjectName();
+            		if (nameKey.contains(researchProjName) && !nameKey.contains("Merged")){
+              			inProjectsAndWillGetDisplayedInSeparateSection = true;
+              			continue;
+            		}
+          		}
+        	}
+        	if(inProjectsAndWillGetDisplayedInSeparateSection == true){
+          		inProjectsAndWillGetDisplayedInSeparateSection = false;
+          		continue;
+        	}
 
-	      String nameLabel=nameKey;
-	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
-	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
-	      String nameValue = sharky.getName(nameKey);
-	      %>
-	      <div class="namesection <%=nameKey%>">
-	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
-	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
-	        <span id="nameColon">:</span>
+	      	String nameLabel=nameKey;
+	      	if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
+	      	else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
+	      	String nameValue = sharky.getName(nameKey);
+	      	%>
+	      	<div class="namesection <%=nameKey%>">
+	        	<span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
+	        	<input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
+	        	<span id="nameColon">:</span>
 
-	        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
-	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
-	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+	        	<span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
+	        	<input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
+	        	<input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
 
-	        <span class="nameCheck">&check;</span>
-	        <span class="nameError">X</span>
-	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-	      </div>
+	        	<span class="nameCheck">&check;</span>
+	        	<span class="nameError">X</span>
+	        	<input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      	</div>
 
-        <%
-	    }
+        	<%
+	    } //end for loop on non-project names
 	}
 
   MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
   List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
   if(projects!=null && projects.size()>0){
+	  
+  	int count=0;
     for(Project currentProject: projects){
+    	count++;
+    
       String researchProjId = currentProject.getProjectIdPrefix();
       String researchProjName = currentProject.getResearchProjectName();
-      String incrementalId = indie.getName(researchProjId);
-      if(incrementalId != null && researchProjName!=null && researchProjId !=null){
+      String incrementalId = indie.getName(researchProjName);
+      if(incrementalId != null && researchProjName!=null && researchProjId !=null && request.getUserPrincipal()!=null){
         %>
         <div class="namesection <%=researchProjName%>">
-	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>
+	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName %></em></span>
 	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjName%>" placeholder="<%= researchProjName%>" >
 	        <span id="nameColon">:</span>
 
-	        <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
+	        <span class="nameValue <%=researchProjName %>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
 	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=incrementalId%>" placeholder="<%=incrementalId %>" >
 	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
 
@@ -616,15 +629,15 @@ if (sharky.getNames() != null) {
 
         <%
       }
-      else{
+      else if(request.getUserPrincipal()!=null){
         String noIdTxt = props.getProperty("noIdIn");
         %>
-        <div class="namesection <%=researchProjId%>">
-          <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
-          <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+        <div class="namesection <%=researchProjName%>">
+          <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>
+          <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjName%>" placeholder="<%= researchProjName%>" >
           <span id="nameColon">:</span>
 
-          <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=noIdTxt%>"><%=noIdTxt%></span>
+          <span class="nameValue <%=researchProjName%>" data-oldvalue="<%=noIdTxt%>"><%=noIdTxt%></span>
           <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=noIdTxt%>" placeholder="<%=noIdTxt %>" >
           <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
 

@@ -52,8 +52,8 @@ public class MergeIndividual extends HttpServlet {
       return;
     }
 
-    String oldName1="";
-    String oldName2="";
+    String oldName1;
+    String oldName2;
 
     boolean canMergeAutomatically = false;
 
@@ -69,18 +69,15 @@ public class MergeIndividual extends HttpServlet {
 
       if (mark1==null || mark2==null) {
         String msg = "<strong>Error:</strong> Could not find both individuals in our database. ";
-        System.out.println("MergeIndividual.java: "+msg);
-        if (mark1==null) {msg+="<br>could not find individual "+id1;System.out.println("MergeIndividual.java couldn't find: "+id1);}
-        if (mark2==null) {msg+="<br>could not find individual "+id2;System.out.println("MergeIndividual.java couldn't find: "+id2);}
+        if (mark1==null) msg+="<br>could not find individual "+mark1;
+        if (mark2==null) msg+="<br>could not find individual "+mark2;
+        errorAndClose(msg, response);
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        errorAndClose(msg, response);
         return;
       }
-
-      oldName1 = mark1.getDisplayName() + "("+Util.prettyUUID(mark1.getIndividualID())+")";
-      oldName2 = mark2.getDisplayName() + "("+Util.prettyUUID(mark2.getIndividualID())+")";
-
+      oldName1 = mark1.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark1.getIndividualID())+")";
+      oldName2 = mark2.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark2.getIndividualID())+")";
 
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
@@ -109,8 +106,8 @@ public class MergeIndividual extends HttpServlet {
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
       //check for eligibility.. must throw on timer if not able to do right away
-      //ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
-      //ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
+      List<String> mark1Users = mark1.getAllAssignedUsers();
+      List<String> mark2Users = mark2.getAllAssignedUsers();
       Principal userPrincipal = request.getUserPrincipal();
       String currentUsername = null;
       if (userPrincipal!=null) {
@@ -138,10 +135,8 @@ public class MergeIndividual extends HttpServlet {
         //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
         if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {
           canMergeAutomatically = true;
-          System.out.println("Can merge automatically.");
-        }
+        } 
         else {
-          System.out.println("Scheduling a merge between: "+mark1.getIndividualID()+" and "+mark2.getIndividualID());
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
           myShepherd.updateDBTransaction();
@@ -149,7 +144,6 @@ public class MergeIndividual extends HttpServlet {
       }
 
       if (canMergeAutomatically) {
-        System.out.println("Merging automatically.");
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
@@ -175,23 +169,20 @@ public class MergeIndividual extends HttpServlet {
         }
         if (throwaway) myShepherd.getPM().deletePersistent(mark2);
         myShepherd.commitDBTransaction();
-
+        myShepherd.closeDBTransaction();
       }
       else {
         myShepherd.rollbackDBTransaction();
-
+        myShepherd.closeDBTransaction();
       }
 
     }
     catch (Exception le){
-      locked=true;
       le.printStackTrace();
-      myShepherd.rollbackDBTransaction();
       errorAndClose("An exception occurred. Please contact the admins.", response);
-
-    }
-    finally {
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
+      return;
     }
 
     if(!locked&&canMergeAutomatically){
@@ -214,22 +205,26 @@ public class MergeIndividual extends HttpServlet {
         }
 
       }
-    else if (!locked) {
-        response.setStatus(HttpServletResponse.SC_OK);
+      else if (!locked) {
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
-
+        response.setStatus(HttpServletResponse.SC_OK);
       }
-     else {
+      else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
   }
 
 
   private void errorAndClose(String msg, HttpServletResponse response) {
-    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    //out.println(ServletUtilities.getHeader(request));
     out.println(msg);
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
     out.close();
+    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
   }
 
   private long twoWeeksFromNowLong() {
