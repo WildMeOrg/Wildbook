@@ -51,6 +51,10 @@ public class RestClient {
     public static JSONObject get(URL url) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("GET", url, null);
     }
+    
+    public static JSONObject get(URL url, int timeout) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+      return anyMethod("GET", url, null, timeout);
+  }
 
     public static JSONObject get(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("GET", url, data);
@@ -62,11 +66,14 @@ public class RestClient {
 
     //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
+      return anyMethod(method, url, data, CONNECTION_TIMEOUT);
+    } 
+    private static JSONObject anyMethod(String method, URL url, JSONObject data, int ctimeout) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
         //System.setProperty("http.keepAlive", "false");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(CONNECTION_TIMEOUT);
-        conn.setConnectTimeout(CONNECTION_TIMEOUT);
+        conn.setReadTimeout(ctimeout);
+        conn.setConnectTimeout(ctimeout);
         conn.setDoOutput((data != null));
         conn.setDoInput(true);
         conn.setRequestMethod(method);
@@ -289,11 +296,14 @@ one annoying thing we attempt to handle now is that there may be plain-text retu
 
     //you might want to use getPostDataString() to get input data string here
     private static String anyMethodGeneric(String method, URL url, String authUsername, String authPassword, String data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-System.out.println("TRYING anyMethodGeneric(" + method + ") url -> " + url);
+        return anyMethodGeneric(method, url, authUsername, authPassword, data, CONNECTION_TIMEOUT);
+    }  
+    private static String anyMethodGeneric(String method, URL url, String authUsername, String authPassword, String data, int ctimeout) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        System.out.println("TRYING anyMethodGeneric(" + method + ") url -> " + url);
         //System.setProperty("http.keepAlive", "false");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(CONNECTION_TIMEOUT);
-        conn.setConnectTimeout(CONNECTION_TIMEOUT);
+        conn.setReadTimeout(ctimeout);
+        conn.setConnectTimeout(ctimeout);
         conn.setDoOutput((data != null));
         conn.setDoInput(true);
         conn.setRequestMethod(method);

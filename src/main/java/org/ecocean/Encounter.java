@@ -3802,6 +3802,14 @@ throw new Exception();
             occ.addEncounter(enc);
             enc.setOccurrenceID(occ.getOccurrenceID());
         }
+        
+        //WB-1949: clone into same projects too
+        ArrayList<Project> projects=myShepherd.getAllProjectsForEncounter(this);
+        if(projects!=null) {
+          for(Project proj:projects) {
+            proj.addEncounter(enc);
+          }
+        }
 
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
@@ -4069,7 +4077,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
   }
 
   public void setInformOthers(List<User> users) {
-    if(informOthers==null){this.informOthers=null;}
+    if(users==null){this.informOthers=null;}
     else{
       this.informOthers=users;
     }

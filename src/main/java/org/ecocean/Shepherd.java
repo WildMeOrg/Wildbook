@@ -3001,21 +3001,16 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     Iterator<Project> projectIter = null;
     ArrayList<Project> projectArr = null;
     try {
-      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) VARIABLES org.ecocean.Encounter enc";
+      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.catalogNumber == '"+encounter.getCatalogNumber()+"' VARIABLES org.ecocean.Encounter enc";
       query = getPM().newQuery(filter);
-      query.declareParameters("Encounter enc");
-      Collection c = (Collection)query.execute(encounter);
-      projectIter = c.iterator();
-      while (projectIter.hasNext()) {
-        if (projectArr==null) {
-          projectArr = new ArrayList<>();
-        }
-        projectArr.add(projectIter.next());
-      }
-    } catch (JDOException jdoe) {
+      Collection c = (Collection)query.execute();
+      projectArr = new ArrayList<Project>(c);
+    } 
+    catch (JDOException jdoe) {
       jdoe.printStackTrace();
-    } finally {
-      query.closeAll();
+    } 
+    finally {
+      if(query!=null)query.closeAll();
     }
     return projectArr;
   }
