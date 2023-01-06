@@ -23,7 +23,7 @@ context=ServletUtilities.getContext(request);
 
     <hr/>
 
-    <embed src="cust/20200515_ACW privacy_policy final.pdf" type="application/pdf" width="100%" height="1000px" />
+    <embed src="cust/20230103_ACW Privacy_policy_FINAL_Eng-Fr.pdf" type="application/pdf" width="100%" height="1000px" />
 
     <hr/>
 
