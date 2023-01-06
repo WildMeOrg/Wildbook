@@ -424,19 +424,21 @@ $(document).ready(function() {
           boolean isOwner = Collaboration.canUserFullyEditMarkedIndividual(sharky, request);
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
-          if (CommonConfiguration.allowNicknames(context)) {
+
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
-              String myNickname = "";
+              String myDisplayName = "";
 
               String nameInProjectContext = sharky.getDisplayName(request, myShepherd);
               if (nameInProjectContext!=null) {
-                myNickname = nameInProjectContext;
-              } else {
-                myNickname = sharky.getDisplayName("Nickname");
-              }
+            	  myDisplayName = nameInProjectContext;
+              } 
+              
+              myDisplayName=sharky.getNickName()+" ("+myDisplayName+")";
+
+              
             %>
 
-            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myDisplayName%></span>
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -455,7 +457,8 @@ $(document).ready(function() {
             <%
 
 
-          } else { // no nicknames allowed in cc.props
+          } 
+          else { 
             System.out.println("no nicknames allowed, trying sharky.getDisplayName(request, myShepherd) = "+sharky.getDisplayName(request, myShepherd) );
             %>
             <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
@@ -474,8 +477,7 @@ $(document).ready(function() {
             <%}%></h1>
           <%
           }
-        }
-                  //System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
+
 
           %>
 
