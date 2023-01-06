@@ -421,7 +421,7 @@ finally{
 							-->
 
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          	 <li><a target="_blank" href="https://docs.wildme.org/docs/researchers/overview"><%=props.getProperty("shepherdDoc")%></a></li>
+                          	 <li><a target="_blank" href="https://docs.wildme.org/product-docs/en/wildbook/getting-started-with-wildbook/"><%=props.getProperty("shepherdDoc")%></a></li>
                                 
                         	<!-- 
                         	<li class="divider"></li>
