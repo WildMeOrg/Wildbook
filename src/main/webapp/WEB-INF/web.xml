@@ -454,6 +454,8 @@
 			/iaResultsNoMatch.jsp = = authc, roles[researcher]
 			/iaResultsSetID.jsp = = authc, roles[researcher]
 			
+			/adoptions/** = authc, roles[admin]
+			/AdoptionAction = authc, roles[admin]
 			</param-value>
         </init-param>
     </filter>
