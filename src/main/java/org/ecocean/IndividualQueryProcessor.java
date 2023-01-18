@@ -229,6 +229,65 @@ public class IndividualQueryProcessor extends QueryProcessor {
     //end haplotype filters-----------------------------------------------
 
 
+    //------------------------------------------------------------------
+    //annotation viewpoint and class filters-------------------------------------------------
+    String[] hasViewpoint=request.getParameterValues("hasViewpoint");
+    String[] hasIAClass=request.getParameterValues("hasIAClass");
+    if(((hasViewpoint!=null)&&(!hasViewpoint[0].equals("")))||((hasIAClass!=null)&&(!hasIAClass[0].equals("")))){
+      if((hasViewpoint!=null)&&(!hasViewpoint[0].equals(""))) {
+        prettyPrint.append("Viewpoint is one of the following: ");
+        int kwLength=hasViewpoint.length;
+          String locIDFilter="(";
+          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+            String kwParam=hasViewpoint[kwIter].trim();
+            if(!kwParam.equals("")){
+              if(locIDFilter.equals("(")){
+                locIDFilter+=" annot46.viewpoint == \""+kwParam+"\"";
+              }
+              else{
+                locIDFilter+=" || annot46.viewpoint == \""+kwParam+"\"";
+              }
+              prettyPrint.append(kwParam+" ");
+            }
+          }
+          locIDFilter+=" )";
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
+          else{filter+=(" && "+locIDFilter);}
+          prettyPrint.append("<br />");
+      }
+      if((hasIAClass!=null)&&(!hasIAClass[0].equals(""))) {
+        prettyPrint.append("IA class is one of the following: ");
+        int kwLength=hasIAClass.length;
+          String locIDFilter="(";
+          for(int kwIter=0;kwIter<kwLength;kwIter++) {
+            String kwParam=hasIAClass[kwIter].trim();
+            if(!kwParam.equals("")){
+              if(locIDFilter.equals("(")){
+                locIDFilter+=" annot46.iaClass == \""+kwParam+"\"";
+              }
+              else{
+                locIDFilter+=" || annot46.iaClass == \""+kwParam+"\"";
+              }
+              prettyPrint.append(kwParam+" ");
+            }
+          }
+          locIDFilter+=" )";
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
+          else{filter+=(" && "+locIDFilter);}
+          prettyPrint.append("<br />");
+      }
+      
+      //set the jdoql variable used by both
+      filter+=(" && encounters.contains(enc452) && enc452.annotations.contains(annot46)");
+      if(jdoqlVariableDeclaration.length() > 0){
+        jdoqlVariableDeclaration += ";org.ecocean.Annotation annot46;org.ecocean.Encounter enc452;";
+      }
+      else {
+        jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation annot46;org.ecocean.Encounter enc452;";
+      }
+  
+    }
+    //end viewpoint and class filters-----------------------------------------------
 
 
       //------------------------------------------------------------------
