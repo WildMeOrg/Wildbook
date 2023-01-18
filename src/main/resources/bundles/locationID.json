@@ -3,7 +3,7 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-
+    { "name":"WA-Perth-Watermans", "id":"WA-Perth-Watermans", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
