@@ -514,7 +514,7 @@ if (sharky.getNames() != null) {
       <%
       if(names.size()>1){
       %>
-      <br><%=props.getProperty("previousNames") %> <%=names.toString().replaceAll(defaultName+",", "").replaceAll("[","").replaceAll("]","").trim() %>
+      <br><%=props.getProperty("previousNames") %> <%=names.toString().replaceAll(defaultName+",", "").replaceAll("\\[","").replaceAll("\\]","").trim() %>
       <%
 		}
       %>
