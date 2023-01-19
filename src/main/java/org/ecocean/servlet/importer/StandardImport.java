@@ -1238,6 +1238,10 @@ public class StandardImport extends HttpServlet {
     if (tissueSampleID!=null) {
       sample = myShepherd.getTissueSample(tissueSampleID, encID);
       if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
+      
+      String tissueType=getStringOrInt(row, "TissueSample.tissueType",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+      if(tissueType!=null)sample.setTissueType(tissueType);
+      
     }
 
     //genotype
