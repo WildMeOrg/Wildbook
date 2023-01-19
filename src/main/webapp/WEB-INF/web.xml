@@ -474,7 +474,6 @@
 		 /ia = authc
 		 /MediaAssetContext = authc
 		  /GetCurrentIAInfo = authc
-		  /appadmin/old/
 		  /error_generic.jsp = authc
 		  /myCollabLog.jsp = authc
 		  /adoptions/allAdoptions.jsp = authc, roles[admin]
