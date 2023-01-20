@@ -538,7 +538,7 @@ if (sharky.getNames() != null) {
       List<String> nicknames=sharky.getNamesList(MarkedIndividual.NAMES_KEY_NICKNAME);
       if(nicknames!=null && nicknames.size()>1){
       %>
-      <br><em><%=props.getProperty("previousNames") %> <%=nicknames.toString().replaceAll(nicknames.get(0)+",", "").replaceAll("[","").replaceAll("]","").trim() %></em>
+      <br><em><%=props.getProperty("previousNames") %> <%=nicknames.toString().replaceAll(nicknames.get(0)+",", "").replaceAll("\\[","").replaceAll("\\]","").trim() %></em>
       <%
 		}
       %>
