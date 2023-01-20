@@ -16,19 +16,22 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
-props = ShepherdProperties.getProperties("merge.properties", langCode,context);
-myShepherd.setAction("merge.jsp");
-User currentUser = AccessControl.getUser(request, myShepherd);
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
-String newId = indIdA;
-MarkedIndividual markA = myShepherd.getMarkedIndividualQuiet(indIdA);
-MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
-MarkedIndividual[] inds = {markA, markB};
-String fullNameA = indIdA;
-if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
-String fullNameB = indIdB;
-if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
+props = ShepherdProperties.getProperties("merge.properties", langCode,context);
+myShepherd.setAction("merge.jsp");
+myShepherd.beginDBTransaction();
+try{
+	User currentUser = AccessControl.getUser(request, myShepherd);
+
+	String newId = indIdA;
+	MarkedIndividual markA = myShepherd.getMarkedIndividualQuiet(indIdA);
+	MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
+	MarkedIndividual[] inds = {markA, markB};
+	String fullNameA = indIdA;
+	if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
+	String fullNameB = indIdB;
+	if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -38,6 +41,11 @@ if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(reques
 <style>
 table td,th {
 	padding: 10px;
+	vertical-align: top;
+	text-align: left;
+	font-size: 1em;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 #mergeBtn {
 	float: right;
@@ -185,16 +193,17 @@ table.compareZone tr th {
   function populateProjectIdRow(incrementalIds, projName, projUuid, projId, projOwner){
     let projectIdHtml = '';
     <% for (int i=0; i<inds.length; i++) {%>
-    projectIdHtml += '<td class="col-md-2 diff_check">';
-    if(incrementalIds && incrementalIds[<%=i%>] && incrementalIds[<%=i%>].projectIncrementalId !== ""){
-      projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
-    }else{
-      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
-    }
-    projectIdHtml += '</td>';
+	    projectIdHtml += '<td class="col-md-2 diff_check">';
+	    if(incrementalIds && incrementalIds[<%=i%>] && incrementalIds[<%=i%>].projectIncrementalId != undefined && incrementalIds[<%=i%>].projectIncrementalId !== ""){
+	      projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
+	    }
+	    else{
+	      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
+	    }
+	    projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
-    if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[1].projectIncrementalId !== ""){
+    if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[1].projectIncrementalId !== ""){
       // two incremental IDs for projName
       if(!conflictingProjs.includes(projName)){
         conflictingProjs.push(projName);
@@ -210,17 +219,19 @@ table.compareZone tr th {
       }
       projectIdHtml += '</td>';
       $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
-    } else{
-      if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
+    } 
+    else{
+      if(incrementalIds && incrementalIds.length>0 && ( (incrementalIds[0].projectIncrementalId !== undefined && incrementalIds[0].projectIncrementalId !== "") || (incrementalIds.length>1 && incrementalIds[1].projectIncrementalId !== undefined && incrementalIds[1].projectIncrementalId !== ""))){ //one incremental ID is missing
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
         projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
-        let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
+        let betterVal = betterValWithTieBreaker(incrementalIds[0], incrementalIds[1]);
         projectIdHtml += betterVal;
         projectIdHtml += '</span>'
         projectIdHtml += '</td>';
         projectIdHtml += '<td>';
         $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
-      }else{
+      }
+      else{
         //populate with no incremental IDs, but give it the IDs and names required to still fetch this value upon form submission
         projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
         projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
@@ -232,22 +243,22 @@ table.compareZone tr th {
     }
   }
   function betterValWithTieBreaker(candidate1, candidate2){
-    if (candidate1!=null && candidate2!=null && candidate1.trim() === candidate2.trim()) {
+    if (candidate1!=null && candidate1.projectIncrementalId !== undefined && candidate2!=null && candidate2.projectIncrementalId !== undefined && candidate1.projectIncrementalId.trim() === candidate2.projectIncrementalId.trim()) {
       // return shorter string (less whitespace)
       if (candidate1.length()<candidate2.length()){
-        return candidate1;
+        return candidate1.projectIncrementalId;
       }
       else{
-        return candidate2;
+        return candidate2.projectIncrementalId;
       }
     }
-    if (!candidate2){
-      return candidate1;
+    if (!candidate2 || !candidate2.projectIncrementalId){
+      return candidate1.projectIncrementalId;
     }
-    if (!candidate1){
-      return candidate2;
+    if (!candidate1  || !candidate1.projectIncrementalId){
+      return candidate2.projectIncrementalId;
     }
-    return candidate1;
+    return candidate1.projectIncrementalId;
   }
   function getDeprecatedIncrementalIdFromOptions (stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds, arrayOfOptionElements){
     let returnVal = "_";
@@ -277,7 +288,7 @@ table.compareZone tr th {
     if(projectNames.length>0){
       for(let i =0; i<projectNames.length; i++){
         projectIdHtml += '<tr class="row projectId check_for_diff" data-id="project-id-table-row-' + projectNames[i] + '">';
-        projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
+        projectIdHtml += '<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("ProjectId") %></h4>';
         projectIdHtml += '<span data-id="current-proj-id-display-' + projectNames[i] + '"><em> ' + projectNames[i] + '</em></span>';
         projectIdHtml += '</th>';
         projectIdHtml += '</tr>';
@@ -317,7 +328,7 @@ table.compareZone tr th {
 
 <div class="container maincontent">
   <div id="progress-div">
-    <h4><%= props.getProperty("Loading")%></h4>
+    <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Loading")%></h4>
     <div class="progress">
       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
         <span class="sr-only"><%= props.getProperty("PercentComplete")%></span>
@@ -325,7 +336,7 @@ table.compareZone tr th {
     </div>
   </div>
   <div id="not-permitted" style="display: none;">
-    <h4><%= props.getProperty("NotPermitted")%></h4>
+    <h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("NotPermitted")%></h4>
     <div id="proj-contact-list"></div>
   </div>
   <div id="everything-else" style="display: none;">
@@ -335,9 +346,6 @@ table.compareZone tr th {
     //System.out.println("Merge.jsp has queryString "+queryString);
     // consider including an enc media gallery below?
     %>
-    <%
-    try {
-    	%>
       <h1>Marked Individual Merge Tool</h1>
       <p class="instructions">Confirm the merged values for each of the fields below.</p>
       <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
@@ -356,38 +364,56 @@ table.compareZone tr th {
     		<tr class="row header">
     			<th class="col-md-2"></th>
     			<% for (MarkedIndividual ind: inds) {%>
-    			<th class="col-md-2"><h2>
-    				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName(request, myShepherd)%></a>
-    			</h2></th>
+    			<th class="col-md-2">
+    				<h4 style="margin-top: 0px; margin-bottom: 0px;">
+    					<a target="_blank" href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName(request, myShepherd)%></a>
+    				</h4>
+    			</th>
     			<%}%>
-    			<th><h2>
-    				<%= props.getProperty("MergedIndividual") %>
-    			</h2></th>
+    			<th>
+    				<h4 style="margin-top: 0px; margin-bottom: 0px;">
+    					<%= props.getProperty("MergedIndividual") %>
+    				</h4>
+    			</th>
     		</tr>
     		<tr class="row names">
-    			<th><%= props.getProperty("Names") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Names") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
-    			<td class="col-md-2">
-    				<% for (String key: ind.getNameKeys()) {
-    					String nameStr = String.join(", ", ind.getNamesList(key));
-    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-    				}
-    				%>
-    			</td>
+	    			<td class="col-md-2">
+	    				<% 
+	    				for (String key: ind.getNameKeys()) {
+	    					String nameStr = String.join(", ", ind.getNamesList(key));
+	    					%>
+	    					<span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/>
+	    					<%
+	    				}
+	    				%>
+	    			</td>
     			<%}%>
     			<td class="col-md-2 mergedNames">
     				<%
     				MultiValue allNames = MultiValue.merge(markA.getNames(), markB.getNames());
     				for (String key: allNames.getKeys()) {
     					String nameStr = String.join(", ", allNames.getValuesAsList(key));
-    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
+    					%>
+    					<span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/>
+    					<%
     				}
     				%>
+    				<br>
+    				New default name:
+    				<select name="default-ID-dropdown" id="default-ID-dropdown" class="">
+                		<% for (MarkedIndividual ind: inds) {%>
+    						<option value="<%=ind.getIndividualID() %>">
+								<%=ind.getDefaultName() %>    							
+    						</option>
+    					<%}%>
+                	</select>
     			</td>
     		</tr>
           <!--populated by JS after page load-->
     		<tr class="row encounters">
-    			<th><%= props.getProperty("NumEncounters") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("NumEncounters") %></h4></th>
     			<% int totalEncs = 0;
     			for (MarkedIndividual ind: inds) {
     				int encs = ind.numEncounters();
@@ -402,7 +428,7 @@ table.compareZone tr th {
     			</td>
     		</tr>
     		<tr class="row species check_for_diff">
-    			<th><%= props.getProperty("Species") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Species") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<td class="col-md-2 diff_check">
     				<%=ind.getGenusSpeciesDeep()%>
@@ -411,13 +437,15 @@ table.compareZone tr th {
     			<td class="merge-field">
     				<%
     				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-            if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
+            		if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
               %>
                 <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
-                <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
-                <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+                	<option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
+                	<option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+                </select>
               <%
-            }else{
+            }
+            else{
               System.out.println("getting here");
               %>
               <%= mergeTaxy%>
@@ -427,7 +455,7 @@ table.compareZone tr th {
     			</td>
     		</tr>
         <tr class="row sex check_for_diff">
-    			<th><%= props.getProperty("Sex") %></th>
+    			<th><h4 style="margin-top: 0px; margin-bottom: 0px;"><%= props.getProperty("Sex") %></h4></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<td class="col-md-2 diff_check">
     				<%=ind.getSex()%>
@@ -439,10 +467,12 @@ table.compareZone tr th {
             if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
               %>
                 <select name="sex-dropdown" id="sex-dropdown" class="">
-                <option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
-                <option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+                	<option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
+                	<option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+                </select>
               <%
-            }else{
+            }
+            else{
               %>
               <%= mergeSex%>
               <%
@@ -458,10 +488,27 @@ table.compareZone tr th {
       $(document).ready(function() {
         $("#mergeBtn").click(function(event) {
           event.preventDefault();
+          
         	let id1="<%=indIdA%>";
         	let id2="<%=indIdB%>";
         	let fullNameA = '<%=fullNameA%>';
         	let fullNameB = '<%=fullNameB%>';
+          
+        	//let's check the dropdown
+        	var nameSelect = document.getElementById("default-ID-dropdown").value;
+        	console.log("nameSelect="+nameSelect);
+        	if(id2===nameSelect){
+        		id2=id1;
+        		id1=nameSelect;
+        		let tempHolder=fullNameB;
+        		fullNameB=fullNameA;
+        		fullNameA=tempHolder;
+        		
+        	}
+        	console.log("id1="+id1);
+        	console.log("id2="+id2);
+        	
+        	
           let sex = $("#sex-dropdown").val();
           if(!sex){
             //It's because they match
@@ -501,7 +548,9 @@ table.compareZone tr th {
             currentOptionElems = [];
           }
         	$("#mergeForm").attr("action", "MergeIndividual"); // Is this necessary given <form's already-existing attributes? -MF
-          $.post("/MergeIndividual", {
+          
+        
+           $.post("/MergeIndividual", {
           	"id1": id1,
           	"id2": id2,
           	"sex": sex,
@@ -519,11 +568,13 @@ table.compareZone tr th {
           .fail(function(response) {
           	alert("FAILURE!!");
           });
+        	
     	  });
     	});
     	</script>
     	<%
-    } catch (Exception e) {
+    } 
+	catch (Exception e) {
     	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
     	myShepherd.rollbackDBTransaction();
     } finally {

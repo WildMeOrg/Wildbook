@@ -55,7 +55,7 @@ function confirmCommit() {
 }
 
 function confirmCommitID() {
-	return confirm("Resend to ID? This process may take a long time and block other users from using detection and ID quickly.");
+	return confirm("Send to ID? This process may take a long time and block other users from using detection and ID quickly.");
 }
 
 function confirmDelete() {
@@ -111,6 +111,7 @@ myShepherd.beginDBTransaction();
 //should the user see the detect and/or detect+ID buttons?
 boolean allowIA=false;
 boolean allowReID=false;
+String iaStatusString="not started";
 
 try{
 	User user = AccessControl.getUser(request, myShepherd);
@@ -120,10 +121,10 @@ try{
 	    myShepherd.closeDBTransaction();
 	    return;
 	}
-	boolean adminMode = request.isUserInRole("admin");
-	if(request.isUserInRole("orgAdmin"))adminMode=true;
-	boolean forcePushIA=false;
-	if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
+	boolean adminMode = false;
+	if(request.isUserInRole("admin")||request.isUserInRole("orgAdmin"))adminMode=true;
+	//boolean forcePushIA=false;
+	//if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
 	
 	  //handle some cache-related security
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -287,59 +288,60 @@ try{
 	        ArrayList<Task> tasks=new ArrayList<Task>();
 	        HashMap<String,String> annotTypesByTask=new HashMap<String,String>();
 	        for(Annotation annot:enc.getAnnotations()){
-	        	String viewpoint="null";
-	        	String iaClass="null";
-	        	if(annot.getViewpoint()!=null)viewpoint=annot.getViewpoint();
-	        	if(annot.getIAClass()!=null)iaClass=annot.getIAClass();
-	        	HashMap<String,String> thisMap=new HashMap<String,String>();
-	        	thisMap.put(iaClass,viewpoint);
-	        	if(!annotsMap.containsKey(thisMap)){
-	        		annotsMap.put(thisMap,Integer.parseInt("1"));
-	        		numAnnotations++;
-	        	}
-	        	else{
-	        		Integer numInts = annotsMap.get(thisMap);
-	        		numInts = new Integer(numInts.intValue() + 1);
-	        		annotsMap.put(thisMap,numInts);
-	        		numAnnotations++;
-	        	}
-	        	if(annot.getMatchAgainst())numMatchAgainst++;
-	        	
-	        	//let's look for match results we can easily link for the user
-                        List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
-	     
-	        			
-                        if(relatedTasks!=null && relatedTasks.size()>0){
-                        	
-
-                        
-                            for(Task task:relatedTasks){
-                            	
-                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
-	                            	//System.out.println("I am a task with only one algorithm");
-                            		if(!tasks.contains(task)){
-		        						tasks.add(task);
-		        						annotTypesByTask.put(task.getId(),iaClass);
-		        					}
-                            	}
-                            	else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
-                            		//System.out.println("I am a task with child ID tasks.");
-	                            	if(!tasks.contains(task)){
-		        						tasks.add(task);
-		        						annotTypesByTask.put(task.getId(),iaClass);
-		        					}
-                            	}
-                                else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
-                                    //System.out.println("I am a task with child ID tasks.");
-                                    if(!tasks.contains(task)){
-                                        tasks.add(task);
-                                        annotTypesByTask.put(task.getId(),iaClass);
-                                     }
-                                  }
-	        		}
-	        	}		
-	        	
-	        	
+	        	if(!annot.isTrivial()){
+		        	String viewpoint="null";
+		        	String iaClass="null";
+		        	if(annot.getViewpoint()!=null)viewpoint=annot.getViewpoint();
+		        	if(annot.getIAClass()!=null)iaClass=annot.getIAClass();
+		        	HashMap<String,String> thisMap=new HashMap<String,String>();
+		        	thisMap.put(iaClass,viewpoint);
+		        	if(!annotsMap.containsKey(thisMap)){
+		        		annotsMap.put(thisMap,Integer.parseInt("1"));
+		        		numAnnotations++;
+		        	}
+		        	else{
+		        		Integer numInts = annotsMap.get(thisMap);
+		        		numInts = new Integer(numInts.intValue() + 1);
+		        		annotsMap.put(thisMap,numInts);
+		        		numAnnotations++;
+		        	}
+		        	if(annot.getMatchAgainst())numMatchAgainst++;
+		        	
+		        	//let's look for match results we can easily link for the user
+	                        List<Task> relatedTasks = Task.getTasksFor(annot, myShepherd);
+		     
+		        			
+	                        if(relatedTasks!=null && relatedTasks.size()>0){
+	                        	
+	
+	                        
+	                            for(Task task:relatedTasks){
+	                            	
+	                            	if(task.getParent()!=null && task.getParent().getChildren().size()==1 && task.getParameters()!=null && task.getParameters().has("ibeis.identification")){
+		                            	//System.out.println("I am a task with only one algorithm");
+	                            		if(!tasks.contains(task)){
+			        						tasks.add(task);
+			        						annotTypesByTask.put(task.getId(),iaClass);
+			        					}
+	                            	}
+	                            	else if(task.getChildren()!=null && task.getChildren().size()>0 && (task.getParent()!=null && task.getParent().getChildren().size()<=1)){
+	                            		//System.out.println("I am a task with child ID tasks.");
+		                            	if(!tasks.contains(task)){
+			        						tasks.add(task);
+			        						annotTypesByTask.put(task.getId(),iaClass);
+			        					}
+	                            	}
+	                                else if(task.getChildren()!=null && task.getChildren().size()>2 && task.getParent()==null){
+	                                    //System.out.println("I am a task with child ID tasks.");
+	                                    if(!tasks.contains(task)){
+	                                        tasks.add(task);
+	                                        annotTypesByTask.put(task.getId(),iaClass);
+	                                     }
+	                                  }
+		        		}
+		        	}		
+		        	
+	        	} //end if
 	        } //end for
 	        
 	        out.println("<td>");
@@ -353,7 +355,7 @@ try{
                 });
                 Collections.reverse(tasks); 		
 	        	
-	        
+	        	System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
 	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
@@ -382,9 +384,11 @@ try{
 	<%
 	try{
 		int numWithACMID=0;
+		int numAllowedIA=0;
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
+			if(asset.validateSourceImage()){numAllowedIA++;}
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
@@ -392,6 +396,7 @@ try{
 		Total media assets: <%=allAssets.size()%><br>
 		<ul>
 			<li>Number with acmIDs: <%=numWithACMID %></li>
+			<li>Number valid for image analysis: <%=numAllowedIA %></li>
 			<li>Number that have completed detection: <%=numDetectionComplete %></li>
 		</ul>
 	</p>
@@ -420,9 +425,9 @@ try{
 	<%
 	
 	//let's determine the IA Status
-	String iaStatusString="not started";
-	if(adminMode && "complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
-	if(request.isUserInRole("admin") && "complete".equals(itask.getStatus()) && (itask.getIATask()!=null))allowReID=true;
+	
+	if("complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
+
 	boolean shouldRefresh=false;
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
@@ -431,7 +436,7 @@ try{
         //detection-only Task
 		//if(hasIdentificationBenRun(itask)){
 		if(!itask.iaTaskRequestedIdentification()){
-        	if(numDetectionComplete==allAssets.size()){
+        	if(numDetectionComplete==numAllowedIA){
         		iaStatusString="detection complete";
         	}
         	else{
@@ -587,28 +592,28 @@ try{
 	%>
 	    
 	    <p><strong>Image Analysis</strong></p>
-	    
+	    <p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
 		    <%
 		    if (allAssets.size() > 0) {
 		    
 		    %>
-		    	<p><em>The machine learning job queue runs each detection and ID job in a serial queue of jobs, which span multiple users. <%=queueStatement %></em></p>
+		    	
 		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 		
-		<div style="margin-bottom: 20px;">
-		    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
-		 </div>
+
 	 	<% 
 		    }
 	}
-		if (allowReID) { 
+	if((request.isUserInRole("admin") || request.isUserInRole("researcher")) 
+			&& itask.getIATask()!=null 
+			&& itask.getStatus()!=null
+			&& itask.getStatus().equals("complete") 
+			&& (iaStatusString.startsWith("identification")||iaStatusString.equals("detection complete"))) {allowReID=true;}
+
+	if (allowReID) { 
 		%>
 		 <div style="margin-bottom: 20px;">   	
-		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Resend to identification</a> matching against <b>location(s):</b>
+		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
 		    	<select multiple id="id-locationids" style="vertical-align: top;">
 		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
 		        	<option value="">ALL locations</option>
@@ -616,7 +621,7 @@ try{
 		   </div>
 		    	
 		    <%
-		    }
+	}
 
 	
 	//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
