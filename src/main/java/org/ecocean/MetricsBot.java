@@ -434,7 +434,7 @@ public class MetricsBot {
               // Truncate user's full name to first name and last initial, and replace space w/ underscore 
               if (name.contains(" "))
               {
-                String normalizedName = stripAccents(name);
+                String normalizedName = stripAccents(name).replaceAll("*", "");
                 int spaceIndex = normalizedName.indexOf(" ");
                 name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
               }
