@@ -78,7 +78,7 @@
 				/appadmin/automatedUserReconciliation.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
-
+				/appadmin/resendBulkImportID.jsp = authc, roles[researcher]
                 /appadmin/** = authc, roles[admin]
                 #/MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
@@ -180,6 +180,7 @@
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
 		         /UserCreate = authc, roles[admin]
+						 /UserCheck = authc
 				 /UserDelete = authc, roles[admin]
 				/ResetCommonConfiguration = authc, roles[admin]
 				/ResurrectDeletedEncounter = authc, roles[admin]
@@ -453,6 +454,47 @@
 		/ProjectGet = authc
 		/ProjectUpdate = authc
 		/ProjectIA = authc
+			/import.jsp = authc, roles[researcher]
+			/iaResultsNoMatch.jsp = authc, roles[researcher]
+			/iaResultsSetID.jsp = authc, roles[researcher]
+			
+
+			/adoptions/** = authc, roles[admin]
+			/AdoptionAction = authc, roles[admin]
+
+			/TranslationsGet = authc
+			/ImportIA = authc, roles[admin]
+		    /UpdateStandard = authc, roles[admin]
+			/WebImport = authc, roles[admin]
+           /import/upload = authc, roles[admin]
+		   /ResumableUpload = authc, roles[admin]
+          /upload  = authc, roles[admin]
+		  /UserCreateSocial = authc
+		 /SocialGrabFiles = authc, roles[admin]
+		 /SocialConnect = authc, roles[admin]
+		 #/ia = authc
+		 /MediaAssetContext = authc
+		  /GetCurrentIAInfo = authc
+		  /error_generic.jsp = authc
+		  /myCollabLog.jsp = authc
+		  /adoptions/allAdoptions.jsp = authc, roles[admin]
+		  /adoptions/editSuccess.jsp = authc, roles[admin]
+		  /submitSurvey.jsp = authc, roles[researcher]
+		  /dl.jsp = authc
+		  /projects/editProject.jsp = authc, roles[researcher]
+		  /attachMedia.jsp = authc
+		  /findXXHash.jsp = authc
+		  /encounters/encounterCR.jsp = authc
+		  /encounters/encounterSearchResultsAnalysisEmbed.jsp = authc
+		  /acmIdSync.jsp = authc
+		  /encounters/encounterCropTool.jsp = authc
+		  /encounters/occurrenceAnalysis.jsp = authc, roles[researcher]
+		  /encounters/spotMatchingAlgorithm.jsp = authc, roles[researcher]
+		  /encounters/mantaMatcherAlgorithm.jsp = authc
+		  /individualDistanceSearchResults.jsp = authc
+		  /surveys/surveyMapEmbed.jsp = authc
+		  /obrowse.jsp = authc
+
 			</param-value>
         </init-param>
     </filter>
@@ -928,6 +970,10 @@
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
   </servlet>
+	<servlet>
+		<servlet-name>UserCheck</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserCheck</servlet-class>
+</servlet>
     <servlet>
       <servlet-name>UserCreateSocial</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
@@ -1921,6 +1967,10 @@
           <servlet-name>UserCreate</servlet-name>
           <url-pattern>/UserCreate</url-pattern>
   </servlet-mapping>
+	<servlet-mapping>
+			<servlet-name>UserCheck</servlet-name>
+			<url-pattern>/UserCheck</url-pattern>
+</servlet-mapping>
       <servlet-mapping>
           <servlet-name>UserCreateSocial</servlet-name>
           <url-pattern>/UserCreateSocial</url-pattern>

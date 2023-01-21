@@ -13,6 +13,8 @@ import org.ecocean.identity.IBEISIA;
 //import java.util.UUID;   :(
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
@@ -58,6 +60,37 @@ public class Task implements java.io.Serializable {
     public long getModifiedLong() {
         return modified;
     }
+
+/*
+    // not really convinced these are accurate enough to use
+    //   actual computation of these things is complicated
+    //   leaving these for future potential exploration, if needed.
+
+    public boolean isTypeDetection() {
+        if (this.hasObjectMediaAssets()) return true;
+        if (this.hasObjectAnnotations()) return false;
+        if (this.parameters == null) return false;
+        if (this.getParameters().optJSONObject("ibeis.identification") != null) return false;
+        if (this.getParameters().optBoolean("ibeis.detection", false)) return true;
+        return false;
+    }
+    public boolean isTypeIdentification() {
+        if (this.isTypeDetection()) return false;  // we trust this a little more
+        if (this.hasObjectAnnotations()) return true;
+        if (this.parameters == null) return false;
+        if (this.getParameters().optJSONObject("ibeis.identification") != null) return true;
+        return false;
+    }
+
+    public boolean initiatedWithDetection() {
+        if (this.parameters == null) return false;
+        return this.getParameters().optBoolean("ibeis.detection", false);
+    }
+    public boolean initiatedWithIdentification() {
+        if (this.parameters == null) return false;  // not sure how i feel about this
+        return !this.getParameters().optBoolean("skipIdent", false);
+    }
+*/
 
     public int countObjectMediaAssets() {
         return (objectMediaAssets == null) ? 0 : objectMediaAssets.size();
@@ -207,6 +240,44 @@ public class Task implements java.io.Serializable {
             if (found != null) return found;
         }
         return null;
+    }
+
+    public List<Task> findNodesWithMediaAssets() {
+        List<Task> found = new ArrayList<Task>();
+        if (this.hasObjectMediaAssets()) found.add(this);
+        if (this.hasChildren()) for (Task kid : this.children) {
+            found.addAll(kid.findNodesWithMediaAssets());
+        }
+        return found;
+    }
+    public List<Task> findNodesWithAnnotations() {
+        List<Task> found = new ArrayList<Task>();
+        if (this.hasObjectAnnotations()) found.add(this);
+        if (this.hasChildren()) for (Task kid : this.children) {
+            found.addAll(kid.findNodesWithAnnotations());
+        }
+        return found;
+    }
+
+    public Map<String,Integer> detectionStatusSummary() {
+        Map<String,Integer> cts = new HashMap<String,Integer>();
+        if (!this.hasObjectMediaAssets()) return cts;
+        for (MediaAsset ma : this.getObjectMediaAssets()) {
+            String status = ma.getDetectionStatus();
+            if (status == null) status = "";
+            cts.put(status, cts.getOrDefault(status, 0) + 1);
+        }
+        return cts;
+    }
+    public Map<String,Integer> identificationStatusSummary() {
+        Map<String,Integer> cts = new HashMap<String,Integer>();
+        if (!this.hasObjectAnnotations()) return cts;
+        for (Annotation ann : this.getObjectAnnotations()) {
+            String status = ann.getIdentificationStatus();
+            if (status == null) status = "";
+            cts.put(status, cts.getOrDefault(status, 0) + 1);
+        }
+        return cts;
     }
 
     public JSONObject getParameters() {  //only return as JSONObject!  TODO probably validate content below?

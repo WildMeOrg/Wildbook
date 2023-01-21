@@ -20,11 +20,13 @@
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
+         org.ecocean.ia.WbiaQueueUtil,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          org.apache.commons.codec.net.URLCodec,
+         org.ecocean.metrics.Prometheus,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -128,7 +130,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-String num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -414,10 +416,11 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>){ //if showTaxonomy is false, the below would break autocomplete
-                    if (item.species != taxString) return null;
+                if(<%= (CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false")) %>) { //if showTaxonomy is false, the below would break autocomplete
+                  if (item.species != taxString) return null;
                 }
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
@@ -448,6 +451,29 @@ function setIndivAutocomplete(el) {
 	              var center = null;
                 let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
                 let centerLong = '<%=CommonConfiguration.getCenterLong(context)%>';
+                <%
+                  try{
+                    myShepherd.beginDBTransaction();
+                    String numForGps = request.getParameter("number").replaceAll("\\+", "").trim();
+                    Encounter encForGps = myShepherd.getEncounter(numForGps);
+                    if(encForGps!= null && encForGps.getLatitudeAsDouble()!=null){
+                      %>
+                      centerLat = '<%=encForGps.getLatitudeAsDouble()%>';
+                      <%
+                    }
+                    if(encForGps.getLongitudeAsDouble()!=null){
+                      %>
+                      centerLong = '<%=encForGps.getLongitudeAsDouble()%>';
+                      <%
+                    }
+                  } catch(Exception e){
+                    System.out.println("Error fetching the encounter or encounter ID for google map centering: ");
+                    e.printStackTrace();
+                  }finally{
+                    myShepherd.rollbackDBTransaction();
+                  	myShepherd.closeDBTransaction();
+                  }
+                %>
                 if (centerLat && centerLong) {
                   center = new google.maps.LatLng(centerLat, centerLong);
                 } else {
@@ -779,7 +805,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"))%>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -872,9 +898,15 @@ if(enc.getLocation()!=null){
 </span>
 
 <br>
-
+<%
+if(CommonConfiguration.showProperty("showCountry",context)){
+%>
 
   <em><%=encprops.getProperty("country") %></em>
+<%
+}
+%>
+
   <%
   if(enc.getCountry()!=null){
   %>
@@ -893,7 +925,7 @@ if(enc.getLocation()!=null){
   <%
     if (enc.getDepthAsDouble() !=null) {
   %>
-  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("feet")%> <%
+  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %>
   <%
@@ -1141,7 +1173,7 @@ if(enc.getLocation()!=null){
     <input name="action" type="hidden" value="setEncounterDepth" />
     <div class="form-group row">
       <div class="col-sm-5" id="depthDiv">
-        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("feet")%></span>
+        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
         <span class="form-control-feedback" id="depthCheck">&check;</span>
         <span class="form-control-feedback" id="depthError">X</span>
       </div>
@@ -1163,7 +1195,7 @@ if(enc.getLocation()!=null){
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
   %>
-  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%> </span><%=encprops.getProperty("meters")%> <%
   } else {
   %>
   <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
@@ -1225,8 +1257,10 @@ if(enc.getLocation()!=null){
         <span class="form-control-feedback" id="elevationCheck">&check;</span>
         <span class="form-control-feedback" id="elevationError">X</span>
       </div>
+    <div class="col-sm-3">
+    	<input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm"/>
     </div>
-    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+ </div>
   </form>
 </div>
 <!-- end elevation  -->
@@ -1932,6 +1966,18 @@ function checkIdDisplay() {
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
+                          const encNewNameComments = "Changed name to: " + data?.displayName + " for encounter: " + sendData?.number + ", which is individual: " + data?.individualID;
+                          const user = $("#autoUser").val();
+                          $.post("../EncounterAddComment", {"number": sendData?.number, "user": user, "autocomments": encNewNameComments},
+                          function() {
+                            $("#autoCommentErrorDiv").hide();
+                            $("#autoCommentsDiv").prepend("<p>" + encNewNameComments + "</p>");
+                            $("#autoComments").val("");
+                          })
+                          .fail(function(response) {
+                            $("#autoCommentErrorDiv").show();
+                            $("#autoCommentErrorDiv").html(response.responseText);
+                          });
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
@@ -3107,7 +3153,7 @@ if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
 %>
-    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+    <a target="_new" href="../import.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
 itq.closeAll();
@@ -6794,6 +6840,28 @@ $(window).on('load',function() {
 
 <div class="ia-match-filter-dialog">
 <h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+<%
+
+	String queueStatementID="";
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	if(wbiaIDQueueSize==0){
+		queueStatementID = "The machine learning queue is empty and ready for work.";
+	}
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		try{
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+		}
+		catch(Exception de){de.printStackTrace();}
+	}
+	if(!queueStatementID.equals("")){
+	%>
+	<p><em><%=queueStatementID %></em></p>
+	<%
+	}
+	%>
   <div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
     <span class="el el-lg el-chevron-right rotate-chevron" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
   </div>
@@ -6838,10 +6906,7 @@ List<String> locIds = new ArrayList<String>();  //filled as we traverse
 String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
 out.println("<div class=\"ul-root\">" + output + "</div>");
 
-//this is a sanity check for missed locationIDs !!
-for (String l : locCount.keySet()) {
-    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
-}
+
 %>
 
     </div>

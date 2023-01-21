@@ -585,6 +585,21 @@ public class Util {
         return j;
     }
 
+
+    public static Map<String,Integer> mapAdd(Map<String,Integer> m1, Map<String,Integer> m2) {
+        Map<String,Integer> sum = new HashMap<String,Integer>();
+        if ((m1 == null) && (m2 == null)) return sum;
+        if (m1 == null) return m2;
+        if (m2 == null) return m1;
+        Set<String> allKeys = new HashSet<String>();
+        allKeys.addAll(m1.keySet());
+        allKeys.addAll(m2.keySet());
+        for (String key : allKeys) {
+            sum.put(key, m1.getOrDefault(key, 0) + m2.getOrDefault(key, 0));
+        }
+        return sum;
+    }
+
     // transforms a string such as "90.1334" or "46″ N 79°" into a decimal value
     // TODO: parse second type of input string
     public static Double getDecimalCoordFromString(String latOrLong) {

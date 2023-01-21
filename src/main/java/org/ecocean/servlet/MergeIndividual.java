@@ -66,17 +66,18 @@ public class MergeIndividual extends HttpServlet {
 
       MarkedIndividual mark1 = myShepherd.getMarkedIndividualQuiet(id1);
       MarkedIndividual mark2 = myShepherd.getMarkedIndividualQuiet(id2);
-      oldName1 = mark1.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark1.getIndividualID())+")";
-      oldName2 = mark2.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark2.getIndividualID())+")";
-
 
       if (mark1==null || mark2==null) {
         String msg = "<strong>Error:</strong> Could not find both individuals in our database. ";
         if (mark1==null) msg+="<br>could not find individual "+mark1;
         if (mark2==null) msg+="<br>could not find individual "+mark2;
         errorAndClose(msg, response);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
       }
+      oldName1 = mark1.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark1.getIndividualID())+")";
+      oldName2 = mark2.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark2.getIndividualID())+")";
 
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
@@ -134,7 +135,8 @@ public class MergeIndividual extends HttpServlet {
         //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
         if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {
           canMergeAutomatically = true;
-        } else {
+        } 
+        else {
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
           myShepherd.updateDBTransaction();

@@ -385,7 +385,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .style("dominant-baseline", "central")
 	    .style("text-anchor", "middle")
 	    .attr("font-size", 15)
-	    .attr("font-weight", "bold")
+	    .attr("font-weight", "normal")
 	    .text(d => (d.explicitOccurrence) ? `${d.count}*` : d.count);
 
 	newLabels.transition()

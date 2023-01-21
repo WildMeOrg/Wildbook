@@ -852,7 +852,7 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 		jsonRequest['checkForExistingUsernameDesired'] = true;
 		jsonRequest['username'] = username;
 		$.ajax({
-			url: wildbookGlobals.baseUrl + '../UserCreate',
+			url: wildbookGlobals.baseUrl + '../UserCheck',
 			type: 'POST',
 			data: JSON.stringify(jsonRequest),
 			dataType: 'json',
@@ -885,7 +885,7 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
 			jsonRequest['checkForExistingEmailDesired'] = true;
 			jsonRequest['emailAddress'] = emailAddress;
 			$.ajax({
-				url: wildbookGlobals.baseUrl + '../UserCreate',
+				url: wildbookGlobals.baseUrl + '../UserCheck',
 				type: 'POST',
 				data: JSON.stringify(jsonRequest),
 				dataType: 'json',

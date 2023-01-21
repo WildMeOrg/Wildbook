@@ -975,6 +975,8 @@ public class Shepherd {
   }
 
   public boolean doesUserHaveRole(String username, String rolename, String context) {
+    username = username.replaceAll("\\'", "\\\\'");
+    rolename = rolename.replaceAll("\\'", "\\\\'");
     String filter = "this.username == '" + username + "' && this.rolename == '" + rolename + "' && this.context == '"+context+"'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
@@ -1096,13 +1098,16 @@ public class Shepherd {
   }
 
   public ArrayList<Project> getProjectsForUser(User user) {
+    Boolean isAdmin = user.hasRoleByName("admin", this);
     Query query = null;
     Iterator<Project> projectIter = null;
     ArrayList<Project> projectArr = null;
     try {
       String filter = "SELECT FROM org.ecocean.Project WHERE users.contains(user)";
+      if(isAdmin) filter = "SELECT FROM org.ecocean.Project";
       query = getPM().newQuery(filter);
       query.declareParameters("User user");
+      query.setOrdering("researchProjectName ascending NULLS LAST");
       Collection c = (Collection)query.execute(user);
       projectIter = c.iterator();
       while (projectIter.hasNext()) {
@@ -1111,9 +1116,11 @@ public class Shepherd {
         }
         projectArr.add(projectIter.next());
       }
-    } catch (JDOException jdoe) {
+    } 
+    catch (JDOException jdoe) {
       jdoe.printStackTrace();
-    } finally {
+    } 
+    finally {
       query.closeAll();
     }
     return projectArr;
@@ -2792,21 +2799,16 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     Iterator<Project> projectIter = null;
     ArrayList<Project> projectArr = null;
     try {
-      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) VARIABLES org.ecocean.Encounter enc";
+      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.catalogNumber == '"+encounter.getCatalogNumber()+"' VARIABLES org.ecocean.Encounter enc";
       query = getPM().newQuery(filter);
-      query.declareParameters("Encounter enc");
-      Collection c = (Collection)query.execute(encounter);
-      projectIter = c.iterator();
-      while (projectIter.hasNext()) {
-        if (projectArr==null) {
-          projectArr = new ArrayList<>();
-        }
-        projectArr.add(projectIter.next());
-      }
-    } catch (JDOException jdoe) {
+      Collection c = (Collection)query.execute();
+      projectArr = new ArrayList<Project>(c);
+    } 
+    catch (JDOException jdoe) {
       jdoe.printStackTrace();
-    } finally {
-      query.closeAll();
+    } 
+    finally {
+      if(query!=null)query.closeAll();
     }
     return projectArr;
   }
@@ -3550,6 +3552,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
       jdoe.printStackTrace();
     }
     Query projectQuery = pm.newQuery(projectClass);
+    projectQuery.setOrdering("researchProjectName ascending NULLS LAST");
     Collection c = (Collection) (projectQuery.execute());
     ArrayList<Project> list = new ArrayList<>(c);
     projectQuery.closeAll();

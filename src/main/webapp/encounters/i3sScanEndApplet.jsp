@@ -42,7 +42,7 @@ context=ServletUtilities.getContext(request);
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-  }	
+  }
   String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
@@ -55,7 +55,7 @@ context=ServletUtilities.getContext(request);
   File file = new File("foo");
   String scanDate = "";
   String side2 = "";
-  
+
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -65,13 +65,13 @@ context=ServletUtilities.getContext(request);
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 	//String encSubdir = Encounter.subdir(num);
   //File thisEncounterDir = new File(encountersDir, encSubdir);   //never used??
- 
+
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
-  
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -110,14 +110,14 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
 
 .tr-location-nonlocal {
     opacity: 0.6;
@@ -233,20 +233,19 @@ td, th {
 
       side2 = "right";
       fileSider = "&rightSide=true";
-    } else {
+    } 
+    else {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
-
-
     }
 
     if (finalXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
-    Groth (Full)</a></li>
-
-  <%
+	  %>
+	  <li><a
+	    href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
+	    Groth (Full)</a></li>
+	
+	  <%
     }
   %>
   <li><a class="active">I3S</a></li>
@@ -274,7 +273,8 @@ td, th {
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightI3SScan.xml");
 
         side = "right";
-      } else {
+      } 
+      else {
         //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
         file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       }
@@ -282,7 +282,8 @@ td, th {
       root = doc.getRootElement();
       scanDate = root.attributeValue("scanDate");
       xmlOK = true;
-    } catch (Exception ioe) {
+    } 
+	catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults=myShepherd.matches;
@@ -324,7 +325,7 @@ td, th {
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 		  <%
-		  
+
 
 		    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
 		    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
@@ -395,13 +396,13 @@ $(document).ready(function() {
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-  
+
 <a name="resultstable"></a>
 <table class="tablesorter">
 
 <table width="800px">
   <thead>
-  
+
         <tr align="left" valign="top">
           <th><strong>Shark</strong></th>
           <th><strong> Encounter</strong></th>
@@ -420,11 +421,33 @@ $(document).ready(function() {
             for (int p = 0; p < results.length; p++) {
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr align="left" valign="top">
-         
-                <td width="60" align="left"><a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+
+                <td width="60" align="left">
+                <%
+                  String localIndividualName = results[p].getIndividualName();
+                  if (Util.isUUID(localIndividualName)) {
+                    Shepherd nameShepherd=new Shepherd(context);
+                    nameShepherd.setAction("i3ScanEndApplet.jsp displayName render");
+                    nameShepherd.beginDBTransaction();
+                    try{
+                    	if(nameShepherd.getMarkedIndividual(localIndividualName)!=null){
+                    		localIndividualName = nameShepherd.getMarkedIndividual(localIndividualName).getDisplayName();
+                    	}
+                    }
+                    catch(Exception e){
+                      System.out.println("Error retrieving display name in the case where xml is not OK for individual UUID: "+localIndividualName);
+                      e.printStackTrace();
+                    } 
+                    finally{
+                      nameShepherd.rollbackDBTransaction();
+                    	nameShepherd.closeDBTransaction();
+                      nameShepherd=null;
+                    }
+                  }
+                %>
+                <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=localIndividualName%>
                 </a></td>
-             
+
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
@@ -452,8 +475,9 @@ $(document).ready(function() {
             //end for loop
           }
 
-//or use XML output here	
-        } else {
+//or use XML output here
+        } 
+          else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
 
@@ -464,21 +488,38 @@ $(document).ready(function() {
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
+            String enc1IndId = enc1.attributeValue("assignedToShark");
+            String localIndividualName = enc1IndId;
+            if(enc1IndId != null && !enc1IndId.equals("")){
+              Shepherd nameShepherd=new Shepherd(context);
+              nameShepherd.setAction("i3ScanEndApplet.jsp displayName render 2");
+              nameShepherd.beginDBTransaction();
+              try{
+                localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
+              }catch(Exception e){
+                System.out.println("Error retrieving local display name in the case where xml is OK");
+                e.printStackTrace();
+              }finally{
+                nameShepherd.rollbackDBTransaction();
+                nameShepherd.closeDBTransaction();
+                nameShepherd=null;
+              }
+            }
         %>
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
-          
+
                 <td width="60" align="left">
             <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
-            	<%=enc1.attributeValue("assignedToShark")%>
+            	<%=localIndividualName%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a target="_new" title="open Encounter"
-            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
@@ -523,7 +564,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
 
         %>
 
-      
+
 </tbody>
 </table>
 
@@ -541,11 +582,10 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-    
+
 
 
 %>
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
