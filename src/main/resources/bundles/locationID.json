@@ -324,6 +324,16 @@
 
 			]
 		},
+        {
+            "name": "Malawi",
+            "id": "Malawi",
+            "locationID": [
+                {
+                    "name": "Majete Wildlife Reserve",
+                    "id": "Majete Wildlife Reserve"
+                }
+             ]
+        }, 
 		{
 			"name": "Mozambique",
 			"id": "Mozambique",
