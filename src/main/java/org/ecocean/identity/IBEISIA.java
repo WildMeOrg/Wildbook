@@ -271,8 +271,8 @@ System.out.println("sendAnnotations(): sending " + ct);
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
-long startTime = System.currentTimeMillis();
-Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
+        long startTime = System.currentTimeMillis();
+        Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
@@ -290,10 +290,10 @@ Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
         ArrayList<String> qnlist = new ArrayList<String>();
         ArrayList<String> tnlist = new ArrayList<String>();
 
-///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
+        ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         //String species = null;
         String iaClass = null;
-Util.mark("sendIdentify-1", startTime);
+        Util.mark("sendIdentify-1", startTime);
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
@@ -311,43 +311,45 @@ Util.mark("sendIdentify-1", startTime);
             }
 
             qlist.add(toFancyUUID(ann.getAcmId()));
-/* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
+            /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
             qnlist.add(toFancyUUID(Util.generateUUID()));
-*/
+             */
 
             qnlist.add(IA_UNKNOWN_NAME);
         }
-Util.mark("sendIdentify-2", startTime);
+        Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
-	        JSONObject noQueryAnn = new JSONObject();
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+	          JSONObject noQueryAnn = new JSONObject();
             noQueryAnn.put("status", new JSONObject().put("message", "rejected"));
             noQueryAnn.put("error", "No query annotation was valid for identification. ");
             return noQueryAnn;
         }
 
-Util.mark("sendIdentify-A", startTime);
+        Util.mark("sendIdentify-A", startTime);
         boolean setExemplarCaches = false;
         if (tanns == null) {
-System.out.println("--- sendIdentify() passed null tanns..... why???");
-System.out.println("     gotta compute :(");
-            tanns = qanns.get(0).getMatchingSet(myShepherd);
+          System.out.println("--- sendIdentify() passed null tanns..... why???");
+          System.out.println("     gotta compute :(");
+          tanns = qanns.get(0).getMatchingSet(myShepherd);
         }
-Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
+        Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
-//int ct = 0;
+        //int ct = 0;
         if (tanns != null) for (Annotation ann : tanns) {
-//Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+          //Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
-//Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
-//ct++;
+            //Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+            //ct++;
             tlist.add(toFancyUUID(ann.getAcmId()));
             String indivId = annotGetIndiv(ann, myShepherd);
-/*  see note above about names
+            /*  see note above about names
             if (Util.isUUID(indivId)) {
                 tnlist.add(toFancyUUID(indivId));
             } else if (indivId == null) {
@@ -355,7 +357,7 @@ Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
             } else {
                 tnlist.add(indivId);
             }
-*/
+             */
             //argh we need to standardize this and/or have a method. :/
             if ((indivId == null) || (indivId.toLowerCase().equals("unassigned"))) {
                 tnlist.add(IA_UNKNOWN_NAME);
@@ -363,12 +365,12 @@ Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.si
                 tnlist.add(indivId);
             }
         }
-//query_config_dict={'pipeline_root' : 'BC_DTW'}
+        //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
-Util.mark("sendIdentify-C", startTime);
+        Util.mark("sendIdentify-C", startTime);
 
         // WB-1665 now wants us to bail upon empty target annots:
-	if (Util.collectionIsEmptyOrNull(tlist)) {
+        if (Util.collectionIsEmptyOrNull(tlist)) {
             System.out.println("WARNING: bailing on empty target list");
             JSONObject emptyRtn = new JSONObject();
             JSONObject status = new JSONObject();
@@ -399,21 +401,22 @@ Util.mark("sendIdentify-C", startTime);
         } else {
             map.put("database_annot_name_list", tnlist);
         }
-Util.mark("sendIdentify-D", startTime);
+        Util.mark("sendIdentify-D", startTime);
 
 
-		System.out.println("===================================== qlist & tlist ========================= [taskId=" + taskId + "]");
-		System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
-		if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist)) {
+        System.out.println("===================================== qlist & tlist ========================= [taskId=" + taskId + "]");
+		  System.out.println(qlist + " callback=" + callbackUrl(baseUrl));
+		  if (Util.collectionIsEmptyOrNull(tlist) || Util.collectionIsEmptyOrNull(tnlist)) {
 		    System.out.println("tlist/tnlist == null! Checking against all.");
-		} else {
+		  } 
+		  else {
 		    System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
-		}
-		System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size()+". not printing the map about to be POSTed because it's a big'un.");
+		  }
+		  System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size()+". not printing the map about to be POSTed because it's a big'un.");
         //System.out.println(map);
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-Util.mark("identify process pre-post end");
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
+		    Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
