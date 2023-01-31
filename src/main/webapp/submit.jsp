@@ -1486,11 +1486,77 @@ if (tagSwitch == true) {
 <hr/>
 <!-- end tagSwitch -->
 <%}%>
+ <fieldset class="field-indent">
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
         <input class="form-control" name="informothers" type="text" id="informothers" size="75" data-toggle="tooltip" title="<%=props.getProperty("additionalEmailTooltip")%>">
         <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
       </div>
+      </fieldset>
+      
+      <%
+
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
+ <fieldset class="field-indent">
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label text-danger"><%=props.getProperty("species") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+  <%
+
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+
+
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
+                               <%
+
+                        }
+
+
+                   }
+                   }
+ %>
+  </select>
+    </div>
+        </div>
+</fieldset>
+        <%
+}
+
+%>
+
+      
+      
+      
+      
       </div>
 
   <hr>
