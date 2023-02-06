@@ -1557,7 +1557,7 @@ function sendButtonClicked() {
 	<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/>
 <%}
 else {%>
-	<input name="submitterID" type="hidden" value="N/A"/>
+	<input name="submitterID" type="hidden" value="public"/>
 <%
 }
 %>
