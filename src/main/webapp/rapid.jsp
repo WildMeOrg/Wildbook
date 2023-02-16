@@ -123,7 +123,7 @@ if (user == null) {
     response.sendError(401, "access denied");
     return;
 }
-boolean adminMode = ("admin".equals(user.getUsername()));
+boolean adminMode = request.isUserInRole("admin");
 
 /*
 //setup our Properties object to hold all properties
