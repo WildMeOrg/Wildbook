@@ -542,20 +542,27 @@
 					"id": "Luangwa",
 					"description": "Luangwa",
 					"locationID": [
-						{
-							"name": "Luambe",
-							"id": "Luambe"
-						},
+		
 						{
 							"name": "Luangwa North",
 							"id": "Luangwa North",
 							"description": "Luangwa North"
 						},
 						{
+							"name": "Luambe",
+							"id": "Luambe"
+						},
+						{
+							"name": "Luangwa South",
+							"id": "Luangwa South",
+							"description": "Luangwa South"
+						},
+						{
 							"name": "Lower Luangwa",
 							"id": "Lower Luangwa",
 							"description": "Lower Luangwa"
 						}
+
 					]
 				}
 			]
