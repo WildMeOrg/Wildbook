@@ -1187,6 +1187,27 @@
           "defaultLongitude": -160.2340
       },
       {
+        "name": "Arctic Circle",
+        "id": "Arctic Circle",
+        "locationID": [
+            {
+                "name": "Denmark",
+                "id": "Denmark" },
+              {
+                  "name": "Finland",
+                  "id": "Finland"
+              },
+              {
+                "name": "Norway",
+                "id": "Norway"
+            },
+            {
+              "name": "Sweden",
+              "id": "Sweden"
+          }
+         ]
+    },
+      {
           "name": "Arctic Ocean",
           "locationID":[
                {
