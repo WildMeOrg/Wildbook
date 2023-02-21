@@ -523,16 +523,18 @@ finally{
                             	<li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 							<%
 							}
+                            
+                            if(request.getUserPrincipal()!=null && CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            <%
+                            }
 
                             if(request.isUserInRole("admin")) { %>
                                 <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
 	                            <%
-	                            if(CommonConfiguration.useSpotPatternRecognition(context)){
-	                            %>
-	                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-	                            <%
-	                            }
+
 
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
