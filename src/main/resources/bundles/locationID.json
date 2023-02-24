@@ -2,6 +2,16 @@
   	"description": "Hierarchical Encounter.locationID list in Wildbook",
 	"source": "Consenso de localizaciones jerarquicas para el lince ibérico",
 	"locationID": [
+		{
+			"name": "France",
+			"id": "France",
+			"locationID": [
+				{
+					"name": "Alpes françaises",
+					"id": "Alpes françaises"
+				}
+			 ]
+		},
 {"name":"Vale do Guadiana", "id":"Región Vale do Guadiana", "locationID":[]},
 		{"name":"Región Montes Toledo", "id":"Región Montes Toledo", "locationID":[
 			{"name":"Montes Toledo", "id":"Montes Toledo", "locationID":[]},
