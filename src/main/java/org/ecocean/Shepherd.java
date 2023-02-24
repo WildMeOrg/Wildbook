@@ -4875,6 +4875,15 @@ public Long countMediaAssets(Shepherd myShepherd){
 	    q.closeAll();
     return al;
   }
+  public List<String> getAllHaplotypesForQuery(String filter) {
+    Query q = pm.newQuery(filter);
+    q.setResult("distinct haplotype");
+    q.setOrdering("haplotype ascending");
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+      q.closeAll();
+    return al;
+  }
 
   public List<String> getAllRoleNames() {
     Query q = pm.newQuery(Role.class);
