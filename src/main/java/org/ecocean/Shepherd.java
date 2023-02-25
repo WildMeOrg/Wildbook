@@ -4875,13 +4875,24 @@ public Long countMediaAssets(Shepherd myShepherd){
 	    q.closeAll();
     return al;
   }
-  public List<String> getAllHaplotypesForQuery(String filter) {
-    Query q = pm.newQuery(filter);
+  
+  public List<String> getAllDistinctHaplotypesForEncounterQuery(String filter) {
+    String subfilter =  "SELECT FROM org.ecocean.genetics.MitochondrialDNAAnalysis WHERE ("+filter.replaceFirst("SELECT FROM org.ecocean.Encounter", "SELECT distinct catalogNumber FROM org.ecocean.Encounter")+").contains(this.correspondingEncounterNumber)"; 
+    Query q = pm.newQuery(subfilter);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");
     Collection results = (Collection) q.execute();
     ArrayList al=new ArrayList(results);
-      q.closeAll();
+    q.closeAll();
+    return al;
+  }
+  
+  public List<String> getAllDistinctHaplotypesForMarkedIndividualQuery(String filter) {
+    String subfilter =  "SELECT distinct analysis1.haplotype FROM org.ecocean.Encounter WHERE ("+filter.replaceFirst("SELECT FROM org.ecocean.MarkedIndividual", "SELECT distinct individualID FROM org.ecocean.MarkedIndividual")+").contains(individual.individualID) && tissueSamples.contains(sample1) && sample1.analyses.contains(analysis1) VARIABLES org.ecocean.genetics.TissueSample sample1;org.ecocean.genetics.MitochondrialDNAAnalysis analysis1 ORDER BY analysis1.haplotype"; 
+    Query q = pm.newQuery(subfilter);
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
     return al;
   }
 
