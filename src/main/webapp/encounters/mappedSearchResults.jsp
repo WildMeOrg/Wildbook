@@ -57,7 +57,7 @@
     List<String> allHaplos2=new ArrayList<String>();
     myShepherd.beginDBTransaction();
     try{
-    	allHaplos2=myShepherd.getAllHaplotypesForQuery(filter);
+    	allHaplos2=myShepherd.getAllDistinctHaplotypesForEncounterQuery(filter);
     }
     catch(Exception qe){qe.printStackTrace();}
     finally{
