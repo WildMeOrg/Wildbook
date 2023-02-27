@@ -150,8 +150,10 @@
                       { "name":"Golden Gate Strait", "id":"Golden Gate Strait", "locationID":[] },
                       { "name":"Gulf of the Farallones", "id":"Gulf of the Farallones", "locationID":[] },
                       { "name":"San Francisco Bay", "id":"San Francisco Bay", "locationID":[] },
+                      { "name":"Central California", "id":"Central California", "locationID":[
+                        {"name": "Piedras Blancas Light Station", "id": "Piedras Blancas Light Station"}]},
                       { "name":"Northern California", "id":"Northern California", "locationID":[] },
-  
+
                   { "name":"Northern California/OR", "id":"Northern California/OR", "locationID":[] },
   
                   { "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
