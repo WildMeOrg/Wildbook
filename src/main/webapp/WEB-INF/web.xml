@@ -467,7 +467,7 @@
 		  /UserCreateSocial = authc, roles[admin]
 		 /SocialGrabFiles = authc, roles[admin]
 		 /SocialConnect = authc, roles[admin]
-		 /ia = authc
+		 #/ia = authc
 		 /MediaAssetContext = authc
 		  /GetCurrentIAInfo = authc
 		  /error_generic.jsp = authc
