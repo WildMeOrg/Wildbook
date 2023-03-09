@@ -193,7 +193,9 @@ public class EncounterSearchExportShapefile extends HttpServlet{
               featureBuilder.set("Date",new java.sql.Date(enc.getDateInMilliseconds()));
             }
             featureBuilder.set("Encounter",enc.getCatalogNumber());
-            featureBuilder.set("Individual",ServletUtilities.handleNullString(enc.getIndividual().getName()));
+            if(enc.getIndividual()!=null) {
+              featureBuilder.set("Individual",ServletUtilities.handleNullString(enc.getIndividual().getName()));
+            }
             if(enc.getSex()!=null){
               featureBuilder.set("Sex",enc.getSex());
             }
