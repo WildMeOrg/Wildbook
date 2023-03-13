@@ -57,6 +57,53 @@
  			 },
 			"locationID": [
 				{
+    "name": "Athi-Kapiti Plains",
+    "id": "Athi-Kapiti Plains",
+    "description": "Athi-Kapiti Plains",
+    "locationID":[
+        {
+            "name": "Swara Plains Conservancy",
+            "id": "Swara Plains Conservancy",
+            "description": "Swara Plains Conservancy"
+        },
+        {
+            "name": "Maanzoni Wildlife Conservancy",
+            "id": "Maanzoni Wildlife Conservancy",
+            "description": "Maanzoni Wildlife Conservancy"
+        },
+        {
+            "name": "Lukenya Wildlife Conservancy",
+            "id": "Lukenya Wildlife Conservancy",
+            "description": "Lukenya Wildlife Conservancy"
+        },
+        {
+            "name": "Kapiti Plains Estate",
+            "id": "Kapiti Plains Estate",
+            "description": "Kapiti Plains Estate"
+        },
+        {
+            "name": "Lukenya Hill Conservancy",
+            "id": "Lukenya Hill Conservancy",
+            "description": "Lukenya Hill Conservancy"
+        },
+        {
+            "name": "Machakos Ranching",
+            "id": "Machakos Ranching",
+            "description": "Machakos Ranching"
+        },
+        {
+            "name": "Lisa Ranch",
+            "id": "Lisa Ranch",
+            "description": "Lisa Ranch"
+        },
+        {
+            "name": "Astra Ranch",
+            "id": "Astra Ranch",
+            "description": "Astra Ranch"
+        }
+    ]
+},
+				{
 					"name": "Garissa",
 					"id": "Garissa",
 					"description": "Garissa"
