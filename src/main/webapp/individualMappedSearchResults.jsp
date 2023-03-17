@@ -48,9 +48,21 @@
 
 
 
-    List<String> allHaplos2=new ArrayList<String>(); 
+    //List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
-    allHaplos2=myShepherd.getAllHaplotypes(); 
+    //allHaplos2=myShepherd.getAllHaplotypes(); 
+    StringBuffer prettyPrint=new StringBuffer("");
+    Map<String,Object> paramMap = new HashMap<String, Object>();
+    String filter=IndividualQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    List<String> allHaplos2=new ArrayList<String>();
+    myShepherd.beginDBTransaction();
+    try{
+    	allHaplos2=myShepherd.getAllDistinctHaplotypesForMarkedIndividualQuery(filter);
+    }
+    catch(Exception qe){qe.printStackTrace();}
+    finally{
+    	myShepherd.rollbackAndClose();
+    }
     numHaplos2=allHaplos2.size();
     
     List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
@@ -518,6 +530,7 @@ if (request.getQueryString() != null) {
                    }   
                    for(int yy=0;yy<numHaplos2;yy++){
                        String haplo=allHaplos2.get(yy);
+                       System.out.println("haplo: "+haplo);
                        if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
                      	  haploColor = haploprops.getProperty(haplo);
                         }
@@ -589,8 +602,8 @@ if (request.getQueryString() != null) {
 
  
  
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
+   //myShepherd.rollbackDBTransaction();
+   //myShepherd.closeDBTransaction();
    //rIndividuals = null;
    //haveGPSData = null;
  
