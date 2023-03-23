@@ -1831,6 +1831,15 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return numAssets;
   }
   
+  private int getNumNameColumns(Map<String,Integer> colIndexMap) {
+    int numNameColumns = 0;
+    for (String col: colIndexMap.keySet()) {
+      if ((col != null) && (col.matches("MarkedIndividual.name\\d*.label"))) numNameColumns++;
+    }
+    System.out.println("getNumNameColumns found: "+numNameColumns);
+    return numNameColumns;
+  }
+  
   /*
   private void setNumMediaAssets(Map<String,Integer> colIndexMap, Integer numMediaAssets) {
     int numAssets = 0;
@@ -1954,22 +1963,24 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (nickname!=null) mark.setNickName(nickname);
 
-    //let's support importing name labels from columns
-    //MarkedIndividual.nameX.label and MarkedIndividual.nameX.value
-    int t=0;
-    while(getStringOrInt(row,"MarkedIndividual.name"+t+".label",colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && !getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns,feedback).trim().equals("")) {
-
-      String label=getStringOrInt(row,"MarkedIndividual.name"+t+".label",colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
-      String value=getStringOrInt(row,"MarkedIndividual.name"+t+".value",colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
-      if(mark.getName(label)!=null) {
-        mark.getNames().removeValuesByKey(label, mark.getName(label));
-        mark.addName(label, value);
+    int numNameColumns=getNumNameColumns(colIndexMap);
+    //import name columns
+    for(int t=0;t<numNameColumns;t++) {
+      String nameLabel="MarkedIndividual.name"+t+".label";
+      String nameValue="MarkedIndividual.name"+t+".value";
+      System.out.println("in name column: "+nameLabel);
+      if(getStringOrInt(row,nameLabel,colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && getStringOrInt(row,nameValue,colIndexMap, verbose, missingColumns, unusedColumns,feedback)!=null && !getStringOrInt(row,nameValue,colIndexMap, verbose, missingColumns, unusedColumns,feedback).trim().equals("")) {
+        String label=getStringOrInt(row,nameLabel,colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
+        String value=getStringOrInt(row,nameValue,colIndexMap, verbose, missingColumns, unusedColumns, feedback).trim();
+        if(mark.getName(label)!=null) {
+          mark.getNames().removeValuesByKey(label, mark.getName(label));
+          mark.addName(label, value);
+        }
+        else {
+          mark.addName(label, value);
+        }
+        mark.refreshNamesCache();
       }
-      else {
-        mark.addName(label, value);
-      }
-      mark.refreshNamesCache();
-      t++;
     }
 
 

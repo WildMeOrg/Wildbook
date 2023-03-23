@@ -1761,8 +1761,18 @@ System.out.println("updateSpeciesOnIA(): " + species);
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        
+        //record whether we do an iaClass swap - part 1
+        boolean madeIAClassSwap=false;
+        String originalIAClass=iaClass;
+        
+        //record whether we do an iaClass swap - part 2
         iaClass = iaConf.convertIAClassForTaxonomy(iaClass, taxonomyBeforeDetection);
-
+        if(iaClass!=null && !iaClass.equals(originalIAClass)) {
+          madeIAClassSwap=true;
+        }
+        
+        
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
         }
@@ -1800,6 +1810,13 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {
             ann.setMatchAgainst(true);
+        }
+        
+      //record whether we do an iaClass swap, letting WBIA know - part 3
+        if(madeIAClassSwap) {
+          List<Annotation> annots = new ArrayList<Annotation>();
+          annots.add(ann);
+          updateSpeciesOnIA(myShepherd, annots);
         }
         
         return ann;
