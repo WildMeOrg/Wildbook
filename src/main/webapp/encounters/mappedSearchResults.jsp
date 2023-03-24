@@ -334,10 +334,6 @@ function useSexAspect(){
 	 %>
 	hideTable("speciestable");
 	<%
-	String individualLinkString="";
-	//if this is a MarkedIndividual, provide a link to it
-	if(thisEnc.getIndividualID()!=null){
-		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividual().getDisplayName()+"</a></strong><br />";
 	 }
 	%>
 	if(aspect != "sex"){
