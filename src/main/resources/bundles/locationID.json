@@ -468,6 +468,7 @@
   
                   ] },
   
+                  { "name":"British Virgin Islands", "id":"British Virgin Islands", "locationID":[] },
                   { "name":"Dominica", "id":"Dominica", "locationID":[] },
                   { "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
                   { "name":"Martinique", "id":"Martinique", "locationID":[] },
