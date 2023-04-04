@@ -1321,7 +1321,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
   public List<User> getNativeUsersWithoutAnonymous() {
-    List<User> users = getNativeUsers("username ascending NULLS LAST");
+    List<User> users = getNativeUsers("fullName ascending NULLS LAST");
     CollectionUtils.filter(users, new Predicate<User>() { // from https://stackoverflow.com/questions/122105/how-to-filter-a-java-collection-based-on-predicate
        @Override
        public boolean evaluate(User user) {
@@ -2575,6 +2575,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
       Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE members.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user");
+      q.setOrdering("name ascending");
       Collection results = (Collection) q.execute();
       al = new ArrayList<Organization>(results);
       q.closeAll();
@@ -2606,6 +2607,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     try {
       Extent allOrgs = pm.getExtent(Organization.class, true);
       Query q = pm.newQuery(allOrgs);
+      q.setOrdering("name ascending");
       Collection results = (Collection) q.execute();
       al = new ArrayList<Organization>(results);
       q.closeAll();
