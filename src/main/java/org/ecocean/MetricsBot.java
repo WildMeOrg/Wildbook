@@ -142,6 +142,10 @@ public class MetricsBot {
         if(myValue!=null) {line=name+","+myValue.toString()+","+"gauge"+","+help;}
         if(label!=null)line+=","+label;
       }
+      catch(java.lang.IllegalArgumentException badArg) {
+        System.out.println("MetricsBot.buildGauge called with bad arguments.");
+        badArg.printStackTrace();
+      }
       catch(Exception e) {
         e.printStackTrace();
       }
