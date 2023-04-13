@@ -109,16 +109,128 @@
 					"description": "Garissa"
 				},
 				{
-					"name": "Hells Gate National Park",
-					"id": "Hells Gate National Park",
-					"description": "Hells Gate National Park"
+					"name": "Naivasha",
+					"id": "Naivasha",
+					"description": "Naivasha", "locationID":[
+					{
+						"name": "Crater Lake Game Sanctuary",
+						"id": "Crater Lake Game Sanctuary"
+					},
+					{
+						"name": "Crescent Island Game Sanctuary",
+						"id": "Crescent Island Game Sanctuary"
+					},
+					{
+						"name": "Gideon Moi Farm",
+						"id": "Gideon Moi Farm"
+					},
+					{
+						"name": "Hells Gate National Park",
+						"id": "Hells Gate National Park"
+					},
+					{
+						"name": "Hippo Point Farm",
+						"id": "Hippo Point Farm"
+					},
+					{
+						"name": "Kedong Ranch",
+						"id": "Kedong Ranch"
+					},
+					{
+						"name": "Kilimandege Bird Sanctuary",
+						"id": "Kilimandege Bird Sanctuary"
+					},
+					{
+						"name": "Kinja Farm",
+						"id": "Kinja Farm"
+					},
+					{
+						"name": "Kipkulei Farm",
+						"id": "Kipkulei Farm"
+					},
+					{
+						"name": "Kongoni Game Valley",
+						"id": "Kongoni Game Valley"
+					},
+					{
+						"name": "Lake Naivasha",
+						"id": "Lake Naivasha",
+						"description": "Lake Naivasha"
+					},
+					{
+						"name": "Loldia Farm",
+						"id": "Loldia Farm"
+					},
+					{
+						"name": "Manera Farm",
+						"id": "Manera Farm"
+					},
+					{
+						"name": "Marula Farm",
+						"id": "Marula Farm"
+					},
+					{
+						"name": "Morendat Farm",
+						"id": "Morendat Farm"
+					},
+					{
+						"name": "Mt Longonot National Park",
+						"id": "Mt Longonot National Park"
+					},
+					{
+						"name": "Mundui Farm",
+						"id": "Mundui Farm"
+					},
+					{
+						"name":"Nini Flower Farm",
+						"id":"Nini Flower Farm"
+					},
+					{
+						"name":"Olerai House Sanctuary",
+						"id":"Olerai House Sanctuary"
+					},
+					{
+						"name":"Olsuswa Eco Park",
+						"id":"Olsuswa Eco Park"
+					},
+					{
+						"name": "Oserengoni Wildlife Sanctuary",
+						"id":"Oserengoni Wildlife Sanctuary"
+					},
+					{
+						"name": "Sanctuary Farm",
+						"id": "Sanctuary Farm" 
+					},
+					{
+						"name": "Sara Higgin's Farm",
+						"id": "Sara Higgins Farm" 
+					},
+					{
+						"name": "Sirocco Wildlife Sanctuary",
+						"id": "Sirocco Wildlife Sanctuary"
+					},
+					{
+						"name": "Sopa Lodge",
+						"id": "Sopa Lodge"
+					},
+					{
+						"name": "Wileli Wildlife Sanctuary",
+						"id": "Wileli Wildlife Sanctuary"
+					},
+					{
+						"name": "WRTI",
+						"id": "WRTI"
+					},
+					{
+						"name": "WRTI Annex",
+						"id": "WRTI Annex"
+					},
+					{
+						"name": "WRTI Game Farm",
+						"id": "WRTI Game Farm"
+					}
+					 ]
 				},
-				{
-					"name": "Lake Naivasha",
-					"id": "Lake Naivasha",
-					"description": "Lake Naivasha"
-				},
-				
 				{
 					"name": "Lake Nakuru",
 					"id": "Lake Nakuru",
