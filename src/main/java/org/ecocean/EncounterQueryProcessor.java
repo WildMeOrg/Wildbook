@@ -1364,10 +1364,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
           long date1Millis=date1.getMillis();
           long date2Millis=date2.getMillis();
-          if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
+          //if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
             //if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
             date2Millis+=(24*60*60*1000-1);
-          }
+          //}
 
           prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
 
