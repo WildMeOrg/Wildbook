@@ -301,11 +301,15 @@
 		
 			] } 
 		
-		
-		
 		] },
-		
-
+		{ "name": "France", "id": "France", "locationID":[
+			{"name": "Ain", "id": "Ain"},
+			{"name": "Doubs", "id": "Doubs"}, 
+			{"name": "Haute-Savoie", "id": "Haute-Savoie"}, 
+			{"name": "Isère", "id": "Isere"}, 
+			{"name": "Jura", "id": "Jura"}, 
+			{"name": "Savoie", "id": "Savoie"}
+		] },
 		
 		{"name": "India", "id": "India", "locationID":[
 		
