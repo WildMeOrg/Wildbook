@@ -4392,6 +4392,9 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     </div>
 
 <!--  START GROUP ROLE SECTION -->
+<%
+  if (CommonConfiguration.showProperty("showGroupRole",context)) {
+%>
 <p class="para"><%=encprops.getProperty("groupRole") %>&nbsp;
 
   <%
@@ -4479,6 +4482,9 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     </div>
     </form>
   </div>
+  <%
+  }
+  %>
 
 <!--  START PATTERNING CODE SECTION -->
 <%
