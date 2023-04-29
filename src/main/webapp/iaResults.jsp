@@ -726,6 +726,9 @@ function showTaskResult(res, taskId) {
 				else if (algoInfo == 'PieTwo') {
                     algoDesc = 'PIE v2 (Pose Invariant Embeddings)';
                 }
+				else if (algoInfo == 'Tbd') {
+                    algoDesc = 'ArcFace Matcher';
+                }
 				else if (algoInfo == 'PieTwoHotSpotter') {
                     algoDesc = 'Pattern (ensemble of PIE v2 and HotSpotter)';
                 }
