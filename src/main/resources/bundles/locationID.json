@@ -5,8 +5,6 @@
 
     { "name":"Aquarium", "id":"Aquarium", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-	{ "name":"NSW-Blue Fish Point", "id":"NSW- Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-
 	{ "name":"NSW-Eden-Chipmill", "id":"NSW-Eden-Chipmill", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 	
 	{ "name":"NSW-Eden-North", "id":"NSW-Eden-North", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
@@ -26,16 +24,20 @@
 	{ "name":"NSW-Henry’s Head", "id":"NSW-Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Magic Point", "id":"NSW-Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-	
-	{ "name":"NSW-Sydney-Old Mans Hat", "id":"NSW-Sydney-Old Mans Hat", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW- Shellharbour-Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
+	{ "name":"NSW-Sydney-Blue Fish Point", "id":"NSW-Sydney-Blue Fish Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Sydney-Cabbage Tree Bay", "id":"NSW-Sydney-Cabbage Tree Bay", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+
 	{ "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Sydney-Oak Park", "id":"NSW-Sydney-Oak Park", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+	
+	{ "name":"NSW-Sydney-Old Mans Hat", "id":"NSW-Sydney-Old Mans Hat", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 	
 	{ "name":"NSW-Sydney-Voodoo", "id":"NSW-Sydney-Voodoo", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-34.0421495,"long":151.2124331} },
 
