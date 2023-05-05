@@ -1188,7 +1188,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
 <%
-  if (CommonConfiguration.showProperty("maximumElevationInMeters",context)) {
+ // if (CommonConfiguration.showProperty("maximumElevationInMeters",context)) {
 %>
 <br />
 <em><%=encprops.getProperty("elevation") %></em>
@@ -1269,7 +1269,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
 
 <%
-  }
+ // }
 %>
 <!-- End Display maximumElevationInMeters -->
 

@@ -929,7 +929,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 <%
 }
 
-if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
+//if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
  <div class="form-inline">
       <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
@@ -937,7 +937,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
 <%
-}
+//}
 %>
 
 </fieldset>
