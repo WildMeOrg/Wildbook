@@ -3130,14 +3130,15 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-            List<String> usernames=myShepherd.getAllUsernames();
-            usernames.remove(null);
-            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
-            int numUsers=usernames.size();
+            //List<String> usernames=myShepherd.getAllUsernames();
+            //usernames.remove(null);
+            List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
+            //Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
+            int numUsers=users.size();
             for(int i=0;i<numUsers;i++){
-                String thisUsername=usernames.get(i);
+                String thisUsername=users.get(i).getUsername();
                 	%>
-              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
+              		<option value="<%=thisUsername%>"><%=users.get(i).getFullName() %></option>
               		<%
             }
             %>
