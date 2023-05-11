@@ -318,6 +318,10 @@
 		] },
 		
 		{"name": "Iran", "id": "Iran" },
+
+		{"name": "Kazakhstan", "id": "Kazakhstan"},
+
+		{"name": "Kyrgyzstan", "id": "Kyrgyzstan"},
 		
 		{"name": "Mexico", "id": "Mexico", "locationID":[
 			{"name": "Tamaulipas", "id": "Tamaulipas", "locationID":[
@@ -357,7 +361,11 @@
 		] } ,
 		{"name": "Nepal", "id": "Nepal"},
 		
-		{"name": "Peru", "id": "Peru" }
+		{"name": "Peru", "id": "Peru" },
+
+		{"name": "Turkmenistan", "id": "Turkmenistan"},
+
+		{"name": "Uzbekistan", "id": "Uzbekistan"}
 	
 
 
