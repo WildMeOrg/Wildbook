@@ -52,12 +52,14 @@ try {
       <li>organization = <%=orgname%></li>
     </ul></p>
     <%
+    myShepherd.rollbackAndClose();
     return;
   }
 
   Organization org = create ? myShepherd.getOrCreateOrganizationByName(orgname, committing) : myShepherd.getOrganizationByName(orgname);
   if (org==null) {%>
     <p><strong>ERROR</strong>: could not find organization <strong><%=orgname%></strong> in the database</p><%
+    myShepherd.rollbackAndClose();
     return;
 	}
   User user = myShepherd.getUser(username);
