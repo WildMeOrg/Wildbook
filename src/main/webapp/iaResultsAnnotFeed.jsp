@@ -79,12 +79,22 @@ if (request.getParameter("acmId") != null) {
 				myShepherd.beginDBTransaction();
 				try{
 					
-				    ArrayList<Annotation> anns = null;
+				    ArrayList<Annotation> anns = new ArrayList<Annotation>();
 					rtn = new JSONObject("{\"success\": false}");
-					try {
-						anns = myShepherd.getAnnotationsWithACMId(acmId);
-					} 
-					catch (Exception ex) {ex.printStackTrace();}
+					StringTokenizer str=new StringTokenizer(acmId,",");
+					while(str.hasMoreTokens()){
+						try {
+							
+							
+							String token=str.nextToken();
+							anns.addAll(myShepherd.getAnnotationsWithACMId(token));
+							
+						} 
+						catch (Exception ex) {ex.printStackTrace();}
+					}
+					
+					
+					
 					if ((anns == null) || (anns.size() < 1)) {
 						rtn.put("error", "unknown annotation-related error");
 					} 
