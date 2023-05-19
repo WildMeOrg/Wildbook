@@ -726,6 +726,15 @@ function showTaskResult(res, taskId) {
 				else if (algoInfo == 'PieTwo') {
                     algoDesc = 'PIE v2 (Pose Invariant Embeddings)';
                 }
+				else if (algoInfo == 'MiewId') {
+                    algoDesc = 'MiewID Deep Learning Matcher';
+                }
+				else if (algoInfo == 'Tbd') {
+                    algoDesc = 'ArcFace Matcher - old mapping';
+                }
+				else if (algoInfo == 'PieTwoHotSpotter') {
+                    algoDesc = 'Pattern (ensemble of PIE v2 and HotSpotter)';
+                }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
 console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
