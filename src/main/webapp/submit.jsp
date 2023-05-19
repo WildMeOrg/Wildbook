@@ -1137,7 +1137,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 					</div>
 				</div>
 -->
-
+<!--  
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
@@ -1147,6 +1147,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
+-->
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1258,7 +1259,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-
+<!--
       <hr/>
 
        <fieldset>
@@ -1349,7 +1350,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 
       </fieldset>
-
+-->
 <hr/>
 
       <div class="form-group">
