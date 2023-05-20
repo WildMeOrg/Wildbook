@@ -61,8 +61,10 @@ if (request.getParameter("acmId") != null) {
 	String projectIdPrefix = request.getParameter("projectIdPrefix");
 	
 	String cacheName="iaResultsJson_"+acmId;
+	JSONArray janns = new JSONArray();
 	
-
+	StringTokenizer str=new StringTokenizer(acmId,",");
+	//int numTokens=str.countTokens();
 	
 	try {
 		
@@ -70,8 +72,22 @@ if (request.getParameter("acmId") != null) {
 
 		QueryCache qc=QueryCacheFactory.getQueryCache(context);
 		if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
-			rtn=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+			JSONObject cachedObj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
 			System.out.println("Getting iaResultsJson cache: "+cacheName);
+			//this is a single annotations
+			if(cachedObj.optBoolean("success", true)){
+				rtn=cachedObj;
+			}
+			//this is a cached list of annotations
+			else{
+				
+				rtn.put("success", true);
+				janns.put(cachedObj);
+	        	rtn.put("annotations", janns);
+			}
+			
+				
+			
 		}
 		else{
 				Shepherd myShepherd = new Shepherd(context);
@@ -81,25 +97,36 @@ if (request.getParameter("acmId") != null) {
 					
 				    ArrayList<Annotation> anns = new ArrayList<Annotation>();
 					rtn = new JSONObject("{\"success\": false}");
-					StringTokenizer str=new StringTokenizer(acmId,",");
+					
 					while(str.hasMoreTokens()){
 						try {
-							
-							
+
 							String token=str.nextToken();
-							anns.addAll(myShepherd.getAnnotationsWithACMId(token));
+							
+							String localCacheName="iaResultsJson_"+token;
+							if(qc.getQueryByName(localCacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(localCacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+								JSONObject cacheItem=Util.toggleJSONObject(qc.getQueryByName(localCacheName).getJSONSerializedQueryResult());
+								System.out.println("Getting iaResultsJson cache: "+localCacheName);
+								janns.put(cacheItem);
+								System.out.println("found cached annotation!");
+							}
+							else{
+							
+								anns.addAll(myShepherd.getAnnotationsWithACMId(token));
+								System.out.println("adding new annotation!");
+							}
 							
 						} 
 						catch (Exception ex) {ex.printStackTrace();}
 					}
 					
 					
-					
-					if ((anns == null) || (anns.size() < 1)) {
+					System.out.println("anns.size: "+anns.size()+";janns.length: "+janns.length());
+					if (anns.size() < 1 && janns.length()<1) {
 						rtn.put("error", "unknown annotation-related error");
 					} 
 					else {
-						JSONArray janns = new JSONArray();
+						
 						System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 						Project project = null;
 						if (Util.stringExists(projectIdPrefix)) {
@@ -110,6 +137,7 @@ if (request.getParameter("acmId") != null) {
 				        for (Annotation ann : anns) {
 							if (ann.getMatchAgainst()==true) {
 								JSONObject jann = new JSONObject();
+								
 								jann.put("id", ann.getId());
 								jann.put("acmId", ann.getAcmId());
 								Encounter enc = ann.findEncounter(myShepherd);
@@ -166,23 +194,35 @@ if (request.getParameter("acmId") != null) {
 												
 											}
 										}
-									} catch (Exception e) {
+									} 
+									catch (Exception e) {
 										e.printStackTrace();
 									}
 								}
 								janns.put(jann);
+									
+								//Store annotation
+								String localCacheName="iaResultsJson_"+ann.getAcmId();
+						        CachedQuery cq2=new CachedQuery(localCacheName,Util.toggleJSONObject(jann), false, myShepherd);
+						        cq2.nextExpirationTimeout=System.currentTimeMillis()+60000;
+						        qc.addCachedQuery(cq2);
+							
+								}
 							}
+				        	rtn.put("success", true);
+				        	rtn.put("annotations", janns);
+				        
+							//out.println(rtn.toString());
+				        
+				        	CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
+				        	cq.nextExpirationTimeout=System.currentTimeMillis()+60000;
+				        	qc.addCachedQuery(cq);
+							
 						}
-					    rtn.put("success", true);
-				        rtn.put("annotations", janns);
-					}
+					
+					
 		
-					//out.println(rtn.toString());
-			        
-			        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
-			        cq.nextExpirationTimeout=System.currentTimeMillis()+60000;
-			        qc.addCachedQuery(cq);
-						
+
 					}
 					catch(Exception fe){
 						fe.printStackTrace();
@@ -196,7 +236,7 @@ if (request.getParameter("acmId") != null) {
 				
 		        		
 			}
-		tryCompress(request, response, rtn, true);
+			tryCompress(request, response, rtn, true);
 	        
 
 	
