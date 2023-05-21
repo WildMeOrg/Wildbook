@@ -48,6 +48,8 @@ String rotationInfo(MediaAsset ma) {
 %>
 <%
 
+long startTime=System.currentTimeMillis();
+
 if (request.getParameter("acmId") != null) {
 
 	response.setHeader("Access-Control-Allow-Origin", "*"); 
@@ -64,7 +66,7 @@ if (request.getParameter("acmId") != null) {
 	JSONArray janns = new JSONArray();
 	
 	StringTokenizer str=new StringTokenizer(acmId,",");
-	//int numTokens=str.countTokens();
+	HashMap<String,String> locIDPrefixMap=new HashMap<String,String>();
 	
 	try {
 		
@@ -73,7 +75,7 @@ if (request.getParameter("acmId") != null) {
 		QueryCache qc=QueryCacheFactory.getQueryCache(context);
 		if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 			JSONObject cachedObj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-			System.out.println("Getting iaResultsJson cache: "+cacheName);
+			//System.out.println("Getting iaResultsJson cache: "+cacheName);
 			//this is a single annotations
 			if(cachedObj.optBoolean("success", true)){
 				rtn=cachedObj;
@@ -106,14 +108,14 @@ if (request.getParameter("acmId") != null) {
 							String localCacheName="iaResultsJson_"+token;
 							if(qc.getQueryByName(localCacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(localCacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
 								JSONObject cacheItem=Util.toggleJSONObject(qc.getQueryByName(localCacheName).getJSONSerializedQueryResult());
-								System.out.println("Getting iaResultsJson cache: "+localCacheName);
+								//System.out.println("Getting iaResultsJson cache: "+localCacheName);
 								janns.put(cacheItem);
-								System.out.println("found cached annotation!");
+								//System.out.println("found cached annotation!");
 							}
 							else{
 							
 								anns.addAll(myShepherd.getAnnotationsWithACMId(token));
-								System.out.println("adding new annotation!");
+								//System.out.println("adding new annotation!");
 							}
 							
 						} 
@@ -121,17 +123,19 @@ if (request.getParameter("acmId") != null) {
 					}
 					
 					
-					System.out.println("anns.size: "+anns.size()+";janns.length: "+janns.length());
+					//System.out.println("anns.size: "+anns.size()+";janns.length: "+janns.length());
 					if (anns.size() < 1 && janns.length()<1) {
 						rtn.put("error", "unknown annotation-related error");
 					} 
 					else {
 						
-						System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+						//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 						Project project = null;
 						if (Util.stringExists(projectIdPrefix)) {
 							project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 						}
+						//System.out.println("end first project processing: "+(System.currentTimeMillis()-startTime));
+						
 						String locationIdPrefix = null;
 						int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
 				        for (Annotation ann : anns) {
@@ -141,17 +145,35 @@ if (request.getParameter("acmId") != null) {
 								jann.put("id", ann.getId());
 								jann.put("acmId", ann.getAcmId());
 								Encounter enc = ann.findEncounter(myShepherd);
+								//System.out.println("      end findEncounter processing: "+(System.currentTimeMillis()-startTime));
+								
 					 			if (enc != null) {
 					 				jann.put("encounterId", enc.getCatalogNumber());
 					 				jann.put("encounterLocationId", enc.getLocationID());
 				          			jann.put("encounterDate", enc.getDate());
 									locationIdPrefix = enc.getPrefixForLocationID();
+									//System.out.println("      end locationIdPrefix processing: "+(System.currentTimeMillis()-startTime));
+									
 									jann.put("encounterLocationIdPrefix", locationIdPrefix);
 									locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+									//System.out.println("      end locationIdPrefixDigitPadding processing: "+(System.currentTimeMillis()-startTime));
+									
 									jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
-									jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
+									
+									String encounterLocationNextValue = "";
+									if(locIDPrefixMap.containsKey(locationIdPrefix)){
+										encounterLocationNextValue=locIDPrefixMap.get(locationIdPrefix);
+									}
+									else{
+										encounterLocationNextValue=MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+										locIDPrefixMap.put(locationIdPrefix,encounterLocationNextValue);
+									}
+									jann.put("encounterLocationNextValue", encounterLocationNextValue);
+									//System.out.println("      end nextName processing: "+(System.currentTimeMillis()-startTime));
+									
 		
 					 			}
+					 			//System.out.println("end encounter processing: "+(System.currentTimeMillis()-startTime));
 								MediaAsset ma = ann.getMediaAsset();
 								if (ma != null) {
 									JSONObject jm = ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject());
@@ -159,6 +181,8 @@ if (request.getParameter("acmId") != null) {
 	                                jm.put("rotation", rotationInfo(ma));
 							        jann.put("asset", jm);
 								}
+								//System.out.println("end MediaAsset processing: "+(System.currentTimeMillis()-startTime));
+								
 								MarkedIndividual individual = null;
 								//found data edge cases where this can throw an exception. catching for safety.
 								//leaving individual as null is acceptable if exception thrown
@@ -174,11 +198,14 @@ if (request.getParameter("acmId") != null) {
 										jann.put("socialUnitName", socialUnits.get(0).getSocialUnitName());
 									}
 								}
+								//System.out.println("end MarkedIndividual processing: "+(System.currentTimeMillis()-startTime));
+								
+								
 								if (project!=null) {
 									try {
 		
 										if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
-											System.out.println("num encounters in project: "+project.getEncounters().size());
+											//System.out.println("num encounters in project: "+project.getEncounters().size());
 											//MarkedIndividual individual = enc.getIndividual();
 											if (individual!=null) {
 												
@@ -199,6 +226,8 @@ if (request.getParameter("acmId") != null) {
 										e.printStackTrace();
 									}
 								}
+								//System.out.println("end project processing: "+(System.currentTimeMillis()-startTime));
+								
 								janns.put(jann);
 									
 								//Store annotation
@@ -237,7 +266,8 @@ if (request.getParameter("acmId") != null) {
 		        		
 			}
 			tryCompress(request, response, rtn, true);
-	        
+			
+	        //System.out.println("Completed iaResultsAnnotFeed: "+(System.currentTimeMillis()-startTime));
 
 	
 	}
