@@ -295,8 +295,9 @@
 
 	{ "name":"Brazil", "id":"Brazil", "locationID":[
 	
+		{ "name":"Fernando de Noronha", "id":"Fernando de Noronha", "locationID":[] },
 		{ "name":"Rio de Janeiro, Arraial do Cabo", "id":"Rio de Janeiro, Arraial do Cabo", "locationID":[] }
-	
+		
 	] },
 
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
