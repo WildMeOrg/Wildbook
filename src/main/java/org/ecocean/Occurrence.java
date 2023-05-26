@@ -14,6 +14,7 @@ import javax.jdo.Query;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.movement.SurveyTrack;
 
@@ -518,7 +519,7 @@ public class Occurrence implements java.io.Serializable {
     return null;
   }
 
-  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context, HttpServletRequest request) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
@@ -526,10 +527,10 @@ public class Occurrence implements java.io.Serializable {
     for(int c=0;c<myEncs.length;c++) {
       Encounter temp=myEncs[c];
       if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-        haveData.add(temp);
+        if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
       }
       else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
-        haveData.add(temp);
+        if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
       }
 
       }
