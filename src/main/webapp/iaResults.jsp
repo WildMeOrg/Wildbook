@@ -773,15 +773,25 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		$(task_grabber).data("algorithm", algo_name);
 		
+		//this variable tracks whether IA returned any results so we can exit early if it did not
+		//likely only used for HotSpotter matching
+		var noMatch=false;
+		
+		var maxToEvaluate = RESMAX;
 		var sorted = score_sort(json_result['cm_dict'][qannotId], json_result['query_config_dict']['pipeline_root']);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
 			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
-			return;
+			//return;
+			noMatch=true;
+			maxToEvaluate=0;
 		}
-		var maxToEvaluate = sorted.length;
-		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		else{
+			maxToEvaluate = sorted.length;
+			if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		}
+		
 
 		
 		//get the match-against acmIds
@@ -824,7 +834,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		$(task_grabber).data("algorithm", algo_name);
 		$(task_grabber).addClass(algo_name)
 
-
+        //we exit here if no match was found
+        if(noMatch){return;}
 
 
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
@@ -1283,7 +1294,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
           const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
           const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
-					const illustrationHtml = '<span class="illustrationLink" style="float:right;padding-top: 1px;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
           const illustrationFailHtml = '<span class="illustrationLink" style="float:right;">inspection image unavailable (likely outdated)</span>';
           $(selector).append(loadingText);
           $.ajax({
