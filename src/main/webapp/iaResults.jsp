@@ -1251,7 +1251,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1283,7 +1283,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
 				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
           const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
           const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
-					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
+					const illustrationHtml = '<span class="illustrationLink" style="float:right;padding-top: 1px;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';
           const illustrationFailHtml = '<span class="illustrationLink" style="float:right;">inspection image unavailable (likely outdated)</span>';
           $(selector).append(loadingText);
           $.ajax({
@@ -1312,6 +1312,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
               }
             }
           });
+          $(selector).append('</div>');
 				}
             }
 
