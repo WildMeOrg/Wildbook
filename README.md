@@ -19,7 +19,7 @@ Wildbook&reg; is an open source software framework to support mark-recapture, mo
 <br />
 <h2>Support</h2>
 
-Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation. 
+Please see <a href="https://docs.wildme.org">Wildbook.org</a> for documentation. 
 
 Need direct help?
 
@@ -142,7 +142,7 @@ Try:
 This method also checks for the strings “none” and “unknown” which have given us trouble in displays in the past.
 
 <h2>History</h2>
-Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (http://www.whaleshark.org). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
+Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (now part of http://www.sharkbook.ai). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> https://www.wildme.org
