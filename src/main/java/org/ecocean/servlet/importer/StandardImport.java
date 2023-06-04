@@ -1982,6 +1982,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         mark.refreshNamesCache();
       }
     }
+    
+    //add local MarkedIndividual haplotype reflection
+    if(enc.getHaplotype()!=null) {
+      mark.doNotSetLocalHaplotypeReflection(enc.getHaplotype());
+    }
 
 
     return mark;
