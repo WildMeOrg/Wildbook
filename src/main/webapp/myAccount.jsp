@@ -567,8 +567,72 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 	</div>
 
     </p> <!-- end content p -->
+    <%
+    if(request.isUserInRole("orgAdmin")){
+    %>
+    	<a name="orgadmin" id="orgadmin"></a>
+    	<h2><%=props.getProperty("orgadmin") %></h2>
+    	<p><%=props.getProperty("orgadminDescription") %></p>
+    	<%
+    	if(orgs!=null && orgs.size()>0){
+    		for(Organization org:orgs){
+    			%>
+    			<h3><%=org.getName() %></h3>
+    			<table class="table table-bordered table-striped table-sm table-hover">
+    				<tr><th><%=props.getProperty("fullname") %></th><th><%=props.getProperty("collaboratingWith") %></th></tr>
+    				<%
+    				List<User> members=org.getMembers();
+    				for(User member:members){
+    					if(member != localUser){
+    						%>
+    						<tr>
+    							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=member.getFullName() %></a></td>
+    							<td>
+	    						<% 
+	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername()); 
+	        					if(memberCollabs!=null && memberCollabs.size()>0){
+	        						for(Collaboration collab:memberCollabs){
+	        							String username=collab.getUsername1();
+	        							if(username==localUser.getUsername())username=collab.getUsername2();
+	        							String type=collab.getState();
+	        							User collabUser = myShepherd.getUser(username);
+	        							String c_org="";
+	        							if(collabUser.getOrganizations()!=null && collabUser.getOrganizations().size()>0){
+	        								c_org+=" (";
+	        								for(Organization theirOrg:collabUser.getOrganizations()){
+	        									c_org+=theirOrg.getName()+";";
+	        								}
+	        								if(c_org.endsWith(";"))c_org=c_org.substring(0,c_org.length()-1);
+	        								c_org+=")";
+	        							}
+		        						%>
+		        						<%=collabUser.getFullName() %><%=c_org %>(<%=type %>)<br>
+		        						<%
+	        						}
+	        					}
+	        					else{
+		    						%>
+		    						&nbsp;
+		    						<%
+	        					}
+	        					%>
+	        					</td>
+        					</tr>
+        					<%
+    					}
+    				}
+    				%>
+    			</table>
+    			<%
+    		}
+    	}
+    	%>
+    	
+	<%
+    }
+	%>
 
-	<a name="mydata" id="mydata">
+	<a name="mydata" id="mydata"></a>
     <h2><%=props.getProperty("myData") %></h2>
 
 
