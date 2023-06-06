@@ -48,6 +48,8 @@ String rotationInfo(MediaAsset ma) {
 %>
 <%
 
+long startTime=System.currentTimeMillis();
+
 if (request.getParameter("acmId") != null) {
 
 	response.setHeader("Access-Control-Allow-Origin", "*"); 
@@ -61,8 +63,10 @@ if (request.getParameter("acmId") != null) {
 	String projectIdPrefix = request.getParameter("projectIdPrefix");
 	
 	String cacheName="iaResultsJson_"+acmId;
+	JSONArray janns = new JSONArray();
 	
-
+	StringTokenizer str=new StringTokenizer(acmId,",");
+	HashMap<String,String> locIDPrefixMap=new HashMap<String,String>();
 	
 	try {
 		
@@ -70,8 +74,22 @@ if (request.getParameter("acmId") != null) {
 
 		QueryCache qc=QueryCacheFactory.getQueryCache(context);
 		if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
-			rtn=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
-			System.out.println("Getting iaResultsJson cache: "+cacheName);
+			JSONObject cachedObj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+			//System.out.println("Getting iaResultsJson cache: "+cacheName);
+			//this is a single annotations
+			if(cachedObj.optBoolean("success", true)){
+				rtn=cachedObj;
+			}
+			//this is a cached list of annotations
+			else{
+				
+				rtn.put("success", true);
+				janns.put(cachedObj);
+	        	rtn.put("annotations", janns);
+			}
+			
+				
+			
 		}
 		else{
 				Shepherd myShepherd = new Shepherd(context);
@@ -79,41 +97,83 @@ if (request.getParameter("acmId") != null) {
 				myShepherd.beginDBTransaction();
 				try{
 					
-				    ArrayList<Annotation> anns = null;
+				    ArrayList<Annotation> anns = new ArrayList<Annotation>();
 					rtn = new JSONObject("{\"success\": false}");
-					try {
-						anns = myShepherd.getAnnotationsWithACMId(acmId);
-					} 
-					catch (Exception ex) {ex.printStackTrace();}
-					if ((anns == null) || (anns.size() < 1)) {
+					
+					while(str.hasMoreTokens()){
+						try {
+
+							String token=str.nextToken();
+							
+							String localCacheName="iaResultsJson_"+token;
+							if(qc.getQueryByName(localCacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(localCacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+								JSONObject cacheItem=Util.toggleJSONObject(qc.getQueryByName(localCacheName).getJSONSerializedQueryResult());
+								//System.out.println("Getting iaResultsJson cache: "+localCacheName);
+								janns.put(cacheItem);
+								//System.out.println("found cached annotation!");
+							}
+							else{
+							
+								anns.addAll(myShepherd.getAnnotationsWithACMId(token));
+								//System.out.println("adding new annotation!");
+							}
+							
+						} 
+						catch (Exception ex) {ex.printStackTrace();}
+					}
+					
+					
+					//System.out.println("anns.size: "+anns.size()+";janns.length: "+janns.length());
+					if (anns.size() < 1 && janns.length()<1) {
 						rtn.put("error", "unknown annotation-related error");
 					} 
 					else {
-						JSONArray janns = new JSONArray();
-						System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+						
+						//System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 						Project project = null;
 						if (Util.stringExists(projectIdPrefix)) {
 							project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 						}
+						//System.out.println("end first project processing: "+(System.currentTimeMillis()-startTime));
+						
 						String locationIdPrefix = null;
 						int locationIdPrefixDigitPadding = 3; //had to pick a non-null default
 				        for (Annotation ann : anns) {
 							if (ann.getMatchAgainst()==true) {
 								JSONObject jann = new JSONObject();
+								
 								jann.put("id", ann.getId());
 								jann.put("acmId", ann.getAcmId());
 								Encounter enc = ann.findEncounter(myShepherd);
+								//System.out.println("      end findEncounter processing: "+(System.currentTimeMillis()-startTime));
+								
 					 			if (enc != null) {
 					 				jann.put("encounterId", enc.getCatalogNumber());
 					 				jann.put("encounterLocationId", enc.getLocationID());
 				          			jann.put("encounterDate", enc.getDate());
 									locationIdPrefix = enc.getPrefixForLocationID();
+									//System.out.println("      end locationIdPrefix processing: "+(System.currentTimeMillis()-startTime));
+									
 									jann.put("encounterLocationIdPrefix", locationIdPrefix);
 									locationIdPrefixDigitPadding = enc.getPrefixDigitPaddingForLocationID();
+									//System.out.println("      end locationIdPrefixDigitPadding processing: "+(System.currentTimeMillis()-startTime));
+									
 									jann.put("encounterLocationIdPrefixDigitPadding", locationIdPrefixDigitPadding);
-									jann.put("encounterLocationNextValue", MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding));
+									
+									String encounterLocationNextValue = "";
+									if(locIDPrefixMap.containsKey(locationIdPrefix)){
+										encounterLocationNextValue=locIDPrefixMap.get(locationIdPrefix);
+									}
+									else{
+										encounterLocationNextValue=MarkedIndividual.nextNameByPrefix(locationIdPrefix, locationIdPrefixDigitPadding);
+										locIDPrefixMap.put(locationIdPrefix,encounterLocationNextValue);
+									}
+									jann.put("encounterLocationNextValue", encounterLocationNextValue);
+									//System.out.println("      end nextName processing: "+(System.currentTimeMillis()-startTime));
+									
 		
 					 			}
+					 			//System.out.println("end encounter processing: "+(System.currentTimeMillis()-startTime));
 								MediaAsset ma = ann.getMediaAsset();
 								if (ma != null) {
 									JSONObject jm = ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject());
@@ -121,6 +181,8 @@ if (request.getParameter("acmId") != null) {
 	                                jm.put("rotation", rotationInfo(ma));
 							        jann.put("asset", jm);
 								}
+								//System.out.println("end MediaAsset processing: "+(System.currentTimeMillis()-startTime));
+								
 								MarkedIndividual individual = null;
 								//found data edge cases where this can throw an exception. catching for safety.
 								//leaving individual as null is acceptable if exception thrown
@@ -136,11 +198,14 @@ if (request.getParameter("acmId") != null) {
 										jann.put("socialUnitName", socialUnits.get(0).getSocialUnitName());
 									}
 								}
+								//System.out.println("end MarkedIndividual processing: "+(System.currentTimeMillis()-startTime));
+								
+								
 								if (project!=null) {
 									try {
 		
 										if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
-											System.out.println("num encounters in project: "+project.getEncounters().size());
+											//System.out.println("num encounters in project: "+project.getEncounters().size());
 											//MarkedIndividual individual = enc.getIndividual();
 											if (individual!=null) {
 												
@@ -156,23 +221,37 @@ if (request.getParameter("acmId") != null) {
 												
 											}
 										}
-									} catch (Exception e) {
+									} 
+									catch (Exception e) {
 										e.printStackTrace();
 									}
 								}
+								//System.out.println("end project processing: "+(System.currentTimeMillis()-startTime));
+								
 								janns.put(jann);
+									
+								//Store annotation
+								String localCacheName="iaResultsJson_"+ann.getAcmId();
+						        CachedQuery cq2=new CachedQuery(localCacheName,Util.toggleJSONObject(jann), false, myShepherd);
+						        cq2.nextExpirationTimeout=System.currentTimeMillis()+60000;
+						        qc.addCachedQuery(cq2);
+							
+								}
 							}
+				        	rtn.put("success", true);
+				        	rtn.put("annotations", janns);
+				        
+							//out.println(rtn.toString());
+				        
+				        	CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
+				        	cq.nextExpirationTimeout=System.currentTimeMillis()+60000;
+				        	qc.addCachedQuery(cq);
+							
 						}
-					    rtn.put("success", true);
-				        rtn.put("annotations", janns);
-					}
+					
+					
 		
-					//out.println(rtn.toString());
-			        
-			        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(rtn), false, myShepherd);
-			        cq.nextExpirationTimeout=System.currentTimeMillis()+60000;
-			        qc.addCachedQuery(cq);
-						
+
 					}
 					catch(Exception fe){
 						fe.printStackTrace();
@@ -186,8 +265,9 @@ if (request.getParameter("acmId") != null) {
 				
 		        		
 			}
-		tryCompress(request, response, rtn, true);
-	        
+			tryCompress(request, response, rtn, true);
+			
+	        //System.out.println("Completed iaResultsAnnotFeed: "+(System.currentTimeMillis()-startTime));
 
 	
 	}
