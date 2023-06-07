@@ -583,10 +583,12 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     				<%
     				List<User> members=org.getMembers();
     				for(User member:members){
-    					if(member != localUser){
+    					if(member.getUsername()!=null && !member.getUsername().equals(localUser.getUsername())){
+    						String fullName=member.getFullName();
+    						if(fullName == null)fullName=member.getUsername();
     						%>
     						<tr>
-    							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=member.getFullName() %></a></td>
+    							<td><a href="appadmin/users.jsp?isEdit=true&uuid=<%=member.getId() %>#editUser"><%=fullName %></a></td>
     							<td>
 	    						<% 
 	    						List<Collaboration> memberCollabs = Collaboration.collaborationsForUser(myShepherd, member.getUsername()); 

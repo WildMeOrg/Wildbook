@@ -54,13 +54,38 @@ myShepherd.beginDBTransaction();
 
 
 //String currentEmail = request.getParameter("email")	;
-String currentUUID = request.getParameter("uuid")	;
+String currentUUID = request.getParameter("uuid");
+
+//Who is viewing this page?
+User localUser = null;
+localUser = myShepherd.getUser(request);
 
 try {
 
 	String order ="lastLogin DESC NULLS LAST";
 
-  	users = myShepherd.getAllUsers(order);
+	//if you're an admin, see everybody
+	if(request.isUserInRole("admin")){
+  		users = myShepherd.getAllUsers(order);
+	}
+	//if you're an orgAdmin, see only users in your org
+	else if(request.isUserInRole("orgAdmin")){
+		List<Organization> orgs=myShepherd.getAllOrganizationsForUser(localUser);
+    	if(orgs!=null && orgs.size()>0){    		
+    		for(Organization org:orgs){
+    			List<User> members=org.getMembers();
+				for(User member:members){
+					if(!member.hasRoleByName("admin",myShepherd) && !users.contains(member)){
+						users.add(member);
+					}
+    			}
+			}
+    	}
+    	//and add yourself while you're here
+    	if(!users.contains(localUser))users.add(localUser);
+	}
+  	
+  	
 	numResults=users.size();
 
 	List<Role> allRoles=myShepherd.getAllRoles();
