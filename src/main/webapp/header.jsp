@@ -493,14 +493,17 @@ finally{
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
                               <li class="divider"></li>
                             <% }
-
-
+                            if(request.isUserInRole("orgAdmin")) { 
+                            %>
+                            	<li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+                            
+                            <%
+                            }
                             if(request.isUserInRole("admin")) { %>
                                 <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
 
-                                <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-
+                                
                                 <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
