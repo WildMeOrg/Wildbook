@@ -16,8 +16,6 @@
 	{ "name":"NSW-Jervis Bay-Nursery", "id":"NSW-Jervis Bay-Nursery", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 	
 	{ "name":"NSW-Jervis Bay-Pinnacle Cave", "id":"NSW-Jervis Bay-Pinnacle Cave", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-	
-	
 
 	{ "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
@@ -55,8 +53,6 @@
 
 { "name":"SA-Wool Bay", "id":"SA-Wool Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-
-
 { "name":"SA-Goolwa Beach", "id":"SA-Goolwa Beach", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
 { "name":"SA-Kangaroo Is-Kingscote Jetty", "id":"SA-Kangaroo Is-Kingscote Jetty", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
@@ -65,14 +61,9 @@
 
 { "name":"SA-Coffin Bay", "id":"SA-Coffin Bay", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-
 { "name":"SA-Edithburgh", "id":"SA-Edithburgh", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
-
-
 { "name":"SA-Tumby Bay Jetty", "id":"SA-Tumby Bay Jetty", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
-
-
 
 { "name":"SA-Carrickalinga", "id":"SA-Carrickalinga", "locationID":[],"prefix": "SA-", "prefixDigitPadding": 4 },
 
@@ -129,18 +120,22 @@
 
 	{ "name":"WA-Bremer Bay- Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
+	{ "name":"WA-Bremer Bay-PebblePt", "id":"WA-Bremer Bay-PebblePt", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+	{ "name":"WA-Bremer Bay-Riesys", "id":"WA-Bremer Bay-Riesys", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+	{ "name":"WA-Bremer Bay-WaynesWorld", "id":"WA-Bremer Bay-WaynesWorld", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+
 
 { "name":"WA-Cape Naturaliste-Canal Rocks", "id":"WA-Cape Naturaliste-Canal Rocks", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-
-
 { "name":"WA-Cape Naturaliste-Shelley Cove", "id":"WA-Cape Naturaliste-Shelley Cove", "locationID":[], "prefix": "WA-", "prefixDigitPadding": 4 },
-
-
 
 { "name":"WA-Esperance-Lucky Bay", "id":"WA-Esperance-Lucky Bay", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Esperance-Tanker Jetty", "id":"WA-Esperance-Tanker Jetty", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+
+{ "name":"WA-Esperance-Whartons", "id":"WA-Esperance-Whartons", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+
+{ "name":"WA-Hopetoun", "id":"WA-Hopetoun", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Perth-Cottesloe", "id":"WA-Perth-Cottesloe", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
@@ -156,13 +151,9 @@
 
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
-{ "name":"WA-Perth-Ocean Reef", "id":"WA-Perth-Ocean Reef", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4
-},
+{ "name":"WA-Perth-Ocean Reef", "id":"WA-Perth-Ocean Reef", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Perth-Point Peron", "id":"WA-Perth-Point Peron", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
-
-
-
 
 { "name":"WA-Perth-South Mole", "id":"WA-Perth-South Mole", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
