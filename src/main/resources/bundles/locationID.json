@@ -383,8 +383,6 @@
           "name": "Atlantic Ocean (North)",
           "locationID": [
   
-  
-  
                   { "name":"Azores", "id":"5", "locationID":[] },
                {
                 "name": "Archipelago Sea", "id": "Archipelago Sea"  },
@@ -404,18 +402,16 @@
   
               { "name":"France", "id":"France", "locationID":[] },
   
-               { "name":"Greenland", "id":"Greenland", "locationID":[] },
+              { "name":"Greenland", "id":"Greenland", "locationID":[] },
   
               { "name":"Iceland", "id":"Iceland", "locationID":[
   
                   {"name": "Breiðafjörður", "id": "Breiðafjörður"  }
   
-  
               ] },
   
                {
                 "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
-  
   
                 {
                 "name": "Golfe du Lion", "id": "Golfe du Lion"  },
@@ -436,9 +432,6 @@
   
   
                 ]  }
-  
-  
-  
   
                 ] },
                {
@@ -532,9 +525,12 @@
   
                {
                 "name": "Norwegian Sea", "id": "Norwegian Sea" },
-  
+
                 {
                 "name": "SW Portugal", "id": "SW Portugal" },
+
+                {
+                "name": "Scotian Shelf", "id": "Scotian Shelf" },
   
                {
                 "name": "Sargasso Sea", "id": "Sargasso Sea" },
@@ -560,7 +556,6 @@
                       { "name":"NY Bight", "id":"NY Bight", "locationID":[
   
                           { "name":"Montauk NY", "id":"Montauk NY", "locationID":[] }
-  
   
                       ] },
                       {"name":"BOF-BOF","id":"BOF-BOF"},
