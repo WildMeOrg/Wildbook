@@ -189,7 +189,7 @@ h2.vidcap {
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <div id="index-splash-text">
 
-                <h1 class="hidden">Wildbook for African Carnivores</h1>
+                <h1 class="hidden">Wildbook for Northern Hemisphere Carnivores</h1>
                 <!--<h2>Wildbook for Carnivores</h2>-->
                 <a href="submit.jsp">
                     <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
@@ -426,7 +426,7 @@ h2.vidcap {
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-                            <i>“Iconic, rare, spectacular and fearsome, Africa's large predators are among our planet's most revered - and most threatened. Knowledge about these predators' population connectivity is critical to mapping the strategy to ensure their future and the health of the ecosystems Africans and Africa's wildlife depend on. The ACW is the tool that will enable conservationists and wildlife ecologists to document that critical connectivity.”</i><br>- JW McNutt, <i>PhD., Director, Wild Entrust; Founder and Director, Botswana Predator Conservation</i></p>
+                            <i>"We're going to need a bigger quote." -Martin Brody </i></p>
 
                     </div>
                 </div>
