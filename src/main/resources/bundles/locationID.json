@@ -3,18 +3,12 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-	{"name":"Africa - All","id":"Africa","locationID":[
-
-		{"name":"Africa - South","id":"Africa - South","locationID":[]},
-
-		{"name":"Africa - East","id":"Africa - East","locationID":[]},
-		
-		{"name":"Africa - Central","id":"Africa - Central","locationID":[]},
-
-		{"name":"Africa - West","id":"Africa - West","locationID":[]},
-		
-		{"name":"Africa - North","id":"Africa - North","locationID":[]}
-
+	{"name":"Canada","id":"Canada","locationID":[]},
+	{"name":"United States","id":"United States","locationID":[
+	
+		{"name":"Oregon","id":"Oregon","locationID":[]}
+	
 	]}
+	
   ]
 }
