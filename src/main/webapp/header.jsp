@@ -420,7 +420,7 @@ finally{
                             <!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
 
                             <li><a href="<%=urlLoc %>/aboutUs.jsp"><%=props.getProperty("aboutUs")%></a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                          <!--	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li> -->
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li class="divider"></li>
                             <li><a target="_blank" href="<%=urlLoc %>/learnMore.jsp"><%=props.getProperty("learnAboutShepherd")%></a></li>

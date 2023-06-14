@@ -426,7 +426,8 @@ h2.vidcap {
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-                            <i>"We're going to need a bigger quote." -Martin Brody </i></p>
+                            <em>"Since our European ancestors first landed on American shores 500 years ago, we have waged war on large predators. The grizzly, wolf, jaguar, and cougar are now gone from the majority of their original ranges, and loss of habitat now looms as the greatest threat to the small populations that survive. Only in the last three decades have wildlife biologists begun to chip away at the fable and folklore and reveal the cougar for the remarkable carnivore that it is."</em><br>
+-Robert Redford, foreward to "Cougar: The American Lion" by Kevin Hansen</p>
 
                     </div>
                 </div>
