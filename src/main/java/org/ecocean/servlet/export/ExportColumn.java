@@ -28,6 +28,7 @@ public class ExportColumn {
     // since we have multiple MediaAssets and Keywords per row, these are used for those cols
     private int maNum = -1;
     private int kwNum = -1;
+    private String labeledKwName=null;
     private int measureNum = -1;
 
     public ExportColumn(Class declaringClass, String header, Method getter, int colNum) {
@@ -73,7 +74,11 @@ public class ExportColumn {
 
     public int getKwNum() {return kwNum;}
     public void setKwNum(int n) {this.kwNum = n;}
-
+    
+    public String getlabeledKwName() {return labeledKwName;}
+    public void setLabeledKwName(String lkwn) {this.labeledKwName=lkwn;}
+    
+    
     public Class getDeclaringClass() {
       return declaringClass;
     }

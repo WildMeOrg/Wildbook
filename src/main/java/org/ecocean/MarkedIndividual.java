@@ -598,10 +598,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   }
 */
 
-  public Vector returnEncountersWithGPSData(){
-    return returnEncountersWithGPSData(false,false,"context0");
+  public Vector returnEncountersWithGPSData(HttpServletRequest request){
+    return returnEncountersWithGPSData(false,false,"context0", request);
   }
-  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context, HttpServletRequest request) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
@@ -612,10 +612,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
           Encounter temp=myEncs[c];
           if(temp!=null)catalogNumber=temp.getCatalogNumber();
           if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-            haveData.add(temp);
+            if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
           }
           else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
-            haveData.add(temp);
+            if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
           }
         }
         catch(Exception e) {

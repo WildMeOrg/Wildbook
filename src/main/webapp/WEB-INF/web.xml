@@ -462,16 +462,16 @@
 			/AdoptionAction = authc, roles[admin]
 
 			/TranslationsGet = authc
-			/ImportIA = authc, roles[admin]
-		    /UpdateStandard = authc, roles[admin]
-			/WebImport = authc, roles[admin]
-           /import/upload = authc, roles[admin]
-		   /ResumableUpload = authc, roles[admin]
-          /upload  = authc, roles[admin]
+			/ImportIA = authc, roles[researcher]
+		    /UpdateStandard = authc, roles[researcher]
+			/WebImport = authc, roles[researcher]
+           /import/upload = authc, roles[researcher]
+		   /ResumableUpload = authc, roles[researcher]
+          /upload  = authc, roles[researcher]
 		  /UserCreateSocial = authc
 		 /SocialGrabFiles = authc, roles[admin]
 		 /SocialConnect = authc, roles[admin]
-		 /ia = authc
+		 #/ia = authc
 		 /MediaAssetContext = authc
 		  /GetCurrentIAInfo = authc
 		  /error_generic.jsp = authc
