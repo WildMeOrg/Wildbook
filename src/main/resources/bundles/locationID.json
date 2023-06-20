@@ -546,6 +546,18 @@
  			 },
 			"locationID": [
 				{
+					"name": "Etosha",
+					"id": "Etosha",
+					"description": "Etosha",
+					"locationID": [
+					{
+						"name": "Etosha Heights Private Reserve",
+						"id": "Etosha Heights Private Reserve",
+						"description": "Etosha Heights Private Reserve"
+					}
+				]
+			},
+				{
 					"name": "Kuzikus Wildlife Reserve",
 					"id": "Kuzikus Wildlife Reserve"
 				},
@@ -564,9 +576,16 @@
 			"id": "Niger",
 			"geospatialInfo":{
 	 			 	"lat":17.638133,
-	 			 	"long":9.766846
- 			 }
-		},
+	 			 	"long":9.766846},
+			"locationID": [
+			{
+				"name": "Gadabedji",
+				"id": "Gadabedji",
+				"description": "Gadabedji"
+			}
+		]
+	},
+		
 		{
 			"name": "Rwanda",
 			"id": "Rwanda",
@@ -590,9 +609,56 @@
  			 },
 			 "locationID":[
 				{
-					"name": "Siyafunda",
-					"id": "Siyafunda",
-					"description": "Siyafunda"
+					"name": "Areena",
+					"id": "Areena",
+					"description": "Areena"
+				},
+				{
+					"name": "Endalweni",
+					"id": "Endalweni",
+					"description": "Endalweni"
+				},
+				{
+					"name": "EV Krull",
+					"id": "EV Krull",
+					"description": "EV Krull"
+				},
+				{
+					"name": "Gareths",
+					"id": "Gareths",
+					"description": "Gareths"
+				},
+				{
+					"name": "Inkwenkwezi",
+					"id": "Inkwenkwezi",
+					"description": "Inkwenkwezi"
+				},
+				{
+					"name": "Kariega Game Reserve",
+					"id": "Kariega Game Reserve",
+					"description": "Kariega Game Reserve"
+				},
+				{
+					"name": "Kruger National Park",
+					"id": "Kruger National Park",
+					"prefix": "knp",
+					"prefixDigitPadding": 4,
+					"description": "Kruger National Park"
+				},
+				{
+					"name": "Kwandwe",
+					"id": "Kwandwe",
+					"description": "Kwandwe"
+				},
+				{
+					"name": "Matola",
+					"id": "Matola",
+					"description": "Matola"
+				},
+				{
+					"name": "Mpongo",
+					"id": "Mpongo",
+					"description": "Mpongo"
 				},
 				{
 					"name": "Oceana",
@@ -605,57 +671,15 @@
 					"description": "Sibuya"
 				},
 				{
-					"name": "Mpongo",
-					"id": "Mpongo",
-					"description": "Mpongo"
+					"name": "Siyafunda",
+					"id": "Siyafunda",
+					"description": "Siyafunda"
 				},
 				{
-					"name": "EV Krull",
-					"id": "EV Krull",
-					"description": "EV Krull"
-				},
-				{
-					"name": "Matola",
-					"id": "Matola",
-					"description": "Matola"
-				},
-				{
-					"name": "Areena",
-					"id": "Areena",
-					"description": "Areena"
-				},
-				{
-					"name": "Inkwenkwezi",
-					"id": "Inkwenkwezi",
-					"description": "Inkwenkwezi"
-				},
-				{
-					"name": "Kwandwe",
-					"id": "Kwandwe",
-					"description": "Kwandwe"
-				},
-				{
-					"name": "Endalweni",
-					"id": "Endalweni",
-					"description": "Endalweni"
-				},
-				{
-					"name": "Gareths",
-					"id": "Gareths",
-					"description": "Gareths"
-				},
-				{
-					"name": "Kruger National Park",
-					"id": "Kruger National Park",
-					"prefix": "knp",
-					"prefixDigitPadding": 4,
-					"description": "Kruger National Park"
-				},
-				 {
- 					"name": "Kariega Game Reserve",
- 					"id": "Kariega Game Reserve",
- 					"description": "Kariega Game Reserve"
- 				}
+					"name": "UmPhafa Private Nature Reserve",
+					"id": "UmPhafa Private Nature Reserve",
+					"description": "UmPhafa Private Nature Reserve"
+				}
 			 ]
 			},
 		{
