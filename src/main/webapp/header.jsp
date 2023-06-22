@@ -452,7 +452,7 @@ finally{
                                 <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable">&nbsp;&nbsp;&nbsp;<%=props.getProperty("viewMyUnidentifiableEncounters")%></a></li>
                           
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMyIndividuals")%></a></li>
-                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySightings")%></a></li>
+                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySightings")%></a></li>
                           <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("viewMyBulkImports")%></a></li>
                           <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("viewMyProjects")%></a></li>
                               
