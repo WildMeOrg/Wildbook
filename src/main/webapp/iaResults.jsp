@@ -773,15 +773,25 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		$(task_grabber).data("algorithm", algo_name);
 		
+		//this variable tracks whether IA returned any results so we can exit early if it did not
+		//likely only used for HotSpotter matching
+		var noMatch=false;
+		
+		var maxToEvaluate = RESMAX;
 		var sorted = score_sort(json_result['cm_dict'][qannotId], json_result['query_config_dict']['pipeline_root']);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
 			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
-			return;
+			//return;
+			noMatch=true;
+			maxToEvaluate=0;
 		}
-		var maxToEvaluate = sorted.length;
-		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		else{
+			maxToEvaluate = sorted.length;
+			if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		}
+		
 
 		
 		//get the match-against acmIds
@@ -824,7 +834,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		$(task_grabber).data("algorithm", algo_name);
 		$(task_grabber).addClass(algo_name)
 
-
+        //we exit here if no match was found
+        if(noMatch){return;}
 
 
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
@@ -1251,7 +1262,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1307,6 +1318,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
               }
             }
           });
+          $(selector).append('</div>');
 				}
             }
 
