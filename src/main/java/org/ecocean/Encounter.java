@@ -2744,18 +2744,20 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
      */
     public String getHaplotype(){
       //List<TissueSample> tissueSamples=getCollectedDataOfClass(TissueSample.class);
-      int numTissueSamples=tissueSamples.size();
-      if(numTissueSamples>0){
-        for(int j=0;j<numTissueSamples;j++){
-          TissueSample thisSample=tissueSamples.get(j);
-          int numAnalyses=thisSample.getNumAnalyses();
-          if(numAnalyses>0){
-            List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
-            for(int g=0;g<numAnalyses;g++){
-              GeneticAnalysis ga = gAnalyses.get(g);
-              if(ga.getAnalysisType().equals("MitochondrialDNA")){
-                MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
-                if(mito.getHaplotype()!=null){return mito.getHaplotype();}
+      if(tissueSamples!=null) {
+        int numTissueSamples=tissueSamples.size();
+        if(numTissueSamples>0){
+          for(int j=0;j<numTissueSamples;j++){
+            TissueSample thisSample=tissueSamples.get(j);
+            int numAnalyses=thisSample.getNumAnalyses();
+            if(numAnalyses>0){
+              List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+              for(int g=0;g<numAnalyses;g++){
+                GeneticAnalysis ga = gAnalyses.get(g);
+                if(ga.getAnalysisType().equals("MitochondrialDNA")){
+                  MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+                  if(mito.getHaplotype()!=null){return mito.getHaplotype();}
+                }
               }
             }
           }

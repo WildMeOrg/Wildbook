@@ -185,6 +185,8 @@ h4.intro.accordion .rotate-chevron.down {
 	//Map of the OpenSeadragon viewers
 	var viewers = new Map();
 	var features=new Map();
+	
+
 
 </script>
 
@@ -360,6 +362,9 @@ var taskIds = [];
 var tasks = {};
 var jobIdMap = {};
 var timers = {};
+
+//Map of annotation JSON representations
+var annotJSON;
 
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
@@ -767,22 +772,71 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		}
 
 		$(task_grabber).data("algorithm", algo_name);
-
-		displayAnnot(res.taskId, qannotId, -1, -1, -1);
-
-		$(task_grabber).data("algorithm", algo_name);
-		$(task_grabber).addClass(algo_name)
-
-
+		
+		//this variable tracks whether IA returned any results so we can exit early if it did not
+		//likely only used for HotSpotter matching
+		var noMatch=false;
+		
+		var maxToEvaluate = RESMAX;
 		var sorted = score_sort(json_result['cm_dict'][qannotId], json_result['query_config_dict']['pipeline_root']);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
 			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
-			return;
+			//return;
+			noMatch=true;
+			maxToEvaluate=0;
 		}
-		var maxToEvaluate = sorted.length;
-		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		else{
+			maxToEvaluate = sorted.length;
+			if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		}
+		
+
+		
+		//get the match-against acmIds
+		var matchAgainstACMIDs="";
+		for (var i = 0 ; i < maxToEvaluate; i++) {
+			var d = sorted[i].split(/\s/);
+			if (!d) break;
+			var acmId = d[1];
+			if(i==0){matchAgainstACMIDs=acmId;}
+			else{matchAgainstACMIDs=matchAgainstACMIDs+","+acmId;}
+		}
+		//now add the query annotation
+		matchAgainstACMIDs=matchAgainstACMIDs+","+qannotId;
+		
+		let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + matchAgainstACMIDs;
+		let projectId = getSelectedProjectIdPrefix();
+		if (projectId!==""&&projectId!=undefined) {
+			paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
+		}
+
+		console.log("PARAMSTRING: "+paramString);
+		
+		//now grab all annotation data
+		$.ajax({
+			url: paramString,  //hacktacular!
+			type: 'GET',
+			dataType: 'json',
+			async: false,
+			complete: function(d) {
+				
+				annotJSON=d;
+				//annotJSON = d.responseJSON.annotations;
+				
+			}
+		});
+		
+		//display query annot
+		displayAnnot(res.taskId, qannotId, -1, -1, -1);
+
+		$(task_grabber).data("algorithm", algo_name);
+		$(task_grabber).addClass(algo_name)
+
+        //we exit here if no match was found
+        if(noMatch){return;}
+
 
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
 		// these URLs are passed-along and rendered in html by displayAnnotDetails
@@ -793,6 +847,10 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var version = "heatmask";
 
 
+	
+		
+		
+		//loop and display match against annots
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
 
@@ -801,6 +859,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 
 			var acmId = d[1];
+			console.log("looping match against acmID: "+acmId);
 
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
@@ -829,7 +888,12 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 				}
 
 				var adjustedScore = d[0];
+				
+				
 				displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
+				
+				
+				
 				// ----- END Hotspotter IA Illustration-----
 			} else {
 				// we have skipped an annotation here due to it not being present in a project. let another through to make max possible
@@ -880,11 +944,7 @@ console.info('%d ===> %s', num, acmId);
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 
-	let paramString = 'iaResultsAnnotFeed.jsp?acmId=' + acmId;
-	let projectId = getSelectedProjectIdPrefix();
-	if (projectId!==""&&projectId!=undefined) {
-		paramString += "&projectIdPrefix="+encodeURIComponent(projectId);
-	}
+
 
 
 	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
@@ -894,8 +954,8 @@ console.info('%d ===> %s', num, acmId);
      }
      imgs.append(h);
 
-	console.log("PARAMSTRING: "+paramString);
 
+	/*
 	$.ajax({
 		url: paramString,  //hacktacular!
 		type: 'GET',
@@ -904,10 +964,17 @@ console.info('%d ===> %s', num, acmId);
 			displayAnnotDetails(taskId, d, num, illustrationUrl, acmId);
 		}
 	});
+	*/
+	
+	//NEW - call this directly
+	displayAnnotDetails(taskId, num, illustrationUrl, acmId);
+	
+	
 }
 
-function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
+function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
+	let res=annotJSON;
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
                 $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
@@ -933,30 +1000,38 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
-		annotData[acmId] = res.responseJSON.annotations;
-            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
-            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
-                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
-                mainAnnId = res.responseJSON.annotations[i].id;
-			}
-			if (res.responseJSON.annotations[i].incrementalProjectId&&res.responseJSON.annotations[i].incrementalProjectId.length>0) {
-				incrementalProjectId = res.responseJSON.annotations[i].incrementalProjectId;
-				console.log("Got this incrementalProjectId in displayAnnotDetails() : "+incrementalProjectId);
-			}
-			if (res.responseJSON.annotations[i].projectUUID&&res.responseJSON.annotations[i].projectUUID.length>0) {
-				projectUUID = res.responseJSON.annotations[i].projectUUID;
-				console.log("Got this projectId in displayAnnotDetails() : "+incrementalProjectId);
-			}
-			//we "should" only need the first asset we find -- as they "should" all be identical!
-
-            if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
-            if (mainAsset) {
-                otherAnnots.push(res.responseJSON.annotations[i]);
-            } else {
-                mainAsset = res.responseJSON.annotations[i].asset;
-				$('#initial-waiter').remove();
-            }
+            if(acmId == acmIdPassed){
+				annotData[acmId] = res.responseJSON.annotations;
+	            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
+	            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
+	                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
+	                mainAnnId = res.responseJSON.annotations[i].id;
+	                console.log("     here1");
+				}
+				if (res.responseJSON.annotations[i].incrementalProjectId&&res.responseJSON.annotations[i].incrementalProjectId.length>0) {
+					incrementalProjectId = res.responseJSON.annotations[i].incrementalProjectId;
+					console.log("Got this incrementalProjectId in displayAnnotDetails() : "+incrementalProjectId);
+					console.log("     here2");
+				}
+				if (res.responseJSON.annotations[i].projectUUID&&res.responseJSON.annotations[i].projectUUID.length>0) {
+					projectUUID = res.responseJSON.annotations[i].projectUUID;
+					console.log("Got this projectId in displayAnnotDetails() : "+incrementalProjectId);
+					console.log("     here3");
+				}
+				//we "should" only need the first asset we find -- as they "should" all be identical!
+	
+	            if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
+	            if (mainAsset) {
+	                otherAnnots.push(res.responseJSON.annotations[i]);
+	                console.log("     here4");
+	            } else {
+	                mainAsset = res.responseJSON.annotations[i].asset;
+					$('#initial-waiter').remove();
+					console.log("     here5");
+	            }
+        	}
         }
+        acmId=acmIdPassed;
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
@@ -1187,7 +1262,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1243,6 +1318,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
               }
             }
           });
+          $(selector).append('</div>');
 				}
             }
 
@@ -1466,7 +1542,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 }
 
 function findMyFeature(annotAcmId, asset) {
-//console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
+console.info('findMyFeature() wanting annotAcmId %s from features %o', annotAcmId, asset.features);
     if (!asset || !Array.isArray(asset.features) || (asset.features.length < 1)) return;
     for (var i = 0 ; i < asset.features.length ; i++) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
