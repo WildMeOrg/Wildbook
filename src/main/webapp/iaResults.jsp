@@ -974,7 +974,6 @@ console.info('%d ===> %s', num, acmId);
 
 function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
-	console.log("isQueryAnnot: "+isQueryAnnot);
 	let res=annotJSON;
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
