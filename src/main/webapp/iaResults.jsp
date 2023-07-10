@@ -974,6 +974,7 @@ console.info('%d ===> %s', num, acmId);
 
 function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
+	console.log("isQueryAnnot: "+isQueryAnnot);
 	let res=annotJSON;
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
 		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
@@ -997,11 +998,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 		var acmId;
 		var incrementalProjectId;
 		var projectUUID;
+		var returnNum=-1;
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
             if(acmId == acmIdPassed){
 				annotData[acmId] = res.responseJSON.annotations;
+				returnNum=i;
 	            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
 	            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
 	                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
@@ -1174,8 +1177,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
-            if(res.responseJSON.annotations[0] && res.responseJSON.annotations[0].encounterDate){
-                imgInfo += ' <b>' + res.responseJSON.annotations[0].encounterDate.substring(0,16) + '</b> ';
+            if(res.responseJSON.annotations[returnNum] && res.responseJSON.annotations[returnNum].encounterDate){
+                imgInfo += ' <b>' + res.responseJSON.annotations[returnNum].encounterDate.substring(0,16) + '</b> ';
             }
             if (mainAsset.filename) {
                 var fn = mainAsset.filename;
@@ -1191,8 +1194,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
-				var socialUnitName = res.responseJSON.annotations[0].socialUnitName;
-
+				var socialUnitName;
+				if(isQueryAnnot){
+					socialUnitName=res.responseJSON.annotations[0].socialUnitName;
+				}
+				else{
+					socialUnitName=res.responseJSON.annotations[returnNum].socialUnitName;
+				}
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 <%
