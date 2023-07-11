@@ -540,7 +540,8 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			 <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></strong></td>
 		  </tr>
 		  <%
-		    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+		    Encounter[] dateSortedEncs = new Encounter[0];
+		    if(visible) dateSortedEncs = occ.getDateSortedEncounters(false);
 		
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {
