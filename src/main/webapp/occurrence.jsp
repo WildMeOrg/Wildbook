@@ -481,7 +481,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-
+<%
+if(visible){
+%>
 <p>
     <%=props.getProperty("latitude")%> /
     <%=props.getProperty("longitude")%> /
@@ -492,6 +494,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
     <%=occ.getBearing()%> m /
     <%=occ.getDistance()%> m
 </p>
+<%
+}
+%>
 
 <%
 if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
