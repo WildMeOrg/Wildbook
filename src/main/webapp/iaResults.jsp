@@ -773,15 +773,25 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		$(task_grabber).data("algorithm", algo_name);
 		
+		//this variable tracks whether IA returned any results so we can exit early if it did not
+		//likely only used for HotSpotter matching
+		var noMatch=false;
+		
+		var maxToEvaluate = RESMAX;
 		var sorted = score_sort(json_result['cm_dict'][qannotId], json_result['query_config_dict']['pipeline_root']);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
 			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
-			return;
+			//return;
+			noMatch=true;
+			maxToEvaluate=0;
 		}
-		var maxToEvaluate = sorted.length;
-		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		else{
+			maxToEvaluate = sorted.length;
+			if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+		}
+		
 
 		
 		//get the match-against acmIds
@@ -824,7 +834,8 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		$(task_grabber).data("algorithm", algo_name);
 		$(task_grabber).addClass(algo_name)
 
-
+        //we exit here if no match was found
+        if(noMatch){return;}
 
 
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
@@ -986,11 +997,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 		var acmId;
 		var incrementalProjectId;
 		var projectUUID;
+		var returnNum=-1;
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
             if(acmId == acmIdPassed){
 				annotData[acmId] = res.responseJSON.annotations;
+				returnNum=i;
 	            console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
 	            if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
 	                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
@@ -1163,8 +1176,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
-            if(res.responseJSON.annotations[0] && res.responseJSON.annotations[0].encounterDate){
-                imgInfo += ' <b>' + res.responseJSON.annotations[0].encounterDate.substring(0,16) + '</b> ';
+            if(res.responseJSON.annotations[returnNum] && res.responseJSON.annotations[returnNum].encounterDate){
+                imgInfo += ' <b>' + res.responseJSON.annotations[returnNum].encounterDate.substring(0,16) + '</b> ';
             }
             if (mainAsset.filename) {
                 var fn = mainAsset.filename;
@@ -1180,8 +1193,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
-				var socialUnitName = res.responseJSON.annotations[0].socialUnitName;
-
+				var socialUnitName;
+				if(isQueryAnnot){
+					socialUnitName=res.responseJSON.annotations[0].socialUnitName;
+				}
+				else{
+					socialUnitName=res.responseJSON.annotations[returnNum].socialUnitName;
+				}
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 <%
@@ -1251,7 +1269,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1307,6 +1325,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
               }
             }
           });
+          $(selector).append('</div>');
 				}
             }
 
