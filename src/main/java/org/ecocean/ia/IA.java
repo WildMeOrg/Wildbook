@@ -174,7 +174,7 @@ public class IA {
             sent[i] = false;
             try {
                 // job is queued here
-                sent[i] = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+                sent[i] = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
             } catch (java.io.IOException iox) {
                 System.out.println("ERROR: IA.intakeMediaAssets() hit exception on taxonomy "+taxy.toString()+", detectArgs = "+detectArgs.toString());
                 System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
