@@ -1298,7 +1298,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     	});
 
 	   		<%
-	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 	   			marker.setVisible(false);
 
@@ -3633,7 +3633,7 @@ else {
        <%}%>
 
     <p>
-    <%if(enc.getDateInMilliseconds()!=null){ %>
+    <%if(enc.getDateInMilliseconds()!=null && visible){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
