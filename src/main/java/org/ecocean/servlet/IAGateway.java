@@ -71,6 +71,7 @@ public class IAGateway extends HttpServlet {
     private static final int IDENTIFICATION_REVIEWS_BEFORE_SEND = 2;
 
     private static Queue IAQueue = null;
+    private static Queue detectionQueue = null;
     private static Queue IACallbackQueue = null;
 
   public void init(ServletConfig config) throws ServletException {
@@ -1258,8 +1259,14 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
     }
 
     public static boolean addToQueue(String context, String content) throws IOException {
-System.out.println("IAGateway.addToQueue() publishing: " + content);
+      System.out.println("IAGateway.addToQueue() publishing: " + content);
         getIAQueue(context).publish(content);
+        return true;
+    }
+    
+    public static boolean addToDetectionQueue(String context, String content) throws IOException {
+      System.out.println("IAGateway.addToDetectionQueue() publishing: " + content);
+        getDetectionQueue(context).publish(content);
         return true;
     }
 
@@ -1267,6 +1274,12 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
         if (IAQueue != null) return IAQueue;
         IAQueue = QueueUtil.getBest(context, "IA");
         return IAQueue;
+    }
+    
+    public static Queue getDetectionQueue(String context) throws IOException {
+      if (detectionQueue != null) return detectionQueue;
+      detectionQueue = QueueUtil.getBest(context, "detection");
+      return detectionQueue;
     }
 
     public static Queue getIACallbackQueue(String context) throws IOException {
@@ -1444,7 +1457,7 @@ System.out.println("qjob => " + qjob);
             qjob.put("__context", context);
             qjob.put("__baseUrl", baseUrl);
             qjob.put("__handleBulkImport", System.currentTimeMillis());
-            boolean ok = addToQueue(context, qjob.toString());
+            boolean ok = addToDetectionQueue(context, qjob.toString());
             if (ok) okCount++;
             mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
         }
