@@ -458,7 +458,7 @@ try{
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
-			if(asset.validateSourceImage()){numAllowedIA++;}
+			if(asset.isValidImageForIA()){numAllowedIA++;}
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
