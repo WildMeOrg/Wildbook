@@ -1323,9 +1323,9 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
-
+                myShepherd.rollbackDBTransaction();
             }
-
+              
             myShepherd.closeDBTransaction();
 
         } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) != null)) {  //ditto about taskId
