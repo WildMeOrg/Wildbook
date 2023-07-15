@@ -439,7 +439,14 @@ try{
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
-			if(asset.validateSourceImage()){numAllowedIA++;}
+			
+			//check if we can get validity off the image before the expensive check of hitting the AssetStore
+			if(asset.isValidImageForIA()!=null){
+				if(asset.isValidImageForIA().booleanValue()){numAllowedIA++;}
+			}
+			else if(asset.validateSourceImage()){numAllowedIA++;myShepherd.updateDBTransaction();}
+			
+			
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
