@@ -12,6 +12,12 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
+String username = request.getRemoteUser();
+String usernameFilter=" && submitterID=='"+username+"' ";
+if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
+	usernameFilter="";
+}
+
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("dataValuesCheck.jsp.jsp");
 
@@ -51,7 +57,7 @@ try {
 	<%
 	
 	List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-	String query="select from org.ecocean.Encounter where catalogNumber != null";
+	String query="select from org.ecocean.Encounter where catalogNumber != null"+usernameFilter;
 	StringBuffer sbSpecies=new StringBuffer();
 	for(String str:species){
 		StringTokenizer tknzr=new StringTokenizer(str," ");
