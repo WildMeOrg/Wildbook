@@ -17,6 +17,12 @@ String usernameFilter=" && submitterID=='"+username+"' ";
 if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
 	usernameFilter="";
 }
+else if(request.getParameter("simulateUser")!=null){
+	if(request.isUserInRole("admin")){
+		username=request.getParameter("simulateUser");
+		usernameFilter=" enc1.submitterID=='"+username+"' && ";
+	}
+}
 
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("dataValuesCheck.jsp.jsp");
