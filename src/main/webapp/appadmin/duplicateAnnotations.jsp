@@ -142,13 +142,21 @@ function drawFeature(id) {
 
 ArrayList<String> acmIds=new ArrayList<String>();
 
+String username = request.getRemoteUser();
+String usernameFilter=" enc1.submitterID=='"+username+"' && ";
+if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
+	usernameFilter="";
+}
+
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("sharedAnnotations.jsp");
 myShepherd.beginDBTransaction();
 try{
 	String context = ServletUtilities.getContext(request);
-
-    Query q = myShepherd.getPM().newQuery("select distinct acmId from org.ecocean.Annotation where acmId != null && enc1.annotations.contains(annot2) && enc2.annotations.contains(this) && enc1.catalogNumber != enc2.catalogNumber && id!= annot2.id && acmId==annot2.acmId VARIABLES org.ecocean.Encounter enc1; org.ecocean.Encounter enc2; org.ecocean.Annotation annot2");
+	String filter2="select distinct acmId from org.ecocean.Annotation where acmId != null && "+usernameFilter+" enc1.annotations.contains(annot2) && enc2.annotations.contains(this) && enc1.catalogNumber != enc2.catalogNumber && id!= annot2.id && acmId==annot2.acmId VARIABLES org.ecocean.Encounter enc1; org.ecocean.Encounter enc2; org.ecocean.Annotation annot2";
+    System.out.println("JDOQL filter: "+filter2);
+	Query q = myShepherd.getPM().newQuery(filter2);
+    
     Collection c = (Collection)q.execute();
     ArrayList<String> results=new ArrayList<String>(c);
     q.closeAll();
