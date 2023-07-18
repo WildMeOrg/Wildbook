@@ -80,6 +80,14 @@ public class IAGateway extends HttpServlet {
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      //"v2" is new IA package stuff -- so we just pass-thru and exit
+      String qstr = request.getQueryString();
+      //this seems to feed iaResults.jsp and is an unexpected dependency and extra URL call that shouldn't be needed
+      if ((qstr != null) && (qstr.matches(".*\\bv2\\b.*"))) {
+        response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+        IA.handleGet(request, response);
+        return;
+      }
       doPost(request, response);
     }
 
