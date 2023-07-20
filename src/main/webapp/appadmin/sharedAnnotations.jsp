@@ -156,7 +156,7 @@ if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
 else if(request.getParameter("simulateUser")!=null){
 	if(request.isUserInRole("admin")){
 		username=request.getParameter("simulateUser");
-		usernameFilter=" enc1.submitterID=='"+username+"' && ";
+		usernameFilter=" && enc.submitterID=='"+username+"'";
 	}
 }
 
