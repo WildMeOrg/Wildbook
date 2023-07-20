@@ -641,6 +641,7 @@ System.out.println("+ starting ident task " + annTaskId);
             return;
         }
 
+        boolean requeue = false;
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
             JSONObject res = new JSONObject("{\"success\": false}");
             res.put("taskId", jobj.getString("taskId"));
@@ -656,6 +657,7 @@ System.out.println("+ starting ident task " + annTaskId);
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
                 myShepherd.rollbackDBTransaction();
+                requeue = true;
             }
               
             myShepherd.closeDBTransaction();
@@ -680,12 +682,40 @@ System.out.println("--- BEFORE _doIdentify() ---");
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
                 myShepherd.rollbackDBTransaction();
+                requeue = true;
             }
             myShepherd.closeDBTransaction();
 
         } else {
             System.out.println("WARNING: IAGateway.processQueueMessage() unable to use json data in '" + message + "'; ignoring");
         }
+        if (requeue) requeueJob(jobj);
+    }
+
+    public static boolean requeueJob(JSONObject jobj) {
+        int MAX_RETRIES = 10;
+        String context = jobj.optString("__context", "context0");
+        String taskId = jobj.optString("taskId", "UNKNOWN_TASKID");
+        int retries = jobj.optInt("__queueRetries", 0);
+        if (retries < 0) retries = 0;
+        if (retries > MAX_RETRIES) {
+            System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " + MAX_RETRIES + " in queue; giving up");
+            return false;
+        }
+        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES);
+        retries++;
+        jobj.put("__queueRetries", retries);
+        boolean ok = false;
+        try {
+            if (jobj.optJSONObject("detect") != null) {
+                ok = addToDetectionQueue(context, jobj.toString());
+            } else {
+                ok = addToQueue(context, jobj.toString());
+            }
+        } catch (IOException ex) {
+            System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
+        }
+        return ok;
     }
 
     public static void processCallbackQueueMessage(String message) {
