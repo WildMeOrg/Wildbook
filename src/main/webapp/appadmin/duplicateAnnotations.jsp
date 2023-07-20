@@ -143,14 +143,14 @@ function drawFeature(id) {
 ArrayList<String> acmIds=new ArrayList<String>();
 
 String username = request.getRemoteUser();
-String usernameFilter=" enc1.submitterID=='"+username+"' && ";
+String usernameFilter=" enc1.submitterID == '"+username+"' && ";
 if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
 	usernameFilter="";
 }
 else if(request.getParameter("simulateUser")!=null){
 	if(request.isUserInRole("admin")){
 		username=request.getParameter("simulateUser");
-		usernameFilter=" enc1.submitterID=='"+username+"' && ";
+		usernameFilter=" enc1.submitterID == '"+username+"' && ";
 	}
 }
 
@@ -212,9 +212,19 @@ try{
 			        
 			        list+="<td><ul>";
 			        for(Encounter enc:results2){
-			        	String indy="";
+			        	String indy="none";
 			        	if(enc.getIndividual()!=null)indy=" ("+enc.getIndividual().getDisplayName()+")";
-			        	list+="<li><a target=\"_blank\" href=\"../encounters/encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+indy+"</a></li>";
+			        	String date="unknown";
+			        	if(enc.getDate()!=null)date=enc.getDate();
+			        	String locationID="";
+			        	if(enc.getLocationCode()!=null)locationID=enc.getLocationCode();
+			        	String submitterID="";
+			        	if(enc.getSubmitterID()!=null){
+			        		submitterID=enc.getSubmitterID();
+			        		if(myShepherd.getUser(submitterID)!=null && myShepherd.getUser(submitterID).getFullName()!=null)submitterID=myShepherd.getUser(submitterID).getFullName();
+			        	}
+			        	
+			        	list+="<li><a target=\"_blank\" href=\"../encounters/encounter.jsp?number="+enc.getCatalogNumber()+"\">name: "+indy+" | date: "+date+" | locationID: "+locationID+" | user: "+submitterID+" </a></li>";
 			        }
 			        list+="</ul></td>";
 			
