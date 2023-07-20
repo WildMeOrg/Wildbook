@@ -147,6 +147,19 @@ function drawFeature(id) {
 	<th>Merge Individuals?</th>
 </tr>
 <%
+
+String username = request.getRemoteUser();
+String usernameFilter=" && enc.submitterID=='"+username+"' ";
+if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
+	usernameFilter="";
+}
+else if(request.getParameter("simulateUser")!=null){
+	if(request.isUserInRole("admin")){
+		username=request.getParameter("simulateUser");
+		usernameFilter=" && enc.submitterID=='"+username+"'";
+	}
+}
+
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("sharedAnnotations.jsp");
 myShepherd.beginDBTransaction();
