@@ -165,7 +165,13 @@ public class IAGateway extends HttpServlet {
             myShepherd.commitDBTransaction();  //hack
             //myShepherd.closeDBTransaction();
 
-            boolean ok = addToDetectionQueue(context, j.toString());
+            boolean ok = false;
+            if (j.optJSONArray("annotationIds") != null) {
+                ok = addToQueue(context, j.toString());
+            } else {
+                ok = addToDetectionQueue(context, j.toString());
+            }
+
             if (ok) {
                 System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
                 res.remove("error");
