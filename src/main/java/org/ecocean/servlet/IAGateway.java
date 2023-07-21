@@ -642,6 +642,7 @@ System.out.println("+ starting ident task " + annTaskId);
         }
 
         boolean requeue = false;
+        boolean requeueIncrement = false;
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
             JSONObject res = new JSONObject("{\"success\": false}");
             res.put("taskId", jobj.getString("taskId"));
@@ -656,6 +657,8 @@ System.out.println("+ starting ident task " + annTaskId);
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
+                // now for certain returns, we want to increment our retry-ticker (this is TODO research in progress!)
+                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = true;
                 myShepherd.rollbackDBTransaction();
                 requeue = true;
             }
@@ -689,22 +692,29 @@ System.out.println("--- BEFORE _doIdentify() ---");
         } else {
             System.out.println("WARNING: IAGateway.processQueueMessage() unable to use json data in '" + message + "'; ignoring");
         }
-        if (requeue) requeueJob(jobj);
+        if (requeue) requeueJob(jobj, requeueIncrement);
     }
 
-    public static boolean requeueJob(JSONObject jobj) {
+    public static boolean requeueJob(JSONObject jobj, boolean increment) {
         int MAX_RETRIES = 10;
+        long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
         String taskId = jobj.optString("taskId", "UNKNOWN_TASKID");
+        long queueStart = jobj.optLong("__queueStart", System.currentTimeMillis());
+        int actualRetries = jobj.optInt("__queueActualRetries", 0);
         int retries = jobj.optInt("__queueRetries", 0);
         if (retries < 0) retries = 0;
+        if ((System.currentTimeMillis() - queueStart) > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1;  // waiting around too long
         if (retries > MAX_RETRIES) {
-            System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " + MAX_RETRIES + " in queue; giving up");
+            System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " + MAX_RETRIES + " retries (or max time) in queue; giving up");
             return false;
         }
-        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES);
-        retries++;
+        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" + queueStart + "; increment=" + increment + ")");
+        if (increment) retries++;
+        actualRetries++;
+        jobj.put("__queueStart", queueStart);
         jobj.put("__queueRetries", retries);
+        jobj.put("__queueActualRetries", actualRetries);
         boolean ok = false;
         try {
             if (jobj.optJSONObject("detect") != null) {
