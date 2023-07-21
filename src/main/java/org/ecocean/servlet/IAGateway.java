@@ -684,6 +684,7 @@ System.out.println("--- BEFORE _doIdentify() ---");
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
+                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = true;
                 myShepherd.rollbackDBTransaction();
                 requeue = true;
             }
