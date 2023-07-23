@@ -108,9 +108,7 @@ public class IAGateway extends HttpServlet {
 
 
     String context = ServletUtilities.getContext(request);  //note! this *must* be run after postStream stuff above
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("IAGateway9");
-    myShepherd.beginDBTransaction();
+
 
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
@@ -131,6 +129,9 @@ public class IAGateway extends HttpServlet {
         e.printStackTrace();
     }
 
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IAGateway9");
+    myShepherd.beginDBTransaction();
     try {
         //v2 "forces" queueing -- onward to the glorious future!
         //sendtoIAscripts for bulk command line detection use this v2 option
@@ -162,7 +163,7 @@ public class IAGateway extends HttpServlet {
             }
             task.setParameters(tparams);
             myShepherd.storeNewTask(task);
-            myShepherd.commitDBTransaction();  //hack
+            myShepherd.updateDBTransaction();  //hack
             //myShepherd.closeDBTransaction();
 
             boolean ok = false;
@@ -205,17 +206,23 @@ public class IAGateway extends HttpServlet {
             res.put("success", false);
         }
 
-    } catch (Exception ex) {
+    } 
+    catch (Exception ex) {
+        System.out.println("Hit an exception in IAGateway:IAGateway9.");
+        ex.printStackTrace();
         res.put("error", "exception in handling IAGateway input: " + ex.toString());
         res.put("success", false);
+    }
+    finally {
+      myShepherd.commitDBTransaction();
+      myShepherd.closeDBTransaction();
     }
 
     res.put("_in", j);
 
     out.println(res.toString());
     out.close();
-    myShepherd.commitDBTransaction();
-    myShepherd.closeDBTransaction();
+    
   }
 
 
