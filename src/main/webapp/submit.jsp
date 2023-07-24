@@ -4,6 +4,7 @@
                  org.ecocean.*,
                  java.util.Properties,
                  java.util.List,java.util.ArrayList,
+                 java.util.Arrays,
                  java.util.Locale" %>
 
 
@@ -870,9 +871,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           <%
             List<String> countries = (useCustomProperties)
             ? CommonConfiguration.getIndexedPropertyValues("country", request)
-            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+            : new ArrayList<String>(Arrays.asList(Locale.getISOCountries()));
+            	//String[] locales = Locale.getISOCountries(); //passing context doesn't check for custom props
             for (String country: countries) {
-              %><option value="<%=country%>"><%=country%></option><%
+            	Locale obj = new Locale("", country);
+              %><option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option><%
             }%>
         </select>
       </div>
