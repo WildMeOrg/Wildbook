@@ -85,6 +85,7 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
         List<List<MediaAsset>> assetsBySpecies = binAssetsBySpecies(mas, myShepherd);
         int numSpecies = assetsBySpecies.size();
+        //System.out.println("IA.java.numSpecies="+numSpecies);
         // in one-species case we don't need to create an extra layer of tasks
         if (numSpecies == 1) return intakeMediaAssetsOneSpecies(myShepherd, assetsBySpecies.get(0), parentTask);
         // in multi-species case we make sure we have a parent task and add each species task as a child
@@ -97,11 +98,15 @@ public class IA {
     }
 
     public static List<List<MediaAsset>> binAssetsBySpecies(List<MediaAsset> mas, Shepherd myShepherd) {
-        Map<Taxonomy, List<MediaAsset>> assetsBySpecies = new HashMap<Taxonomy, List<MediaAsset>>();
+        Map<String, List<MediaAsset>> assetsBySpecies = new HashMap<String, List<MediaAsset>>();
         for (MediaAsset ma: mas) {
             Taxonomy taxy = ma.getTaxonomy(myShepherd);
-            if (!assetsBySpecies.containsKey(taxy)) assetsBySpecies.put(taxy, new ArrayList<MediaAsset>());
-            assetsBySpecies.get(taxy).add(ma);
+            String scientificName="null";
+            if(taxy!=null && taxy.getScientificName()!=null)scientificName=taxy.getScientificName();
+            //System.out.println("     MA ID "+ma.getId()+" has taxy "+scientificName);
+            if (!assetsBySpecies.containsKey(scientificName)) assetsBySpecies.put(scientificName, new ArrayList<MediaAsset>());
+            assetsBySpecies.get(scientificName).add(ma);
+            //System.out.println("       Taxy size: "+assetsBySpecies.get(scientificName).size());
         }
         return new ArrayList<List<MediaAsset>>(assetsBySpecies.values());
     }
