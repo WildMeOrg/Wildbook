@@ -51,8 +51,11 @@ public class RabbitMQQueue extends Queue {
     }
 
     public static synchronized void init(String context) throws java.io.IOException {
-        if (factory != null) return;
         try {
+            if (factory != null) {
+              checkConnection();
+              return;
+            }
             factory = new ConnectionFactory();
             factory.setUsername(getUsername(context, "guest"));
             factory.setPassword(getPassword(context, "guest"));
