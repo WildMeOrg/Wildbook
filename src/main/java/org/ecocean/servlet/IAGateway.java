@@ -258,14 +258,18 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
                     mas.add(ma);
                 }
             }
-        } else if (j.optJSONArray("mediaAssetSetIds") != null) {
+        } 
+        /*
+        else if (j.optJSONArray("mediaAssetSetIds") != null) {
             JSONArray ids = j.getJSONArray("mediaAssetSetIds");
             for (int i = 0 ; i < ids.length() ; i++) {
                 MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
                 if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0))
                     mas.addAll(set.getMediaAssets());
             }
-        } else {
+        } 
+        */
+        else {
             res.put("success", false);
             res.put("error", "unknown detect value");
         }
