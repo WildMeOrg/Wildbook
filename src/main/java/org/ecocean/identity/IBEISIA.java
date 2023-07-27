@@ -265,7 +265,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 
     //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONObject userConfidence, String baseUrl, String context, String taskId)
+                                          JSONObject userConfidence, String baseUrl, String context, String taskId, boolean fastlane)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
@@ -281,6 +281,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
+        if(fastlane)map.put("lane", "fast");
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
@@ -1078,11 +1079,12 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 */
 
     // If you realllllly want to send species I'll just swallow it.
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, Task task, String baseUrl) {
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, Task task, String baseUrl, boolean fastlane) {
         System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters.");
-        return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, task, baseUrl);
+        return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, task, baseUrl, fastlane);
      }
 
+    /*
     //actually ties the whole thing together and starts a job with all the pieces needed
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotationsOriginal(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
@@ -1167,7 +1169,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID,fastlane);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");
@@ -1213,12 +1215,12 @@ System.out.println("beginIdentifyAnnotations() unsuccessful on sendIdentify(): "
 
         return results;
     }
-
+*/
 
 //trying to optimize the original beginIdentifyAnnotations()  [above]
 
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                                      JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl) {
+                                                      JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl, boolean fastlane) {
 
 long tt = System.currentTimeMillis();
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
@@ -1307,7 +1309,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID,fastlane);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");
@@ -1973,7 +1975,7 @@ System.out.println("     ---> " + annIds);
                 }
             }
             if (needIdentifying.size() > 0) {
-                Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask);
+                Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask,false);
                 // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
                 // and return null if nobody was valid.
                 if (task!=null) {

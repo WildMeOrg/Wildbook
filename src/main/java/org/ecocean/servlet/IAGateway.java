@@ -168,7 +168,15 @@ public class IAGateway extends HttpServlet {
 
             boolean ok = false;
             if (j.optJSONArray("annotationIds") != null) {
+              
+              //if this is just a single Encounter call, put it in the fast/detection lane to unblock small batch users
+              if(j.optBoolean("fastlane", false)) {
+                ok = addToDetectionQueue(context, j.toString());
+              }
+              else{
                 ok = addToQueue(context, j.toString());
+              }
+            
             } else {
                 ok = addToDetectionQueue(context, j.toString());
             }
@@ -188,7 +196,9 @@ public class IAGateway extends HttpServlet {
 
         } 
         else if (j.optJSONObject("identify") != null) {
-            res = _doIdentify(j, res, myShepherd, context, baseUrl);
+            boolean fastlane=false;
+            if(j.optBoolean("fastlane", false)) {fastlane=true;}
+            res = _doIdentify(j, res, myShepherd, context, baseUrl, fastlane);
 
         } 
         //bulk detection from import.jsp uses this area
@@ -321,7 +331,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
 
 
     //TODO not sure why we pass 'res' in but also it is the return value... potentially should be fixed; likely when we create IA package
-    public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
+    public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl,boolean fastlane) throws ServletException, IOException {
         if (res == null) throw new RuntimeException("IAGateway._doIdentify() called without res passed in");
         String taskId = res.optString("taskId", null);
         if (taskId == null) throw new RuntimeException("IAGateway._doIdentify() has no taskId passed in");
@@ -409,7 +419,7 @@ System.out.println("anns -> " + anns);
         for (int i = 0 ; i < anns.size() ; i++) {
             Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i),myShepherd);
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i),myShepherd,fastlane);
             taskList.put(taskRes);
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
@@ -420,7 +430,7 @@ System.out.println("anns -> " + anns);
 
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
-                                               JSONObject userConfidence, int limitTargetSize, Task task, Shepherd myShepherd) throws IOException {
+                                               JSONObject userConfidence, int limitTargetSize, Task task, Shepherd myShepherd, boolean fastlane) throws IOException {
 
         //String iaClass = ann.getIAClass();
         boolean success = true;
@@ -464,7 +474,7 @@ System.out.println("+ starting ident task " + annTaskId);
             qanns.add(ann);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
-                                                               myShepherd, task, baseUrl);
+                                                               myShepherd, task, baseUrl,fastlane);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -669,9 +679,14 @@ System.out.println("+ starting ident task " + annTaskId);
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
                 // now for certain returns, we want to increment our retry-ticker (this is TODO research in progress!)
-                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = true;
+                if (ex.toString().contains("HTTP error code : 500")) {requeueIncrement = true;requeue = true;}
+                //error - don't requeue
+                else if (ex.toString().contains("HTTP error code : 502")) {requeueIncrement = true;requeue = true;}
+                //error - don't requeue
+                else if (ex.toString().contains("HTTP error code : 608")) {requeue = false;}
+                else{requeueIncrement = true;requeue = true;}
                 myShepherd.rollbackDBTransaction();
-                requeue = true;
+                
             }
               
             myShepherd.closeDBTransaction();
@@ -681,8 +696,14 @@ System.out.println("identify TOP!");
             JSONObject res = new JSONObject("{\"success\": false}");
             res.put("taskId", jobj.getString("taskId"));
             String context = jobj.optString("__context", "context0");
+            boolean fastlane=false;
+            if(jobj.optBoolean("fastlane", false)) {
+              fastlane=true;
+            }
+            
 System.out.println(" > context = " + context);
 System.out.println(" > taskId = " + jobj.getString("taskId"));
+System.out.println(" > fastlane = " + jobj.optBoolean("fastlane",false));
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("IAGateway.processQueueMessage.identify");
             myShepherd.beginDBTransaction();
@@ -690,7 +711,7 @@ System.out.println(" > taskId = " + jobj.getString("taskId"));
 System.out.println("--- BEFORE _doIdentify() ---");
             try {
                 // here jobj contains queryconfigdict somehow
-                JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl);
+                JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl,fastlane);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
