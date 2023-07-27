@@ -230,9 +230,9 @@ public class IA {
     //similar behavior to above: basically fake /ia api call, but via queue
     //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
-        return intakeAnnotations(myShepherd, anns, null);
+        return intakeAnnotations(myShepherd, anns, null, false);
     }
-    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask, boolean fastlane) {
     //     List<List<Annotation>> annses = binAnnotsByIaClass(anns);
     //     // slightly complicated bc we need to create child tasks only if there are multiple iaClasses
     //     if (annses.size() == 1) return intakeAnnotationsOneIAClass(myShepherd, annses.get(0), parentTask);
@@ -327,6 +327,8 @@ public class IA {
                     tasks.add(t);
                 }
             }
+            newTaskParams.put("fastlane", fastlane);
+            if(fastlane)newTaskParams.put("lane", "fast");
             myShepherd.storeNewTask(topTask);
 
             //these are re-used in every task
@@ -347,7 +349,15 @@ public class IA {
                 if (opts.get(i) != null) qjob.put("opt", opts.get(i));
                 boolean sent = false;
                 try {
+                  if(fastlane) {
+                    //if fastlane and a smaller, bespoke request, get this into the faster queue
+                    qjob.put("fastlane", fastlane);
+                    qjob.put("lane", "fast");
+                    sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+                  }
+                  else {
                     sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+                  }
                 } catch (java.io.IOException iox) {
                     System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
                 }
@@ -380,6 +390,11 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
         String context = jin.optString("__context", null);
         if (context == null) throw new RuntimeException("IA.handleRest(): passed data has no __context");
         Shepherd myShepherd = new Shepherd(context);
+        
+        //check if these should be directed through the fastlane
+        boolean fastlane=false;
+        if(jin.optBoolean("fastlane", false)) {fastlane=true;}
+        
         myShepherd.setAction("IA.handleRest");
         myShepherd.beginDBTransaction();
         try {
@@ -434,7 +449,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                   }
               }
 
-              Task atask = intakeAnnotations(myShepherd, anns, topTask);
+              Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
               System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
               topTask.addChild(atask);
               myShepherd.getPM().refresh(topTask);
