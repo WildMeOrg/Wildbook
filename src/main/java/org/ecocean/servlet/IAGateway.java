@@ -624,19 +624,19 @@ System.out.println("+ starting ident task " + annTaskId);
     }
 
     public static Queue getIAQueue(String context) throws IOException {
-        if (IAQueue != null) return IAQueue;
+        //if (IAQueue != null) return IAQueue;
         IAQueue = QueueUtil.getBest(context, "IA");
         return IAQueue;
     }
     
     public static Queue getDetectionQueue(String context) throws IOException {
-      if (detectionQueue != null) return detectionQueue;
+      //if (detectionQueue != null) return detectionQueue;
       detectionQueue = QueueUtil.getBest(context, "detection");
       return detectionQueue;
     }
 
     public static Queue getIACallbackQueue(String context) throws IOException {
-        if (IACallbackQueue != null) return IACallbackQueue;
+        //if (IACallbackQueue != null) return IACallbackQueue;
         IACallbackQueue = QueueUtil.getBest(context, "IACallback");
         return IACallbackQueue;
     }
@@ -714,7 +714,14 @@ System.out.println("--- BEFORE _doIdentify() ---");
                 JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl,fastlane);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
-            } catch (Exception ex) {
+            }
+            catch (javax.jdo.JDOObjectNotFoundException ex) {
+              System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
+              if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = false;
+              myShepherd.rollbackDBTransaction();
+              requeue = false;
+            }
+            catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
                 if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = true;
                 myShepherd.rollbackDBTransaction();
@@ -767,7 +774,7 @@ System.out.println("--- BEFORE _doIdentify() ---");
             System.out.println("ERROR: processCallbackQueueMessage() failed to parse JSON from " + message);
             return;
         }
-        //System.out.println("NOT YET IMPLEMENTED!  processCallbackQueueMessage got: " + message);
+        System.out.println("processCallbackQueueMessage got: " + message);
         IBEISIA.callbackFromQueue(jmsg);
     }
 

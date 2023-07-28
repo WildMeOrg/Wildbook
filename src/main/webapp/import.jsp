@@ -178,14 +178,14 @@ try{
 		int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
 		int wbiaDetectionQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 		if(wbiaIDQueueSize==0 && wbiaDetectionQueueSize == 0){
-			queueStatement = "The machine learning queue is empty and ready for work.";
+			queueStatement = "The bulk import machine learning queue is empty and ready for work.";
 		}
 		else if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
 	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the bulk import machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -425,7 +425,7 @@ try{
                 });
                 Collections.reverse(tasks); 		
 	        	
-	        	System.out.println("Num tasks: "+tasks.size());
+	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
 	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
