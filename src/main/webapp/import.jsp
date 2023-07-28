@@ -16,7 +16,7 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
-
+org.ecocean.identity.IBEISIA,
 org.ecocean.metrics.*,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
@@ -154,6 +154,8 @@ myShepherd.beginDBTransaction();
 boolean allowIA=false;
 boolean allowReID=false;
 String iaStatusString="not started";
+boolean shouldRefresh=false;
+String refreshSeconds="60";
 
 try{
 	
@@ -176,14 +178,14 @@ try{
 		int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
 		int wbiaDetectionQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 		if(wbiaIDQueueSize==0 && wbiaDetectionQueueSize == 0){
-			queueStatement = "The machine learning queue is empty and ready for work.";
+			queueStatement = "The bulk import machine learning queue is empty and ready for work.";
 		}
 		else if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
 	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the bulk import machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -281,6 +283,10 @@ try{
 	    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
 	    if (Util.collectionSize(itask.getEncounters()) > 0) {
 	    	for (Encounter enc : itask.getEncounters()) {
+	    		
+	    		
+	    	//setup self-heal missing acmIDs
+	    	ArrayList<MediaAsset> fixACMIDAssets=new ArrayList<MediaAsset>();
 	       
 	    	JSONArray jarr=new JSONArray();
 	    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
@@ -330,9 +336,22 @@ try{
 	                    allAssets.add(ma);
 	                    jarr.put(ma.getId());
 	                    if (ma.getDetectionStatus() != null) numIA++;
+	                    
+	                    //check acmID and build self-heal list if its missing due to an unexpected WBIA outtage
+	                    if("complete".equals(itask.getStatus()) && ma.getAcmId()==null){
+	                    	if(!fixACMIDAssets.contains(ma))fixACMIDAssets.add(ma);
+	                    }
+	                    
 	                }
 	                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
 	            }
+	            
+	            //self-heal missing acmIDs if needed
+                if(fixACMIDAssets.size()>0 && "complete".equals(itask.getStatus())){
+                	System.out.println("Self-healing acmIDs in import task: "+itask.getId());
+                	refreshSeconds="300";  //give more time for these asynch registrations to occur
+                	IBEISIA.sendMediaAssetsNew(fixACMIDAssets, context);
+                }
 	        }
 	        
 	        //let's do some annotation tabulation
@@ -406,7 +425,7 @@ try{
                 });
                 Collections.reverse(tasks); 		
 	        	
-	        	System.out.println("Num tasks: "+tasks.size());
+	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
 	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
@@ -439,7 +458,14 @@ try{
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
-			if(asset.validateSourceImage()){numAllowedIA++;}
+			
+			//check if we can get validity off the image before the expensive check of hitting the AssetStore
+			if(asset.isValidImageForIA()!=null){
+				if(asset.isValidImageForIA().booleanValue()){numAllowedIA++;}
+			}
+			else if(asset.validateSourceImage()){numAllowedIA++;myShepherd.updateDBTransaction();}
+			
+			
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
@@ -479,7 +505,7 @@ try{
 	
 	if("complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
 
-	boolean shouldRefresh=false;
+	
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
 	
@@ -539,7 +565,7 @@ try{
 		    	document.getElementById('countdown').innerHTML = remaining;
 		    	setTimeout(function(){ countdown(remaining - 1); }, 1000);
 	
-			})(60);	
+			})(<%=refreshSeconds  %>);	
 	 	</script>
 	    
 	    <%

@@ -6739,7 +6739,8 @@ function iaMatchFilterGo() {
             matchingSetFilter: {},
             matchingAlgorithms: []
         },
-        annotationIds: iaMatchFilterAnnotationIds
+        annotationIds: iaMatchFilterAnnotationIds,
+        fastlane: true
     };
     var keyMap = {
         'match-filter-location-id': 'locationIds',
@@ -6847,16 +6848,16 @@ $(window).on('load',function() {
 <%
 
 	String queueStatementID="";
-	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 	if(wbiaIDQueueSize==0){
 		queueStatementID = "The machine learning queue is empty and ready for work.";
 	}
-	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_detection")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the small batch queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}
