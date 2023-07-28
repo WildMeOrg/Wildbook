@@ -401,6 +401,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
           String taskId = jin.optString("taskId", Util.generateUUID());
           Task topTask = Task.load(taskId, myShepherd);
           if (topTask == null) topTask = new Task(taskId);
+          if(fastlane)topTask.addParameter("fastlane", true);
           myShepherd.storeNewTask(topTask);
           JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
 
