@@ -68,7 +68,7 @@ public class AcmIdBot {
               }
             }
             catch(Exception ec) {
-              System.out.println("Exception in ");
+              System.out.println("Exception in AcmIdBot.fixFeats");
               ec.printStackTrace();
             }
 
