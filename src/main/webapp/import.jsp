@@ -350,7 +350,7 @@ try{
                 if(fixACMIDAssets.size()>0 && "complete".equals(itask.getStatus())){
                 	System.out.println("Self-healing acmIDs in import task: "+itask.getId());
                 	refreshSeconds="300";  //give more time for these asynch registrations to occur
-                	IBEISIA.sendMediaAssetsNew(fixACMIDAssets, context);
+                	//IBEISIA.sendMediaAssetsNew(fixACMIDAssets, context);
                 }
 	        }
 	        
