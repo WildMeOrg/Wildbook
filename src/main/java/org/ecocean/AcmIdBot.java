@@ -28,19 +28,28 @@ public class AcmIdBot {
    
     static String context="context0";
 
-    private static void fixFeats(List<Feature> feats, Shepherd myShepherd) {
+    private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage) {
       if(feats!=null && feats.size()>0) {
+        int numRecommended = feats.size();
+        int numValidIAFixes=0;
+        int numAcmIdFixesSent=0;
+        int numAcmIdFixesSuccessful=0;
+        int numInvalidForIA=0;
         for(Feature feat:feats){
           MediaAsset asset = feat.getMediaAsset();
           try {  
               if(asset!=null && asset.isValidImageForIA()==null) {
                 asset.validateSourceImage();
                 myShepherd.updateDBTransaction();
+                numValidIAFixes++;
+                if(!asset.isValidImageForIA())numInvalidForIA++;
               }
               if(asset!=null && asset.isValidImageForIA()) {
                 ArrayList<MediaAsset> fixMe=new ArrayList<MediaAsset>();
                 fixMe.add(asset);
                 IBEISIA.sendMediaAssetsNew(fixMe, context);
+                numAcmIdFixesSent++;
+                if(asset.getAcmId()!=null)numAcmIdFixesSuccessful++;
               }
             }
             catch(Exception ec) {
@@ -49,7 +58,14 @@ public class AcmIdBot {
             }
 
         }
+        System.out.println(summaryMessage);
+        System.out.println("...candidate fixes: "+numRecommended);
+        System.out.println("......num valid for IA checks performed: "+numValidIAFixes);
+        System.out.println(".........num ultimately invalid for IA: "+numInvalidForIA);
+        System.out.println("......num media assets sent for ACM ID fixing: "+numAcmIdFixesSent);
+        System.out.println("......num media assets successfully updated with Acm ID: "+numAcmIdFixesSuccessful);
       }
+
     }
   
 
@@ -62,13 +78,13 @@ public class AcmIdBot {
 
     //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { //throws IOException {
-        long interval = 15; //number minutes between metrics refreshes of data in the CSV
+        long interval = 15; //number minutes between runs
         long initialDelay = 1; //number minutes before first execution occurs
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
             
-            //DO METRICS WORK HERE
+            //DO WORK HERE
             public void run() {
                 if (new java.io.File("/tmp/WB_AcmIdBot_SHUTDOWN").exists()) {
                     System.out.println("INFO: AcmIdBot.startCollection(" + context + ") shutting down due to file signal");
@@ -116,28 +132,28 @@ public class AcmIdBot {
         System.out.println("Looking for complete import tasks with media assets with missing acmIds");
 
         
-        String filter2="select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null && asset.validImageForIA != false VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
+        String filter2="select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
         Query query2 = myShepherd.getPM().newQuery(filter2);
         Collection c2 = (Collection) (query2.execute());
         List<Feature> feats = new ArrayList<Feature>(c2);
         query2.closeAll();
         
-        fixFeats(feats,myShepherd);
+        fixFeats(feats,myShepherd,"ACM ID ImportTask fixing summary");
 
         
         
         //check recent Encounter submissions in last 24 hours for missing acmIds
         long currentTimeInMillis = System.currentTimeMillis();
-        long twenyFourHoursAgo = currentTimeInMillis-1000*60*60*24;
+        long twenyFourHoursAgo = currentTimeInMillis-(1000*60*60*24);
         System.out.println("Looking for recent Encounters (24 hours) with media assets with missing acmIds");
         //dwcDateAddedLong >=
-        String filter3="select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= "+twenyFourHoursAgo+" && !itask.encounters.contains(enc45) && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot;org.ecocean.servlet.importer.ImportTask itask";
+        String filter3="select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= "+twenyFourHoursAgo+" && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
         Query query3 = myShepherd.getPM().newQuery(filter3);
         Collection c3 = (Collection) (query3.execute());
         List<Feature> feats2 = new ArrayList<Feature>(c3);
         query3.closeAll();
         
-        fixFeats(feats2,myShepherd);
+        fixFeats(feats2,myShepherd,"Recent Encounter ACM ID Fixing Summary");
         
      }
      catch(Exception f) {
