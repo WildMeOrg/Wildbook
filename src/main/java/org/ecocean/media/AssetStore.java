@@ -754,6 +754,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
                     return false;
                 } else {
                     //no need to announce this in the logs
+
                     //System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
                     return true;
                 }
