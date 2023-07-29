@@ -1,54 +1,30 @@
-/*
-    aka "Tweet-a-Whale" .. implements listening for and processing tweets
-*/
 package org.ecocean;
 
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
-import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
-import java.net.URI;
-import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.concurrent.ScheduledFuture;
-import java.text.Normalizer;
-import io.prometheus.client.CollectorRegistry;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.ecocean.ia.IA;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.metrics.Prometheus;
-import org.ecocean.servlet.importer.ImportTask;
-import org.json.JSONObject;
 
+/*
+ * Wildbook requires shared UUIDs (a.k.a. acmID) between MediaAsset objects in the Wildbook database and images in WBIA.
+ * AcmIDs are a prerequisite for detection and therefore can be a blocker in the IA pipeline if for any reason
+ * WBIA times out or is otherwise unavailable to provide an acmId to Wildbook when new data is submitted.
+ * This bot provides some automated backend healing to get images registered if for any reason acmId registration fails.
+ * It first checks bulk ImportTasks for appropriate images that may be missing an acmId, and then it checks
+ * Encounters submitted within the past 24 hours.
+ * 
+ */
 public class AcmIdBot {
-    private static long collectorStartTime = 0l;
+
    
     static String context="context0";
 
@@ -86,18 +62,14 @@ public class AcmIdBot {
 
     //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { //throws IOException {
-        collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
         long interval = 15; //number minutes between metrics refreshes of data in the CSV
         long initialDelay = 1; //number minutes before first execution occurs
         System.out.println("+ AcmIdBot.startCollector(" + context + ") starting.");
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-            int count = 0;
-            
             
             //DO METRICS WORK HERE
             public void run() {
-                ++count;
                 if (new java.io.File("/tmp/WB_AcmIdBot_SHUTDOWN").exists()) {
                     System.out.println("INFO: AcmIdBot.startCollection(" + context + ") shutting down due to file signal");
                     schedExec.shutdown();
@@ -133,10 +105,7 @@ public class AcmIdBot {
 
     
     public static void fixAcmIds(String context) {
-      
-      //clear old metrics
-      CollectorRegistry.defaultRegistry.clear();
-      
+
       Shepherd myShepherd=new Shepherd(context);
       myShepherd.setAction("AcmIdBot.java");
       myShepherd.beginDBTransaction();
