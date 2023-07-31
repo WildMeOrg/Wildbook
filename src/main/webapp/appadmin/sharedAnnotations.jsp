@@ -184,7 +184,7 @@ try{
 
         if(!acmIds.contains(acmId)){
         	acmIds.add(acmId);
-	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
+	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' "+usernameFilter+" VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
 	        Query q2 = myShepherd.getPM().newQuery(filter);
 	        List results2 = (List)q2.execute();
 	        
