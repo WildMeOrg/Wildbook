@@ -28,7 +28,7 @@ public class AcmIdBot {
    
     static String context="context0";
 
-    private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage) {
+    private static void fixFeats(List<Feature> feats, Shepherd myShepherd, String summaryMessage, int maxFixes) {
       if(feats!=null && feats.size()>0) {
         int numRecommended = feats.size();
         int numValidIAFixes=0;
@@ -37,25 +37,39 @@ public class AcmIdBot {
         int numInvalidForIA=0;
         for(Feature feat:feats){
           MediaAsset asset = feat.getMediaAsset();
+          myShepherd.setAction("AcmIDBot_"+summaryMessage+"_asset_"+asset.getId());
           try {  
+            
+              //is this an appropriate image type for acm ID registration?           
               if(asset!=null && asset.isValidImageForIA()==null) {
                 asset.validateSourceImage();
                 myShepherd.updateDBTransaction();
                 numValidIAFixes++;
                 if(!asset.isValidImageForIA())numInvalidForIA++;
               }
+              //if appropriate let's send it
               if(asset!=null && asset.isValidImageForIA()) {
+                
+                //let's check for child media assets - lack of these could impact acmID registration
+                if(!asset.hasFamily(myShepherd))asset.updateStandardChildren();
+                
                 ArrayList<MediaAsset> fixMe=new ArrayList<MediaAsset>();
                 fixMe.add(asset);
                 IBEISIA.sendMediaAssetsNew(fixMe, context);
                 numAcmIdFixesSent++;
-                if(asset.getAcmId()!=null)numAcmIdFixesSuccessful++;
+                if(asset.getAcmId()!=null) {
+                  numAcmIdFixesSuccessful++;
+                  //allow the bot to determine how many fixes it wants the logic to consider before exiting
+                  //helps keep the bots attention back on newer data
+                  if(numAcmIdFixesSuccessful>=maxFixes)break;
+                }
               }
             }
             catch(Exception ec) {
               System.out.println("Exception in AcmIdBot.fixFeats");
               ec.printStackTrace();
             }
+
 
         }
         System.out.println(summaryMessage);
@@ -104,7 +118,8 @@ public class AcmIdBot {
         System.out.println("Let's get AcmIdBot's time running.");
         try {
           schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-        } catch (java.lang.InterruptedException ex) {
+        } 
+        catch (java.lang.InterruptedException ex) {
             System.out.println("WARNING: AcmIdBot.startCollector(" + context + ") interrupted: " + ex.toString());
         }
         System.out.println("+ AcmIdBot.startCollector(" + context + ") backgrounded");
@@ -130,15 +145,18 @@ public class AcmIdBot {
         
         
         System.out.println("Looking for complete import tasks with media assets with missing acmIds");
-
+        
+        //number of fixes to consider before finishing and letting a new round of work restart the effort
+        int maxFixes=500;
         
         String filter2="select from org.ecocean.media.Feature where itask.status == 'complete' && itask.encounters.contains(enc) && enc.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc;org.ecocean.servlet.importer.ImportTask itask;org.ecocean.Annotation annot";
         Query query2 = myShepherd.getPM().newQuery(filter2);
+        query2.setOrdering("revision desc");
         Collection c2 = (Collection) (query2.execute());
         List<Feature> feats = new ArrayList<Feature>(c2);
         query2.closeAll();
         
-        fixFeats(feats,myShepherd,"ACM ID ImportTask fixing summary");
+        fixFeats(feats,myShepherd,"ACM ID ImportTask fixing summary",maxFixes);
 
         
         
@@ -149,11 +167,12 @@ public class AcmIdBot {
         //dwcDateAddedLong >=
         String filter3="select from org.ecocean.media.Feature where enc45.dwcDateAddedLong >= "+twenyFourHoursAgo+" && enc45.annotations.contains(annot) && annot.features.contains(this) && asset.acmId == null VARIABLES org.ecocean.Encounter enc45;org.ecocean.Annotation annot";
         Query query3 = myShepherd.getPM().newQuery(filter3);
+        query3.setOrdering("revision desc");
         Collection c3 = (Collection) (query3.execute());
         List<Feature> feats2 = new ArrayList<Feature>(c3);
         query3.closeAll();
         
-        fixFeats(feats2,myShepherd,"Recent Encounter ACM ID Fixing Summary");
+        fixFeats(feats2,myShepherd,"Recent Encounter ACM ID Fixing Summary",maxFixes);
         
      }
      catch(Exception f) {
