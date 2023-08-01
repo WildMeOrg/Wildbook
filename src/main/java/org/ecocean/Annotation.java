@@ -866,20 +866,12 @@ System.out.println("[1] getMatchingSet params=" + params);
             //locFilter += "enc.locationID == ''";
 
             // loc ID's were breaking for Hawaiian names with apostrophe(s) and stuff, so overkill now
-            List<String> unsavoryCharacters = Arrays.asList(new String[] {"'", ")", "(", "=", ":", ";", "\""});
             for (int i=0;i<expandedLocationIds.size();i++) {
                 String orString = " || ";
                 if(locFilter.equals(""))orString = "";
                 String expandedLoc = expandedLocationIds.get(i);
-                if (CollectionUtils.containsAny(Arrays.asList(expandedLoc.split("")),unsavoryCharacters)) {
-                    for (String badChar : unsavoryCharacters) {
-                        expandedLoc = expandedLoc.replace(badChar, ".*");
-                    }
-
-                    locFilter += (orString+"enc.locationID.matches(\'"+expandedLoc+"\') ");
-                } else {
-                    locFilter +=  (orString+"enc.locationID == '"+expandedLoc+"'");
-                }
+                expandedLoc=expandedLoc.replaceAll("'", "\\\\'");
+                locFilter +=  (orString+"enc.locationID == '"+expandedLoc+"'");  
             }
         }
 
