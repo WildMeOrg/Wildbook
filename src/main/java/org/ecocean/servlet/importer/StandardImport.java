@@ -2596,7 +2596,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
           f = new File(dir, "WildbookStandardFormat_IndoCet.xlsx");
         }
         else {
-          f = new File(dir, "WildbookStandardFormat.xlsx");
+          f = new File(dir, "WildbookStandardFormatUpdated.xlsx");
         }
         if (f!=null && f.isFile()) {return f;}
         else {
