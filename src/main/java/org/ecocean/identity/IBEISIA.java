@@ -4384,6 +4384,7 @@ Util.mark("sendAnnotationsAsNeeded -in- ", tt);
         ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
         //List<String> iaAnnotIds = plugin.iaAnnotationIds();
         HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
+        if (iaAnnotIds.isEmpty()) throw new RuntimeException("iaAnnotIds is empty; possible IA problems");
 Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
         //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
@@ -4397,6 +4398,7 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
 
             //get iaImageIds only if we need it
             if(iaImageIds==null)iaImageIds=new HashSet(plugin.iaImageIds());
+            if (iaImageIds.isEmpty()) throw new RuntimeException("iaImageIds is empty; possible IA problems");
 
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);

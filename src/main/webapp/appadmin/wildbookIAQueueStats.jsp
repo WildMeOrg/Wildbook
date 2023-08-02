@@ -65,6 +65,7 @@ try{
 	HashMap<String, Integer> userDistribution = new HashMap<String,Integer>();
 	HashMap<String, Integer> algorithms = new HashMap<String,Integer>();
 	HashMap<String, Integer> species = new HashMap<String,Integer>();
+	HashMap<String, Integer> bulkImports = new HashMap<String,Integer>();
 	
 	
 	%>
@@ -99,6 +100,16 @@ try{
 			if(annots!=null && annots.size()>0){
 				Annotation annot=annots.get(0);
 				Encounter enc=annot.findEncounter(myShepherd);
+				if(enc.getImportTask(myShepherd)!=null){
+					ImportTask tasky=enc.getImportTask(myShepherd);
+					if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
+					else{
+						int distribCount=bulkImports.get(tasky.getId()).intValue();
+						distribCount++;
+						bulkImports.put(tasky.getId(), distribCount);
+					}
+					
+				}
 				Taxonomy taxy=enc.getTaxonomy(myShepherd);
 				if(taxy!=null){
 					if(!species.containsKey(taxy.getScientificName())){species.put(taxy.getScientificName(), new Integer(1));}
@@ -138,6 +149,7 @@ try{
 	<li>User distribution: <%=userDistribution.toString() %></li>
 	<li>Species distribution: <%=species.toString() %></li>
 	<li>Algorithms: <%=algorithms.toString() %></li>
+	<li>Bulk imports: <%=bulkImports.toString() %></li>
 	<%
 	
 
