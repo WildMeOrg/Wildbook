@@ -27,6 +27,24 @@ private String scrubUrl(URL u) {
 %>
 
 <%!
+private String getImportTaskSummary(String taskID, Shepherd myShepherd){
+	String summary="(";
+	
+	ImportTask task=myShepherd.getImportTask(taskID);
+	if(task!=null){
+		summary+=task.getCreator().getFullName()+";";
+		summary+="created: "+task.getCreated().toString()+";";
+		summary+="images: "+task.getMediaAssets().size()+"";
+	}
+	else{summary+="single encounter submissions";}
+	
+	summary+=")";
+	return summary;
+}
+
+%>
+
+<%!
 //Method for sorting the TreeMap based on values
 public static <K, V extends Comparable<V> > Map<K, V>
 valueSort(final Map<K, V> map)
@@ -343,7 +361,13 @@ try{
     </ul>
         <h2>Overlapping bulk import pairs</h2>
     <p><em>The following list of overlapping bulk import pairs contributed to duplicate annotations.</em></p>
-    <ul>
+        <table>
+			<tr class="shared">
+				<th>Task 1</th>
+				<th>Task 2</th>
+				<th>Number duplicate annotations</th>
+	
+			</tr>
     <%
  	Map<String, Integer> sorted2=valueSort(bulkImportsPairs);
     for(String key:sorted2.keySet()){
@@ -351,17 +375,23 @@ try{
     	String[] result = key.split(":");
     	String taskID1 = result[0];
     	String taskID2= result[1];
+    	
     	if(!taskID1.equals(taskID2)){
+    		
+        	//let's get summary information
+        	String task1Summary=getImportTaskSummary(taskID1,myShepherd);
+        	String task2Summary=getImportTaskSummary(taskID2,myShepherd);
+    		
     	%>
-    	<li><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=taskID1 %></a>:<a href="../import.jsp?taskId=<%=taskID2 %>" target="_blank"><%=taskID2 %></a> <%=bulkImportsPairs.get(key) %></li>
+    	<tr><td><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=task1Summary %></a></td><td><a href="../import.jsp?taskId=<%=taskID2 %>" target="_blank"><%=task2Summary %></a></td><td><%=bulkImportsPairs.get(key) %></td></tr>
     	<%
     	}
     }
     
     %>
-    </ul>
+    </table>
             <h2>Bulk imports with internal duplicates</h2>
-    <p><em>The following list of bulk imports contain intra-import duplication.</em></p>
+    <p><em>The following list of bulk imports contain intra-import duplication of images and annotations.</em></p>
     <ul>
     <%
  	for(String key:sorted2.keySet()){
@@ -370,8 +400,11 @@ try{
     	String taskID1 = result[0];
     	String taskID2= result[1];
     	if(taskID1.equals(taskID2)){
+        	//let's get summary information
+        	String task1Summary=getImportTaskSummary(taskID1,myShepherd);
+
     	%>
-    	<li><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=taskID1 %></a> <%=bulkImportsPairs.get(key) %></li>
+    	<li><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=task1Summary %></a> <%=bulkImportsPairs.get(key) %> duplicates</li>
     	<%
     	}
     }
