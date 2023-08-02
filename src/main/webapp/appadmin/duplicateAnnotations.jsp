@@ -1,21 +1,20 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
-java.util.Collection,
+
 java.io.IOException,
-java.util.ArrayList,
-java.util.Arrays,
+
 javax.jdo.Query,
-java.util.List,
-java.util.Iterator,
-java.util.Map,
-java.util.HashMap,
+
 java.lang.reflect.Method,
 java.lang.reflect.Field,
 org.json.JSONArray,
 org.json.JSONObject,
 java.net.URL,
 org.ecocean.servlet.ServletUtilities,
-org.ecocean.media.*
+org.ecocean.media.*,
+org.ecocean.servlet.importer.ImportTask,
+java.util.*,
+org.ecocean.genetics.distance.*
               "
 %>
 
@@ -25,6 +24,57 @@ private String scrubUrl(URL u) {
     return u.toString().replaceAll("#", "%23");
 }
 
+%>
+
+<%!
+private String getImportTaskSummary(String taskID, Shepherd myShepherd){
+	String summary="(";
+	
+	ImportTask task=myShepherd.getImportTask(taskID);
+	if(task!=null){
+		summary+=task.getCreator().getFullName()+";";
+		summary+="created: "+task.getCreated().toString()+";";
+		summary+="images: "+task.getMediaAssets().size()+"";
+	}
+	else{summary+="single encounter submissions";}
+	
+	summary+=")";
+	return summary;
+}
+
+%>
+
+<%!
+//Method for sorting the TreeMap based on values
+public static <K, V extends Comparable<V> > Map<K, V>
+valueSort(final Map<K, V> map)
+{
+    // Static Method with return type Map and
+    // extending comparator class which compares values
+    // associated with two keys
+    Comparator<K> valueComparator = new Comparator<K>()
+    {
+          
+        public int compare(K k1, K k2)
+        {
+
+            int comp = map.get(k1).compareTo(map.get(k2));
+           
+            if (comp == 0){return 0;}
+
+            else if(comp>0){return -1;}
+            else{return 1;}
+        
+    	}
+    };
+
+    // SortedMap created using the comparator
+    Map<K, V> sorted = new TreeMap<K, V>(valueComparator);
+
+    sorted.putAll(map);
+
+    return sorted;
+}
 
 
 %>
@@ -154,13 +204,20 @@ else if(request.getParameter("simulateUser")!=null){
 	}
 }
 
+//let's track some meta stats
+HashMap<String, Integer> bulkImports = new HashMap<String,Integer>();
+HashMap<String, Integer> bulkImportsPairs = new HashMap<String,Integer>();
+	
+
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("sharedAnnotations.jsp");
 myShepherd.beginDBTransaction();
 try{
 	String context = ServletUtilities.getContext(request);
-	String filter2="select distinct acmId from org.ecocean.Annotation where acmId != null && "+usernameFilter+" enc1.annotations.contains(annot2) && enc2.annotations.contains(this) && enc1.catalogNumber != enc2.catalogNumber && id!= annot2.id && acmId==annot2.acmId VARIABLES org.ecocean.Encounter enc1; org.ecocean.Encounter enc2; org.ecocean.Annotation annot2";
-    System.out.println("JDOQL filter: "+filter2);
+	//String filter2="select distinct acmId from org.ecocean.Annotation where acmId != null && "+usernameFilter+" enc1.annotations.contains(annot2) && enc2.annotations.contains(this) && enc1.catalogNumber != enc2.catalogNumber && id!= annot2.id && acmId==annot2.acmId VARIABLES org.ecocean.Encounter enc1; org.ecocean.Encounter enc2; org.ecocean.Annotation annot2";
+    String filter2="select distinct acmId from org.ecocean.Annotation where acmId != null && "+usernameFilter+" enc1.annotations.contains(annot2) && enc2.annotations.contains(this) && enc1.catalogNumber != enc2.catalogNumber && id!= annot2.id && acmId==annot2.acmId VARIABLES org.ecocean.Encounter enc1; org.ecocean.Encounter enc2; org.ecocean.Annotation annot2";
+    
+	System.out.println("JDOQL filter: "+filter2);
 	Query q = myShepherd.getPM().newQuery(filter2);
     
     Collection c = (Collection)q.execute();
@@ -184,7 +241,7 @@ try{
     <%
     
     for(String acmId:results) {
-    	if(ct<=500){
+    	//if(ct<=500){
 	
 	    	List<Annotation> annots=myShepherd.getAnnotationsWithACMId(acmId);
 	    	Annotation annot=annots.get(0);
@@ -225,19 +282,136 @@ try{
 			        	}
 			        	
 			        	list+="<li><a target=\"_blank\" href=\"../encounters/encounter.jsp?number="+enc.getCatalogNumber()+"\">name: "+indy+" | date: "+date+" | locationID: "+locationID+" | user: "+submitterID+" </a></li>";
+			        	
+			        	//tabulate import task contribution
+			        	if(enc.getImportTask(myShepherd)!=null){
+							ImportTask tasky=enc.getImportTask(myShepherd);
+							if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
+							else{
+								int distribCount=bulkImports.get(tasky.getId()).intValue();
+								distribCount++;
+								bulkImports.put(tasky.getId(), distribCount);
+							}
+			        	}
+			        	
 			        }
+			        
+			        //let's look at overlapping Encounter pairs too
+			        int numEncs=results2.size();
+			        for(int i=0;i<(numEncs-1);i++){
+			        	for(int j=1;j<(numEncs);j++){
+			        		Encounter one = results2.get(i);
+			        		Encounter two = results2.get(j);
+			        		//if they're not from bulk imports, then we're done here
+			        		if(one.getImportTask(myShepherd)==null && two.getImportTask(myShepherd)==null)continue;
+			        		String taskID1 = "single submission";
+			        		String taskID2 = "single submission";
+			        		if(one.getImportTask(myShepherd)!=null)taskID1=one.getImportTask(myShepherd).getId();
+			        		if(two.getImportTask(myShepherd)!=null)taskID2=two.getImportTask(myShepherd).getId();
+			        	
+			        		String key = taskID1+":"+taskID2;
+			        		int compare = taskID1.compareTo(taskID2);
+			        		if (compare > 0) {
+			        		    //one is larger 
+			        			key = taskID2+":"+taskID1;
+			        		}
+			        		
+							if(!bulkImportsPairs.containsKey(key)){bulkImportsPairs.put(key, new Integer(1));}
+							else{
+								int distribCount=bulkImportsPairs.get(key).intValue();
+								distribCount++;
+								bulkImportsPairs.put(key, distribCount);
+							}
+			        		
+			        		
+			        	}
+			        }
+			        
 			        list+="</ul></td>";
 			
 				    list+="</tr>";
-				    out.println(list);
+				    if(ct<=500)out.println(list);
 					ct++;
 		    	}
 	    	}
 	    	catch(Exception f){
 	    		f.printStackTrace();
 	    	}
-	    }
+	    //}
     }
+    %>
+    </table>
+
+    
+    
+    <h2>Individual bulk import contributions to duplicate annotations</h2>
+    <p><em>The following list of bulk imports contributed to duplicate annotations.</em></p>
+    <ul>
+    <%
+ 	Map<String, Integer> sorted=valueSort(bulkImports);
+    for(String taskID:sorted.keySet()){
+    	//String taskID=(String)it.next();
+    	ImportTask task=myShepherd.getImportTask(taskID);
+    	%>
+    	<li><a href="../import.jsp?taskId=<%=taskID %>" target="_blank"><%=taskID %></a>: <%=bulkImports.get(taskID) %> from user: <%=task.getCreator().getFullName() %></li>
+    	<%
+    }
+    
+    %>
+    </ul>
+        <h2>Overlapping bulk import pairs</h2>
+    <p><em>The following list of overlapping bulk import pairs contributed to duplicate annotations.</em></p>
+        <table>
+			<tr class="shared">
+				<th>Task 1</th>
+				<th>Task 2</th>
+				<th>Number duplicate annotations</th>
+	
+			</tr>
+    <%
+ 	Map<String, Integer> sorted2=valueSort(bulkImportsPairs);
+    for(String key:sorted2.keySet()){
+    	//String taskID=(String)it.next();
+    	String[] result = key.split(":");
+    	String taskID1 = result[0];
+    	String taskID2= result[1];
+    	
+    	if(!taskID1.equals(taskID2)){
+    		
+        	//let's get summary information
+        	String task1Summary=getImportTaskSummary(taskID1,myShepherd);
+        	String task2Summary=getImportTaskSummary(taskID2,myShepherd);
+    		
+    	%>
+    	<tr><td><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=task1Summary %></a></td><td><a href="../import.jsp?taskId=<%=taskID2 %>" target="_blank"><%=task2Summary %></a></td><td><%=bulkImportsPairs.get(key) %></td></tr>
+    	<%
+    	}
+    }
+    
+    %>
+    </table>
+            <h2>Bulk imports with internal duplicates</h2>
+    <p><em>The following list of bulk imports contain intra-import duplication of images and annotations.</em></p>
+    <ul>
+    <%
+ 	for(String key:sorted2.keySet()){
+    	//String taskID=(String)it.next();
+    	String[] result = key.split(":");
+    	String taskID1 = result[0];
+    	String taskID2= result[1];
+    	if(taskID1.equals(taskID2)){
+        	//let's get summary information
+        	String task1Summary=getImportTaskSummary(taskID1,myShepherd);
+
+    	%>
+    	<li><a href="../import.jsp?taskId=<%=taskID1 %>" target="_blank"><%=task1Summary %></a> <%=bulkImportsPairs.get(key) %> duplicates</li>
+    	<%
+    	}
+    }
+    
+    %>
+    </ul>
+    <%
 
 }
 catch(Exception e){
@@ -249,7 +423,5 @@ finally{
 }
 
 %>
-</table>
 </div>
-
 <jsp:include page="../footer.jsp" flush="true"/>
