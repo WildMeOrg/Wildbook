@@ -741,8 +741,8 @@ System.out.println("--- BEFORE _doIdentify() ---");
         if (requeue) requeueJob(jobj, requeueIncrement);
     }
 
-    public static boolean requeueJob(JSONObject jobj, boolean increment) {
-        int MAX_RETRIES = 10;
+    public static boolean requeueJob(JSONObject jobj, final boolean increment) {
+        int MAX_RETRIES = 30;
         long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
         String taskId = jobj.optString("taskId", "UNKNOWN_TASKID");
@@ -750,28 +750,41 @@ System.out.println("--- BEFORE _doIdentify() ---");
         int actualRetries = jobj.optInt("__queueActualRetries", 0);
         int retries = jobj.optInt("__queueRetries", 0);
         if (retries < 0) retries = 0;
-        if ((System.currentTimeMillis() - queueStart) > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1;  // waiting around too long
+        long elapsed = System.currentTimeMillis() - queueStart;
+        if (elapsed > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1;  // waiting around too long
         if (retries > MAX_RETRIES) {
             System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " + MAX_RETRIES + " retries (or max time) in queue; giving up");
             return false;
         }
-        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" + queueStart + "; increment=" + increment + ")");
+        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" + queueStart + "; elapsed=" + elapsed + "; increment=" + increment + ")");
+        final long sleepMillis = 1000;
         if (increment) retries++;
         actualRetries++;
         jobj.put("__queueStart", queueStart);
         jobj.put("__queueRetries", retries);
         jobj.put("__queueActualRetries", actualRetries);
-        boolean ok = false;
-        try {
-            if (jobj.optJSONObject("detect") != null) {
-                ok = addToDetectionQueue(context, jobj.toString());
-            } else {
-                ok = addToQueue(context, jobj.toString());
+
+        // now we fork background thread to *wait* and then add this to queue
+        Runnable r = new Runnable() {
+            public void run() {
+                try {
+                    long sleepMillis = 1000;
+                    if (increment) sleepMillis = 30000;
+                    System.out.println("requeueJob(): backgrounding taskId=" + taskId);
+                    try { Thread.sleep(sleepMillis); } catch (java.lang.InterruptedException ex) {}
+                    if (jobj.optJSONObject("detect") != null) {
+                        addToDetectionQueue(context, jobj.toString());
+                    } else {
+                        addToQueue(context, jobj.toString());
+                    }
+                } catch (IOException ex) {
+                    System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
+                }
             }
-        } catch (IOException ex) {
-            System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
-        }
-        return ok;
+        };
+        new Thread(r).start();
+
+        return true;
     }
 
     public static void processCallbackQueueMessage(String message) {
