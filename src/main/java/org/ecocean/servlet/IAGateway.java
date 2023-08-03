@@ -777,8 +777,9 @@ System.out.println("--- BEFORE _doIdentify() ---");
                     } else {
                         addToQueue(context, jobj.toString());
                     }
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
+                    ex.printStackTrace();
                 }
             }
         };
