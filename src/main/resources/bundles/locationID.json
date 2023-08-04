@@ -328,6 +328,13 @@
 	
 	{ "name":"Vietnam", "id":"Vietnam", "locationID":[]},
 
+	{ "name":"Mediterranean Sea", "id":"Mediterranean Sea", "locationID":[
+		{ "name":"Adriatic Sea", "id":"Adriatic Sea", "locationID":[] },
+		{ "name":"Ionian Sea", "id":"Ionian Sea", "locationID":[] },
+		{ "name":"Tyrrhenian Sea", "id":"Tyrrhenian Sea", "locationID":[] }
+	]
+},
+
 	{ "name":"Misc - Legacy Wildbook IDs", "id":"Misc", "locationID":[
 					 {
 			  "name": "1", "id": "1" },
