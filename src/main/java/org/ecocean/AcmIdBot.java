@@ -68,6 +68,13 @@ public class AcmIdBot {
             catch(Exception ec) {
               System.out.println("Exception in AcmIdBot.fixFeats");
               ec.printStackTrace();
+              //as of now we don't know of a commonality that would suggest a fix
+              if(ec.toString().contains("HTTP error code : 500")) {
+                asset.setIsValidImageForIA(false);
+                myShepherd.updateDBTransaction();
+                numValidIAFixes--;
+                numInvalidForIA++;
+              }
             }
 
 
