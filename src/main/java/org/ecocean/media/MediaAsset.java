@@ -1751,5 +1751,10 @@ System.out.println(">>>>> assignEncounters() EXIT ; size=" + newEncs.size() + " 
         if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
         return uuid.hashCode();
     }
+    
+    public void setIsValidImageForIA(Boolean value) {
+      if(value == null) {validImageForIA=null;}
+      else {validImageForIA=value;}
+    }
 
 }

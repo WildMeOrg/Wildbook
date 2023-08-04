@@ -475,6 +475,12 @@ System.out.println("+ starting ident task " + annTaskId);
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence,
                                                                myShepherd, task, baseUrl,fastlane);
+            if (!sent.optBoolean("success", false)) {
+                String errorMsg = sent.optString("error", "(unknown error)");
+                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " + errorMsg + "; hopefully we requeue");
+                throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
+            }
+
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -736,8 +742,8 @@ System.out.println("--- BEFORE _doIdentify() ---");
         if (requeue) requeueJob(jobj, requeueIncrement);
     }
 
-    public static boolean requeueJob(JSONObject jobj, boolean increment) {
-        int MAX_RETRIES = 10;
+    public static boolean requeueJob(JSONObject jobj, final boolean increment) {
+        int MAX_RETRIES = 30;
         long MAX_TIME_MILLIS = 2 * 24 * 60 * 60 * 1000;
         String context = jobj.optString("__context", "context0");
         String taskId = jobj.optString("taskId", "UNKNOWN_TASKID");
@@ -745,28 +751,42 @@ System.out.println("--- BEFORE _doIdentify() ---");
         int actualRetries = jobj.optInt("__queueActualRetries", 0);
         int retries = jobj.optInt("__queueRetries", 0);
         if (retries < 0) retries = 0;
-        if ((System.currentTimeMillis() - queueStart) > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1;  // waiting around too long
+        long elapsed = System.currentTimeMillis() - queueStart;
+        if (elapsed > MAX_TIME_MILLIS) retries = MAX_RETRIES + 1;  // waiting around too long
         if (retries > MAX_RETRIES) {
             System.out.println("requeueJob(): completely failed taskId=" + taskId + " after " + MAX_RETRIES + " retries (or max time) in queue; giving up");
             return false;
         }
-        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" + queueStart + "; increment=" + increment + ")");
+        System.out.println("requeueJob(): attempting to requeue taskId=" + taskId + " for retry " + retries + " out of " + MAX_RETRIES + " (actualRetries=" + actualRetries + "; start=" + queueStart + "; elapsed=" + elapsed + "; increment=" + increment + ")");
+        final long sleepMillis = 1000;
         if (increment) retries++;
         actualRetries++;
         jobj.put("__queueStart", queueStart);
         jobj.put("__queueRetries", retries);
         jobj.put("__queueActualRetries", actualRetries);
-        boolean ok = false;
-        try {
-            if (jobj.optJSONObject("detect") != null) {
-                ok = addToDetectionQueue(context, jobj.toString());
-            } else {
-                ok = addToQueue(context, jobj.toString());
+
+        // now we fork background thread to *wait* and then add this to queue
+        Runnable r = new Runnable() {
+            public void run() {
+                try {
+                    long sleepMillis = 1000;
+                    if (increment) sleepMillis = 30000;
+                    System.out.println("requeueJob(): backgrounding taskId=" + taskId);
+                    try { Thread.sleep(sleepMillis); } catch (java.lang.InterruptedException ex) {}
+                    if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",false)) {
+                        addToDetectionQueue(context, jobj.toString());
+                    } else {
+                        addToQueue(context, jobj.toString());
+                    }
+                } catch (Exception ex) {
+                    System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
+                    ex.printStackTrace();
+                }
             }
-        } catch (IOException ex) {
-            System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
-        }
-        return ok;
+        };
+        new Thread(r).start();
+
+        return true;
     }
 
     public static void processCallbackQueueMessage(String message) {
@@ -839,29 +859,33 @@ System.out.println("qjob => " + qjob);
             System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask + " to link to " + itask);
         }
 
-        JSONObject maMap = jin.optJSONObject("bulkImport");
-        System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
-        if (maMap == null) return res;  // "should never happen"
+        //JSONObject maMap = jin.optJSONObject("bulkImport");
+        //System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
+        //if (maMap == null) return res;  // "should never happen"
         /*
             maMap is just js_jarrs from imports.jsp, basically { encID0: [ma0, ... maN], ... encIDX: [maY, .. maZ] }
             so we need 1 detection job per element
         */
-        JSONObject mapRes = new JSONObject();
+        //JSONObject mapRes = new JSONObject();
         int okCount = 0;
-        for (Object e: maMap.keySet()) {
-            String encId = (String)e;
-            JSONArray maIds = maMap.optJSONArray(encId);
-            if (maIds == null) {
-                mapRes.put(encId, "no JSONArray");
-                System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
-                continue;
-            }
+        JSONArray maIds=new JSONArray();
+        for(MediaAsset asset:itask.getMediaAssets()) {
+          maIds.put(asset.getId());
+        }
+        //for (Object e: maMap.keySet()) {
+        //    String encId = (String)e;
+        //    JSONArray maIds = maMap.optJSONArray(encId);
+        //    if (maIds == null) {
+        //        mapRes.put(encId, "no JSONArray");
+        //        System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
+        //        continue;
+        //    }
             Task task = new Task();
             task.setParameters(taskParameters);
             myShepherd.storeNewTask(task);
             if (parentTask != null) parentTask.addChild(task);
             myShepherd.commitDBTransaction();
-            System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
+            //System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
             JSONObject qjob = new JSONObject(jin.toString());  //clone it to start with so we get all same content
             qjob.remove("bulkImport");  // ... but then lose this
             qjob.put("taskId", task.getId());
@@ -872,11 +896,11 @@ System.out.println("qjob => " + qjob);
             qjob.put("__handleBulkImport", System.currentTimeMillis());
             boolean ok = addToDetectionQueue(context, qjob.toString());
             if (ok) okCount++;
-            mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
-        }
-        res.put("encounterCount", maMap.keySet().size());
+            //mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
+        //}
+        //res.put("encounterCount", maMap.keySet().size());
         res.put("queuedCount", okCount);
-        res.put("mapResults", mapRes);
+        //res.put("mapResults", mapRes);
         res.remove("error");
         res.put("success", true);
         return res;
