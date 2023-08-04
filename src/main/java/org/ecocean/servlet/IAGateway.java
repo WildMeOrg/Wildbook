@@ -772,7 +772,7 @@ System.out.println("--- BEFORE _doIdentify() ---");
                     if (increment) sleepMillis = 30000;
                     System.out.println("requeueJob(): backgrounding taskId=" + taskId);
                     try { Thread.sleep(sleepMillis); } catch (java.lang.InterruptedException ex) {}
-                    if (jobj.optJSONObject("detect") != null) {
+                    if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",false)) {
                         addToDetectionQueue(context, jobj.toString());
                     } else {
                         addToQueue(context, jobj.toString());
