@@ -858,29 +858,33 @@ System.out.println("qjob => " + qjob);
             System.out.println("IAGateway.handleBulkImport() created parentTask " + parentTask + " to link to " + itask);
         }
 
-        JSONObject maMap = jin.optJSONObject("bulkImport");
-        System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
-        if (maMap == null) return res;  // "should never happen"
+        //JSONObject maMap = jin.optJSONObject("bulkImport");
+        //System.out.println("IAGateway.handleBulkImport() preparing to parse " + maMap.keySet().size() + " encounter detection jobs");
+        //if (maMap == null) return res;  // "should never happen"
         /*
             maMap is just js_jarrs from imports.jsp, basically { encID0: [ma0, ... maN], ... encIDX: [maY, .. maZ] }
             so we need 1 detection job per element
         */
-        JSONObject mapRes = new JSONObject();
+        //JSONObject mapRes = new JSONObject();
         int okCount = 0;
-        for (Object e: maMap.keySet()) {
-            String encId = (String)e;
-            JSONArray maIds = maMap.optJSONArray(encId);
-            if (maIds == null) {
-                mapRes.put(encId, "no JSONArray");
-                System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
-                continue;
-            }
+        JSONArray maIds=new JSONArray();
+        for(MediaAsset asset:itask.getMediaAssets()) {
+          maIds.put(asset.getId());
+        }
+        //for (Object e: maMap.keySet()) {
+        //    String encId = (String)e;
+        //    JSONArray maIds = maMap.optJSONArray(encId);
+        //    if (maIds == null) {
+        //        mapRes.put(encId, "no JSONArray");
+        //        System.out.println("[ERROR] IAGateway.handleBulkImport() maMap could not find JSONArray of MediaAsset ids at encId key=" + encId);
+        //        continue;
+        //    }
             Task task = new Task();
             task.setParameters(taskParameters);
             myShepherd.storeNewTask(task);
             if (parentTask != null) parentTask.addChild(task);
             myShepherd.commitDBTransaction();
-            System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
+            //System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
             JSONObject qjob = new JSONObject(jin.toString());  //clone it to start with so we get all same content
             qjob.remove("bulkImport");  // ... but then lose this
             qjob.put("taskId", task.getId());
@@ -891,11 +895,11 @@ System.out.println("qjob => " + qjob);
             qjob.put("__handleBulkImport", System.currentTimeMillis());
             boolean ok = addToDetectionQueue(context, qjob.toString());
             if (ok) okCount++;
-            mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
-        }
-        res.put("encounterCount", maMap.keySet().size());
+            //mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
+        //}
+        //res.put("encounterCount", maMap.keySet().size());
         res.put("queuedCount", okCount);
-        res.put("mapResults", mapRes);
+        //res.put("mapResults", mapRes);
         res.remove("error");
         res.put("success", true);
         return res;
