@@ -438,7 +438,7 @@ public class MetricsBot {
               // Truncate user's full name to first name and last initial, and replace space w/ underscore 
               if (name.contains(" "))
               {
-                String normalizedName = stripAccents(name).replaceAll("*", "");
+                String normalizedName = stripAccents(name).replaceAll("\\*", "").replaceAll("\\.", "");
                 int spaceIndex = normalizedName.indexOf(" ");
                 name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
               }
@@ -447,7 +447,8 @@ public class MetricsBot {
               System.out.println("NAME:" + name);
               csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
-            catch (NullPointerException e) { }
+            catch (NullPointerException e) {e.printStackTrace(); }
+            catch(java.util.regex.PatternSyntaxException pe) {pe.printStackTrace();}
           }
         }
         catch(Exception exy) {exy.printStackTrace();}
