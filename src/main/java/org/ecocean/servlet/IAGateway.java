@@ -682,7 +682,13 @@ if (message.startsWith("alite:")) { Util.mark("alite >>> " + org.ecocean.Annotat
             try {
                 JSONObject rtn = _doDetect(jobj, res, myShepherd, baseUrl);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'detect' successful --> " + rtn.toString());
-                myShepherd.commitDBTransaction();
+                if (!rtn.optBoolean("success", false)) {
+                    requeueIncrement = true;
+                    requeue = true;
+                    myShepherd.rollbackDBTransaction();
+                } else {
+                    myShepherd.commitDBTransaction();
+                }
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
                 // now for certain returns, we want to increment our retry-ticker (this is TODO research in progress!)
@@ -720,7 +726,13 @@ System.out.println("--- BEFORE _doIdentify() ---");
                 // here jobj contains queryconfigdict somehow
                 JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl,fastlane);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
-                myShepherd.commitDBTransaction();
+                if (!rtn.optBoolean("success", false)) {
+                    requeueIncrement = true;
+                    requeue = true;
+                    myShepherd.rollbackDBTransaction();
+                } else {
+                    myShepherd.commitDBTransaction();
+                }
             }
             catch (javax.jdo.JDOObjectNotFoundException ex) {
               System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
