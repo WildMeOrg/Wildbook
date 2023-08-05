@@ -742,9 +742,11 @@ System.out.println("--- BEFORE _doIdentify() ---");
             }
             catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.toString());
-                if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = true;
+                if (ex.toString().contains("HTTP error code : 500")) {requeueIncrement = true;requeue = true;}
+                else if (ex.toString().contains("Empty target annotation list")) {requeue=false;}
+                else {requeue = true;}
                 myShepherd.rollbackDBTransaction();
-                requeue = true;
+                
             }
             myShepherd.closeDBTransaction();
 
