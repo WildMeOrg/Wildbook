@@ -16,11 +16,11 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
-org.ecocean.identity.IBEISIA,
+org.ecocean.identity.*,
 org.ecocean.metrics.*,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
-
+org.json.JSONObject,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -78,6 +78,83 @@ public String dumpTask(Task task) {
     t += "- countObjectAnnotations:      " + task.countObjectAnnotations() + "\n";
     return t;
 }
+%>
+
+<%!
+public String getTaskStatus(Task task,Shepherd myShepherd){
+	String status="waiting to queue";
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(task.getId(), "IBEISIA", myShepherd);
+	System.out.println("Logs: "+logs.size());
+	if(logs!=null && logs.size()>0){
+		
+		Collections.reverse(logs);  //so it has newest first like mostRecent above
+		IdentityServiceLog l =logs.get(0);
+		JSONObject islObj = l.toJSONObject();
+		if(islObj.optString("status")!=null && islObj.optString("status").equals("completed")){
+			status=islObj.optString("status");
+		}
+		else if(islObj.toString().indexOf("HTTP error code")>-1){
+			status="error";
+		}
+		else if(!islObj.optString("queueStatus").equals("")){
+			status=islObj.optString("queueStatus");
+		}
+		else if(islObj.opt("status")!=null && islObj.opt("status").toString().indexOf("initIdentify")>-1){
+			status="queuing";
+		}
+		//if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
+		
+	}
+	return status;
+	
+}
+%>
+
+<%!
+public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap){
+	String status="queuing";
+	if(task.hasChildren()){
+		//accumulate status across children
+		HashMap<String,String> map=new HashMap<String,String>();
+		for(Task childTask:task.getChildren()){
+			map.put(childTask.getId(),getTaskStatus(childTask,myShepherd));
+		}
+		
+		//now, how do we report these?
+		HashMap<String, Integer> resultsMap=new HashMap<String,Integer>();
+		for(String key:map.values()){
+			
+			//overall ID results
+			if(!idStatusMap.containsKey(key)){idStatusMap.put(key, new Integer(1));}
+			else{
+				int results=idStatusMap.get(key);
+				idStatusMap.put(key, new Integer(results+1));
+			}
+			
+			//task results
+			if(!resultsMap.containsKey(key)){resultsMap.put(key, new Integer(1));}
+			else{
+				int results=resultsMap.get(key);
+				resultsMap.put(key, new Integer(results+1));
+			}
+			
+		}
+	    return resultsMap.toString();
+		
+	}
+	else{
+		status=getTaskStatus(task,myShepherd);
+		//overall ID results
+		if(!idStatusMap.containsKey(status)){idStatusMap.put(status, new Integer(1));}
+		else{
+			int results=idStatusMap.get(status);
+			idStatusMap.put(status, new Integer(results+1));
+		}
+	}
+	
+	return status;
+}
+
 %>
 
 
@@ -156,6 +233,9 @@ boolean allowReID=false;
 String iaStatusString="not started";
 boolean shouldRefresh=false;
 String refreshSeconds="60";
+
+//track overall ID progress
+HashMap<String,Integer> idStatusMap=new HashMap<String,Integer>();
 
 try{
 	
@@ -430,7 +510,7 @@ try{
 	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
+	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap)+"</a>");
 	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
@@ -525,9 +605,22 @@ try{
         }
         //ID Task
         else{
-        	iaStatusString="identification requests sent (see table below for links to each matching job). "+queueStatementID;
+        	
+        	//let's tabulate ID status map for complete
+        	int numComplete = 0;
+        	int numTotal = 0;		
+        	if(idStatusMap.get("completed")!=null){numComplete=idStatusMap.get("completed");}
+        	for(Integer key:idStatusMap.values()){
+        		numTotal+=key;
+        	}
+        	String idStatusString="";
+        	if(numTotal>0)idStatusString=numComplete+" complete of "+numTotal+" total. ";
+        	
+        	if(numComplete==numTotal)shouldRefresh=false;
+        
+        	iaStatusString="identification requests sent (see table below for links to each matching job). "+idStatusString+queueStatementID;
         	if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
-        	System.out.println("heerios!");
+        	
         }
     }
 	//let's handle legacy data
