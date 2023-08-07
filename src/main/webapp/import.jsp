@@ -84,7 +84,6 @@ public String dumpTask(Task task) {
 public String getTaskStatus(Task task,Shepherd myShepherd){
 	String status="waiting to queue";
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(task.getId(), "IBEISIA", myShepherd);
-	System.out.println("Logs: "+logs.size());
 	if(logs!=null && logs.size()>0){
 		
 		Collections.reverse(logs);  //so it has newest first like mostRecent above
