@@ -614,7 +614,7 @@ try{
         		numTotal+=key;
         	}
         	String idStatusString="";
-        	if(numTotal>0)idStatusString=numComplete+" complete of "+numTotal+" total. ";
+        	if(numTotal>0)idStatusString=numComplete+" individual computer vision tasks complete of "+numTotal+" total. ";
         	
         	if(numComplete==numTotal)shouldRefresh=false;
         
