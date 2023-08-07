@@ -83,9 +83,7 @@ if(request.getParameter("taskId")!=null){
 	if(t!=null && t.getParameters()!=null && t.getParameters().optBoolean("fastlane", false)){
 		fastlane=true;
 	}
-	else{
-		System.out.println("Not fastlane: "+t.getParameters().toString());
-	}
+
 }
 int wbiaIDQueueSize = 0;
 if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
