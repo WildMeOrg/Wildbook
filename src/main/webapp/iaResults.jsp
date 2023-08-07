@@ -95,12 +95,16 @@ if(wbiaIDQueueSize==0){
 }
 else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
 	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
-	if(fastlane)val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+	String queueType="bulk import";
+	if(fastlane){
+		val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+		queueType="small batch";
+	}
 	try{
 		if(wbiaIDQueueSize>1){
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the small batch queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
 		}
 	}
 	catch(Exception de){de.printStackTrace();}

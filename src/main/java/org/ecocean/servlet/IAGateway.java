@@ -782,24 +782,33 @@ System.out.println("--- BEFORE _doIdentify() ---");
         // now we fork background thread to *wait* and then add this to queue
         Runnable r = new Runnable() {
             public void run() {
+              boolean requeueSuccess=false;
+              long whileSleepMillis = 1000;
+              while(!requeueSuccess) {
+                
                 try {
-                    long sleepMillis = 1000;
-                    if (increment) sleepMillis = 30000;
+                    
+                    if (increment) whileSleepMillis = 30000;
                     System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-                    try { Thread.sleep(sleepMillis); } catch (java.lang.InterruptedException ex) {}
+                    try { Thread.sleep(whileSleepMillis); } catch (java.lang.InterruptedException ex) {}
                     if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",false)) {
                         addToDetectionQueue(context, jobj.toString());
                     } else {
                         addToQueue(context, jobj.toString());
                     }
-                } catch (Exception ex) {
-                    System.out.println("requeueJob(): failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
+                    requeueSuccess=true;
+                } 
+                catch (Exception ex) {
+                    whileSleepMillis = 30000;
+                    System.out.println(".....requeueJob() looping: failed to requeue addTo_Queue() taskId=" + taskId + " due to " + ex.toString());
                     ex.printStackTrace();
                 }
-            }
-        };
+              } //end while
+         
+            } //end run
+        }; //end Runnable
         new Thread(r).start();
-
+    
         return true;
     }
 
