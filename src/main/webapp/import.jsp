@@ -101,6 +101,7 @@ public String getTaskStatus(Task task,Shepherd myShepherd){
 		else if(islObj.opt("status")!=null && islObj.opt("status").toString().indexOf("initIdentify")>-1){
 			status="queuing";
 		}
+
 		//if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
 		
 	}
@@ -115,8 +116,16 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 	if(task.hasChildren()){
 		//accumulate status across children
 		HashMap<String,String> map=new HashMap<String,String>();
+		//this should only ever be two layers deep
 		for(Task childTask:task.getChildren()){
-			map.put(childTask.getId(),getTaskStatus(childTask,myShepherd));
+			if(childTask.hasChildren()){
+				for(Task childTask2:childTask.getChildren()){
+					map.put(childTask2.getId(),getTaskStatus(childTask2,myShepherd));
+				}
+			}
+			else{
+				map.put(childTask.getId(),getTaskStatus(childTask,myShepherd));
+			}
 		}
 		
 		//now, how do we report these?
