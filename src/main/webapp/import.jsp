@@ -92,6 +92,9 @@ public String getTaskStatus(Task task,Shepherd myShepherd){
 		if(islObj.optString("status")!=null && islObj.optString("status").equals("completed")){
 			status=islObj.optString("status");
 		}
+		else if(islObj.optJSONObject("status")!=null && (islObj.optJSONObject("status").optJSONObject("needReview")!=null)){
+			status="completed";
+		}
 		else if(islObj.toString().indexOf("HTTP error code")>-1){
 			status="error";
 		}
@@ -103,8 +106,9 @@ public String getTaskStatus(Task task,Shepherd myShepherd){
 		}
 
 		//if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-		
+		//if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
 	}
+	
 	return status;
 	
 }
