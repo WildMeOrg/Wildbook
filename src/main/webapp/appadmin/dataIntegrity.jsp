@@ -42,6 +42,11 @@ if(request.isUserInRole("admin")){
 	<h3>URL Access Security Checks</h3>
 	<p>Look for URLs in Wildbook that should or should not be accessible to the public or users with certain roles.</p>
 	<p><a target="_blank" href="urlSecurityCheck.jsp">Click here to check</a></p>      
+	
+		<h3>Wildbook Machine Learning Queue Monitoring (slow load)</h3>
+	<p>Examine a current snapshot and 24 hour histroical review of the machine learning pipeline.</p>
+	<p><a target="_blank" href="wildbookIAQueueStats.jsp">Click here to check</a></p>     
+	
 <%
 }
 %>
