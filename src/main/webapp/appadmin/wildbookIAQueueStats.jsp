@@ -165,7 +165,6 @@ try{
 		long detectionQueueSize=detectionQueue.getQueueSize();
 		%>
 			<ul>
-				<li>There are currently <%=WbiaQueueUtil.getSizeDetectionJobQueue(false) %> detection jobs waiting to complete in WBIA.</li>
 				<li>There are currently <%=iaQueueSize %> slow lane ID jobs waiting to go to WBIA in the slow lane.</li>
 				<li>There are currently <%=detectionQueueSize %> detection and ID jobs waiting to go to WBIA in the fast lane.</li>
 				
