@@ -29,7 +29,7 @@ alter table "TASK" alter column "PARAMETERS" type text;
         		<column jdbc-type="LONGVARCHAR"/>
       		</field>
 			
-			<field name="state" persistence-modifier="persistent">
+			<field name="status" persistence-modifier="persistent">
         		<column jdbc-type="LONGVARCHAR"/>
       		</field>
 			
