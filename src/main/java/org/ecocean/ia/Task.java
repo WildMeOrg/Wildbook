@@ -13,6 +13,7 @@ import org.ecocean.identity.IBEISIA;
 //import java.util.UUID;   :(
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.HashMap;
 import org.joda.time.DateTime;
@@ -37,6 +38,7 @@ public class Task implements java.io.Serializable {
     private List<Task> children = null;
     private String parameters = null;
     private String status;
+    private Long completionDateInMilliseconds;
 
     public Task() {
         this(Util.generateUUID());
@@ -473,6 +475,16 @@ public class Task implements java.io.Serializable {
     public void setStatus(String newStatus) {
       if(newStatus == null) status=null;
       else {status=newStatus;}
+    }
+    
+    public java.lang.Long getCompletionDateInMilliseconds(){return completionDateInMilliseconds;}
+
+    // this will set all date stuff based on ms since epoch
+    public void setCompletionDateInMilliseconds(Long ms) {
+      if(ms==null) {this.completionDateInMilliseconds = null;}
+      else{
+        this.completionDateInMilliseconds = ms;
+      }
     }
     
 }

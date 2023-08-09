@@ -2321,6 +2321,7 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         Task task = myShepherd.getTask(taskID);
         if(task!=null) {
           task.setStatus("completed");
+          task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
         }
         
         myShepherd.commitDBTransaction();
