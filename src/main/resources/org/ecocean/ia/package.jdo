@@ -28,6 +28,14 @@ alter table "TASK" alter column "PARAMETERS" type text;
       		<field name="parameters" persistence-modifier="persistent">
         		<column jdbc-type="LONGVARCHAR"/>
       		</field>
+			
+			<field name="state" persistence-modifier="persistent">
+        		<column jdbc-type="LONGVARCHAR"/>
+      		</field>
+			
+			<field name="completionDateInMilliseconds" persistence-modifier="persistent">
+				<column jdbc-type="BIGINT" allows-null="true"/>
+			</field>
 
 <!--
 		<field name="id" field-type="java.util.UUID" primary-key="true" value-strategy="uuid">
