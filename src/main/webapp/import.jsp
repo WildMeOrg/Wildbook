@@ -80,42 +80,7 @@ public String dumpTask(Task task) {
 }
 %>
 
-<%!
-public String getTaskStatus(Task task,Shepherd myShepherd){
-	String status="waiting to queue";
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(task.getId(), "IBEISIA", myShepherd);
-	if(logs!=null && logs.size()>0){
-		
-		Collections.reverse(logs);  //so it has newest first like mostRecent above
-		IdentityServiceLog l =logs.get(0);
-		JSONObject islObj = l.toJSONObject();
-		if(islObj.optString("status")!=null && islObj.optString("status").equals("completed")){
-			status=islObj.optString("status");
-		}
-		else if(islObj.optJSONObject("status")!=null && (islObj.optJSONObject("status").optJSONObject("needReview")!=null)){
-			status="completed";
-		}
-		else if(logs.toString().indexOf("score")>-1){
-			status="completed";
-		}
-		else if(islObj.toString().indexOf("HTTP error code")>-1){
-			status="error";
-		}
-		else if(!islObj.optString("queueStatus").equals("")){
-			status=islObj.optString("queueStatus");
-		}
-		else if(islObj.opt("status")!=null && islObj.opt("status").toString().indexOf("initIdentify")>-1){
-			status="queuing";
-		}
 
-		//if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-		//if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
-	}
-	
-	return status;
-	
-}
-%>
 
 <%!
 public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap){
@@ -127,11 +92,11 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 		for(Task childTask:task.getChildren()){
 			if(childTask.hasChildren()){
 				for(Task childTask2:childTask.getChildren()){
-					map.put(childTask2.getId(),getTaskStatus(childTask2,myShepherd));
+					map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
 				}
 			}
 			else{
-				map.put(childTask.getId(),getTaskStatus(childTask,myShepherd));
+				map.put(childTask.getId(),childTask.getStatus(myShepherd));
 			}
 		}
 		
@@ -158,7 +123,7 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 		
 	}
 	else{
-		status=getTaskStatus(task,myShepherd);
+		status=task.getStatus(myShepherd);
 		//overall ID results
 		if(!idStatusMap.containsKey(status)){idStatusMap.put(status, new Integer(1));}
 		else{

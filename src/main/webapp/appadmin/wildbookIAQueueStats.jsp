@@ -9,7 +9,7 @@ java.io.*,java.util.*, java.io.FileInputStream,
 java.text.SimpleDateFormat,
 java.util.Date,org.ecocean.ia.*,org.json.JSONObject,
 org.ecocean.identity.IBEISIA,org.ecocean.social.*,org.ecocean.ia.Task,
-org.apache.poi.ss.usermodel.DateUtil,
+org.apache.poi.ss.usermodel.DateUtil,org.ecocean.identity.*,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, 
 java.util.Iterator, java.lang.NumberFormatException"%>
 
@@ -60,17 +60,15 @@ try{
 	int numChildTasks=0;
 	int hasUsername=0;
 	int numDetectionTasks=0;
-	int numIDTasks=0;
+	int numIDTasks = 0;
+	int numFastlaneTasks = 0;
 	
 	HashMap<String, Integer> userDistribution = new HashMap<String,Integer>();
 	HashMap<String, Integer> algorithms = new HashMap<String,Integer>();
 	HashMap<String, Integer> species = new HashMap<String,Integer>();
 	HashMap<String, Integer> bulkImports = new HashMap<String,Integer>();
+	HashMap<String, Integer> idTaskStatus = new HashMap<String,Integer>();
 	
-	
-	%>
-	<li>Num tasks last 24 hours: <%=allTasks.size() %></li>
-	<%
 	
 	for(Task task:allTasks){
 		count++;
@@ -92,6 +90,18 @@ try{
 						algorithms.put(algo, distribCount);
 					}
 				}
+				
+				//lets get status
+				String idState=task.getStatus(myShepherd);
+				if(!idTaskStatus.containsKey(idState)){idTaskStatus.put(idState, new Integer(1));}
+				else{
+					int distribCount=idTaskStatus.get(idState).intValue();
+					distribCount++;
+					idTaskStatus.put(idState, distribCount);
+				}
+				
+				//fastlane
+				if(task.isFastlane(myShepherd))numFastlaneTasks++;
 			}
 			
 			numChildTasks++;
@@ -150,6 +160,8 @@ try{
 	<li>Species distribution: <%=species.toString() %></li>
 	<li>Algorithms: <%=algorithms.toString() %></li>
 	<li>Bulk imports: <%=bulkImports.toString() %></li>
+	<li>ID task states: <%=idTaskStatus.toString() %></li>
+	<li>Num fastlane: <%=numFastlaneTasks %></li>
 	<%
 	
 
