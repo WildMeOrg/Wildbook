@@ -145,5 +145,14 @@ System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentTyp
         } catch (Exception ex) { }
         return -1;
     }
+    
+    public long getQueueSize() {
+      long channelSize=0;
+      try {
+        channelSize=channel.messageCount(EXCHANGE_NAME);
+      }
+      catch(Exception e) {}
+      return channelSize;
+    }
 
 }
