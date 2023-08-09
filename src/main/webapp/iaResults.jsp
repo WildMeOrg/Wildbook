@@ -24,22 +24,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 String context = ServletUtilities.getContext(request);
 String langCode = ServletUtilities.getLanguageCode(request);
 
-String queueStatementID="";
-int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
-if(wbiaIDQueueSize==0){
-	queueStatementID = "The machine learning queue is working.";
-}
-else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
-	try{
-		if(wbiaIDQueueSize>1){
-			Double d = Double.parseDouble(val);
-			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
-		}
-	}
-	catch(Exception de){de.printStackTrace();}
-}
+
 
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
 
@@ -90,6 +75,43 @@ if (Util.stringExists(projectIdPrefix)) {
 	}
 }
 
+//do queue stuff
+String queueStatementID="";
+boolean fastlane=false;
+if(request.getParameter("taskId")!=null){
+	Task t=myShepherd.getTask(request.getParameter("taskId"));
+	if(t!=null && t.getParameters()!=null && t.getParameters().optBoolean("fastlane", false)){
+		fastlane=true;
+	}
+
+}
+int wbiaIDQueueSize = 0;
+if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
+else{wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);}
+if(wbiaIDQueueSize==0){
+	queueStatementID = "The machine learning queue is working.";
+}
+else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	String queueType="bulk import";
+	if(fastlane){
+		val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+		queueType="small batch";
+	}
+	try{
+		if(wbiaIDQueueSize>1){
+			Double d = Double.parseDouble(val);
+			d=d/60.0;
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+		}
+	}
+	catch(Exception de){de.printStackTrace();}
+}
+
+//do queue stuff
+
+
+
 myShepherd.rollbackAndClose();
 //myShepherd.closeDBTransaction();
 //System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
@@ -107,6 +129,10 @@ String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to kee
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
+		
+		
+		
+		
 
 %>
 
