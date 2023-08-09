@@ -85,6 +85,7 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
         List<List<MediaAsset>> assetsBySpecies = binAssetsBySpecies(mas, myShepherd);
         int numSpecies = assetsBySpecies.size();
+        //System.out.println("IA.java.numSpecies="+numSpecies);
         // in one-species case we don't need to create an extra layer of tasks
         if (numSpecies == 1) return intakeMediaAssetsOneSpecies(myShepherd, assetsBySpecies.get(0), parentTask);
         // in multi-species case we make sure we have a parent task and add each species task as a child
@@ -97,11 +98,15 @@ public class IA {
     }
 
     public static List<List<MediaAsset>> binAssetsBySpecies(List<MediaAsset> mas, Shepherd myShepherd) {
-        Map<Taxonomy, List<MediaAsset>> assetsBySpecies = new HashMap<Taxonomy, List<MediaAsset>>();
+        Map<String, List<MediaAsset>> assetsBySpecies = new HashMap<String, List<MediaAsset>>();
         for (MediaAsset ma: mas) {
             Taxonomy taxy = ma.getTaxonomy(myShepherd);
-            if (!assetsBySpecies.containsKey(taxy)) assetsBySpecies.put(taxy, new ArrayList<MediaAsset>());
-            assetsBySpecies.get(taxy).add(ma);
+            String scientificName="null";
+            if(taxy!=null && taxy.getScientificName()!=null)scientificName=taxy.getScientificName();
+            //System.out.println("     MA ID "+ma.getId()+" has taxy "+scientificName);
+            if (!assetsBySpecies.containsKey(scientificName)) assetsBySpecies.put(scientificName, new ArrayList<MediaAsset>());
+            assetsBySpecies.get(scientificName).add(ma);
+            //System.out.println("       Taxy size: "+assetsBySpecies.get(scientificName).size());
         }
         return new ArrayList<List<MediaAsset>>(assetsBySpecies.values());
     }
@@ -174,7 +179,7 @@ public class IA {
             sent[i] = false;
             try {
                 // job is queued here
-                sent[i] = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+                sent[i] = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
             } catch (java.io.IOException iox) {
                 System.out.println("ERROR: IA.intakeMediaAssets() hit exception on taxonomy "+taxy.toString()+", detectArgs = "+detectArgs.toString());
                 System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
@@ -225,9 +230,9 @@ public class IA {
     //similar behavior to above: basically fake /ia api call, but via queue
     //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
-        return intakeAnnotations(myShepherd, anns, null);
+        return intakeAnnotations(myShepherd, anns, null, false);
     }
-    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask, boolean fastlane) {
     //     List<List<Annotation>> annses = binAnnotsByIaClass(anns);
     //     // slightly complicated bc we need to create child tasks only if there are multiple iaClasses
     //     if (annses.size() == 1) return intakeAnnotationsOneIAClass(myShepherd, annses.get(0), parentTask);
@@ -322,6 +327,8 @@ public class IA {
                     tasks.add(t);
                 }
             }
+            newTaskParams.put("fastlane", fastlane);
+            if(fastlane)newTaskParams.put("lane", "fast");
             myShepherd.storeNewTask(topTask);
 
             //these are re-used in every task
@@ -342,7 +349,15 @@ public class IA {
                 if (opts.get(i) != null) qjob.put("opt", opts.get(i));
                 boolean sent = false;
                 try {
+                  if(fastlane) {
+                    //if fastlane and a smaller, bespoke request, get this into the faster queue
+                    qjob.put("fastlane", fastlane);
+                    qjob.put("lane", "fast");
+                    sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+                  }
+                  else {
                     sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+                  }
                 } catch (java.io.IOException iox) {
                     System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
                 }
@@ -375,12 +390,18 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
         String context = jin.optString("__context", null);
         if (context == null) throw new RuntimeException("IA.handleRest(): passed data has no __context");
         Shepherd myShepherd = new Shepherd(context);
+        
+        //check if these should be directed through the fastlane
+        boolean fastlane=false;
+        if(jin.optBoolean("fastlane", false)) {fastlane=true;}
+        
         myShepherd.setAction("IA.handleRest");
         myShepherd.beginDBTransaction();
         try {
           String taskId = jin.optString("taskId", Util.generateUUID());
           Task topTask = Task.load(taskId, myShepherd);
           if (topTask == null) topTask = new Task(taskId);
+          if(fastlane)topTask.addParameter("fastlane", true);
           myShepherd.storeNewTask(topTask);
           JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
 
@@ -429,7 +450,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
                   }
               }
 
-              Task atask = intakeAnnotations(myShepherd, anns, topTask);
+              Task atask = intakeAnnotations(myShepherd, anns, topTask, fastlane);
               System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
               topTask.addChild(atask);
               myShepherd.getPM().refresh(topTask);

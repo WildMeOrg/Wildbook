@@ -481,7 +481,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-
+<%
+if(visible){
+%>
 <p>
     <%=props.getProperty("latitude")%> /
     <%=props.getProperty("longitude")%> /
@@ -492,6 +494,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
     <%=occ.getBearing()%> m /
     <%=occ.getDistance()%> m
 </p>
+<%
+}
+%>
 
 <%
 if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
@@ -540,7 +545,8 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			 <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></strong></td>
 		  </tr>
 		  <%
-		    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+		    Encounter[] dateSortedEncs = new Encounter[0];
+		    if(visible) dateSortedEncs = occ.getDateSortedEncounters(false);
 		
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {

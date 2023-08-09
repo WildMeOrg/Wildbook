@@ -13,6 +13,7 @@ import org.ecocean.identity.IBEISIA;
 //import java.util.UUID;   :(
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.HashMap;
 import org.joda.time.DateTime;
@@ -21,6 +22,9 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import javax.jdo.Query;
 import java.util.Collection;
+import java.util.Collections;
+
+import org.ecocean.identity.IdentityServiceLog;
 
 public class Task implements java.io.Serializable {
 
@@ -33,6 +37,8 @@ public class Task implements java.io.Serializable {
     private Task parent = null;
     private List<Task> children = null;
     private String parameters = null;
+    private String status;
+    private Long completionDateInMilliseconds;
 
     public Task() {
         this(Util.generateUUID());
@@ -420,5 +426,70 @@ public class Task implements java.io.Serializable {
         }
         return roots;
     }
+    
+    public String getStatus(Shepherd myShepherd){
+      //if status is not null, just send it
+      if(status!=null) return status;
+      
+      //otherwise
+      String status="waiting to queue";
+      ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA", myShepherd);
+      if(logs!=null && logs.size()>0){
+        
+        Collections.reverse(logs);  //so it has newest first like mostRecent above
+        IdentityServiceLog l =logs.get(0);
+        JSONObject islObj = l.toJSONObject();
+        if(islObj.optString("status")!=null && islObj.optString("status").equals("completed")){
+          status=islObj.optString("status");
+        }
+        else if(islObj.optJSONObject("status")!=null && (islObj.optJSONObject("status").optJSONObject("needReview")!=null)){
+          status="completed";
+        }
+        else if(logs.toString().indexOf("score")>-1){
+          status="completed";
+        }
+        else if(islObj.toString().indexOf("HTTP error code")>-1){
+          status="error";
+        }
+        else if(!islObj.optString("queueStatus").equals("")){
+          status=islObj.optString("queueStatus");
+        }
+        else if(islObj.opt("status")!=null && islObj.opt("status").toString().indexOf("initIdentify")>-1){
+          status="queuing";
+        }
+
+        //if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
+        //if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
+      }
+      
+      return status;
+      
+    }
+    
+    public boolean isFastlane(Shepherd myShepherd){
+      String status="waiting to queue";
+      ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(getId(), "IBEISIA", myShepherd);
+      if(getParameters()!=null && getParameters().optBoolean("fastlane", false)){
+        return true;
+      }
+      return false;      
+    }
+
+    
+    public void setStatus(String newStatus) {
+      if(newStatus == null) status=null;
+      else {status=newStatus;}
+    }
+    
+    public java.lang.Long getCompletionDateInMilliseconds(){return completionDateInMilliseconds;}
+
+    // this will set all date stuff based on ms since epoch
+    public void setCompletionDateInMilliseconds(Long ms) {
+      if(ms==null) {this.completionDateInMilliseconds = null;}
+      else{
+        this.completionDateInMilliseconds = ms;
+      }
+    }
+    
 }
 

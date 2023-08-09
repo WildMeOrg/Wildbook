@@ -523,6 +523,7 @@ myShepherd.closeDBTransaction();
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
                               <li class="divider"></li>
+                              <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                             <% }
 
                             if(request.isUserInRole("admin")) { %>
@@ -548,10 +549,8 @@ myShepherd.closeDBTransaction();
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="https://docs.wildme.org/product-docs/en/wildbook/introduction/"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-
-
-                             <%
+                                
+                                <%
 
                             } //end if admin
                             if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
