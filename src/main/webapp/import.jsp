@@ -95,6 +95,9 @@ public String getTaskStatus(Task task,Shepherd myShepherd){
 		else if(islObj.optJSONObject("status")!=null && (islObj.optJSONObject("status").optJSONObject("needReview")!=null)){
 			status="completed";
 		}
+		else if(logs.toString().indexOf("score")>-1){
+			status="completed";
+		}
 		else if(islObj.toString().indexOf("HTTP error code")>-1){
 			status="error";
 		}
