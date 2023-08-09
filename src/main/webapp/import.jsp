@@ -80,35 +80,7 @@ public String dumpTask(Task task) {
 }
 %>
 
-<%!
-public String getTaskStatus(Task task,Shepherd myShepherd){
-	String status="waiting to queue";
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(task.getId(), "IBEISIA", myShepherd);
-	System.out.println("Logs: "+logs.size());
-	if(logs!=null && logs.size()>0){
-		
-		Collections.reverse(logs);  //so it has newest first like mostRecent above
-		IdentityServiceLog l =logs.get(0);
-		JSONObject islObj = l.toJSONObject();
-		if(islObj.optString("status")!=null && islObj.optString("status").equals("completed")){
-			status=islObj.optString("status");
-		}
-		else if(islObj.toString().indexOf("HTTP error code")>-1){
-			status="error";
-		}
-		else if(!islObj.optString("queueStatus").equals("")){
-			status=islObj.optString("queueStatus");
-		}
-		else if(islObj.opt("status")!=null && islObj.opt("status").toString().indexOf("initIdentify")>-1){
-			status="queuing";
-		}
-		//if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
-		
-	}
-	return status;
-	
-}
-%>
+
 
 <%!
 public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap){
@@ -116,8 +88,16 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 	if(task.hasChildren()){
 		//accumulate status across children
 		HashMap<String,String> map=new HashMap<String,String>();
+		//this should only ever be two layers deep
 		for(Task childTask:task.getChildren()){
-			map.put(childTask.getId(),getTaskStatus(childTask,myShepherd));
+			if(childTask.hasChildren()){
+				for(Task childTask2:childTask.getChildren()){
+					map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+				}
+			}
+			else{
+				map.put(childTask.getId(),childTask.getStatus(myShepherd));
+			}
 		}
 		
 		//now, how do we report these?
@@ -143,7 +123,7 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 		
 	}
 	else{
-		status=getTaskStatus(task,myShepherd);
+		status=task.getStatus(myShepherd);
 		//overall ID results
 		if(!idStatusMap.containsKey(status)){idStatusMap.put(status, new Integer(1));}
 		else{

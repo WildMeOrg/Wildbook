@@ -2257,6 +2257,13 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         }
         if (infDict == null) {
             rtn.put("error", "could not parse inference_dict from results");
+            
+            //set "error" on Task
+            Task task = myShepherd.getTask(taskID);
+            if(task!=null) {
+              task.setStatus("error");
+            }
+            
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             return rtn;
@@ -2316,6 +2323,13 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         jlog.put("twitterBot", TwitterBot.processIdentificationResults(myShepherd, anns, infDict.optJSONObject("annot_pair_dict"), taskID));
         resolveNames(needNameResolution, j.optJSONObject("cm_dict"), myShepherd);
         log(taskID, null, jlog, myShepherd.getContext());
+        
+        //set "completed" on Task
+        Task task = myShepherd.getTask(taskID);
+        if(task!=null) {
+          task.setStatus("completed");
+        }
+        
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         return rtn;
