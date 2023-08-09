@@ -16,11 +16,11 @@ java.util.HashMap,
 org.ecocean.ia.Task,
 java.util.HashMap,
 java.util.LinkedHashSet,
-
+org.ecocean.identity.*,
 org.ecocean.metrics.*,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
-
+org.json.JSONObject,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 
 <%!
@@ -78,6 +78,63 @@ public String dumpTask(Task task) {
     t += "- countObjectAnnotations:      " + task.countObjectAnnotations() + "\n";
     return t;
 }
+%>
+
+
+
+<%!
+public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap){
+	String status="queuing";
+	if(task.hasChildren()){
+		//accumulate status across children
+		HashMap<String,String> map=new HashMap<String,String>();
+		//this should only ever be two layers deep
+		for(Task childTask:task.getChildren()){
+			if(childTask.hasChildren()){
+				for(Task childTask2:childTask.getChildren()){
+					map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+				}
+			}
+			else{
+				map.put(childTask.getId(),childTask.getStatus(myShepherd));
+			}
+		}
+		
+		//now, how do we report these?
+		HashMap<String, Integer> resultsMap=new HashMap<String,Integer>();
+		for(String key:map.values()){
+			
+			//overall ID results
+			if(!idStatusMap.containsKey(key)){idStatusMap.put(key, new Integer(1));}
+			else{
+				int results=idStatusMap.get(key);
+				idStatusMap.put(key, new Integer(results+1));
+			}
+			
+			//task results
+			if(!resultsMap.containsKey(key)){resultsMap.put(key, new Integer(1));}
+			else{
+				int results=resultsMap.get(key);
+				resultsMap.put(key, new Integer(results+1));
+			}
+			
+		}
+	    return resultsMap.toString();
+		
+	}
+	else{
+		status=task.getStatus(myShepherd);
+		//overall ID results
+		if(!idStatusMap.containsKey(status)){idStatusMap.put(status, new Integer(1));}
+		else{
+			int results=idStatusMap.get(status);
+			idStatusMap.put(status, new Integer(results+1));
+		}
+	}
+	
+	return status;
+}
+
 %>
 
 
@@ -154,6 +211,11 @@ myShepherd.beginDBTransaction();
 boolean allowIA=false;
 boolean allowReID=false;
 String iaStatusString="not started";
+boolean shouldRefresh=false;
+String refreshSeconds="60";
+
+//track overall ID progress
+HashMap<String,Integer> idStatusMap=new HashMap<String,Integer>();
 
 try{
 	
@@ -176,14 +238,14 @@ try{
 		int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
 		int wbiaDetectionQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 		if(wbiaIDQueueSize==0 && wbiaDetectionQueueSize == 0){
-			queueStatement = "The machine learning queue is empty and ready for work.";
+			queueStatement = "The bulk import machine learning queue is empty and ready for work.";
 		}
 		else if(Prometheus.getValue("wildbook_wbia_turnaroundtime")!=null){
 	  		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime");
 	  		try{
 	  			Double d = Double.parseDouble(val);
 	  			d=d/60.0;
-	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
+	  			queueStatement = "There are currently "+(wbiaIDQueueSize+wbiaDetectionQueueSize)+" jobs in the bulk import machine learning queue. Each job is averaging a turnaround time of "+(int)Math.round(d)+" minutes.";
 	  		}
 	  		catch(Exception de){de.printStackTrace();}
 	  	}
@@ -281,6 +343,10 @@ try{
 	    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
 	    if (Util.collectionSize(itask.getEncounters()) > 0) {
 	    	for (Encounter enc : itask.getEncounters()) {
+	    		
+	    		
+	    	//setup self-heal missing acmIDs
+	    	ArrayList<MediaAsset> fixACMIDAssets=new ArrayList<MediaAsset>();
 	       
 	    	JSONArray jarr=new JSONArray();
 	    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
@@ -330,9 +396,24 @@ try{
 	                    allAssets.add(ma);
 	                    jarr.put(ma.getId());
 	                    if (ma.getDetectionStatus() != null) numIA++;
+	                    
+	                    //check acmID and build self-heal list if its missing due to an unexpected WBIA outtage
+	                    if("complete".equals(itask.getStatus()) && ma.getAcmId()==null){
+	                    	if(!fixACMIDAssets.contains(ma))fixACMIDAssets.add(ma);
+	                    }
+	                    
 	                }
 	                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
 	            }
+	            
+	            //self-heal missing acmIDs if needed
+                if(fixACMIDAssets.size()>0 && "complete".equals(itask.getStatus())){
+                	System.out.println("Self-healing acmIDs in import task: "+itask.getId());
+                	refreshSeconds="300";  //give more time for these asynch registrations to occur
+
+                	//IBEISIA.sendMediaAssetsNew(fixACMIDAssets, context);
+
+                }
 	        }
 	        
 	        //let's do some annotation tabulation
@@ -406,10 +487,10 @@ try{
                 });
                 Collections.reverse(tasks); 		
 	        	
-	        	System.out.println("Num tasks: "+tasks.size());
+	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+"</a>");
+	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap)+"</a>");
 	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
@@ -439,7 +520,14 @@ try{
 		int numDetectionComplete=0;
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
-			if(asset.validateSourceImage()){numAllowedIA++;}
+			
+			//check if we can get validity off the image before the expensive check of hitting the AssetStore
+			if(asset.isValidImageForIA()!=null){
+				if(asset.isValidImageForIA().booleanValue()){numAllowedIA++;}
+			}
+			else if(asset.validateSourceImage()){numAllowedIA++;myShepherd.updateDBTransaction();}
+			
+			
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
 		}
 		%>
@@ -479,7 +567,7 @@ try{
 	
 	if("complete".equals(itask.getStatus()) && (itask.getIATask()==null))allowIA=true;
 
-	boolean shouldRefresh=false;
+	
 	//let's check shouldRefresh logic
 	if(itask.getStatus()!=null && !itask.getStatus().equals("complete"))shouldRefresh=true;
 	
@@ -497,9 +585,22 @@ try{
         }
         //ID Task
         else{
-        	iaStatusString="identification requests sent (see table below for links to each matching job). "+queueStatementID;
+        	
+        	//let's tabulate ID status map for complete
+        	int numComplete = 0;
+        	int numTotal = 0;		
+        	if(idStatusMap.get("completed")!=null){numComplete=idStatusMap.get("completed");}
+        	for(Integer key:idStatusMap.values()){
+        		numTotal+=key;
+        	}
+        	String idStatusString="";
+        	if(numTotal>0)idStatusString=numComplete+" individual computer vision tasks complete of "+numTotal+" total. ";
+        	
+        	if(numComplete==numTotal)shouldRefresh=false;
+        
+        	iaStatusString="identification requests sent (see table below for links to each matching job). "+idStatusString+queueStatementID;
         	if(numMatchTasks<numMatchAgainst)shouldRefresh=true;
-        	System.out.println("heerios!");
+        	
         }
     }
 	//let's handle legacy data
@@ -539,7 +640,7 @@ try{
 		    	document.getElementById('countdown').innerHTML = remaining;
 		    	setTimeout(function(){ countdown(remaining - 1); }, 1000);
 	
-			})(60);	
+			})(<%=refreshSeconds  %>);	
 	 	</script>
 	    
 	    <%
