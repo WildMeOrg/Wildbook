@@ -351,7 +351,14 @@ public class MetricsBot {
   
         // Identification tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
-      
+        
+        //Task loading and completion
+        long TwoFourHours=1000*60*60*24;
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_added_last24","Number of child identification tasks added last 24 hours", context));
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_completed_last24","Number of child identification tasks completed last 24 hours", context));
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) && created > "+(System.currentTimeMillis()-TwoFourHours))+" VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks_added_last24","Number of detection tasks added last 24 hours", context));        
+        
+        
         // Hotspotter, PieTwo, PieOne 
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"sv_on\"')>-1", "wildbook_tasks_hotspotter", "Number of tasks using Hotspotter algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Pie')>-1 && parameters.indexOf('PieTwo')==-1", "wildbook_tasks_pieOne", "Number of tasks using PieOne algorithm", context));
