@@ -63,8 +63,8 @@ public class QueueUtil {
                 }
             }
         },
-        10,  //initial delay  ... TODO these could be configurable, obvs
-        10,  //period delay *after* execution finishes
+        1,  //initial delay  ... TODO these could be configurable, obvs
+        1,  //period delay *after* execution finishes
         TimeUnit.SECONDS);
         runningSES.add(schedExec);
         runningSF.add(schedFuture);

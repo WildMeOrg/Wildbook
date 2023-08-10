@@ -90,7 +90,7 @@ try {
             	  
 
 	
-	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask);
+	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask,false);
 	              
 	              myShepherd.storeNewTask(childTask);
 	              myShepherd.updateDBTransaction();
