@@ -171,16 +171,19 @@ public class IAGateway extends HttpServlet {
               
               //if this is just a single Encounter call, put it in the fast/detection lane to unblock small batch users
               if(j.optBoolean("fastlane", false)) {
+            	task.setQueueResumeMessage(j.toString());
                 ok = addToDetectionQueue(context, j.toString());
               }
               else{
+            	task.setQueueResumeMessage(j.toString());
                 ok = addToQueue(context, j.toString());
               }
             
-            } else {
+            } 
+            else {
+            	task.setQueueResumeMessage(j.toString());
                 ok = addToDetectionQueue(context, j.toString());
             }
-
             if (ok) {
                 System.out.println("INFO: taskId=" + taskId + " enqueued successfully");
                 res.remove("error");
@@ -916,6 +919,7 @@ System.out.println("qjob => " + qjob);
             qjob.put("__context", context);
             qjob.put("__baseUrl", baseUrl);
             qjob.put("__handleBulkImport", System.currentTimeMillis());
+            task.setQueueResumeMessage(qjob.toString());
             boolean ok = addToDetectionQueue(context, qjob.toString());
             if (ok) okCount++;
             //mapRes.put(encId, "task id=" + task.getId() + " queued=" + ok);
