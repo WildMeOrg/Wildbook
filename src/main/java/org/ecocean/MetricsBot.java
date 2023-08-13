@@ -453,7 +453,7 @@ public class MetricsBot {
               }
               name+="_"+user.getUUID().substring(0,8);
               name=name.replaceAll("-", "_");
-              System.out.println("NAME:" + name);
+              //System.out.println("NAME:" + name);
               csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
             catch (NullPointerException e) {e.printStackTrace(); }
