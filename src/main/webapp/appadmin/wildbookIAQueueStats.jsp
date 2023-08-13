@@ -109,36 +109,38 @@ try{
 			if(annots!=null && annots.size()>0){
 				Annotation annot=annots.get(0);
 				Encounter enc=annot.findEncounter(myShepherd);
-				if(enc.getImportTask(myShepherd)!=null){
-					ImportTask tasky=enc.getImportTask(myShepherd);
-					if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
-					else{
-						int distribCount=bulkImports.get(tasky.getId()).intValue();
-						distribCount++;
-						bulkImports.put(tasky.getId(), distribCount);
+				if(enc!=null){
+					if(enc.getImportTask(myShepherd)!=null){
+						ImportTask tasky=enc.getImportTask(myShepherd);
+						if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
+						else{
+							int distribCount=bulkImports.get(tasky.getId()).intValue();
+							distribCount++;
+							bulkImports.put(tasky.getId(), distribCount);
+						}
+						
 					}
-					
-				}
-				Taxonomy taxy=enc.getTaxonomy(myShepherd);
-				if(taxy!=null){
-					if(!species.containsKey(taxy.getScientificName())){species.put(taxy.getScientificName(), new Integer(1));}
-					else{
-						int distribCount=species.get(taxy.getScientificName()).intValue();
-						distribCount++;
-						species.put(taxy.getScientificName(), distribCount);
+					Taxonomy taxy=enc.getTaxonomy(myShepherd);
+					if(taxy!=null){
+						if(!species.containsKey(taxy.getScientificName())){species.put(taxy.getScientificName(), new Integer(1));}
+						else{
+							int distribCount=species.get(taxy.getScientificName()).intValue();
+							distribCount++;
+							species.put(taxy.getScientificName(), distribCount);
+						}
 					}
-				}
-				if(enc!=null && enc.getSubmitterID()!=null){
-					
-					hasUsername++;
-					String username = enc.getSubmitterID();
-					if(!userDistribution.containsKey(username)){userDistribution.put(username, new Integer(1));}
-					else{
-						int distribCount=userDistribution.get(username).intValue();
-						distribCount++;
-						userDistribution.put(username, distribCount);
+					if(enc.getSubmitterID()!=null){
+						
+						hasUsername++;
+						String username = enc.getSubmitterID();
+						if(!userDistribution.containsKey(username)){userDistribution.put(username, new Integer(1));}
+						else{
+							int distribCount=userDistribution.get(username).intValue();
+							distribCount++;
+							userDistribution.put(username, distribCount);
+						}
+						
 					}
-					
 				}
 			}
 
