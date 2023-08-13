@@ -33,6 +33,10 @@ alter table "TASK" alter column "PARAMETERS" type text;
         		<column jdbc-type="LONGVARCHAR"/>
       		</field>
 			
+			<field name="queueResumeMessage" persistence-modifier="persistent">
+        		<column jdbc-type="LONGVARCHAR"/>
+      		</field>
+			
 			<field name="completionDateInMilliseconds" persistence-modifier="persistent">
 				<column jdbc-type="BIGINT" allows-null="true"/>
 			</field>

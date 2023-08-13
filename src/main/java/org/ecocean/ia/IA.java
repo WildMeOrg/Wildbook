@@ -354,9 +354,11 @@ public class IA {
                     //if fastlane and a smaller, bespoke request, get this into the faster queue
                     qjob.put("fastlane", fastlane);
                     qjob.put("lane", "fast");
+                    tasks.get(i).setQueueResumeMessage(qjob.toString());
                     sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
                   }
                   else {
+                	tasks.get(i).setQueueResumeMessage(qjob.toString());
                     sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
                   }
                 } catch (java.io.IOException iox) {
