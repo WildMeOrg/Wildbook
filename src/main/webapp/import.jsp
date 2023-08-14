@@ -750,7 +750,9 @@ try{
         	allowIA=false;
     	}
 	}
-	
+	if(request.getParameter("resumeStalledTasks")!=null){
+		shouldRefresh=false;
+	}
 
 	
 	%>
