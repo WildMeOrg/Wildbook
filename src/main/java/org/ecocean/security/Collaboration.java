@@ -273,6 +273,8 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
+	
+	
 	public static boolean canEdit(String context, String u1, String u2) {
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
