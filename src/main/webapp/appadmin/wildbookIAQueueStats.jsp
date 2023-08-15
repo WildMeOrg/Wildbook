@@ -77,22 +77,23 @@ try{
 			}
 			else if(params!=null){
 				numIDTasks++;
-				System.out.println("BOOOO: "+params.toString());
-				String algo = params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict").optString("pipeline_root");
-				System.out.println("algo: "+algo);
-				if((algo==null || algo.equals(""))){
-					
+				//System.out.println("BOOOO: "+params.toString());
+				String algo=null;
+				if(params.optJSONObject("ibeis.identification")!=null && params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict")!=null){
+					algo = params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict").optString("pipeline_root");
 				}
-				if((algo==null || algo.equals("")) && params.optJSONArray("matchingAlgorithms").length()>0){
+				
+
+				if((algo==null || algo.equals("")) && params.optJSONArray("matchingAlgorithms")!=null && params.optJSONArray("matchingAlgorithms").length()>0){
 					JSONObject matchingAlgos1 =  params.optJSONArray("matchingAlgorithms").getJSONObject(0);
-					System.out.println(matchingAlgos1.toString());
+					//System.out.println(matchingAlgos1.toString());
 					if(matchingAlgos1!=null){
 						JSONObject queryConfigDict=matchingAlgos1.getJSONObject("query_config_dict");
-						System.out.println(queryConfigDict.toString());
+						//System.out.println(queryConfigDict.toString());
 						if(queryConfigDict!=null && !queryConfigDict.optString("pipeline_root").equals(""))algo=queryConfigDict.optString("pipeline_root");
 					}
 				}
-				System.out.println("algo is: "+algo);
+				//System.out.println("algo is: "+algo);
 				if(algo!=null && !algo.equals("")){
 					if(!algorithms.containsKey(algo)){algorithms.put(algo, new Integer(1));}
 					else{
@@ -105,7 +106,7 @@ try{
 				//lets get status
 				String idState=task.getStatus(myShepherd);
 				if(idState!=null){
-					System.out.println("ID state is: "+idState);
+					//System.out.println("ID state is: "+idState);
 					if(!idTaskStatus.containsKey(idState)){idTaskStatus.put(idState, new Integer(1));}
 					else{
 						int distribCount=idTaskStatus.get(idState).intValue();
