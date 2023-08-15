@@ -43,7 +43,7 @@ myShepherd.beginDBTransaction();
 try{
 
 	long TwoFourHours=1000*60*60*24;
-  	String filter= "select from org.ecocean.ia.Task where created > "+(System.currentTimeMillis()-TwoFourHours);
+  	String filter= "select from org.ecocean.ia.Task where (children == null || children.size() ==0) && created > "+(System.currentTimeMillis()-TwoFourHours);
 	
 	Query q=myShepherd.getPM().newQuery(filter);
 	q.setOrdering("created desc");
@@ -70,15 +70,30 @@ try{
 	for(Task task:allTasks){
 		count++;
 		JSONObject params=task.getParameters();
-		if(task.hasChildren()){numParents++;}
-		else{
+
 
 			if(params!=null && !params.optString("ibeis.detection").equals("")){
 				numDetectionTasks++;
 			}
-			else if(params!=null && params.optJSONObject("ibeis.identification")!=null){
+			else if(params!=null){
 				numIDTasks++;
-				String algo = params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict").optString("pipeline_root");
+				//System.out.println("BOOOO: "+params.toString());
+				String algo=null;
+				if(params.optJSONObject("ibeis.identification")!=null && params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict")!=null){
+					algo = params.optJSONObject("ibeis.identification").optJSONObject("query_config_dict").optString("pipeline_root");
+				}
+				
+
+				if((algo==null || algo.equals("")) && params.optJSONArray("matchingAlgorithms")!=null && params.optJSONArray("matchingAlgorithms").length()>0){
+					JSONObject matchingAlgos1 =  params.optJSONArray("matchingAlgorithms").getJSONObject(0);
+					//System.out.println(matchingAlgos1.toString());
+					if(matchingAlgos1!=null){
+						JSONObject queryConfigDict=matchingAlgos1.getJSONObject("query_config_dict");
+						//System.out.println(queryConfigDict.toString());
+						if(queryConfigDict!=null && !queryConfigDict.optString("pipeline_root").equals(""))algo=queryConfigDict.optString("pipeline_root");
+					}
+				}
+				//System.out.println("algo is: "+algo);
 				if(algo!=null && !algo.equals("")){
 					if(!algorithms.containsKey(algo)){algorithms.put(algo, new Integer(1));}
 					else{
@@ -91,6 +106,7 @@ try{
 				//lets get status
 				String idState=task.getStatus(myShepherd);
 				if(idState!=null){
+					//System.out.println("ID state is: "+idState);
 					if(!idTaskStatus.containsKey(idState)){idTaskStatus.put(idState, new Integer(1));}
 					else{
 						int distribCount=idTaskStatus.get(idState).intValue();
@@ -101,51 +117,53 @@ try{
 				
 				//fastlane
 				if(task.isFastlane(myShepherd))numFastlaneTasks++;
-			}
-			
-			numChildTasks++;
-			
-			List<Annotation> annots=task.getObjectAnnotations();
-			if(annots!=null && annots.size()>0){
-				Annotation annot=annots.get(0);
-				Encounter enc=annot.findEncounter(myShepherd);
-				if(enc!=null){
-					if(enc.getImportTask(myShepherd)!=null){
-						ImportTask tasky=enc.getImportTask(myShepherd);
-						if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
-						else{
-							int distribCount=bulkImports.get(tasky.getId()).intValue();
-							distribCount++;
-							bulkImports.put(tasky.getId(), distribCount);
+				
+				numChildTasks++;
+				
+				List<Annotation> annots=task.getObjectAnnotations();
+				if(annots!=null && annots.size()>0){
+					Annotation annot=annots.get(0);
+					Encounter enc=annot.findEncounter(myShepherd);
+					if(enc!=null){
+						if(enc.getImportTask(myShepherd)!=null){
+							ImportTask tasky=enc.getImportTask(myShepherd);
+							if(!bulkImports.containsKey(tasky.getId())){bulkImports.put(tasky.getId(), new Integer(1));}
+							else{
+								int distribCount=bulkImports.get(tasky.getId()).intValue();
+								distribCount++;
+								bulkImports.put(tasky.getId(), distribCount);
+							}
+							
 						}
-						
-					}
-					Taxonomy taxy=enc.getTaxonomy(myShepherd);
-					if(taxy!=null){
-						if(!species.containsKey(taxy.getScientificName())){species.put(taxy.getScientificName(), new Integer(1));}
-						else{
-							int distribCount=species.get(taxy.getScientificName()).intValue();
-							distribCount++;
-							species.put(taxy.getScientificName(), distribCount);
+						Taxonomy taxy=enc.getTaxonomy(myShepherd);
+						if(taxy!=null){
+							if(!species.containsKey(taxy.getScientificName())){species.put(taxy.getScientificName(), new Integer(1));}
+							else{
+								int distribCount=species.get(taxy.getScientificName()).intValue();
+								distribCount++;
+								species.put(taxy.getScientificName(), distribCount);
+							}
 						}
-					}
-					if(enc.getSubmitterID()!=null){
-						
-						hasUsername++;
-						String username = enc.getSubmitterID();
-						if(!userDistribution.containsKey(username)){userDistribution.put(username, new Integer(1));}
-						else{
-							int distribCount=userDistribution.get(username).intValue();
-							distribCount++;
-							userDistribution.put(username, distribCount);
+						if(enc.getSubmitterID()!=null){
+							
+							hasUsername++;
+							String username = enc.getSubmitterID();
+							if(!userDistribution.containsKey(username)){userDistribution.put(username, new Integer(1));}
+							else{
+								int distribCount=userDistribution.get(username).intValue();
+								distribCount++;
+								userDistribution.put(username, distribCount);
+							}
+							
 						}
-						
 					}
 				}
 			}
+			
 
 
-		}
+
+	
 		
 	}
 	%>
@@ -177,8 +195,7 @@ try{
 	<h2>Tasks Created in the Last 24 Hours</h2>
 	<ul>
 	
-	<li>Num parent tasks: <%=numParents %></li>
-	<li>Num child tasks: <%=numChildTasks %>
+
 		<ul>
 			<li>Num detection tasks: <%=numDetectionTasks %></li>
 			<li>Num ID tasks created: <%=numChildTasks %>
@@ -247,7 +264,7 @@ try{
 				</ul>
 			</li>
 		</ul>
-	</li>
+
 
 
 	
