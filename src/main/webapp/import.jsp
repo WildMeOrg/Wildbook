@@ -18,10 +18,108 @@ java.util.HashMap,
 java.util.LinkedHashSet,
 org.ecocean.identity.*,
 org.ecocean.metrics.*,
+org.ecocean.ia.IA,
 org.ecocean.ia.WbiaQueueUtil,
 java.util.Collections,java.util.Comparator,
 org.json.JSONObject,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+
+<%!
+public static void intakeTask(Shepherd myShepherd, Task task) {
+
+    if ((task.getObjectAnnotations() == null) || (task.getObjectAnnotations().size() < 1)) {
+    	System.out.println("!!!!!!Task was empty. What the heck?");
+    	return;
+    }
+
+    String context = myShepherd.getContext();
+
+    //List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+    IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+
+        List<JSONObject> opts = iaConfig.identOpts(myShepherd, task.getObjectAnnotations().get(0));
+        //now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
+        if (opts != null) {
+            Iterator<JSONObject> itr = opts.iterator();
+            while (itr.hasNext()) {
+                if (!itr.next().optBoolean("default", true)) itr.remove();
+            }
+        }
+
+        System.out.println("identOpts: "+opts);
+        JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
+  
+          newTaskParams = task.getParameters();
+          System.out.println("newTaskParams: "+newTaskParams.toString());
+          if(newTaskParams.optJSONArray("matchingAlgorithms")!=null) {
+            JSONArray matchingAlgorithms=newTaskParams.optJSONArray("matchingAlgorithms");
+            System.out.println("matchingAlgorithms1: "+matchingAlgorithms.toString());
+            ArrayList<JSONObject> newOpts=new ArrayList<JSONObject>();
+            int maLength=matchingAlgorithms.length();
+            for(int y=0;y<maLength;y++) {
+              newOpts.add(matchingAlgorithms.getJSONObject(y));
+            }
+            System.out.println("matchingAlgorithms2: "+newOpts.toString());
+            if(newOpts.size()>0) {
+              opts=newOpts;
+              System.out.println("Swapping opts for newOpts!!");
+            }
+
+
+          }
+ 
+        if ((opts == null) || (opts.size() < 1)) {
+        	System.out.println("returning opts=null");
+        	return;
+        }  // no ID for this iaClass.
+
+        // just one IA class, one algorithm case
+        
+          newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+          task.setParameters(newTaskParams);
+
+        boolean fastlane=task.isFastlane(myShepherd);
+        newTaskParams.put("fastlane", fastlane);
+        if(fastlane)newTaskParams.put("lane", "fast");
+
+        //these are re-used in every task
+        JSONArray annArr = new JSONArray();
+        annArr.put(task.getObjectAnnotations().get(0).getId());
+        JSONObject aj = new JSONObject();
+        aj.put("annotationIds", annArr);
+        String baseUrl = IA.getBaseURL(context);
+
+        for (int i = 0 ; i < opts.size() ; i++) {
+            JSONObject qjob = new JSONObject();
+            qjob.put("identify", aj);
+            qjob.put("taskId", task.getId());
+            qjob.put("__context", context);
+            qjob.put("__baseUrl", baseUrl);
+            if (opts.get(i) != null) qjob.put("opt", opts.get(i));
+            boolean sent = false;
+            try {
+              if(fastlane) {
+                //if fastlane and a smaller, bespoke request, get this into the faster queue
+                qjob.put("fastlane", fastlane);
+                qjob.put("lane", "fast");
+                task.setQueueResumeMessage(qjob.toString());
+                sent = org.ecocean.servlet.IAGateway.addToDetectionQueue(context, qjob.toString());
+              }
+              else {
+            	task.setQueueResumeMessage(qjob.toString());
+                sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+              }
+            } catch (java.io.IOException iox) {
+                System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+            }
+	System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " + task.getObjectAnnotations().size() + " annots; queued? = " + sent + "; " + task);
+        }
+  
+	System.out.println("INFO: IA.intakeAnnotations() finished as " + task);
+    
+}
+
+%>
 
 <%!
 public boolean isUserAuthorizedForImportTask(HttpServletRequest req, ImportTask itask, Shepherd myShepherd){
@@ -83,8 +181,18 @@ public String dumpTask(Task task) {
 
 
 <%!
-public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap){
-	String status="queuing";
+public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Integer> idStatusMap, HttpServletRequest request){
+	String status="unknown";
+	//resumeStalledTasks
+	boolean resumeStalledTasks = false;
+	String queueStatusToFix = "";
+	if(request.getParameter("resumeStalledTasks")!=null){
+		resumeStalledTasks=true;
+		queueStatusToFix=request.getParameter("resumeStalledTasks");
+	}
+
+	
+	
 	if(task.hasChildren()){
 		//accumulate status across children
 		HashMap<String,String> map=new HashMap<String,String>();
@@ -92,11 +200,33 @@ public String getOverallStatus(Task task,Shepherd myShepherd, HashMap<String,Int
 		for(Task childTask:task.getChildren()){
 			if(childTask.hasChildren()){
 				for(Task childTask2:childTask.getChildren()){
-					map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+					if(childTask2.getObjectAnnotations()!=null && childTask2.getObjectAnnotations().size()>0
+							&& childTask2.getObjectAnnotations().get(0).getMatchAgainst() && childTask2.getObjectAnnotations().get(0).getIAClass()!=null){
+								map.put(childTask2.getId(),childTask2.getStatus(myShepherd));
+								//if resume
+								if(resumeStalledTasks && childTask2.getStatus(myShepherd).equals(queueStatusToFix)){
+									System.out.println("Requeuing task: "+childTask2.getId());
+									intakeTask(myShepherd, childTask2); 
+								}
+					}
+					
+
+					
 				}
 			}
 			else{
-				map.put(childTask.getId(),childTask.getStatus(myShepherd));
+				if(childTask.getObjectAnnotations()!=null && childTask.getObjectAnnotations().size()>0
+						&& childTask.getObjectAnnotations().get(0).getMatchAgainst() && childTask.getObjectAnnotations().get(0).getIAClass()!=null){
+							map.put(childTask.getId(),childTask.getStatus(myShepherd));
+							
+							
+							//if resume
+							if(resumeStalledTasks && childTask.getStatus(myShepherd).equals(queueStatusToFix)){
+								System.out.println("Requeuing task: "+childTask.getId());
+								intakeTask(myShepherd, childTask); 
+							}
+				}
+
 			}
 		}
 		
@@ -490,7 +620,7 @@ try{
 	        	//System.out.println("Num tasks: "+tasks.size());
 	        	out.println("     <ul>");
 	        	//for(Task task:tasks){
-	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap)+"</a>");
+	        		out.println("          <li><a target=\"_blank\" href=\"iaResults.jsp?taskId="+tasks.get(0).getId()+"\" >"+annotTypesByTask.get(tasks.get(0).getId())+": "+getOverallStatus(tasks.get(0),myShepherd,idStatusMap,request)+"</a>");
 	        	//}
 	        	out.println("     </ul>");
 	        	numMatchTasks++;
@@ -620,7 +750,9 @@ try{
         	allowIA=false;
     	}
 	}
-	
+	if(request.getParameter("resumeStalledTasks")!=null){
+		shouldRefresh=false;
+	}
 
 	
 	%>
