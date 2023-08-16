@@ -378,12 +378,15 @@ public class MetricsBot {
         
         //add queue information
         try {
+          System.out.println("Trying to get queue sizes!");
           org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
           org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
           long iaQueueSize=iaQueue.getQueueSize();  
           long detectionQueueSize=detectionQueue.getQueueSize();
-          csvLines.add("wildbook_queue_jobs{login=\"detection\",} "+detectionQueueSize);
-          csvLines.add("wildbook_queue_jobs{login=\"IA\",} "+iaQueueSize);
+          //csvLines.add("wildbook_taxonomies_total"+","+taxa.size()+","+"gauge"+","+"Number of species");
+          csvLines.add("wildbook_queue_detect, "+detectionQueueSize+","+"gauge"+","+"Number detection jobs in Wildbook queue now");
+          csvLines.add("wildbook_queue_ia, "+iaQueueSize+","+"gauge"+","+"Number ID jobs in Wildbook queue now");
+          csvLines.add("wildbook_queue_total, "+(iaQueueSize+detectionQueueSize)+","+"gauge"+","+"Number total jobs in Wildbook queue");
         }
         catch (Exception e) {e.printStackTrace(); }
         
@@ -447,6 +450,8 @@ public class MetricsBot {
           filterTasksUsersQuery.closeAll();
           //end WB-1968
 
+          //too slow and error-prone for various usernames
+          /*
           for (User user:users)
           {  
             // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
@@ -465,6 +470,8 @@ public class MetricsBot {
             catch (NullPointerException e) {e.printStackTrace(); }
             catch(java.util.regex.PatternSyntaxException pe) {pe.printStackTrace();}
           }
+          */
+          
         }
         catch(Exception exy) {exy.printStackTrace();}
         finally {
