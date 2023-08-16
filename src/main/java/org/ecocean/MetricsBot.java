@@ -41,6 +41,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
+import org.ecocean.queue.QueueUtil;
 import org.json.JSONObject;
 
 public class MetricsBot {
@@ -375,6 +376,17 @@ public class MetricsBot {
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Finfindr')>-1", "wildbook_tasks_finFindr", "Number of tasks using FinFindr algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
         
+        //add queue information
+        try {
+          org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
+          org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
+          long iaQueueSize=iaQueue.getQueueSize();  
+          long detectionQueueSize=detectionQueue.getQueueSize();
+          csvLines.add("wildbook_queue_jobs{login=\"detection\",} "+detectionQueueSize);
+          csvLines.add("wildbook_queue_jobs{login=\"IA\",} "+iaQueueSize);
+        }
+        catch (Exception e) {e.printStackTrace(); }
+        
         // Species tasks
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MetricsBot_ML_Tasks");
@@ -434,24 +446,17 @@ public class MetricsBot {
           List<User> users = new ArrayList<User>(c);
           filterTasksUsersQuery.closeAll();
           //end WB-1968
-          String userFilter = "";
-          String name = "";
+
           for (User user:users)
           {  
             // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
-            try
-            {
-              name = user.getFullName(); 
+            String userFilter = "";
+            String name = "";
+            try{
               userFilter = (String) user.getUsername();
-  
-              // Truncate user's full name to first name and last initial, and replace space w/ underscore 
-              if (name.contains(" "))
-              {
-                String normalizedName = stripAccents(name).replaceAll("\\*", "");
-                int spaceIndex = normalizedName.indexOf(" ");
-                name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
-              }
-              name+="_"+user.getUUID().substring(0,8);
+
+              name+=user.getUUID();
+
               name=name.replaceAll("-", "_");
               //System.out.println("NAME:" + name);
               csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
