@@ -44,21 +44,25 @@ try{
 
 	long TwoFourHours=1000*60*60*24;
   	String filter= "select from org.ecocean.ia.Task where (children == null || children.size() ==0) && created > "+(System.currentTimeMillis()-TwoFourHours);
-	
+  	String completionFilter= "select from org.ecocean.ia.Task where (children == null || children.size() ==0) && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours);
+  	
+  	//new tasks
 	Query q=myShepherd.getPM().newQuery(filter);
 	q.setOrdering("created desc");
-	
     Collection c=(Collection) (q.execute());
    	ArrayList<Task> allTasks = new ArrayList<Task>(c);
 	q.closeAll();
-	int count=0;
 	
+	int count=0;
 	int numParents=0;
 	int numChildTasks=0;
 	int hasUsername=0;
 	int numDetectionTasks=0;
 	int numIDTasks = 0;
 	int numFastlaneTasks = 0;
+	
+	int numDetectionCompletedLast24=0;
+	int numIDCompletedLast24=0;
 	
 	HashMap<String, Integer> userDistribution = new HashMap<String,Integer>();
 	HashMap<String, Integer> algorithms = new HashMap<String,Integer>();
@@ -166,6 +170,32 @@ try{
 	
 		
 	}
+	
+	//completion tasks
+	String detectionsCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)+" && parameters.indexOf('ibeis.detection') > -1  && (children == null || children.size() == 0)";
+	String idCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)+" && parameters.indexOf('ibeis.detection') == -1  && (children == null || children.size() == 0)";
+    try {
+        Long detectValue=null;
+        Long idValue=null;
+       
+        Query qD=myShepherd.getPM().newQuery(detectionsCompleteFilter);
+        detectValue=(Long) qD.execute();
+        qD.closeAll();
+        if(detectValue!=null) numDetectionCompletedLast24 = detectValue.intValue();
+        
+        Query qID=myShepherd.getPM().newQuery(idCompleteFilter);
+        idValue=(Long) qID.execute();
+        qID.closeAll();
+        if(idValue!=null) numIDCompletedLast24 = idValue.intValue();
+
+      }
+      catch(java.lang.IllegalArgumentException badArg) {
+        System.out.println("MetricsBot.buildGauge called with bad arguments.");
+        badArg.printStackTrace();
+      }
+      catch(Exception e) {
+        e.printStackTrace();
+      }
 	%>
 	
 	
@@ -190,6 +220,13 @@ try{
 				
 			</ul>
 		</li>
+	</ul>
+	
+	<h2>Tasks Completed in the Last 24 Hours</h2>
+	
+	<ul>
+	<li>Detection: <%=numDetectionCompletedLast24 %></li>
+	<li>ID: <%=numIDCompletedLast24 %></li>
 	</ul>
 	
 	<h2>Tasks Created in the Last 24 Hours</h2>
