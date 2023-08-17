@@ -144,6 +144,7 @@ public class StartupWildbook implements ServletContextListener {
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
+        AcmIdBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
 
@@ -196,7 +197,13 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException ex) {
             System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
         }
-        if ((queue == null) || (queueCallback == null)) {
+        Queue detectionQ = null;
+        try {
+          detectionQ = QueueUtil.getBest(context, "detection");
+        } catch (IOException ex) {
+            System.out.println("+ ERROR: detection queue startup exception: " + ex.toString());
+        }
+        if ((queue == null) || (queueCallback == null)|| (detectionQ == null)) {
             System.out.println("+ WARNING: IA queue service(s) NOT started");
             return;
         }
@@ -214,6 +221,13 @@ public class StartupWildbook implements ServletContextListener {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
+        }
+        IAMessageHandler qh3 = new IAMessageHandler();
+        try {
+            detectionQ.consume(qh3);
+            System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() started on " + detectionQ.toString());
+        } catch (IOException iox) {
+            System.out.println("+ StartupWildbook.startIAQueues() detectionQ.consume() FAILED on " + detectionQ.toString() + ": " + iox.toString());
         }
     }
 
@@ -253,6 +267,7 @@ public class StartupWildbook implements ServletContextListener {
         QueueUtil.cleanup();
         TwitterBot.cleanup();
         MetricsBot.cleanup();
+        AcmIdBot.cleanup();
     }
 
 
