@@ -506,14 +506,15 @@ finally{
                             	%>
                             	
                             		<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           		 	<li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                               
+                           		 	
                            		<%
 
 
                               }
                               %>
                               <li class="divider"></li>
+                              <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+                               
                             <% 
                             }
 
