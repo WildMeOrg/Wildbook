@@ -26,18 +26,30 @@ public class WbiaQueueUtil {
   private static int sizeIDJobQueue=0;
   private static int sizeDetectionJobQueue=0;
   
-  private static void reloadIfNeeded(boolean refresh) {
+  private static synchronized void reloadIfNeeded(boolean refresh) {
     String context="context0";
+    
+    //in case of error copies
+    int e_numJobs=numJobs;
+    int e_numCompletedJobs = numCompletedJobs;
+    int e_numQueuedJobs = numQueuedJobs;
+    int e_numErrorJobs = numErrorJobs;
+    int e_numDetectionJobs = numDetectionJobs;
+    int e_numIDJobs = numIDJobs;
+    int e_sizeIDJobQueue = sizeIDJobQueue;
+    int e_sizeDetectionJobQueue=sizeDetectionJobQueue;
+    
     try {
       QueryCache qc=QueryCacheFactory.getQueryCache(context);
       if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && !refresh){
         wbiaQueue=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
       }
       else{
+
           URL wbiaQueueUrl = IBEISIA.iaURL(context, "api/engine/job/status/");
           wbiaQueue = Util.toggleJSONObject(RestClient.get(wbiaQueueUrl,5000));
           CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(wbiaQueue));
-          cq.nextExpirationTimeout=System.currentTimeMillis()+30000;
+          cq.nextExpirationTimeout=System.currentTimeMillis()+120000;
           qc.addCachedQuery(cq);
           
           //reset our vars
@@ -80,17 +92,46 @@ public class WbiaQueueUtil {
           }
       }
     }
-    catch(Exception e) {e.printStackTrace();}
+    catch(java.net.SocketTimeoutException timeout_e) {
+    	timeout_e.printStackTrace();
+	    //in case of error keep old values
+	    numJobs=e_numJobs;
+	    numCompletedJobs=e_numCompletedJobs;
+	    numQueuedJobs=e_numQueuedJobs;
+	    numErrorJobs=e_numErrorJobs;
+	    numDetectionJobs=e_numDetectionJobs;
+	    numIDJobs=e_numIDJobs;
+	    sizeIDJobQueue=e_sizeIDJobQueue;
+	    sizeDetectionJobQueue=e_sizeDetectionJobQueue;
+    }
+    catch(Exception e) {
+    	e.printStackTrace();
+	    //in case of error keep old values
+	    numJobs=e_numJobs;
+	    numCompletedJobs=e_numCompletedJobs;
+	    numQueuedJobs=e_numQueuedJobs;
+	    numErrorJobs=e_numErrorJobs;
+	    numDetectionJobs=e_numDetectionJobs;
+	    numIDJobs=e_numIDJobs;
+	    sizeIDJobQueue=e_sizeIDJobQueue;
+	    sizeDetectionJobQueue=e_sizeDetectionJobQueue;
+    }
   }
   
   public static synchronized int getSizeIDJobQueue(boolean refresh) {
-    reloadIfNeeded(refresh);
-    return sizeIDJobQueue;
+    try {
+      if(refresh)reloadIfNeeded(refresh);
+      return sizeIDJobQueue;
+    }
+    finally {reloadIfNeeded(refresh);}
   }
   
   public static synchronized int getSizeDetectionJobQueue(boolean refresh) {
-    reloadIfNeeded(refresh);
-    return sizeDetectionJobQueue;
+    try {
+      if(refresh)reloadIfNeeded(refresh);
+      return sizeDetectionJobQueue;
+    }
+    finally {reloadIfNeeded(refresh);}
   }
   
   public static synchronized String getStatusWBIAJob(String id,boolean refresh) {
@@ -112,13 +153,19 @@ public class WbiaQueueUtil {
   }
   
   public static synchronized int getNumWorkingJobs(boolean refresh) {
-    reloadIfNeeded(refresh);
-    return numWorkingJobs;
+    try {
+      if(refresh)reloadIfNeeded(refresh);
+      return numWorkingJobs;
+    }
+    finally {reloadIfNeeded(refresh);}
   }
   
   public static synchronized int getNumQueuedJobs(boolean refresh) {
-    reloadIfNeeded(refresh);
-    return numQueuedJobs;
+    try {
+      if(refresh)reloadIfNeeded(refresh);
+      return numQueuedJobs;
+    }
+    finally {reloadIfNeeded(refresh);}
   }
   
 

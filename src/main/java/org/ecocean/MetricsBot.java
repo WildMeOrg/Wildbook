@@ -41,6 +41,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
+import org.ecocean.queue.QueueUtil;
 import org.json.JSONObject;
 
 public class MetricsBot {
@@ -351,7 +352,16 @@ public class MetricsBot {
   
         // Identification tasks
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
-      
+        
+        //Task loading and completion
+        long TwoFourHours=1000*60*60*24;
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_added_last24","Number of child identification tasks added last 24 hours", context));
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_completed_last24","Number of child identification tasks completed last 24 hours", context));
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) && created > "+(System.currentTimeMillis()-TwoFourHours))+" VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks_added_last24","Number of detection tasks added last 24 hours", context));        
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_fastlane_identification_tasks_added_last24","Number of fastlane child identification tasks added last 24 hours", context));
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_fastlane_identification_tasks_completed_last24","Number of fastlane child identification tasks completed last 24 hours", context));
+        
+        
         // Hotspotter, PieTwo, PieOne 
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where children == null && parameters.indexOf('\"sv_on\"')>-1", "wildbook_tasks_hotspotter", "Number of tasks using Hotspotter algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Pie')>-1 && parameters.indexOf('PieTwo')==-1", "wildbook_tasks_pieOne", "Number of tasks using PieOne algorithm", context));
@@ -365,6 +375,20 @@ public class MetricsBot {
         // Finfindr, Deepsense
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.indexOf('Finfindr')>-1", "wildbook_tasks_finFindr", "Number of tasks using FinFindr algorithm", context));
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where  children == null && parameters.toLowerCase().indexOf('deepsense')>-1", "wildbook_tasks_deepsense", "Number of tasks using Deepsense algorithm", context));
+        
+        //add queue information
+        try {
+          System.out.println("Trying to get queue sizes!");
+          org.ecocean.queue.Queue iaQueue = QueueUtil.getBest(context, "IA");
+          org.ecocean.queue.Queue detectionQueue = QueueUtil.getBest(context, "detection");
+          long iaQueueSize=iaQueue.getQueueSize();  
+          long detectionQueueSize=detectionQueue.getQueueSize();
+          //csvLines.add("wildbook_taxonomies_total"+","+taxa.size()+","+"gauge"+","+"Number of species");
+          csvLines.add("wildbook_queue_detect, "+detectionQueueSize+","+"gauge"+","+"Number detection jobs in Wildbook queue now");
+          csvLines.add("wildbook_queue_ia, "+iaQueueSize+","+"gauge"+","+"Number ID jobs in Wildbook queue now");
+          csvLines.add("wildbook_queue_total, "+(iaQueueSize+detectionQueueSize)+","+"gauge"+","+"Number total jobs in Wildbook queue");
+        }
+        catch (Exception e) {e.printStackTrace(); }
         
         // Species tasks
         Shepherd myShepherd = new Shepherd(context);
@@ -425,30 +449,28 @@ public class MetricsBot {
           List<User> users = new ArrayList<User>(c);
           filterTasksUsersQuery.closeAll();
           //end WB-1968
-          String userFilter = "";
-          String name = "";
+
+          //too slow and error-prone for various usernames
+          /*
           for (User user:users)
           {  
             // Try catch for nulls, because tasks executed by anonymous users don't have a name tied to them
-            try
-            {
-              name = user.getFullName(); 
+            String userFilter = "";
+            String name = "";
+            try{
               userFilter = (String) user.getUsername();
-  
-              // Truncate user's full name to first name and last initial, and replace space w/ underscore 
-              if (name.contains(" "))
-              {
-                String normalizedName = stripAccents(name).replaceAll("*", "");
-                int spaceIndex = normalizedName.indexOf(" ");
-                name = (normalizedName.substring(0,spaceIndex) + "_" + normalizedName.charAt(spaceIndex+1)).toLowerCase();
-              }
-              name+="_"+user.getUUID().substring(0,8);
+
+              name+=user.getUUID();
+
               name=name.replaceAll("-", "_");
-              System.out.println("NAME:" + name);
+              //System.out.println("NAME:" + name);
               csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf(" + "'" + userFilter + "'" + ") > -1 && (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)","wildbook_user_tasks_"+name, "Number of tasks from user " + name, context)); 
             }
-            catch (NullPointerException e) { }
+            catch (NullPointerException e) {e.printStackTrace(); }
+            catch(java.util.regex.PatternSyntaxException pe) {pe.printStackTrace();}
           }
+          */
+          
         }
         catch(Exception exy) {exy.printStackTrace();}
         finally {
