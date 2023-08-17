@@ -2228,6 +2228,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 updateSpeciesOnIA(myShepherd, allAnns);  //tells IA what species we know about these annots now
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
+                task.setStatus("completed");
+                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                myShepherd.updateDBTransaction();
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
 
 

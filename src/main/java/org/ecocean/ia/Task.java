@@ -39,6 +39,7 @@ public class Task implements java.io.Serializable {
     private String parameters = null;
     private String status;
     private Long completionDateInMilliseconds;
+    private String queueResumeMessage;
 
     public Task() {
         this(Util.generateUUID());
@@ -489,6 +490,15 @@ public class Task implements java.io.Serializable {
       else{
         this.completionDateInMilliseconds = ms;
       }
+    }
+    
+    //capture original queue message to make this Task more easily resumeable
+    public String getQueueResumeMessage() {return queueResumeMessage;}
+    public void setQueueResumeMessage(String message) {
+    	if(message==null) {queueResumeMessage=null;}
+    	else {
+    		queueResumeMessage=message;
+    	}
     }
     
 }
