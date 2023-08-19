@@ -173,7 +173,7 @@ try{
 	
 	//completion tasks
 	String detectionsCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)+" && parameters.indexOf('ibeis.detection') > -1  && (children == null || children.size() == 0)";
-	String idCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)+" && parameters.indexOf('ibeis.detection') == -1  && (children == null || children.size() == 0)";
+	String idCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours);
     try {
         Long detectValue=null;
         Long idValue=null;
@@ -186,7 +186,7 @@ try{
         Query qID=myShepherd.getPM().newQuery(idCompleteFilter);
         idValue=(Long) qID.execute();
         qID.closeAll();
-        if(idValue!=null) numIDCompletedLast24 = idValue.intValue();
+        if(idValue!=null) numIDCompletedLast24 = idValue.intValue()-detectValue.intValue();
 
       }
       catch(java.lang.IllegalArgumentException badArg) {

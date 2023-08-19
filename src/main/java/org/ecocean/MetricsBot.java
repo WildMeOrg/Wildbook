@@ -345,18 +345,22 @@ public class MetricsBot {
     private static void addTasksToCsv(ArrayList<String> csvLines, String context) throws FileNotFoundException
     {
         // Total tasks
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task", "wildbook_tasks_total", "Number of machine learning tasks", context));
+        //Haven't found practical value for this
+        //csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task", "wildbook_tasks_total", "Number of machine learning tasks", context));
 
         // Detection tasks
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks","Number of detection tasks", context));        
+        //Haven't found practical value for this
+        //csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks","Number of detection tasks", context));        
   
         // Identification tasks
-        csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
-        
-        //Task loading and completion
+        //Haven't found practical value for this
+        //csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1)" , "wildbook_identification_tasks","Number of identification tasks", context));
+       
+      
+        //Task loading
         long TwoFourHours=1000*60*60*24;
-        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_added_last24","Number of child identification tasks added last 24 hours", context));
-        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_completed_last24","Number of child identification tasks completed last 24 hours", context));
+
+        csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_identification_tasks_added_last24","Number of child identification tasks added last 24 hours", context));  
         csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where parameters.indexOf('ibeis.detection') > -1  && (children == null || (children.contains(child) && child.parameters.indexOf('ibeis.detection') == -1)) && created > "+(System.currentTimeMillis()-TwoFourHours))+" VARIABLES org.ecocean.ia.Task child","wildbook_detection_tasks_added_last24","Number of detection tasks added last 24 hours", context));        
         csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && created > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_fastlane_identification_tasks_added_last24","Number of fastlane child identification tasks added last 24 hours", context));
         csvLines.add(buildGauge(("SELECT count(this) FROM org.ecocean.ia.Task where (parameters.indexOf('ibeis.identification') > -1 || parameters.indexOf('pipeline_root') > -1 || parameters.indexOf('graph') > -1) && (children==null || children.size()==0) && parameters.indexOf('fastlane') > -1 && completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)) , "wildbook_fastlane_identification_tasks_completed_last24","Number of fastlane child identification tasks completed last 24 hours", context));
@@ -395,6 +399,39 @@ public class MetricsBot {
         myShepherd.setAction("MetricsBot_ML_Tasks");
         myShepherd.beginDBTransaction();
         try {
+          
+          //Task completion tasks
+          int numDetectionCompletedLast24=0;
+          int numIDCompletedLast24=0;
+          String detectionsCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours)+" && parameters.indexOf('ibeis.detection') > -1  && (children == null || children.size() == 0)";
+          String idCompleteFilter = "SELECT count(this) FROM org.ecocean.ia.Task where completionDateInMilliseconds > "+(System.currentTimeMillis()-TwoFourHours);
+          try {
+              Long detectValue=null;
+              Long idValue=null;
+             
+              Query qD=myShepherd.getPM().newQuery(detectionsCompleteFilter);
+              detectValue=(Long) qD.execute();
+              qD.closeAll();
+              if(detectValue!=null) numDetectionCompletedLast24 = detectValue.intValue();
+              
+              Query qID=myShepherd.getPM().newQuery(idCompleteFilter);
+              idValue=(Long) qID.execute();
+              qID.closeAll();
+              if(idValue!=null) numIDCompletedLast24 = idValue.intValue()-detectValue.intValue();
+              
+              csvLines.add("wildbook_identification_tasks_completed_last24, "+numIDCompletedLast24+","+"gauge"+","+"Number of child identification tasks completed last 24 hours");
+              csvLines.add("wildbook_detection_tasks_completed_last24, "+numDetectionCompletedLast24+","+"gauge"+","+"Number of detection tasks completed last 24 hours");
+              
+
+            }
+            catch(java.lang.IllegalArgumentException badArg) {
+              System.out.println("MetricsBot.buildGauge called with bad arguments.");
+              badArg.printStackTrace();
+            }
+            catch(Exception e) {
+              e.printStackTrace();
+            }
+          
         
           IAJsonProperties iaConfig = new IAJsonProperties();
   	      List<Taxonomy> taxes = iaConfig.getAllTaxonomies(myShepherd);
