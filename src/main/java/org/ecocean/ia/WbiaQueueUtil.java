@@ -28,13 +28,24 @@ public class WbiaQueueUtil {
   
   private static synchronized void reloadIfNeeded(boolean refresh) {
     String context="context0";
+    
+    //in case of error copies
+    int e_numJobs=numJobs;
+    int e_numCompletedJobs = numCompletedJobs;
+    int e_numQueuedJobs = numQueuedJobs;
+    int e_numErrorJobs = numErrorJobs;
+    int e_numDetectionJobs = numDetectionJobs;
+    int e_numIDJobs = numIDJobs;
+    int e_sizeIDJobQueue = sizeIDJobQueue;
+    int e_sizeDetectionJobQueue=sizeDetectionJobQueue;
+    
     try {
       QueryCache qc=QueryCacheFactory.getQueryCache(context);
       if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && !refresh){
         wbiaQueue=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
       }
       else{
-          
+
           URL wbiaQueueUrl = IBEISIA.iaURL(context, "api/engine/job/status/");
           wbiaQueue = Util.toggleJSONObject(RestClient.get(wbiaQueueUrl,5000));
           CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(wbiaQueue));
@@ -81,7 +92,30 @@ public class WbiaQueueUtil {
           }
       }
     }
-    catch(Exception e) {e.printStackTrace();}
+    catch(java.net.SocketTimeoutException timeout_e) {
+    	timeout_e.printStackTrace();
+	    //in case of error keep old values
+	    numJobs=e_numJobs;
+	    numCompletedJobs=e_numCompletedJobs;
+	    numQueuedJobs=e_numQueuedJobs;
+	    numErrorJobs=e_numErrorJobs;
+	    numDetectionJobs=e_numDetectionJobs;
+	    numIDJobs=e_numIDJobs;
+	    sizeIDJobQueue=e_sizeIDJobQueue;
+	    sizeDetectionJobQueue=e_sizeDetectionJobQueue;
+    }
+    catch(Exception e) {
+    	e.printStackTrace();
+	    //in case of error keep old values
+	    numJobs=e_numJobs;
+	    numCompletedJobs=e_numCompletedJobs;
+	    numQueuedJobs=e_numQueuedJobs;
+	    numErrorJobs=e_numErrorJobs;
+	    numDetectionJobs=e_numDetectionJobs;
+	    numIDJobs=e_numIDJobs;
+	    sizeIDJobQueue=e_sizeIDJobQueue;
+	    sizeDetectionJobQueue=e_sizeDetectionJobQueue;
+    }
   }
   
   public static synchronized int getSizeIDJobQueue(boolean refresh) {
