@@ -460,7 +460,6 @@ public class MetricsBot {
             try{
               userFilter = (String) user.getUsername();
 
-
               name+=user.getUUID();
 
               name=name.replaceAll("-", "_");

@@ -99,7 +99,7 @@ myShepherd.beginDBTransaction();
 
 try{
 
-	long TwoFourHours=1000*60*60*24*2;
+	long TwoFourHours=1000*60*60*24*3;
   	String filter= "select from org.ecocean.ia.Task where created > "+(System.currentTimeMillis()-TwoFourHours);
 	
 	Query q=myShepherd.getPM().newQuery(filter);
@@ -114,7 +114,7 @@ try{
 		try{
 
 		
-			if(task.getParameters()!=null && task.getChildren()!=null && task.getChildren().size()>0 && task.getStatus(myShepherd).equals("waiting to queue") && task.getObjectAnnotations()!=null && task.getObjectAnnotations().size()>0){
+			if(task.getParameters()!=null && (task.getChildren()==null || task.getChildren().size()==0) && task.getStatus(myShepherd).equals("waiting to queue") && task.getObjectAnnotations()!=null && task.getObjectAnnotations().size()>0){
 			
 				JSONObject aj = new JSONObject();
 				JSONArray annArr = new JSONArray();
