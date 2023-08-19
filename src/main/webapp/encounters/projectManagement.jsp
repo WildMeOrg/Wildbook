@@ -119,7 +119,7 @@ try{
   if(encounters != null && encounters.size()>0){
     for(int i=0; i< encounters.size(); i++){
       Encounter currentEncounter = encounters.get(i);
-      if(ServletUtilities.isUserAuthorizedForEncounter(currentEncounter, request) == true){
+      if(ServletUtilities.isUserAuthorizedForEncounter(currentEncounter, request,myShepherd) == true){
         encountersUserCanAdd.add(currentEncounter);
       } else{
           encountersUserCannotAdd.add(currentEncounter);

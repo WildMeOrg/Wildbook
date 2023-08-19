@@ -70,7 +70,7 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			myShepherd.closeDBTransaction();
 			return;
 		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd)){
 			rtn.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(rtn.toString());
 			myShepherd.rollbackDBTransaction();
