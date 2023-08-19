@@ -420,7 +420,22 @@ public class ServletUtilities {
           isOwner = true;
         }
         //if the current user is in a collaboration with the Encounter owner
-        else if (Collaboration.canEditEncounter(enc, request)) return true;
+        else if (Collaboration.canEditEncounter(enc, request)) {return true;}
+               // allow WDP edit stenella frontalis cit sci encounters  
+          // TODO make a mmore resonable way for researchers to ID and edit cit sci submissions 
+        else if ("wdp".equals(request.getUserPrincipal().getName())) {
+            List<User> users = enc.getSubmitters();
+            boolean researcherSubmitted = false;      
+            for (User user : users) {
+              if (user.getUsername()!=null&&!"".equals(user.getUsername())) {
+                researcherSubmitted = true;
+              }
+            }
+            String genSpec = enc.getTaxonomyString();
+            if (!researcherSubmitted&&"Stenella frontalis".equals(genSpec)) {
+              isOwner = true;
+            }
+        }
   
       }
     }
