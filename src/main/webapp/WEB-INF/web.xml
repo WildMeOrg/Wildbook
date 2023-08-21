@@ -77,6 +77,13 @@
 				/appadmin/users.jsp = authc, roles[orgAdmin]
 				/appadmin/automatedUserReconciliation.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
+				
+				#data integrity checks
+				/appadmin/dataIntegrity.jsp = authc
+				/appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
+				/appadmin/sharedAnnotations.jsp = authc
+				/appadmin/duplicateAnnotations.jsp = authc
+				/appadmin/dataValuesCheck.jsp = authc
 
 				/appadmin/resendBulkImportID.jsp = authc, roles[researcher]
                 /appadmin/** = authc, roles[admin]
@@ -494,11 +501,7 @@
 		  /surveys/surveyMapEmbed.jsp = authc
 		  /obrowse.jsp = authc
 
-          /appadmin/dataIntegrity.jsp = authc
-		  /appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
-		  /appadmin/sharedAnnotations.jsp = authc
-		  /appadmin/duplicateAnnotations.jsp = authc
-		  /appadmin/dataValuesCheck.jsp = authc
+
 			</param-value>
         </init-param>
     </filter>
