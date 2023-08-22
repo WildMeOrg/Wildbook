@@ -70,11 +70,11 @@ public class JsonProperties extends Properties {
 	}
 
 	public Object get(String periodSeparatedKeys) {
-		System.out.println("get called on "+periodSeparatedKeys);
+		//System.out.println("get called on "+periodSeparatedKeys);
 		try {
 			String[] keys = periodSeparatedKeys.split("\\.");
 			String keyPrintable = String.join("->", keys);
-			System.out.println("get parsed keys "+keyPrintable);
+			//System.out.println("get parsed keys "+keyPrintable);
 			return getRecursive(keys, this.getJson());
 		} catch (Exception e) {
 			System.out.println("JsonProperties.get hit an exception on key "+periodSeparatedKeys);
@@ -89,7 +89,7 @@ public class JsonProperties extends Properties {
 		String key = keys[0];
 		String linkDestination = getLinkDestination(key, currentLevel);
 		boolean followLink = (linkDestination!=null);
-		if (followLink) System.out.println("getRecursive following a link to "+linkDestination);
+		//if (followLink) System.out.println("getRecursive following a link to "+linkDestination);
 
 		// base case
 		if (keys.length == 1) {
@@ -132,7 +132,7 @@ public class JsonProperties extends Properties {
     try {
       InputStream is = new FileInputStream(fullPath);
       String jsonTxt = IOUtils.toString(is, "UTF-8");
-      System.out.println("JSONProperties successfully parsed "+fullPath);
+      //System.out.println("JSONProperties successfully parsed "+fullPath);
       json = new JSONObject(jsonTxt);
     } catch (Exception e) {
     	System.out.println("Hit an exception on JsonProperties.fromFile("+fullPath+")");

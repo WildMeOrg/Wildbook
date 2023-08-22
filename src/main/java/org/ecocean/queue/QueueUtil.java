@@ -32,7 +32,7 @@ public class QueueUtil {
     //helper method for backgrounding queue consumers who dont background themselves
     //unnecessary for RabbitMQQueue (consumer goes into background automatically)
     public static void background(final Queue queue) throws IOException {
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);
         final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
             int count = 0;
             public void run() {
@@ -63,8 +63,8 @@ public class QueueUtil {
                 }
             }
         },
-        10,  //initial delay  ... TODO these could be configurable, obvs
-        10,  //period delay *after* execution finishes
+        1,  //initial delay  ... TODO these could be configurable, obvs
+        1,  //period delay *after* execution finishes
         TimeUnit.SECONDS);
         runningSES.add(schedExec);
         runningSF.add(schedFuture);

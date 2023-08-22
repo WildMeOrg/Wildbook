@@ -62,6 +62,8 @@ public abstract class Queue {
     public String toString() {
         return "[" + ((type == null) ? "unknown type" : type) + "] " + ((queueName == null) ? "UNNAMED_QUEUE" : queueName);
     }
+    
+    public abstract long getQueueSize();
 }
 
 

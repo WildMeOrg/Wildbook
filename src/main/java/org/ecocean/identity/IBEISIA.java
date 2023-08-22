@@ -265,7 +265,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 
     //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONObject userConfidence, String baseUrl, String context, String taskId)
+                                          JSONObject userConfidence, String baseUrl, String context, String taskId, boolean fastlane)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
@@ -281,6 +281,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
+        if(fastlane)map.put("lane", "fast");
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
@@ -1078,11 +1079,12 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 */
 
     // If you realllllly want to send species I'll just swallow it.
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, Task task, String baseUrl) {
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, Task task, String baseUrl, boolean fastlane) {
         System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters.");
-        return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, task, baseUrl);
+        return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, task, baseUrl, fastlane);
      }
 
+    /*
     //actually ties the whole thing together and starts a job with all the pieces needed
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotationsOriginal(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
@@ -1168,7 +1170,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID,fastlane);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");
@@ -1214,12 +1216,12 @@ System.out.println("beginIdentifyAnnotations() unsuccessful on sendIdentify(): "
 
         return results;
     }
-
+*/
 
 //trying to optimize the original beginIdentifyAnnotations()  [above]
 
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                                      JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl) {
+                                                      JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl, boolean fastlane) {
 
 long tt = System.currentTimeMillis();
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
@@ -1308,7 +1310,7 @@ Util.mark("bia 4C", tt);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext(), taskID,fastlane);
                 System.out.println("identRtn contains ========> "+identRtn);
                 if (identRtn == null) {
                     results.put("error", "identRtn == NULL");
@@ -1759,8 +1761,18 @@ System.out.println("updateSpeciesOnIA(): " + species);
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        
+        //record whether we do an iaClass swap - part 1
+        boolean madeIAClassSwap=false;
+        String originalIAClass=iaClass;
+        
+        //record whether we do an iaClass swap - part 2
         iaClass = iaConf.convertIAClassForTaxonomy(iaClass, taxonomyBeforeDetection);
-
+        if(iaClass!=null && !iaClass.equals(originalIAClass)) {
+          madeIAClassSwap=true;
+        }
+        
+        
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
         }
@@ -1795,6 +1807,14 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {
             ann.setMatchAgainst(true);
         }
+        
+      //record whether we do an iaClass swap, letting WBIA know - part 3
+        if(madeIAClassSwap) {
+          List<Annotation> annots = new ArrayList<Annotation>();
+          annots.add(ann);
+          updateSpeciesOnIA(myShepherd, annots);
+        }
+        
         return ann;
     }
     
@@ -1956,7 +1976,7 @@ System.out.println("     ---> " + annIds);
                 }
             }
             if (needIdentifying.size() > 0) {
-                Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask);
+                Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask,false);
                 // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
                 // and return null if nobody was valid.
                 if (task!=null) {
@@ -2140,6 +2160,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 updateSpeciesOnIA(myShepherd, allAnns);  //tells IA what species we know about these annots now
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
+                task.setStatus("completed");
+                task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                myShepherd.updateDBTransaction();
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
 
 
@@ -2231,6 +2254,13 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         }
         if (infDict == null) {
             rtn.put("error", "could not parse inference_dict from results");
+            
+            //set "error" on Task
+            Task task = myShepherd.getTask(taskID);
+            if(task!=null) {
+              task.setStatus("error");
+            }
+            
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             return rtn;
@@ -2290,6 +2320,14 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         jlog.put("twitterBot", TwitterBot.processIdentificationResults(myShepherd, anns, infDict.optJSONObject("annot_pair_dict"), taskID));
         resolveNames(needNameResolution, j.optJSONObject("cm_dict"), myShepherd);
         log(taskID, null, jlog, myShepherd.getContext());
+        
+        //set "completed" on Task
+        Task task = myShepherd.getTask(taskID);
+        if(task!=null) {
+          task.setStatus("completed");
+          task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+        }
+        
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         return rtn;
@@ -4358,6 +4396,7 @@ Util.mark("sendAnnotationsAsNeeded -in- ", tt);
         ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
         //List<String> iaAnnotIds = plugin.iaAnnotationIds();
         HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
+        if (iaAnnotIds.isEmpty()) throw new RuntimeException("iaAnnotIds is empty; possible IA problems");
 Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
         //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
@@ -4371,6 +4410,7 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
 
             //get iaImageIds only if we need it
             if(iaImageIds==null)iaImageIds=new HashSet(plugin.iaImageIds());
+            if (iaImageIds.isEmpty()) throw new RuntimeException("iaImageIds is empty; possible IA problems");
 
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);

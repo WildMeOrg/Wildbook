@@ -382,7 +382,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParam=behaviors[kwIter].replaceAll("%20", " ").trim();
-              kwParam = kwParam.replace("\"", "&quot;");
               if(!kwParam.equals("")){
                 if(locIDFilter.equals("(")){
                   locIDFilter+=" behavior == \""+kwParam+"\"";
@@ -463,13 +462,17 @@ public class EncounterQueryProcessor extends QueryProcessor {
           }
           filter += obQuery.toString();
           for (int j = 0; j < numObsSearched; j++) {
-            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
+            QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
           }
           System.out.println("ObQuery: "+obQuery);
           System.out.println("Filter? "+filter);
         }
       }
     }
+
+    //-------------------------------------------------------------------
+
+    //Tag Filters--------------------------------------------------------
 
     StringBuilder metalTagFilter = new StringBuilder();
     Enumeration<String> parameterNames = request.getParameterNames();
@@ -1277,13 +1280,18 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
+
+
       //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
       String filterString=""+
          "("
              + "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
              + "(photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
              +"||(informOthers.contains(other) && ((other.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(other.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)))"
+
           +")";
+
+
 
       if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer;org.ecocean.User other";}
       else{
@@ -1292,9 +1300,13 @@ public class EncounterQueryProcessor extends QueryProcessor {
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User other")){jdoqlVariableDeclaration+=";org.ecocean.User other";}
 
       }
+
+
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
+
       prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
+
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
@@ -1349,12 +1361,14 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
           DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
           DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
+
           long date1Millis=date1.getMillis();
           long date2Millis=date2.getMillis();
-          if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
+          //if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
             //if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
             date2Millis+=(24*60*60*1000-1);
-          }
+          //}
+
           prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
 
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){

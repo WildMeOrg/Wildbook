@@ -253,6 +253,9 @@ try{
 	        jobj.put("taskID", taskID);
 	        jobj.put("indivCount", indivCount);
 	        jobj.put("status", status);
+		    if(task.getParameters()!=null){
+		    	jobj.put("filename", task.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+		    }	
 	        
 	        jsonobj.put(jobj);
 
@@ -276,11 +279,17 @@ try{
 			});
 			
 			var colDefn = [
+			           		//{
+			           		//	key: 'taskID',
+			           		//	label: 'Import ID',
+			           		//	value: _colTask,
+			           		//	sortValue: function(o) { return o.taskID; },
+			           		//},
 			           		{
-			           			key: 'taskID',
-			           			label: 'Import ID',
-			           			value: _colTask,
-			           			sortValue: function(o) { return o.taskID; },
+				           		key: 'filename',
+				           		label: 'Filename',
+				           		value: _colFilename,
+				           		sortValue: function(o) { return o.filename; },
 			           		},
 			           		{
 			           			key: 'uname',
@@ -540,6 +549,10 @@ try{
 			function _colTask(o) {
 				if (o.taskID == undefined) return '';
 				return o.taskID;
+			}
+			function _colFilename(o) {
+				if (o.filename == undefined) return '';
+				return o.filename.replaceAll("[","").replaceAll("]","").replaceAll('"','');
 			}
 			
 			function _colUser(o) {

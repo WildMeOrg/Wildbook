@@ -46,9 +46,24 @@
 
 
 
-    List<String> allHaplos2=new ArrayList<String>();
+    //List<String> allHaplos2=new ArrayList<String>();
     int numHaplos2 = 0;
-    allHaplos2=myShepherd.getAllHaplotypes();
+    //allHaplos2=myShepherd.getAllHaplotypes();
+    
+
+    StringBuffer prettyPrint=new StringBuffer("");
+    Map<String,Object> paramMap = new HashMap<String, Object>();
+    String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    List<String> allHaplos2=new ArrayList<String>();
+    myShepherd.beginDBTransaction();
+    try{
+    	allHaplos2=myShepherd.getAllDistinctHaplotypesForEncounterQuery(filter);
+    }
+    catch(Exception qe){qe.printStackTrace();}
+    finally{
+    	myShepherd.rollbackAndClose();
+    }
+    
     numHaplos2=allHaplos2.size();
 
     List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
@@ -132,7 +147,6 @@
   <jsp:include page="../header.jsp" flush="true"/>
 
 
-
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
@@ -190,20 +204,47 @@
  		    }
 
 	});
+
+
+
+
       }
+
+
+
+
+
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
+
     <script type="text/javascript">
+
+
+
 function loadEncounterMapData(localResults,aspect){
+
+	//alert("Entering function loadEncounterMapData");
+
+	  //for (var i = 0; i < results.length; i++) {
+		//    var geoJsonObject = results.features[i];
+		//    var geometry = geoJsonObject.geometry;
+	  //}
+
+	  //alert("Done iterating...");
 	  var googleOptions = {
 			  strokeColor: '#CCC',
 			  strokeWeight: 1
 			};
+	  //alert("Results: "+localResults);
+	  //alert("Aspect is: "+aspect);
 	  currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(localResults), googleOptions, map, bounds,aspect);
 	  	if (currentFeature_or_Features.type && currentFeature_or_Features.type == "Error"){
 			alert("GeoJSON read error: "+ currentFeature_or_Features.message);
+			//return;
 		}
+	  	//alert("No error");
 		if (currentFeature_or_Features.length){
+			//alert("Iterating through detected features: "  +currentFeature_or_Features.length);
 			for (var i = 0; i < currentFeature_or_Features.length; i++){
 				if(currentFeature_or_Features[i].length){
 					for(var j = 0; j < currentFeature_or_Features[i].length; j++){
@@ -214,13 +255,17 @@ function loadEncounterMapData(localResults,aspect){
 					}
 				}
 				else{
+
 					currentFeature_or_Features[i].setMap(map);
 				}
 				if (currentFeature_or_Features[i].geojsonProperties) {
 					setInfoWindow(currentFeature_or_Features[i]);
 				}
 			}
+
+			//currentFeature_or_Features.setMap(map);
 		}else{
+			//alert("In the else statement...");
 			currentFeature_or_Features.setMap(map);
 			if (currentFeature_or_Features.geojsonProperties) {
 				setInfoWindow(currentFeature_or_Features);
@@ -228,11 +273,14 @@ function loadEncounterMapData(localResults,aspect){
 		}
 }
 
+
 function clearMap(){
 	if (!currentFeature_or_Features) {
+		//alert("There is nothing to clear!");
 		return;
 	}
 	if (currentFeature_or_Features.length){
+		//alert("Iterating and clearing map...");
 		for (var i = 0; i < currentFeature_or_Features.length; i++){
 			if(currentFeature_or_Features[i].length){
 				for(var j = 0; j < currentFeature_or_Features[i].length; j++){
@@ -244,8 +292,12 @@ function clearMap(){
 			}
 		}
 	}else{
+		//alert("Clearing map...");
 		currentFeature_or_Features.setMap(null);
 	}
+	//if (infowindow.getMap()){
+	//	infowindow.close();
+	//}
 }
 
 function hideTable(myID) {
@@ -443,13 +495,21 @@ if (request.getQueryString() != null) {
          <li><a
      href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("export")%>
    </a></li>
+
  </ul>
+
+
+
+
+
 
  <%
    //if (rIndividuals.size() > 0) {
      //myShepherd.beginDBTransaction();
      try {
  %>
+
+
  <p>
  <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
   <%
@@ -460,13 +520,19 @@ if (request.getQueryString() != null) {
  }
  %>
  </p>
+
 <p><%=map_props.getProperty("mapNote")%></p>
+
  <div id="map-container">
+
+
 <table cellpadding="3" width="100%">
  <tr>
  <td valign="top" width="90%">
 <div id="map_canvas" style="width: 100%; height: 500px; "> </div>
  </td>
+
+
  <td valign="top" width="10%">
  <table id="haplotable" style="display:none">
  <tr><th><%=map_props.getProperty("haplotypeColorKey") %></th></tr>
@@ -490,6 +556,7 @@ if (request.getQueryString() != null) {
                 	   <tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
                 	   <%
                    }
+
                    %>
  </table>
  </td>
@@ -519,22 +586,38 @@ if (request.getQueryString() != null) {
                 	   <tr bgcolor="#<%=speciesColor%>"><td><strong>Unknown</strong></td></tr>
                 	   <%
                    }
+
                    %>
  </table>
  </td>
 <%
  }
 %>
+
+
  </tr>
  </table>
+
+
  </div>
+
+
+
  <%
+
      }
      catch (Exception e) {
        e.printStackTrace();
      }
-   myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
+
+
+
+
+
+   //myShepherd.rollbackDBTransaction();
+   //myShepherd.closeDBTransaction();
+
+
 %>
 
 </div>
@@ -544,9 +627,12 @@ if (request.getQueryString() != null) {
 
 
 <script>
+
+
 $( window ).load(function() {
 	setTimeout(function () {
         setOverlays();
     }, 1000);
 });
+
 </script>

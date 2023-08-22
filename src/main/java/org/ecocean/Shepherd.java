@@ -1197,7 +1197,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
 
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
   public List<User> getNativeUsersWithoutAnonymous() {
-    List<User> users = getNativeUsers("username ascending NULLS LAST");
+    List<User> users = getNativeUsers("fullName ascending NULLS LAST");
     CollectionUtils.filter(users, new Predicate<User>() { // from https://stackoverflow.com/questions/122105/how-to-filter-a-java-collection-based-on-predicate
        @Override
        public boolean evaluate(User user) {
@@ -2434,6 +2434,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
       Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE members.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user");
+      q.setOrdering("name ascending");
       Collection results = (Collection) q.execute();
       al = new ArrayList<Organization>(results);
       q.closeAll();
@@ -2465,6 +2466,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     try {
       Extent allOrgs = pm.getExtent(Organization.class, true);
       Query q = pm.newQuery(allOrgs);
+      q.setOrdering("name ascending");
       Collection results = (Collection) q.execute();
       al = new ArrayList<Organization>(results);
       q.closeAll();
@@ -4942,6 +4944,74 @@ public Long countMediaAssets(Shepherd myShepherd){
     Collection results = (Collection) q.execute();
     ArrayList al=new ArrayList(results);
 	    q.closeAll();
+    return al;
+  }
+  
+  public List<String> getAllDistinctHaplotypesForEncounterQuery(String filter) {
+    //System.out.println("Filter is:\n"+filter);
+
+    ArrayList<String> al=new ArrayList<String>();
+    //check for VARIABLES
+    if(filter.indexOf("VARIABLES")>-1) {
+      
+      //can't get subqueries with VARIABLES running in JDOQL
+      //do this the easy slow way
+      Query q = pm.newQuery(filter.replaceFirst(" VARIABLES"," && tissueSamples != null VARIABLES"));
+      Collection results = (Collection) q.execute();
+      ArrayList<Encounter> encs=new ArrayList<Encounter>(results);
+      q.closeAll();
+      for(Encounter enc:encs) {
+        if(enc.getHaplotype()!=null && !al.contains(enc.getHaplotype())){
+          al.add(enc.getHaplotype());
+        }
+      }
+      //now sort them.
+      al.sort(String::compareToIgnoreCase);
+      
+    }
+    else {
+      String subfilter =  "SELECT FROM org.ecocean.genetics.MitochondrialDNAAnalysis WHERE ("+filter.replaceFirst("SELECT FROM org.ecocean.Encounter", "SELECT distinct catalogNumber FROM org.ecocean.Encounter")+").contains(this.correspondingEncounterNumber)"; 
+      //System.out.println("subFilter is:\n"+subfilter);
+      Query q = pm.newQuery(subfilter);
+      q.setResult("distinct haplotype");
+      q.setOrdering("haplotype ascending");
+      Collection results = (Collection) q.execute();
+      al=new ArrayList(results);
+      q.closeAll();
+    }
+    
+
+    return al;
+  }
+  
+  public List<String> getAllDistinctHaplotypesForMarkedIndividualQuery(String filter) {
+    ArrayList<String> al=new ArrayList<String>();
+    if(filter.indexOf("VARIABLES")>-1) {
+      //can't get subqueries with VARIABLES running in JDOQL
+      //do this the easy slow way
+      Query q = pm.newQuery(filter);
+      Collection results = (Collection) q.execute();
+      ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>(results);
+      q.closeAll();
+      for(MarkedIndividual indy:indies) {
+        if(indy.getHaplotype()!=null && !al.contains(indy.getHaplotype())){
+          al.add(indy.getHaplotype());
+        }
+      }
+      //now sort them.
+      al.sort(String::compareToIgnoreCase);
+      
+      
+    }
+    else {
+      String subfilter =  "SELECT distinct analysis1.haplotype FROM org.ecocean.Encounter WHERE ("+filter.replaceFirst("SELECT FROM org.ecocean.MarkedIndividual", "SELECT distinct individualID FROM org.ecocean.MarkedIndividual")+").contains(individual.individualID) && tissueSamples.contains(sample1) && sample1.analyses.contains(analysis1) VARIABLES org.ecocean.genetics.TissueSample sample1;org.ecocean.genetics.MitochondrialDNAAnalysis analysis1 ORDER BY analysis1.haplotype"; 
+      System.out.println("Filter is:\n"+filter);
+      System.out.println("subFilter is:\n"+subfilter);
+      Query q = pm.newQuery(subfilter);
+      Collection results = (Collection) q.execute();
+      al=new ArrayList(results);
+      q.closeAll();
+    }
     return al;
   }
 

@@ -147,6 +147,19 @@ function drawFeature(id) {
 	<th>Merge Individuals?</th>
 </tr>
 <%
+
+String username = request.getRemoteUser();
+String usernameFilter=" && enc.submitterID=='"+username+"' ";
+if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
+	usernameFilter="";
+}
+else if(request.getParameter("simulateUser")!=null){
+	if(request.isUserInRole("admin")){
+		username=request.getParameter("simulateUser");
+		usernameFilter=" && enc.submitterID=='"+username+"'";
+	}
+}
+
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("sharedAnnotations.jsp");
 myShepherd.beginDBTransaction();
@@ -171,7 +184,7 @@ try{
 
         if(!acmIds.contains(acmId)){
         	acmIds.add(acmId);
-	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
+	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' "+usernameFilter+" VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
 	        Query q2 = myShepherd.getPM().newQuery(filter);
 	        List results2 = (List)q2.execute();
 	        

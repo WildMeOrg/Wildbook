@@ -15,11 +15,11 @@ Wildbook&reg; is an open source software framework to support mark-recapture, mo
 
 <h2>Wildbook IA - Formerly IBEIS</h2>
 
-<img width="125px" height="*" align="left" src="http://www.wildbook.org/lib/exe/fetch.php?w=200&tok=c557df&media=logo_400x4001.png" /> Wildbook is the data management layer for the <a href="https://github.com/WildbookOrg/wildbook-ia">Wildbook IA (WBIA)</a>. The WBIA project is the successor to the Image-Based Ecological Information System (IBEIS) computer vision research platform, which pulls data from Wildbook servers to detect features in images and identify individual animals. WBIA brings massive-scale computer vision to wildlife research for the first time.
+<img width="125px" height="*" align="left" src="src/main/webapp/images/wild-me-logo-only-100-100.png" /> Wildbook is the data management layer for the <a href="https://github.com/WildbookOrg/wildbook-ia">Wildbook IA (WBIA)</a>. The WBIA project is the successor to the Image-Based Ecological Information System (IBEIS) computer vision research platform, which pulls data from Wildbook servers to detect features in images and identify individual animals. WBIA brings massive-scale computer vision to wildlife research for the first time. 
 <br />
 <h2>Support</h2>
 
-Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation.
+Please see <a href="https://docs.wildme.org">Wildbook.org</a> for documentation. 
 
 Need direct help?
 
@@ -29,112 +29,120 @@ We provide support during regular office hours on Mondays and Tuesdays.
 
 Support resources include:
 <ul>
-<li><a href="http://wiki.wildbook.org">Wildbook Wiki - User Manual, Field Guide, & Documentation</a></li>
-<li><a href="https://community.wildbook.org">Community & Developer Support</a></li>
+<li><a href="http://docs.wildme.org">Wildbook Wiki - User Manual, Field Guide, & Documentation</a></li>
+<li><a href="https://community.wildme.org">Community & Developer Support</a></li>
 <li><a href="https://www.wildme.org/services">Wild Me Professional Services</a></li>
 </ul>
 
+<h2>Want to contribute code?</h2>
+<h3>Variable naming conventions</h3>
+<ul>
+  <li>Camel case</li>
+  <li>Please don’t use single-letter variable names (no matter how temporary you think the code is)</li>
+  <li>Avoid comments; code should be clear enough to speak for itself in almost all cases</li>
+  <li>Code for clarity rather than for efficiency (one-liners are cool, but not at the expense of future obfuscation)</li>
+</ul>
+
+<h3>Overall outline of code framework</h3>
+Spell out how .jsp files relate to servlet files relate to java files, etc. Someone new to the codebase should be able to orient themselves based on your notes.
+
+<h3>Java/jsp style</h3>
+Initialize variables and type signatures at the abstract/interface level when possible.
+
+Instead of:
+
+```
+ArrayList encounters = new ArrayList<Encounter>();
+...
+public int getMax(ArrayList<int> numbers) {
+```
+
+Try:
+
+```
+List encounters = new ArrayList<Encounter>();
+...
+public int getMax(Collection<int> numbers) {
+```
+
+First of all, it’s easier to read and more intuitive for a function to take a Map or List than a HashMap or ArrayList.
+
+The List interface defines how we want that variable to behave, and whether it’s an ArrayList or LinkedList is incidental. Keeping the variable and method signatures abstract means we can change the implementation later (eg swapping ArrayList->LinkedList) without changing the rest of our code.
+https://stackoverflow.com/questions/2279030/type-list-vs-type-arraylist-in-java
+
+Related: when writing utility methods, making the input type as abstract as possible makes the method versatile. See Util.asSortedList in Wildbook: since the input is an abstract Collection, it can accept a List, Set, PriorityQueue, or Vector as input, and return a sorted List.
+
+Runtime (not style): Use Sets (not Lists or arrays) if you’re only keeping track of collection membership / item uniqueness. 
+
+Instead of:
+
+```
+    	List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
+    	for(Encounter currentEncounter: encounters){
+		MarkedIndividual currentInd = enc.getIndividual();
+		if !(uniqueIndividuals.contains(currentInd) {
+			uniqueIndividuals.add(currentInd);
+			doStuff();
+```
+      			
+Try:
+
+```
+Set<MarkedIndividual> uniqueIndividuals = new HashSet<MarkedIndividual>();	
+    	for(Encounter currentEncounter: encounters){
+		MarkedIndividual currentInd = enc.getIndividual();
+		if !(uniqueIndividuals.contains(currentInd) {
+			uniqueIndividuals.add(currentInd);
+			doStuff();
+```
+
+The reason is a little deep in the data types. Sets are defined as unordered collections of unique elements; and Lists/arrays are ordered collections with no bearing on element-uniqueness. If the order of a collection doesn’t matter and you’re just checking membership, you’ll have faster runtime using a Set.
+
+Sets implement contains, add, and remove methods much faster than lists [contains is O(log(n)) vs O(n) runtime]. A list has to iterate through the entire list every time it runs contains (it checks each item once at a time) while a set (especially a HashSet) keeps track of an item index for quick lookup.
+
+
+Use for-each loops aka “enhanced for loops” to make loops more concise and readable.
+
+Instead of:
+
+```
+for (int i=0; i<encounters.length(); i++) {
+	Encounter enc = encounters.get(i)
+	doStuff();
+```
+
+try:
+
+```
+for (Encounter enc: encounters) {
+	doStuff();
+```
+
+Note that in both cases you might want to check if `encounters == null` if relevant, but you rarely need to check if `encounters.length()>0` because the for-loops take care of that.
+
+Also note that if you want access to the `i` variable for logging or otherwise, the classic for-loop is best.
+
+
+`Util.stringExists` is shorthand for a common string check:
+
+Instead of:
+
+```
+	if (str!=Null && !str.equals("")) {
+		doStuff();
+```
+ 
+Try:
+
+```
+	if (Util.stringExists(str)) {
+		doStuff();
+```
+
+This method also checks for the strings “none” and “unknown” which have given us trouble in displays in the past.
+
 <h2>History</h2>
-Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (http://www.whaleshark.org). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
+Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (now part of http://www.sharkbook.ai). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> https://www.wildme.org
-
-<h1>Spotting Giant Sea Bass</h1>
-
-<h2>Editing content</h2>
-
-**Actual pages (jsp files)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp
-
-**Property files (most copy, and translations/localizations)** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/bundles
-
-**Images** go here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/img/bass
-
-<ul>
- <li>Homepage background image ("hero image): https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/img/hero_manta.jpg </li>
-
-<li>Specify header logos here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap-overrides.less</li>
-
- </ul>
-
-<h2>Location IDs</h2>
-
-Add new location ID names to **commonConfiguration.properties**, then request that changes be merged into the working version (not stored on GH):
-https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/commonConfiguration.properties
-
-Add **new location ID coordinates** here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/bundles/locationIDGPS.properties
-
-Also add new locationIDs to this json file: https://github.com/WildMeOrg/Wildbook/blob/bass/src/main/resources/bundles/locationID.json
-
-<h2>Emails</h2>
-
-**Emails** are here: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/resources/emails/en
-
-**Email template** (header and footer content used by other emails):
-
-* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/email-template.html
-* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/email-template.txt
-
-Most important emails:
-
-**New encounter submission (submission confirmation)**
-
-* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.html
-* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/newSubmission.txt
-
-**Encounter update (match notification)**
-
-* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.html
-* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualAddEncounter.txt
-
-**Encounter update (new individual)**
-
-* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualCreate.html
-* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualCreate.txt
-
-**Individual update (resighting notification)**
-
-* html: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.html
-* plaintext: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/resources/emails/en/individualUpdate.txt
-
-
-<h2>Styling</h2>
-
-**less files used to compile css)**: https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/cust/mantamatcher/styles
-
-Lots of settings here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap-vars.less
-
-and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
-
-<ul>
- <li>e.g. body text color (@gray-dark): <a href="https://www.colorhexa.com/333333">#333333</a>  </li>
- </ul>
-
-**Some (mostly page-specific) styles are defined here**:
-https://github.com/WildbookOrg/Wildbook/tree/bass/src/main/webapp/css
-
-
-<h2>Color palette notes</h2>
-
-Colors get changed in this .less file: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_colours.less
-
-<ul>
- <li>header background color and navbar text: <a href="https://www.colorhexa.com/0b718e">#0b718e</a>  </li>
- <li>footer background gray (aka @brand-light): <a href="https://www.colorhexa.com/dfdfdf">#dfdfdf</a>  </li>
- <li>latest encounter links on homepage (aka @brand-secondary): <a href="https://www.colorhexa.com/00c0f7">#00c0f7</a>  </li>
- <li>h1 and h2, Advanced Info button: <a href="https://www.colorhexa.com/005589">#005589</a>  </li>
- <li>Report Encounter button on homepage (aka whaleSharkblue): <a href="https://www.colorhexa.com/5d8cc1">#5d8cc1</a>  </li>
- </ul>
-
-and here: https://github.com/WildbookOrg/Wildbook/blob/bass/src/main/webapp/cust/mantamatcher/styles/_bootstrap.less
-
-<ul>
-<li>red text for mandatory fields (.text-danger): <a href="https://www.colorhexa.com/a94442">#a94442</a>  </li>
-
-<li>bright blue next arrows on gallery page: <a href="https://www.colorhexa.com/00AFCE">#00AFCE</a>  </li>
-
- </ul>
-
-<h2> Quick reference </h2>
-
-HTML entity encoder/decoder: https://mothereff.in/html-entities

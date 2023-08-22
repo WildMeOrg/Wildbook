@@ -51,8 +51,11 @@ public class RabbitMQQueue extends Queue {
     }
 
     public static synchronized void init(String context) throws java.io.IOException {
-        if (factory != null) return;
         try {
+            if (factory != null) {
+              checkConnection();
+              return;
+            }
             factory = new ConnectionFactory();
             factory.setUsername(getUsername(context, "guest"));
             factory.setPassword(getPassword(context, "guest"));
@@ -141,6 +144,15 @@ System.out.println("RabbitMQQueue.consume(): " + deliveryTag + "; " + contentTyp
             return Integer.parseInt(Queue.getProperty(context, "rabbitmq_port", def));
         } catch (Exception ex) { }
         return -1;
+    }
+    
+    public long getQueueSize() {
+      long channelSize=0;
+      try {
+        channelSize=getChannel().messageCount(EXCHANGE_NAME);
+      }
+      catch(Exception e) {e.printStackTrace();}
+      return channelSize;
     }
 
 }

@@ -1297,7 +1297,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     	});
 
 	   		<%
-	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 	   			marker.setVisible(false);
 
@@ -2981,14 +2981,15 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-            List<String> usernames=myShepherd.getAllUsernames();
-            usernames.remove(null);
-            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
-            int numUsers=usernames.size();
+            //List<String> usernames=myShepherd.getAllUsernames();
+            //usernames.remove(null);
+            List<User> users = myShepherd.getNativeUsersWithoutAnonymous();
+            //Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
+            int numUsers=users.size();
             for(int i=0;i<numUsers;i++){
-                String thisUsername=usernames.get(i);
+                String thisUsername=users.get(i).getUsername();
                 	%>
-              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
+              		<option value="<%=thisUsername%>"><%=users.get(i).getFullName() %></option>
               		<%
             }
             %>
@@ -3631,7 +3632,7 @@ else {
        <%}%>
 
     <p>
-    <%if(enc.getDateInMilliseconds()!=null){ %>
+    <%if(enc.getDateInMilliseconds()!=null && visible){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
@@ -6735,7 +6736,8 @@ function iaMatchFilterGo() {
             matchingSetFilter: {},
             matchingAlgorithms: []
         },
-        annotationIds: iaMatchFilterAnnotationIds
+        annotationIds: iaMatchFilterAnnotationIds,
+        fastlane: true
     };
     var keyMap = {
         'match-filter-location-id': 'locationIds',
@@ -6843,16 +6845,16 @@ $(window).on('load',function() {
 <%
 
 	String queueStatementID="";
-	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 	if(wbiaIDQueueSize==0){
 		queueStatementID = "The machine learning queue is empty and ready for work.";
 	}
-	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_detection")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the small batch queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}
