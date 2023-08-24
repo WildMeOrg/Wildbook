@@ -55,6 +55,7 @@ import java.util.Enumeration;
 
 import org.ecocean.*;
 import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.importer.ImportTask;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
@@ -488,6 +489,27 @@ public class ServletUtilities {
     }
     return isOwner;
   }
+  
+  public static boolean isUserAuthorizedForImportTask(ImportTask occ, HttpServletRequest request, Shepherd myShepherd) {
+
+    //first check if the User on the ImportTask matches the current user
+    if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+
+    //quick collaboration check between current user and bulk import owner
+    if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
+    
+    //quick orgAdminCheck
+    //if this user is the orgAdmin for the bulk import's uploading user, they can see it
+    if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request, myShepherd)){return true;} 
+    
+    //otherwise check the Encounters - slow
+     List<Encounter> all = occ.getEncounters();
+     if ((all == null) || (all.size() < 1)) return true;
+     for (Encounter enc : all) {
+       if (isUserAuthorizedForEncounter(enc, request, myShepherd)) return true;  //one is good enough (either owner or in collab or no security etc)
+     }
+     return false;
+   }
 
   
   public static boolean isUserAuthorizedForOccurrence(Occurrence occur, HttpServletRequest request,Shepherd myShepherd) {
