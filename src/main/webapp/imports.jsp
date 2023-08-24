@@ -205,9 +205,7 @@ try{
 	Set<String> locationIds = new HashSet<String>();
 	
     String uclause = "";
-    //if (request.getParameter("showAll")==null) {
-    //	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
-    //}
+    if (request.getParameter("showAll")==null) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
@@ -220,7 +218,7 @@ try{
     JSONArray jsonobj = new JSONArray();
     
     for (ImportTask task : tasks) {
-    	if(adminMode || ServletUtilities.isUserAuthorizedForImportTask(task,request,myShepherd)){
+    	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
 	        //int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
 	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
 			String taskID = task.getId();
