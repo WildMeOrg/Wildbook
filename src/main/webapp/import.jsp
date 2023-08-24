@@ -121,40 +121,6 @@ public static void intakeTask(Shepherd myShepherd, Task task) {
 
 %>
 
-<%!
-public boolean isUserAuthorizedForImportTask(HttpServletRequest req, ImportTask itask, Shepherd myShepherd){
-	try{		
-		//users with admin role always pass
-		if(req.isUserInRole("admin")){return true;}
-		
-		//the task creator should always pass
-		User user = AccessControl.getUser(req, myShepherd);
-		if(user!=null && itask.getCreator()!=null && user.equals(itask.getCreator())){return true;}
-		
-	    //if you're collaborating with a user who owns a bulk import, you can see it
-	    if(user!=null & itask.getCreator()!=null && Collaboration.collaborationBetweenUsers(myShepherd,user.getUsername(), itask.getCreator().getUsername())!=null){return true;}
-	    
-	 
-	
-		//if this user is the orgAdmin for the bulk import's uploading user, they can see it
-		if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(itask.getCreator(), req, myShepherd)){return true;}
-		
-		//if this user's username == an Encounter.submitterID of an Encounter in this bulk import
-		String filter = "select from org.ecocean.Encounter where itask.encounters.contains(this) && itask.id =='"+itask.getId()+"' VARIABLES org.ecocean.servlet.importer.ImportTask itask";	
-	    Query q = myShepherd.getPM().newQuery(filter);
-	    q.setResult("distinct submitterID");
-	    Collection results = (Collection) q.execute();
-	    ArrayList<String> al=new ArrayList<String>(results);
-	    q.closeAll();
-	    if(user!=null && al.contains(user.getUsername())){return true;}
-	}
-	catch(Exception e){e.printStackTrace();}
-   
-	//otherwise, nope....you are not authorized
-	return false;
-}
-
-%>
 
 <%!
 public String dumpTask(Task task) {
@@ -424,7 +390,7 @@ try{
     }
 	
     //security checks
-	if (!isUserAuthorizedForImportTask(request, itask, myShepherd)) {
+	if (!ServletUtilities.isUserAuthorizedForImportTask(itask, request, myShepherd)) {
 		out.println("<h1 class=\"error\">Access denied.</h1>");
 		response.sendError(401, "access denied");
     	myShepherd.rollbackDBTransaction();
