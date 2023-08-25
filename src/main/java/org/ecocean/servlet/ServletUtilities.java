@@ -515,7 +515,9 @@ public class ServletUtilities {
     if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
 
     //quick collaboration check between current user and bulk import owner
-    if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
+    //if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
+    if(Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername())!=null)return true;
+    
     
     //quick orgAdminCheck
     //if this user is the orgAdmin for the bulk import's uploading user, they can see it
