@@ -109,7 +109,7 @@
 
     /fixSomeFields.jsp = authc, roles[admin]
 
-		/gallery.jsp = roles[]
+		
 		/individualSearch.jsp = roles[]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearchResults.jsp = roles[]
