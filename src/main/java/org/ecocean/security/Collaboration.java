@@ -247,14 +247,14 @@ public class Collaboration implements java.io.Serializable {
 	// public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
 	// 	return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
 	// }
-	public static boolean canCollaborate(User u1, User u2, String context) {
+	private static boolean canCollaborate(User u1, User u2, String context) {
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
 		if (c == null) return false;
 		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
 	}
-	public static boolean canCollaborate(String context, String u1, String u2) {
+	private static boolean canCollaborate(String context, String u1, String u2) {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
