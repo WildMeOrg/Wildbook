@@ -416,15 +416,19 @@ public class ServletUtilities {
           }
           
         }
+        
+        //check other cases
+        //----------------
+        
         //if the current user has a location ID-specific role matching the location ID of this Encounter, they are authorized
-        else if (enc.getLocationCode()!=null&&request.isUserInRole(enc.getLocationCode())) {
+        if (!isOwner && enc.getLocationCode()!=null&&request.isUserInRole(enc.getLocationCode())) {
           isOwner = true;
         }
         //if the current user is in a collaboration with the Encounter owner
-        else if (Collaboration.canEditEncounter(enc, request)) {return true;}
+        if (!isOwner && Collaboration.canEditEncounter(enc, request)) {return true;}
                // allow WDP edit stenella frontalis cit sci encounters  
           // TODO make a mmore resonable way for researchers to ID and edit cit sci submissions 
-        else if ("wdp".equals(request.getUserPrincipal().getName())) {
+        if (!isOwner && "wdp".equals(request.getUserPrincipal().getName())) {
             List<User> users = enc.getSubmitters();
             boolean researcherSubmitted = false;      
             for (User user : users) {
