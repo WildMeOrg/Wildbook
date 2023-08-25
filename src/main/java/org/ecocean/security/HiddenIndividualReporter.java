@@ -12,10 +12,10 @@ public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividua
 	protected static final String className = "Individual";
 
 	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly, Shepherd myShepherd) {
-		super(className, tObjectsToFilter, request, viewOnly, myShepherd);
+		super(className, request, viewOnly, myShepherd);
 	}
 	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, Shepherd myShepherd) {
-		super(className, tObjectsToFilter, request, myShepherd);
+	  super(className, request, true, myShepherd);
 	}
 
 	// atomic methods that HiddenDataReporter methods call
