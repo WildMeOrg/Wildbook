@@ -2,7 +2,6 @@ package org.ecocean.security;
 
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
-import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Vector;
@@ -31,17 +30,4 @@ public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividua
 	public String getCollabUrl(String indId) {
 		return MarkedIndividual.getWebUrl(indId, this.request);
 	}
-	
-	 public Vector viewableResults(Vector tObjectsToFilter, boolean hiddenIdsToOwnersIsValid, Shepherd myShepherd) {
-	    //if (!hiddenIdsToOwnersIsValid) loadAllViewable(tObjectsToFilter, myShepherd);
-	    Vector cleanResults = new Vector();
-	    for (Object untypedObj: tObjectsToFilter) {
-	      MarkedIndividual typedObj = (MarkedIndividual) untypedObj;
-	      // if hiddenData doesn't contain the object, add it to clean results
-	      if (ServletUtilities.isUserAuthorizedForIndividual(typedObj, request)) cleanResults.add(untypedObj);
-	    }
-	    return cleanResults;
-	  }
-	
-	
 }
