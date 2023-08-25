@@ -502,12 +502,6 @@ public class ServletUtilities {
     //if this user is the orgAdmin for the bulk import's uploading user, they can see it
     if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request, myShepherd)){return true;} 
     
-    //otherwise check the Encounters - slow
-     List<Encounter> all = occ.getEncounters();
-     if ((all == null) || (all.size() < 1)) return true;
-     for (Encounter enc : all) {
-       if (isUserAuthorizedForEncounter(enc, request, myShepherd)) return true;  //one is good enough (either owner or in collab or no security etc)
-     }
      return false;
    }
 
