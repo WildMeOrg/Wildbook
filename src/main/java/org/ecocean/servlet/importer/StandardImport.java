@@ -1598,6 +1598,7 @@ public class StandardImport extends HttpServlet {
             ma.addKeyword(lkw);
           }
         }
+        ma.validateSourceImage();
 
       }
       // keywording
@@ -1981,6 +1982,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         }
         mark.refreshNamesCache();
       }
+    }
+    
+    //add local MarkedIndividual haplotype reflection
+    if(enc.getHaplotype()!=null) {
+      mark.doNotSetLocalHaplotypeReflection(enc.getHaplotype());
     }
 
 
