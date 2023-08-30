@@ -511,19 +511,24 @@ public class ServletUtilities {
   
   public static boolean isUserAuthorizedForImportTask(ImportTask occ, HttpServletRequest request, Shepherd myShepherd) {
 
-    //first check if the User on the ImportTask matches the current user
-    if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+    if (request.getUserPrincipal()!=null) {
 
-    //quick collaboration check between current user and bulk import owner
-    //if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
-    if(Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername())!=null)return true;
-    
-    
-    //quick orgAdminCheck
-    //if this user is the orgAdmin for the bulk import's uploading user, they can see it
-    if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request, myShepherd)){return true;} 
-    
-     return false;
+      if (request.isUserInRole("admin")) {
+          return true;
+      }
+      //first check if the User on the ImportTask matches the current user
+      if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+  
+      //quick collaboration check between current user and bulk import owner
+      //if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
+      if(Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername())!=null)return true;
+      
+      
+      //quick orgAdminCheck
+      //if this user is the orgAdmin for the bulk import's uploading user, they can see it
+      if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request, myShepherd)){return true;} 
+    }
+    return false;
    }
 
   
