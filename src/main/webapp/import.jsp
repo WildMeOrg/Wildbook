@@ -390,7 +390,7 @@ try{
     }
 	
     //security checks
-	if (!ServletUtilities.isUserAuthorizedForImportTask(itask, request, myShepherd)) {
+	if (!adminMode&&!ServletUtilities.isUserAuthorizedForImportTask(itask, request, myShepherd)) {
 		out.println("<h1 class=\"error\">Access denied.</h1>");
 		response.sendError(401, "access denied");
     	myShepherd.rollbackDBTransaction();
