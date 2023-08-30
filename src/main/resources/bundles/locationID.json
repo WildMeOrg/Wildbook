@@ -3,12 +3,6 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 		{
-			"name": "Doberg",
-			"id": "DOB",
-			"locationID": []
-		},
-
-		{
 			"name": "Botanischer Garten Bielefeld",
 			"id": "BGBi",
 			"geospatialInfo": {
@@ -18,12 +12,37 @@
 			"locationID": []
 		},
 		{
+			"name": "Flöha",
+			"id": "08",
+			"locationID": []
+		},
+		{
+			"name": "Kriebethal/Ehrenberg",
+			"id": "03",
+			"locationID": []
+		},
+		{
 			"name": "Kruppwald Essen",
 			"id": "KE",
 			"geospatialInfo": {
 				"lat": 51.4076079,
 				"long": 7.0024334
 			},
+			"locationID": []
+		},
+		{
+			"name": "Rochlitzer Berg",
+			"id": "06",
+			"locationID": []
+		},
+		{
+			"name": "Talsperre Kriebstein",
+			"id": "04",
+			"locationID": []
+		},
+		{
+			"name": "Waldheim",
+			"id": "09",
 			"locationID": []
 		},
 		{
@@ -216,13 +235,88 @@
 			"id": "Northern Weser Hills",
 			"locationID": [
 				{
-					"name": "Liekwegen",
-					"id": "LIE",
+					"name": "Ballertasche",
+					"id": "BAL",
 					"locationID": []
 				},
 				{
 					"name": "Bernsen",
 					"id": "BNS",
+					"locationID": []
+				},
+				{
+					"name": "Brinkmeier/Edler",
+					"id": "BRM",
+					"locationID": []
+				},
+				{
+					"name": "Bückeberg",
+					"id": "BKB",
+					"locationID": []
+				},
+				{
+					"name": "Coppengrave",
+					"id": "COP",
+					"locationID": []
+				},
+				{
+					"name": "Doberg",
+					"id": "DOB",
+					"locationID": []
+				},
+				{
+					"name": "Hils-Klinkerwerk",
+					"id": "HKB",
+					"locationID": []
+				},
+				{
+					"name": "Himmelsthür",
+					"id": "HIM",
+					"locationID": []
+				},
+				{
+					"name": "Hohenbüchen",
+					"id": "HOH",
+					"locationID": []
+				},	
+				{
+					"name": "Holzhauser Mark",
+					"id": "HHM",
+					"locationID": []
+				},	
+				{
+					"name": "Liekwegen",
+					"id": "LIE",
+					"locationID": []
+				},
+				{
+					"name": "Lohoffscher Bruch",
+					"id": "LOH",
+					"locationID": []
+				},
+				{
+					"name": "Mehholz",
+					"id": "MEH",
+					"locationID": []
+				},
+				{
+					"name": "Messingberg",
+					"id": "MES",
+					"locationID": []
+				},
+				{
+					"name": "Nato-Station Reinsdorf",
+					"id": "NAT",
+					"locationID": []
+				},
+				{
+					"name": "Ochtersum",
+					"id": "OCH",
+					"locationID": []
+				},
+				{
+					"name": "Obernkirchener SSB",
+					"id": "OSB",
 					"locationID": []
 				},
 				{
@@ -236,43 +330,13 @@
 					"locationID": []
 				},
 				{
-					"name": "Messingberg",
-					"id": "MES",
-					"locationID": []
-				},
-				{
-					"name": "Brinkmeier/Edler",
-					"id": "BRM",
-					"locationID": []
-				},
-				{
-					"name": "Obernkirchener SSB",
-					"id": "OSB",
-					"locationID": []
-				},
-				{
-					"name": "Nato-Station Reinsdorf",
-					"id": "NAT",
+					"name": "Weenzer Bruch",
+					"id": "WEE",
 					"locationID": []
 				},
 				{
 					"name": "Wuelpker Egge",
 					"id": "WLP",
-					"locationID": []
-				},
-				{
-					"name": "Bückeberg",
-					"id": "BKB",
-					"locationID": []
-				},
-				{
-					"name": "Hils-Klinkerwerk",
-					"id": "HKB",
-					"locationID": []
-				},
-				{
-					"name": "Holzhauser Mark",
-					"id": "HHM",
 					"locationID": []
 				}
 			
