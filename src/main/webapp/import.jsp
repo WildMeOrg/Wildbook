@@ -355,7 +355,9 @@ try{
 	boolean adminMode = false;
 	if(request.isUserInRole("admin"))adminMode=true;
 	//boolean forcePushIA=false;
-	//if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
+	
+	//admins can force the detection option to appear no matter the state
+	if(adminMode&&request.getParameter("forceDetection")!=null)allowIA=true;
 	
 	  //handle some cache-related security
 	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
