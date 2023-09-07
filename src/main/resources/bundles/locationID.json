@@ -147,6 +147,8 @@
 
 { "name":"WA-Perth-Marmion Angling and Aquatic Club", "id":"WA-Perth-Marmion Angling and Aquatic Club", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
+{ "name":"WA-Perth-Marmion Beach", "id":"WA-Perth-Marmion Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
+
 { "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
