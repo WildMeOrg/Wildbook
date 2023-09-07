@@ -38,11 +38,11 @@ public class OrganizationGet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
 
-        System.out.println("==> In ProjectGet Servlet ");
+        System.out.println("==> In OrganizationGet Servlet ");
 
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("ProjectGet.java");
+        myShepherd.setAction("OrganizationGet.java");
         myShepherd.beginDBTransaction();
 
         JSONObject res = new JSONObject();

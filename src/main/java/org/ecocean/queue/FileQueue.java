@@ -9,9 +9,13 @@ import java.io.PrintWriter;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.Arrays;
 import java.nio.file.Files;
+
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import java.io.PrintWriter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /*
 
@@ -174,5 +178,23 @@ System.out.println("INFO: FileQueue.publish() added " + queueDir + " -> " + qid)
     public String toString() {
         return super.toString() + " -> " + queueDir;
     }
+    
+    public long getQueueSize() {
+      try {
+        if(queueDir!=null) {
+          
+          List fileNames = Arrays.asList(queueDir.list())
+              .stream()
+              .filter(x -> x.contains(".complete"))
+              .collect(Collectors.toList());
+          int numCompleteFiles=fileNames.size();
+          int numFiles=queueDir.listFiles().length;
+          return (numFiles-numCompleteFiles);
+        }
+      }
+      catch(Exception e) {}
+      return 0;
+    }
+    
 
 }
