@@ -501,6 +501,7 @@ finally{
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
                               <li class="divider"></li>
+                              <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                             <% }
 
 
