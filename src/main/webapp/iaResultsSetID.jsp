@@ -76,7 +76,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		myShepherd.closeDBTransaction();
 		return;
 	}
-	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd)){
 		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
@@ -102,7 +102,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			myShepherd.closeDBTransaction();
 			return;
 		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request,myShepherd)){
 			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();

@@ -71,7 +71,7 @@ try {
 //handle translation
 
   
-  boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+  boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
 	
   
   boolean hasPhotos=false;
