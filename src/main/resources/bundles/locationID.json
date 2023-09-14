@@ -3,12 +3,78 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-	{"name":"Canada","id":"Canada","locationID":[]},
-	{"name":"United States","id":"United States","locationID":[
-	
-		{"name":"Oregon","id":"Oregon","locationID":[]}
-	
-	]}
-	
+	{"name":"North America","id":"North America","locationID":[
+	  {"name":"North","id":"North","locationID":[
+		  {"name":"Alaska","id":"Alaska","locationID":[]},
+      {"name":"Nunavut","id":"Nunavut","locationID":[]},
+		  {"name":"Northwest Territories","id":"Northwest Territories","locationID":[]},
+      {"name":"Yukon","id":"Yukon","locationID":[]}
+	    ]},
+    {"name":"West","id":"West","locationID":[
+      {"name":"Alberta","id":"Alberta","locationID":[]},
+      {"name":"Arizona","id":"Arizona","locationID":[]},
+      {"name":"British Columbia","id":"British Columbia","locationID":[]},
+      {"name":"California","id":"California","locationID":[]},
+      {"name":"Colorado","id":"Colorado","locationID":[]},
+      {"name":"Idaho","id":"Idaho","locationID":[]},
+      {"name":"Montana","id":"Montana","locationID":[]},
+      {"name":"Nevada","id":"Nevada","locationID":[]},
+      {"name":"New Mexico","id":"New Mexico","locationID":[]},
+      {"name":"Oregon","id":"Oregon","locationID":[]},
+      {"name":"Utah","id":"Utah","locationID":[]},
+      {"name":"Washington","id":"Washington","locationID":[]},
+      {"name":"Wyoming","id":"Wyoming","locationID":[]}
+      ]},
+    {"name":"Central","id":"Central","locationID":[
+      {"name":"Illinois","id":"Illinois","locationID":[]},
+      {"name":"Indiana","id":"Indiana","locationID":[]},
+      {"name":"Iowa","id":"Iowa","locationID":[]},
+      {"name":"Kansas","id":"Kansas","locationID":[]},
+      {"name":"Iowa","id":"Iowa","locationID":[]},
+      {"name":"Manitoba","id":"Manitoba","locationID":[]},
+      {"name":"Michigan","id":"Michigan","locationID":[]},
+      {"name":"Minnesota","id":"Minnesota","locationID":[]},
+      {"name":"Missouri","id":"Missouri","locationID":[]},
+      {"name":"Nebraska","id":"Nebraska","locationID":[]},
+      {"name":"North Dakota","id":"North Dakota","locationID":[]},
+      {"name":"Ohio","id":"Ohio","locationID":[]},
+      {"name":"Saskatchewan","id":"Saskatchewan","locationID":[]},
+      {"name":"South Dakota","id":"South Dakota","locationID":[]},
+      {"name":"Wisconsin","id":"Wisconsin","locationID":[]}
+      ]},
+    {"name":"East","id":"East","locationID":[
+      {"name":"Connecticut","id":"Connecticut","locationID":[]},
+      {"name":"Delaware","id":"Delaware","locationID":[]},
+      {"name":"District of Columbia","id":"District of Columbia","locationID":[]},
+      {"name":"Maine","id":"Maine","locationID":[]},
+      {"name":"Maryland","id":"Maryland","locationID":[]},
+      {"name":"Massachusetts","id":"Massachusetts","locationID":[]},
+      {"name":"New Hampshire","id":"New Hampshire","locationID":[]},
+      {"name":"New York","id":"New York","locationID":[]},
+      {"name":"Ontario","id":"Ontario","locationID":[]},
+      {"name":"Pennsylvania","id":"Pennsylvania","locationID":[]},
+      {"name":"Quebec","id":"Quebec","locationID":[]},
+      {"name":"Vermont","id":"Vermont","locationID":[]}
+      ]},
+    {"name":"South","id":"South","locationID":[
+      {"name":"Alabama","id":"Alabama","locationID":[]},
+      {"name":"Arkansas","id":"Arkansas","locationID":[]},
+      {"name":"Florida","id":"Florida","locationID":[]},
+      {"name":"Georgia","id":"Georgia","locationID":[]},
+      {"name":"Kentucky","id":"Kentucky","locationID":[]},
+      {"name":"Louisiana","id":"Louisiana","locationID":[]},
+      {"name":"Mississippi","id":"Mississippi","locationID":[]},
+      {"name":"North Carolina","id":"North Carolina","locationID":[]},
+      {"name":"Oklahoma","id":"Oklahoma","locationID":[]},
+      {"name":"South Carolina","id":"South Carolina","locationID":[]},
+      {"name":"Tennessee","id":"Tennessee","locationID":[]},
+      {"name":"Texas","id":"Texas","locationID":[]},
+      {"name":"Virginia","id":"Virginia","locationID":[]},
+      {"name":"West Virginia","id":"West Virginia","locationID":[]}
+        ]}
+
   ]
 }
+]
+}
+
