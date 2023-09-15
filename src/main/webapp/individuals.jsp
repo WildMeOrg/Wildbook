@@ -2,10 +2,71 @@
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
+org.datanucleus.api.rest.orgjson.JSONException,
+org.ecocean.media.MediaAsset,
+java.net.URL,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat, org.apache.commons.lang3.StringUtils" %>
 
+<%!
+  public static ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesFast(MarkedIndividual thisIndiv, Shepherd myShepherd, HttpServletRequest req, int numResults, String imageSize) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+
+    List<MediaAsset> assets=new ArrayList<MediaAsset>();
+    
+    String[] kwReadableNames = {"ProfilePhoto"};
+long t0 = System.currentTimeMillis();
+    List<MediaAsset> profilePhotos =  myShepherd.getKeywordPhotosForIndividual(thisIndiv, kwReadableNames, 5);
+//System.out.println("TIME A>>>>> " + (System.currentTimeMillis() - t0));
+    if(profilePhotos==null || profilePhotos.size()<numResults) {
+      //add what we have
+      if(profilePhotos!=null)assets.addAll(profilePhotos);
+      //but we need a few more examples
+      String[] noKeywordNames = new String[0];
+      List<MediaAsset> otherPhotos = myShepherd.getKeywordPhotosForIndividual(thisIndiv, noKeywordNames, (numResults-assets.size()));
+//System.out.println("TIME B>>>>> " + (System.currentTimeMillis() - t0));
+      if(otherPhotos!=null)assets.addAll(otherPhotos);
+    }
+    else{assets=profilePhotos;}
+//System.out.println("TIME C>>>>> " + (System.currentTimeMillis() - t0));
+    
+    for(MediaAsset ma:assets) {
+        if (ma != null) {
+          
+//System.out.println("TIME c>>>>> " + (System.currentTimeMillis() - t0) + " >>> " + ma);
+          //JSONObject j = ma.sanitizeJson(req, new JSONObject());
+          JSONObject j = new JSONObject();
+//System.out.println("TIME d>>>>> " + (System.currentTimeMillis() - t0) + " >>> " + j);
+
+          //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+          // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+          URL midURL = null;
+          ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
+//System.out.println("TIME D>>>>> " + (System.currentTimeMillis() - t0));
+          if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+          if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+
+          if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+            //put ProfilePhotos at the beginning
+            if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+            //do nothing and don't include it if it has NoProfilePhoto keyword
+            //due to this dropout, you may get less than request
+            //but there may be less than requested anyway for any individual
+            else if(ma.hasKeyword("NoProfilePhoto")){}
+            //otherwise, just add it to the bottom of the stack
+            else{
+              al.add(j);
+            }
+          }
+        }
+        if(al.size()>=numResults){return al;}
+    }
+//System.out.println("TIME E>>>>> " + (System.currentTimeMillis() - t0));
+    return al;
+  }
+
+%>
 
 <%
 String context="context0";
@@ -1151,7 +1212,7 @@ if (sharky.getNames() != null) {
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
-      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(myShepherd, request);
+      ArrayList<JSONObject> photoObjectArray = getExemplarImagesFast(sharky, myShepherd, request, 5, "_mid");
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {

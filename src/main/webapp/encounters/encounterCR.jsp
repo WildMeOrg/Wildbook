@@ -196,7 +196,7 @@ margin-bottom: 8px !important;
 				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
       
 				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
       			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
       			boolean loggedIn = false;
       			try{
