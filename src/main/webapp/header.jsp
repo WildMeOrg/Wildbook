@@ -232,18 +232,7 @@ finally{
 	                      <%
 	                      }
 
-                      %>
 
-
-
-
-
-                      <%
-                      if (CommonConfiguration.getWikiLocation(context)!=null) {
-                      %>
-                        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <%
-                      }
 
 
 
