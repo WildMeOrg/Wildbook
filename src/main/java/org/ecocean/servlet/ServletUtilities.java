@@ -39,15 +39,9 @@ import javax.jdo.Query;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletContext;
-//import javax.servlet.http.HttpSession;
-import org.json.JSONObject;
-
 
 import java.io.*;
 import java.net.URL;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -56,15 +50,12 @@ import java.sql.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-import java.util.Calendar;
+
 
 
 import org.ecocean.*;
 import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.importer.ImportTask;
 import org.apache.shiro.crypto.hash.*;
 import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
@@ -383,26 +374,79 @@ public class ServletUtilities {
 
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
-    //if (request.isUserInRole("admin")) {
-    if (request.getUserPrincipal()!=null) {
-      if (request.isUserInRole("admin")) {
-        isOwner = true;
-      }
-      else if (enc.getLocationCode()!=null&&request.isUserInRole(enc.getLocationCode())) {
-        isOwner = true;
-      }
-      else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
-        isOwner = true;
-      }
-
-      //whaleshark.org custom
-
-      else if (Collaboration.canEditEncounter(enc, request)) return true;
-
+    Shepherd myShepherd=new Shepherd(request);
+    myShepherd.setAction("SevrletUtilities.isUserAuthorizedForEncounterShortForm");
+    myShepherd.beginDBTransaction();
+    try {
+      isOwner=isUserAuthorizedForEncounter(enc,request,myShepherd);
+    }
+    catch(Exception e) {e.printStackTrace();}
+    finally {
+      myShepherd.rollbackAndClose();
     }
     return isOwner;
-    //}
-    // return isOwner;
+  }
+  
+  public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request, Shepherd myShepherd) {
+    boolean isOwner = false;
+    try {
+      if (request.getUserPrincipal()!=null) {
+        
+        //if the current user is an admin, they always have access
+        if (request.isUserInRole("admin")) {
+          isOwner = true;
+        }
+        //user-specific checks
+        else if ((enc.getSubmitterID() != null) && (request.getRemoteUser() != null)) {
+          
+          //if the current user owns the Encounter, they obviously have permission
+          if(enc.getSubmitterID().equals(request.getRemoteUser())) {isOwner = true;}
+          //if the current user is the orgAdmin for the other user, they can ave permission
+          else if(request.isUserInRole("orgAdmin") && myShepherd.getUser(enc.getSubmitterID())!=null){
+            User encounterOwner = myShepherd.getUser(enc.getSubmitterID());
+            User requester = myShepherd.getUser(request);
+            List<Organization> encounterOwnerOrgs=encounterOwner.getOrganizations();
+            List<Organization> requesterOrgs=requester.getOrganizations();
+            if(encounterOwnerOrgs!=null && encounterOwnerOrgs.size()>0 && requesterOrgs!=null && requesterOrgs.size()>0) {
+              for(Organization org:encounterOwnerOrgs) {
+                if(requesterOrgs.contains(org)) {isOwner=true;}
+              }
+              
+            }
+          }
+          
+        }
+        
+        //check other cases
+        //----------------
+        
+        //if the current user has a location ID-specific role matching the location ID of this Encounter, they are authorized
+        if (!isOwner && enc.getLocationCode()!=null&&request.isUserInRole(enc.getLocationCode())) {
+          isOwner = true;
+        }
+        //if the current user is in a collaboration with the Encounter owner
+        if (!isOwner && Collaboration.canEditEncounter(enc, request)) {return true;}
+               // allow WDP edit stenella frontalis cit sci encounters  
+          // TODO make a mmore resonable way for researchers to ID and edit cit sci submissions 
+        if (!isOwner && "wdp".equals(request.getUserPrincipal().getName())) {
+            List<User> users = enc.getSubmitters();
+            boolean researcherSubmitted = false;      
+            for (User user : users) {
+              if (user.getUsername()!=null&&!"".equals(user.getUsername())) {
+                researcherSubmitted = true;
+              }
+            }
+            String genSpec = enc.getTaxonomyString();
+            if (!researcherSubmitted&&"Stenella frontalis".equals(genSpec)) {
+              isOwner = true;
+            }
+        }
+  
+      }
+    }
+    catch(Exception e) {e.printStackTrace();}
+    return isOwner;
+
   }
 
   public static boolean isEncounterOwnedByPublic(Encounter enc) {
@@ -412,28 +456,35 @@ public class ServletUtilities {
       }
     return isPublic;
   }
+  
+  public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy, HttpServletRequest request) {
+    boolean isOwner = false;
+    Shepherd myShepherd=new Shepherd(request);
+    myShepherd.setAction("SevrletUtilities.isUserAuthorizedForIndividualShortForm");
+    myShepherd.beginDBTransaction();
+    try {
+      isOwner=isUserAuthorizedForIndividual(indy,request,myShepherd);
+    }
+    catch(Exception e) {e.printStackTrace();}
+    finally {
+      myShepherd.rollbackAndClose();
+    }
+    return isOwner;
+  }
 
-  public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
-    //if (request.isUserInRole("admin")) {
+  public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy, HttpServletRequest request,Shepherd myShepherd) {
+
     if (request.getUserPrincipal()!=null) {
-      //return true;
 
       if (request.isUserInRole("admin")) {
         return true;
       }
 
-      Vector encounters = sharky.getEncounters();
+      Vector encounters = indy.getEncounters();
       int numEncs = encounters.size();
       for (int y = 0; y < numEncs; y++) {
         Encounter enc = (Encounter) encounters.get(y);
-        // is it in my zone?
-        if (enc.getLocationCode()!=null && request.isUserInRole(enc.getLocationCode())) {
-          return true;
-        }
-        // do i manage it? 
-        String sid = enc.getSubmitterID();
-        String up = request.getUserPrincipal().getName();
-        if (sid.equals(up)) {
+        if (isUserAuthorizedForEncounter(enc,request,myShepherd)) {
           return true;
         }
       }
@@ -442,16 +493,55 @@ public class ServletUtilities {
   }
 
   //occurrence
-  public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
+  
+  public static boolean isUserAuthorizedForOccurrence(Occurrence occur, HttpServletRequest request) {
+    boolean isOwner = false;
+    Shepherd myShepherd=new Shepherd(request);
+    myShepherd.setAction("SevrletUtilities.isUserAuthorizedForOccurrenceShortForm");
+    myShepherd.beginDBTransaction();
+    try {
+      isOwner=isUserAuthorizedForOccurrence(occur,request,myShepherd);
+    }
+    catch(Exception e) {e.printStackTrace();}
+    finally {
+      myShepherd.rollbackAndClose();
+    }
+    return isOwner;
+  }
+  
+  public static boolean isUserAuthorizedForImportTask(ImportTask occ, HttpServletRequest request, Shepherd myShepherd) {
+
+    if (request.getUserPrincipal()!=null) {
+
+      if (request.isUserInRole("admin")) {
+          return true;
+      }
+      //first check if the User on the ImportTask matches the current user
+      if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+  
+      //quick collaboration check between current user and bulk import owner
+      //if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
+      if(Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername())!=null)return true;
+      
+      
+      //quick orgAdminCheck
+      //if this user is the orgAdmin for the bulk import's uploading user, they can see it
+      if(ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request, myShepherd)){return true;} 
+    }
+    return false;
+   }
+
+  
+  public static boolean isUserAuthorizedForOccurrence(Occurrence occur, HttpServletRequest request,Shepherd myShepherd) {
 
     if (request.getUserPrincipal()!=null) {
 
       if (request.isUserInRole("admin")) {  return true;  }
-      ArrayList<Encounter> encounters = sharky.getEncounters();
+      ArrayList<Encounter> encounters = occur.getEncounters();
       int numEncs = encounters.size();
       for (int y = 0; y < numEncs; y++) {
         Encounter enc = (Encounter) encounters.get(y);
-        if (enc.getLocationCode() !=null && request.isUserInRole(enc.getLocationCode())) {
+        if (isUserAuthorizedForEncounter(enc,request,myShepherd)) {
           return true;
         }
       }
