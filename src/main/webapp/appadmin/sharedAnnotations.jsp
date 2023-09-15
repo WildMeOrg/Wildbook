@@ -136,8 +136,67 @@ function drawFeature(id) {
 
       <h1>Annotations with Multiple Individual IDs</h1>
       <p>These are data errors, indicating where one annotation has been assigned to one or more Encounters of at least two different individuals.</p>
-      <p>Goal: the table below should be empty.</p>
-<table>
+      <p><em>Goal: the table below should be empty.</em></p>
+
+<%
+
+String username = request.getRemoteUser();
+String usernameFilter=" && enc.submitterID=='"+username+"' ";
+if(request.isUserInRole("admin") && request.getParameter("showAll")!=null){
+	usernameFilter="";
+}
+else if(request.getParameter("simulateUser")!=null){
+	if(request.isUserInRole("admin")){
+		username=request.getParameter("simulateUser");
+		usernameFilter=" && enc.submitterID=='"+username+"'";
+	}
+}
+
+Shepherd myShepherd = new Shepherd(request);
+myShepherd.setAction("sharedAnnotations.jsp");
+myShepherd.beginDBTransaction();
+try{
+	
+    if(request.isUserInRole("admin")){
+    %>
+    <p>Select the user to review data for:
+    	<select name="simulateUser" id="simulateUser" onchange="self.location=self.location.origin+self.location.pathname+'?simulateUser='+this.value">
+    		<%
+    		
+    		List<User> permittedUsers=new ArrayList<User>();
+    		User me = myShepherd.getUser(request);
+    		if(me!=null)permittedUsers.add(me);
+    		
+    		if(request.isUserInRole("admin")){
+    			permittedUsers = myShepherd.getNativeUsersWithoutAnonymous();
+    		}
+    		
+    		String selectedUser="";
+    		
+    		if(request.getParameter("simulateUser")!=null){selectedUser=request.getParameter("simulateUser");}
+    		for(User user:permittedUsers){
+    			String selectedString="";
+    			String fullname=user.getUsername();
+    			if(user.getFullName()!=null)fullname = user.getFullName();
+    			//show the current admin user as selected
+    			if(user.getUsername().equals(me.getUsername()) && selectedUser.equals("")){
+    				selectedString="selected=\"selected\"";
+    			}
+    			//sow the selected simulateUser as selected
+    			else if(!selectedUser.equals("") && user.getUsername().equals(selectedUser)){selectedString="selected=\"selected\"";}
+    		%>
+    			<option value="<%=user.getUsername() %>" <%=selectedString %>><%=fullname %></option>
+    		<%
+    		}
+    		%>
+    	
+    	</select>
+    </p>
+    <%
+    }
+    %>
+
+	<table>
 <tr class="shared">
 	<th>Annotation</th>
 	<th>#</th>
@@ -146,11 +205,7 @@ function drawFeature(id) {
 	<th>Individual 2</th>
 	<th>Merge Individuals?</th>
 </tr>
-<%
-Shepherd myShepherd = new Shepherd(request);
-myShepherd.setAction("sharedAnnotations.jsp");
-myShepherd.beginDBTransaction();
-try{
+	<%
 	String sql = "SELECT \"ID\",\"ACMID\" FROM \"ANNOTATION\" WHERE \"ACMID\" IN (SELECT acmId FROM (SELECT \"ACMID\" AS acmId, COUNT(DISTINCT(\"INDIVIDUALID_OID\")) AS ct FROM \"ANNOTATION\" JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"ANNOTATION\".\"ID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"MARKEDINDIVIDUAL_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"ACMID\" IS NOT NULL GROUP BY acmId) AS counts WHERE ct > 1) ORDER BY \"ACMID\", \"ID\";";
     String context = ServletUtilities.getContext(request);
 
@@ -171,7 +226,7 @@ try{
 
         if(!acmIds.contains(acmId)){
         	acmIds.add(acmId);
-	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
+	        String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.annotations.contains(annot) && annot.acmId =='"+acmId+"' "+usernameFilter+" VARIABLES org.ecocean.Encounter enc;org.ecocean.Annotation annot";
 	        Query q2 = myShepherd.getPM().newQuery(filter);
 	        List results2 = (List)q2.execute();
 	        

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*,org.ecocean.security.Collaboration" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -38,17 +38,20 @@ Double lon = null;
 boolean hasData = false;
 String latLonStr = null;
 String occID = null;
+boolean visible =false;
 
 if(request.getParameter("occurrence_number")!=null){
   occID = request.getParameter("occurrence_number");
-  Occurrence sharky=myShepherd.getOccurrence(occID);
-  lat = sharky.getDecimalLatitude();
-  lon = sharky.getDecimalLongitude();
+  Occurrence occur=myShepherd.getOccurrence(occID);
+  lat = occur.getDecimalLatitude();
+  lon = occur.getDecimalLongitude();
+  visible = Collaboration.canUserAccessOccurrence(occur, request);
 }
 hasData = (lat!=null & lon!=null);
 if (hasData) latLonStr = lat.toString()+","+lon.toString();
 
-System.out.println("occurrenceMapEmbed begun for occ "+occID+": ("+lat+","+lon+")");
+
+//System.out.println("occurrenceMapEmbed begun for occ "+occID+": ("+lat+","+lon+")");
 try {
 %>
 
@@ -70,7 +73,19 @@ try {
       marker = new google.maps.Marker({
         position: location,
         map: map,
+        <%
+        if(visible){
+        %>
         visible: true
+        <%
+      	}
+        else{
+        %>
+        visible: false
+        <%
+        }
+        %>
+        
       });
 
               //map.setCenter(location);
@@ -99,7 +114,7 @@ try {
       position:center,
       map:map
     });
-    console.log("initialize google maps ending with marker = "+marker);
+    //console.log("initialize google maps ending with marker = "+marker);
 
     // google.maps.event.addListener(map, 'click', function(event) {
     //   placeMarker(event.latLng);
