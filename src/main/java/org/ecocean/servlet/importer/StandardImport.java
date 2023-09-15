@@ -1598,6 +1598,7 @@ public class StandardImport extends HttpServlet {
             ma.addKeyword(lkw);
           }
         }
+        ma.validateSourceImage();
 
       }
       // keywording

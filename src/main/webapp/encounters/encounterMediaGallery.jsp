@@ -74,7 +74,7 @@ if(request.getParameter("encounterNumber")!=null){
 	encNum=request.getParameter("encounterNumber");
 	if(imageShepherd.isEncounter(encNum)){
 		Encounter enc=imageShepherd.getEncounter(encNum);
-		isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+		isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,imageShepherd);
 	}
 }
 
