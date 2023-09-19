@@ -1062,7 +1062,7 @@ System.out.println("depth --> " + formValues.get("depth").toString());
       if (request.getRemoteUser() != null) {
         enc.setSubmitterID(request.getRemoteUser());
       } else {
-        enc.setSubmitterID("N/A");
+        enc.setSubmitterID("public");
       }
       if (!getVal(formValues, "locCode").equals("")) {
         enc.setLocationCode(locCode);

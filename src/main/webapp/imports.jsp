@@ -183,29 +183,18 @@ a.button:hover {
 
 <div class="container maincontent">
 <h2>Import Tasks</h2>
-<%
-if(adminMode && request.getParameter("showAll")!=null){
-	%>
-	<p>The following is a full list of bulk import tasks. <a id="showMine" href="imports.jsp" onclick="$('body,#showMine').css('cursor', 'progress');">Click here to filter to just your bulk imports.</a></p>	    
+
+	<p>The following is a list of your bulk imports as well as those of your collaborators.</p>
 	<%
-}
-else if(adminMode){
-	%>
-	<p><p>The following is a list of your bulk imports. <a id="showAll" href="imports.jsp?showAll=true" onclick="$('body,#showAll').css('cursor', 'progress');">Click here to see all bulk imports.</a></p>
-	<%
-}
-else {
-	%>
-	<p><p>The following is a list of your bulk imports.</p>
-	<%
-}
 
 
 try{
 	Set<String> locationIds = new HashSet<String>();
 	
     String uclause = "";
-    if (request.getParameter("showAll")==null) uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    //if (request.getParameter("showAll")==null) {
+    //	uclause = " && creator.uuid == '" + user.getUUID() + "' ";
+    //}
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null " + uclause;
     Query query = myShepherd.getPM().newQuery(jdoql);
     query.setOrdering("created desc");
@@ -218,7 +207,7 @@ try{
     JSONArray jsonobj = new JSONArray();
     
     for (ImportTask task : tasks) {
-    	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
+    	if(adminMode || ServletUtilities.isUserAuthorizedForImportTask(task,request,myShepherd)){
 	        //int iaStatus = getNumMediaAssetsForTaskDetectionComplete(task.getId(),myShepherd);
 	        int indivCount = getNumIndividualsForTask(task.getId(), myShepherd);
 			String taskID = task.getId();

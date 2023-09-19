@@ -60,6 +60,14 @@ abstract class HiddenDataReporter<T> {
 			else this.loadAllByPermission(tObjectsToFilter);
 		}
 	}
+	
+	//honor the superclass, but don't let it do anything
+	 public HiddenDataReporter(String className, HttpServletRequest request, boolean viewOnly,Shepherd myShepherd) {
+	    this.className = className;
+	    this.request = request;
+	    this.hiddenIdsToOwners = new HashMap<String,String>();
+	    this.viewOnly = viewOnly;
+	  }
 
 	// if you just want to scrub the search results vector
 	public Vector securityScrubbedResults(Vector tObjectsToFilter, boolean hiddenIdsToOwnersIsValid) {

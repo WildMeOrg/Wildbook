@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
   try{
 	  if (myShepherd.isOccurrence(number)) {
 	      occ = myShepherd.getOccurrence(number);
-	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
+	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request,myShepherd);
 		  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		  boolean visible = occ.canUserAccess(request);
 	
