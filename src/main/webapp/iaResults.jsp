@@ -750,6 +750,9 @@ function showTaskResult(res, taskId) {
                 }
                 else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
+                }                
+                else if (algoInfo == 'whaleridgefindr') {
+                    algoDesc = 'whaleridgefindr dorsal edge algorithm';
                 }
                 else if (algoInfo == 'Pie') {
                     algoDesc = 'PIE (Pose Invariant Embeddings)';
