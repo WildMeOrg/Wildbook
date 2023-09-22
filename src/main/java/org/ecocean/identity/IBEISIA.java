@@ -2050,6 +2050,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 JSONObject amap = new JSONObject();
                 //JSONObject ident = new JSONObject();
                 List<Annotation> allAnns = new ArrayList<Annotation>();
+                List<Integer> alreadyDetected = new ArrayList<Integer>();
                 for (int i = 0 ; i < rlist.length() ; i++) {
                     JSONArray janns = rlist.optJSONArray(i);
                     if (janns == null) continue;
@@ -2059,7 +2060,8 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue;  //was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid)) {
+                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getId())) {
+                            alreadyDetected.add(ma.getId());
                             asset = ma;
                             break;
                         }
