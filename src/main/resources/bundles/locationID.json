@@ -166,6 +166,15 @@
 							"locationID": []
 						},
 						{
+							"name": "Green Island",
+							"id": "GI",
+							"geospatialInfo": {
+								"lat": -30.91090117278344,
+								"long": 153.0905965118779
+							},
+							"locationID": []
+						},
+						{
 							"name": "Julian Rocks",
 							"id": "JR",
 							"geospatialInfo": {
