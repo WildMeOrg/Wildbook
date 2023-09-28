@@ -98,7 +98,7 @@
 
 { "name":"VIC-Western Port Bay-Somers", "id":"VIC-Western Port Bay-Somers", "locationID":[],"prefix": "VIC-", "prefixDigitPadding": 4 },
 
-
+{ "name":"WA-Albany-Bettys", "id":"WA-Albany-Bettys", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
 { "name":"WA-Albany-Little Beach", "id":"WA-Albany-Little Beach", "locationID":[],"prefix": "WA-", "prefixDigitPadding": 4 },
 
