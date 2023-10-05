@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -16,6 +17,8 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
+
 import java.lang.Boolean;
 
 
@@ -43,7 +46,6 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterSearchExportExcelFile.class");
-    
 
     
     Vector rEncounters = new Vector();
@@ -91,7 +93,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
 
       //let's write out headers for the OBIS export file
-        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
+        WorkbookSettings ws = new WorkbookSettings();
+        ws.setEncoding( "UTF-8" );
+        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile,ws);
         WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
         Label label0 = new Label(0, 0, "Date Last Modified");
         sheet.addCell(label0);
@@ -245,7 +249,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               sheet.addCell(lNumberx22);
             }
             
-            Label lNumberx23 = new Label(22, count, enc.getLocation());
+            Label lNumberx23 = new Label(22, count, StringEscapeUtils.unescapeHtml4(enc.getLocation()));
             sheet.addCell(lNumberx23);
             
             //check for available locale coordinates
@@ -282,7 +286,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               sheet.addCell(lSex);
             }
             if(enc.getComments()!=null){
-              Label lNumberx26 = new Label(26, count, enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", ""));
+              Label lNumberx26 = new Label(26, count, StringEscapeUtils.unescapeHtml4(enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", "")));
               sheet.addCell(lNumberx26);
             }
             if(enc.getSizeAsDouble()!=null){
@@ -290,7 +294,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               sheet.addCell(lNumberx27);
             }
             if (enc.getIndividual()!=null) {
-              Label lNumberx28 = new Label(28, count, enc.getIndividual().getDisplayName(request, myShepherd));
+              Label lNumberx28 = new Label(28, count, StringEscapeUtils.unescapeHtml4(enc.getIndividual().getDisplayName(request, myShepherd)));
               sheet.addCell(lNumberx28);
             }
             if (enc.getLocationCode() != null) {
