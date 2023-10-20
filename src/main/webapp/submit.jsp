@@ -3,7 +3,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,java.util.ArrayList,
+                 java.util.List,java.util.ArrayList,java.util.Locale,
                  java.util.Locale" %>
 
 
@@ -865,12 +865,23 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <select name="country" id="country" class="form-control">
           <option value="" selected="selected"></option>
           <%
-            List<String> countries = (useCustomProperties)
-            ? CommonConfiguration.getIndexedPropertyValues("country", request)
-            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
-            for (String country: countries) {
-              %><option value="<%=country%>"><%=country%></option><%
-            }%>
+          if (useCustomProperties) {
+              List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+              for (String country: countries) {
+                %>
+                <option value="<%=country%>"><%=country%></option>
+                <%
+              }
+            } else {
+              String[] locales = Locale.getISOCountries();
+              for (String countryCode : locales) {
+                Locale obj = new Locale("", countryCode);
+                %>
+                <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+                <%
+              }
+            }
+            %>
         </select>
       </div>
     </div>
