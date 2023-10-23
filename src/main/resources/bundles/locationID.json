@@ -302,13 +302,15 @@
 			] } 
 		
 		] },
-		{ "name": "France", "id": "France", "locationID":[
-			{"name": "Ain", "id": "Ain"},
-			{"name": "Doubs", "id": "Doubs"}, 
-			{"name": "Haute-Savoie", "id": "Haute-Savoie"}, 
-			{"name": "Isère", "id": "Isere"}, 
-			{"name": "Jura", "id": "Jura"}, 
-			{"name": "Savoie", "id": "Savoie"}
+		{ "name": "Europe", "id": "Europe", "locationID":[
+			{"name": "Austria", "id": "Austria"},
+			{"name": "Belgium", "id": "Belgium"},
+			{"name": "Czech Republic", "id": "Czech Republic"},
+			{"name": "France", "id": "France"}, 
+			{"name": "Germany", "id": "Germany"}, 
+			{"name": "Italy", "id": "Italy"}, 
+			{"name": "Luxembourg", "id": "Luxembourg"}, 
+			{"name": "Switzerland", "id": "Switzerland"}
 		] },
 		
 		{"name": "India", "id": "India", "locationID":[
