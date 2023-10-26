@@ -274,7 +274,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
         jdoqlVariableDeclaration += ";org.ecocean.Annotation annot46;";
       }
       else {
-        jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation annot46;";
+        jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation annot46";
       }
   
     }
