@@ -2333,7 +2333,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){
+	       if(isOwner && enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2417,7 +2417,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){
+	       if(isOwner && enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
