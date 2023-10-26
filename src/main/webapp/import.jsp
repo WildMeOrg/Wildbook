@@ -616,6 +616,7 @@ try{
 		int numWithACMID=0;
 		int numAllowedIA=0;
 		int numDetectionComplete=0;
+		ArrayList<MediaAsset> invalidMediaAssets=new ArrayList<MediaAsset>();
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
 			
@@ -624,6 +625,10 @@ try{
 				if(asset.isValidImageForIA().booleanValue()){numAllowedIA++;}
 			}
 			else if(asset.validateSourceImage()){numAllowedIA++;myShepherd.updateDBTransaction();}
+			
+			if(asset.isValidImageForIA() == null || !asset.isValidImageForIA().booleanValue()){
+				invalidMediaAssets.add(asset);
+			}
 			
 			
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
@@ -634,6 +639,24 @@ try{
 		<ul>
 			<li>Number with acmIDs: <%=numWithACMID %></li>
 			<li>Number valid for image analysis: <%=numAllowedIA %></li>
+			
+			<%
+			if("complete".equals(itask.getStatus()) && invalidMediaAssets.size()>0){
+			%>
+			<li>Number invalid for image analysis: <%=invalidMediaAssets.size()%>
+					<ol>
+					<%
+					for(MediaAsset inv_asset:invalidMediaAssets){
+					%>
+						<li><a target="_blank" href="obrowse.jsp?type=MediaAsset&id=<%=inv_asset.getId() %>"><%=inv_asset.getId() %></a></li>
+					<%
+					}
+					%>
+					</ol>
+				</li>
+			<%
+			}
+			%>
 			<li>Number that have completed detection: <%=numDetectionComplete %></li>
 		</ul>
 	</p>
