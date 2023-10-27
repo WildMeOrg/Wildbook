@@ -5,6 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -16,43 +17,44 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
+
 import java.lang.Boolean;
 
 
 public class EncounterSearchExportExcelFile extends HttpServlet{
-
+  
   private static final int BYTES_DOWNLOAD = 1024;
 
-
+  
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
     }
 
-
+  
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,IOException {
       doPost(request, response);
   }
-
+    
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-
+    
     //set the response
-
+    
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterSearchExportExcelFile.class");
 
-
-
+    
     Vector rEncounters = new Vector();
     int numResults = 0;
-
-
+ 
+    
     //set up the files
     String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
-
+    
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -60,38 +62,40 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdirs();}
-
+    
     File excelFile = new File(encountersDir.getAbsolutePath()+"/"+ filename);
 
 
     myShepherd.beginDBTransaction();
-
-
+    
+    
     try {
-
+      
       //set up the output stream
       FileOutputStream fos = new FileOutputStream(excelFile);
       OutputStreamWriter outp = new OutputStreamWriter(fos);
-
+      
       try{
-
-
+      
+      
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
 
         HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
 
         int numMatchingEncounters=rEncounters.size();
-
+      
        //business logic start here
         
-
+        
       //let's set up some cell formats
         WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
         WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
 
       //let's write out headers for the OBIS export file
-        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
+        WorkbookSettings ws = new WorkbookSettings();
+        ws.setEncoding( "UTF-8" );
+        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile,ws);
         WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
         Label label0 = new Label(0, 0, "Date Last Modified");
         sheet.addCell(label0);
@@ -145,19 +149,17 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         sheet.addCell(label24);
         Label label25 = new Label(25, 0, "Sex");
         sheet.addCell(label25);
-        Label label26 = new Label(26, 0, "Life Stage");
+        Label label26 = new Label(26, 0, "Notes");
         sheet.addCell(label26);
-        Label label27 = new Label(27, 0, "Notes");
+        Label label27 = new Label(27, 0, "Length (m)");
         sheet.addCell(label27);
-        Label label28 = new Label(28, 0, "Length (m)");
+        Label label28 = new Label(28, 0, "Marked Individual");
         sheet.addCell(label28);
-        Label label29 = new Label(29, 0, "Marked Individual");
+        Label label29 = new Label(29, 0, "Location ID");
         sheet.addCell(label29);
-        Label label30 = new Label(30, 0, "Location ID");
+        Label label30 = new Label(30, 0, "Submitter Email Address");
         sheet.addCell(label30);
-        Label label31 = new Label(31, 0, "Submitter Email Address");
-        sheet.addCell(label31);
-
+        
         // Excel export =========================================================
         int count = 0;
 
@@ -166,7 +168,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             if (hiddenData.contains(enc)) continue;
             count++;
             numResults++;
-
+            
             //OBIS formt export
             Label lNumber = new Label(0, count, enc.getDWCDateLastModified());
             sheet.addCell(lNumber);
@@ -178,7 +180,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             sheet.addCell(lNumberx3);
             Label lNumberx4 = new Label(4, count, ("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + enc.getEncounterNumber()));
             sheet.addCell(lNumberx4);
-
+            
             if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
               Label lNumberx5 = new Label(5, count, (enc.getGenus() + " " + enc.getSpecificEpithet()));
               sheet.addCell(lNumberx5);
@@ -187,9 +189,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx5 = new Label(5, count, (CommonConfiguration.getProperty("genusSpecies0",context)));
               sheet.addCell(lNumberx5);
             }
-
-
-
+            
+            
+            
             Label lNumberx6 = new Label(6, count, "P");
             sheet.addCell(lNumberx6);
             Calendar toDay = Calendar.getInstance();
@@ -206,7 +208,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
             sheet.addCell(lNumberx11);
             Label lNumberx13 = new Label(12, count, CommonConfiguration.getProperty("family",context));
             sheet.addCell(lNumberx13);
-
+            
               if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
                 Label lNumberx14 = new Label(13, count, enc.getGenus());
                 sheet.addCell(lNumberx14);
@@ -222,7 +224,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
                   sheet.addCell(lNumberx15);
                 }
               }
-
+            
             if (enc.getYear() > 0) {
               Label lNumberx16 = new Label(15, count, Integer.toString(enc.getYear()));
               sheet.addCell(lNumberx16);
@@ -241,15 +243,15 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx21 = new Label(20, count, Integer.toString(enc.getDay()));
               sheet.addCell(lNumberx21);
             }
-
+            
             if(enc.getHour()>-1){
               Label lNumberx22 = new Label(21, count, (enc.getHour() + ":" + enc.getMinutes()));
               sheet.addCell(lNumberx22);
             }
-
-            Label lNumberx23 = new Label(22, count, enc.getLocation());
+            
+            Label lNumberx23 = new Label(22, count, StringEscapeUtils.unescapeHtml4(enc.getLocation()));
             sheet.addCell(lNumberx23);
-
+            
             //check for available locale coordinates
             //this functionality is primarily used for data export to iobis.org
             Boolean defaultGpsDesired = false;
@@ -283,59 +285,53 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lSex = new Label(25, count, enc.getSex());
               sheet.addCell(lSex);
             }
-
-            if (enc.getLifeStage() != null) {
-                Label lNumberx26 = new Label(26, count, enc.getLifeStage());
-                sheet.addCell(lNumberx26);
-            }
-
             if(enc.getComments()!=null){
-              Label lNumberx27 = new Label(27, count, enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", ""));
-              sheet.addCell(lNumberx27);
+              Label lNumberx26 = new Label(26, count, StringEscapeUtils.unescapeHtml4(enc.getComments().replaceAll("<br>", ". ").replaceAll("\n", "").replaceAll("\r", "")));
+              sheet.addCell(lNumberx26);
             }
             if(enc.getSizeAsDouble()!=null){
-              Label lNumberx28 = new Label(28, count, enc.getSizeAsDouble().toString());
-              sheet.addCell(lNumberx28);
+              Label lNumberx27 = new Label(27, count, enc.getSizeAsDouble().toString());
+              sheet.addCell(lNumberx27);
             }
             if (enc.getIndividual()!=null) {
-              Label lNumberx29 = new Label(29, count, enc.getIndividual().getDisplayName());
-              sheet.addCell(lNumberx29);
+              Label lNumberx28 = new Label(28, count, StringEscapeUtils.unescapeHtml4(enc.getIndividual().getDisplayName(request, myShepherd)));
+              sheet.addCell(lNumberx28);
             }
             if (enc.getLocationCode() != null) {
-              Label lNumberx30 = new Label(30, count, enc.getLocationCode());
-              sheet.addCell(lNumberx30);
+              Label lNumberx29 = new Label(29, count, enc.getLocationCode());
+              sheet.addCell(lNumberx29);
             }
             if (enc.getSubmitterEmail() != null) {
-                Label lNumberx31 = new Label(31, count, enc.getSubmitterEmail());
-                sheet.addCell(lNumberx31);
+                Label lNumberx30 = new Label(30, count, enc.getSubmitterEmail());
+                sheet.addCell(lNumberx30);
             }
 
-         } //end for loop iterating encounters
-
+         } //end for loop iterating encounters   
+         
          hiddenData.writeHiddenDataReport(workbookOBIS);
 
          workbookOBIS.write();
          workbookOBIS.close();
+         
+            
+        
+          
+        
+          
+          
+       
 
-
-
-
-
-
-
-
-
-
+      
 
       // end Excel export =========================================================
 
-
-
+        
+        
         //business logic end here
-
+        
         outp.close();
         outp=null;
-
+        
       }
       catch(Exception ioe){
         ioe.printStackTrace();
@@ -349,14 +345,14 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         outp.close();
         outp=null;
       }
-
-
+      
+  
     }
     catch(Exception e) {
       e.printStackTrace();
       response.setContentType("text/html");
       PrintWriter out = response.getWriter();
-      out.println(ServletUtilities.getHeader(request));
+      out.println(ServletUtilities.getHeader(request));  
       out.println("<html><body><p><strong>Error encountered</strong></p>");
         out.println("<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
         out.println(ServletUtilities.getFooter(context));
@@ -372,19 +368,19 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
       ServletContext ctx = getServletContext();
       //InputStream is = ctx.getResourceAsStream("/encounters/"+filename);
      InputStream is=new FileInputStream(excelFile);
-
+      
       int read=0;
       byte[] bytes = new byte[BYTES_DOWNLOAD];
       OutputStream os = response.getOutputStream();
-
+     
       while((read = is.read(bytes))!= -1){
         os.write(bytes, 0, read);
       }
       os.flush();
-      os.close();
-
-
-
+      os.close(); 
+      
+      
+      
     }
 
   }

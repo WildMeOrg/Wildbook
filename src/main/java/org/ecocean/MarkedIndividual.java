@@ -597,10 +597,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   }
 */
 
-  public Vector returnEncountersWithGPSData(){
-    return returnEncountersWithGPSData(false,false,"context0");
+  public Vector returnEncountersWithGPSData(HttpServletRequest request){
+    return returnEncountersWithGPSData(false,false,"context0", request);
   }
-  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
+  public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context, HttpServletRequest request) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
     Vector haveData=new Vector();
     Encounter[] myEncs=getDateSortedEncounters(reverseOrder);
@@ -611,10 +611,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
           Encounter temp=myEncs[c];
           if(temp!=null)catalogNumber=temp.getCatalogNumber();
           if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-            haveData.add(temp);
+            if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
           }
           else if(useLocales && (temp.getLocationID()!=null) && (LocationID.getLatitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null) && LocationID.getLongitude(temp.getLocationID(), LocationID.getLocationIDStructure())!=null){
-            haveData.add(temp);
+            if(ServletUtilities.isUserAuthorizedForEncounter(temp, request))haveData.add(temp);
           }
         }
         catch(Exception e) {
@@ -2318,57 +2318,49 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd,HttpServletRequest req, int numResults, String imageSize) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    //boolean haveProfilePhoto=false;
-    for (Encounter enc : this.getDateSortedEncounters()) {
-      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
-        ArrayList<Annotation> anns = enc.getAnnotations();
-        if ((anns == null) || (anns.size() < 1)) {
-          continue;
-        }
-        for (Annotation ann: anns) {
-          //if (!ann.isTrivial()) continue;
-          MediaAsset ma = ann.getMediaAsset();
-          if (ma != null) {
-            //JSONObject j = new JSONObject();
-            JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
-            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
-            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
-            URL midURL = null;
-            String context = ServletUtilities.getContext(req);
-            //Shepherd myShepherd = new Shepherd(context);
-            //myShepherd.setAction("MarkedIndividual.getExemplarImages");
-            //myShepherd.beginDBTransaction();
-            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
-            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
-            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
-            //myShepherd.rollbackDBTransaction();
-            //myShepherd.closeDBTransaction();
+    List<MediaAsset> assets=new ArrayList<MediaAsset>();
+    
+    String[] kwReadableNames = {"ProfilePhoto"};
+    List<MediaAsset> profilePhotos =  myShepherd.getKeywordPhotosForIndividual(this, kwReadableNames, 5);
+    if(profilePhotos==null || profilePhotos.size()<numResults) {
+      //add what we have
+      if(profilePhotos!=null)assets.addAll(profilePhotos);
+      //but we need a few more examples
+      String[] noKeywordNames = new String[0];
+      List<MediaAsset> otherPhotos = myShepherd.getKeywordPhotosForIndividual(this, noKeywordNames, (numResults-assets.size()));
+      if(otherPhotos!=null)assets.addAll(otherPhotos);
+    }
+    else{assets=profilePhotos;}
+    
+    for(MediaAsset ma:assets) {
+        if (ma != null) {
+          
+          JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
-            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+          //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+          // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+          URL midURL = null;
+          ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
+          if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+          if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
 
-
-              //ok, we have a viable candidate
-
-              //put ProfilePhotos at the beginning
-              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
-              //do nothing and don't include it if it has NoProfilePhoto keyword
-              else if(ma.hasKeyword("NoProfilePhoto")){}
-              //otherwise, just add it to the bottom of the stack
-              else{
-                al.add(j);
-              }
-
+          if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
+            //put ProfilePhotos at the beginning
+            if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+            //do nothing and don't include it if it has NoProfilePhoto keyword
+            //due to this dropout, you may get less than request
+            //but there may be less than requested anyway for any individual
+            else if(ma.hasKeyword("NoProfilePhoto")){}
+            //otherwise, just add it to the bottom of the stack
+            else{
+              al.add(j);
             }
-
-
           }
-          if(al.size()>numResults){return al;}
         }
-    //}
+        if(al.size()>=numResults){return al;}
     }
     return al;
-
   }
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImagesWithKeywords(HttpServletRequest req, List<String> kwNames) throws JSONException {

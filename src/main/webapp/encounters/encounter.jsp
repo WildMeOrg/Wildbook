@@ -666,7 +666,7 @@ var encounterNumber = '<%=num%>';
 				}
 
 				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
             boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
       			pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
       			boolean loggedIn = false;
@@ -698,7 +698,7 @@ $(function() {
 
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()!=null){
+      if(isOwner && enc.getDateInMilliseconds()!=null){
 
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
 
@@ -872,10 +872,9 @@ else {
 
 
 <%
-if(enc.getLocation()!=null){
+if(isOwner && enc.getLocation()!=null){
 %>
-
-<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
+	<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
 }
 %>
@@ -892,11 +891,14 @@ if(enc.getLocation()!=null){
 	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
 	int sizeHier=hier.size();
 	String displayPath="";
-	for(int q=0;q<sizeHier;q++){
-		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
-		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+	if(isOwner || isPublic){
+		for(int q=0;q<sizeHier;q++){
+			if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
+			else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+		}
+		if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	}
-        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
+        
 	%>
 		<%=displayPath %>
 	</span>
@@ -913,7 +915,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
 
   <%
-  if(enc.getCountry()!=null){
+  if(isOwner && enc.getCountry()!=null){
   %>
   <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
@@ -1292,7 +1294,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     	});
 
 	   		<%
-	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
 	   			marker.setVisible(false);
 
@@ -2326,7 +2328,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){
+	       if(isOwner && enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2410,7 +2412,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){
+	       if(isOwner && enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
@@ -3627,7 +3629,7 @@ else {
        <%}%>
 
     <p>
-    <%if(enc.getDateInMilliseconds()!=null){ %>
+    <%if(isOwner && visible && enc.getDateInMilliseconds()!=null){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
@@ -3644,7 +3646,7 @@ else {
     <br />
     <em><%=encprops.getProperty("verbatimEventDate")%></em>:
         <%
-    				if(enc.getVerbatimEventDate()!=null){
+    				if(isOwner && enc.getVerbatimEventDate()!=null){
     				%>
         <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
         <%
@@ -6739,7 +6741,8 @@ function iaMatchFilterGo() {
             matchingSetFilter: {},
             matchingAlgorithms: []
         },
-        annotationIds: iaMatchFilterAnnotationIds
+        annotationIds: iaMatchFilterAnnotationIds,
+        fastlane: true
     };
     var keyMap = {
         'match-filter-location-id': 'locationIds',
@@ -6848,16 +6851,16 @@ $(window).on('load',function() {
 <%
 
 	String queueStatementID="";
-	int wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);
+	int wbiaIDQueueSize = WbiaQueueUtil.getSizeDetectionJobQueue(false);
 	if(wbiaIDQueueSize==0){
 		queueStatementID = "The machine learning queue is empty and ready for work.";
 	}
-	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_detection")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
 		try{
 			Double d = Double.parseDouble(val);
 			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the small batch queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
 		}
 		catch(Exception de){de.printStackTrace();}
 	}

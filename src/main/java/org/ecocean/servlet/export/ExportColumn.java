@@ -16,6 +16,7 @@ import jxl.Workbook;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class ExportColumn {
 
@@ -28,6 +29,7 @@ public class ExportColumn {
     // since we have multiple MediaAssets and Keywords per row, these are used for those cols
     private int maNum = -1;
     private int kwNum = -1;
+    private String labeledKwName=null;
     private int measureNum = -1;
 
     public ExportColumn(Class declaringClass, String header, Method getter, int colNum) {
@@ -62,7 +64,7 @@ public class ExportColumn {
       if (value == null){
         return null;
       }
-      return value.toString();
+      return StringEscapeUtils.unescapeHtml4(value.toString());
     }
 
     public int getMeasurementNum() {return measureNum;}
@@ -73,7 +75,11 @@ public class ExportColumn {
 
     public int getKwNum() {return kwNum;}
     public void setKwNum(int n) {this.kwNum = n;}
-
+    
+    public String getlabeledKwName() {return labeledKwName;}
+    public void setLabeledKwName(String lkwn) {this.labeledKwName=lkwn;}
+    
+    
     public Class getDeclaringClass() {
       return declaringClass;
     }

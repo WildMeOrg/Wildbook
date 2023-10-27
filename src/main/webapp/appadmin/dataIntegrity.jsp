@@ -25,18 +25,31 @@ props = ShepherdProperties.getProperties("dataIntegrity.properties", langCode, c
 		<p><%=props.getProperty("description0") %></p>
 		<p><a target="_blank" href="sharedAnnotations.jsp"><%=props.getProperty("clickHere") %></a></p>      
 
-	
-	<h3>Check Annotation iaClasses and MediaAsset States by Species</h3>
-<p>Old iaClasses on annotations and media assets stuck in a "pending" state can cause poor matching performance as they are ignored.</p>
-<p><a target="_blank" href="iaBreakdownBySpecies.jsp">Click here to check</a></p>      
+   
 
 	<h3>Find Annotations Duplicated in Two or More Encounters</h3>
 <p>Look for duplicated annotations to clean up your data set.</p>
 <p><a target="_blank" href="duplicateAnnotations.jsp">Click here to check</a></p>      
 
-		<h3>URL Access Security Checks</h3>
-<p>Look for URLs in Wildbook that should or should not be accessible to the public or users with certain roles.</p>
-<p><a target="_blank" href="urlSecurityCheck.jsp">Click here to check</a></p>      
+<%
+if(request.isUserInRole("admin")){
+%>
+
+	<h3>Check Annotation iaClasses and MediaAsset States by Species</h3>
+	<p>Old iaClasses on annotations and media assets stuck in a "pending" state can cause poor matching performance as they are ignored.</p>
+	<p><a target="_blank" href="iaBreakdownBySpecies.jsp">Click here to check</a></p>   
+
+	<h3>URL Access Security Checks</h3>
+	<p>Look for URLs in Wildbook that should or should not be accessible to the public or users with certain roles.</p>
+	<p><a target="_blank" href="urlSecurityCheck.jsp">Click here to check</a></p>      
+	
+		<h3>Wildbook Machine Learning Queue Monitoring (slow load)</h3>
+	<p>Examine a current snapshot and 24 hour histroical review of the machine learning pipeline.</p>
+	<p><a target="_blank" href="wildbookIAQueueStats.jsp">Click here to check</a></p>     
+	
+<%
+}
+%>
 
 <h3>Questionable (Data) Values</h3>
 <p>Look for data values in Wildbook that may contain errors.</p>

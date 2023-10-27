@@ -758,7 +758,9 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
                     System.out.println("WARNING: isValidImage(" + file + ") is truncated[1]");
                     return false;
                 } else {
-                    System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
+                    //no need to announce this in the logs
+
+                    //System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
                     return true;
                 }
             }

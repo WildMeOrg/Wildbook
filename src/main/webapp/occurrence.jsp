@@ -90,7 +90,7 @@ context=ServletUtilities.getContext(request);
   try{
 	  if (myShepherd.isOccurrence(number)) {
 	      occ = myShepherd.getOccurrence(number);
-	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
+	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request,myShepherd);
 		  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		  boolean visible = occ.canUserAccess(request);
 	
@@ -502,12 +502,28 @@ context=ServletUtilities.getContext(request);
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
+
 		
 <% if (occ.getObserver() != null) { %>
 		<p><%=props.getProperty("observer") %>: 
                 <%=occ.getObserver()%></p>
-<% } %>
 <%
+	} 
+if(visible){
+%>
+<p>
+    <%=props.getProperty("latitude")%> /
+    <%=props.getProperty("longitude")%> /
+    <%=props.getProperty("bearing")%> /
+    <%=props.getProperty("distance")%> :
+    <%=occ.getDecimalLatitude()%>,
+    <%=occ.getDecimalLongitude()%> /
+    <%=occ.getBearing()%> m /
+    <%=occ.getDistance()%> m
+</p>
+<%
+}
+
 if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
     out.println("<p>" + props.getProperty("submittedBy") + ": ");
     List<String> subs = new ArrayList<String>();
@@ -553,11 +569,13 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			 <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></strong></td>
 		  </tr>
 		  <%
-		    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+		    Encounter[] dateSortedEncs = new Encounter[0];
+		    if(visible) dateSortedEncs = occ.getDateSortedEncounters(false);
 		
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {
 		      Encounter enc = dateSortedEncs[i];
+		      if(ServletUtilities.isUserAuthorizedForEncounter(enc, request, myShepherd)){
 		      
 		  %>
 		  	<tr>
@@ -633,7 +651,11 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			    <%}%>
 		    </td>
 		  </tr>
-		  <%} //End of loop iterating over encounters. %>
+		  <%
+		  
+		      }//end if user is authorized  
+		  
+		    } //End of loop iterating over encounters. %>
 		</table>
 		
 		<!-- Start thumbnail images -->

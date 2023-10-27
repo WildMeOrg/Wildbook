@@ -17,14 +17,14 @@ System.out.println("==> In ImporIA Servlet ");
 
 String context= ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("resendBulkImportID.jsp");
+myShepherd.setAction("resendProjectID.jsp");
 myShepherd.beginDBTransaction();
 
 JSONObject res = new JSONObject();
 //JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
 //String queryEncounterId = null;
-String importIdTask = request.getParameter("importIdTask");
+String projectId = request.getParameter("projectId");
 List<String> locationIDs = new ArrayList<String>(); 
 if(request.getParameterValues("locationID")!=null) {
   String[] vals=request.getParameterValues("locationID");
@@ -37,24 +37,22 @@ try {
     //projectIdPrefix = j.optString("projectIdPrefix", null);
     //queryEncounterId = j.optString("queryEncounterId", null);
 
-    if (Util.stringExists(importIdTask)) {
+    if (Util.stringExists(projectId)) {
 
         //Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
-        ImportTask itask = myShepherd.getImportTask(importIdTask);
+        Project proj = myShepherd.getProject(projectId);
         //Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
-        if (itask!=null) {
+        if (proj!=null) {
         	
        		//JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
       	  	JSONObject j = new JSONObject();
        		JSONObject taskParameters = j.optJSONObject("taskParameters");
        		if (taskParameters == null) taskParameters = new JSONObject(); 
-      	  	taskParameters.optString("importTaskId", itask.getId());
+      	  	taskParameters.optString("projId", proj.getId());
             
             JSONObject tp = new JSONObject();
             JSONObject mf = new JSONObject();
-            //matchingSetFilter = { locationIds: locationIds }
-            if(locationIDs!=null && locationIDs.size()>0)mf.put("locationIds",locationIDs);
-            //mf.put("projectId", project.getId());
+            mf.put("projectId", proj.getId());
             taskParameters.put("matchingSetFilter", mf);
 
       	  	
@@ -62,10 +60,9 @@ try {
             parentTask.setParameters(taskParameters);
             myShepherd.storeNewTask(parentTask);
             myShepherd.updateDBTransaction();
-            itask.setIATask(parentTask);
             myShepherd.updateDBTransaction();
 
-            List<Encounter> targetEncs = itask.getEncounters();
+            List<Encounter> targetEncs = proj.getEncounters();
             //List<Annotation> targetAnns = new ArrayList<>();
             JSONArray initiatedJobs = new JSONArray();
             for(Encounter queryEnc:targetEncs) {
@@ -83,14 +80,13 @@ try {
                 }
               }
               
-              System.out.println("BulkImport:"+importIdTask+" sending "+matchMeAnns.size()+" annots for Encounter "+queryEnc.getCatalogNumber());
+              System.out.println("Project ID:"+projectId+" sending "+matchMeAnns.size()+" annots for Encounter "+queryEnc.getCatalogNumber());
                   
-
+			  final Task fSubParentTask=subParentTask;
+            		  
               if(matchMeAnns.size()>0){
-            	  
 
-	
-	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, subParentTask,false);
+	              Task childTask = IA.intakeAnnotations(myShepherd, matchMeAnns, fSubParentTask, false);
 	              
 	              myShepherd.storeNewTask(childTask);
 	              myShepherd.updateDBTransaction();
