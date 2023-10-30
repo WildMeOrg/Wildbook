@@ -84,6 +84,7 @@ public class MetricsBot {
             
             //DO METRICS WORK HERE
             public void run() {
+              try {
                 ++count;
                 if (new java.io.File("/tmp/WB_METRICSBOT_SHUTDOWN").exists()) {
                     System.out.println("INFO: MetricsBot.startCollection(" + context + ") shutting down due to file signal");
@@ -92,6 +93,11 @@ public class MetricsBot {
                 }
                 
                refreshMetrics(context); 
+              }
+              catch(Exception e) {
+                System.out.println("Hit exception in startCollectot.run() of MetricsBot!");
+                e.printStackTrace();
+              }
                
             }
             
