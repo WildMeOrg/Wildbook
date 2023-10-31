@@ -16,6 +16,7 @@ import jxl.Workbook;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class ExportColumn {
 
@@ -63,7 +64,7 @@ public class ExportColumn {
       if (value == null){
         return null;
       }
-      return value.toString();
+      return StringEscapeUtils.unescapeHtml4(value.toString());
     }
 
     public int getMeasurementNum() {return measureNum;}
