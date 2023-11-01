@@ -521,9 +521,10 @@ public class ServletUtilities {
   
       //quick collaboration check between current user and bulk import owner
       //if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(), myShepherd.getContext()))return true;
-      Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername());
-      if(collab!=null && collab.getState()!=null && (collab.getState().equals(Collaboration.STATE_EDIT_PRIV)||collab.getState().equals(Collaboration.STATE_APPROVED)) )return true;
-      
+      if(request.getUserPrincipal()!=null && request.getUserPrincipal().getName()!=null && occ.getCreator() !=null && occ.getCreator().getUsername()!=null) {
+    	  Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, request.getUserPrincipal().getName(), occ.getCreator().getUsername());
+    	  if(collab!=null && collab.getState()!=null && (collab.getState().equals(Collaboration.STATE_EDIT_PRIV)||collab.getState().equals(Collaboration.STATE_APPROVED)) )return true;
+      }
       
       //quick orgAdminCheck
       //if this user is the orgAdmin for the bulk import's uploading user, they can see it
