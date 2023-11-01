@@ -285,7 +285,7 @@ System.out.println("sendAnnotations() -> " + rtn);
         if (acmIds == null) {
             IA.log("WARNING: WildbookIAM.sendAnnotations() could not get list of acmIds from response: " + rtn);
         } else {
-            int numChanged = AcmUtil.rectifyAnnotationIds(acmList, acmIds);
+            int numChanged = AcmUtil.rectifyAnnotationIds(acmList, acmIds, myShepherd);
             IA.log("INFO: WildbookIAM.sendAnnotations() updated " + numChanged + " Annotation(s) acmId(s) via rectifyAnnotationIds()");
         }
         return rtn;

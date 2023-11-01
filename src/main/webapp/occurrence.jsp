@@ -551,6 +551,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {
 		      Encounter enc = dateSortedEncs[i];
+		      if(ServletUtilities.isUserAuthorizedForEncounter(enc, request, myShepherd)){
 		      
 		  %>
 		  	<tr>
@@ -626,7 +627,11 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			    <%}%>
 		    </td>
 		  </tr>
-		  <%} //End of loop iterating over encounters. %>
+		  <%
+		  
+		      }//end if user is authorized  
+		  
+		    } //End of loop iterating over encounters. %>
 		</table>
 		
 		<!-- Start thumbnail images -->

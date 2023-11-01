@@ -4,6 +4,8 @@ import javax.servlet.http.*;
 
 import java.io.*;
 import java.util.*;
+
+import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
 import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.media.*;
@@ -14,9 +16,11 @@ import javax.jdo.*;
 import java.lang.StringBuffer;
 import jxl.write.*;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+
 
 public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
@@ -133,7 +137,9 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
 
 
       // business logic start here
-      WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile);
+      WorkbookSettings ws = new WorkbookSettings();
+      ws.setEncoding( "UTF-8" );
+      WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile,ws);
       WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
 
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
