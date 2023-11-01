@@ -1887,8 +1887,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       mark = myShepherd.getMarkedIndividual(uuid);
     }
 
-    // ID not in cache.. withName gets the first choice that matches species so caution and require global
-    if (mark==null&&"global".equals(individualScope)) {
+    // ID not in cache.. withName gets the first choice that matches species so caution
+    if (mark==null) {
       mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
     }
 
