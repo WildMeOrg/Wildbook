@@ -409,7 +409,15 @@
 			  
 				  {"name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID": [
 				  
-						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []}
+						{"name": "Adriatic Sea", "id": "Adriatic Sea", "locationID": []},
+
+						{"name": "Banco di Santa Croce (BSC)", "id": "Banco di Santa Croce (BSC)", "locationID": []},
+
+						{"name": "Gulf of Naples", "id": "Gulf of Naples", "locationID": []},
+
+						{"name": "Ligurian Sea", "id": "Ligurian Sea", "locationID": []},
+
+						{"name": "Tyrrhenian Sea", "id": "Tyrrhenian Sea", "locationID": []}
 				  
 				  ]}
 			  
