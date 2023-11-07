@@ -339,6 +339,12 @@
 							"prefixDigitPadding": 3
 						},
 						{
+							"name": "Ilmotiok",
+							"id": "Ilmotiok",
+							"prefix": "Ilmo",
+							"prefixDigitPadding": 3
+						},
+						{
 							"name": "Il Ngwesi",
 							"id": "Il Ngwesi",
 							"prefix": "IlNg",
@@ -537,6 +543,10 @@
 			"id": "Mozambique",
 
 			"locationID": [
+				{
+					"name": "Karingani Wildlife Reserve",
+					"id": "Karingani Wildlife Reserve"
+				},
 				{
 					"name": "Zinave National Park",
 					"id": "Zinave National Park"
