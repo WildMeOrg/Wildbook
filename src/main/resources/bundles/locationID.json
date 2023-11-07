@@ -78,7 +78,7 @@
               
         ]},
         
-        
+        {"name":"Ogasawara Islands", "id":"Ogasawara Islands", "locationID":[]},
         {"name":"Palau", "id":"Palau", "locationID":[]},
         {"name":"Papua New Guinea", "id":"Papua New Guinea", "locationID":[]},
         {"name":"Samoa", "id":"Samoa", "locationID":[]},
@@ -450,7 +450,10 @@
                {
                 "name": "Bay of Fundy",  "id": "Bay of Fundy" },
                {
-                "name": "Black Sea", "id": "Black Sea"  },
+                "name": "Black Sea", "id": "Black Sea", "locationID": [
+                  {
+                    "name": "Bulgaria", "id": "Bulgaria"}
+                ]  },
                {
                 "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
   
