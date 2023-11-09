@@ -118,6 +118,11 @@
 					"name": "Naivasha",
 					"id": "Naivasha",
 					"description": "Naivasha", "locationID":[
+						{
+							"name": "Bilashaka Farm",
+							"id": "Bilashaka Farm",
+							"description": "Bilashaka Farm"
+						},
 					{
 						"name": "Crater Lake Game Sanctuary",
 						"id": "Crater Lake Game Sanctuary",
@@ -144,6 +149,11 @@
 						"description": "Hippo Point Farm"
 					},
 					{
+						"name": "Karlo Farm",
+						"id": "Karlo Farm",
+						"description": "Karlo Farm"
+					},
+					{
 						"name": "Kedong Ranch",
 						"id": "Kedong Ranch",
 						"description": "Kedong Ranch"
@@ -152,6 +162,11 @@
 						"name": "Kilimandege Bird Sanctuary",
 						"id": "Kilimandege Bird Sanctuary",
 						"description": "Kilimandege Bird Sanctuary"
+					},
+					{
+						"name": "Kimata Farm",
+						"id": "Kimata Farm",
+						"description": "Kimata Farm"
 					},
 					{
 						"name": "Kinja Farm",
@@ -242,6 +257,11 @@
 						"name": "Sopa Lodge",
 						"id": "Sopa Lodge",
 						"description": "Sopa Lodge"
+					},
+					{
+						"name": "Wanjugu Farm",
+						"id": "Wanjugu Farm",
+						"description": "Wanjugu Farm"
 					},
 					{
 						"name": "Wileli Wildlife Sanctuary",
