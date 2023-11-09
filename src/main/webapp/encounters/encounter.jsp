@@ -694,7 +694,7 @@ $(function() {
 
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()!=null){
+      if(isOwner && enc.getDateInMilliseconds()!=null){
 
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
 
@@ -868,10 +868,9 @@ else {
 
 
 <%
-if(enc.getLocation()!=null){
+if(isOwner && enc.getLocation()!=null){
 %>
-
-<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
+	<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
 }
 %>
@@ -888,11 +887,14 @@ if(enc.getLocation()!=null){
 	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
 	int sizeHier=hier.size();
 	String displayPath="";
-	for(int q=0;q<sizeHier;q++){
-		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
-		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+	if(isOwner || isPublic){
+		for(int q=0;q<sizeHier;q++){
+			if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
+			else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+		}
+		if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	}
-        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
+        
 	%>
 		<%=displayPath %>
 	</span>
@@ -909,7 +911,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
 
   <%
-  if(enc.getCountry()!=null){
+  if(isOwner && enc.getCountry()!=null){
   %>
   <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
@@ -2332,7 +2334,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){
+	       if(isOwner && enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2416,7 +2418,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){
+	       if(isOwner && enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
@@ -3633,7 +3635,7 @@ else {
        <%}%>
 
     <p>
-    <%if(enc.getDateInMilliseconds()!=null && visible){ %>
+    <%if(isOwner && visible && enc.getDateInMilliseconds()!=null){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
@@ -3650,7 +3652,7 @@ else {
     <br />
     <em><%=encprops.getProperty("verbatimEventDate")%></em>:
         <%
-    				if(enc.getVerbatimEventDate()!=null){
+    				if(isOwner && enc.getVerbatimEventDate()!=null){
     				%>
         <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
         <%
