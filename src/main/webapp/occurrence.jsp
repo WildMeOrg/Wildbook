@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
   try{
 	  if (myShepherd.isOccurrence(number)) {
 	      occ = myShepherd.getOccurrence(number);
-	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
+	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request,myShepherd);
 		  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		  boolean visible = occ.canUserAccess(request);
 	
@@ -551,6 +551,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {
 		      Encounter enc = dateSortedEncs[i];
+		      if(ServletUtilities.isUserAuthorizedForEncounter(enc, request, myShepherd)){
 		      
 		  %>
 		  	<tr>
@@ -626,7 +627,11 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			    <%}%>
 		    </td>
 		  </tr>
-		  <%} //End of loop iterating over encounters. %>
+		  <%
+		  
+		      }//end if user is authorized  
+		  
+		    } //End of loop iterating over encounters. %>
 		</table>
 		
 		<!-- Start thumbnail images -->

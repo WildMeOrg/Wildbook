@@ -100,7 +100,7 @@
 				/import/** = authc, roles[researcher]
 
 				/gallery.jsp = authc
-				/encounters/encounter.jsp = authc
+				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
@@ -501,6 +501,13 @@
 		  /surveys/surveyMapEmbed.jsp = authc
 		  /obrowse.jsp = authc
 
+
+
+          /appadmin/dataIntegrity.jsp = authc
+		  /appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
+		  /appadmin/sharedAnnotations.jsp = authc
+		  /appadmin/duplicateAnnotations.jsp = authc
+		  /appadmin/dataValuesCheck.jsp = authc
 
 			</param-value>
         </init-param>

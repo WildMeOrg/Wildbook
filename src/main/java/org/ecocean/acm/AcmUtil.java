@@ -36,7 +36,7 @@ public class AcmUtil {
         return numChanged;
     }
 
-    public static int rectifyAnnotationIds(List<Annotation> anns, List<String> acmIds) {
+    public static int rectifyAnnotationIds(List<Annotation> anns, List<String> acmIds, Shepherd myShepherd) {
         if ((anns == null) || (acmIds == null) || (anns.size() != acmIds.size())) {
             IA.log("ERROR: AcmUtil.rectifyAnnotationIds() has invalid lists passed; failing");
             return -1;
@@ -56,6 +56,8 @@ public class AcmUtil {
                 numChanged++;
             }
         }
+        //persist this
+        if(numChanged>0)myShepherd.updateDBTransaction();
         return numChanged;
     }
 }
