@@ -16,6 +16,8 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
+import org.apache.commons.text.StringEscapeUtils;
 
 
 public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
@@ -121,7 +123,9 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
         WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
 
       //let's write out headers for the OBIS export file
-        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
+        WorkbookSettings ws = new WorkbookSettings();
+        ws.setEncoding( "UTF-8" );
+        WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile,ws);
         sheet = workbookOBIS.createSheet("Search Results", 0);
 
         String[] colHeaders = new String[]{
@@ -188,7 +192,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
             writeCell("taxonomies", occ.getAllSpecies()); // the getAllSpecies List<String> toStrings nicely
             writeCell("individualCount", occ.getIndividualCount());
             writeCell("groupBehavior", occ.getGroupBehavior());
-            writeCell("commments", occ.getComments());
+            writeCell("commments", StringEscapeUtils.unescapeHtml4(occ.getComments()));
             writeCell("modified", occ.getDWCDateLastModified());
             writeCell("dateTimeCreated", occ.getDateTimeCreated());
             writeCell("fieldStudySite", occ.getFieldStudySite());
