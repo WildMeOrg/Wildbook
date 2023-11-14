@@ -618,6 +618,11 @@
 				"name": "Gadabedji",
 				"id": "Gadabedji",
 				"description": "Gadabedji"
+			},
+			{
+				"name": "Giraffe Zone",
+				"id": "Giraffe Zone",
+				"description": "Giraffe Zone"
 			}
 		]
 	},
@@ -824,6 +829,11 @@
 			"id": "Zimbabwe",
 			"description": "Zimbabwe",
 			"locationID": [
+				{
+					"name": "Greater Mapungubwe Transfrontier Conservation Area",
+					"id": "Greater Mapungubwe Transfrontier Conservation Area",
+					"description": "Greater Mapungubwe Transfrontier Conservation Area"
+				},
 				{
 					"name": "Save Valley",
 					"id": "Save Valley",
