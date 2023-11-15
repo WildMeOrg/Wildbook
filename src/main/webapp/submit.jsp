@@ -846,7 +846,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("locationID") %></label>
+        <label class="control-label text-danger"><%=props.getProperty("locationID") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
