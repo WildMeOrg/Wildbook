@@ -1399,11 +1399,21 @@ function sendButtonClicked() {
 	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
 	// 	return false;
 	// }
-	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+	if(!$('#location').val()){
 		$('#location').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		window.setTimeout(function() { alert('You must provide the Site Name/Description and/or REEF Zone Code if available.'); }, 100);
 		return false;
 	}
+	if(!$('#locationID').val()){
+		$('#locationID').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must provide the Country/Location ID.'); }, 100);
+		return false;
+	}
+	//if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+	//	$('#location').closest('.form-group').addClass('required-missing');
+	//	window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+	//	return false;
+	//}
 
 	if ($('#submitterEmail').val()) {
 			var email = $('#submitterEmail').val();
