@@ -31,7 +31,12 @@
 	{ "name":"Hawaii", "id":"Hawaii","geospatialInfo":{
 	 			 	"lat":20.567226,
 	 			 	"long":-157.290055
- 			 }, "locationID":[] },
+ 			 }, "locationID":[
+				{"name": "Big Island", "id": "Big Island", "locationID": []},
+				{"name": "Kauai", "id": "Kauai", "locationID": []},
+				{"name": "Maui", "id": "Maui", "locationID": []},
+				{"name": "Oahu", "id": "Oahu", "locationID": []}
+			 ] },
 
 	{ "name":"India", "id":"India","geospatialInfo":{
 	 			 	"lat":20.593684,
