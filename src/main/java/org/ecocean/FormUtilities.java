@@ -144,7 +144,9 @@ public class FormUtilities {
   public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
-      List<Organization> orgsUserBelongsTo = usr.getOrganizations();
+      List<Organization> orgsUserBelongsTo = new ArrayList<Organization>();
+      if(request.isUserInRole("admin")) {orgsUserBelongsTo=myShepherd.getAllOrganizations();}
+      else {orgsUserBelongsTo = usr.getOrganizations();}
       ArrayList<String> orgOptions = new ArrayList<String>();
       ArrayList<String> orgIds = new ArrayList<String>();
       for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO DRY up
