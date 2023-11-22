@@ -1959,6 +1959,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     String nickname = getString(row, "MarkedIndividual.nickname",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
     if (nickname!=null) mark.setNickName(nickname);
+    
+    
+    //MarkedIndividual.sex
+    String indivSex = getString(row, "MarkedIndividual.sex",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
+    if (indivSex!=null) mark.setSex(indivSex);
 
     int numNameColumns=getNumNameColumns(colIndexMap);
     //import name columns
