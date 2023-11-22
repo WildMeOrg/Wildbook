@@ -1859,10 +1859,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     boolean newIndividual = false;
     String individualID = getIndividualID(row, colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-    if (individualID==null) {
-      return null;
-    }
-
+    if (individualID==null) return null;
+    individualID = individualID.trim();
+    if (individualID.equals("")) return null;
+    System.out.println("loadIndividual() individualID=" + individualID);
 
     User u = getUserForRowOrCurrent(row, myShepherd, colIndexMap, verbose, missingColumns, unusedColumns,feedback,request);
     if (!userIndividualCache.containsKey(u)&&"user".equals(individualScope)) {
@@ -1872,10 +1872,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     while (uIt.hasNext()) {
       User itU = (User)uIt.next();
     }
-
-
-    // no
-    individualID = individualID.trim();
 
     MarkedIndividual mark = null;
 
