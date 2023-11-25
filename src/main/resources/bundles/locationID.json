@@ -367,12 +367,21 @@
 			  
 			  {
 			  "name": "Malaysia", "id": "Malaysia", "prefix": "MY-", "prefixDigitPadding": 3 },
+
+			  {
+				"name": "Myanmar", "id": "Myanmar", "prefix": "MR-", "prefixDigitPadding": 3 },
+				
+			  {
+				"name": "New Zealand", "id": "New Zealand", "prefix": "NZ-", "locationID": [
+					{
+						"name": "Bay of Plenty", "id": "Bay of Plenty", "prefix": "BP", "prefixDigitPadding": 3 },
+					{
+						"name": "Stewart Island", "id": "Stewart Island", "prefix": "SI", "prefixDigitPadding": 3 }
+						
+					]},
 			  
 			  {
 			  "name": "Thailand", "id": "Thailand", "prefix": "T-", "prefixDigitPadding": 3 },
-			  
-			  {
-			  "name": "Myanmar", "id": "Myanmar", "prefix": "MR-", "prefixDigitPadding": 3 },
 			  
 			  {
 			  "name": "1g", "id": "1g" },
