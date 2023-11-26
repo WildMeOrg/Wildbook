@@ -185,7 +185,7 @@
 		         /UserDelete = authc, roles[admin]
 		         /UserAddProfileImage = authc, roles[researcher]
 		         /UserRemoveProfileImage = authc, roles[researcher]
-          /StandardImport = authc, roles[admin]
+          /StandardImport = authc, roles[researcher]
           /FixStandardImport = authc, roles[admin]
 		         /EncounterSearchExportEmailAddresses = authc, roles[admin]
       			/encounters/searchExport = authc, roles[researcher]
@@ -2159,6 +2159,9 @@
     <servlet-name>ScanTaskHandler</servlet-name>
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
+  
+
+
 
   <!--
 
@@ -2218,6 +2221,12 @@
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+  
+    <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+  
   <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/WebImport</url-pattern>
