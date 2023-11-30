@@ -115,6 +115,7 @@
 
 
 		/individualSearch.jsp = roles[researcher]
+		/individuals.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
 		/individualSearchResults.jsp = authc
