@@ -3099,7 +3099,7 @@ if(request.getUserPrincipal()!=null){
   <div class="highlight resultMessageDiv" id="autoCommentErrorDiv"></div>
     <%
     String rComments="";
-    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    if(isOwner && enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
     <div id="autoCommentsDiv" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
