@@ -42,6 +42,62 @@ try{
   }
 </style>
 
+<style type="text/css">
+
+  #tabmenu {
+    color: #000;
+    border-bottom: 1px solid #CDCDCD;
+    margin: 12px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 10px
+  }
+
+  #tabmenu li {
+    display: inline;
+    overflow: hidden;
+    list-style-type: none;
+  }
+
+  #tabmenu a, a.active {
+    color: #000;
+    background: #E6EEEE;
+    border: 1px solid #CDCDCD;
+    padding: 2px 5px 0px 5px;
+    margin: 0;
+    text-decoration: none;
+    border-bottom: 0px solid #FFFFFF;
+  }
+
+  #tabmenu a.active {
+    background: #8DBDD8;
+    color: #000000;
+    border-bottom: 1px solid #8DBDD8;
+  }
+
+  #tabmenu a:hover {
+    color: #000;
+    background: #8DBDD8;
+  }
+
+  #tabmenu a:visited {
+
+  }
+
+  #tabmenu a.active:hover {
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
+  }
+
+  div.scroll {
+    height: 200px;
+    overflow: auto;
+    border: 1px solid #666;
+    background-color: #ccc;
+    padding: 8px;
+  }
+</style>
+
 <jsp:include page="../header.jsp" flush="true"/>
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
