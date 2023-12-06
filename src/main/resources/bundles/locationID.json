@@ -298,11 +298,32 @@
 					"description": "Mara",
 					"locationID":[
 						{
+							"name": "Isaaten Conservancy",
+							"id": "Isaaten Conservancy",
+							"prefix": "isa",
+							"prefixDigitPadding": 3,
+							"description": "Isaaten Conservancy"
+						},
+						{
 							"name": "Mara North",
 							"id": "Mara North",
 							"prefix": "mnc",
 							"prefixDigitPadding": 3,
 							"description": "Mara North"
+						},
+						{
+							"name": "Mara Triangle Conservancy",
+							"id": "Mara Triangle Conservancy",
+							"prefix": "mtc",
+							"prefixDigitPadding": 3,
+							"description": "Mara Triangle Conservancy"
+						},
+						{
+							"name": "Maasai Mara National Reserve",
+							"id": "Maasai Mara National Reserve",
+							"prefix": "mmnr",
+							"prefixDigitPadding": 3,
+							"description": "Maasai Mara National Reserve"
 						},
 						{
 							"name": "Naboisho",
@@ -312,6 +333,20 @@
 							"description": "Naboisho"
 						},
 						{
+							"name": "Ol Kinyei",
+							"id": "Ol Kinyei",
+							"prefix": "olk",
+							"prefixDigitPadding": 3,
+							"description": "Ol Kinyei"
+						},
+						{
+							"name": "Olare Motorogi Conservancy",
+							"prefix": "omc",
+							"prefixDigitPadding": 3,
+							"id": "Olare Motorogi Conservancy",
+							"description": "Olare Motorogi Conservancy"
+						},
+						{
 							"name": "Olarro",
 							"prefix": "olc",
 							"prefixDigitPadding": 3,
@@ -319,11 +354,18 @@
 							"description": "Olarro"
 						},
 						{
-							"name": "Ol Kinyei",
-							"id": "Ol Kinyei",
-							"prefix": "olk",
+							"name": "Olderkesi Conservancy",
+							"id": "Olderkesi Conservancy",
+							"prefix": "old",
 							"prefixDigitPadding": 3,
-							"description": "Ol Kinyei"
+							"description": "Olderkesi Conservancy"
+						},
+						{
+							"name": "Siana Conservancy",
+							"id": "Siana Conservancy",
+							"prefix": "sia",
+							"prefixDigitPadding": 3,
+							"description": "Siana Conservancy"
 						}
 					]
 				},
