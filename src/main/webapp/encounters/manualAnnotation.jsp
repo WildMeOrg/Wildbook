@@ -190,7 +190,7 @@ myShepherd.setAction("manualAnnotation.jsp");
 myShepherd.beginDBTransaction();
 
 try{
-	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
 	Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
 	List results = (List)q.execute();
 	Iterator it = results.iterator();
@@ -217,7 +217,7 @@ try{
 	}
 
 	if(viewpoint!=null){
-		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
 		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
 		//results = (List)q2.execute();
 		IAJsonProperties iaj=new IAJsonProperties();
