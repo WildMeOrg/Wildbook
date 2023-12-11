@@ -23,7 +23,7 @@ context=ServletUtilities.getContext(request);
 
     <hr/>
 
-    <embed src="cust/20230103_ACW ToU_FINAL_Eng-Fr.pdf" type="application/pdf" width="100%" height="1000px" />
+    <embed src="cust/Addendum 1 - 202300905_ACW ToU_FINAL_Eng-Fr.pdf" type="application/pdf" width="100%" height="1000px" />
 
     <hr/>
 
