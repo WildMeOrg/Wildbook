@@ -332,6 +332,15 @@
 							},
 							"locationID": []
 						},
+						{
+							"name": "Wreck Bay",
+							"id": "WB",
+							"geospatialInfo": {
+								"lat": -12.228611,
+								"long": 143.874722
+							},
+							"locationID": []
+						},
 						
 						
 						{	
@@ -588,7 +597,7 @@
 				  "name": "California", "id": "California", "locationID":[
 					
 						{
-					  "name": "Ano Nuevo", "id": "Ano Nuevo" },
+					  "name": "Año Nuevo", "id": "Año Nuevo" },
 					  {
 					  "name": "Aptos", "id": "Aptos" },
 					  {
