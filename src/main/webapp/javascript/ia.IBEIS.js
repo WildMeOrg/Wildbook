@@ -206,13 +206,22 @@ console.warn('ias => %o', ias);
     matchFilter: function(aid, ma) {
         iaMatchFilterAnnotationIds = [ aid ];
         var iaClass = ma && ma.annotation && ma.annotation.iaClass;
+		$("#noalgo").css("visibility","hidden")
         $('.mfalgo-item').show();
         if (iaClass) {
             $('.mfalgo-item').hide();
             $('.mfalgo-iaclass-' + iaClass.replaceAll('+', '-')).show();
         }
         $('.mfalgo-item [data-default-checked="true"]').prop('checked', true);  //check all that should be
-        $('.ia-match-filter-dialog').show();
+        
+		var numAlgosVisible = $('.mfalgo-iaclass-' + iaClass.replaceAll('+', '-')).length;
+		//console.log("Num algos: "+numAlgosVisible);
+		if(numAlgosVisible<1) {
+			//console.log("NOALGO");
+			$("#noalgo").css("visibility","visible");
+		}
+
+		$('.ia-match-filter-dialog').show();
         $('.mfalgo-item:hidden input').prop('checked', false);
     },
 
