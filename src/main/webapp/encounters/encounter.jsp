@@ -6999,6 +6999,10 @@ for (JSONObject algConfig : identConfigsValues) {
   algNum++;
 }
 
+//add the no-available-algorithm option
+out.println("<p id=\"noalgo\" style=\"visibility: hidden;\"><em>No configured algorithm for this annotation class.</em></p>");
+
+
 %>
 
 <div class="ia-match-filter-section">
