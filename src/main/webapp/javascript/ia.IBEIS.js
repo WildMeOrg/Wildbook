@@ -206,7 +206,8 @@ console.warn('ias => %o', ias);
     matchFilter: function(aid, ma) {
         iaMatchFilterAnnotationIds = [ aid ];
         var iaClass = ma && ma.annotation && ma.annotation.iaClass;
-		$("#noalgo").css("visibility","hidden")
+		$("#noalgo").css("visibility","hidden");
+		$("#matchbutton").css("visibility","hidden");
         $('.mfalgo-item').show();
         if (iaClass) {
             $('.mfalgo-item').hide();
@@ -219,6 +220,9 @@ console.warn('ias => %o', ias);
 		if(numAlgosVisible<1) {
 			//console.log("NOALGO");
 			$("#noalgo").css("visibility","visible");
+		}
+		else{
+			$("#matchbutton").css("visibility","visible");
 		}
 
 		$('.ia-match-filter-dialog').show();

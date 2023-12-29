@@ -7006,7 +7006,7 @@ out.println("<p id=\"noalgo\" style=\"visibility: hidden;\"><em>No configured al
 %>
 
 <div class="ia-match-filter-section">
-    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
     <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
         onClick="$('.ia-match-filter-dialog').hide()" />
 </div>
