@@ -7002,10 +7002,14 @@ for (JSONObject algConfig : identConfigsValues) {
   algNum++;
 }
 
+//add the no-available-algorithm option
+out.println("<p id=\"noalgo\" style=\"visibility: hidden;\"><em>No configured algorithm for this annotation class.</em></p>");
+
+
 %>
 
 <div class="ia-match-filter-section">
-    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
     <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
         onClick="$('.ia-match-filter-dialog').hide()" />
 </div>

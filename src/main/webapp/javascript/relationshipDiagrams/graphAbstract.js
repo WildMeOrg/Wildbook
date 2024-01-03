@@ -410,10 +410,7 @@ class GraphAbstract { //See static attributes below class
 	    
 	    if (time && time.day && time.month && time.year)
 		tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
-	    if (loc && typeof loc.lat == "number")
-		tooltipHtml += "<b>Longitude: </b>" + loc.lon + " ";
-	    if (loc && typeof loc.lat == "number")
-		tooltipHtml += "<b>Latitude: </b>" + loc.lat + "<br/>";
+
 
 	    numLinks++;
 	}
