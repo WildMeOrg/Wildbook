@@ -426,13 +426,11 @@ System.out.println("anns -> " + anns);
             Task subTask = subTasks.get(i);
             try {
                 taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTask, myShepherd,fastlane);
-            } catch (Exception ex) {
+            } catch (Exception ex) {  // unsure if maybe _some_ exceptions should be treated differently here?
                 System.out.println("subTask failure on " + subTask + ": " + ex.toString());
                 taskRes.put("success", false);
                 taskRes.put("error", ex.toString());
 System.out.println(">>>>>>> parentTask: " + parentTask);
-System.out.println(">>>>>>> parentTask params: " + parentTask.getParameters());
-System.out.println(">>>>>>> jin: " + jin);
                 JSONObject jobj = new JSONObject();
                 jobj.put("identify", new JSONObject());
                 jobj.getJSONObject("identify").put("annotationIds", new JSONArray());
