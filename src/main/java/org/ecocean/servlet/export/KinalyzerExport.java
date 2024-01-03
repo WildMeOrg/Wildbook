@@ -61,7 +61,7 @@ public class KinalyzerExport extends HttpServlet{
     String kinFilename = "kinalyzer_export_" + request.getRemoteUser() + ".csv";
     File kinFile = new File(encountersDir.getAbsolutePath()+"/" + kinFilename);
 
-
+    myShepherd.beginDBTransaction();
     try{
 
 
@@ -73,7 +73,7 @@ public class KinalyzerExport extends HttpServlet{
       Vector query2Individuals = new Vector();
 
       //kick off the transaction
-      myShepherd.beginDBTransaction();
+      
 
       //start the query and get the results
       String order = "";
@@ -132,8 +132,7 @@ public class KinalyzerExport extends HttpServlet{
         }
         
       }
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+
       
       
       outp.close();
@@ -144,7 +143,7 @@ public class KinalyzerExport extends HttpServlet{
       response.setHeader("Content-Disposition","attachment;filename="+kinFilename);
       ServletContext ctx = getServletContext();
       //InputStream is = ctx.getResourceAsStream("/encounters/"+gisFilename);
-     InputStream is=new FileInputStream(kinFile);
+      InputStream is=new FileInputStream(kinFile);
       
       
       int read=0;
@@ -163,12 +162,13 @@ public class KinalyzerExport extends HttpServlet{
       //out.println("<p><strong>Error encountered</strong></p>");
       //out.println("<p>Please let the webmaster know you encountered an error at: KinalyzerExport servlet.</p>");
       e.printStackTrace();
+      
+    }
+    finally {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
-    myShepherd=null;
-    //out.close();
-    //out=null;
+
   }
 
   
