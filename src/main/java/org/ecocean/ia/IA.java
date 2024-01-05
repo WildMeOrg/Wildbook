@@ -376,6 +376,7 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
         Map<String,List<Annotation>> iaClassToAnns = new HashMap<String, List<Annotation>>();
         for (Annotation ann: anns) {
             String iaClass = ann.getIAClass();
+            if (iaClass == null) continue;
             List<Annotation> iaClassList = iaClassToAnns.getOrDefault(iaClass, new ArrayList<Annotation>());
             iaClassList.add(ann);
             iaClassToAnns.put(iaClass, iaClassList);
