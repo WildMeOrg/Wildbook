@@ -98,7 +98,7 @@ String queryString="";
 if(request.getQueryString()!=null){
 	queryString=request.getQueryString();
 
-
+	/*
 	Enumeration params=request.getParameterNames();
 	while(params.hasMoreElements()){
 
@@ -108,6 +108,7 @@ if(request.getQueryString()!=null){
 		queryString+=("&"+name+"="+value);
 		
 	}
+	*/
 	
 	
 }

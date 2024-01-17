@@ -1815,7 +1815,7 @@ function approveNewIndividual(el) {
 }
 
 function encDisplayString(encId) {
-	if (encId.trim().length == 36) return encId.substring(0,6)+"...";
+	if (encId != null && encId.trim().length == 36) return encId.substring(0,6)+"...";
 	return encId;
 }
 
