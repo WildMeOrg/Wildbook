@@ -16,26 +16,29 @@ java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*
 //try to see if encounter was part of ImportTask so we can mark complete
 //  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
 private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
-    if ((enc == null) || (enc.numAnnotations() < 1)) return;
-    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
-    Query query = myShepherd.getPM().newQuery(jdoql);
-    query.setOrdering("created desc");
-    List results = (List)query.execute();
-    ImportTask itask = null;
-    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
-    query.closeAll();
-	System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
-    if (itask == null) return;
-    String svKey = "rapid_completed_" + itask.getId();
-    myShepherd.beginDBTransaction();
-    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
-    if (m == null) m = new JSONObject();
-    for (Annotation ann : enc.getAnnotations()) {
-        m.put(ann.getId(), true);
-		System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
-    }
-    SystemValue.set(myShepherd, svKey, m);
-    myShepherd.commitDBTransaction();
+	try{
+	    if ((enc == null) || (enc.numAnnotations() < 1)) return;
+	    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
+	    Query query = myShepherd.getPM().newQuery(jdoql);
+	    query.setOrdering("created desc");
+	    List results = (List)query.execute();
+	    ImportTask itask = null;
+	    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
+	    query.closeAll();
+		System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+	    if (itask == null) return;
+	    String svKey = "rapid_completed_" + itask.getId();
+	    myShepherd.beginDBTransaction();
+	    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+	    if (m == null) m = new JSONObject();
+	    for (Annotation ann : enc.getAnnotations()) {
+	        m.put(ann.getId(), true);
+			System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+	    }
+	    SystemValue.set(myShepherd, svKey, m);
+	    myShepherd.commitDBTransaction();
+	}
+	catch(Exception e){e.printStackTrace();}
 }
 
 
@@ -76,7 +79,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		myShepherd.closeDBTransaction();
 		return;
 	}
-	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request)){
+	else if(!ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd)){
 		res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
@@ -102,7 +105,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			myShepherd.closeDBTransaction();
 			return;
 		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request)){
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request,myShepherd)){
 			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();

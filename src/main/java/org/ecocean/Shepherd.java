@@ -4275,10 +4275,10 @@ public Long countMediaAssets(Shepherd myShepherd){
     try {
       allOccurs = pm.getExtent(Keyword.class, true);
       Query acceptedOccurs = pm.newQuery(allOccurs);
-      Collection c = (Collection) (acceptedOccurs.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      Collection<Keyword> c = (Collection) (acceptedOccurs.execute());
+      Set<Keyword> keywords = new TreeSet<>(c);
       acceptedOccurs.closeAll();
-      it = al.iterator();
+      it = keywords.iterator();
     }
     catch (javax.jdo.JDOException x) {
       x.printStackTrace();

@@ -281,8 +281,14 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
-        if(fastlane)map.put("lane", "fast");
+        
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
+        
+        //OK, check here and dont let HotSpotter in
+        boolean isHotspotter = false;
+        if(queryConfigDict != null && queryConfigDict.toString().indexOf("sv_on")>-1)isHotspotter = true;
+        if(fastlane && !isHotspotter)map.put("lane", "fast");
+        
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
 
@@ -2044,6 +2050,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 JSONObject amap = new JSONObject();
                 //JSONObject ident = new JSONObject();
                 List<Annotation> allAnns = new ArrayList<Annotation>();
+                List<Integer> alreadyDetected = new ArrayList<Integer>();
                 for (int i = 0 ; i < rlist.length() ; i++) {
                     JSONArray janns = rlist.optJSONArray(i);
                     if (janns == null) continue;
@@ -2053,7 +2060,8 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     MediaAsset asset = null;
                     for (MediaAsset ma : mas) {
                         if (ma.getAcmId() == null) continue;  //was likely an asset rejected (e.g. video)
-                        if (ma.getAcmId().equals(iuuid)) {
+                        if (ma.getAcmId().equals(iuuid) && !alreadyDetected.contains(ma.getId())) {
+                            alreadyDetected.add(ma.getId());
                             asset = ma;
                             break;
                         }
