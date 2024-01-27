@@ -143,7 +143,7 @@ public class Keyword implements Comparable<Keyword> {
     @Override
     public int compareTo(final Keyword keyword) {
       if (Util.stringExists(this.getReadableName()) && Util.stringExists(keyword.getReadableName())) {
-        return this.getReadableName().compareTo(keyword.getReadableName());
+        return this.getReadableName().compareToIgnoreCase(keyword.getReadableName());
       }
       return 0;
     }
