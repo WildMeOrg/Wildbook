@@ -142,7 +142,9 @@ try {
 		
 	        
 	        for(Occurrence rel:rels){
-	        	jarray.put(uiJson(rel,request));
+	        	if(ServletUtilities.isUserAuthorizedForOccurrence(rel,request,myShepherd)){
+	        		jarray.put(uiJson(rel,request));
+	        	}
 	        }
 	        
 
