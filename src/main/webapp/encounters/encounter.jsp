@@ -3253,7 +3253,7 @@ if(request.getUserPrincipal()!=null){
   <div class="highlight resultMessageDiv" id="autoCommentErrorDiv"></div>
     <%
     String rComments="";
-    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    if(isOwner && enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
     <div id="autoCommentsDiv" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
@@ -7148,10 +7148,14 @@ for (JSONObject algConfig : identConfigsValues) {
   algNum++;
 }
 
+//add the no-available-algorithm option
+out.println("<p id=\"noalgo\" style=\"visibility: hidden;\"><em>No configured algorithm for this annotation class.</em></p>");
+
+
 %>
 
 <div class="ia-match-filter-section">
-    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
     <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
         onClick="$('.ia-match-filter-dialog').hide()" />
 </div>

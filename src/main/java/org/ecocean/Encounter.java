@@ -466,12 +466,32 @@ public class Encounter implements java.io.Serializable {
         occ.removeEncounter(enc2);
         occ.addEncounter(this); // duplicate-safe
       }
+      
+      //Remove it from an ImportTask if needed
+      ImportTask task=myShepherd.getImportTaskForEncounter(enc2.getCatalogNumber());
+      if(task!=null) {
+        task.removeEncounter(enc2);
+        myShepherd.updateDBTransaction();
+      }
+      
+      //Remove from Project if needed
+      List<Project> projects = myShepherd.getProjectsForEncounter(enc2);
+      if (projects!=null&&!projects.isEmpty()) {
+        for (Project project : projects) {
+          project.removeEncounter(enc2);
+          myShepherd.updateDBTransaction();
+        }
+      }
+      
       // remove tissue samples because of bogus foreign key constraint that prevents deletion
       int numTissueSamples = 0;
       if (enc2.getTissueSamples()!=null) numTissueSamples = enc2.getTissueSamples().size();
       for (int i=0; i<numTissueSamples; i++) {
         enc2.removeTissueSample(0);
       }
+      
+      this.addComments("<p>Merged in encounter "+enc2.getCatalogNumber()+".");;
+      
       myShepherd.throwAwayEncounter(enc2);
     }
     // copies otherEnc's data into thisEnc, not overwriting anything

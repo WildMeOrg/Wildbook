@@ -281,8 +281,14 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", callbackUrl(baseUrl));
         map.put("jobid", taskId);
-        if(fastlane)map.put("lane", "fast");
+        
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
+        
+        //OK, check here and dont let HotSpotter in
+        boolean isHotspotter = false;
+        if(queryConfigDict != null && queryConfigDict.toString().indexOf("sv_on")>-1)isHotspotter = true;
+        if(fastlane && !isHotspotter)map.put("lane", "fast");
+        
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
 
