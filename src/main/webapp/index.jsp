@@ -209,7 +209,7 @@ h2.vidcap {
 
   	<!-- <h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3> -->
   	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/index_detection.jpg" />
+  	<!--img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/index_detection.jpg" / -->
 
   	<!--
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
@@ -421,7 +421,6 @@ h2.vidcap {
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/tico_meeting.jpg" data-src="cust/mantamatcher/img/tico_meeting.jpg" alt="Tico McNutt Quote Image" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
 
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
