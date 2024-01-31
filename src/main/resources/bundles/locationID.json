@@ -390,7 +390,13 @@
 					]},
 			  
 			  {
-			  "name": "Thailand", "id": "Thailand", "prefix": "T-", "prefixDigitPadding": 3 },
+			  "name": "Thailand", "id": "Thailand", "prefix": "T-", "locationID": [
+				{
+					"name": "Andaman Sea", "id": "Andaman Sea", "prefix": "AS", "prefixDigitPadding": 3 },
+				{
+					"name": "Gulf of Thailand", "id": "Gulf of Thailand", "prefix": "GoT", "prefixDigitPadding": 3 }
+						
+					]},
 			  
 			  {
 			  "name": "1g", "id": "1g" },
