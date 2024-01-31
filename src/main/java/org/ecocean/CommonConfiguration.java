@@ -531,6 +531,10 @@ public class CommonConfiguration {
     return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  public static String getGoogleTagManagerKey(String context) {
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("gtm_key",context);
+  }
+
   /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
