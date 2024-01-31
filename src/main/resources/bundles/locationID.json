@@ -386,7 +386,6 @@
                   { "name":"Azores", "id":"5", "locationID":[] },
                {
                 "name": "Archipelago Sea", "id": "Archipelago Sea"  },
-  
                 {
                 "name": "Baltic Sea", "id": "Baltic Sea" },
                {
@@ -403,6 +402,10 @@
               { "name":"France", "id":"France", "locationID":[] },
   
               { "name":"Greenland", "id":"Greenland", "locationID":[] },
+              
+              { "name":"Haldimand Canyon", "id":"Haldimand Canyon", "locationID":[] },
+
+              { "name":"Shortland Canyon", "id":"Shortland Canyon", "locationID":[] },
   
               { "name":"Iceland", "id":"Iceland", "locationID":[
   
