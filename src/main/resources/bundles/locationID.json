@@ -38,9 +38,24 @@
 			  ]
 		  },
 		  {
+			"name": "Fambach",
+			"id": "FAM",
+			"locationID": []
+		  },
+		  {
 			  "name": "Flöha",
 			  "id": "08",
 			  "locationID": []
+		  },
+		  {
+			"name": "Heßles",
+			"id": "HES",
+			"locationID": []
+		  },
+		  {
+			"name": "Hümpfershausen",
+			"id": "HUEM",
+			"locationID": []
 		  },
 		  {
 			  "name": "Kriebethal/Ehrenberg",
@@ -57,9 +72,19 @@
 			  "locationID": []
 		  },
 		  {
+			"name": "Nüßleshof",
+			"id": "NUES",
+			"locationID": []
+		  },
+		  {
 			  "name": "Rochlitzer Berg",
 			  "id": "06",
 			  "locationID": []
+		  },
+		  {
+			"name": "Römhild",
+			"id": "RH",
+			"locationID": []
 		  },
 		  {
 			  "name": "Talsperre Kriebstein",
