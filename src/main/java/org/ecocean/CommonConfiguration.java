@@ -30,10 +30,10 @@ import java.util.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
 

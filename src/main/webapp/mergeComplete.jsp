@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
+         import="org.ecocean.servlet.ServletUtilities,jakarta.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 java.util.Properties,

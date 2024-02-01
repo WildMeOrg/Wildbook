@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.ecocean.Util.*;
 import org.ecocean.servlet.ServletUtilities;

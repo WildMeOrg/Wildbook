@@ -2,11 +2,11 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -15,18 +15,18 @@ import org.apache.shiro.subject.Subject;
  * Use JSecurity to logout the current user
  *
  */
- public class LogoutUser extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class LogoutUser extends jakarta.servlet.http.HttpServlet implements jakarta.servlet.Servlet {
    static final long serialVersionUID = 1L;
    
     /* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#HttpServlet()
+	 * @see jakarta.servlet.http.HttpServlet#HttpServlet()
 	 */
 	public LogoutUser() {
 		super();
 	}   	
 	
 	/* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 * @see jakarta.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -34,7 +34,7 @@ import org.apache.shiro.subject.Subject;
 	}  	
 	
 	/* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @see jakarta.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 

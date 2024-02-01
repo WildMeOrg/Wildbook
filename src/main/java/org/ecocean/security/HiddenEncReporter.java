@@ -4,7 +4,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
 import java.util.Vector;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class HiddenEncReporter extends HiddenDataReporter<Encounter> {
 

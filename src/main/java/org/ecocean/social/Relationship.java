@@ -6,7 +6,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.*;
 import java.util.ArrayList;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Representing a dyadic social relationship

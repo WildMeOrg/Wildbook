@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.*;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;

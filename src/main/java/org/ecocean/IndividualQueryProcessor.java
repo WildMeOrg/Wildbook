@@ -11,7 +11,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import java.lang.StringBuffer;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 //import javax.jdo.Extent;
 import javax.jdo.Query;
 

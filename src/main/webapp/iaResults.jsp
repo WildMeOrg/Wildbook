@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
+         import="org.ecocean.servlet.ServletUtilities,jakarta.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.CommonConfiguration,
@@ -227,7 +227,7 @@ h4.intro.accordion .rotate-chevron.down {
 		// Here we (statically, backend) build the buttons for selecting between image and individual ranking
 		String individualScoreSelected = (individualScores)  ? " selected btn-selected" : "";
 		String annotationScoreSelected = (!individualScores) ? " selected btn-selected" : "";
-		//String currentUrl = javax.servlet.http.HttpUtils.getRequestURL(request).toString();
+		//String currentUrl = jakarta.servlet.http.HttpUtils.getRequestURL(request).toString();
 		String currentUrl = request.getRequestURL().toString() + "?" + request.getQueryString(); // silly how complicated this is---TODO: ServletUtilities convenience func?
 		System.out.println("Current URL = "+currentUrl);
 		// linkUrl removes scoreType (which may or may not be present) then adds the opposite of the current scoreType

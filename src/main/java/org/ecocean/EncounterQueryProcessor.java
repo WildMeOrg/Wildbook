@@ -17,7 +17,7 @@ import java.io.*;
 
 import javax.jdo.Query;
 import javax.measure.quantity.Length;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 import org.ecocean.Util.MeasurementDesc;

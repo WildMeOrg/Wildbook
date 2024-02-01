@@ -9,7 +9,7 @@ import java.util.Iterator;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.FeatureType;
 

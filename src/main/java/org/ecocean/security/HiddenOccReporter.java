@@ -3,7 +3,7 @@ package org.ecocean.security;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
 public class HiddenOccReporter extends HiddenDataReporter<Occurrence> {

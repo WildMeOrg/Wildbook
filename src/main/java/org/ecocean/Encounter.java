@@ -45,7 +45,7 @@ import javax.jdo.Query;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;
@@ -61,7 +61,7 @@ import org.ecocean.PointLocation;
 import org.ecocean.Survey;
 import org.ecocean.servlet.importer.ImportTask;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 
@@ -74,7 +74,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 //note these are different.  so be explicit if you need the org.json.JSONObject flavor

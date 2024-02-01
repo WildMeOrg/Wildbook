@@ -15,7 +15,7 @@ import org.ecocean.ia.Task;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportTask implements java.io.Serializable {

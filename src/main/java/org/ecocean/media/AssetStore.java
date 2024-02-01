@@ -36,7 +36,7 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.security.MessageDigest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
 import java.io.BufferedReader;

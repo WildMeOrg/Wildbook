@@ -15,8 +15,8 @@ import java.util.StringTokenizer;
 
 import org.ecocean.MetricsBot;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;

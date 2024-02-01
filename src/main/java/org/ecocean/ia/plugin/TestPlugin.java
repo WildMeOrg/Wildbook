@@ -1,6 +1,6 @@
 package org.ecocean.ia.plugin;
 
-import javax.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextEvent;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.ia.IA;

@@ -2,10 +2,10 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Date;
 
@@ -27,7 +27,7 @@ import org.ecocean.*;
  * user to the /login.jsp which will display
  * an error message
   */
- public class LoginUser extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class LoginUser extends jakarta.servlet.http.HttpServlet implements jakarta.servlet.Servlet {
 
  	static final long serialVersionUID = 1L;
 	public LoginUser() {

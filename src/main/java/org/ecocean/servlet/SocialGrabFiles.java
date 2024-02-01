@@ -3,10 +3,10 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -36,11 +36,11 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
-import org.pac4j.core.context.J2EContext;
+//import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
 //import org.pac4j.oauth.client.YahooClient;
-import org.pac4j.oauth.credentials.OAuthCredentials;
+import org.pac4j.oauth.credentials.OAuth20Credentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 //import org.pac4j.oauth.profile.yahoo.YahooProfile;
 
@@ -65,18 +65,18 @@ import org.scribe.oauth.*;
  * an error message
  *
  */
- public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class SocialGrabFiles extends jakarta.servlet.http.HttpServlet implements jakarta.servlet.Servlet {
    static final long serialVersionUID = 1L;
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#HttpServlet()
+     * @see jakarta.servlet.http.HttpServlet#HttpServlet()
      */
     public SocialGrabFiles() {
         super();
     }
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     * @see jakarta.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -85,7 +85,7 @@ import org.scribe.oauth.*;
     }
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     * @see jakarta.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -147,14 +147,14 @@ User user = null;
             } catch (Exception ex) {
                 System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
             }
-            WebContext ctx = new J2EContext(request, response);
+            WebContext ctx = null; //new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
             String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
             fbclient.setCallbackUrl(callbackUrl);
 
-            OAuthCredentials credentials = null;
+            OAuth20Credentials credentials = null;
             try {
-                credentials = fbclient.getCredentials(ctx);
+                //credentials = fbclient.getCredentials(ctx);
             } catch (Exception ex) {
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
             }
@@ -190,7 +190,7 @@ System.out.println(fname + ") --- " + fileUrls[i]);
 
 System.out.println("*** trying redirect?");
                 try {
-                    fbclient.redirect(ctx);
+                    //fbclient.redirect(ctx);
                 } catch (Exception ex) {
                     System.out.println("caught exception on facebook processing: " + ex.toString());
                 }

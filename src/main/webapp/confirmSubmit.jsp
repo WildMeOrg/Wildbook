@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, 
-         java.io.File, java.util.*, javax.servlet.http.HttpSession" %>
+         java.io.File, java.util.*, jakarta.servlet.http.HttpSession" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 

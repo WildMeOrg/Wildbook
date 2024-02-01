@@ -27,9 +27,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.ecocean.*;
 import org.ecocean.mmutil.FileUtilities;
@@ -85,7 +85,7 @@ public final class MantaMatcher extends DispatchServlet {
       log.warn("\tCaused by: " + t.getMessage(), t);
       t = t.getCause();
     }
-    req.setAttribute("javax.servlet.jsp.jspException", t);
+    req.setAttribute("jakarta.servlet.jsp.jspException", t);
     getServletContext().getRequestDispatcher(JSP_ERROR).forward(req, res);
   }
 

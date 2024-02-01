@@ -1,7 +1,7 @@
 
 package org.ecocean;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;

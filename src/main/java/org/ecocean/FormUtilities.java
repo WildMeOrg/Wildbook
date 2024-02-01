@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspWriter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspWriter;
 import java.util.regex.*;
 /**
  * Comment
@@ -15,7 +15,7 @@ import java.util.regex.*;
  */
 public class FormUtilities {
 
-  public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRow(String fieldName, jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldName, nameLookup);
     out.println("<tr id=\""+fieldName+"Row\">");
@@ -24,7 +24,7 @@ public class FormUtilities {
     out.println("</tr>");
   }
 
-  public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions,  javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions,  jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldName, nameLookup);
     out.println("<tr id=\""+fieldName+"Row\">");
@@ -38,7 +38,7 @@ public class FormUtilities {
     out.println("</tr>");
   }
 
-  public static void printStringFieldSearchRowBoldTitle(int colLen, Boolean isInFlexbox, Boolean isForIndividualOrOccurrenceSearch, String fieldDisplayName, String fieldName, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRowBoldTitle(int colLen, Boolean isInFlexbox, Boolean isForIndividualOrOccurrenceSearch, String fieldDisplayName, String fieldName, List<String> displayOptions, List<String> valueOptions, jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldDisplayName, nameLookup);
     if(!isInFlexbox){

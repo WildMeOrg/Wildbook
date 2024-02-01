@@ -34,7 +34,7 @@ import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.*;
 import java.io.File;

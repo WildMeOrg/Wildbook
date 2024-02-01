@@ -3,10 +3,10 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.Date;
 import java.util.Enumeration;
@@ -35,12 +35,12 @@ import org.ecocean.security.SocialAuth;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
-import org.pac4j.core.context.J2EContext;
+//import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuth20Credentials;
 //import org.pac4j.oauth.client.YahooClient;
-import org.pac4j.oauth.credentials.OAuthCredentials;
+//import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 //import org.pac4j.oauth.profile.yahoo.YahooProfile;
 
@@ -61,18 +61,18 @@ import org.scribe.oauth.*;
  * an error message
  *
  */
- public class SocialConnect extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class SocialConnect extends jakarta.servlet.http.HttpServlet implements jakarta.servlet.Servlet {
    static final long serialVersionUID = 1L;
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#HttpServlet()
+     * @see jakarta.servlet.http.HttpServlet#HttpServlet()
      */
     public SocialConnect() {
         super();
     }
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     * @see jakarta.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -81,7 +81,7 @@ import org.scribe.oauth.*;
     }
 
     /* (non-Java-doc)
-     * @see javax.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     * @see jakarta.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -114,16 +114,16 @@ import org.scribe.oauth.*;
         } catch (Exception ex) {
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
-            J2EContext ctx = new J2EContext(request, response);
+            WebContext ctx = null; //new J2EContext(request, response);
             session = renewSession(ctx);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
             String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
-            OAuthCredentials credentials = null;
+            OAuth20Credentials credentials = null;
             try {
-                credentials = (OAuthCredentials)fbclient.getCredentials(ctx);
+                credentials = null; //(OAuth20Credentials)fbclient.getCredentials(ctx);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 System.out.println("caught exception on facebook credentials: " + ex.toString());
@@ -131,7 +131,7 @@ import org.scribe.oauth.*;
             FacebookProfile facebookProfile = null;
             if (credentials != null) {
                 try {                  
-                  facebookProfile = fbclient.getUserProfile(credentials, ctx);
+                  facebookProfile = null; //fbclient.getUserProfile(credentials, ctx);
                 } catch (Exception e) {
                   e.printStackTrace();
                 }
@@ -167,7 +167,7 @@ import org.scribe.oauth.*;
 
               System.out.println("*** trying redirect?");
                 try {
-                    fbclient.redirect(ctx);
+                    //fbclient.redirect(ctx);
                 } catch (Exception ex) {
                     System.out.println("caught exception on facebook processing: " + ex.toString());
                 }
@@ -350,8 +350,8 @@ System.out.println("*** trying redirect?");
 
         //out.println("ok????");
     }
-    public HttpSession renewSession(final J2EContext context) {
-      final HttpServletRequest request = context.getRequest();
+    public HttpSession renewSession(final WebContext context) {
+      final HttpServletRequest request = null; //context.getRequest();
       final HttpSession session = request.getSession();
       
       final Map<String, Object> attributes = new HashMap<>();

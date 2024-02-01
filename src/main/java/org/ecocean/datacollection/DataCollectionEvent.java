@@ -19,7 +19,7 @@
 
 package org.ecocean.datacollection;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
 

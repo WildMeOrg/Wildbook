@@ -4,11 +4,11 @@ import java.io.IOException;
 
 
 
-//import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+//import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 //import java.util.Collection;
 //import java.util.Collections;
@@ -27,13 +27,12 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.J2EContext;
+//import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
-import org.pac4j.core.context.session.J2ESessionStore;
+//import org.pac4j.core.context.session.J2ESessionStore;
 import org.pac4j.oauth.client.FacebookClient;
 import org.pac4j.oauth.credentials.OAuth10Credentials;
 import org.pac4j.oauth.credentials.OAuth20Credentials;
-import org.pac4j.oauth.credentials.OAuthCredentials;
 import org.pac4j.oauth.profile.facebook.FacebookProfile;
 import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
@@ -57,18 +56,18 @@ import common.Logger;
  * an error message
  *
  */
- public class LoginUserSocial extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+ public class LoginUserSocial extends jakarta.servlet.http.HttpServlet implements jakarta.servlet.Servlet {
    static final long serialVersionUID = 1L;
 
     /* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#HttpServlet()
+	 * @see jakarta.servlet.http.HttpServlet#HttpServlet()
 	 */
 	public LoginUserSocial() {
 		super();
 	}   	
 	
 	/* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 * @see jakarta.servlet.http.HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -76,7 +75,7 @@ import common.Logger;
 	}  	
 	
 	/* (non-Java-doc)
-	 * @see javax.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @see jakarta.servlet.http.HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	  
@@ -105,18 +104,18 @@ import common.Logger;
       } catch (Exception ex) {
           System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
       }
-			J2EContext ctx = new J2EContext(request, response);
+			WebContext ctx = null; //new J2EContext(request, response);
 			session = renewSession(ctx);
 			fbclient.setCallbackUrl(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=facebook");
 			System.out.println("Callback URL : "+fbclient.getCallbackUrl());
-			fbclient.init(ctx);
-			fbclient.setConnectTimeout(10000);
-			System.out.println("Whole client : "+fbclient.toString());
+			//fbclient.init(ctx);
+			//fbclient.setConnectTimeout(10000);
+			//System.out.println("Whole client : "+fbclient.toString());
 
-			OAuthCredentials credentials = null;
-			ctx.setSessionAttribute(socialType, fbclient); 
+			OAuth20Credentials credentials = null;
+			//ctx.setSessionAttribute(socialType, fbclient); 
 			try {
-				credentials = (OAuthCredentials)fbclient.getCredentials(ctx);
+				//credentials = (OAuth20Credentials)fbclient.getCredentials(ctx);
 				System.out.println("Credentials :"+credentials);
 			} catch (Exception ex) {
 				System.out.println("caught exception on facebook credentials: " + ex.toString());
@@ -130,7 +129,7 @@ import common.Logger;
 			    myShepherd.beginDBTransaction();
 			    try{
 			      
-    				FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
+    				FacebookProfile facebookProfile = null; //fbclient.getUserProfile(credentials, ctx);
     				User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
     				System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
     				if (fbuser == null) {
@@ -159,7 +158,7 @@ import common.Logger;
 
 			  System.out.println("*** trying redirect?");
 				try {
-					fbclient.redirect(ctx);
+					//fbclient.redirect(ctx);
 				} catch (Exception ex) {
 					System.out.println("caught exception on facebook processing: " + ex.toString());
 				}
@@ -283,8 +282,8 @@ import common.Logger;
 	}   	  
 	
 	
-  public HttpSession renewSession(final J2EContext context) {
-    final HttpServletRequest request = context.getRequest();
+  public HttpSession renewSession(final WebContext context) {
+    final HttpServletRequest request = null; //context.getRequest();
     final HttpSession session = request.getSession();
     
     final Map<String, Object> attributes = new HashMap<>();

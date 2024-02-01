@@ -1,6 +1,6 @@
 package org.ecocean;
 
-//import javax.servlet.http.HttpServletRequest;
+//import jakarta.servlet.http.HttpServletRequest;
 import java.net.URL;
 import org.json.JSONObject;
 //import org.ecocean.ParseDateLocation.ParseDateLocation;
@@ -53,7 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 // see: https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword

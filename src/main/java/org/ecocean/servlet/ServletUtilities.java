@@ -36,9 +36,9 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 
 import javax.jdo.Query;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.net.URL;
@@ -57,12 +57,13 @@ import org.ecocean.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.shiro.crypto.hash.*;
-import org.apache.shiro.util.*;
+import org.apache.shiro.lang.util.*;
+//import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
 
 import java.util.Properties;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -985,7 +986,7 @@ public static String getRemoteHost(HttpServletRequest request) {
 
 
 
-    public static void importJsp(String filename, HttpServletRequest request, HttpServletResponse response) throws javax.servlet.ServletException, java.io.IOException {
+    public static void importJsp(String filename, HttpServletRequest request, HttpServletResponse response) throws jakarta.servlet.ServletException, java.io.IOException {
 
       PrintWriter out = response.getWriter();
       request.getRequestDispatcher(filename).include(request, response);

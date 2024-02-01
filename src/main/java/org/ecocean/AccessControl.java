@@ -5,7 +5,7 @@
 package org.ecocean;
 
 import org.json.JSONObject;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.ecocean.security.Collaboration;
 import java.util.Properties;
 

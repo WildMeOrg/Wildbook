@@ -62,7 +62,7 @@ import org.ecocean.JsonProperties;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -74,7 +74,7 @@ import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

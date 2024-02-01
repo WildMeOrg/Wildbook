@@ -34,7 +34,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.servlet.ServletUtilities;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
 import javax.jdo.Query;

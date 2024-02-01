@@ -80,7 +80,7 @@
 
           <p>The following error occurred; please inform the system administrator:</p>
 
-          <c:set var="exception" value="${requestScope['javax.servlet.error.exception']}"/>
+          <c:set var="exception" value="${requestScope['jakarta.servlet.error.exception']}"/>
           <pre><% exception.printStackTrace(new java.io.PrintWriter(out)); %></pre>
 
 

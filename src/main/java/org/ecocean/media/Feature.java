@@ -35,7 +35,7 @@ import org.json.JSONException;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Util;
 import java.io.File;

@@ -19,7 +19,7 @@ import org.apache.shiro.mgt.RealmSecurityManager;
 
 import org.apache.shiro.web.util.WebUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class ShepherdRealm extends AuthorizingRealm {
 

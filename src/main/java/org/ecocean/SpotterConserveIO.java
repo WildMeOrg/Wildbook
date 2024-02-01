@@ -2,7 +2,7 @@ package org.ecocean;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.ecocean.servlet.ServletUtilities;
 import java.util.Properties;
 import java.util.List;

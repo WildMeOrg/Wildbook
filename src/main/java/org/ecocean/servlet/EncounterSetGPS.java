@@ -20,8 +20,8 @@
 package org.ecocean.servlet;
 
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 import java.io.*;
 import java.util.List;

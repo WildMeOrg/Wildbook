@@ -19,7 +19,7 @@
 
 package org.ecocean.grid;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
 
 public class GridNode {

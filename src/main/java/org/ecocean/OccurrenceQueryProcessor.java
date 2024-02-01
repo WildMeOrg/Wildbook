@@ -11,7 +11,7 @@ import java.io.*;
 import org.joda.time.format.*;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;

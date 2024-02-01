@@ -28,7 +28,7 @@ import org.ecocean.Shepherd;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 //import java.io.File;
 import java.util.ArrayList;

@@ -1,8 +1,8 @@
 package org.ecocean;
 
 import java.io.Writer;
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 
@@ -116,7 +116,7 @@ public class ClassEditTemplate {
      );
   }
 
-  public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRow(String fieldName, jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldName, nameLookup);
     out.println("<tr id=\""+fieldName+"Row\">");
@@ -126,7 +126,7 @@ public class ClassEditTemplate {
 
   }
 
-  public static void printStringFieldSearchRowCategories(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRowCategories(String fieldName, jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
   List<String> values=Util.getIndexedPropertyValues(fieldName,nameLookup);
@@ -134,7 +134,7 @@ public class ClassEditTemplate {
 }
 
 
-  public static void printStringFieldSearchRowFullCategories(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup, Shepherd myShepherd, Class fromClass) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRowFullCategories(String fieldName, jakarta.servlet.jsp.JspWriter out, Properties nameLookup, Shepherd myShepherd, Class fromClass) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
   List<String> values=myShepherd.getAllPossibleVals(fromClass,fieldName,nameLookup);
@@ -142,7 +142,7 @@ public class ClassEditTemplate {
 
 }
 
-public static void printStringFieldSearchRowCategories(String fieldName, String displayName, javax.servlet.jsp.JspWriter out, List<String> values) throws IOException, IllegalAccessException {
+public static void printStringFieldSearchRowCategories(String fieldName, String displayName, jakarta.servlet.jsp.JspWriter out, List<String> values) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   System.out.println("ClassEditTemplate is printing a categorical variable with options "+values);
   out.println("<tr id=\""+fieldName+"Row\">");
@@ -216,7 +216,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     }
   }
 
-  public static void printDateTimeSetterRow(Object obj, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
+  public static void printDateTimeSetterRow(Object obj, jakarta.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
     Method getDateTime = obj.getClass().getMethod("getDateTime");
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
@@ -257,7 +257,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     if (className.length()>2) return(className.substring(0,3).toLowerCase());
     else return(className.toLowerCase());
   }
-  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out) {
+  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, jakarta.servlet.jsp.JspWriter out) {
     for (String fieldName : fieldNames) {
       try {
         printOutClassFieldModifierRow(obj, fieldName, out);
@@ -268,7 +268,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
   }
 
   // like the above but checks posValueProps to see if there are property-defined values for the class
-  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, javax.servlet.jsp.JspWriter out, Properties posValueProps) {
+  public static void printOutClassFieldModifierRows(Object obj, String[] fieldNames, jakarta.servlet.jsp.JspWriter out, Properties posValueProps) {
     for (String fieldName : fieldNames) {
       try {
         if (Util.hasProperty(fieldName+"0", posValueProps)) {
@@ -281,14 +281,14 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
     }
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, String fieldName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  public static void printOutClassFieldModifierRow(Object obj, String fieldName, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     String getterName = "get" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
     Method getter = obj.getClass().getMethod(getterName);
     printOutClassFieldModifierRow(obj, getter, out);
   }
 
 
-  public static void printOutClassFieldModifierRow(Object obj, String fieldName, List<String> posValues, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  public static void printOutClassFieldModifierRow(Object obj, String fieldName, List<String> posValues, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     String getterName = "get" + fieldName.substring(0,1).toUpperCase() + fieldName.substring(1);
     Method getter = obj.getClass().getMethod(getterName);
     //printOutClassFieldModifierRow(obj, getter, out);
@@ -297,7 +297,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
   }
 
 
-  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -313,7 +313,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
 
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, List<String> posValues, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, List<String> posValues, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -334,7 +334,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
 
 
   // custom method to replicate a very specific table row format on this page
-  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
     out.println("<tr data-original-value=\""+printValue+"\">");
     out.println("\t<td>"+fieldName+"</td>");
@@ -357,7 +357,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
 
 
   // custom method to replicate a very specific table row format on this page
-  public static void printOutClassFieldModifierRow(String fieldName, String printValue, List<String> posValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, List<String> posValues, String inputName, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
     System.out.println("hello from posValues!");
     out.println("<tr data-original-value=\""+printValue+"\">");
@@ -419,7 +419,7 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
   }
 
 
-  public static void printUnmodifiableField(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printUnmodifiableField(Object obj, Method getMethod, jakarta.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import javax.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextEvent;
 
 /*
 import org.ecocean.CommonConfiguration;
@@ -28,8 +28,8 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Properties;
 import org.ecocean.ShepherdProperties;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 */
 

@@ -55,7 +55,7 @@ import org.ecocean.Twitter;
 //import org.ecocean.ImageProcessor;
 import org.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

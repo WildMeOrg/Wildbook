@@ -18,7 +18,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import java.util.Collections;
 import java.util.Comparator;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * <code>User</code> stores information about a contact/user.

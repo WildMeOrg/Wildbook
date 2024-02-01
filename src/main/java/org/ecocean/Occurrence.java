@@ -16,7 +16,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.MediaAsset;
 
 import javax.json.JsonException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONObject;

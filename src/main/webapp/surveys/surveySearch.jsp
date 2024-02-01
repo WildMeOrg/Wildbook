@@ -5,7 +5,7 @@
 <%!
 // here I'll define some methods that will end up in classEditTemplate
 
-public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+public static void printStringFieldSearchRow(String fieldName, jakarta.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
   out.println("<tr id=\""+fieldName+"Row\">");

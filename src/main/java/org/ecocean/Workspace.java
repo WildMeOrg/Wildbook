@@ -21,7 +21,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import javax.jdo.Query;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
 import org.ecocean.tag.AcousticTag;

@@ -4,7 +4,7 @@ import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
 public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividual> {

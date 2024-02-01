@@ -4,7 +4,7 @@ java.util.HashMap,
 org.apache.commons.lang3.StringUtils,
 org.ecocean.identity.IBEISIA,
 org.ecocean.servlet.ReCAPTCHA,
-javax.servlet.http.HttpSession" %>
+jakarta.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%!
 

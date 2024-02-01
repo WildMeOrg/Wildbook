@@ -19,7 +19,7 @@
 
 package org.ecocean.servlet;
 
-import javax.servlet.*;
+import jakarta.servlet.*;
 import java.io.IOException;
 
 public class StrutsUTF8Filter implements Filter {

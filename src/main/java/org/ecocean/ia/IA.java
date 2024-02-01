@@ -39,8 +39,8 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Properties;
 import org.ecocean.ShepherdProperties;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 
 public class IA {

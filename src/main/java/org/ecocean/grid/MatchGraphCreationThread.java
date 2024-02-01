@@ -33,7 +33,7 @@ import java.util.Vector;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 public class MatchGraphCreationThread implements Runnable, ISharkGridThread {

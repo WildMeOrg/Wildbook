@@ -151,32 +151,90 @@
       <scope>provided</scope>
     </dependency>
 
+<!--
     <dependency>
-      <groupId>javax.servlet</groupId>
+      <groupId>jakarta.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
       <scope>provided</scope>
     </dependency>
+-->
 
+<!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+<dependency>
+    <groupId>jakarta.servlet</groupId>
+    <artifactId>jakarta.servlet-api</artifactId>
+    <version>6.0.0</version>
+    <scope>provided</scope>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/jakarta.servlet.jsp/jakarta.servlet.jsp-api -->
+<dependency>
+    <groupId>jakarta.servlet.jsp</groupId>
+    <artifactId>jakarta.servlet.jsp-api</artifactId>
+    <version>3.1.1</version>
+    <scope>provided</scope>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.apache.shiro/shiro-core -->
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-core</artifactId>
+    <version>2.0.0-alpha-4</version>
+</dependency>
+
+<!--
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-core</artifactId>
       <version>1.4.2</version>
     </dependency>
+-->
 
+<!-- https://mvnrepository.com/artifact/org.apache.shiro/shiro-web -->
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-web</artifactId>
+	<classifier>jakarta</classifier>
+    <version>2.0.0-alpha-4</version>
+</dependency>
+
+
+<!--
 	   <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>1.2.1</version>
     </dependency>
+-->
 
 
 
+<!--
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>pac4j-oauth</artifactId>
         <version>1.9.7</version>
     </dependency>
+-->
+<!-- https://mvnrepository.com/artifact/org.pac4j/pac4j-core -->
+<dependency>
+    <groupId>org.pac4j</groupId>
+    <artifactId>pac4j-core</artifactId>
+    <version>6.0.1</version>
+</dependency>
+
+
+<!-- https://mvnrepository.com/artifact/org.pac4j/pac4j-oauth -->
+<dependency>
+    <groupId>org.pac4j</groupId>
+    <artifactId>pac4j-oauth</artifactId>
+    <version>6.0.1</version>
+<!--
+    <scope>runtime</scope>
+-->
+</dependency>
+
 	
 	<dependency>
         <groupId>org.scribe</groupId>
@@ -236,11 +294,21 @@
 
 
 
+<!--
     <dependency>
-      <groupId>javax.mail</groupId>
+      <groupId>jakarta.mail</groupId>
       <artifactId>mail</artifactId>
       <version>1.4.1</version>
     </dependency>
+-->
+
+<!-- https://mvnrepository.com/artifact/jakarta.mail/jakarta.mail-api -->
+<dependency>
+    <groupId>jakarta.mail</groupId>
+    <artifactId>jakarta.mail-api</artifactId>
+    <version>2.1.2</version>
+</dependency>
+
 
     <dependency>
       <groupId>dom4j</groupId>
