@@ -46,9 +46,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.nio.charset.StandardCharsets;
+
+/*
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+*/
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
@@ -347,18 +355,18 @@ System.out.println("*** trying redirect?");
         long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
         long maxSizeBytes = maxSizeMB * 1048576;
 
-        if (ServletFileUpload.isMultipartContent(request)) {
+        if (JakartaServletFileUpload.isMultipartContent(request)) {
 
             try {
-                ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-                upload.setHeaderEncoding("UTF-8");
+                JakartaServletFileUpload upload = new JakartaServletFileUpload();
+                upload.setHeaderCharset(StandardCharsets.UTF_8);
                 List<FileItem> multiparts = upload.parseRequest(request);
-                //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+                //List<FileItem> multiparts = new JakartaServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
                 List<String> projectIdSelection = new ArrayList<String>();
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
-                        formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+                        formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString(StandardCharsets.UTF_8).trim()));  //TODO do we want trim() here??? -jon
                         if(item.getFieldName().equals("defaultProject")){
                           if(!projectIdSelection.contains(item.getString().trim())){
                             projectIdSelection.add(item.getString().trim());
@@ -370,7 +378,7 @@ System.out.println("*** trying redirect?");
                           }
                         }
                     } else if (item.getName().startsWith("socialphoto_")) {
-                        System.out.println(item.getName() + ": " + item.getString("UTF-8"));
+                        System.out.println(item.getName() + ": " + item.getString(StandardCharsets.UTF_8));
                     } else {  //file
 //System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
                         if (item.getSize() > maxSizeBytes) {
@@ -662,8 +670,6 @@ System.out.println("enc ?= " + enc.toString());
             if(socialFiles.size()>0){
               int numSocialFiles=socialFiles.size();
               System.out.println("BBB: Trying to persist social files: "+numSocialFiles);
-
-              DiskFileItemFactory factory = new DiskFileItemFactory();
 
               for(int q=0;q<numSocialFiles;q++){
                 File item=socialFiles.get(q);
@@ -1339,7 +1345,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
     if (!tmpDir.exists()) tmpDir.mkdirs();
 //System.out.println("attempting to write uploaded file to " + tmpFile);
     try {
-      item.write(tmpFile);
+      item.write(tmpFile.toPath());
     } catch (Exception ex) {
         System.out.println("Could not write " + tmpFile + ": " + ex.toString());
     }

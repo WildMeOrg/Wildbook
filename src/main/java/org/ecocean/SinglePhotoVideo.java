@@ -12,10 +12,17 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.*;
 import org.ecocean.CommonConfiguration;
 
+/*
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+*/
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+//import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+
 import org.apache.commons.io.output.*;
 import org.apache.commons.io.FilenameUtils;
 
@@ -87,7 +94,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 
 		File file = new File(dir, this.filename);
     this.fullFileSystemPath = file.getAbsolutePath();
-		formFile.write(file);  //TODO catch errors and return them, duh
+		formFile.write(file.toPath());  //TODO catch errors and return them, duh
 System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
 	}
 

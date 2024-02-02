@@ -20,9 +20,16 @@
 package org.ecocean.servlet;
 
 
+/*
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.servlet.JakartaServletFileUpload;
+*/
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+
 import org.ecocean.Adoption;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.NotificationMailer;
@@ -38,6 +45,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
+import java.nio.charset.StandardCharsets;
+
 
 import java.io.*;
 import java.text.CharacterIterator;
@@ -186,16 +196,16 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         //Calendar todayDate = Calendar.getInstance();
 
 
-        if (ServletFileUpload.isMultipartContent(request)) {
+        if (JakartaServletFileUpload.isMultipartContent(request)) {
           try {
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-            upload.setHeaderEncoding("UTF-8");
+            JakartaServletFileUpload upload = new JakartaServletFileUpload();
+            upload.setHeaderCharset(StandardCharsets.UTF_8);
             List<FileItem> multiparts = upload.parseRequest(request);
-            //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+            //List<FileItem> multiparts = new JakartaServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
             for(FileItem item : multiparts){
               if (item.isFormField()) {  //plain field
-                fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+                fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString(StandardCharsets.UTF_8).trim()));  //TODO do we want trim() here??? -jon
     //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
 
               } else {  //file

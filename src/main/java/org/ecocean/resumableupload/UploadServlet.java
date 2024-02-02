@@ -14,9 +14,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 //oh drat, we cant use servlet 3.0 multi-part magic.  gotta kick it oldschool with 2.5 apache stuff.  :/
+/*
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+*/
+import org.apache.commons.fileupload2.core.FileItem;
+import org.apache.commons.fileupload2.core.FileItemFactory;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload;
+import org.apache.commons.fileupload2.core.FileUploadException;
 
 import ec.com.mapache.ngflow.upload.FlowInfo;
 import ec.com.mapache.ngflow.upload.FlowInfoStorage;
@@ -27,6 +34,8 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.AccessControl;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -81,13 +90,21 @@ public class UploadServlet extends HttpServlet {
 
 
 
-            if (!ServletFileUpload.isMultipartContent(request)) throw new IOException("doPost is not multipart");
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+            if (!JakartaServletFileUpload.isMultipartContent(request)) throw new IOException("doPost is not multipart");
+            //JakartaServletFileUpload upload = new JakartaServletFileUpload(new DiskFileItemFactory());
+/*
+DiskFileItemFactory.builder()
+					.setFileCleaningTracker(new FileCleanerTrackerAdapter(Application.get()
+							.getResourceSettings()
+							.getFileCleaner()))
+					.get());
+*/
+            JakartaServletFileUpload upload = new JakartaServletFileUpload();
             //upload.setHeaderEncoding("UTF-8");
             List<FileItem> multiparts = null;
             try {
                 multiparts = upload.parseRequest(request);
-            } catch (org.apache.commons.fileupload.FileUploadException ex) {
+            } catch (FileUploadException ex) {
                 throw new IOException("error parsing request: " + ex.toString());
             }
 
@@ -96,7 +113,7 @@ public class UploadServlet extends HttpServlet {
             String recaptchaValue = null;
             for (FileItem item : multiparts) {
                 if (item.isFormField()) {
-                    if (item.getFieldName().equals("recaptchaValue")) recaptchaValue = item.getString("UTF-8");
+                    if (item.getFieldName().equals("recaptchaValue")) recaptchaValue = item.getString(StandardCharsets.UTF_8);
                 } else {
                     fileChunk = item;
                     break;  //we only do first one.  ?
@@ -174,13 +191,13 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
-            if (!ServletFileUpload.isMultipartContent(request)) throw new IOException("doGet is not multipart");
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+            if (!JakartaServletFileUpload.isMultipartContent(request)) throw new IOException("doGet is not multipart");
+            JakartaServletFileUpload upload = new JakartaServletFileUpload();
             //upload.setHeaderEncoding("UTF-8");
             List<FileItem> multiparts = null;
             try {
                 multiparts = upload.parseRequest(request);
-            } catch (org.apache.commons.fileupload.FileUploadException ex) {
+            } catch (FileUploadException ex) {
                 throw new IOException("error parsing request: " + ex.toString());
             }
 
