@@ -212,7 +212,7 @@ public class MetricsBot {
             String specificEpithet=str.nextToken();
             if(str.hasMoreTokens())specificEpithet+=" "+str.nextToken();
             
-            String indyLabelTemp=buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.specificEpithet == '"+specificEpithet+"'", (genus+"_"+specificEpithet.replaceAll(" ","_")),"Number of marked individuals ("+genus+" "+specificEpithet+")",context);
+            String indyLabelTemp=buildGauge("SELECT count(this) FROM org.ecocean.MarkedIndividual where encounters.contains(enc) && enc.specificEpithet == '"+specificEpithet.replaceAll("_"," ")+"'", (genus+"_"+specificEpithet.replaceAll(" ","_")),"Number of marked individuals ("+genus+" "+specificEpithet+")",context);
             StringTokenizer strIndy=new StringTokenizer(indyLabelTemp,",");
             indyLabels+="species_"+strIndy.nextToken()+":"+strIndy.nextToken()+",";
             
