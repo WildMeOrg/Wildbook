@@ -14,8 +14,7 @@ import com.oreilly.servlet.multipart.Part;
 
 public final class MultipartParser {
 
-    //MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576));
-    public MultipartParser(HttpServletRequest request, int size) {
+    public MultipartParser(HttpServletRequest request, int size) throws java.io.IOException {
     }
 
     public Part readNextPart() {

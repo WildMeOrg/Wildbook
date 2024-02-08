@@ -19,10 +19,10 @@
 
 package org.ecocean.servlet;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
+import org.ecocean.shim.multipart.FilePart;
+import org.ecocean.shim.multipart.MultipartParser;
+import org.ecocean.shim.multipart.ParamPart;
+import org.ecocean.shim.multipart.Part;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;

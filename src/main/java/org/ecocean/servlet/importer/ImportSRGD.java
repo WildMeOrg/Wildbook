@@ -19,7 +19,7 @@
 
 package org.ecocean.servlet.importer;
 
-import com.oreilly.servlet.multipart.*;
+import org.ecocean.shim.multipart.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
