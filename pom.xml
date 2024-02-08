@@ -14,7 +14,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <datanucleus.version>4.2.0-release</datanucleus.version>
+    <datanucleus.version>6.0.6</datanucleus.version>
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
@@ -144,12 +144,22 @@
         </dependency>
         -->
 
+<!--
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>7.0</version>
       <scope>provided</scope>
     </dependency>
+-->
+<!-- https://mvnrepository.com/artifact/jakarta.platform/jakarta.jakartaee-api -->
+<dependency>
+    <groupId>jakarta.platform</groupId>
+    <artifactId>jakarta.jakartaee-api</artifactId>
+    <version>11.0.0-M1</version>
+    <scope>provided</scope>
+</dependency>
+
 
 <!--
     <dependency>
@@ -428,55 +438,70 @@
 </dependency>
 
 
-	<!--Start JDO and DataNucleus dependencies -->
+	<!--Start JDO and DataNucleus dependencies
+
+https://www.datanucleus.org/products/accessplatform_6_0/jakarta/tools.html#maven
+
+-->
+
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>javax.jdo</artifactId>
-	<version>3.2.0-m3</version>
+	<version>3.2.1</version>
 </dependency>
 
+
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>jakarta.persistence</artifactId>
+            <version>3.0.0</version>
+        </dependency>
 
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-core</artifactId>
-<version>4.1.7</version>
+<version>6.0.6</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-api-jdo</artifactId>
-<version>${datanucleus.version}</version>
+<version>6.0.1</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-jdo-query</artifactId>
-<version>4.2.1</version>
+<version>6.0.1</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-rdbms</artifactId>
-<version>4.1.11</version>
+<version>6.0.6</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-jodatime</artifactId>
-	<version>4.1.1</version>
+	<version>6.0.1</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-rest</artifactId>
-	<version>4.2.2</version>
+	<version>6.0.0-release</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-geospatial</artifactId>
-	<version>4.1.0-release</version>
+	<version>6.0.1</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-jpa</artifactId>
-	<version>4.1.7</version>
+	<version>6.0.1</version>
 </dependency>
-
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-api-jakarta</artifactId>
+            <version>6.0.0-release</version>
+        </dependency>
 
 
 	<!--End JDO and DataNucleus dependencies -->
@@ -798,24 +823,39 @@
     <version>3.8.2</version>
 </dependency>
 
+
+<!--
 <dependency>
     <groupId>javax.xml.bind</groupId>
     <artifactId>jaxb-api</artifactId>
     <version>2.3.0</version>
 </dependency>
-<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-core -->
 <dependency>
     <groupId>com.sun.xml.bind</groupId>
     <artifactId>jaxb-core</artifactId>
     <version>2.3.0.1</version>
 </dependency>
 
-<!-- https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl -->
 <dependency>
     <groupId>com.sun.xml.bind</groupId>
     <artifactId>jaxb-impl</artifactId>
     <version>2.3.0.1</version>
 </dependency>
+-->
+
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>4.0.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>4.0.3</version>
+                <scope>runtime</scope>
+            </dependency>
+
 
 <!-- these appear to be duplicated?
 <dependency>
@@ -986,10 +1026,36 @@
         </configuration>
       </plugin>
 
+        <plugin>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-maven-plugin</artifactId>
+            <version>6.0.0-release</version>
+            <configuration>
+                <api>JDO</api>
+<!--
+                <api>Jakarta</api>
+-->
+<ignoreMetaDataForMissingClasses>true</ignoreMetaDataForMissingClasses>
+                <persistenceUnitName>shepherd</persistenceUnitName>
+                <verbose>true</verbose>
+<excludes>
+<exclude></exclude>
+</excludes>
+            </configuration>
+            <executions>
+                <execution>
+                    <phase>process-classes</phase>
+                    <goals>
+                        <goal>enhance</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2</version>
+        <version>3.1.1</version>
         <configuration>
           <executable>java</executable>
           <arguments>
