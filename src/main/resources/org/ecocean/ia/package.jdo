@@ -48,7 +48,7 @@ alter table "TASK" alter column "PARAMETERS" type text;
 -->
 <!--
 		<field name="parentId" persistence-modifier="persistent">
-			<column jdbc-type="INT" allows-null="true"/>
+			<column jdbc-type="BIGINT" allows-null="true"/>
 		</field>
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>

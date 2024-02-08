@@ -16,7 +16,7 @@
 		</field>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
 		<field name="parentId" persistence-modifier="persistent">
-			<column jdbc-type="INT" allows-null="true"/>
+			<column jdbc-type="BIGINT" allows-null="true"/>
 		</field>
 		<field name="validImageForIA" persistence-modifier="persistent">
 			<column jdbc-type="BIT" allows-null="true"/>
