@@ -43,11 +43,11 @@ import org.ecocean.PatterningPassport;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.Part;
-import com.oreilly.servlet.MultipartRequest;
+import org.ecocean.shim.multipart.FilePart;
+import org.ecocean.shim.multipart.ParamPart;
+import org.ecocean.shim.multipart.MultipartParser;
+import org.ecocean.shim.multipart.Part;
+//import org.ecocean.shim.MultipartRequest;
 
 /**
  * Populates a patterning passport for a specific image/mediafile encounterId
@@ -89,6 +89,8 @@ public class EncounterSetPatterningPassport extends HttpServlet {
 
     String fileUploadLocation = getServletContext().getRealPath("/");
 
+/* cutting this out cuz i am not sure this servlet is even needed?
+
     // constructs a new MultipartRequest to handle the specified request
     MultipartRequest multipartRequest = new MultipartRequest(request,
         fileUploadLocation);
@@ -126,6 +128,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
       responseMsg += "<br/>Not enough data to setPassportForMediaObject. <ul><li>"
           + mediaId + "<li>" + encounterId + "</ul> ";
     }
+*/
 
     // response
     out.println(ServletUtilities.getHeader(request));
