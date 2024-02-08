@@ -23,7 +23,7 @@ package org.ecocean.metrics;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
-import io.prometheus.client.exporter.MetricsServlet;
+import io.prometheus.client.servlet.jakarta.exporter.MetricsServlet;
 
 /**
 *
