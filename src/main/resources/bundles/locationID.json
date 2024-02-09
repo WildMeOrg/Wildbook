@@ -95,8 +95,9 @@
  			 }, "locationID":[
 			{ "name":"Komodo", "id":"Indonesia-Komodo", "locationID":[] },
 			{ "name":"Nusa Penida", "id":"Indonesia-Nusa Penida", "locationID":[] },
-		  { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
-      { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] }
+		    { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
+            { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] },
+	        { "name":"Sumbawa", "id":"Sumbawa", "geospatialInfo":{ "lat":-8.5925906, "long":116.634216},"locationID":[]}
 		] },
 
 		{ "name":"Japan", "id":"Japan","geospatialInfo":{
