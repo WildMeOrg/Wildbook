@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>7.0.0-EXPERIMENTAL</version>
+  <version>11.0.0</version>
   <packaging>war</packaging>
 
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>20</maven.compiler.source>
+    <maven.compiler.target>20</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <datanucleus.version>6.0.6</datanucleus.version>
@@ -58,6 +58,18 @@
 
 
   <dependencies>
+
+<dependency>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-war-plugin</artifactId>
+    <version>3.4.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.12.1</version>
+</dependency>
+
 
 <dependency>
     <groupId>com.rabbitmq</groupId>
@@ -175,7 +187,9 @@
     <groupId>jakarta.servlet</groupId>
     <artifactId>jakarta.servlet-api</artifactId>
     <version>6.0.0</version>
+<!--
     <scope>provided</scope>
+-->
 </dependency>
 
 <!-- https://mvnrepository.com/artifact/jakarta.servlet.jsp/jakarta.servlet.jsp-api -->
@@ -340,10 +354,19 @@
 -->
 
 <dependency>
-  <groupId>org.postgresql</groupId>
-  <artifactId>postgresql</artifactId>
-  <version>42.1.4</version>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.7.1</version>
 </dependency>
+
+
+<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.33</version>
+</dependency>
+
 
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -1019,12 +1042,19 @@ https://www.datanucleus.org/products/accessplatform_6_0/jakarta/tools.html#maven
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.12.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>20</source>
+          <target>20</target>
         </configuration>
       </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+
+
 
         <plugin>
             <groupId>org.datanucleus</groupId>
@@ -1115,6 +1145,7 @@ https://www.datanucleus.org/products/accessplatform_6_0/jakarta/tools.html#maven
       </plugin>
 	  -->
 
+<!--
 	<plugin>
 	<groupId>org.apache.tomcat.maven</groupId>  
  	<artifactId>tomcat7-maven-plugin</artifactId>  
@@ -1126,6 +1157,7 @@ https://www.datanucleus.org/products/accessplatform_6_0/jakarta/tools.html#maven
   	<password></password>   
  	</configuration>
 	</plugin>
+-->
 
         <plugin>
             <groupId>org.lesscss</groupId>
