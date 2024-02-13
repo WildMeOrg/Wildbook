@@ -512,6 +512,7 @@
 
 
 
+<!--
   <filter>
     <description>Dynamic Image Filter</description>
     <filter-name>ImgFilter</filter-name>
@@ -528,6 +529,7 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+-->
 
   <servlet>
     <servlet-name>ProjectCreate</servlet-name>
@@ -598,6 +600,7 @@
   </servlet>
 
 
+<!--
   <servlet>
     <description>Dynamic Image Servlet Unsynched</description>
     <servlet-name>ImgServlet</servlet-name>
@@ -616,6 +619,7 @@
     <servlet-name>ImgSyncServlet1</servlet-name>
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
+-->
 
   <servlet>
     <servlet-name>EncounterCreateSurvey</servlet-name>
@@ -1669,10 +1673,12 @@
   </servlet>
 
 
+<!--
   <servlet-mapping>
     <servlet-name>ImgSyncServlet1</servlet-name>
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
+-->
 
   <!--
     <servlet-mapping>
@@ -1884,10 +1890,12 @@
 </servlet-mapping>
 
 
+<!--
   <servlet-mapping>
     <servlet-name>ImgSyncServlet0</servlet-name>
     <url-pattern>/ImgSyncServlet0</url-pattern>
   </servlet-mapping>
+-->
 
 
 
@@ -2655,10 +2663,12 @@
       <url-pattern>/SOCPROGExport</url-pattern>
   </servlet-mapping>
 
+<!--
   <servlet-mapping>
     <servlet-name>ImgServlet</servlet-name>
     <url-pattern>/ImgServlet</url-pattern>
   </servlet-mapping>
+-->
 
 
   <servlet-mapping>
