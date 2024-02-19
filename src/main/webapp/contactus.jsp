@@ -23,9 +23,6 @@
 
 <p><a href="mailto: info@tech4conservation.org">info@tech4conservation.org</a></p>
 
-<h3>BPCT</h3>
-
-<p><a href="https://www.bpctrust.org/"><img src="cust/mantamatcher/img/BPC_logo_dog.jpg" width="200px" height="*" /></a></p>
 
 <h3>Wild Me</h3>
 
