@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /
+Allow: /submit.jsp
+Allow: /privacyPolicy.jsp
+Allow: /termsOfUse.jsp
+Allow: /index.jsp
+Allow: /$
