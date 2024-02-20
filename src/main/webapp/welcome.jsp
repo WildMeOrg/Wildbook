@@ -35,7 +35,7 @@ context=ServletUtilities.getContext(request);
 
 
   session = request.getSession(true);
-  session.putValue("logged", "true");
+  session.setAttribute("logged", "true");
   if ((request.getParameter("reflect") != null)) {
     response.sendRedirect(request.getParameter("reflect"));
   }
