@@ -9,7 +9,6 @@ import org.ecocean.ia.Task;
 import org.ecocean.RestClient;
 import org.ecocean.media.*;
 import org.ecocean.Annotation;
-import org.ecocean.AnnotationLite;
 import org.ecocean.acm.AcmUtil;
 import java.util.List;
 import java.util.HashMap;
@@ -172,7 +171,7 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
                 continue;
             }
             if (!validMediaAsset(ma)) {
-                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid MA # " + ma.getId());
+                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
                 continue;
             }
             acmList.add(ma);
@@ -247,7 +246,6 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
-            AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
                 continue;
@@ -270,45 +268,22 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
 //TODO both of these shepherd/db calls can probably be combined !!!  FIXME
+            
+            //yuck - IA class is not species
+            //map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
+            //better
+            map.get("annot_species_list").add(ann.getIAClass());
+            
             map.get("annot_theta_list").add(ann.getTheta());
-
-            String sp = null;
-            if ((annl != null) && (annl.getTaxonomy() != null)) {
-                map.get("annot_species_list").add(annl.getTaxonomy());
-            } else {
-                sp = getIASpecies(ann, myShepherd);
-System.out.println("WARNING: had to lookup species=" + sp);
-                map.get("annot_species_list").add(sp);
-            }
-            String name = null;
-            if ((annl != null) && (annl.getIndividualId() != null)) {
-                map.get("annot_name_list").add(annl.getIndividualId());
-            } else {
-                name = ann.findIndividualId(myShepherd);
-                if (name == null) name = "____";
-System.out.println("WARNING: had to lookup name=" + name);
-                map.get("annot_name_list").add(name);
-            }
-
-            if ((annl != null) && ((sp != null) || (name != null))) {  //had to lookup name, but was not set on annotlite
-                if (sp != null) annl.setTaxonomy(sp);
-                if (name != null) annl.setIndividualId(name);
-                AnnotationLite.setCache(ann.getAcmId(), annl);
-System.out.println("INFO: updated existing AnnotationLite for " + ann.getAcmId());
-
-            } else if (annl == null) {  //make one!
-                annl = new AnnotationLite(name, sp);
-                AnnotationLite.setCache(ann.getAcmId(), annl);
-System.out.println("INFO: created new AnnotationLite for " + ann.getAcmId());
-            }
-
+            String name = ann.findIndividualId(myShepherd);
+            map.get("annot_name_list").add((name == null) ? "____" : name);
             ct++;
         }
         //myShepherd.rollbackDBTransaction();
 
         IA.log("INFO: WildbookIAM.sendAnnotations() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-//System.out.println("sendAnnotations(): data -->\n" + map);
+System.out.println("sendAnnotations(): data -->\n" + map);
         JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
 System.out.println("sendAnnotations() -> " + rtn);
         List<String> acmIds = acmIdsFromResponse(rtn);
@@ -420,10 +395,10 @@ System.out.println("fromResponse ---> " + ids);
         //if (curl == null) curl = ma.webURL();
 
         URL curl = ma.webURL();
-
+        
         String urlStr = curl.toString();
-        // THIS WILL BREAK if you need to append a query to the filename...
-        // we are double encoding the '?' in order to allow filenames that contain it to go to IA
+        // THIS WILL BREAK if you need to append a query to the filename... 
+        // we are double encoding the '?' in order to allow filenames that contain it to go to IA   
         if (urlStr!=null) {
             urlStr = urlStr.replaceAll("\\?", "%3F");
             if (ma.getStore() instanceof LocalAssetStore) {
@@ -435,7 +410,7 @@ System.out.println("fromResponse ---> " + ids);
             }
         }
         return null;
-
+        
     }
 
     //basically "should we send to IA?"
