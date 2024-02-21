@@ -1324,7 +1324,7 @@ public class StandardImport extends HttpServlet {
     }
 
     String state = getString(row, "Encounter.state",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
-    if (state!=null && !state.trim().equals("")) enc.setState(state);
+    if (Util.stringExists(state)) enc.setState(state.toLowerCase());
     else {
       enc.setState("approved");
     }
@@ -1883,8 +1883,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       mark = myShepherd.getMarkedIndividual(uuid);
     }
 
-    // ID not in cache.. withName gets the first choice that matches species so caution and require global
-    if (mark==null&&"global".equals(individualScope)) {
+    // ID not in cache.. withName gets the first choice that matches species so caution
+    if (mark==null) {
       mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
     }
 

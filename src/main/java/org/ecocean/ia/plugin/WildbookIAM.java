@@ -268,7 +268,12 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
 //TODO both of these shepherd/db calls can probably be combined !!!  FIXME
-            map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
+            
+            //yuck - IA class is not species
+            //map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
+            //better
+            map.get("annot_species_list").add(ann.getIAClass());
+            
             map.get("annot_theta_list").add(ann.getTheta());
             String name = ann.findIndividualId(myShepherd);
             map.get("annot_name_list").add((name == null) ? "____" : name);
