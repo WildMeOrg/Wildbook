@@ -526,7 +526,7 @@ myShepherd.closeDBTransaction();
                               <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                             <% }
 
-                            if(request.isUserInRole("admin")) { %>
+                            if(request.isUserInRole("admin") || request.isUserInRole("orgAdmin")) { %>
                             	<li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                             	
                             <%
