@@ -1226,6 +1226,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
             Properties submitProps= ShepherdProperties.getProperties("submit.properties", ServletUtilities.getLanguageCode(request),context);
             // Email new submission address(es) defined in commonConfiguration.properties
             Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+            tagMap.put(NotificationMailer.WILDBOOK_COMMUNITY_URL, CommonConfiguration.getWildbookCommunityURL(context));
             List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
             String mailSubj = submitProps.getProperty("newEncounter") + enc.getCatalogNumber();
             for (String emailTo : mailTo) {
