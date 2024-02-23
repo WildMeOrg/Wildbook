@@ -236,6 +236,7 @@
 				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+				 /EncounterAnnotationExportExcelFile = authc, roles[researcher]
                  /EncounterSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
@@ -1158,6 +1159,11 @@
   <servlet>
     <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
+  </servlet>
+
+	<servlet>
+    <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterAnnotationExportExcelFile</servlet-class>
   </servlet>
 
 
@@ -2310,6 +2316,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+
+	<servlet-mapping>
+        <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+        <url-pattern>/EncounterAnnotationExportExcelFile</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>
