@@ -8,7 +8,7 @@ export default function Home() {
 
     return (
         <>
-           <div className="col-12">
+           <div className="container col-12">
         
             <Header />
             <LatestData />

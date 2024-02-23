@@ -10,9 +10,9 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
-          <Route path="/wildbook/react/about" element={<About />} />
-          <Route path="/wildbook/react" element={<Home />} />    
-          <Route path="/wildbook/react/home" element={<Home />} />      
+          <Route path="/react/about" element={<About />} />
+          <Route path="/react" element={<Home />} />    
+          <Route path="/home" element={<Home />} />      
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
