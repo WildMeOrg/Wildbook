@@ -14,7 +14,7 @@ root.render(
 
 if('serviceWorker' in navigator) {
   console.log('Service worker supported');
-  navigator.serviceWorker.register('/wildbook/react/service-worker.js')
+  navigator.serviceWorker.register('/react/service-worker.js')
   .then(reg => {
     console.log('Service worker registered', reg);
   })
