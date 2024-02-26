@@ -174,10 +174,35 @@ public class Collaboration implements java.io.Serializable {
 		//myShepherd.setAction("Collaboration.class1");
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-		List returnMe=myShepherd.getAllOccurrences(query);
+		//List returnMe=myShepherd.getAllOccurrences(query);
+		Collection c = (Collection) (query.execute());
+		ArrayList<Collaboration> returnMe = new ArrayList<Collaboration>(c);
 		query.closeAll();
+		
+		//orgAdmin check
+		//for the current user, check if they're an orgAdmin and therefore get default collaborations with all members
+		//in which we assume that an orgAdmin only belongs to one org
+		//and has a default, edit-level collaboration with all users in org
+		if(myShepherd.doesUserHaveRole(username, "orgAdmin", myShepherd.getContext())) {
+		  if(myShepherd.getUser(username)!=null) {
+		    List<Organization> orgs=myShepherd.getAllOrganizationsForUser(myShepherd.getUser(username));
+		    //while we assume they are in only one org, there must be exceptions, so be prepared for multi-org orgadmins here
+		    for(Organization org:orgs) {
+		      List<User> users=org.getMembers();
+		      for(User user:users) {
+		        if(user.getUsername()!=null && !user.getUsername().equals(username)) {
+		          //so this is someone else than the orgAdmin and therefore someone we should have a default
+		          //edit-level collaboration with
+		          Collaboration tempCollab = new Collaboration(username,user.getUsername());
+		          tempCollab.setState(STATE_EDIT_PRIV);
+		          tempCollab.setEditInitiator(username);
+		          returnMe.add(tempCollab);		        }
+		      }
+		    }
+		  }
+		  
+		}
     return returnMe;
-
 	}
 
 
@@ -199,6 +224,31 @@ public class Collaboration implements java.io.Serializable {
 		query.closeAll();
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
+		
+    //orgAdmin check
+    //for the current user, check if they're an orgAdmin and therefore get default collaborations with all members
+    //in which we assume that an orgAdmin only belongs to one org
+    //and has a default, edit-level collaboration with all users in org
+    if(myShepherd.doesUserHaveRole(username, "orgAdmin", myShepherd.getContext())) {
+      if(myShepherd.getUser(username)!=null) {
+        List<Organization> orgs=myShepherd.getAllOrganizationsForUser(myShepherd.getUser(username));
+        //while we assume they are in only one org, there must be exceptions, so be prepared for multi-org orgadmins here
+        for(Organization org:orgs) {
+          List<User> users=org.getMembers();
+          for(User user:users) {
+            if(user.getUsername()!=null && !user.getUsername().equals(username)) {
+              //so this is someone else than the orgAdmin and therefore someone we should have a default
+              //edit-level collaboration with
+              Collaboration tempCollab = new Collaboration(username,user.getUsername());
+              tempCollab.setState(STATE_EDIT_PRIV);
+              tempCollab.setEditInitiator(username);
+              returnMe.add(tempCollab);           }
+          }
+        }
+      }
+      
+    }
+		
     return returnMe;
 	}
 
@@ -237,6 +287,30 @@ public class Collaboration implements java.io.Serializable {
 		  myShepherd.rollbackDBTransaction();
 		  myShepherd.closeDBTransaction();
 		}
+		
+    //orgAdmin check
+    //for username1, check if they're an orgAdmin and therefore get default collaborations with all members
+    //in which we assume that an orgAdmin only belongs to one org
+    //and has a default, edit-level collaboration with all users in org
+    if(myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
+      if(myShepherd.getUser(username1)!=null) {
+        List<Organization> orgs=myShepherd.getAllOrganizationsForUser(myShepherd.getUser(username1));
+        //while we assume they are in only one org, there must be exceptions, so be prepared for multi-org orgadmins here
+        for(Organization org:orgs) {
+          List<User> users=org.getMembers();
+          for(User user:users) {
+            if(user.getUsername()!=null && !user.getUsername().equals(username1)) {
+              //so this is someone else than the orgAdmin and therefore someone we should have a default
+              //edit-level collaboration with
+              Collaboration tempCollab = new Collaboration(username1,user.getUsername());
+              tempCollab.setState(STATE_EDIT_PRIV);
+              tempCollab.setEditInitiator(username1);
+              results.add(tempCollab);           }
+          }
+        }
+      }
+      
+    }
 
 		if (results == null || results.size()<1) return null;
 		return ((Collaboration) results.get(0));
