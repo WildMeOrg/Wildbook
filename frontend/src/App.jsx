@@ -11,7 +11,8 @@ function App() {
         <Routes>
           <Route path="/react/about" element={<About />} />
           <Route path="/react" element={<Home />} />    
-          <Route path="/home" element={<Home />} />      
+          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />      
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
