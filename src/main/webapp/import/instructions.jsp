@@ -49,12 +49,12 @@ String wbName = ContextConfiguration.getNameForContext(context);
   <h1 class="import-header">Bulk Import: Instructions</h1>
 
   <p class="warning">
-    <strong>This feature is in Alpha.</strong> This means it is untested and unreleased. Please only use this tool if you are willing to help us test the UI and report bugs. Your data might not be imported correctly until we have done further testing and development.
+    <strong>This BULK IMPORT UTILITY needs improvement.</strong> Please contact your Org Admin or T4C directly for training and guidance before you try to use the bulk import utility. Your data might not be imported correctly if you are not careful.
   </p>
 
-  <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
+  <p>The goal of this tool is to allow users to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks.</p>
   
-  <p>To ensure data integrity, this process is split into several steps with review in-between.</p>
+  <p>To ensure data integrity, this process is split into several steps with (some) review in-between each step.</p>
   
   <ol>
   	<li><h5>Photo Upload</h5></li>
@@ -65,19 +65,21 @@ String wbName = ContextConfiguration.getNameForContext(context);
   <p>Each page has instructions, and you must complete the steps in order.</p>
 
 
-  <h3>Preparation: The Wildbook Standard Format</h3>
+  <h3>Preparation: The Wild North Wildbook Standard Format</h3>
 
   <p>
-  	As a data collector or curator, your job to prepare for this import is to collect all of your images into one folder, and especially to transform your associated sightings data into a <em>Wildbook Standard Format</em> excel sheet.
+  	As a data collector or curator, your job to prepare for this import is to collect all of your images into one or more folders, from where they can be uploaded in bulk. The other requirement is to transform your associated sightings data into a <em>Wildbook Standard Format</em> Excel sheet.
   </p>
 
   <p>
-  	The Wildbook Standard Format is very simple, and perfectly mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on <%=wbName%>. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
+  	The Wild North Wildbook Standard Format is straightforward, and mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on <%=wbName%>. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
   </p>
 
   <p>Most importantly, <strong>the <code>Encounter.mediaAsset</code> column(s) must contain the <em>exact</em> filename(s) of the photo(s)</strong> associated with each record. These are the names of the photos uploaded in the Photo Upload step, and this is how the computer identifies which photo goes where.</p>
 
-  <p>If you do not have a value for something, please leave it blank or remove the column. Values like "N/A" added to a number field will be rejected.</p>
+  <p>If you do not have a value for something, please leave it blank or remove the column. Values like "N/A" added to a number field will be rejected.  
+
+NOTE THAT ONLY .JPG AND .PNG FILES ARE ACCEPTED BY WILDBOOK</p>
 
   <p>
 
