@@ -1,5 +1,7 @@
 // config-overrides.js
 module.exports = function override(config, env) {
+  console.log(' config', config );
+  console.log(' env', env );  
     return config;
   };
   
