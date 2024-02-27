@@ -16,7 +16,7 @@ In 2023, a small but passionate international collaboration came together to del
 
 
 <p>
-<strong>Wild Me</strong> - a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the carnivore-specific algorithms needed in ACW and delivered them on a powerful and easy to use image data management platform, Wildbook.
+<strong>Wild Me</strong> - a 501(c)(3) non-profit organization, staffed by a small but passionate and innovative team of technologists. Wild Me developed the species-specific algorithms needed in Wild North and delivered them on a powerful and easy to use image data management platform, Wildbook.
 Learn more about Wild Me, and donate to their work here: <a href="https://www.wildme.org">https://www.wildme.org</a>
 </p>
 <p>
