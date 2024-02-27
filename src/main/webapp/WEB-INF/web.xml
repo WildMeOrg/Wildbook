@@ -534,6 +534,21 @@
   </filter-mapping>
 
   <servlet>
+    <servlet-name>ReactAppServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+      <servlet-name>ReactAppServlet</servlet-name>
+      <url-pattern>/react</url-pattern>
+  </servlet-mapping>  
+
+  <error-page>
+    <error-code>404</error-code>
+    <location>/react/index.html</location>
+  </error-page>
+
+  <servlet>
     <servlet-name>ProjectCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
   </servlet>
@@ -2846,20 +2861,5 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
-
-   <servlet>
-    <servlet-name>ReactAppServlet</servlet-name>
-    <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
-  </servlet>
-
-  <servlet-mapping>
-      <servlet-name>ReactAppServlet</servlet-name>
-      <url-pattern>/react</url-pattern>
-  </servlet-mapping>
-
-  <error-page>
-    <error-code>404</error-code>
-    <location>/react/index.html</location>
-  </error-page>
 
 </web-app>
