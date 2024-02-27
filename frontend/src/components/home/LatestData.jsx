@@ -1,7 +1,6 @@
 import React from 'react';
-import DimondCard from './DimondCard';
-import Tail from './Tail';
-import More from './More';
+import DiamondCard from '../DiamondCard';
+import More from '../More';
 
 export default function LatestData() {
     return (
@@ -25,19 +24,19 @@ export default function LatestData() {
                 alignItems: 'center',
                 justifyContent: 'center',
             }}>
-                <DimondCard 
-                    date="Aug 05 2023"
+                <DiamondCard 
+                    date="Aug 05 2021"
                     title="Lorem ipsum"
                     annotations={5}
                     animals={2}
                 />
-                <DimondCard 
-                    date="Aug 05 2023"
+                <DiamondCard 
+                    date="Aug 05 2022"
                     title="Lorem ipsum"
                     annotations={5}
                     animals={2}
                 />
-                <DimondCard 
+                <DiamondCard 
                     date="Aug 05 2023"
                     title="Lorem ipsum"
                     annotations={5}
