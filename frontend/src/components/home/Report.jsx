@@ -54,10 +54,10 @@ export default function Report() {
                     justifyContent: 'space-around',
                     alignItems: 'center',
                 }}>
-                    <BrutalismButton>
+                    <BrutalismButton link={'/submit.jsp'}>
                         Report a Sighting
                     </BrutalismButton>
-                    <BrutalismButton>
+                    <BrutalismButton link={'/import/instructions.jsp'}>
                         Bulk Report
                     </BrutalismButton>
                 </div>
