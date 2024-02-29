@@ -30,11 +30,10 @@ export default function NavBar () {
                         <DownIcon />
                         </span>} id={`basic-nav-dropdown${item}`} 
                         style={{color: 'white'}}>
-                      {Object.values(item).map((subItem, idx) => (
-                        <LinkContainer to={subItem.to}>
-                          <NavDropdown.Item>{subItem.name}</NavDropdown.Item>
-                        </LinkContainer>
-                      ))}
+                      {Object.values(item)[0].map((subItem, idx) => {
+                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>{subItem.name}</NavDropdown.Item>
+                        
+                      })}
 
                       {/* <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
                       <NavDropdown.Item href="#action/3.2">
