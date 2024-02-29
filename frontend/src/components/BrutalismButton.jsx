@@ -4,7 +4,9 @@ import { Button } from 'react-bootstrap';
 export default function BrutalismButton(props) {
 
 
-    return <Button variant="primary" style={{
+    return <Button variant="primary" 
+    href={props.link}
+    style={{
         boxSizing: 'border-box',                  
         display: 'flex',
         flexDirection: 'row',
@@ -24,6 +26,7 @@ export default function BrutalismButton(props) {
         fontWeight: 'bold',
         margin: '8px 8px 0 0',
         whiteSpace: 'nowrap',
+        
     }}>
         {props.children}
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">

@@ -1,32 +1,35 @@
-export default menu = [
+const menu = [
     {'Learn': [
-        {name: 'About Wildbook', to: '/about'},
-        {name: 'Citing Wildbook', to: '/citing.jsp'},
-        {name: 'Wildbook for Birds', to: '/about'},
-        {name: 'Wildbook for Sharks', to: '/about'},
+        {name: 'About Wildbook', href: '/overview.jsp'},
+        {name: 'Citing Wildbook', href: '/citing.jsp'},
+        {name: 'Wildbook for Birds', href: '/about'},
+        {name: 'Wildbook for Sharks', href: '/about'},
     ]},
     {'Submit': [
-        {name: 'Report a Sighting', to: '/submit'},
-        {name: 'Bulk Import', to: '/submit'},
+        {name: 'Report a Sighting', href: '/submit.jsp'},
+        {name: 'Bulk Import', href: '/import/instructions.jsp'},
     ]},
     {'Individuals': [
-        {name: 'Search', to: '/individuals'},
-        {name: 'Add Individual', to: '/individuals'},
-        {name: 'Bulk Import', to: '/individuals'},
+        {name: 'Search', href: '/individuals'},
+        {name: 'Add Individual', href: '/individuals'},
+        {name: 'Bulk Import', href: '/individuals'},
     ]},
     {'Sightings': [
-        {name: 'Search', to: '/sightings'},
-        {name: 'Add Sighting', to: '/sightings'},
-        {name: 'Bulk Import', to: '/sightings'},
+        {name: 'Search', href: '/sightings'},
+        {name: 'Add Sighting', href: '/sightings'},
+        {name: 'Bulk Import', href: '/sightings'},
     ]},
     {'Encounters': [
-        {name: 'Search', to: '/encounters'},
-        {name: 'Add Encounter', to: '/encounters'},
-        {name: 'Bulk Import', to: '/encounters'},
+        {name: 'Search', href: '/encounters'},
+        {name: 'Add Encounter', href: '/encounters'},
+        {name: 'Bulk Import', href: '/encounters'},
     ]},
     {'Administers': [
-        {name: 'Search', to: '/administers'},
-        {name: 'Add Administer', to: '/administers'},
-        {name: 'Bulk Import', to: '/administers'},
+        {name: 'Search', href: '/administers'},
+        {name: 'Add Administer', href: '/administers'},
+        {name: 'Bulk Import', href: '/administers'},
     ]},
 ]
+
+
+export default menu;
