@@ -223,32 +223,45 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static Collaboration collaborationBetweenUsers(String username1, String username2, String context) {
-		if (username1==null || username2==null) return null;
-		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
-		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
-		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
-		Shepherd myShepherd = new Shepherd(context);
-		ArrayList<Collaboration> results=new ArrayList<Collaboration>();
-		myShepherd.setAction("collaborationBetweenUsers");
-		myShepherd.beginDBTransaction();
-		Query query = myShepherd.getPM().newQuery(queryString);
-		try {
-		  Collection c=(Collection)query.execute();
-	    results=new ArrayList<Collaboration>(c);
-		}
-		catch(Exception e) {
-		  e.printStackTrace();
-		}
-		finally {
-		  query.closeAll();
-		  myShepherd.rollbackDBTransaction();
-		  myShepherd.closeDBTransaction();
-		}
-		
-    results=(ArrayList<Collaboration>)addAssumedOrgAdminCollaborations(results, myShepherd, username1);
+	  if (username1==null || username2==null) return null;
+	  String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
+	  queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
+	  queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
+	  Shepherd myShepherd = new Shepherd(context);
+	  ArrayList<Collaboration> results=new ArrayList<Collaboration>();
+	  myShepherd.setAction("collaborationBetweenUsers");
+	  myShepherd.beginDBTransaction();
+	  Query query = myShepherd.getPM().newQuery(queryString);
+	  try {
+	      Collection coll=(Collection)query.execute();
+	      results=new ArrayList<Collaboration>(coll);
+	      query.closeAll();
 
-		if (results == null || results.size()<1) return null;
-		return ((Collaboration) results.get(0));
+	    
+  	    //we assume that the question is directional
+  	    //username1 is who we need to reconcile and might be an orgAdmin
+  	    //this is consistent with the current method calling this function
+  	    //if username 1 is an orgAdmin then look for assumed Collaborations
+  	    if(myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
+  	      
+  	      //this is a superset of collabs for username1
+  	      List<Collaboration> orgAdminCollabs=addAssumedOrgAdminCollaborations(results, myShepherd, username1);
+  	      for(Collaboration c:orgAdminCollabs) {
+  	        if(c.getUsername2().equals(username2)) {results.add(0, c);}
+  	      }
+  	    }
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+	  finally {
+	    
+	    myShepherd.rollbackDBTransaction();
+	    myShepherd.closeDBTransaction();
+	  }
+
+	  if (results == null || results.size()<1) return null;
+	  return ((Collaboration) results.get(0));
 	}
 
 
