@@ -159,7 +159,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		width: 100%;
 		max-height: 50%;
 		position: relative;
-		display: inline-block;
+		display: inline;
 		overflow: hidden;
 		max-height: 50%;
 		top: 0
