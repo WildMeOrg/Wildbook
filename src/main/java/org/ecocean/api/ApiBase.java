@@ -3,5 +3,5 @@
 package org.ecocean.api;
 
 
-public class ApiBase {
+public class ApiBase extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
 }
