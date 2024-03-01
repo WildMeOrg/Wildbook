@@ -23,7 +23,7 @@ import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.servlet.ServletUtilities;
 
 
-public class Login extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet {
+public class Login extends ApiBase {
     public Login() {
         super();
     }   	
