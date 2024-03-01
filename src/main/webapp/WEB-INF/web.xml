@@ -533,6 +533,16 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
 
+	<servlet>
+		<servlet-name>ApiLogin</servlet-name>
+		<servlet-class>org.ecocean.api.Login</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ApiLogin</servlet-name>
+		<url-pattern>/api/v3/login</url-pattern>
+	</servlet-mapping>
+
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
