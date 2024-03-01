@@ -197,14 +197,23 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = new Shepherd(context);
 		myShepherd.setAction("Collaboration.class1");
 		myShepherd.beginDBTransaction();
-		Query query = myShepherd.getPM().newQuery(queryString);
-    //ArrayList got = myShepherd.getAllOccurrences(query);
-		List returnMe=myShepherd.getAllOccurrences(query);
-		query.closeAll();
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		
-   returnMe=addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
+		List returnMe=new ArrayList();
+		try {
+  		Query query = myShepherd.getPM().newQuery(queryString);
+      //ArrayList got = myShepherd.getAllOccurrences(query);
+  		returnMe=myShepherd.getAllOccurrences(query);
+  		query.closeAll();
+  		
+
+     returnMe=addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
+		}
+		catch(Exception e) {e.printStackTrace();}
+		finally {
+		   myShepherd.rollbackDBTransaction();
+		   myShepherd.closeDBTransaction();
+		}
+   
+
 		
     return returnMe;
 	}
@@ -407,7 +416,7 @@ public class Collaboration implements java.io.Serializable {
 
 		String username = request.getUserPrincipal().getName();
 
-		return canCollaborate(context, ownerName, username);
+		return canCollaborate(context, username, ownerName);
 
 	}
 
@@ -420,7 +429,7 @@ public class Collaboration implements java.io.Serializable {
 	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
 	  String owner = enc.getAssignedUsername();
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
-		return canCollaborate(context, owner, username);
+		return canCollaborate(context, username, owner);
 	}
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
