@@ -543,6 +543,16 @@
 		<url-pattern>/api/v3/login</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<servlet-class>org.ecocean.api.UserInfo</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<url-pattern>/api/v3/user</url-pattern>
+	</servlet-mapping>
+
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
