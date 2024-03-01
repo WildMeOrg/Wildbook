@@ -245,7 +245,10 @@ public class Collaboration implements java.io.Serializable {
 	      Collection coll=(Collection)query.execute();
 	      results=new ArrayList<Collaboration>(coll);
 	      query.closeAll();
-
+	      
+	      //System.out.println("collaborationBetweenUsers(String username1, String username2, String context)");
+	      //System.out.println("collaborationBetweenUsers: "+username1+":"+username2);
+	      //System.out.println("     State now: "+results.toString());
 	    
   	    //we assume that the question is directional
   	    //username1 is who we need to reconcile and might be an orgAdmin
@@ -254,10 +257,15 @@ public class Collaboration implements java.io.Serializable {
   	    if(myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
   	      
   	      //this is a superset of collabs for username1
-  	      List<Collaboration> orgAdminCollabs=addAssumedOrgAdminCollaborations(results, myShepherd, username1);
+  	      ArrayList<Collaboration> tempResults=new ArrayList<Collaboration>();
+  	      List<Collaboration> orgAdminCollabs=addAssumedOrgAdminCollaborations(tempResults, myShepherd, username1);
   	      for(Collaboration c:orgAdminCollabs) {
-  	        if(c.getUsername2().equals(username2)) {results.add(0, c);}
+  	        if(c.getUsername2().equals(username2)) {results.add(0, c);System.out.println("adding derived collab: "+c.toString());}
+  	        
   	      }
+  	      
+  	      //System.out.println("     yState now: "+results.toString());
+  	      
   	    }
 	  }
 	  catch(Exception e) {
@@ -289,6 +297,7 @@ public class Collaboration implements java.io.Serializable {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		//System.out.println("canCollaborate(String context, String u1, String u2)");
 		if (c == null) return false;
 		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
@@ -415,20 +424,21 @@ public class Collaboration implements java.io.Serializable {
 		};
 
 		String username = request.getUserPrincipal().getName();
-
+		//System.out.println("canUserAccessOwnedObject(String ownerName, HttpServletRequest request)");
 		return canCollaborate(context, username, ownerName);
 
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 	  if(enc!=null && enc.getSubmitterID()==null) return true;
-
+	  //System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
 	  return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
 	  String owner = enc.getAssignedUsername();
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
+		//System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
 		return canCollaborate(context, username, owner);
 	}
 
@@ -544,6 +554,9 @@ private static List<Collaboration> addAssumedOrgAdminCollaborations(List<Collabo
         List<User> users=org.getMembers();
         for(User user:users) {
           if(user.getUsername()!=null && !user.getUsername().equals(username)) {
+            
+            //System.out.println("dding collab for: "+username+":"+user.getUsername()); 
+            
             //so this is someone else than the orgAdmin and therefore someone we should have a default
             //edit-level collaboration with
             Collaboration tempCollab = new Collaboration(username,user.getUsername());
