@@ -4,16 +4,9 @@ import { LinkContainer } from 'react-router-bootstrap';
 import Avatar from './Avatar';
 import '../css/dropdown.css';
 import menu from '../constants/navMenu';
-
-const DownIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-</svg>
-);
+import DownIcon from './svg/DownIcon';
 
 export default function NavBar () {
-    // const menu = ['Learn', 'Submit', 'Individuals', 'Sightings', 'Encounters', 'Administers'];
-
     return (<Navbar variant="dark" expand="lg" style={{ 
           width: '100%', 
           display: 'flex', 
@@ -31,19 +24,8 @@ export default function NavBar () {
                         </span>} id={`basic-nav-dropdown${item}`} 
                         style={{color: 'white'}}>
                       {Object.values(item)[0].map((subItem, idx) => {
-                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>{subItem.name}</NavDropdown.Item>
-                        
+                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>{subItem.name}</NavDropdown.Item>                      
                       })}
-
-                      {/* <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.2">
-                        Another action
-                      </NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item href="#action/3.4">
-                        Separated link
-                      </NavDropdown.Item> */}
                     </NavDropdown>
           </Nav>
                 ))}
