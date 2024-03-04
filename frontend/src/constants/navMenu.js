@@ -1,31 +1,26 @@
 const menu = [
     {'Learn': [
-        {name: 'About Wildbook', href: '/overview.jsp'},
-        {name: 'Citing Wildbook', href: '/citing.jsp'},
-        {name: 'Wildbook for Birds', href: '/about'},
-        {name: 'Wildbook for Sharks', href: '/about'},
+        {name: 'About Wildbook', href: '/wildbook/overview.jsp'},
+        {name: 'Citing Wildbook', href: '/wildbook/wildbook/citing.jsp'},
+        {name: 'How to photograph', href: '/wildbook/photographing.jsp'},
+        {name: 'Learn more about wildbook', href: 'https://www.wildme.org/#/wildbook'},
     ]},
     {'Submit': [
-        {name: 'Report a Sighting', href: '/submit.jsp'},
-        {name: 'Bulk Import', href: '/import/instructions.jsp'},
+        {name: 'Report a Sighting', href: '/wildbook/submit.jsp'},
+        {name: 'Bulk Import', href: '/wildbook/import/instructions.jsp'},
     ]},
     {'Individuals': [
-        {name: 'Search', href: '/individuals'},
-        {name: 'Add Individual', href: '/individuals'},
-        {name: 'Bulk Import', href: '/individuals'},
+        
+        {name: 'Individual Search', href: '/wildbook/individualSearch.jsp'},
     ]},
     {'Sightings': [
-        {name: 'Search', href: '/sightings'},
-        {name: 'Add Sighting', href: '/sightings'},
-        {name: 'Bulk Import', href: '/sightings'},
+        {name: 'Individual Search', href: '/wildbook/occurrenceSearch.jsp'},
     ]},
     {'Encounters': [
-        {name: 'Search', href: '/encounters'},
-        {name: 'Add Encounter', href: '/encounters'},
-        {name: 'Bulk Import', href: '/encounters'},
+        {name: 'Search', href: '/wildbook/encounters/encounterSearch.jsp'},
     ]},
     {'Administers': [
-        {name: 'Search', href: '/administers'},
+        {name: 'Search', href: '/wildbook/administers'},
         {name: 'Add Administer', href: '/administers'},
         {name: 'Bulk Import', href: '/administers'},
     ]},

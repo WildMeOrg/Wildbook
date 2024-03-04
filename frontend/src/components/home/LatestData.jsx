@@ -1,6 +1,6 @@
 import React from 'react';
 import DiamondCard from '../DiamondCard';
-import More from '../More';
+import More from '../CircledMoreButton';
 
 export default function LatestData() {
     return (
