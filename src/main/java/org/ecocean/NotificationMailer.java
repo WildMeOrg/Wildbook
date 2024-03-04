@@ -136,6 +136,8 @@ public final class NotificationMailer implements Runnable {
   public static final String EMAIL_NOTRACK = "@EMAIL_NOTRACK@";
   /** Tag to replace with email hash when specifying for REMOVEME section. */
   public static final String EMAIL_HASH_TAG = "@EMAIL_HASH@";
+  /** Tag to replace with wildbook community URL **/
+  public static final String WILDBOOK_COMMUNITY_URL = "@WILDBOOK_COMMUNITY_URL@";
   /** Web application context. */
   private String context;
   /** SMTP host. */

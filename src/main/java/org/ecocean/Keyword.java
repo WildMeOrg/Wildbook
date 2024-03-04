@@ -3,7 +3,7 @@ package org.ecocean;
 import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class Keyword {
+public class Keyword implements Comparable<Keyword> {
 
   //the primary key of the keyword
   protected String indexname;
@@ -119,6 +119,14 @@ public class Keyword {
 
     public boolean isLabeledKeyword() {
       return false;
+    }
+    
+    @Override
+    public int compareTo(final Keyword keyword) {
+      if (Util.stringExists(this.getReadableName()) && Util.stringExists(keyword.getReadableName())) {
+        return this.getReadableName().compareToIgnoreCase(keyword.getReadableName());
+      }
+      return 0;
     }
 
 }
