@@ -29,7 +29,7 @@ export default function Header() {
           </div>
           <div style={{
             position: 'absolute',
-            top: '-150px',
+            top: '-180px',
             left: '-50px',
           }}>
             <svg width="673" height="955" viewBox="0 0 773 955" fill="none" xmlns="http://www.w3.org/2000/svg">
