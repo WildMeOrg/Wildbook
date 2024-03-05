@@ -21,3 +21,15 @@ public class UserInfo extends ApiBase {
     }  	
 
 }
+
+/*
+
+    proposal: combine all things needed for landing page here
+    (some of these can be separate query when ES exists?)
+    maybe only for current user?
+
+    * "latest data": N most recent sightings
+    * latest: bulk import, individual, "matching action"
+    * projects data: see/replicate projectsList.jsp
+
+*/
