@@ -1,7 +1,13 @@
 // config-overrides.js
+const webpack = require('webpack');
 module.exports = function override(config, env) {
   console.log(' config', config );
   console.log(' env', env );  
+  if(env === 'production'){
+    config.devtool = 'source-map';
+    console.log('source-map');
+    // config.devtool = 'cheap-module-source-map';
+  }
     return config;
   };
   
@@ -14,4 +20,3 @@ module.exports = function override(config, env) {
   //   console.log('env',env);
   //   return { ...config, ...envConfig };
   // };
-  
