@@ -130,6 +130,20 @@ public class User implements Serializable {
       this.lastLogin=-1;
     }
 
+    public org.json.JSONObject infoJSONObject() {
+        return this.infoJSONObject(false);
+    }
+    // only admin and user-themself should have includeSensitive=true
+    public org.json.JSONObject infoJSONObject(boolean includeSensitive) {
+        org.json.JSONObject info = new org.json.JSONObject();
+        info.put("id", this.uuid);
+        info.put("displayName", this.getDisplayName());
+        if (includeSensitive) {
+            info.put("email", this.getEmailAddress());
+        }
+        return info;
+    }
+
   public void RefreshDate()
   {
     this.dateInMilliseconds = new Date().getTime();
