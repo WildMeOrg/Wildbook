@@ -133,9 +133,14 @@ public class User implements Serializable {
     public org.json.JSONObject infoJSONObject() {
         return this.infoJSONObject(false);
     }
-    public org.json.JSONObject infoJSONObject(boolean mine) {
+    // only admin and user-themself should have includeSensitive=true
+    public org.json.JSONObject infoJSONObject(boolean includeSensitive) {
         org.json.JSONObject info = new org.json.JSONObject();
         info.put("id", this.uuid);
+        info.put("displayName", this.getDisplayName());
+        if (includeSensitive) {
+            info.put("email", this.getEmailAddress());
+        }
         return info;
     }
 

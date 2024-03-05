@@ -71,7 +71,7 @@ public class Login extends ApiBase {
 		    myShepherd.commitDBTransaction();
                     token.clear();
                     success = true;
-                    results = user.infoJSONObject();
+                    results = user.infoJSONObject(true);
                     results.put("success", true);
 
 		} catch (UnknownAccountException ex) {
