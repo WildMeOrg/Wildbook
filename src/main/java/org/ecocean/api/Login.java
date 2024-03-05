@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
-//import java.util.Date;
+import java.util.Date;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -19,7 +19,8 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
 import org.apache.shiro.web.util.WebUtils;
-//import org.ecocean.*;
+import org.ecocean.Shepherd;
+import org.ecocean.User;
 import org.ecocean.servlet.ServletUtilities;
 
 
@@ -34,88 +35,73 @@ public class Login extends ApiBase {
 	
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JSONObject loginData = ServletUtilities.jsonFromHttpServletRequest(request);
-        System.out.println(">>>>>> " + loginData);
-        if (loginData != null) return;
+        boolean success = false;
+        User user = null;
+        JSONObject results = new JSONObject();
+        results.put("error", "login_empty_data");
+        results.put("success", false);
 
-/*
-		String username = request.getParameter("username").trim();
-		String password = request.getParameter("password").trim();
-		
-		String salt="";
-		String context=ServletUtilities.getContext(request);
-		Shepherd myShepherd=new Shepherd(context);
-		myShepherd.setAction("LoginUser.class");
-		myShepherd.beginDBTransaction();
-		
-		try {
-	    User user = myShepherd.getUser(username);
-	    salt = user.getSalt();
-	    user.setAcceptedUserAgreement(true);
-	    myShepherd.commitDBTransaction();
-		}
-		catch(Exception e){
-		  myShepherd.rollbackDBTransaction();
-		}
-		
-    String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
+        if (loginData != null) {
+            String username = loginData.optString("username", null);
+            String password = loginData.optString("password", null);
+            String salt = null;
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("api.Login");
+            myShepherd.beginDBTransaction();
+            try {
+                user = myShepherd.getUser(username);
+                salt = user.getSalt();
+                //user.setAcceptedUserAgreement(true);
+                //myShepherd.commitDBTransaction();
+            }
+            catch (Exception ex) {
+                myShepherd.rollbackDBTransaction();
+                results.put("error", "invalid_credentials");
+            }
+
+            if (user != null) {
+                String hashedPassword = ServletUtilities.hashAndSaltPassword(password, salt);
 		UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
-		boolean redirectUser=false;
-	
 		try {
-			
-			// get the user (aka subject) associated with this request.
-			Subject subject = SecurityUtils.getSubject();			
-			subject.login(token);
-	
-		  myShepherd.beginDBTransaction();
-		  
-		  if(myShepherd.getUser(username)!=null){
-		  	User user=myShepherd.getUser(username);
-		  	// if we need to show the user agreement
-		  	if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("userAgreementURL",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))&&(!user.getAcceptedUserAgreement())){
-		      System.out.println("LoginUser: user "+username+" needs to sign User Agreement. Redirecting...");
-	        subject.logout();
-	        redirectUser=true;
-	        url = CommonConfiguration.getProperty("userAgreementURL",context);
-	      } 
-		  	else {
-		      System.out.println("LoginUser: user "+username+" has signed agreement. Redirecting...");
-	      	user.setLastLogin((new Date()).getTime());
-	      	url = "/welcome.jsp";}
-	      }
-		    
+                    // get the user (aka subject) associated with this request.
+                    Subject subject = SecurityUtils.getSubject();			
+                    subject.login(token);
+                    user.setLastLogin((new Date()).getTime());
 		    myShepherd.commitDBTransaction();
-				//clear the information stored in the token
-				token.clear();
-			
-		} 
-		catch (UnknownAccountException ex) {
+                    token.clear();
+                    success = true;
+                    results = user.infoJSONObject();
+                    results.put("success", true);
+
+		} catch (UnknownAccountException ex) {
 			// username not found
 			ex.printStackTrace();
-			request.setAttribute("error", ex.getMessage() );
-		} 
-		catch (IncorrectCredentialsException ex) {
+                        //results.put("error", ex.getMessage());
+                        results.put("error", "invalid_credentials");
+		} catch (IncorrectCredentialsException ex) {
 			// wrong password
 			ex.printStackTrace();
-			request.setAttribute("error", ex.getMessage());
-		}
-		catch (Exception ex) {
+                        //results.put("error", ex.getMessage());
+                        results.put("error", "invalid_credentials");
+		} catch (Exception ex) {
 			ex.printStackTrace();
-			request.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
+                        //results.put("error", "unknown error");
+                        results.put("error", "invalid_credentials");
+		} finally {
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
 		}
-		finally {
-		  myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
-		}
-		
-	//	if (redirectUser) {
-		  // forward the request and response to the view
-		  RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-		  dispatcher.forward(request, response);   
-		  //return;
-		//}
-		//System.out.println("url: "+url);
-		//WebUtils.issueRedirect(request, response, url);
-*/
-	}   	  	    
+            }
+        }
+
+        if (success) {
+            response.setStatus(200);
+        } else {
+            response.setStatus(401);
+        }
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(results.toString());
+
+    }
 }

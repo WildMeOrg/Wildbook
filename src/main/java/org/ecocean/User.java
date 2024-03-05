@@ -130,6 +130,15 @@ public class User implements Serializable {
       this.lastLogin=-1;
     }
 
+    public org.json.JSONObject infoJSONObject() {
+        return this.infoJSONObject(false);
+    }
+    public org.json.JSONObject infoJSONObject(boolean mine) {
+        org.json.JSONObject info = new org.json.JSONObject();
+        info.put("id", this.uuid);
+        return info;
+    }
+
   public void RefreshDate()
   {
     this.dateInMilliseconds = new Date().getTime();
