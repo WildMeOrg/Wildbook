@@ -1,10 +1,10 @@
 import React from "react";
-import Header from './components/home/Header';
-import LatestData from './components/home/LatestData';
-import PickUp from './components/home/PickUp';
-import Report from './components/home/Report';
-import Projects from './components/home/Projects';
-import Footer from './components/Footer';
+import Header from '../components/home/Header';
+import LatestData from '../components/home/LatestData';
+import PickUp from '../components/home/PickUp';
+import Report from '../components/home/Report';
+import Projects from '../components/home/Projects';
+import Footer from '../components/Footer';
 
 export default function Home() {
 
