@@ -56,12 +56,12 @@ function LoginPage() {
                         </Row>
                     </Form.Group>
 
-                    {/* <BrutalismButton onClick={{handleSubmit}}>
+                    <BrutalismButton onClick={handleSubmit}>
                         Sign In
-                    </BrutalismButton>               */}
-                    <Button variant="primary" type="submit" className="w-100">
+                    </BrutalismButton>              
+                    {/* <Button variant="primary" type="submit" className="w-100">
                     Sign In
-                    </Button>
+                    </Button> */}
 
                     <div className="text-center mt-2">
                     New to Wildbook? <a href="/request-account">Request Account</a>
