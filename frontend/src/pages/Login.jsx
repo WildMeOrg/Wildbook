@@ -5,49 +5,54 @@ import BrutalismButton from '../components/BrutalismButton';
 import Cookies from 'js-cookie';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
+import useLogin from '../models/auth/useLogin';
+
 
 function LoginPage() {
-
-    const [rememberMe, setRememberMe] = useState(false);
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        console.log('Form submitted');
-    
-        if (rememberMe) {
-          Cookies.set('rememberMe', 'true', { expires: 1/3 });
-        } else {
-          Cookies.set('rememberMe', 'true');
-        }  
-        
-        const response = await fetch('/api/v3/login', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              username: username,
-              password: password,
-          })
-        })
-        if (response.ok) {
-          navigate('/home');
-          console.log(response);
-          return response;
-        } else {
-          throw new Error('login failed!');
-        }
-      }
-
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const intl = useIntl();
+  const intl = useIntl();  
+  const [rememberMe, setRememberMe] = useState(false);
+  const { authenticate, error, setError, loading } = useLogin();
+  const actionDisabled = loading || username === '' || password === '';
+
+  const handleSubmit = async (event) => {
+      event.preventDefault();
+      console.log('Form submitted');
+  
+      authenticate(username, password);
+        // if (rememberMe) {
+        //   Cookies.set('rememberMe', 'true', { expires: 1/3 });
+        // } else {
+        //   Cookies.set('rememberMe', 'true');
+        // }  
+        
+        // const response = await fetch('/api/v3/login', {
+        //   method: 'POST',
+        //   headers: {
+        //       'Content-Type': 'application/json',
+        //   },
+        //   body: JSON.stringify({
+        //       username: username,
+        //       password: password,
+        //   })
+        // })
+        // if (response.ok) {
+        //   navigate('/home');
+        //   console.log(response);
+        //   return response;
+        // } else {
+        //   throw new Error('login failed!');
+        // }
+      }
+
 
   return (
     <Container fluid>
       <Row className="vh-100">
-        <Col md={5} className="d-none d-md-block bg-image" style={{ backgroundImage: `url('/wildbook/react/forestWithText.png')` }}></Col>
+        <Col md={5} className="d-none d-md-block bg-image" style={{ backgroundImage: `url('/react/forestWithText.png')` }}></Col>
         <Col md={7} className="my-auto">
             <div style={{
                 with: '100%',
@@ -65,7 +70,10 @@ function LoginPage() {
                             id: 'USERNAME',
                           })
                           }</Form.Label>
-                        <Form.Control type="text" placeholder="Username" onChange={e => setUsername(e.target.value)} />
+                        <Form.Control type="text" placeholder="Username" onChange={e => {
+                          setUsername(e.target.value);
+                          setError(null);
+                        }} />
                     </Form.Group>
 
                     <Form.Group controlId="formBasicPassword">
@@ -74,7 +82,10 @@ function LoginPage() {
                             id: 'PASSWORD',
                           })
                           }</Form.Label>
-                        <Form.Control type="password" placeholder="Password" onChange={e => setPassword(e.target.value)}/>
+                        <Form.Control type="password" placeholder="Password" onChange={e => {
+                          setPassword(e.target.value);
+                          setError(null);
+                                                  }}/>
                     </Form.Group>
 
                     <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
@@ -101,13 +112,20 @@ function LoginPage() {
                         </Row>
                     </Form.Group>
 
-                    <BrutalismButton onClick={handleSubmit}>
+                    <BrutalismButton onClick={handleSubmit} disabled={actionDisabled}>
                       {
                         intl.formatMessage({
                           id: 'SIGN_IN',
                         })
                       }
-                    </BrutalismButton>              
+                    </BrutalismButton>     
+
+                    {error && (
+                      // <CustomAlert severity="error">{error}</CustomAlert>
+                      <div>
+                        {error}
+                      </div>
+                    )}         
 
                     <div className="text-center mt-3 d-flex justify-content-between">
                       {

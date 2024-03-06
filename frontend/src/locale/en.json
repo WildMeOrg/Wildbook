@@ -1,0 +1,10 @@
+{
+    "USERNAME" : "Username",
+    "PASSWORD" : "Password",
+    "SIGN_IN" : "Sign In",
+    "REMEMBER_ME" : "Remember Me",
+    "FORGOT_PASSWORD" : "Forgot Password?",
+    "NEW_TO_WILDBOOK" : "New to Wildbook?",
+    "REQUEST_ACCOUNT" : "Request Account",
+    "INVALID_EMAIL_OR_PASSWORD" : "Invalid email or password"
+}

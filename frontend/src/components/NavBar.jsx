@@ -29,6 +29,7 @@ export default function NavBar () {
                     </NavDropdown>
           </Nav>
                 ))}
+
               </Nav>
               <Nav style={{ alignItems: 'center', marginLeft: '35px' }}>          
                 <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
@@ -39,8 +40,8 @@ export default function NavBar () {
                     <NavDropdown.Item>Settings</NavDropdown.Item>
                   </LinkContainer>
                   <NavDropdown.Divider />
-                  <LinkContainer to="/logout">
-                    <NavDropdown.Item>Logout</NavDropdown.Item>
+                  <LinkContainer to="/login">
+                    <NavDropdown.Item>Login</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
               </Nav>

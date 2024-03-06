@@ -59,12 +59,10 @@ const PickUp = () => {
                     borderRadius: '10px',
                     height: '450px',
                     zIndex: 1,   
-                    backgroundImage: 'url(/wildbook/react/pick.png)',                 
+                    backgroundImage: 'url(/react/pick.png)',                 
                 }}
             >
-                
-                    {/* <img src="/wildbook/react/pick.png" borderRadius="10px"/> */}
-              
+                              
         </div>
            
         </div>
