@@ -10,7 +10,7 @@ export default function Avatar() {
             
             }}
         >
-            <img src="/wildbook/react/wildbook.png" alt="img"
+            <img src="/react/wildbook.png" alt="img"
                 style = {{
                     width: '40px',
                     height: '40px',

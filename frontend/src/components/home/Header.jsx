@@ -9,7 +9,7 @@ export default function Header() {
             style = {{
                 position: 'relative',
                 height: '500px', 
-                backgroundImage: `url('/wildbook/react/forest.png')`, 
+                backgroundImage: `url('/react/forest.png')`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -19,7 +19,7 @@ export default function Header() {
         >
           <div style={{
             position: 'absolute',
-            top: '20px',
+            top: 0,
             left: '20px',
             zIndex: '100',
             width: '100%',
