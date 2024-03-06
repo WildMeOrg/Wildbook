@@ -1,12 +1,13 @@
 import React from "react";
 import { Button } from 'react-bootstrap';
 
-export default function BrutalismButton({link, onClick, children}) {
+export default function BrutalismButton({link, onClick, disabled, children}) {
 
 
     return <Button variant="primary" 
     href={link}
     onClick={onClick}
+    disabled={disabled}
     style={{
         boxSizing: 'border-box',                  
         display: 'flex',

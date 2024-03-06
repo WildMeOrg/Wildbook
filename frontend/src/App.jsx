@@ -21,8 +21,7 @@ function App() {
       >
         <Router>
           <Routes>
-            <Route path="/react/about" element={<About />} />
-            <Route path="/react" element={<Home />} />    
+            <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Home />} />      
