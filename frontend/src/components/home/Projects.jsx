@@ -1,6 +1,7 @@
 
 import React from "react";
 import Progress from './Progress';
+import { Link } from 'react-router-dom';
 
 export default function Projects () {
 
@@ -39,9 +40,34 @@ export default function Projects () {
             alignItems: 'flex-start',
             padding: '20px',
         }}>
-            <Progress name='Amphibians & Reptiles' encounters = '126' progress='25'/>
-            <Progress name='Seal' encounters = '12' progress='12'/>
-            <Progress name='Sharkwhale' encounters = '26' progress='80'/>
+           
+                <Progress 
+                    name='Amphibians & Reptiles' 
+                    encounters = '126' 
+                    progress='25'
+                    href='/projects/projectList.jsp'
+                    noUnderline
+                    newTab
+                    />         
+           
+                <Progress 
+                    name='Seal' 
+                    encounters = '12' 
+                    progress='12'
+                    href='/projects/projectList.jsp'
+                    noUnderline
+                    newTab
+                    />             
+           
+                <Progress 
+                        name='Seal' 
+                        encounters = '12' 
+                        progress='12'
+                        href='/projects/projectList.jsp'
+                        noUnderline
+                        newTab
+                        />
+          
 
         </div>
 
