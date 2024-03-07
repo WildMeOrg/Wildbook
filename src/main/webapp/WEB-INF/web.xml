@@ -69,7 +69,7 @@
                 [urls]
 
                 /rest/** = authcBasicWildbook,roles[researcher]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
+				#/xxxapi/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
 
 
@@ -535,10 +535,18 @@
 		<servlet-name>ApiLogin</servlet-name>
 		<servlet-class>org.ecocean.api.Login</servlet-class>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>ApiLogin</servlet-name>
 		<url-pattern>/api/v3/login</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiLogout</servlet-name>
+		<servlet-class>org.ecocean.api.Logout</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiLogout</servlet-name>
+		<url-pattern>/api/v3/logout</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

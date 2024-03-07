@@ -29,11 +29,11 @@ public class Login extends ApiBase {
     public Login() {
         super();
     }   	
-	
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doPost(request, response);
     }  	
-	
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JSONObject loginData = ServletUtilities.jsonFromHttpServletRequest(request);
         boolean success = false;
