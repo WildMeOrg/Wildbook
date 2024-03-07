@@ -2,7 +2,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Button, Table, Alert } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 export default function About() {
     const [data, setData] = useState([]);

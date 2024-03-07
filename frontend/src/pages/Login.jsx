@@ -29,30 +29,28 @@ function LoginPage() {
         //   Cookies.set('rememberMe', 'true');
         // }  
         
-        // const response = await fetch('/api/v3/login', {
-        //   method: 'POST',
-        //   headers: {
-        //       'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({
-        //       username: username,
-        //       password: password,
-        //   })
-        // })
-        // if (response.ok) {
-        //   navigate('/home');
-        //   console.log(response);
-        //   return response;
-        // } else {
-        //   throw new Error('login failed!');
-        // }
       }
 
 
   return (
     <Container fluid>
       <Row className="vh-100">
-        <Col md={5} className="d-none d-md-block bg-image" style={{ backgroundImage: `url('/react/forestWithText.png')` }}></Col>
+        <Col 
+          md={5} 
+          className="d-none d-md-block bg-image p-0" 
+          // style={{ backgroundImage: `url('/react/forestWithText.png')` }}
+          >
+            <img 
+              src="/react/forestWithText.png" 
+              alt=""
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              
+              }} />
+        </Col>
+
         <Col md={7} className="my-auto">
             <div style={{
                 with: '100%',
@@ -60,7 +58,7 @@ function LoginPage() {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '10%',
+                // padding: '10%',
             }}>
                 <Form className="login-form" style={{width: '400px'}} onSubmit={handleSubmit}>
                     <h3 className="text-center mb-4">SIGN IN</h3>
@@ -143,9 +141,6 @@ function LoginPage() {
             </div>
           
         </Col>
-      </Row>
-      <Row>
-        <Col className="text-center py-2">Footer</Col>
       </Row>
     </Container>
   );
