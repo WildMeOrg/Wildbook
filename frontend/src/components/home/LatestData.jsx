@@ -8,7 +8,6 @@ export default function LatestData() {
             style = {{
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-around',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '20px',

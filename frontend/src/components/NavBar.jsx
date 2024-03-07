@@ -7,8 +7,13 @@ import menu from '../constants/navMenu';
 import DownIcon from './svg/DownIcon';
 
 export default function NavBar () {
+    const location = window.location;
+    const navBarFilled = location.pathname === '/';
+
     return (<Navbar variant="dark" expand="lg" style={{ 
+          backgroundColor: !navBarFilled ? 'lightblue' : 'transparent',
           width: '100%', 
+          height: '40px',
           display: 'flex', 
           justifyContent: 'space-between' }}>
             <Navbar.Brand href="#home" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>

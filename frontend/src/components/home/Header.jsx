@@ -17,16 +17,7 @@ export default function Header() {
             }
             }
         >
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '20px',
-            zIndex: '100',
-            width: '100%',
-            paddingRight: '60px',
-          }}>            
-            <NavBar />
-          </div>
+          
           <div style={{
             position: 'absolute',
             top: '-180px',
