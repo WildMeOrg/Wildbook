@@ -50,6 +50,11 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+    
+    //moved initNamesCache here
+    System.out.println("XXXXXXXXXX INIT NAMES CACHE sTART");
+    boolean cached=org.ecocean.MarkedIndividual.initNamesCache(myShepherd);
+    System.out.println("XXXXXXXXXX INIT NAMES CACHE END: "+cached);
 
   }
 
