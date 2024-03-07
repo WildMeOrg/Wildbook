@@ -2622,7 +2622,11 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         NAMES_KEY_CACHE = new HashMap<Integer,String>();
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
         Collection c = (Collection) (query.execute());
+        int numIndividuals = c.size();
+        int currentIndy=0;
         for (Object m : c) {
+            currentIndy++;
+            myShepherd.setAction("MarkedIndividual.initNamesCache_"+currentIndy+"_"+numIndividuals);
             MarkedIndividual ind = (MarkedIndividual) m;
             if (ind.names == null) continue;
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
