@@ -1,6 +1,27 @@
 import React from "react";
 
-export default function Progress({ name, encounters, progress }) {
+export default function Progress({ 
+    name, 
+    encounters, 
+    progress, 
+    children,
+    href,
+    style,
+    disabled = false,
+    noUnderline = false,
+    external = false,
+    newTab = false,
+    onClick,
+    ...rest }) {
+
+        console.log(noUnderline, 'noUnderline');
+    const styles = {
+        color: disabled ? 'grey' : 'unset',
+        textDecoration: noUnderline ? 'none' : 'underline',
+        cursor: disabled ? 'default' : 'pointer',
+        ...style,
+      };
+
     return (
         <div style={{
             display: 'flex',
@@ -8,7 +29,8 @@ export default function Progress({ name, encounters, progress }) {
             justifyContent: 'space-between',
             width: '100%',
             marginBottom: '10px',
-        }}>
+        }}
+        >
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -16,8 +38,19 @@ export default function Progress({ name, encounters, progress }) {
                 alignItems: 'flex-start',
                 width: '70%',
             }}>
-                <h5>{name}</h5>
-                <span>{encounters} encounters</span>
+                
+                <a 
+                    href={href}
+                    target={newTab ? "_blank" : "_self"} 
+                    style={{
+                        textDecoration: noUnderline ? 'none' : 'underline', 
+                        color: styles.color, 
+                        cursor: styles.cursor, 
+                    }}
+                >
+                    <h6>{name}</h6>
+                    <span>{encounters} encounters</span>
+                </a>
             </div>
             <div style={{
                 display: 'flex',
