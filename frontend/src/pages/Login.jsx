@@ -12,7 +12,6 @@ function LoginPage() {
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
   const intl = useIntl();  
   const [rememberMe, setRememberMe] = useState(false);
   const { authenticate, error, setError, loading } = useLogin();
@@ -31,14 +30,12 @@ function LoginPage() {
         
       }
 
-
   return (
     <Container fluid>
       <Row className="vh-100">
         <Col 
           md={5} 
           className="d-none d-md-block bg-image p-0" 
-          // style={{ backgroundImage: `url('/react/forestWithText.png')` }}
           >
             <img 
               src="/react/forestWithText.png" 
@@ -46,8 +43,7 @@ function LoginPage() {
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
-              
+                objectFit: 'cover',              
               }} />
         </Col>
 
@@ -58,7 +54,6 @@ function LoginPage() {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                // padding: '10%',
             }}>
                 <Form className="login-form" style={{width: '400px'}} onSubmit={handleSubmit}>
                     <h3 className="text-center mb-4">SIGN IN</h3>

@@ -20,14 +20,11 @@ function App() {
     position: 'relative',
   }
 
-  const location = window.location;
-  const showNavBar = location.pathname !== '*';
-  // const notFound = window.location.pathname === '/notFound';
   return (
     <div className="App" 
       style={containerStyle}
       >
-      {showNavBar && <div style={{
+      <div style={{
             position: 'absolute',
             top: 0,
             left: 0,
@@ -35,7 +32,7 @@ function App() {
             width: '100%',
           }}>            
             <NavBar />
-          </div>}
+      </div>
       <IntlProvider 
         locale="en"
         defaultLocale="en"

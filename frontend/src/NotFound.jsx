@@ -4,7 +4,7 @@ export default function NotFound() {
     return (
         <div style={{
             position: 'relative',
-            zIndex: '100',
+            zIndex: '200',
         }}>
             <img 
                 src="/react/notFound.png" alt="notFound-forest"
