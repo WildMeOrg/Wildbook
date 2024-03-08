@@ -17,6 +17,10 @@ import jxl.write.*;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import org.ecocean.social.SocialUnit;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
@@ -34,6 +38,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
   }
 
   private static final int BYTES_DOWNLOAD = 1024;
+  private static final String REFERENCE_KEYWORD = "Reference";
 
   private int numMediaAssetCols = 0;
   private int numKeywords = 0;
@@ -86,12 +91,12 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       MarkedIndividual id = enc.getIndividual();
       if (id!=null && !individualIDsChecked.contains(id.getIndividualID())) {
         individualIDsChecked.add(id.getIndividualID());
-        int numNames = enc.getIndividual().numNames();
+        int numNames = enc.getIndividual().getNames().getKeys().size();
         //System.out.println("Individual "+enc.getIndividual()+" isnull = "+(enc.getIndividual()==null)+" and has # names: "+numNames);
         if (numNames>maxNumNames) maxNumNames = numNames;
 
         List<SocialUnit> mySocialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(id);
-        if (mySocialUnits.size() < maxSocialUnits) maxSocialUnits = mySocialUnits.size();
+        if (mySocialUnits.size() > maxSocialUnits) maxSocialUnits = mySocialUnits.size();
 
       }
     }
@@ -120,8 +125,12 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
     Vector rEncounters = new Vector();
 
+    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+    DateTime timeNow = new DateTime();
+    String formattedDate = fmt.print(timeNow);
+
     //set up the files
-    String filename = "encounterAnnotation_export_" + request.getRemoteUser() + ".xls";
+    String filename = "Encounter_annotations_export_" + request.getRemoteUser() + "_" + formattedDate + ".xls";
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -154,67 +163,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile,ws);
       WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
 
-      List<ExportColumn> columns = new ArrayList<ExportColumn>();
-      newEasyColumn("Encounter.catalogNumber", columns); // adds Encounter.catalogNumber to columns
-      //newEasyColumn("Encounter.individualID", columns);
-      newEasyColumn("Encounter.alternateID", columns);
-      MultiValueExportColumn.addNameColumns(numNameCols, columns);
-      newEasyColumn("Occurrence.occurrenceID", columns);
-      //newEasyColumn("Occurrence.sightingPlatform", columns);
-      newEasyColumn("Encounter.decimalLatitude", columns);
-      newEasyColumn("Encounter.decimalLongitude", columns);
-      newEasyColumn("Encounter.locationID", columns);
-      newEasyColumn("Encounter.verbatimLocality", columns);
-      newEasyColumn("Encounter.country", columns);
-
-      //Method encDepthGetter = Encounter.class.getMethod("getDepthAsDouble", null); // depth is special bc the getDepth getter can fail with a NPE
-      //ExportColumn depthIsSpecial = new ExportColumn(Encounter.class, "Encounter.depth", encDepthGetter, columns);
-
-      newEasyColumn("Encounter.dateInMilliseconds", columns);
-      newEasyColumn("Encounter.year", columns);
-      newEasyColumn("Encounter.month", columns);
-      newEasyColumn("Encounter.day", columns);
-      newEasyColumn("Encounter.hour", columns);
-      newEasyColumn("Encounter.minutes", columns);
-      newEasyColumn("Encounter.submitterOrganization", columns);
-      newEasyColumn("Encounter.submitterID", columns);
-      newEasyColumn("Encounter.recordedBy", columns);
-      newEasyColumn("Occurrence.groupComposition", columns);
-      newEasyColumn("Occurrence.groupBehavior", columns);
-      newEasyColumn("Occurrence.minGroupSizeEstimate", columns);
-      newEasyColumn("Occurrence.bestGroupSizeEstimate", columns);
-      newEasyColumn("Occurrence.maxGroupSizeEstimate", columns);
-      newEasyColumn("Occurrence.numAdults", columns);
-      newEasyColumn("Occurrence.numJuveniles", columns);
-      //newEasyColumn("Occurrence.numCalves", columns);
-      newEasyColumn("Occurrence.initialCue", columns);
-      //newEasyColumn("Occurrence.seaState", columns);
-      //newEasyColumn("Occurrence.seaSurfaceTemp", columns);
-      //newEasyColumn("Occurrence.swellHeight", columns);
-      //newEasyColumn("Occurrence.visibilityIndex", columns);
-      newEasyColumn("Occurrence.effortCode", columns);
-      newEasyColumn("Occurrence.observer", columns);
-      newEasyColumn("Occurrence.transectName", columns);
-      newEasyColumn("Occurrence.transectBearing", columns);
-      newEasyColumn("Occurrence.distance", columns);
-      newEasyColumn("Occurrence.bearing", columns);
-      newEasyColumn("Occurrence.comments", columns);
-      newEasyColumn("Occurrence.humanActivityNearby", columns);
-      newEasyColumn("Encounter.patterningCode", columns);
-      //newEasyColumn("Encounter.flukeType", columns);
-      newEasyColumn("Encounter.behavior", columns);
-      newEasyColumn("Encounter.groupRole", columns);
-      newEasyColumn("Encounter.sex", columns);
-      newEasyColumn("Encounter.lifeStage", columns);
-      newEasyColumn("Encounter.genus", columns);
-      newEasyColumn("Encounter.specificEpithet", columns);
-      newEasyColumn("Encounter.otherCatalogNumbers", columns);
-      newEasyColumn("Encounter.occurrenceRemarks", columns);
-      newEasyColumn("Encounter.state", columns);
-
-
-
-
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
       Method maImgUrl   = MediaAsset.class.getMethod("webURL", null);
@@ -222,45 +170,112 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       Method annViewpoint = Annotation.class.getMethod("getViewpoint", null);
       Method annMatchAgainst = Annotation.class.getMethod("getMatchAgainst", null);
 
+      Method submitterID = Encounter.class.getMethod("getSubmitterID", null);
+      Method submitterOrganization = Encounter.class.getMethod("getSubmitterOrganization", null);
+
+      Method photographerEmail = User.class.getMethod("getEmailAddress", null);
+      Method FullName = User.class.getMethod("getFullName", null);
       Method submitterAffiliation = User.class.getMethod("getAffiliation", null);
       Method submitterProject= User.class.getMethod("getUserProject", null);
       Method SocialUnitName= SocialUnit.class.getMethod("getSocialUnitName", null);
+      Method keywordGetName   = Keyword.class.getMethod("getDisplayName");
+      Method labeledKeywordGetValue   = LabeledKeyword.class.getMethod("getValue");
+      Method markedIndividualNickName   = MarkedIndividual.class.getMethod("getNickName");
+      Method markedIndividualSexName   = MarkedIndividual.class.getMethod("getSex");
+      Method markedIndividualLifeStageName   = MarkedIndividual.class.getMethod("getLastLifeStage");
+      Method occurrenceComments   = Occurrence.class.getMethod("getCommentsExport");
+
+
+      List<ExportColumn> columns = new ArrayList<ExportColumn>();
+      newEasyColumn("Occurrence.occurrenceID", columns);
+
+      for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
+        String mediaAssetColName = "Encounter.mediaAsset"+maNum;
+        ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName, maGetFilename, columns);
+        maFilenameK.setMaNum(maNum);
+
+      }
+
+      for (int maNum = 0; maNum < numMediaAssetCols; maNum++) {
+
+        String Viewpoint = "Annotation"+maNum+".ViewPoint";
+        ExportColumn aanViewpointK = new ExportColumn(Annotation.class, Viewpoint, annViewpoint, columns);
+        aanViewpointK.setMaNum(maNum);
+
+      }
+
+      ExportColumn markedIndividualSex = new ExportColumn(MarkedIndividual.class, "Encounter.sex", markedIndividualSexName, columns);
+      ExportColumn markedIndividuallifeStage = new ExportColumn(MarkedIndividual.class, "Encounter.lifeStage", markedIndividualLifeStageName, columns);
+
+      MultiValueExportColumn.addNameColumns(numNameCols, columns);
+      newEasyColumn("Encounter.genus", columns);
+      newEasyColumn("Encounter.specificEpithet", columns);
+      newEasyColumn("Encounter.verbatimLocality", columns);
+      newEasyColumn("Encounter.decimalLatitude", columns);
+      newEasyColumn("Encounter.decimalLongitude", columns);
+      newEasyColumn("Encounter.country", columns);
+      newEasyColumn("Encounter.locationID", columns);
+      newEasyColumn("Encounter.year", columns);
+      newEasyColumn("Encounter.month", columns);
+      newEasyColumn("Encounter.day", columns);
+      newEasyColumn("Encounter.hour", columns);
+      newEasyColumn("Encounter.minutes", columns);
+      newEasyColumn("Encounter.occurrenceRemarks", columns);
+      ExportColumn OccurrenceComments = new ExportColumn(Occurrence.class, "Occurrence.comments", occurrenceComments, columns);
+
 
       for (int subNum=0; subNum < numSocialUnits; subNum++)
       {
         String socialUnitsName = "SocialUnit.socialUnitName"+subNum;
         ExportColumn maSocialK = new ExportColumn(SocialUnit.class, socialUnitsName, SocialUnitName, columns);
         maSocialK.setMaNum(subNum);
+
       }
+
 
       for (int subNum =0; subNum < numSubmitters; subNum++)
       {
+
+       String submitterIDName = "Encounter.submitter"+subNum+".submitterID";
+       ExportColumn submitterIDK = new ExportColumn(Encounter.class, submitterIDName, submitterID, columns);
+       submitterIDK.setMaNum(subNum);
+
+       String submitterFullName= "Encounter.submitter"+subNum+".fullName";
+       ExportColumn submitterFullNameK = new ExportColumn(User.class, submitterFullName, FullName, columns);
+       submitterFullNameK.setMaNum(subNum);
+
+       String submitterOrganizationName = "Encounter.submitter"+subNum+".submitterOrganization";
+       ExportColumn submitterOrganizationNameK = new ExportColumn(Encounter.class, submitterOrganizationName, submitterOrganization, columns);
+       submitterOrganizationNameK.setMaNum(subNum);
 
        String submitterAffiliationName = "Encounter.submitter"+subNum+".Affiliation";
        ExportColumn maPathK = new ExportColumn(User.class, submitterAffiliationName, submitterAffiliation, columns);
        maPathK.setMaNum(subNum);
 
-       String submitterProjectName = "Encounter.submitter"+subNum+".Project";
-       ExportColumn maPathK2 = new ExportColumn(User.class, submitterProjectName, submitterProject, columns);
-       maPathK2.setMaNum(subNum);
-
       }
 
 
-      // This will include labels in a labeledKeyword value
-      Method keywordGetName   = Keyword.class.getMethod("getDisplayName");
-      Method labeledKeywordGetValue   = LabeledKeyword.class.getMethod("getValue");
+
+      ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographerEmail", photographerEmail, columns);
+      photographerEmailCol.setMaNum(0);
+
+
+      newEasyColumn("Encounter.state", columns);
+
+      ExportColumn keywordCol = new ExportColumn(Keyword.class, "Reference keyword", keywordGetName, columns);
+      keywordCol.setKwNum(0);
+      keywordCol.setMaNum(0);
+
+      // ExportColumn maPathK = new ExportColumn(User.class, submitterAffiliationName, submitterAffiliation, columns);
+
+      // newEasyColumn("Encounter.catalogNumber", columns);
+      newEasyColumn("Encounter.alternateID", columns);
+
+
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
-        String mediaAssetColName = "Encounter.mediaAsset"+maNum;
-        String fullPathName = "Encounter.mediaAsset"+maNum+".filePath";
-        ExportColumn maFilenameK = new ExportColumn(MediaAsset.class, mediaAssetColName, maGetFilename, columns);
-        maFilenameK.setMaNum(maNum); // important for later!
-        ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath, columns);
-        maPathK.setMaNum(maNum);
 
         String imageUrl = "Encounter.mediaAsset"+maNum+".imageUrl";
         String bBox = "Annotation"+maNum+".bbox";
-        String Viewpoint = "Annotation"+maNum+".Viewoint";
         String MatchAgainst = "Annotation"+maNum+".MatchAgainst";
 
 
@@ -270,33 +285,29 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         ExportColumn aanBboxK = new ExportColumn(Annotation.class, bBox, annBbox, columns);
         aanBboxK.setMaNum(maNum);
 
-        ExportColumn aanViewpointK = new ExportColumn(Annotation.class, Viewpoint, annViewpoint, columns);
-        aanViewpointK.setMaNum(maNum);
-
         ExportColumn annMatchAgainstK = new ExportColumn(Annotation.class, MatchAgainst, annMatchAgainst, columns);
         annMatchAgainstK.setMaNum(maNum);
 
 
-        for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
-          String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
-          ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, keywordGetName, columns);
-          keywordCol.setMaNum(maNum);
-          keywordCol.setKwNum(kwNum);
-        }
+        // for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
+        //   String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
+        //   ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, keywordGetName, columns);
+        //   keywordCol.setMaNum(maNum);
+        //   keywordCol.setKwNum(kwNum);
+        // }
 
-        List<String> labels = myShepherd.getAllKeywordLabels();
-        for(String label:labels) {
-          String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
-          ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName, labeledKeywordGetValue, columns);
-          keywordCol.setMaNum(maNum);
-          keywordCol.setLabeledKwName(label);
+        // List<String> labels = myShepherd.getAllKeywordLabels();
+        // for(String label:labels) {
+        //   String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
+        //   ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName, labeledKeywordGetValue, columns);
+        //   keywordCol.setMaNum(maNum);
+        //   keywordCol.setLabeledKwName(label);
 
-        }
+        // }
 
 
       }
 
-      // add measurements to export
 
       //sort measurementColTitles (a subset of all possible measureVals that's currently not in the same order as they appear in measureVals) by order in which they will appear in enc.getMeasurements, which is dictated by commonConfig array (i.e., measureVals). If this doesn't happen, some encounters with a measurements list beginning with a rare measurement will end up misplaced in the colunns
       List<String> sortedMeasurementColTitles = new ArrayList<String>();
@@ -317,17 +328,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       }
       // end sorting
 
-      Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
-        if(sortedMeasurementColTitles.size() > 0){
-          for (String currentSortedColTitle: sortedMeasurementColTitles) {
-            String measurementColName = "Encounter.measurement." + currentSortedColTitle;
-            ExportColumn measurementCol = new ExportColumn(Measurement.class, measurementColName, getMeasurementValue, columns);
-            String modifiedColumnName = measurementColName.replace("Encounter.measurement.", "");
-            int matchingMeasurementColNum = sortedMeasurementColTitles.indexOf(modifiedColumnName);
-            measurementCol.setMeasurementNum(matchingMeasurementColNum);
-          }
-        }
-      // End measurements export
+
 
       for (ExportColumn exportCol: columns) {
         exportCol.writeHeaderLabel(sheet);
@@ -339,7 +340,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
         Encounter enc=(Encounter)rEncounters.get(i);
         // Security: skip this row if user doesn't have permission to view this encounter
-        if (hiddenData.contains(enc)) continue;
+        // if (hiddenData.contains(enc)) continue;
         row++;
 
         // get attached objects
@@ -350,7 +351,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         List<MediaAsset> mas = enc.getMedia();
         List<Annotation> anns = enc.getAnnotations();
         List<User> submitters = enc.getSubmitters();
-        List<SocialUnit> socialUnits = myShepherd.getAllSocialUnitsForMarkedIndividual(ind);
+        List<SocialUnit> socialUnits = ( ind!=null)? myShepherd.getAllSocialUnitsForMarkedIndividual(ind) : null;
+        List<User> photographers = enc.getPhotographers();
 
 
         // use exportColumns, passing in the appropriate object for each column
@@ -394,14 +396,24 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
           }
           else if (exportCol.isFor(User.class)) {
             int num = exportCol.getMaNum();
-            if (num >= submitters.size()) continue;
-            User user  = submitters.get(num);
+            User user = null;
+
+            if (exportCol.header.contains("photographerEmail")){
+
+              if (num >= photographers.size()) continue;
+              user = photographers.get(num);
+            }
+            else {
+               if (num >= submitters.size()) continue;
+               user = submitters.get(num);
+            }
+
             exportCol.writeLabel(user, row, sheet);
 
           }
           else if (exportCol.isFor(SocialUnit.class)) {
             int num = exportCol.getMaNum();
-            if (num >= socialUnits.size()) continue;
+            if (socialUnits == null || num >= socialUnits.size()) continue;
             SocialUnit social = socialUnits.get(num);
             exportCol.writeLabel(social, row, sheet);
           }
@@ -422,15 +434,15 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
           }
           //end add labeled keywords
           else if (exportCol.isFor(Keyword.class)) {
-            int maNum = exportCol.getMaNum();
-            if (maNum >= mas.size()) continue;
-            MediaAsset ma = mas.get(maNum);
-            if (ma == null) continue; // on to next column
-            int kwNum = exportCol.getKwNum();
-            if (kwNum >= ma.numKeywordsStrict() || kwNum==-1) continue;
-            Keyword kw = ma.getKeywordStrict(kwNum);
-            if (kw == null) continue;
-            exportCol.writeLabel(kw, row, sheet);
+
+            for (MediaAsset ma :mas) {
+              // if any of mediaasset of encounter has REFERENCE_KEYWORD then right it cell and break loop
+              if (processKeywordsStrict(ma.getKeywordsStrict(), REFERENCE_KEYWORD, exportCol, row, sheet)) {
+                break;
+              }
+
+            }
+
           }
 
 
@@ -484,6 +496,16 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
     }
     os.flush();
     os.close();
+  }
+
+  private boolean processKeywordsStrict(List<Keyword> keywords, String REFERENCE_KEYWORD, ExportColumn exportCol, int row, Sheet sheet) {
+    for (Keyword kw : keywords) {
+      if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
+        exportCol.writeLabel(kw, row, sheet);
+        return true;
+      }
+    }
+    return false;
   }
 
 }
