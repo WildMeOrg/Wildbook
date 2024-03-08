@@ -400,6 +400,9 @@ public class ServletUtilities {
         //user-specific checks
         else if ((enc.getSubmitterID() != null) && (request.getRemoteUser() != null)) {
           
+          //allow access to public encounters
+          if(enc.getSubmitterID().equals("public")) return true;
+          
           //if the current user owns the Encounter, they obviously have permission
           if(enc.getSubmitterID().equals(request.getRemoteUser())) {isOwner = true;}
           //if the current user is the orgAdmin for the other user, they can ave permission
