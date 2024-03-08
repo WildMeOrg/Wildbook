@@ -564,7 +564,23 @@ public class User implements Serializable {
       return getPreference(PROJECT_CONTEXT);
     }
 
+    // all projects, owned or participating in
     public List<Project> getProjects(Shepherd myShepherd) {
+        List<Project> projects1 = this.getProjectsOwned(myShepherd);
+        List<Project> projects2 = this.getProjectsParticipating(myShepherd);
+        // remove duplicates
+        projects2.removeAll(projects1);
+        projects1.addAll(projects2);
+        return projects1;
+    }
+
+    public List<Project> getProjectsParticipating(Shepherd myShepherd) {
+        List<Project> projects = myShepherd.getParticipatingProjectsForUserId(this.getUsername());
+        if (projects == null) projects = new ArrayList<Project>();
+        return projects;
+    }
+
+    public List<Project> getProjectsOwned(Shepherd myShepherd) {
         List<Project> projects = myShepherd.getOwnedProjectsForUserId(this.getId(), "dateLastModifiedLong DESC");
         if (projects == null) projects = new ArrayList<Project>();
         return projects;
