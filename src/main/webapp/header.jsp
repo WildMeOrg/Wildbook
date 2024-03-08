@@ -63,7 +63,7 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
 String notifications="";
-//check if user is logged in and has 
+//check if user is logged in and has pending notifications
 if(request.getUserPrincipal()!=null){
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("header.jsp");
