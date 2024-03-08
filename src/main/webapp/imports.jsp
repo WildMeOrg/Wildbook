@@ -125,7 +125,6 @@ if (user == null) {
     return;
 }
 boolean adminMode = request.isUserInRole("admin");
-if(request.isUserInRole("orgAdmin"))adminMode=true;
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
