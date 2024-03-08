@@ -1357,7 +1357,7 @@ public class StandardImport extends HttpServlet {
     }
 
     String state = getString(row, "Encounter.state",colIndexMap, verbose, missingColumns, unusedColumns,feedback);
-    if (state!=null && !state.trim().equals("")) enc.setState(state);
+    if (Util.stringExists(state)) enc.setState(state.toLowerCase());
     else {
       enc.setState("approved");
     }
