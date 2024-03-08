@@ -174,10 +174,14 @@ public class Collaboration implements java.io.Serializable {
 		//myShepherd.setAction("Collaboration.class1");
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-		List returnMe=myShepherd.getAllOccurrences(query);
+		//List returnMe=myShepherd.getAllOccurrences(query);
+		Collection c = (Collection) (query.execute());
+		ArrayList<Collaboration> returnMe = new ArrayList<Collaboration>(c);
 		query.closeAll();
+		
+		returnMe=(ArrayList<Collaboration>)addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
+		
     return returnMe;
-
 	}
 
 
@@ -193,12 +197,24 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = new Shepherd(context);
 		myShepherd.setAction("Collaboration.class1");
 		myShepherd.beginDBTransaction();
-		Query query = myShepherd.getPM().newQuery(queryString);
-    //ArrayList got = myShepherd.getAllOccurrences(query);
-		List returnMe=myShepherd.getAllOccurrences(query);
-		query.closeAll();
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
+		List returnMe=new ArrayList();
+		try {
+  		Query query = myShepherd.getPM().newQuery(queryString);
+      //ArrayList got = myShepherd.getAllOccurrences(query);
+  		returnMe=myShepherd.getAllOccurrences(query);
+  		query.closeAll();
+  		
+
+     returnMe=addAssumedOrgAdminCollaborations(returnMe, myShepherd, username);
+		}
+		catch(Exception e) {e.printStackTrace();}
+		finally {
+		   myShepherd.rollbackDBTransaction();
+		   myShepherd.closeDBTransaction();
+		}
+   
+
+		
     return returnMe;
 	}
 
@@ -216,30 +232,53 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	public static Collaboration collaborationBetweenUsers(String username1, String username2, String context) {
-		if (username1==null || username2==null) return null;
-		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
-		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
-		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
-		Shepherd myShepherd = new Shepherd(context);
-		ArrayList<Collaboration> results=new ArrayList<Collaboration>();
-		myShepherd.setAction("collaborationBetweenUsers");
-		myShepherd.beginDBTransaction();
-		Query query = myShepherd.getPM().newQuery(queryString);
-		try {
-		  Collection c=(Collection)query.execute();
-	    results=new ArrayList<Collaboration>(c);
-		}
-		catch(Exception e) {
-		  e.printStackTrace();
-		}
-		finally {
-		  query.closeAll();
-		  myShepherd.rollbackDBTransaction();
-		  myShepherd.closeDBTransaction();
-		}
+	  if (username1==null || username2==null) return null;
+	  String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
+	  queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
+	  queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
+	  Shepherd myShepherd = new Shepherd(context);
+	  ArrayList<Collaboration> results=new ArrayList<Collaboration>();
+	  myShepherd.setAction("collaborationBetweenUsers");
+	  myShepherd.beginDBTransaction();
+	  Query query = myShepherd.getPM().newQuery(queryString);
+	  try {
+	      Collection coll=(Collection)query.execute();
+	      results=new ArrayList<Collaboration>(coll);
+	      query.closeAll();
+	      
+	      //System.out.println("collaborationBetweenUsers(String username1, String username2, String context)");
+	      //System.out.println("collaborationBetweenUsers: "+username1+":"+username2);
+	      //System.out.println("     State now: "+results.toString());
+	    
+  	    //we assume that the question is directional
+  	    //username1 is who we need to reconcile and might be an orgAdmin
+  	    //this is consistent with the current method calling this function
+  	    //if username 1 is an orgAdmin then look for assumed Collaborations
+  	    if(myShepherd.doesUserHaveRole(username1, "orgAdmin", myShepherd.getContext())) {
+  	      
+  	      //this is a superset of collabs for username1
+  	      ArrayList<Collaboration> tempResults=new ArrayList<Collaboration>();
+  	      List<Collaboration> orgAdminCollabs=addAssumedOrgAdminCollaborations(tempResults, myShepherd, username1);
+  	      for(Collaboration c:orgAdminCollabs) {
+  	        if(c.getUsername2().equals(username2)) {results.add(0, c);System.out.println("adding derived collab: "+c.toString());}
+  	        
+  	      }
+  	      
+  	      //System.out.println("     yState now: "+results.toString());
+  	      
+  	    }
+	  }
+	  catch(Exception e) {
+	    e.printStackTrace();
+	  }
+	  finally {
+	    
+	    myShepherd.rollbackDBTransaction();
+	    myShepherd.closeDBTransaction();
+	  }
 
-		if (results == null || results.size()<1) return null;
-		return ((Collaboration) results.get(0));
+	  if (results == null || results.size()<1) return null;
+	  return ((Collaboration) results.get(0));
 	}
 
 
@@ -258,6 +297,7 @@ public class Collaboration implements java.io.Serializable {
 		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
 		if (u1.equals(u2)) return true;
 		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		//System.out.println("canCollaborate(String context, String u1, String u2)");
 		if (c == null) return false;
 		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
@@ -384,21 +424,22 @@ public class Collaboration implements java.io.Serializable {
 		};
 
 		String username = request.getUserPrincipal().getName();
-
-		return canCollaborate(context, ownerName, username);
+		//System.out.println("canUserAccessOwnedObject(String ownerName, HttpServletRequest request)");
+		return canCollaborate(context, username, ownerName);
 
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
 	  if(enc!=null && enc.getSubmitterID()==null) return true;
-
+	  //System.out.println("canUserAccessEncounter(Encounter enc, HttpServletRequest request)");
 	  return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
 	}
 
 	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
 	  String owner = enc.getAssignedUsername();
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
-		return canCollaborate(context, owner, username);
+		//System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
+		return canCollaborate(context, username, owner);
 	}
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
@@ -498,6 +539,37 @@ System.out.println("username->"+username);
 	}
 */
 
-
+private static List<Collaboration> addAssumedOrgAdminCollaborations(List<Collaboration> returnMe, Shepherd myShepherd, String username){
+  
+  //orgAdmin check
+  //for the current user, check if they're an orgAdmin and therefore get default collaborations with all members
+  //in which we assume that an orgAdmin only belongs to one org
+  //and has a default, edit-level collaboration with all users in org
+  if(returnMe !=null && myShepherd.doesUserHaveRole(username, "orgAdmin", myShepherd.getContext())) {
+    if(myShepherd.getUser(username)!=null) {
+      List<Organization> orgs=myShepherd.getAllOrganizationsForUser(myShepherd.getUser(username));
+      //while we assume they are in only one org, there must be exceptions, so be prepared for multi-org orgadmins here
+      for(Organization org:orgs) {
+        List<User> users=org.getMembers();
+        for(User user:users) {
+          if(user.getUsername()!=null && !user.getUsername().equals(username)) {
+            
+            //System.out.println("dding collab for: "+username+":"+user.getUsername()); 
+            
+            //so this is someone else than the orgAdmin and therefore someone we should have a default
+            //edit-level collaboration with
+            Collaboration tempCollab = new Collaboration(username,user.getUsername());
+            tempCollab.setState(STATE_EDIT_PRIV);
+            tempCollab.setEditInitiator(username);
+            returnMe.add(tempCollab);           }
+        }
+      }
+    }
+    
+  }
+  return returnMe;
+  
+}
+	
 
 }

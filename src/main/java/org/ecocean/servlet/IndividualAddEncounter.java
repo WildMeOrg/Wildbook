@@ -255,6 +255,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
     // Notify administrator address
     Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
+    tagMap.put(NotificationMailer.WILDBOOK_COMMUNITY_URL, CommonConfiguration.getWildbookCommunityURL(context));
     String mailTo = CommonConfiguration.getAutoEmailAddress(context);
     NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, emailTemplate, tagMap);
     mailer.appendToSubject(" (sent to submitters)");
