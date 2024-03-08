@@ -3,9 +3,11 @@ import React from "react";
 import Progress from './Progress';
 import { Link } from 'react-router-dom';
 
-export default function Projects () {
+export default function Projects ({ data }) {
 
-
+    console.log(data);
+    console.log(data?.projects);
+    
     return <div style={{
         display: 'flex',
         flexDirection: 'row',
@@ -41,6 +43,21 @@ export default function Projects () {
             padding: '20px',
         }}>
            
+            { 
+                Array.isArray(data?.projects) && data?.projects.length &&
+                data?.projects.map((item, index) => {
+                        return <Progress 
+                            key={index}
+                            name={item.name} 
+                            encounters = {item.numberEncounters} 
+                            progress={item.percentComplete}
+                            href={`projects/project.jsp?id=${item.id}`}
+                            noUnderline
+                            newTab
+                            />
+                    })
+                }
+
                 <Progress 
                     name='Amphibians & Reptiles' 
                     encounters = '126' 

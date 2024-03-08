@@ -96,7 +96,7 @@ function LoginPage() {
                           />
                             </Col>
                             <Col xs={6} className="text-end">
-                            <a href="/forgot-password">{
+                            <a href="/resetPassword.jsp">{
                             intl.formatMessage({
                               id: 'FORGOT_PASSWORD',
                             })

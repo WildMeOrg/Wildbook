@@ -3,6 +3,9 @@ import DiamondCard from '../DiamondCard';
 import More from '../CircledMoreButton';
 
 export default function LatestData() {
+
+    const href = '/latest-data';
+    
     return (
         <div className="content col-12"
             style = {{
@@ -41,7 +44,7 @@ export default function LatestData() {
                     annotations={5}
                     animals={2}
                 />
-                <More />
+                <More href={"/encounters/searchResults.jsp?null"}/>
             </div>
         </div>
     );

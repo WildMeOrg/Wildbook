@@ -6,6 +6,7 @@ import { IntlProvider } from 'react-intl';
 import messagesEn from './locale/en.json';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import NavBar from './components/NavBar';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 function App() {
   const messageMap = {
@@ -20,7 +21,10 @@ function App() {
     position: 'relative',
   }
 
+  const queryClient = new QueryClient();
+
   return (
+    <QueryClientProvider client={queryClient}>
     <div className="App" 
       style={containerStyle}
       >
@@ -51,6 +55,7 @@ function App() {
         </div>
       </IntlProvider>
     </div>
+    </QueryClientProvider>
   );
 }
 
