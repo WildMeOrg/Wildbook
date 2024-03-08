@@ -5,13 +5,32 @@ import Avatar from './Avatar';
 import '../css/dropdown.css';
 import menu from '../constants/navMenu';
 import DownIcon from './svg/DownIcon';
+import Button from 'react-bootstrap/Button';
 
 export default function NavBar () {
     const location = window.location;
     const navBarFilled = location.pathname === '/';
 
+
+
+    const logout = async event => {
+      console.log('Logging out');
+      event.preventDefault();
+      await fetch('/api/v3/logout')
+        .then(response => {
+          if (response.status === 200) {
+            console.log('User logged out');
+          } else if (response.status === 401) {
+            console.log('User is not logged in');
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });  
+    };
+
     return (<Navbar variant="dark" expand="lg" style={{ 
-          backgroundColor: !navBarFilled ? 'lightblue' : 'transparent',
+          backgroundColor: !navBarFilled ? '#00a1b2' : 'transparent',
           width: '100%', 
           height: '40px',
           display: 'flex', 
@@ -29,14 +48,37 @@ export default function NavBar () {
                         </span>} id={`basic-nav-dropdown${item}`} 
                         style={{color: 'white'}}>
                       {Object.values(item)[0].map((subItem, idx) => {
-                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>{subItem.name}</NavDropdown.Item>                      
+                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>
+                          {subItem.name}
+                          {idx < Object.values(item)[0].length-1 && <NavDropdown.Divider />}
+                          </NavDropdown.Item>                      
                       })}
                     </NavDropdown>
           </Nav>
                 ))}
 
               </Nav>
-              <Nav style={{ alignItems: 'center', marginLeft: '35px' }}>          
+              <Button 
+                variant="basic" 
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'white',
+                  border: 'none',
+                  marginLeft: '10px',
+                }}
+                href={"/login"}>Login
+              </Button>
+              <Button 
+                variant="basic" 
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'white',
+                  border: 'none',
+                  marginLeft: '10px',
+                }}
+                onClick={logout}>Logout
+              </Button>
+              <Nav style={{ alignItems: 'center', marginLeft: '20px' }}>          
                 <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
                   <LinkContainer to="/profile">
                     <NavDropdown.Item>Profile</NavDropdown.Item>
