@@ -1006,6 +1006,15 @@ public class CommonConfiguration {
     if (users.size() == 0) return false;
     return true;
   }
-
+  
+  /**
+   * Retrieves the Wildbook community URL.
+   * 
+   * @param context Webapp context
+   * @return The Wildbook community URL string
+   */
+  public static String getWildbookCommunityURL(String context) {
+    return getProperty("wildbookCommunityUrl", context).trim();
+  }
 
 }
