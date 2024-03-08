@@ -42,6 +42,9 @@ public class UserHome extends ApiBase {
         for (Project proj : currentUser.getProjects(myShepherd)) {
             JSONObject pj = new JSONObject();
             pj.put("id", proj.getId());
+            pj.put("name", proj.getResearchProjectName());
+            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
+            pj.put("numberEncounters", proj.getEncounters().size());
             projArr.put(pj);
             pcount++;
             if (pcount > 2) break;
