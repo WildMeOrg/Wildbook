@@ -340,7 +340,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
         Encounter enc=(Encounter)rEncounters.get(i);
         // Security: skip this row if user doesn't have permission to view this encounter
-        // if (hiddenData.contains(enc)) continue;
+        if (hiddenData.contains(enc)) continue;
         row++;
 
         // get attached objects
@@ -435,13 +435,21 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
           //end add labeled keywords
           else if (exportCol.isFor(Keyword.class)) {
 
-            for (MediaAsset ma :mas) {
-              // if any of mediaasset of encounter has REFERENCE_KEYWORD then right it cell and break loop
-              if (processKeywordsStrict(ma.getKeywordsStrict(), REFERENCE_KEYWORD, exportCol, row, sheet)) {
-                break;
-              }
+            boolean keywordFound = false;
 
-            }
+            for (MediaAsset ma : mas) {
+
+              for (Keyword kw : ma.getKeywordsStrict()) {
+
+                  if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
+                      exportCol.writeLabel(kw, row, sheet);
+                      keywordFound = true;
+                      break;
+                  }
+              }
+              if (keywordFound) break;
+
+          }
 
           }
 
@@ -496,16 +504,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
     }
     os.flush();
     os.close();
-  }
-
-  private boolean processKeywordsStrict(List<Keyword> keywords, String REFERENCE_KEYWORD, ExportColumn exportCol, int row, Sheet sheet) {
-    for (Keyword kw : keywords) {
-      if (kw != null && kw.getReadableName().equals(REFERENCE_KEYWORD)) {
-        exportCol.writeLabel(kw, row, sheet);
-        return true;
-      }
-    }
-    return false;
   }
 
 }
