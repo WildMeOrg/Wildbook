@@ -564,6 +564,12 @@ public class User implements Serializable {
       return getPreference(PROJECT_CONTEXT);
     }
 
+    public List<Project> getProjects(Shepherd myShepherd) {
+        List<Project> projects = myShepherd.getOwnedProjectsForUserId(this.getId(), "dateLastModifiedLong DESC");
+        if (projects == null) projects = new ArrayList<Project>();
+        return projects;
+    }
+
     public static List<User> sortUsersByFullnameDefaultUsername(final List<User> originalList) {
        List<User> sortedCopy = new ArrayList<User>(originalList);
        Collections.sort(sortedCopy, new Comparator<User>() {
