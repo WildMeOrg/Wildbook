@@ -75,7 +75,7 @@ function LoginPage() {
                             id: 'PASSWORD',
                           })
                           }</Form.Label>
-                        <Form.Control type="password" placeholder="Password" onChange={e => {
+                        <Form.Control autoComplete="current-password" type="password" placeholder="Password" onChange={e => {
                           setPassword(e.target.value);
                           setError(null);
                                                   }}/>
