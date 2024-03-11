@@ -6,6 +6,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.ecocean.User;
+import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.Shepherd;
 import org.json.JSONObject;
 
 
@@ -13,12 +16,46 @@ import org.json.JSONObject;
 public class UserInfo extends ApiBase {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        JSONObject info = new JSONObject();
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.UserInfo");
+        myShepherd.beginDBTransaction();
 
-        //results = user.infoJSONObject(true);
+        User currentUser = myShepherd.getUser(request);
+        if (currentUser == null) {
+            response.setStatus(401);
+            response.setHeader("Content-Type", "application/json");
+            response.getWriter().write("{\"success\": false}");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            return;
+        }
+
+        JSONObject results = null;
+        String arg = request.getPathInfo();
+        if ((arg == null) || arg.equals("/")) {  // current user (no guid)
+            results = currentUser.infoJSONObject(true);
+        } else {
+            User otherUser = myShepherd.getUserByUUID(arg.substring(1));
+            if (otherUser == null) {
+                response.setStatus(404);
+                response.setHeader("Content-Type", "application/json");
+                response.getWriter().write("{\"success\": false}");
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                return;
+            } else if (otherUser.getId().equals(currentUser.getId())) {
+                results = currentUser.infoJSONObject(true);
+            } else {
+                results = otherUser.infoJSONObject(false);
+            }
+        }
+
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         response.setStatus(200);
         response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(info.toString());
+        response.getWriter().write(results.toString());
     }  	
 
 }
