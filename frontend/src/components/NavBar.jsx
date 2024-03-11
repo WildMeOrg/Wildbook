@@ -6,12 +6,14 @@ import '../css/dropdown.css';
 import menu from '../constants/navMenu';
 import DownIcon from './svg/DownIcon';
 import Button from 'react-bootstrap/Button';
+import Dropdown from 'react-bootstrap/Dropdown';
+import NotificationButton from './navBar/NotificationButton';
+import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
 
 export default function NavBar () {
     const location = window.location;
     const navBarFilled = location.pathname === '/';
-
-
+    const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';
 
     const logout = async event => {
       console.log('Logging out');
@@ -30,12 +32,15 @@ export default function NavBar () {
     };
 
     return (<Navbar variant="dark" expand="lg" style={{ 
-          backgroundColor: !navBarFilled ? '#00a1b2' : 'transparent',
+          backgroundColor: backgroundColor,
           width: '100%', 
-          height: '40px',
+          height: '43px',
           display: 'flex', 
-          justifyContent: 'space-between' }}>
-            <Navbar.Brand href="#home" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
+          justifyContent: 'space-between',
+          overflow: 'visible',
+          fontSize: '1rem',
+          }}>
+            <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav" style={{marginLeft: '20%'}}>
               <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
@@ -78,6 +83,8 @@ export default function NavBar () {
                 }}
                 onClick={logout}>Logout
               </Button>
+              <NotificationButton  count = {1} backgroundColor={backgroundColor}/>
+              <MultiLanguageDropdown />
               <Nav style={{ alignItems: 'center', marginLeft: '20px' }}>          
                 <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
                   <LinkContainer to="/profile">
