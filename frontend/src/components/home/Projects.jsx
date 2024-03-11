@@ -44,7 +44,7 @@ export default function Projects ({ data }) {
         }}>
            
             { 
-                Array.isArray(data?.projects) && data?.projects.length &&
+                Array.isArray(data?.projects) && data?.projects.length ?
                 data?.projects.map((item, index) => {
                         return <Progress 
                             key={index}
@@ -56,9 +56,10 @@ export default function Projects ({ data }) {
                             newTab
                             />
                     })
+                    : <h1>No projects found</h1>
                 }
 
-                <Progress 
+                {/* <Progress 
                     name='Amphibians & Reptiles' 
                     encounters = '126' 
                     progress='25'
@@ -83,7 +84,7 @@ export default function Projects ({ data }) {
                         href='/projects/projectList.jsp'
                         noUnderline
                         newTab
-                        />
+                        /> */}
           
 
         </div>
