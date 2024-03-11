@@ -18,8 +18,7 @@ export default function MultiLanguageDropdown() {
             // padding: '10px',
             margin: '10px',
         }}>
-            <img src="/react/flags/uk.png" alt="uk" style={{width: '20px', height: '15px'}} />
-                    <DownIcon />
+            
             <Dropdown style={{
                     // backgroundColor: 'transparent',
                     border: 'none',
@@ -31,14 +30,34 @@ export default function MultiLanguageDropdown() {
                 
                 }}>
                 <Dropdown.Toggle variant="basic" id="dropdown-basic" >
-                    {/* <img src="/react/flags/uk.png" alt="uk" style={{width: '20px', height: '15px'}} />
-                    <DownIcon /> */}
+                    <img src="/react/flags/uk.png" alt="uk" style={{width: '20px', height: '12px'}} />
+                    <DownIcon />
                 </Dropdown.Toggle>
                 
-                <Dropdown.Menu>
-                <Dropdown.Item href="#/action-1"><img src="/react/flags/uk.png" alt="uk" style={{width: '30px', height: '30px'}} /></Dropdown.Item>
-                <Dropdown.Item href="#/action-2"><img src="/react/flags/uk.png" alt="uk" style={{width: '30px', height: '30px'}} /></Dropdown.Item>
-                <Dropdown.Item href="#/action-3"><img src="/react/flags/uk.png" alt="uk" style={{width: '30px', height: '30px'}} /></Dropdown.Item>
+                <Dropdown.Menu
+                    style={{
+                        height: '100px',
+                        width: '20px'
+                    }}
+                >
+                    <Dropdown.Item href="#/action-1">
+                        <img 
+                            src="/react/flags/uk.png" alt="uk" 
+                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
+                        English
+                    </Dropdown.Item>
+                    <Dropdown.Item href="#/action-1">
+                        <img 
+                            src="/react/flags/uk.png" alt="uk" 
+                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
+                        French
+                    </Dropdown.Item>
+                    <Dropdown.Item href="#/action-1">
+                        <img 
+                            src="/react/flags/uk.png" alt="uk" 
+                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
+                        Spanish
+                    </Dropdown.Item>
                 </Dropdown.Menu>
           </Dropdown>
           </div>
