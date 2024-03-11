@@ -571,11 +571,13 @@ public class User implements Serializable {
         // remove duplicates
         projects2.removeAll(projects1);
         projects1.addAll(projects2);
+        // sort new list
+        projects1.sort((o1, o2) -> o1.getTimeLastModifiedLongNonNull().compareTo(o2.getTimeLastModifiedLongNonNull()));
         return projects1;
     }
 
     public List<Project> getProjectsParticipating(Shepherd myShepherd) {
-        List<Project> projects = myShepherd.getParticipatingProjectsForUserId(this.getUsername());
+        List<Project> projects = myShepherd.getParticipatingProjectsForUserId(this.getUsername(), "dateLastModifiedLong DESC");
         if (projects == null) projects = new ArrayList<Project>();
         return projects;
     }
