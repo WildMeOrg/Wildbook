@@ -555,7 +555,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>ApiUserInfo</servlet-name>
-		<url-pattern>/api/v3/user</url-pattern>
+		<url-pattern>/api/v3/user/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
