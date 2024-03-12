@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Badge } from 'react-bootstrap';
-import { Bell } from 'react-bootstrap-icons'; // 确保安装了react-bootstrap-icons
+import { Bell } from 'react-bootstrap-icons'; 
 
 const NotificationButton = ({ count }) => {
 
@@ -9,7 +9,7 @@ const NotificationButton = ({ count }) => {
       minWidth: '35px',
     }}>
     <Button style={{
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      backgroundColor: 'rgba(255, 255, 255, 0.25)',
       border: 'none',
       borderRadius: '50%',
       minWidth: '35px', 
