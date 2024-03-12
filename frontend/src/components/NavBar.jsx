@@ -83,7 +83,7 @@ export default function NavBar () {
                 }}
                 onClick={logout}>Logout
               </Button>
-              <NotificationButton  count = {1} backgroundColor={backgroundColor}/>
+              <NotificationButton  count = {1} />
               <MultiLanguageDropdown />
               <Nav style={{ alignItems: 'center', marginLeft: '20px' }}>          
                 <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
