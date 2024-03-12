@@ -41,3 +41,4 @@ catalina.base_IS_UNDEFINED
 /frontend/dist
 /frontend/.env
 /frontend/build
+/frontend/.env
