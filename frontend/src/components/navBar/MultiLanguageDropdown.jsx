@@ -6,7 +6,7 @@ import DownIcon from '../svg/DownIcon';
 export default function MultiLanguageDropdown() {
     return (
         <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            backgroundColor: 'rgba(255, 255, 255, 0.25)',
             border: 'none',
             borderRadius: '30px',
             minWidth: '55px', 
@@ -34,29 +34,30 @@ export default function MultiLanguageDropdown() {
                     <DownIcon />
                 </Dropdown.Toggle>
                 
-                <Dropdown.Menu
-                    style={{
-                        height: '100px',
-                        width: '20px'
-                    }}
-                >
+                <Dropdown.Menu>
                     <Dropdown.Item href="#/action-1">
                         <img 
-                            src="/react/flags/uk.png" alt="uk" 
+                            src="/react/flags/UK.png" alt="uk" 
                             style={{width: '20px', height: '12px', marginRight: '10px'}} />
                         English
                     </Dropdown.Item>
                     <Dropdown.Item href="#/action-1">
                         <img 
-                            src="/react/flags/uk.png" alt="uk" 
+                            src="/react/flags/Spain.png" alt="spain" 
+                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
+                        Spanish
+                    </Dropdown.Item>
+                    <Dropdown.Item href="#/action-1">
+                        <img 
+                            src="/react/flags/France.png" alt="france" 
                             style={{width: '20px', height: '12px', marginRight: '10px'}} />
                         French
                     </Dropdown.Item>
                     <Dropdown.Item href="#/action-1">
                         <img 
-                            src="/react/flags/uk.png" alt="uk" 
+                            src="/react/flags/Italy.png" alt="italy" 
                             style={{width: '20px', height: '12px', marginRight: '10px'}} />
-                        Spanish
+                        Italian
                     </Dropdown.Item>
                 </Dropdown.Menu>
           </Dropdown>
