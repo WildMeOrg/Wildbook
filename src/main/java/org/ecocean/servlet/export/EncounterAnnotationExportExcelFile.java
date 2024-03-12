@@ -75,7 +75,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
       if (enc.getSubmitters().size() > maxSubmitters) maxSubmitters = enc.getSubmitters().size();
       if (enc.getMeasurements().size() > maxNumMeasurements) maxNumMeasurements = enc.getMeasurements().size();
-      ArrayList<MediaAsset> mas = enc.getMedia();
+      ArrayList<MediaAsset> masDuplicates = enc.getMedia();
+      ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
       int numMedia = mas.size();
       if (numMedia > maxNumMedia) maxNumMedia = numMedia;
       for (MediaAsset ma : mas) {
@@ -348,7 +349,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
         MultiValue names = (ind!=null) ? ind.getNames() : null;
         List<String> sortedNameKeys = (names!=null) ? names.getSortedKeys() : null;
-        List<MediaAsset> mas = enc.getMedia();
+        List<MediaAsset> masDuplicates = enc.getMedia();
+        List<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
         List<Annotation> anns = enc.getAnnotations();
         List<User> submitters = enc.getSubmitters();
         List<SocialUnit> socialUnits = ( ind!=null)? myShepherd.getAllSocialUnitsForMarkedIndividual(ind) : null;
