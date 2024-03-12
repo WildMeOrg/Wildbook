@@ -1,5 +1,5 @@
 import React from "react";
-import Header from '../components/home/Header';
+import Header from '../components/home/LandingImage';
 import LatestData from '../components/home/LatestData';
 import PickUp from '../components/home/PickUp';
 import Report from '../components/home/Report';
@@ -10,21 +10,10 @@ import { useState, useEffect } from 'react';
 
 export default function Home( ) {
 
-    // const result = useFetch({
-    //     queryKey: 'home',
-    //     url: `/api/v3/home`,
-    //     queryOptions: {
-    //       retry: 1,
-    //       refetchInterval: 5000,
-    //       enabled: true,
-    //     },
-    //   });
-    
-    //   console.log(result);
-
     const [data, setData] = useState([]);
 
     async function fetchData() {
+        console.log('fetching data');
         try {
             const response = await fetch('/api/v3/home', {
                 method: 'GET', 
@@ -32,14 +21,15 @@ export default function Home( ) {
                     'Content-Type': 'application/json',
                 },
             });
+            console.log(response);
     
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
     
-            const result = await response.json();
-            setData(result); 
-            console.log(result);
+            // const result = await response.json();
+            setData(response); 
+            console.log(response);
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
         }
