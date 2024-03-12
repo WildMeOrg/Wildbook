@@ -1,12 +1,9 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';import About from './About';
-import NotFound from './NotFound';
-import Home from './pages/Home'
-import Login from './pages/Login'
 import { IntlProvider } from 'react-intl';
 import messagesEn from './locale/en.json';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import NavBar from './components/NavBar';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import FrontDesk from './FrontDesk';
 
 function App() {
   const messageMap = {
@@ -29,9 +26,11 @@ function App() {
       style={containerStyle}
       >
       <div style={{
-            position: 'absolute',
+            position: 'fixed',
             top: 0,
-            left: 0,
+            maxWidth: '1440px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
             zIndex: '100',
             width: '100%',
           }}>            
@@ -42,17 +41,7 @@ function App() {
         defaultLocale="en"
         messages={messageMap[locale]}
       >
-        <div>
-          <Router>
-            <Routes>
-              <Route path="/about" element={<About />} />
-              <Route path="/home" element={<Home />} navBarFilled/>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Home />} />      
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Router>
-        </div>
+         <FrontDesk adminUserInitialized={true} />
       </IntlProvider>
     </div>
     </QueryClientProvider>
