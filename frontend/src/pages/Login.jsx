@@ -2,8 +2,6 @@ import React from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { useState } from 'react';
 import BrutalismButton from '../components/BrutalismButton';
-import Cookies from 'js-cookie';
-import { Navigate, useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import useLogin from '../models/auth/useLogin';
 
@@ -56,7 +54,7 @@ function LoginPage() {
                 width: '226px',
                 height: '100%',
                 top: 200,
-                left: 487,
+                left: 486,
 
               }}>
               <svg width="226" height="552" viewBox="0 0 226 552" fill="none" xmlns="http://www.w3.org/2000/svg">

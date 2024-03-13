@@ -30,7 +30,7 @@ export default function MultiLanguageDropdown() {
                 
                 }}>
                 <Dropdown.Toggle variant="basic" id="dropdown-basic" >
-                    <img src="/react/flags/uk.png" alt="uk" style={{width: '20px', height: '12px'}} />
+                    <img src="/react/flags/UK.png" alt="uk" style={{width: '20px', height: '12px'}} />
                     <DownIcon />
                 </Dropdown.Toggle>
                 
