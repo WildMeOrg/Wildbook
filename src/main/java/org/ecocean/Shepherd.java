@@ -1618,15 +1618,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   public List<Project> getParticipatingProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;
-    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
+    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' VARIABLES org.ecocean.User user";
     try {
-      if(!Util.stringExists(orderBy)){
-        queryString += "VARIABLES org.ecocean.User user";
-      }else{
-        queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
-      }
       System.out.println("getParticipatingProjectsForUserId() queryString: "+queryString);
       query = pm.newQuery(queryString);
+      if (Util.stringExists(orderBy)) query.setOrdering(orderBy);
       Collection c = (Collection) (query.execute());
       Iterator it = c.iterator();
       while (it.hasNext()) {
@@ -1639,7 +1635,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      query.closeAll();
+      if (query != null) query.closeAll();
     }
     return projects;
   }
