@@ -1,7 +1,7 @@
 import { IntlProvider } from 'react-intl';
 import messagesEn from './locale/en.json';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import NavBar from './components/NavBar';
+import NavBar from './components/AuthenticatedAppHeader';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import FrontDesk from './FrontDesk';
 
@@ -25,7 +25,7 @@ function App() {
     <div className="App" 
       style={containerStyle}
       >
-      <div style={{
+      {/* <div style={{
             position: 'fixed',
             top: 0,
             maxWidth: '1440px',
@@ -35,7 +35,7 @@ function App() {
             width: '100%',
           }}>            
             <NavBar />
-      </div>
+      </div> */}
       <IntlProvider 
         locale="en"
         defaultLocale="en"

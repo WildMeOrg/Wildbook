@@ -7,13 +7,13 @@ import Login from './pages/Login';
 
 
 // import useSiteSettings from './models/site/useSiteSettings';
-import Header from './components/NavBar';
+import UnauthenticatedAppHeader from './components/UnauthenticatedAppHeader';
 
 import Home from './pages/Home';
 
 // import Footer from './components/Footer';
 
-export default function AuthenticatedSwitch() {
+export default function UnAuthenticatedSwitch() {
 //   const { data: siteSettings } = useSiteSettings();
 //   const siteNeedsSetup = get(siteSettings, [
 //     'site.needsSetup',
@@ -22,7 +22,17 @@ export default function AuthenticatedSwitch() {
 
   return (
     <main>
-      <Header />
+      <div style={{
+            position: 'fixed',
+            top: 0,
+            maxWidth: '1440px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            zIndex: '100',
+            width: '100%',
+          }}>            
+            <UnauthenticatedAppHeader />
+      </div>
       <div
         style={{
           position: 'absolute',
@@ -41,7 +51,7 @@ export default function AuthenticatedSwitch() {
             <Route path="/about" element={<About />} />
             <Route path="/home" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<About />} />
+            <Route path="/" element={<Home />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>

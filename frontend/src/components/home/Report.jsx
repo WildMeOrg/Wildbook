@@ -6,7 +6,7 @@ export default function Report() {
     return <div
                 id="report"
                 style = {{
-                    height: '400px', 
+                    height: '500px', 
                     width: '100%',
                     display: 'flex',
                     flexDirection: 'row',
