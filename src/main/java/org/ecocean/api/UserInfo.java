@@ -15,10 +15,34 @@ import org.json.JSONObject;
 
 public class UserInfo extends ApiBase {
 
+    // for polling we do a simple HEAD response
+    protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.UserInfo.HEAD");
+        myShepherd.beginDBTransaction();
+
+        User currentUser = myShepherd.getUser(request);
+        if (currentUser == null) {
+            response.setStatus(401);
+            //response.setHeader("Content-Type", "application/json");
+            //response.getWriter().write("{\"success\": false}");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            return;
+        }
+
+        response.setStatus(200);
+        response.setHeader("X-User-Id", currentUser.getId());
+        // TODO could also set: notification stuff? login time? etc?
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("api.UserInfo");
+        myShepherd.setAction("api.UserInfo.GET");
         myShepherd.beginDBTransaction();
 
         User currentUser = myShepherd.getUser(request);
