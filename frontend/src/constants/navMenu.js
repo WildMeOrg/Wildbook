@@ -26,7 +26,7 @@ const menu = [
     ]},
     {'Animals': [
         {name: 'Individual Gallery', href: '/gallery.jsp'},
-        {name: 'Animal Calendar', href: '/import/instructions.jsp'},
+        {name: 'Animal Calendar', href: '/xcalendar/calendar.jsp'},
     ]},   
     {'Administers': [
         {name: 'My Account', href: '/myAccount.jsp'},

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useContext} from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import Avatar from './Avatar';
@@ -6,14 +6,18 @@ import '../css/dropdown.css';
 import menu from '../constants/navMenu';
 import DownIcon from './svg/DownIcon';
 import Button from 'react-bootstrap/Button';
-import Dropdown from 'react-bootstrap/Dropdown';
 import NotificationButton from './navBar/NotificationButton';
 import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
+import AuthContext from '../AuthProvider';
 
-export default function NavBar () {
+
+export default function AuthenticatedAppHeader () {
     const location = window.location;
     const navBarFilled = location.pathname === '/';
     const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';
+
+    const isLoggedIn = useContext(AuthContext);
+    console.log('=============>>>>>>>>>>>>>>>',isLoggedIn);
 
     const logout = async event => {
       console.log('Logging out');
@@ -31,15 +35,29 @@ export default function NavBar () {
         });  
     };
 
-    return (<Navbar variant="dark" expand="lg" style={{ 
-          backgroundColor: backgroundColor,
-          width: '100%', 
-          height: '43px',
-          display: 'flex', 
-          justifyContent: 'space-between',
-          overflow: 'visible',
-          fontSize: '1rem',
-          }}>
+    return (<Navbar variant="dark" expand="lg" 
+    // style={{ 
+    //       backgroundColor: backgroundColor,
+    //       width: '100%', 
+    //       height: '43px',
+    //       display: 'flex', 
+    //       justifyContent: 'space-between',
+    //       overflow: 'visible',
+    //       fontSize: '1rem',
+    //       }}
+    style={{
+      backgroundColor: backgroundColor,
+      height: '43px',
+      fontSize: '1rem',
+      position: 'fixed',
+      top: 0,
+      maxWidth: '1440px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      zIndex: '100',
+      width: '100%',
+    }}
+    >
             <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav" style={{marginLeft: '20%'}}>
@@ -55,7 +73,7 @@ export default function NavBar () {
                       {Object.values(item)[0].map((subItem, idx) => {
                         return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>
                           {subItem.name}
-                          {idx < Object.values(item)[0].length-1 && <NavDropdown.Divider />}
+                          {/* {idx < Object.values(item)[0].length-1 && <NavDropdown.Divider />} */}
                           </NavDropdown.Item>                      
                       })}
                     </NavDropdown>
@@ -87,16 +105,15 @@ export default function NavBar () {
               <MultiLanguageDropdown />
               <Nav style={{ alignItems: 'center', marginLeft: '20px' }}>          
                 <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
-                  <LinkContainer to="/profile">
-                    <NavDropdown.Item>Profile</NavDropdown.Item>
-                  </LinkContainer>
-                  <LinkContainer to="/settings">
-                    <NavDropdown.Item>Settings</NavDropdown.Item>
-                  </LinkContainer>
+
+                  <NavDropdown.Item href={'/profile'} style={{color: 'black'}}>
+                      User Profile 
+                  </NavDropdown.Item> 
+                  <NavDropdown.Item href={'/profile'} style={{color: 'black'}}>
+                      User Profile 
+                  </NavDropdown.Item> 
                   <NavDropdown.Divider />
-                  <LinkContainer to="/login">
-                    <NavDropdown.Item>Login</NavDropdown.Item>
-                  </LinkContainer>
+
                 </NavDropdown>
               </Nav>
             </Navbar.Collapse>

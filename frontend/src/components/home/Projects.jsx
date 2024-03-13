@@ -44,7 +44,7 @@ export default function Projects ({ data }) {
         }}>
            
             { 
-                Array.isArray(data?.projects) && data?.projects.length ?
+                (Array.isArray(data?.projects) && data?.projects.length) ?
                 data?.projects.map((item, index) => {
                         return <Progress 
                             key={index}
@@ -57,7 +57,7 @@ export default function Projects ({ data }) {
                             />
                     })
                     : <h1>No projects found</h1>
-                }
+            }
 
                 {/* <Progress 
                     name='Amphibians & Reptiles' 
