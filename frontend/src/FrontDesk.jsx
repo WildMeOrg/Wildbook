@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext} from 'react';
-import UnauthenticatedSwitch from './UnauthenticatedSwitch';
+import UnauthenticatedSwitch from './UnAuthenticatedSwitch';
 import AuthenticatedSwitch from './AuthenticatedSwitch';
 import axios from 'axios';
 import AuthContext from './AuthProvider';
@@ -13,27 +13,27 @@ export default function FrontDesk({ adminUserInitialized=true }) {
     const [ error, setError ] = useState();
 
     const checkLoginStatus = () => {
-      console.log("Polling API...");
-      axios.head('/api/v3/logout')
+      // console.log("Polling API...");
+      axios.head('/api/v3/user')
         .then(response => {
-          console.log('Success', response);
-          setIsLoggedIn(true); 
+          // console.log('Success', response);
+          setIsLoggedIn(response.status === 200); 
         })
         .catch(error => {
-          console.log('Error', error);
+          // console.log('Error', error);
           setError(error);
         });
     };
   
     useEffect(() => {
-      // checkLoginStatus(); 
+      checkLoginStatus(); 
   
-      // const intervalId = setInterval(() => {
-      //   checkLoginStatus(); 
-      // }, 60000); 
+      const intervalId = setInterval(() => {
+        checkLoginStatus(); 
+      }, 60000); 
   
       
-      // return () => clearInterval(intervalId);
+      return () => clearInterval(intervalId);
     }, []); 
 
 //   if (isFetched && !adminUserInitialized) return <CreateAdminUser />;
@@ -49,11 +49,11 @@ export default function FrontDesk({ adminUserInitialized=true }) {
       </AuthContext.Provider>
     );
   // }
-  if (error) {
-    console.log('Error', error);
-    return <UnauthenticatedSwitch />};
+  // if (error) {
+  //   console.log('Error', error);
+  //   return <UnauthenticatedSwitch />};
 
-  return (
-    <h1>Loading</h1>
-  );
+  // return (
+  //   <h1>Loading</h1>
+  // );
 }

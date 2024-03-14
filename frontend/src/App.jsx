@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import NavBar from './components/AuthenticatedAppHeader';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import FrontDesk from './FrontDesk';
+import { BrowserRouter } from 'react-router-dom';
 
 function App() {
   const messageMap = {
@@ -25,24 +26,15 @@ function App() {
     <div className="App" 
       style={containerStyle}
       >
-      {/* <div style={{
-            position: 'fixed',
-            top: 0,
-            maxWidth: '1440px',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            zIndex: '100',
-            width: '100%',
-          }}>            
-            <NavBar />
-      </div> */}
-      <IntlProvider 
-        locale="en"
-        defaultLocale="en"
-        messages={messageMap[locale]}
-      >
-         <FrontDesk adminUserInitialized={true} />
-      </IntlProvider>
+      <BrowserRouter basename="/">
+        <IntlProvider 
+          locale="en"
+          defaultLocale="en"
+          messages={messageMap[locale]}
+        >
+          <FrontDesk adminUserInitialized={true} />
+        </IntlProvider>
+      </BrowserRouter>
     </div>
     </QueryClientProvider>
   );
