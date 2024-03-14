@@ -91,7 +91,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       MarkedIndividual id = enc.getIndividual();
       if (id!=null && !individualIDsChecked.contains(id.getIndividualID())) {
         individualIDsChecked.add(id.getIndividualID());
-        int numNames = enc.getIndividual().getNames().getKeys().size();
+        int numNames = id.getNameKeys().size();
+
         //System.out.println("Individual "+enc.getIndividual()+" isnull = "+(enc.getIndividual()==null)+" and has # names: "+numNames);
         if (numNames>maxNumNames) maxNumNames = numNames;
 
@@ -340,7 +341,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
         Encounter enc=(Encounter)rEncounters.get(i);
         // Security: skip this row if user doesn't have permission to view this encounter
-        if (hiddenData.contains(enc)) continue;
+        //if (hiddenData.contains(enc)) continue;
         row++;
 
         // get attached objects
