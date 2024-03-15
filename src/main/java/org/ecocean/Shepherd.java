@@ -4715,6 +4715,25 @@ public Long countMediaAssets(Shepherd myShepherd){
     return al;
   }
 
+    public List<Occurrence> getOccurrencesByUser(User user) {
+        ArrayList al = new ArrayList();
+        if ((user == null) || (user.getUsername() == null)) return al;
+        try {
+            // apparently occurrence.submitters is garbage, so we cant use this
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE submitters.contains(user) && user.uuid == '" + user.getUUID() + "' VARIABLES org.ecocean.User user";
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+         "\" VARIABLES org.ecocean.Encounter enc";
+            String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.Encounter enc";
+            //Extent queryClass = pm.getExtent(Occurrence.class, true);
+            Query query = getPM().newQuery(filter);
+            query.setOrdering("dateTimeCreated DESC");
+            Collection c = (Collection) (query.execute());
+            al = new ArrayList(c);
+            query.closeAll();
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        return al;
+    }
+
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
    * @param myID The individual ID to return in any case.
