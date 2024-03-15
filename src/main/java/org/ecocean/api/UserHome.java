@@ -8,10 +8,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.joda.time.DateTime;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Project;
+import org.ecocean.Occurrence;
 import org.ecocean.servlet.ServletUtilities;
 
 
@@ -37,8 +39,30 @@ public class UserHome extends ApiBase {
 
         home.put("user", currentUser.infoJSONObject(true));
 
+        // TODO ES replace
+        JSONArray sightingsArr = new JSONArray();
+        int count = 0;
+        for (Occurrence occ : myShepherd.getOccurrencesByUser(currentUser)) {
+
+            JSONObject oj = new JSONObject();
+            oj.put("id", occ.getId());
+            Long millis = occ.getMillisRobust();
+            if (millis == null) {
+                oj.put("dateTime", (String)null);
+            } else {
+                oj.put("dateTime", new DateTime(millis));
+            }
+            oj.put("numberEncounters", occ.getNumberEncounters());
+            oj.put("numberAnnotations", occ.getNumberAnnotations());
+            oj.put("taxonomies", occ.getAllSpeciesDeep());
+            sightingsArr.put(oj);
+            count++;
+            if (count > 2) break;
+        }
+        home.put("latestSightings", sightingsArr);
+
         JSONArray projArr = new JSONArray();
-        int pcount = 0;
+        count = 0;
         for (Project proj : currentUser.getProjects(myShepherd)) {
             JSONObject pj = new JSONObject();
             pj.put("id", proj.getId());
@@ -46,8 +70,8 @@ public class UserHome extends ApiBase {
             pj.put("percentComplete", proj.getPercentWithIncrementalIds());
             pj.put("numberEncounters", proj.getEncounters().size());
             projArr.put(pj);
-            pcount++;
-            if (pcount > 2) break;
+            count++;
+            if (count > 2) break;
         }
         home.put("projects", projArr);
 
