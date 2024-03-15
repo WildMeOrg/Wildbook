@@ -9,11 +9,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.joda.time.DateTime;
+import java.util.List;
 
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.Util;
 import org.ecocean.Project;
 import org.ecocean.Occurrence;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 
 
@@ -40,6 +44,7 @@ public class UserHome extends ApiBase {
         home.put("user", currentUser.infoJSONObject(true));
 
         // TODO ES replace
+
         JSONArray sightingsArr = new JSONArray();
         int count = 0;
         for (Occurrence occ : myShepherd.getOccurrencesByUser(currentUser)) {
@@ -60,6 +65,27 @@ public class UserHome extends ApiBase {
             if (count > 2) break;
         }
         home.put("latestSightings", sightingsArr);
+
+        JSONObject itaskJson = null;
+        JSONObject latestIndivJson = null;
+        List<ImportTask> itasks = myShepherd.getImportTasksForUser(currentUser);
+        if (itasks.size() > 0) {
+            itaskJson = new JSONObject();
+            itaskJson.put("id", itasks.get(0).getId());
+            itaskJson.put("dateTimeCreated", itasks.get(0).getCreated());
+            itaskJson.put("numberEncounters", Util.collectionSize(itasks.get(0).getEncounters()));
+            itaskJson.put("numberMediaAssets", Util.collectionSize(itasks.get(0).getMediaAssets()));
+
+            List<MarkedIndividual> indivs = itasks.get(0).getMarkedIndividuals();
+            if (!Util.collectionIsEmptyOrNull(indivs)) {
+                latestIndivJson = new JSONObject();
+                latestIndivJson.put("id", indivs.get(0).getId());
+            }
+        }
+        home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
+        home.put("latestBulkImportIndividual", Util.jsonNull(latestIndivJson));
+
+/// match result: if within 2 weeks, match result page; if older, the encounter page
 
         JSONArray projArr = new JSONArray();
         count = 0;
