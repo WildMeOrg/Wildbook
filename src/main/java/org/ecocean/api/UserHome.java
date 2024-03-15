@@ -16,7 +16,10 @@ import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Project;
 import org.ecocean.Occurrence;
+import org.ecocean.Encounter;
+import org.ecocean.Annotation;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -85,7 +88,23 @@ public class UserHome extends ApiBase {
         home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
         home.put("latestBulkImportIndividual", Util.jsonNull(latestIndivJson));
 
-/// match result: if within 2 weeks, match result page; if older, the encounter page
+        // match result: if within 2 weeks, match result page; if older, the encounter page
+        JSONObject matchJson = null;
+        List<Task> tasks = myShepherd.getIdentificationTasksForUser(currentUser);
+        if (!Util.collectionIsEmptyOrNull(tasks)) {
+            matchJson.put("id", tasks.get(0).getId());
+            matchJson.put("createdDateTime", new DateTime(tasks.get(0).getCreatedLong()));
+            matchJson.put("encounterId", JSONObject.NULL);
+            List<Annotation> anns = tasks.get(0).getObjectAnnotations();
+            if (!Util.collectionIsEmptyOrNull(anns)) for (Annotation ann : anns) {
+                Encounter enc = ann.findEncounter(myShepherd);
+                if (enc != null) {
+                    matchJson.put("encounterId", enc.getId());
+                    break;
+                }
+            }
+        }
+        home.put("latestMatchTask", Util.jsonNull(matchJson));
 
         JSONArray projArr = new JSONArray();
         count = 0;
@@ -110,14 +129,3 @@ public class UserHome extends ApiBase {
 
 }
 
-/*
-
-    proposal: combine all things needed for landing page here
-    (some of these can be separate query when ES exists?)
-    maybe only for current user?
-
-    * "latest data": N most recent sightings
-    * latest: bulk import, individual, "matching action"
-    * projects data: see/replicate projectsList.jsp
-
-*/
