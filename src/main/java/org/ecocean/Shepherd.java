@@ -3320,6 +3320,22 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return theTask;
   }
 
+    public List<Task> getIdentificationTasksForUser(User user) {
+        if ((user == null) || (user.getUsername() == null)) return null;
+        //String sql = "SELECT \"TASK\".\"ID\" FROM \"TASK\" "
+        String sql = "SELECT \"ID\" FROM \"TASK\" "
+            + "JOIN \"TASK_OBJECTANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_OID\" = \"TASK\".\"ID\") "
+            + "JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_EID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") "
+            + "JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") "
+            + "WHERE \"ENCOUNTER\".\"SUBMITTERID\" = '" + user.getUsername() + "' ORDER BY \"TASK\".\"CREATED\" desc";
+        Query q = getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(Task.class);
+        Collection c = (Collection)q.execute();
+        List<Task> all = new ArrayList(c);
+        q.closeAll();
+        return all;
+    }
+
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
     try {
