@@ -7,7 +7,7 @@ import Login from './pages/Login';
 
 
 // import useSiteSettings from './models/site/useSiteSettings';
-import UnauthenticatedAppHeader from './components/UnauthenticatedAppHeader';
+import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 
 import Home from './pages/Home';
 
@@ -31,7 +31,7 @@ export default function UnAuthenticatedSwitch() {
             zIndex: '100',
             width: '100%',
           }}>            
-            <UnauthenticatedAppHeader />
+            <UnAuthenticatedAppHeader />
       </div>
       <div
         style={{

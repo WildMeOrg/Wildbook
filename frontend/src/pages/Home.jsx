@@ -27,9 +27,8 @@ export default function Home( ) {
                 throw new Error('Network response was not ok');
             }
     
-            // const result = await response.json();
-            setData(response); 
-            console.log(response);
+            const result = await response.json();
+            setData(result); 
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
         }

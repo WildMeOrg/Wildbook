@@ -26,6 +26,7 @@ export default function AuthenticatedAppHeader () {
         .then(response => {
           if (response.status === 200) {
             console.log('User logged out');
+            window.location.href = '/';
           } else if (response.status === 401) {
             console.log('User is not logged in');
           }
@@ -81,7 +82,7 @@ export default function AuthenticatedAppHeader () {
                 ))}
 
               </Nav>
-              <Button 
+              {/* <Button 
                 variant="basic" 
                 style={{
                   backgroundColor: 'transparent',
@@ -90,7 +91,7 @@ export default function AuthenticatedAppHeader () {
                   marginLeft: '10px',
                 }}
                 href={"/login"}>Login
-              </Button>
+              </Button> */}
               <Button 
                 variant="basic" 
                 style={{
