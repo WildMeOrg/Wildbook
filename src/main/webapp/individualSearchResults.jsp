@@ -322,7 +322,7 @@
 			}
 		$('#results-table').append(th + '</tr></thead>');
 		for (var i = 0 ; i < howMany ; i++) {
-			var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+			var r = '<tr onClick="return rowClick(this);" onAuxClick="return rowClick(this);" class="clickable pageableTable-visible">';
 			for (var c = 0 ; c < colDefn.length ; c++) {
 				r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
 			}
@@ -353,7 +353,8 @@
 
 	function rowClick(el) {
 		console.log(el);
-		var w = window.open('individuals.jsp?number=' + el.getAttribute('data-id'), '_blank');
+		var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+		var w = window.open('individuals.jsp?number=' + el.getAttribute('data-id'), target);
 		w.focus();
 		return false;
 	}
@@ -421,8 +422,14 @@
   		$('#results-table tbody tr')[i].title = title;
 			//$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
 			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].individualID);
+			var individualLink = "individuals.jsp?number=" + searchResults[results[i]].individualID;
 			for (var c = 0 ; c < colDefn.length ; c++) {
-				$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
+				if (c == 1) {
+					$('#results-table tbody tr')[i].children[c].innerHTML = '<a href="'+individualLink+'">' + sTable.values[results[i]][c] + '</a>';
+				}
+				else {
+					$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
+				}
 			}
 		}
 		if (results.length < howMany) {
