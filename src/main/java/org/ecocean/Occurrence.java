@@ -469,6 +469,20 @@ public class Occurrence implements java.io.Serializable {
     }
   }
 
+    /**
+   * Returns any additional, general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments 
+   */
+  public String getCommentsExport() {
+    if (comments != null && !(comments.equals("None"))) {
+
+      return comments;
+    } else {
+      return "";
+    }
+  }
+
   /**
    * Adds any general comments recorded for this Occurrence as a whole.
    *
