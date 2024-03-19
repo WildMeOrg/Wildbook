@@ -48,26 +48,19 @@ public class UserHome extends ApiBase {
 
         // TODO ES replace
 
-        JSONArray sightingsArr = new JSONArray();
+        JSONArray encountersArr = new JSONArray();
         int count = 0;
-        for (Occurrence occ : myShepherd.getOccurrencesByUser(currentUser)) {
-
-            JSONObject oj = new JSONObject();
-            oj.put("id", occ.getId());
-            Long millis = occ.getMillisRobust();
-            if (millis == null) {
-                oj.put("dateTime", (String)null);
-            } else {
-                oj.put("dateTime", new DateTime(millis));
-            }
-            oj.put("numberEncounters", occ.getNumberEncounters());
-            oj.put("numberAnnotations", occ.getNumberAnnotations());
-            oj.put("taxonomies", occ.getAllSpeciesDeep());
-            sightingsArr.put(oj);
+        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser)) {
+            JSONObject ej = new JSONObject();
+            ej.put("id", enc.getId());
+            ej.put("date", enc.getDate());
+            ej.put("numberAnnotations", Util.collectionSize(enc.getAnnotations()));
+            ej.put("taxonomy", enc.getTaxonomyString());
+            encountersArr.put(ej);
             count++;
             if (count > 2) break;
         }
-        home.put("latestSightings", sightingsArr);
+        home.put("latestEncounters", encountersArr);
 
         JSONObject itaskJson = null;
         JSONObject latestIndivJson = null;
