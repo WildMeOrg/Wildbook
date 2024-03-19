@@ -5606,7 +5606,7 @@ public Long countMediaAssets(Shepherd myShepherd){
 
   public List<Encounter> getEncountersForSubmitter(User user) {
       ArrayList<Encounter> users=new ArrayList<Encounter>();
-      String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      String filter="SELECT FROM org.ecocean.Encounter WHERE (submitters.contains(user) && user.uuid == \""+user.getUUID()+"\") || submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.User user";
       Query query = getPM().newQuery(filter);
       query.setOrdering("dwcDateAddedLong DESC");
       Collection c = (Collection) (query.execute());
