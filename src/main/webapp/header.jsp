@@ -319,8 +319,8 @@ if(request.getUserPrincipal()!=null){
 	                      else{
 	                      %>
 
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
+	                      	<!-- <li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li> -->
+                          <li><a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a></li>
 	                      <%
 	                      }
 

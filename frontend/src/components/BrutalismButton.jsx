@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from 'react-bootstrap';
 
-export default function BrutalismButton({link, onClick, disabled, children}) {
+export default function BrutalismButton({link, onClick, disabled, color='#000000', children}) {
 
 
     return <Button variant="primary" 
@@ -24,7 +24,7 @@ export default function BrutalismButton({link, onClick, disabled, children}) {
         boxShadow: '4px 4px 0px #000000',
         borderRadius: '4.8px',
         fontSize: '12px',
-        color: '#000000',
+        color: color,
         fontWeight: 'bold',
         margin: '8px 8px 0 0',
         whiteSpace: 'nowrap',

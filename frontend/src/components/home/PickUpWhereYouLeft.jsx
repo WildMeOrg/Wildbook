@@ -2,7 +2,7 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LatestActivityItem from './LatestActivityItem';
 
-const PickUp = () => {
+const PickUp = (latestData) => {
     return (
         <div style={{
             marginTop: '40px',
@@ -59,7 +59,7 @@ const PickUp = () => {
                     borderRadius: '10px',
                     height: '450px',
                     zIndex: 1,   
-                    backgroundImage: 'url(/react/pick.png)',                 
+                    backgroundImage: 'url(/react/images/pick.png)',                 
                 }}
             >
                               

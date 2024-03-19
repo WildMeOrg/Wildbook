@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 
-const CircleButton = ({href}) => {
+const CircleButton = ({href, color='#cfe2ff'}) => {
   console.log('CircleButton href:', href);
   const circleButtonStyle = {
     width: '50px', 
@@ -10,9 +10,10 @@ const CircleButton = ({href}) => {
     display: 'flex', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    backgroundColor: '#cfe2ff',
+    backgroundColor: color,
     border: 'none',
     marginRigh: '10px'
+    
   };
 
   return (

@@ -7,7 +7,7 @@ export default function NotFound() {
             zIndex: '200',
         }}>
             <img 
-                src="/react/notFound.png" alt="notFound-forest"
+                src="/react/images/notFound.png" alt="notFound-forest"
                 width='100%'
                 className="vh-100"
                 style={{
@@ -19,7 +19,7 @@ export default function NotFound() {
                               
                 />
             <img 
-                src="/react/Hedgehog.png" alt="notFound-hedgehog"                
+                src="/react/images/Hedgehog.png" alt="notFound-hedgehog"                
                 objectFit='cover'
                 style={{
                     position:'absolute',
