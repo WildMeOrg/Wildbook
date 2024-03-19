@@ -5604,10 +5604,10 @@ public Long countMediaAssets(Shepherd myShepherd){
 }
 
 
-  public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
+  public List<Encounter> getEncountersForSubmitter(User user) {
       ArrayList<Encounter> users=new ArrayList<Encounter>();
       String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
-      Query query=myShepherd.getPM().newQuery(filter);
+      Query query = getPM().newQuery(filter);
       Collection c = (Collection) (query.execute());
       if(c!=null){users=new ArrayList<Encounter>(c);}
       query.closeAll();
