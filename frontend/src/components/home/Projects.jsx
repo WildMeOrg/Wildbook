@@ -1,12 +1,11 @@
 
 import React from "react";
 import Progress from './Progress';
-import { Link } from 'react-router-dom';
+import { FormattedMessage } from "react-intl";
 
 export default function Projects ({ data }) {
 
     console.log(data);
-    console.log(data?.projects);
     
     return <div style={{
         display: 'flex',
@@ -44,14 +43,14 @@ export default function Projects ({ data }) {
         }}>
            
             { 
-                (Array.isArray(data?.projects) && data?.projects.length) ?
-                data?.projects.map((item, index) => {
+                (Array.isArray(data) && data.length) ?
+                data?.map((item, index) => {
                         return <Progress 
                             key={index}
                             name={item.name} 
                             encounters = {item.numberEncounters} 
                             progress={item.percentComplete}
-                            href={`projects/project.jsp?id=${item.id}`}
+                            href={`/projects/project.jsp?id=${item.id}`}
                             noUnderline
                             newTab
                             />
@@ -59,16 +58,26 @@ export default function Projects ({ data }) {
                     : <h1>No projects found</h1>
             }
 
-                {/* <Progress 
-                    name='Amphibians & Reptiles' 
+                <Progress 
+                    name='Fake Project' 
                     encounters = '126' 
                     progress='25'
                     href='/projects/projectList.jsp'
                     noUnderline
                     newTab
-                    />         
-           
-                <Progress 
+                    />    
+                <a href='/projects/projectList.jsp'
+                    style={{
+                        color: 'black',
+                        fontWeight: 'bold',
+                        textDecoration: 'none',     
+                        marginTop: '20px',               
+                    }}
+                    target = '_blank'
+                ><FormattedMessage id='SEE_ALL'/> </a>     
+
+                
+                {/* <Progress 
                     name='Seal' 
                     encounters = '12' 
                     progress='12'
