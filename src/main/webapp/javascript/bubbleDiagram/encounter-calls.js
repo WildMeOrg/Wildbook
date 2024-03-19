@@ -47,8 +47,9 @@ var getData = function(individualID, displayName) {
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+				if (!thisEncIndID) continue;
 				var individualName = thisEncIndID.split(" id=")[0];
-				if (!thisEncIndID || (individualName===displayName)) continue;  //unknown indiv -> false
+				if (individualName === displayName) continue;  //unknown indiv -> false
 				if(!encounterArray.includes(individualName)) {
 					encounterArray.push(individualName);
 					encArrWithUUID.push(thisEncIndID);
