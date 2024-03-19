@@ -1,6 +1,5 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
-import { LinkContainer } from 'react-router-bootstrap';
 import Avatar from './Avatar';
 import '../css/dropdown.css';
 import { authenticatedMenu } from '../constants/navMenu';
@@ -17,7 +16,7 @@ import { FormattedMessage } from 'react-intl';
 
 export default function AuthenticatedAppHeader() {
   const location = window.location;
-  const navBarFilled = location.pathname === '/';
+  const navBarFilled = location.pathname === '/react/home' || location.pathname === '/react/';
   const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';
 
   const isLoggedIn = useContext(AuthContext);
@@ -60,7 +59,7 @@ export default function AuthenticatedAppHeader() {
   >
     <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '30%'}}>
+    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '25%'}}>
       <Nav className="mr-auto" id='nav' style={{ 
         display: 'flex', 
         justifyContent: 'flex-end', 
@@ -69,26 +68,28 @@ export default function AuthenticatedAppHeader() {
         }}>
         {authenticatedMenu(username).map((item, idx) => (
           <Nav className="me-auto">
-            <NavDropdown title={
-              <span style={{ color: 'white' }}>
-                {/* {Object.keys(item)[0]} */}
-                <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
-                <DownIcon color={'white'}/>
-              </span>} id={`basic-nav-dropdown${item}`}
+            <NavDropdown 
+              title={
+                <span style={{ color: 'white' }}>
+                  {/* {Object.keys(item)[0]} */}
+                  <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
+                  <DownIcon color={'white'}/>
+                </span>} 
+              id={`basic-nav-dropdown${item}`}
               style={{ color: 'white' }}>
-              {Object.values(item)[0].map((subItem, idx) => {
-                return (
-                subItem.sub 
-                ? <NavDropdown title={
-                  <span style={{ color: 'black' }}>
-                    {subItem.name}
-                    <span style={{paddingLeft: '34px'}}><RightIcon /></span>
-                  </span>}
-                  style={{
-                    paddingLeft: 8,
-                    fontSize: '0.9rem',
-
-                  }}
+              {
+                Object.values(item)[0].map((subItem, idx) => {
+                  return (
+                  subItem.sub 
+                  ? <NavDropdown title={
+                    <span style={{ color: 'black' }}>
+                      {subItem.name}
+                      <span style={{paddingLeft: '34px'}}><RightIcon /></span>
+                    </span>}
+                    style={{
+                      paddingLeft: 8,
+                      fontSize: '0.9rem'
+                    }}
                   > 
                   {subItem.sub.map((sub, idx) => {
                     return <NavDropdown.Item href={sub.href} style={{ color: 'black', fontSize: '0.9rem' }}>
@@ -99,8 +100,6 @@ export default function AuthenticatedAppHeader() {
                 </NavDropdown>
                 : <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem'  }}>
                   {subItem.name}
-
-                  {/* {idx < Object.values(item)[0].length-1 && <NavDropdown.Divider />} */}
                 </NavDropdown.Item>)
               })}
             </NavDropdown>
@@ -108,28 +107,21 @@ export default function AuthenticatedAppHeader() {
         ))}
 
       </Nav>
-      {/* <Button
-        variant="basic"
-        style={{
-          backgroundColor: 'transparent',
-          color: 'white',
-          border: 'none',
-          marginLeft: '10px',
-        }}
-        onClick={logout}>Logout
-      </Button> */}
       <NotificationButton count={1} />
       <MultiLanguageDropdown />
-      <Nav style={{ alignItems: 'center', marginLeft: '20px' }}>
-        <NavDropdown title={<Avatar />} id="basic-nav-dropdown">
-
-          <NavDropdown.Item href={'/profile'} style={{ color: 'black' }}>
+      <Nav style={{ alignItems: 'center', marginLeft: '20px', width: 50 }}>
+        <NavDropdown 
+          title={<Avatar />} 
+          id="basic-nav-dropdown" 
+          drop="start"
+          >
+          <NavDropdown.Item href={'/myAccount.jsp'} style={{ color: 'black' }}>
           <FormattedMessage id="USER_PROFILE" />
           </NavDropdown.Item>
           <NavDropdown.Item onClick={logout} style={{ color: 'black' }}>
             <FormattedMessage id="LOGOUT" />
           </NavDropdown.Item>
-          <NavDropdown.Divider />
+          {/* <NavDropdown.Divider /> */}
 
         </NavDropdown>
       </Nav>

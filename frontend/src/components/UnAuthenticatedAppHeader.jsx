@@ -1,42 +1,18 @@
-import React, { useState, useContext} from 'react';
+import React, { useContext } from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
-import { LinkContainer } from 'react-router-bootstrap';
-import Avatar from './Avatar';
 import '../css/dropdown.css';
-import menu from '../constants/navMenu';
+import { unAuthenticatedMenu } from '../constants/navMenu';
 import DownIcon from './svg/DownIcon';
 import Button from 'react-bootstrap/Button';
-import NotificationButton from './navBar/NotificationButton';
 import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
-import AuthContext from '../AuthProvider';
+import { FormattedMessage } from 'react-intl';
 
+export default function AuthenticatedAppHeader() {
+  const location = window.location;
+  const navBarFilled = location.pathname === '/react/home' || location.pathname === '/react/';
+  const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';  
 
-export default function AuthenticatedAppHeader () {
-    const location = window.location;
-    const navBarFilled = location.pathname === '/';
-    const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';
-
-    const isLoggedIn = useContext(AuthContext);
-    console.log('=============>>>>>>>>>>>>>>>',isLoggedIn);
-
-    const logout = async event => {
-      console.log('Logging out');
-      event.preventDefault();
-      await fetch('/api/v3/logout')
-        .then(response => {
-          if (response.status === 200) {
-            console.log('User logged out');
-            window.location.href = '/';
-          } else if (response.status === 401) {
-            console.log('User is not logged in');
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });  
-    };
-
-    return (<Navbar variant="dark" expand="lg" 
+  return (<Navbar variant="dark" expand="lg"
 
     style={{
       backgroundColor: backgroundColor,
@@ -50,43 +26,45 @@ export default function AuthenticatedAppHeader () {
       zIndex: '100',
       width: '100%',
     }}
-    >
-            <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav" style={{marginLeft: '20%'}}>
-              <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                {menu.map((item, idx) => (
-                  <Nav className="me-auto">                    
-                    <NavDropdown title={
-                      <span style={{color: 'white'}}>
-                        {Object.keys(item)[0]}
-                        <DownIcon />
-                        </span>} id={`basic-nav-dropdown${item}`} 
-                        style={{color: 'white'}}>
-                      {Object.values(item)[0].map((subItem, idx) => {
-                        return  <NavDropdown.Item href={subItem.href} style={{color: 'black'}}>
-                          {subItem.name}
-                          {/* {idx < Object.values(item)[0].length-1 && <NavDropdown.Divider />} */}
-                          </NavDropdown.Item>                      
-                      })}
-                    </NavDropdown>
+  >
+    <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
+    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '50%' }}>
+      <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        {unAuthenticatedMenu.map((item, idx) => (
+          <Nav className="me-auto">
+            <NavDropdown title={
+              <span style={{ color: 'white' }}>
+                <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
+                <DownIcon />
+              </span>} id={`basic-nav-dropdown${item}`}
+              style={{ color: 'white' }}>
+              {Object.values(item)[0].map((subItem, idx) => {
+                return <NavDropdown.Item href={subItem.href} style={{ color: 'black' }}>
+                  {subItem.name}
+                </NavDropdown.Item>
+              })}
+            </NavDropdown>
           </Nav>
-                ))}
+        ))}
 
-              </Nav>
-              <Button 
-                variant="basic" 
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                  border: 'none',
-                  marginLeft: '10px',
-                }}
-                href={"/login"}>Login
-              </Button>
-              
-              <MultiLanguageDropdown />
-              
-            </Navbar.Collapse>
-          </Navbar>)
+      </Nav>     
+
+      <MultiLanguageDropdown />
+      <Button
+        variant="basic"
+        style={{
+          backgroundColor: 'transparent',
+          color: 'white',
+          border: 'none',
+          // marginLeft: '10px',
+          width: '100px',
+        }}
+        href={"/react/login"}>{
+          <FormattedMessage id='LOGIN'/>
+                        }
+      </Button>
+
+    </Navbar.Collapse>
+  </Navbar>)
 }

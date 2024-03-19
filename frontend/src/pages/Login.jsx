@@ -39,7 +39,7 @@ function LoginPage() {
           }}
           >
             <img 
-              src="/react/signin.png" 
+              src="/react/images/signin.png" 
               alt=""
               style={{
                 position: 'absolute',
@@ -52,7 +52,7 @@ function LoginPage() {
               <div style={{
                 position: 'absolute',
                 width: '226px',
-                height: '100%',
+                height: '80%',
                 top: 200,
                 left: 486,
 
@@ -130,7 +130,9 @@ function LoginPage() {
                         </Row>
                     </Form.Group>
 
-                    <BrutalismButton onClick={handleSubmit} disabled={actionDisabled}>
+                    <BrutalismButton onClick={handleSubmit} 
+                    // disabled={actionDisabled}
+                    >
                       {
                         intl.formatMessage({
                           id: 'SIGN_IN',
@@ -151,7 +153,7 @@ function LoginPage() {
                             id: 'NEW_TO_WILDBOOK',
                           })
                           }
-                           <a href="/request-account">{
+                           <a href="https://www.wildme.org/platforms.html">{
                               intl.formatMessage({
                                 id: 'REQUEST_ACCOUNT',
                               })}

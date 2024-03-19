@@ -13,7 +13,7 @@ export default function MultiLanguageDropdown() {
             backgroundColor: 'rgba(255, 255, 255, 0.25)',
             border: 'none',
             borderRadius: '30px',
-            minWidth: '55px', 
+            minWidth: '65px', 
             height: '35px',
             display: 'flex',
             alignItems: 'center',
@@ -24,7 +24,6 @@ export default function MultiLanguageDropdown() {
         }}>
             
             <Dropdown style={{
-                    // backgroundColor: 'transparent',
                     border: 'none',
                     color: 'white',
                     display: 'flex',
@@ -35,7 +34,7 @@ export default function MultiLanguageDropdown() {
                 }}>
                 <Dropdown.Toggle variant="basic" id="dropdown-basic" >
                     <img src={`/react/flags/${flag}.png`} alt="flag" style={{width: '20px', height: '12px'}} />
-                    <DownIcon />
+                    <span style={{paddingLeft: 7}}><DownIcon /></span>
                 </Dropdown.Toggle>
                 
                 <Dropdown.Menu>
@@ -54,30 +53,6 @@ export default function MultiLanguageDropdown() {
                             </Dropdown.Item>
                         ))
                     }
-                    {/* <Dropdown.Item onClick={() => onLocaleChange('en')}>
-                        <img 
-                            src="/react/flags/UK.png" alt="uk" 
-                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
-                        English
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => onLocaleChange('es')}>
-                        <img 
-                            src="/react/flags/Spain.png" alt="spain" 
-                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
-                        Español
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => onLocaleChange('fr')}>
-                        <img 
-                            src="/react/flags/France.png" alt="france" 
-                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
-                        Francés
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => onLocaleChange('it')}>
-                        <img 
-                            src="/react/flags/Italy.png" alt="italy" 
-                            style={{width: '20px', height: '12px', marginRight: '10px'}} />
-                        Italiano
-                    </Dropdown.Item> */}
                 </Dropdown.Menu>
           </Dropdown>
           </div>

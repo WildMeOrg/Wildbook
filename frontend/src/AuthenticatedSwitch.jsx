@@ -12,21 +12,23 @@ import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 
 // import useSiteSettings from './models/site/useSiteSettings';
-export default function AuthenticatedSwitch({adminUserInitialized, loggedIn} ) {
-//   const { data: siteSettings } = useSiteSettings();
-//   const siteNeedsSetup = get(siteSettings, [
-//     'site.needsSetup',
-//     'value',
-//   ]);
+export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) {
+  //   const { data: siteSettings } = useSiteSettings();
+  //   const siteNeedsSetup = get(siteSettings, [
+  //     'site.needsSetup',
+  //     'value',
+  //   ]);
+
+  console.log('AuthenticatedSwitch');
 
   const isLoggedIn = useContext(AuthContext);
 
   console.log('isLoggedIn: ', isLoggedIn);
   return (
     <main>
-             
-      {isLoggedIn ? <AuthenticatedAppHeader /> : <UnAuthenticatedAppHeader/> }
       
+      <AuthenticatedAppHeader /> 
+
       <div
         style={{
           position: 'absolute',
@@ -37,20 +39,20 @@ export default function AuthenticatedSwitch({adminUserInitialized, loggedIn} ) {
           overflow: 'hidden',
           boxSizing: 'border-box',
           width: '100%',
-          minHeight: 'calc(100vh - 40px)', // Assuming the header height is 64px
+          minHeight: 'calc(100vh - 40px)', // Assuming the header height is 40px
         }}
       >
-          <Routes>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Home />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        
-      <Footer />
-      
+        <Routes>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        <Footer />
+
       </div>
     </main>
   );
