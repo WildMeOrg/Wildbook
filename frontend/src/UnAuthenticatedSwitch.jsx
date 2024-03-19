@@ -1,24 +1,14 @@
 import React from 'react';
-import { get } from 'lodash-es';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import About from './About';
+import { Routes, Route } from 'react-router-dom';
 import NotFound from './NotFound';
 import Login from './pages/Login';
+import Footer from './components/Footer';
 
-
-// import useSiteSettings from './models/site/useSiteSettings';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
-
-import Home from './pages/Home';
-
-// import Footer from './components/Footer';
+import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
 
 export default function UnAuthenticatedSwitch() {
-//   const { data: siteSettings } = useSiteSettings();
-//   const siteNeedsSetup = get(siteSettings, [
-//     'site.needsSetup',
-//     'value',
-//   ]);
+  console.log('UnAuthenticatedSwitch');
 
   return (
     <main>
@@ -32,6 +22,7 @@ export default function UnAuthenticatedSwitch() {
             width: '100%',
           }}>            
             <UnAuthenticatedAppHeader />
+            {/* <AuthenticatedAppHeader /> */}
       </div>
       <div
         style={{
@@ -46,16 +37,16 @@ export default function UnAuthenticatedSwitch() {
           minHeight: 'calc(100vh - 64px)', // Assuming the header height is 64px
         }}
       >
-        <Router>
+        
           <Routes>
-            <Route path="/about" element={<About />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/about" element={<Login />} />
+            <Route path="/home" element={<Login />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Router>
-        {/* <Footer authenticated /> */}
+       
+        <Footer />
       </div>
     </main>
   );

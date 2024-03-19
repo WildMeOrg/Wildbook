@@ -7,7 +7,7 @@ export default function Header() {
             style = {{
                 position: 'relative',
                 height: '500px', 
-                backgroundImage: `url('/react/forest.png')`, 
+                backgroundImage: `url('/react/images/forest.png')`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

@@ -1,14 +1,12 @@
 import React from "react";
 import LandingImage from '../components/home/LandingImage';
 import LatestData from '../components/home/LatestData';
-import PickUp from '../components/home/PickUp';
+import PickUp from '../components/home/PickUpWhereYouLeft';
 import Report from '../components/home/Report';
 import Projects from '../components/home/Projects';
-import Footer from '../components/Footer';
-import useFetch from '../hooks/useFetch';
 import { useState, useEffect } from 'react';
 
-export default function Home( ) {
+export default function Home() {
 
     const [data, setData] = useState([]);
 
@@ -16,19 +14,20 @@ export default function Home( ) {
         console.log('fetching data');
         try {
             const response = await fetch('/api/v3/home', {
-                method: 'GET', 
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
             console.log(response);
-    
+
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-    
+
             const result = await response.json();
-            setData(result); 
+            console.log(result);
+            setData(result);
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
         }
@@ -36,18 +35,17 @@ export default function Home( ) {
 
     useEffect(() => {
         fetchData();
-    }, []); 
+    }, []);
 
     return (
         <>
-           <div className="col-12">        
+            <div className="col-12">
                 <LandingImage />
-                <LatestData />
-                <PickUp />
-                <Report />  
-                <Projects data={data}/>
-                {/* <Footer />                       */}
-            </div>        
-        </>        
+                <LatestData data={data}/>
+                <PickUp data={data}/>
+                <Report />
+                <Projects data={data.projects} />
+            </div>
+        </>
     );
 }

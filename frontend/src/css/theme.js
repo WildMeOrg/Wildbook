@@ -1,7 +1,7 @@
-// import {
-//     darken,
-//     lighten,
-//   } from '@material-ui/core/styles/colorManipulator';
+import {
+    darken,
+    lighten,
+  } from '@material-ui/core/styles/colorManipulator';
   
   export const lato = [
     'Lato',
