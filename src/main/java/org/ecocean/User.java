@@ -130,14 +130,15 @@ public class User implements Serializable {
       this.lastLogin=-1;
     }
 
-    public org.json.JSONObject infoJSONObject() {
-        return this.infoJSONObject(false);
+    public org.json.JSONObject infoJSONObject(String context) {
+        return this.infoJSONObject(context, false);
     }
     // only admin and user-themself should have includeSensitive=true
-    public org.json.JSONObject infoJSONObject(boolean includeSensitive) {
+    public org.json.JSONObject infoJSONObject(String context, boolean includeSensitive) {
         org.json.JSONObject info = new org.json.JSONObject();
         info.put("id", this.uuid);
         info.put("displayName", this.getDisplayName());
+        info.put("imageURL", Util.jsonNull(this.getUserImageURL(context)));
         if (includeSensitive) {
             info.put("email", this.getEmailAddress());
         }
@@ -334,6 +335,11 @@ public class User implements Serializable {
     public void setUserImage(SinglePhotoVideo newImage) {
       if(newImage!=null){userImage = newImage;}
     else{userImage=null;}
+    }
+
+    public String getUserImageURL(String context) {
+        if (this.userImage == null) return null;
+        return CommonConfiguration.getDataDirectoryName(context) + "/users/" + this.getUsername() + "/" + this.userImage.getFilename();
     }
 
     public void setUserURL(String newURL) {
