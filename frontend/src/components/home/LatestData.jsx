@@ -1,24 +1,10 @@
 import React from 'react';
 import DiamondCard from '../DiamondCard';
 import More from '../CircledMoreButton';
-import useGetLatestSightings from '../../models/sightings/useGetLatestSightings';
+import { formatDate } from '../../utils/formatters';
 
 export default function LatestData({data}) {
 
-    const href = '/latest-data';
-    // const latestData = useGetLatestSightings();
-    // console.log('latestData', latestData);
-
-    // const dateTimeStr = data?.dateTime;
-    // console.log('dateTimeStr', dateTimeStr);
-    // const date = new Date(dateTimeStr);
-
-    // const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    // const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
-
-    // console.log(formattedDate); 
-
-    console.log('data', data);
     return (
         <div className="content col-12"
             style = {{
@@ -40,31 +26,35 @@ export default function LatestData({data}) {
                 justifyContent: 'center',
             }}>
                 {(data?.latestSightings || []).map(sighting => 
-                    <DiamondCard 
-                        date={sighting.dateTime}
+                {
+                    const formattedDate = formatDate(sighting.dateTime, true);
+                    return <DiamondCard 
+                        date={formattedDate}
                         title={sighting.taxonomies[0]}
                         annotations={sighting.numberAnnotations}
                         animals={sighting.numberEncounters}
-                    />)
+                    />
                 }
-                {/* <DiamondCard 
+                    )
+                }
+                {!data?.latestSightings && <>
+                    <DiamondCard 
                     date="Aug 05 2021"
-                    title="Lorem ipsum"
+                    title="Fake Species"
                     annotations={5}
-                    animals={2}
-                />
-                <DiamondCard 
-                    date="Aug 05 2022"
-                    title="Lorem ipsum"
-                    annotations={5}
-                    animals={2}
-                />
-                <DiamondCard 
-                    date="Aug 05 2023"
-                    title="Lorem ipsum"
-                    annotations={5}
-                    animals={2}
-                /> */}
+                    />
+                    <DiamondCard 
+                        date="Aug 05 2022"
+                        title="Fake Species"
+                        annotations={5}
+                    />
+                    <DiamondCard 
+                        date="Aug 05 2023"
+                        title="Fake Species"
+                        annotations={5}
+                    /></>
+                }
+                
                 <More href={"/encounters/searchResults.jsp?null"}/>
             </div>
         </div>
