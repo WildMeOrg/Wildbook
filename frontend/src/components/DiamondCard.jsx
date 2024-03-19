@@ -19,15 +19,15 @@ export default function DiamondCard ({ date, title, annotations, animals }) {
         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-weight="bold">
             {date}
         </text>
-        <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
+        <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5" font-weight="bold">
             {title}
         </text>
         <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
             {`${annotations} annotations`}
         </text>
-        <text x="50%" y="76%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
+        {/* <text x="50%" y="76%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
             {`${animals} animals`}
-        </text>
+        </text> */}
 
 
         <rect x="120" y="65" width="52.4058" height="52.4058" rx="26.2029" fill="#E7F0FF"/>
