@@ -44,7 +44,7 @@ public class UserHome extends ApiBase {
             return;
         }
 
-        home.put("user", currentUser.infoJSONObject(true));
+        home.put("user", currentUser.infoJSONObject(context, true));
 
         // TODO ES replace
 
