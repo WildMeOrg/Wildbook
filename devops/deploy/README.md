@@ -1,5 +1,7 @@
 # Deployable Wildbook
 
+⚠️  **This directory is currently in development! Not for general use.** ⚠️
+
 This will launch an instance of Wildbook for the sake of testing or using in production.
 
 ## Docker images used
