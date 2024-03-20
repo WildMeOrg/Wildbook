@@ -40,6 +40,7 @@ services:
     volumes:
       - wildbook-var:/data/wildbook_data_dir
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
+      - .dockerfiles/tomcat/watermark.png:/usr/local/tomcat/watermark.png
       - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
       - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
     networks:
