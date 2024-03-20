@@ -11,6 +11,7 @@ var getIndividualIDFromEncounterToString = function(encToString) {
     //var id = encToString.split("individualID=")[1].split(",")[0];
     var id = encToString.displayName; // since this is for display, and individualIDs are UUIDs now
     if (!id) return false;
+    id = id.concat(" id=", encToString.individualID); // appending UUID, which is needed while forming the co-occurrence table URL
     return id;
 }
 
@@ -18,6 +19,7 @@ var getData = function(individualID, displayName) {
     var occurrenceObjectArray = [];
     var items = [];
     var encounterArray = [];
+    var encArrWithUUID = [];
     var occurrenceArray = [];
     var dataObject = {};
 
@@ -45,14 +47,15 @@ var getData = function(individualID, displayName) {
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-				if (!thisEncIndID || (thisEncIndID===displayName)) continue;  //unknown indiv -> false
-				if(encounterArray.includes(thisEncIndID)) {
-				} 
-				else {
-		    		encounterArray.push(thisEncIndID);
+				if (!thisEncIndID) continue;
+				var individualName = thisEncIndID.split(" id=")[0];
+				if (individualName === displayName) continue;  //unknown indiv -> false
+				if(!encounterArray.includes(individualName)) {
+					encounterArray.push(individualName);
+					encArrWithUUID.push(thisEncIndID);
 				}
             }
-            occurrenceArray = occurrenceArray.concat(encounterArray);
+            occurrenceArray = occurrenceArray.concat(encArrWithUUID);
             var occurrenceID = jsonData[i].occurrenceID;
             var index = encounterArray.indexOf(individualID.toString());
             if (~index) {
@@ -67,6 +70,7 @@ var getData = function(individualID, displayName) {
             }
 			occurrenceObjectArray.push(occurrenceObject);
             encounterArray = [];
+            encArrWithUUID = [];
 	}
 
 	for(var i = 0; i < occurrenceArray.length; ++i) {
@@ -179,7 +183,17 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		    return refreshTable(d);
 		}
 	    });
-
+	
+	var indivArray = [];
+	if(tableBodyLocation == "#coBody") {
+		for (var i = 0; i < items.length; i++) {
+			var nameIdArr = items[i].text.split(" id=");
+			var individual = { name: nameIdArr[0], uuid: nameIdArr[1] }
+			indivArray.push(individual);
+			items[i].text = nameIdArr[0];
+		}
+	}
+	
 	//console.log("ITEMS", items)
 	var tr = d3.select(tableBodyLocation).selectAll("tr")
 	    .data(items).enter()
@@ -188,9 +202,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		if(d.relationshipID !=null && d.relationshipID != 'undefined') {
 		    return d.relationshipID;
 		}
+		if(tableBodyLocation == "#coBody") {
+			return indivArray.find(indiv => (indiv.name == d3.values(d)[0])).uuid;
+		}
 		return d3.values(d)[0];
 	    });
-
+	
 	//console.log("TR", tr.selectAll("td"))
 	var td = tr.selectAll("td")
 	    .data(function(d){
