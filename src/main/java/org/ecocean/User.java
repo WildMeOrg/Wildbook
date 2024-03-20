@@ -339,7 +339,7 @@ public class User implements Serializable {
 
     public String getUserImageURL(String context) {
         if (this.userImage == null) return null;
-        return CommonConfiguration.getDataDirectoryName(context) + "/users/" + this.getUsername() + "/" + this.userImage.getFilename();
+        return "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/" + this.getUsername() + "/" + this.userImage.getFilename();
     }
 
     public void setUserURL(String newURL) {
