@@ -30,96 +30,8 @@ services:
       WILDBOOK_DB_USER: "${WILDBOOK_DB_USER}"
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
-  elasticsearch:
-    # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    #healthcheck:
-      #test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
-      #interval: 10s
-      #timeout: 5s
-      #retries: 60
-    labels:
-      - autoheal=true
-    volumes:
-      - es-var1:/usr/share/elasticsearch/data
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    networks:
-      - intranet
-    ports:
-      # development exposure, not exposed in production
-      - 9200:9200
-      - 9300:9300
-    environment:
-      - node.name=elasticsearch
-      - discovery.seed_hosts=elasticsearch2,elasticsearch3
-      - cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
-      - bootstrap.memory_lock=true
-      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-
-  elasticsearch2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    depends_on:
-      - elasticsearch
-    #healthcheck:
-      #test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
-      #interval: 10s
-      #timeout: 5s
-      #retries: 60
-    labels:
-      - autoheal=true
-    volumes:
-      - es-var2:/usr/share/elasticsearch/data
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    networks:
-      - intranet
-    environment:
-      - node.name=elasticsearch2
-      - discovery.seed_hosts=elasticsearch,elasticsearch3
-      - cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
-      - bootstrap.memory_lock=true
-      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-
-  elasticsearch3:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
-    depends_on:
-      - elasticsearch2
-    #healthcheck:
-      #test: ["CMD-SHELL", "curl --silent --fail 127.0.0.1:9200/_cluster/health || exit 1"]
-      #interval: 10s
-      #timeout: 5s
-      #retries: 60
-    labels:
-      - autoheal=true
-    volumes:
-      - es-var3:/usr/share/elasticsearch/data
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    networks:
-      - intranet
-    environment:
-      - node.name=elasticsearch3
-      - discovery.seed_hosts=elasticsearch,elasticsearch2
-      - cluster.initial_master_nodes=elasticsearch,elasticsearch2,elasticsearch3
-      - bootstrap.memory_lock=true
-      - cluster.routing.allocation.disk.threshold_enabled=${ES_THRESHOLD:-true}
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-
   wildbook:
-    # See: https://github.com/WildMeOrg/Wildbook/tree/next-gen
-    #  - git clone -b next-gen git@github.com:WildMeOrg/Wildbook.git && cd Wildbook
-    # - ./scripts/build.docker.sh
     image: tomcat:9.0.85-jre8-temurin-jammy
-    #image: tomcat:latest
     depends_on:
       db:
         condition: service_healthy
@@ -147,11 +59,7 @@ services:
       # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
       JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 
-#### wbia and nginx we current do not yet start
-
   wbia:
-    profiles:
-      - donotstart
     # https://github.com/WildMeOrg/wildbook-ia
     image: wildme/wbia:latest
     command: ["--db-uri", "${WBIA_DB_URI}"]
@@ -167,7 +75,6 @@ services:
     networks:
       - intranet
     ports:
-      # FIXME: exposed for developer verification
       - "82:5000"
     environment:
       WBIA_DB_URI: "${WBIA_DB_URI}"
@@ -175,8 +82,6 @@ services:
       HOUSTON_CLIENT_SECRET: "${HOUSTON_CLIENT_SECRET}"
 
   nginx:
-    profiles:
-      - donotstart
     image: nginx:1.23.4
     #healthcheck:
       #test: [ "CMD", "curl", "-f", "http://localhost:84/"]
@@ -209,9 +114,6 @@ networks:
 
 volumes:
   db-pgdata-var:
-  es-var1:
-  es-var2:
-  es-var3:
   wbia-database-var:
   wbia-cache-var:
   wildbook-var:
