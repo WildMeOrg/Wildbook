@@ -39,9 +39,9 @@ services:
       - autoheal=true
     volumes:
       - wildbook-var:/data/wildbook_data_dir
+      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
       - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
-      # - "$WILDBOOK_BASE_DIR/server.xml:/usr/local/tomcat/conf/server.xml"
     networks:
       - intranet
     ports:
