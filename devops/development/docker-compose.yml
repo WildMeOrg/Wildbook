@@ -80,23 +80,6 @@ services:
       HOUSTON_CLIENT_ID: "${HOUSTON_CLIENT_ID}"
       HOUSTON_CLIENT_SECRET: "${HOUSTON_CLIENT_SECRET}"
 
-  nginx:
-    image: nginx:1.23.4
-    #healthcheck:
-      #test: [ "CMD", "curl", "-f", "http://localhost:84/"]
-      #interval: 10s
-      #timeout: 5s
-      #retries: 60
-    labels:
-      - autoheal=true
-    volumes:
-      - .dockerfiles/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - intranet
-    ports:
-      # BBB deprecated in favor or port 80, remains for backward compat
-      - "84:80"
-
   autoheal:
     image: willfarrell/autoheal
     volumes:
