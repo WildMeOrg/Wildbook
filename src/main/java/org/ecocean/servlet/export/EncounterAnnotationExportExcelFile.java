@@ -257,9 +257,11 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
 
 
-      ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographerEmail", photographerEmail, columns);
+      ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographer0.Email", photographerEmail, columns);
       photographerEmailCol.setMaNum(0);
 
+      ExportColumn photographerNameCol = new ExportColumn(User.class, "Encounter.photographer0.fullName", FullName, columns);
+      photographerNameCol.setMaNum(0);
 
       newEasyColumn("Encounter.state", columns);
 
@@ -399,7 +401,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
             int num = exportCol.getMaNum();
             User user = null;
 
-            if (exportCol.header.contains("photographerEmail")){
+            if (exportCol.header.contains("photographer")){
 
               if (num >= photographers.size()) continue;
               user = photographers.get(num);
