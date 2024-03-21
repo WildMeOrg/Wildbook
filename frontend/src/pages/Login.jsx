@@ -4,10 +4,13 @@ import { useState } from 'react';
 import BrutalismButton from '../components/BrutalismButton';
 import { useIntl } from 'react-intl';
 import useLogin from '../models/auth/useLogin';
+import useDocumentTitle from '../hooks/useDocumentTitle';
+import Logo from '../components/svg/Logo';
 
 
 function LoginPage() {
-  
+
+  useDocumentTitle('SIGN_IN');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const intl = useIntl();  
@@ -81,7 +84,9 @@ function LoginPage() {
                 alignItems: 'center',
             }}>
                 <Form className="login-form" style={{width: '400px'}} onSubmit={handleSubmit}>
-                    <h3 className="text-center mb-4">SIGN IN</h3>
+                    <Logo style={{
+                      margin: '20px 0 20px 0',
+                    }}/>
                     <Form.Group controlId="formBasicEmail">
                         <Form.Label>{
                           intl.formatMessage({
@@ -130,7 +135,7 @@ function LoginPage() {
                         </Row>
                     </Form.Group>
 
-                    <BrutalismButton onClick={handleSubmit} 
+                    <BrutalismButton type='submit' onClick={handleSubmit} 
                     // disabled={actionDisabled}
                     >
                       {
@@ -147,17 +152,21 @@ function LoginPage() {
                       </div>
                     )}         
 
-                    <div className="text-center mt-3 d-flex justify-content-between">
+                    <div className="text-center mt-3 d-flex ">
                       {
                           intl.formatMessage({
                             id: 'NEW_TO_WILDBOOK',
                           })
                           }
-                           <a href="https://www.wildme.org/platforms.html">{
-                              intl.formatMessage({
-                                id: 'REQUEST_ACCOUNT',
-                              })}
-                           </a>
+                           <span style={{
+                              marginLeft: '8px',                            
+                           }}>
+                            <a href="https://www.wildme.org/platforms.html">{
+                                intl.formatMessage({
+                                  id: 'REQUEST_ACCOUNT',
+                                })}
+                            </a>
+                           </span>
                     </div>
                 </Form>
             </div>

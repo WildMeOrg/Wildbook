@@ -9,8 +9,11 @@ import { FormattedMessage } from 'react-intl';
 
 export default function AuthenticatedAppHeader() {
   const location = window.location;
-  const navBarFilled = location.pathname === '/react/home' || location.pathname === '/react/';
-  const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';  
+  const navBarNotFilled = location.pathname === '/react/home' || location.pathname === '/react/';
+  
+
+  const backgroundColor = navBarNotFilled ? 'transparent' : '#00a1b2';  
+  console.log('location', location.pathname, navBarNotFilled, backgroundColor);
 
   return (<Navbar variant="dark" expand="lg"
 
@@ -40,7 +43,7 @@ export default function AuthenticatedAppHeader() {
               </span>} id={`basic-nav-dropdown${item}`}
               style={{ color: 'white' }}>
               {Object.values(item)[0].map((subItem, idx) => {
-                return <NavDropdown.Item href={subItem.href} style={{ color: 'black' }}>
+                return <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem', paddingBottom: 0  }}>
                   {subItem.name}
                 </NavDropdown.Item>
               })}
