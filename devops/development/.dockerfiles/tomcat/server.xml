@@ -163,7 +163,7 @@
 
 	      <Context path="" docBase="wildbook"></Context>
 
-	      <Context docBase="/data/wildbook_data_dir" path="/wildbook_data_dir" />
+	      <Context docBase="/usr/local/tomcat/webapps/wildbook_data_dir" path="/wildbook_data_dir" />
 
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
