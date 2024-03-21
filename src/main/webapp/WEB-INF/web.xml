@@ -567,6 +567,15 @@
 		<url-pattern>/api/v3/home</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>SiteSettings</servlet-name>
+		<servlet-class>org.ecocean.api.SiteSettings</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SiteSettings</servlet-name>
+		<url-pattern>/api/v3/site-settings</url-pattern>
+	</servlet-mapping>
+
   <servlet>
     <servlet-name>ReactAppServlet</servlet-name>
     <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
