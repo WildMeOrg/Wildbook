@@ -1,6 +1,5 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import FooterLogo from './svg/FooterLogo';
 import { FormattedMessage } from 'react-intl';
 import FooterLink from './footer/FooterLink';
 
