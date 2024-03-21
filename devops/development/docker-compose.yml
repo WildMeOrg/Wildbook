@@ -37,10 +37,15 @@ services:
         condition: service_healthy
     labels:
       - autoheal=true
+    entrypoint: /docker-entrypoint.sh
     volumes:
-      - wildbook-var:/data/wildbook_data_dir
+      # lets let this live in /webapps/ instead
+      #- wildbook-var:/usr/local/tomcat/webapps/wildbook_data_dir
+      - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
       - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
       - .dockerfiles/tomcat/watermark.png:/usr/local/tomcat/watermark.png
+      - .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
+      - .dockerfiles/tomcat/IA.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
       - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
       - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
     networks:
