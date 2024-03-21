@@ -17,7 +17,7 @@ To skip optional containers, you should launch explicitly including the ones you
 # Setup and running
 
 - copy `_env.template` to `.env` and edit this new file with your own values
-- `docker-compose up ....`
+- `docker-compose up` (or `docker-compose up db wildbook`, etc)
 - open in browser http://localhost:81/ (wildbook) or http://localhost:82/ (wbia)
 
 ## .env and war file deployment
