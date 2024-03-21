@@ -2,6 +2,12 @@ import { FormattedMessage } from 'react-intl';
 
 const authenticatedMenu = (username) => [
     {
+        'Submit': [
+            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
+            { name: <FormattedMessage id="menu.submit.bulkImport" defaultMessage="Bulk Import" />, href: '/import/instructions.jsp' },
+        ]
+    },
+    {
         'Learn': [
             { name: <FormattedMessage id="menu.learn.aboutWildbook" defaultMessage="About Wildbook" />, href: '/overview.jsp' },
             { name: <FormattedMessage id="menu.learn.contactUs" defaultMessage="Contact Us" />, href: '/contactus.jsp' },
@@ -12,12 +18,7 @@ const authenticatedMenu = (username) => [
             { name: <FormattedMessage id="menu.learn.learnMore" defaultMessage="Learn more about Wildbook" />, href: 'https://www.wildme.org/#/wildbook' },
         ]
     },
-    {
-        'Submit': [
-            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
-            { name: <FormattedMessage id="menu.submit.bulkImport" defaultMessage="Bulk Import" />, href: '/import/instructions.jsp' },
-        ]
-    },
+    
     {
         'My_Data': [
             { 
@@ -63,6 +64,11 @@ const authenticatedMenu = (username) => [
 
 const unAuthenticatedMenu = [
     {
+        'Submit': [
+            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
+        ]      
+    }, 
+    {
         'Learn': [
             { name: <FormattedMessage id="menu.learn.aboutWildbook" defaultMessage="About Wildbook" />, href: '/overview.jsp' },
             { name: <FormattedMessage id="menu.learn.contactUs" defaultMessage="Contact Us" />, href: '/photographing.jsp' },
@@ -73,11 +79,7 @@ const unAuthenticatedMenu = [
             { name: <FormattedMessage id="menu.learn.learnMore" defaultMessage="Learn more about Wildbook" />, href: 'https://www.wildme.org/#/wildbook' },
         ]
     }, 
-    {
-        'Submit': [
-            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
-        ]      
-    },       
+          
     {
         'Animals': [
             { name: <FormattedMessage id="menu.animals.individualGallery" defaultMessage="Individual Gallery" />, href: '/gallery.jsp' },

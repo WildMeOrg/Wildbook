@@ -5,6 +5,8 @@ import messagesEs from './locale/es.json';
 import messagesFr from './locale/fr.json';
 import messagesIt from './locale/it.json';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 import { QueryClient, QueryClientProvider } from 'react-query';
 import FrontDesk from './FrontDesk';
 import { BrowserRouter } from 'react-router-dom';

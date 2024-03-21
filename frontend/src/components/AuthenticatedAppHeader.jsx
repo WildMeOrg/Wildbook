@@ -17,6 +17,7 @@ import { FormattedMessage } from 'react-intl';
 export default function AuthenticatedAppHeader() {
   const location = window.location;
   const navBarFilled = location.pathname === '/react/home' || location.pathname === '/react/';
+  console.log('location', location.pathname);
   const backgroundColor = !navBarFilled ? '#00a1b2' : 'transparent';
 
   const isLoggedIn = useContext(AuthContext);
@@ -71,7 +72,6 @@ export default function AuthenticatedAppHeader() {
             <NavDropdown 
               title={
                 <span style={{ color: 'white' }}>
-                  {/* {Object.keys(item)[0]} */}
                   <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
                   <DownIcon color={'white'}/>
                 </span>} 
@@ -98,7 +98,7 @@ export default function AuthenticatedAppHeader() {
                   }
                   )}
                 </NavDropdown>
-                : <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem'  }}>
+                : <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem', paddingBottom: 0  }}>
                   {subItem.name}
                 </NavDropdown.Item>)
               })}
