@@ -52,7 +52,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
     <strong>This BULK IMPORT UTILITY needs improvement.</strong> Please contact your Org Admin or T4C directly for training and guidance before you try to use the bulk import utility. Your data might not be imported correctly if you are not careful.
   </p>
 
-  <p>The goal of this tool is to allow users to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks.</p>
+  <p>The goal of this tool is to allow users to add large amounts of data to Wild North Wildbook at once, such as an entire season's observations, while performing the data-blending and data-integrity checks.</p>
   
   <p>To ensure data integrity, this process is split into several steps with (some) review in-between each step.</p>
   
@@ -72,7 +72,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
   </p>
 
   <p>
-  	The Wild North Wildbook Standard Format is straightforward, and mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on <%=wbName%>. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
+  	The Wild North Wildbook Standard Format is straightforward, and mirrors the Wildbook data model: each row in your .xlsx file corresponds to one Encounter on Wild North Wildbook. Each column header is of the form <code>ClassName.fieldName</code>, for example, <code>Encounter.locationID</code>. Column order does not matter and empty columns are ignored.
   </p>
 
   <p>Most importantly, <strong>the <code>Encounter.mediaAsset</code> column(s) must contain the <em>exact</em> filename(s) of the photo(s)</strong> associated with each record. These are the names of the photos uploaded in the Photo Upload step, and this is how the computer identifies which photo goes where.</p>
