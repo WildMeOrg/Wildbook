@@ -1,5 +1,6 @@
 import React from "react";
 import BrutalismButton from '../BrutalismButton';
+import { FormattedMessage } from 'react-intl';
 
 export default function Report() {
 
@@ -43,22 +44,22 @@ export default function Report() {
                         paddingLeft: '30px',
                         boxSizing: 'border-box',
                         }}>
-                <h1 style={{fontSize: '48px'}}>Submit</h1>
-                <div>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                </div>
+                <h1 style={{fontSize: '48px'}}>
+                    <FormattedMessage id='SUBMIT_NEW_DATA'/>
+                </h1>
+                
                 <div style={{
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'space-around',
                     alignItems: 'center',
+                    marginTop: '20px',
                 }}>
                     <BrutalismButton link={'/submit.jsp'}>
-                        Report a Sighting
+                        <FormattedMessage id='REPORT_AN_ENCOUNTER'/>
                     </BrutalismButton>
                     <BrutalismButton link={'/import/instructions.jsp'}>
-                        Bulk Report
+                        <FormattedMessage id='BULK_REPORT'/>
                     </BrutalismButton>
                 </div>
                 
