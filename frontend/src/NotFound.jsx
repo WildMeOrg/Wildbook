@@ -6,7 +6,7 @@ export default function NotFound() {
             position: 'relative',
             zIndex: '200',
         }}>
-            <img 
+            {/* <img 
                 src="/react/images/notFound.png" alt="notFound-forest"
                 width='100%'
                 className="vh-100"
@@ -27,6 +27,8 @@ export default function NotFound() {
                     left:400 
                 }}                
                 />
+                 */}
+            <h1>404 - Not Found</h1>
             
         </div>
     );

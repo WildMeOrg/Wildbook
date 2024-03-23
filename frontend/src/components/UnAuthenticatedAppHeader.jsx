@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import '../css/dropdown.css';
 import { unAuthenticatedMenu } from '../constants/navMenu';
@@ -9,12 +9,36 @@ import { FormattedMessage } from 'react-intl';
 
 export default function AuthenticatedAppHeader() {
   const location = window.location;
-  const navBarNotFilled = location.pathname === '/react/home' || location.pathname === '/react/';
-  
+  const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
+  const homePage = path === '/react/home/' || path === '/react/';
+  const [ backgroundColor, setBackgroundColor ] = useState(homePage ? 'transparent' : '#00a1b2');
 
-  const backgroundColor = navBarNotFilled ? 'transparent' : '#00a1b2';  
-  console.log('location', location.pathname, navBarNotFilled, backgroundColor);
+  const [dropdownShows, setDropdownShows] = useState({
+    dropdown1: false,
+    dropdown2: false,
+    dropdown3: false,
+  });
 
+  const handleMouseEnter = (id) => {
+    setDropdownShows(prev => ({ ...prev, [id]: true }));
+  };
+
+  const handleMouseLeave = (id) => {
+    setDropdownShows(prev => ({ ...prev, [id]: false }));
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (homePage && currentScrollY > 40) {
+        setBackgroundColor('#00a1b2');
+      } else if(homePage){
+        setBackgroundColor('transparent');      
+      }
+    }
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [])
   return (<Navbar variant="dark" expand="lg"
 
     style={{
@@ -41,9 +65,13 @@ export default function AuthenticatedAppHeader() {
                 <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
                 <DownIcon />
               </span>} id={`basic-nav-dropdown${item}`}
-              style={{ color: 'white' }}>
+              style={{ color: 'white' }}
+              onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
+              onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}   
+              show={dropdownShows[`dropdown${idx + 1}`]       }    
+              >
               {Object.values(item)[0].map((subItem, idx) => {
-                return <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem', paddingBottom: 0  }}>
+                return <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem'}}>
                   {subItem.name}
                 </NavDropdown.Item>
               })}
