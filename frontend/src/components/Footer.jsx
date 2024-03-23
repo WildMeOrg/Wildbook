@@ -12,8 +12,8 @@ const Footer = () => {
         zIndex: '100',
         width: '100%',
         backgroundColor: '#cfe2ff',
-        paddingTop: '50px',
-        paddingBottom: '50px',
+        paddingTop: '20px',
+        paddingBottom: '20px',
         fontSize: '1rem',
       }}>
       <Container>
@@ -46,7 +46,7 @@ const Footer = () => {
             />
           </Col>
 
-          <Col xs lg="1">
+          <Col xs lg="2">
             <FooterLink 
               href="https://www.instagram.com/conservationxlabs" 
               text={<FormattedMessage id='INSTAGRAM'/>}
@@ -67,7 +67,7 @@ const Footer = () => {
           </Col>
         </Row>
         <Row className="justify-content-md-center" style={{
-          marginTop: '50px'
+          marginTop: '20px'
         }}>
           <Col md="auto">
             <p>
