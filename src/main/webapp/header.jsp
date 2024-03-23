@@ -486,7 +486,7 @@ if(request.getUserPrincipal()!=null){
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
 
-                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
+                        <!-- <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a> -->
                       </li>
 
                       <li class="dropdown">
