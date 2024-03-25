@@ -6,7 +6,7 @@ export default function FooterLink({href, text}) {
             color: 'black',
             textDecoration: 'none',
             fontSize: '1rem',
-            marginBottom: '10px',
+            marginBottom: '5px',
             display: 'block',
         }}>
             {text}

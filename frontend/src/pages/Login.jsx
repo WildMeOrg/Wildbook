@@ -138,10 +138,11 @@ function LoginPage() {
                     <style>
                       {`
                         input[type="checkbox"] {
-                          accent-color: ${theme.primaryColors.primary500};
+                          accent-color: #00ACCE;
                         }
                       `}
                     </style>
+                   
                     <label>
                       <input
                         type="checkbox"
@@ -165,8 +166,10 @@ function LoginPage() {
               <BrutalismButton
                 type='submit'
                 onClick={handleSubmit}
-                color={theme.primaryColors.primary500}
-                borderColor={theme.primaryColors.primary500}
+                // color={theme.primaryColors.primary500}
+                color='#00ACCE'
+                borderColor='#00ACCE'
+                // borderColor={theme.primaryColors.primary500}
               // disabled={actionDisabled}
               >
                 {

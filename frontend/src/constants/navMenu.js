@@ -3,7 +3,7 @@ import { FormattedMessage } from 'react-intl';
 const authenticatedMenu = (username) => [
     {
         'Submit': [
-            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
+            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report an Encounter" />, href: '/submit.jsp' },
             { name: <FormattedMessage id="menu.submit.bulkImport" defaultMessage="Bulk Import" />, href: '/import/instructions.jsp' },
         ]
     },
@@ -13,16 +13,16 @@ const authenticatedMenu = (username) => [
             { name: <FormattedMessage id="menu.learn.contactUs" defaultMessage="Contact Us" />, href: '/contactus.jsp' },
             { name: <FormattedMessage id="menu.learn.citingWildbook" defaultMessage="Citing Wildbook" />, href: '/citing.jsp' },
             { name: <FormattedMessage id="menu.learn.howToPhotograph" defaultMessage="How to Photograph" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.learnMore" defaultMessage="Learn more about Wildbook" />, href: 'https://www.wildme.org/#/wildbook' },
+            { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
+            { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
         ]
     },
     
     {
         'My_Data': [
             { 
-                name: <FormattedMessage id="menu.myData.myEncounters" defaultMessage="My Encounters" />, 
+                name: <FormattedMessage id="menu.myData.myEncounters" defaultMessage="My Encounters"  />, 
+                href: `/encounters/searchResults.jsp?username=${username}`,
                 sub: [
                     { name: <FormattedMessage id="menu.myData.approvedAnimals" defaultMessage="My Approved Animals" />, href: `/encounters/searchResults.jsp?username=${username}&state=approved` },
                     { name: <FormattedMessage id="menu.myData.unapprovedAnimals" defaultMessage="My Unapproved Animals" />, href: `/encounters/searchResults.jsp?username=${username}&state=unapproved` },
@@ -50,7 +50,6 @@ const authenticatedMenu = (username) => [
     },
     {
         'Administer': [
-            { name: <FormattedMessage id="menu.administer.myAccount" defaultMessage="My Account" />, href: '/myAccount.jsp' },
             { name: <FormattedMessage id="menu.administer.manageAccounts" defaultMessage="Manage My Accounts" />, href: '/myUsers.jsp' },
             { name: <FormattedMessage id="menu.administer.userManagement" defaultMessage="User Management" />, href: '/appadmin/users.jsp?context=context0' },
             { name: <FormattedMessage id="menu.administer.libraryAdmin" defaultMessage="Library Administration" />, href: '/appadmin/admin.jsp' },
@@ -65,7 +64,7 @@ const authenticatedMenu = (username) => [
 const unAuthenticatedMenu = [
     {
         'Submit': [
-            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report a Sighting" />, href: '/submit.jsp' },
+            { name: <FormattedMessage id="menu.submit.reportSighting" defaultMessage="Report an Encounter" />, href: '/submit.jsp' },
         ]      
     }, 
     {
@@ -74,9 +73,8 @@ const unAuthenticatedMenu = [
             { name: <FormattedMessage id="menu.learn.contactUs" defaultMessage="Contact Us" />, href: '/photographing.jsp' },
             { name: <FormattedMessage id="menu.learn.citingWildbook" defaultMessage="Citing Wildbook" />, href: '/citing.jsp' },
             { name: <FormattedMessage id="menu.learn.howToPhotograph" defaultMessage="How to Photograph" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.learnMore" defaultMessage="Learn more about Wildbook" />, href: 'https://www.wildme.org/#/wildbook' },
+            { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacy-policy.jsp' },
+            { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/terms-of-use.jsp' },
         ]
     }, 
           

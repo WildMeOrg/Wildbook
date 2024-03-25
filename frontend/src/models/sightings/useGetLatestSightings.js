@@ -5,7 +5,7 @@ import { get } from 'lodash-es';
 import queryKeys from '../../constants/queryKeys';
 import useFetch from '../../hooks/useFetch';
 
-export default function useGetMe() {
+export default function useGetLatestSightings() {
 //   function onSuccess(response) {
 //     if (!__DEV__) {
 //       Sentry.setUser({

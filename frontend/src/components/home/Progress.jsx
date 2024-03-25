@@ -14,7 +14,6 @@ export default function Progress({
     onClick,
     ...rest }) {
 
-        console.log(noUnderline, 'noUnderline');
     const styles = {
         color: disabled ? 'grey' : 'unset',
         textDecoration: noUnderline ? 'none' : 'underline',
@@ -48,7 +47,7 @@ export default function Progress({
                         cursor: styles.cursor, 
                     }}
                 >
-                    <h6>{name}</h6>
+                    <h5>{name}</h5>
                     <span>{encounters} encounters</span>
                 </a>
             </div>
@@ -75,16 +74,18 @@ export default function Progress({
                         borderRadius: '3px',
                     }}>
                         
-                        <span style={{
+                        <div style={{
                             position: 'absolute', 
-                            top: '50%', 
-                            left: '50%', 
-                            transform: 'translate(-50%, -50%)', 
+                            height: '13px',
+                            top: '-3px',
+                            left: progress > 7 ? '30%' : '0',
+                            // transform: progress>10 ? 'translate(-50%, 0)' : 'none',
                             color: 'white', 
                             fontSize: '0.8em',
+                            padding: 0,
                         }}>
                             {progress}%
-                        </span>
+                        </div>
                     </div>
                 </div>
             </div>

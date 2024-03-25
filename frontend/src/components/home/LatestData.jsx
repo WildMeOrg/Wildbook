@@ -3,7 +3,8 @@ import DiamondCard from '../DiamondCard';
 import More from '../CircledMoreButton';
 import { formatDate } from '../../utils/formatters';
 
-export default function LatestData({data}) {
+export default function LatestData({data, username}) {
+    console.log('LatestData', data);
 
     return (
         <div className="content col-12"
@@ -25,37 +26,19 @@ export default function LatestData({data}) {
                 alignItems: 'center',
                 justifyContent: 'center',
             }}>
-                {(data?.latestSightings || []).map(sighting => 
+                {data.map(sighting => 
                 {
-                    const formattedDate = formatDate(sighting.dateTime, true);
+                    const formattedDate = formatDate(sighting.date, true) || sighting.dateTime;
                     return <DiamondCard 
                         date={formattedDate}
-                        title={sighting.taxonomies[0]}
+                        title={sighting.taxonomy}
                         annotations={sighting.numberAnnotations}
-                        animals={sighting.numberEncounters}
                     />
                 }
                     )
                 }
-                {!data?.latestSightings && <>
-                    <DiamondCard 
-                    date="Aug 05 2021"
-                    title="Fake Species"
-                    annotations={5}
-                    />
-                    <DiamondCard 
-                        date="Aug 05 2022"
-                        title="Fake Species"
-                        annotations={5}
-                    />
-                    <DiamondCard 
-                        date="Aug 05 2023"
-                        title="Fake Species"
-                        annotations={5}
-                    /></>
-                }
                 
-                <More href={"/encounters/searchResults.jsp?null"}/>
+                <More href={`/encounters/searchResults.jsp?username=${username}`}/>
             </div>
         </div>
     );

@@ -1,17 +1,30 @@
 
 import React from "react";
 import BrutalismButton from "../BrutalismButton";
+import { FormattedMessage } from "react-intl";
 
-export default function LatestActivity({name, files, date, onViewClick}) {
+export default function LatestActivity({
+  name, 
+  num,
+  date, 
+  text,
+  disabled,
+  onViewClick
+}) {
 
     return (
         <div className="activity-item" style={{ marginBottom: '0.5em'}}>
-          <h5>{name}</h5>
-          <span>
-            {files} files uploaded | {date}
+          <h5><FormattedMessage id={name} /></h5>
+          {
+            num && <span>
+              <FormattedMessage id='FILES_LOADED' values={{num: num}}/> |{' '}
+            </span>
+          }          
+          <span >
+            {date}
           </span>
           <BrutalismButton>
-            View
+            {text ? <FormattedMessage id="VIEW"/> : <FormattedMessage id="NONE"/>}
           </BrutalismButton>
         </div>
       );
