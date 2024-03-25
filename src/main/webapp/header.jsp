@@ -45,6 +45,7 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
@@ -190,6 +191,47 @@ finally{
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <%
+        if(user != null && !loggingOut){
+      %>
+        <script type="text/javascript">
+        $(document).ready(function() {
+
+            // Session warning times in minutes
+            var warningTime = <%=sessionWarningTime %>;
+
+            function showWarning() {
+              $('#sessionModal').modal('show');
+            }
+
+            function extendSession() {
+                $.get("ExtendSession", function() {
+                    console.log("Session extended.");
+                    startSessionTimer();
+                });
+            }
+
+            function startSessionTimer() {
+                setTimeout(showWarning, (warningTime * 60 * 1000));
+            }
+
+            // Start the session timer as soon as the page is ready
+            startSessionTimer();
+
+            // Attach the click event listener to the "Extend Session" button
+            $("#extendSessionBtn").click(function() {
+                extendSession();
+            });
+
+
+
+        });
+    </script>
+      <%
+        }
+      %>
+
+
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
@@ -211,6 +253,25 @@ finally{
     </head>
 
     <body role="document">
+
+
+
+    <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sessionModalLabel"><%=props.getProperty("sessionHeaderWarning") %></h5>
+          </div>
+          <div class="modal-body">
+            <%=props.getProperty("sessionModalContent") %>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-dismiss="modal" ><%=props.getProperty("extendButton") %></button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal"><%=props.getProperty("closeButton") %></button>
+          </div>
+        </div>
+        </div>
+    </div>
 
       <!-- Google Tag Manager (noscript) -->
       <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
