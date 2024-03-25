@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import AuthContext from './AuthProvider';
 import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
+import useGetMe from './models/auth/users/useGetMe';
 
 // import useSiteSettings from './models/site/useSiteSettings';
 export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) {
@@ -22,12 +23,27 @@ export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) 
   console.log('AuthenticatedSwitch');
 
   const isLoggedIn = useContext(AuthContext);
+  const result = useGetMe();
+  const username = result.data?.displayName;
+
+  // const siteName = useSite
 
   console.log('isLoggedIn: ', isLoggedIn);
   return (
     <main>
-      
-      <AuthenticatedAppHeader /> 
+
+      <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  maxWidth: '1440px',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  zIndex: '100',
+                  width: '100%',
+                }}>            
+                  {/* <UnAuthenticatedAppHeader /> */}
+                  <AuthenticatedAppHeader username={username}/>
+            </div>
 
       <div
         style={{
@@ -44,7 +60,7 @@ export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) 
       >
         <Routes>
           <Route path="/profile" element={<Profile />} />
-          <Route path="/about" element={<About />} />
+          {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
