@@ -586,9 +586,13 @@
       <url-pattern>/react</url-pattern>
   </servlet-mapping>  
 
-  <error-page>
+  <!-- <error-page>
     <error-code>404</error-code>
     <location>/react/index.html</location>
+  </error-page> -->
+  <error-page>
+    <error-code>404</error-code>
+    <location>/react/home/</location>
   </error-page>
 
   <servlet>

@@ -5,9 +5,11 @@ import PickUp from '../components/home/PickUpWhereYouLeft';
 import Report from '../components/home/Report';
 import Projects from '../components/home/Projects';
 import { useState, useEffect } from 'react';
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 export default function Home() {
 
+    useDocumentTitle('HOME');
     const [data, setData] = useState([]);
 
     async function fetchData() {
@@ -26,6 +28,21 @@ export default function Home() {
             }
 
             const result = await response.json();
+            // result.latestBulkImportTask = {
+            //     "id": "task_12345",
+            //             "dateTimeCreated": "2023-03-20T10:00:00Z",
+            //             "numberEncounters": 15,
+            //             "numberMediaAssets": 10
+            //                     };
+            // result.latestBulkImportIndividual = {
+            //     "id": "indiv_67890",
+            //     "dateTimeCreated": "2023-03-18T08:30:00Z"
+            // }
+            // result.latestMatchTask = {
+            //     "id": "match_54321",
+            //     "dateTimeCreated": "2023-03-19T09:45:00Z",
+            //     "encounterId": "enc_98765",
+            // }
             console.log(result);
             setData(result);
         } catch (error) {
@@ -41,7 +58,7 @@ export default function Home() {
         <>
             <div className="col-12">
                 <LandingImage />
-                <LatestData data={data}/>
+                <LatestData data={data.latestEncounters || []} username={data?.user?.displayName}/>
                 <PickUp data={data}/>
                 <Report />
                 <Projects data={data.projects} />

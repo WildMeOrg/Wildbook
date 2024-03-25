@@ -45,7 +45,7 @@ export default function Projects ({ data }) {
             { 
                 (Array.isArray(data) && data.length) ?
                 data?.map((item, index) => {
-                        return <Progress 
+                    return <Progress 
                             key={index}
                             name={item.name} 
                             encounters = {item.numberEncounters} 
@@ -69,31 +69,18 @@ export default function Projects ({ data }) {
                 <a href='/projects/projectList.jsp'
                     style={{
                         color: 'black',
-                        fontWeight: 'bold',
+                        fontWeight: '600',
                         textDecoration: 'none',     
-                        marginTop: '20px',               
+                        marginTop: '20px',
+                        fontSize: '1.1em',    
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',           
                     }}
                     target = '_blank'
-                ><FormattedMessage id='SEE_ALL'/> </a>     
+                ><FormattedMessage id='SEE_ALL'/><i class="bi bi-arrow-right-short" style={{fontSize: 22}}></i> </a>     
 
-                
-                {/* <Progress 
-                    name='Seal' 
-                    encounters = '12' 
-                    progress='12'
-                    href='/projects/projectList.jsp'
-                    noUnderline
-                    newTab
-                    />             
-           
-                <Progress 
-                        name='Seal' 
-                        encounters = '12' 
-                        progress='12'
-                        href='/projects/projectList.jsp'
-                        noUnderline
-                        newTab
-                        /> */}
           
 
         </div>
