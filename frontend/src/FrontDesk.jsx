@@ -5,7 +5,7 @@ import axios from 'axios';
 import AuthContext from './AuthProvider';
 import ThemeProvider from './ThemeProvider';
 
-export default function FrontDesk({ adminUserInitialized = true }) {
+export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState();
 
@@ -32,11 +32,12 @@ export default function FrontDesk({ adminUserInitialized = true }) {
   }, []);
 
   if (isLoggedIn) {
+    console.log(111111111111111);
     return (
       <AuthContext.Provider value={isLoggedIn}>
-        <ThemeProvider>          
-          <AuthenticatedSwitch adminUserInitialized />
-        </ThemeProvider>
+         {/* <ThemeProvider>           */}
+          <AuthenticatedSwitch />
+         {/* </ThemeProvider> */}
       </AuthContext.Provider>
     );
   }
@@ -44,8 +45,8 @@ export default function FrontDesk({ adminUserInitialized = true }) {
     console.log('Error', error);
     return <UnauthenticatedSwitch />
   };
-
-  return (
+  console.log(3333333333333);
+  return (    
     <h1>Loading</h1>
   );
 }
