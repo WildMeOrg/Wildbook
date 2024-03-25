@@ -42,7 +42,9 @@ context=ServletUtilities.getContext(request);
 	
 	    %>
 
-        <p><a href="welcome.jsp"><%=props.getProperty("clickHere") %></a></p>
+        <!-- <p><a href="welcome.jsp"><%=props.getProperty("clickHere") %></a></p> -->
+        <p><a href="<%= request.getContextPath() %>/react/login/"><%=props.getProperty("clickHere") %></a></p>
+        
 
         <p>&nbsp;</p>
       </div>
