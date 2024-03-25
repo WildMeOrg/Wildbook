@@ -63,7 +63,6 @@ public class UserHome extends ApiBase {
         home.put("latestEncounters", encountersArr);
 
         JSONObject itaskJson = null;
-        JSONObject latestIndivJson = null;
         List<ImportTask> itasks = myShepherd.getImportTasksForUser(currentUser);
         if (itasks.size() > 0) {
             itaskJson = new JSONObject();
@@ -71,15 +70,18 @@ public class UserHome extends ApiBase {
             itaskJson.put("dateTimeCreated", itasks.get(0).getCreated());
             itaskJson.put("numberEncounters", Util.collectionSize(itasks.get(0).getEncounters()));
             itaskJson.put("numberMediaAssets", Util.collectionSize(itasks.get(0).getMediaAssets()));
-
-            List<MarkedIndividual> indivs = itasks.get(0).getMarkedIndividuals();
-            if (!Util.collectionIsEmptyOrNull(indivs)) {
-                latestIndivJson = new JSONObject();
-                latestIndivJson.put("id", indivs.get(0).getId());
-            }
         }
         home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
-        home.put("latestBulkImportIndividual", Util.jsonNull(latestIndivJson));
+
+        JSONObject latestIndivJson = null;
+        for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser, "modified DESC")) {
+            if (enc.getIndividual() != null) {
+                latestIndivJson = new JSONObject();
+                latestIndivJson.put("id", enc.getIndividual().getId());
+                break;
+            }
+        }
+        home.put("latestIndividual", Util.jsonNull(latestIndivJson));
 
         // match result: if within 2 weeks, match result page; if older, the encounter page
         JSONObject matchJson = null;
