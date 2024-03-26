@@ -78,6 +78,7 @@ public class UserHome extends ApiBase {
             if (enc.getIndividual() != null) {
                 latestIndivJson = new JSONObject();
                 latestIndivJson.put("id", enc.getIndividual().getId());
+                latestIndivJson.put("dateTime", enc.getModified());
                 break;
             }
         }
