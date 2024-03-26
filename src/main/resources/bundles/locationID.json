@@ -6,52 +6,52 @@
 		
 ] },
 		{ "name": "North America", "id": "North America", "locationID":[
-			{"name": "Canada", "id": "Canada"},
-			{"name": "Mexico", "id": "Mexico"},
-				{"name": "Tamaulipas", "id": "Tamaulipas"},
-				{"name": "San Carlos", "id": "San Carlos"},
-				{"name": "Jimenez", "id": "Jimenez"},
-				{"name": "Victoria", "id": "Victoria"},
-				{"name": "Jaumave", "id": "Jaumave"},
-				{"name": "Xicotencatl", "id": "Xicotencatl"},
-				{"name": "Mante", "id": "Mante"},
-				{"name": "Antiguo Morelos", "id": "Antiguo Morelos"},
-				{"name": "Nuevo Morelos", "id": "Nuevo Morelos"},
-				{"name": "Altamira", "id": "Altamira"},
-				{"name": "Gonzalez", "id": "Gonzalez"},
-				{"name": "Aldama", "id": "Aldama"},
-				{"name": "Ocampo", "id": "Ocampo"},
-				{"name": "Llera", "id": "Llera"},
-				{"name": "Soto La Marina", "id": "Soto La Marina"},
-				{"name": "Casas", "id": "Casas"},
-				{"name": "Gomez Farias", "id": "Gomez Farias"},
-			{"name": "USA", "id": "USA"},
+			{"name": "Canada", "id": "Canada", "locationID":[] },
+			{"name": "Mexico", "id": "Mexico", "locationID":[] },
+				{"name": "Tamaulipas", "id": "Tamaulipas", "locationID":[] },
+				{"name": "San Carlos", "id": "San Carlos", "locationID":[] },
+				{"name": "Jimenez", "id": "Jimenez", "locationID":[] },
+				{"name": "Victoria", "id": "Victoria", "locationID":[] },
+				{"name": "Jaumave", "id": "Jaumave", "locationID":[] },
+				{"name": "Xicotencatl", "id": "Xicotencatl", "locationID":[] },
+				{"name": "Mante", "id": "Mante", "locationID":[] },
+				{"name": "Antiguo Morelos", "id": "Antiguo Morelos", "locationID":[] },
+				{"name": "Nuevo Morelos", "id": "Nuevo Morelos", "locationID":[] },
+				{"name": "Altamira", "id": "Altamira", "locationID":[] },
+				{"name": "Gonzalez", "id": "Gonzalez", "locationID":[] },
+				{"name": "Aldama", "id": "Aldama", "locationID":[] },
+				{"name": "Ocampo", "id": "Ocampo", "locationID":[] },
+				{"name": "Llera", "id": "Llera", "locationID":[] },
+				{"name": "Soto La Marina", "id": "Soto La Marina", "locationID":[] },
+				{"name": "Casas", "id": "Casas", "locationID":[] },
+				{"name": "Gomez Farias", "id": "Gomez Farias", "locationID":[] },
+			{"name": "USA", "id": "USA", "locationID":[] },
 		] },
 { "name": "Central America", "id": "Central America", "locationID":[
-			{"name": "Guatemala", "id": "Guatemala"},
-			{"name": "Nicaragua", "id": "Nicaruaga"},
-			{"name": "Costa Rica", "id": "Costa Rica"},
-		{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve"},
-			{"name": "Panama", "id": "Panama"}, 
+			{"name": "Guatemala", "id": "Guatemala", "locationID":[] },
+			{"name": "Nicaragua", "id": "Nicaruaga", "locationID":[] },
+			{"name": "Costa Rica", "id": "Costa Rica", "locationID":[] },
+		{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve", "locationID":[] },
+			{"name": "Panama", "id": "Panama", "locationID":[] },
 		] },
 
 	] },
 	{ "name": "South America", "id": "South America", "locationID":[
-		{"name": "Argentina", "id": "Argentina"},
-		{"name": "Brazil", "id": "Brazil"},
-			{"name": " Pará", "id": " Pará"},
+		{"name": "Argentina", "id": "Argentina", "locationID":[] },
+		{"name": "Brazil", "id": "Brazil", "locationID":[] },
+			{"name": " Pará", "id": " Pará", "locationID":[] },
 
-		{"name": "Bolivia", "id": "Bolivia"},
-		{"name": "Chile", "id": "Chile"},
-		{"name": "Columbia", "id": "Columbia"},
-		{"name": "Ecuador", "id": "Ecuador"},
-		{"name": "French Guiana", "id": "French Guiana"},
-		{"name": "Guyana", "id": "Guyana"},
-		{"name": "Paraguay", "id": "Paraguay"},
-		{"name": "Peru", "id": "Peru"},
-		{"name": "Suriname", "id": "Suriname"},
-		{"name": "Uruguay", "id": "Uruguay"},
-		{"name": "Venezuela", "id": "Venezuela"},
+		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
+		{"name": "Chile", "id": "Chile", "locationID":[] },
+		{"name": "Columbia", "id": "Columbia", "locationID":[] },
+		{"name": "Ecuador", "id": "Ecuador", "locationID":[] },
+		{"name": "French Guiana", "id": "French Guiana", "locationID":[] },
+		{"name": "Guyana", "id": "Guyana", "locationID":[] },
+		{"name": "Paraguay", "id": "Paraguay", "locationID":[] },
+		{"name": "Peru", "id": "Peru", "locationID":[] },
+		{"name": "Suriname", "id": "Suriname", "locationID":[] },
+		{"name": "Uruguay", "id": "Uruguay", "locationID":[] },
+		{"name": "Venezuela", "id": "Venezuela", "locationID":[] },
 		] },
 
 	  
@@ -65,33 +65,33 @@
 		
 		] },
 		{ "name": "Europe", "id": "Europe", "locationID":[
-			{"name": "Austria", "id": "Austria"},
-			{"name": "Belgium", "id": "Belgium"},
-			{"name": "Czech Republic", "id": "Czech Republic"},
-			{"name": "France", "id": "France"}, 
-			{"name": "Germany", "id": "Germany"}, 
-			{"name": "Italy", "id": "Italy"}, 
-			{"name": "Luxembourg", "id": "Luxembourg"}, 
-			{"name": "Switzerland", "id": "Switzerland"}
+			{"name": "Austria", "id": "Austria", "locationID":[] },
+			{"name": "Belgium", "id": "Belgium", "locationID":[] },
+			{"name": "Czech Republic", "id": "Czech Republic", "locationID":[] },
+			{"name": "France", "id": "France", "locationID":[] },
+			{"name": "Germany", "id": "Germany", "locationID":[] },
+			{"name": "Italy", "id": "Italy", "locationID":[] },
+			{"name": "Luxembourg", "id": "Luxembourg", "locationID":[] },
+			{"name": "Switzerland", "id": "Switzerland", "locationID":[] },
 		] },
 		
 		{"name": "India", "id": "India", "locationID":[
 		
-			{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest" }
+			{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] },
 		
 		] },
 		
-		{"name": "Iran", "id": "Iran" },
+		{"name": "Iran", "id": "Iran", "locationID":[] },
 
-		{"name": "Kazakhstan", "id": "Kazakhstan"},
+		{"name": "Kazakhstan", "id": "Kazakhstan", "locationID":[] },
 
-		{"name": "Kyrgyzstan", "id": "Kyrgyzstan"},
-		
-		{"name": "Nepal", "id": "Nepal"},
+		{"name": "Kyrgyzstan", "id": "Kyrgyzstan", "locationID":[] },
 
-		{"name": "Turkmenistan", "id": "Turkmenistan"},
+		{"name": "Nepal", "id": "Nepal", "locationID":[] },
 
-		{"name": "Uzbekistan", "id": "Uzbekistan"}
+		{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
+
+		{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] },
 	
 
 
