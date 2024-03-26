@@ -324,7 +324,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //end individualID filters-----------------------------------------------
 
     //occurrenceID filters-------------------------------------------------
-    //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
     String occurrenceID=request.getParameter("occurrenceID");
     if((occurrenceID!=null)&&(!occurrenceID.equals("None"))&&(!occurrenceID.trim().equals(""))){
           prettyPrint.append("occurrence ID contains the following: ");
