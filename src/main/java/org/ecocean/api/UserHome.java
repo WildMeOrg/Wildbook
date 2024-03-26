@@ -87,6 +87,7 @@ public class UserHome extends ApiBase {
         JSONObject matchJson = null;
         List<Task> tasks = myShepherd.getIdentificationTasksForUser(currentUser);
         if (!Util.collectionIsEmptyOrNull(tasks)) {
+            matchJson = new JSONObject();
             matchJson.put("id", tasks.get(0).getId());
             matchJson.put("dateTimeCreated", new DateTime(tasks.get(0).getCreatedLong()));
             matchJson.put("encounterId", JSONObject.NULL);
