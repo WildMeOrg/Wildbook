@@ -125,17 +125,7 @@ function LoginPage() {
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
                 <Row>
                   <Col xs={6} >
-                    {/* <Form.Check
-                      type="checkbox"
-                      label={
-                        intl.formatMessage({
-                          id: 'REMEMBER_ME',
-                        })
-                      }
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    /> */}
-                    <style>
+                    {/* <style>
                       {`
                         input[type="checkbox"] {
                           accent-color: #00ACCE;
@@ -150,15 +140,8 @@ function LoginPage() {
                         name="rememberMe"
                       />
                       <span class="label-text"><FormattedMessage id='REMEMBER_ME'/></span>
-                    </label>
+                    </label> */}
 
-                  </Col>
-                  <Col xs={6} className="text-end">
-                    <a href="/resetPassword.jsp">{
-                      intl.formatMessage({
-                        id: 'FORGOT_PASSWORD',
-                      })
-                    }</a>
                   </Col>
                 </Row>
               </Form.Group>
@@ -169,7 +152,7 @@ function LoginPage() {
                 // color={theme.primaryColors.primary500}
                 color='#00ACCE'
                 borderColor='#00ACCE'
-                // borderColor={theme.primaryColors.primary500}
+              // borderColor={theme.primaryColors.primary500}
               // disabled={actionDisabled}
               >
                 {
@@ -179,23 +162,19 @@ function LoginPage() {
                 }
               </BrutalismButton>
 
-              {/* {error && (
-                <div class="alert alert-danger" role="alert" style={{
-                  marginTop: '20px',
-                }}>
-                  <i class="bi bi-exclamation-circle"></i>{' '}{error}
-                </div>
-              )} */}
-              {show && <Alert variant="danger" onClose={() => setShow(false)} dismissible style={{ marginTop: '20px' }}>
+              {show && error && <Alert variant="danger" onClose={() => setShow(false)} dismissible style={{ marginTop: '20px' }}>
                 <i class="bi bi-exclamation-circle"></i>{' '}{error}
               </Alert>}
 
               <div className="text-center mt-3 d-flex ">
-                {
-                  intl.formatMessage({
-                    id: 'NEW_TO_WILDBOOK',
-                  })
-                }
+                <span>
+                  <a href="/resetPassword.jsp">{
+                    intl.formatMessage({
+                      id: 'FORGOT_PASSWORD',
+                    })
+                  }</a>
+                </span>
+                <span style={{ marginLeft: 8, color: 'blue' }}>|</span>
                 <span style={{
                   marginLeft: '8px',
                 }}>
