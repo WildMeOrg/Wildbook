@@ -16,10 +16,13 @@ export default function FrontDesk() {
         setIsLoggedIn(response.status === 200);
       })
       .catch(error => {
+        console.log('Error', error);
+        setIsLoggedIn(false);
         setError(error);
       });
   };
 
+  
   useEffect(() => {
     checkLoginStatus();
 
@@ -31,12 +34,14 @@ export default function FrontDesk() {
     return () => clearInterval(intervalId);
   }, []);
 
+  console.log('isLoggedIn', isLoggedIn);
+
   if (isLoggedIn) {
-    console.log(111111111111111);
+    console.log('isLoggedIn', isLoggedIn);
     return (
-      <AuthContext.Provider value={isLoggedIn}>
+      <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
          {/* <ThemeProvider>           */}
-          <AuthenticatedSwitch />
+          <AuthenticatedSwitch isLoggedIn={isLoggedIn}/>
          {/* </ThemeProvider> */}
       </AuthContext.Provider>
     );
@@ -45,7 +50,7 @@ export default function FrontDesk() {
     console.log('Error', error);
     return <UnauthenticatedSwitch />
   };
-  console.log(3333333333333);
+
   return (    
     <h1>Loading</h1>
   );

@@ -71,6 +71,7 @@
     "react-bootstrap-icons": "^1.11.3",
     "react-query": "^3.39.3",
     "style-loader": "^3.3.4",
+    "styled-components": "^6.1.8",
     "terser-webpack-plugin": "^5.3.10",
     "unused-webpack-plugin": "^2.4.0",
     "webpack": "^5.90.3",
