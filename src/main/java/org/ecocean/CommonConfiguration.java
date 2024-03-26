@@ -1021,4 +1021,25 @@ public class CommonConfiguration {
     return getProperty("wildbookCommunityUrl", context).trim();
   }
 
+  /**
+   * Retrieves the sessionWarningTime.
+   *
+   * @param context Webapp context
+   * @return The sessionWarningTime
+   */
+
+    public static int getSessionWarningTime(String context) {
+
+    int def = 20;
+    String prop = getProperty("sessionWarningTime", context);
+    if (prop == null || "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
+  }
+
 }
