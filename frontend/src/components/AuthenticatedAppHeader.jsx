@@ -8,27 +8,24 @@ import RightIcon from './svg/RightIcon';
 import NotificationButton from './navBar/NotificationButton';
 import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
 import AuthContext from '../AuthProvider';
-import useGetMe from '../models/auth/users/useGetMe';
 import { FormattedMessage } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import AvatarAndUserProfile from './header/AvatarAndUserProfile';
 
-export default function AuthenticatedAppHeader({username}) {
+export default function AuthenticatedAppHeader({ username, avatar }) {
+  console.log('AuthenticatedAppHeader', avatar);
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
-  const [ backgroundColor, setBackgroundColor ] = useState(homePage ? 'transparent' : '#00a1b2');
-  const navigate = useNavigate();
+  const [backgroundColor, setBackgroundColor] = useState(homePage ? 'transparent' : '#00a1b2');
 
-  console.log('AuthenticatedAppHeader getting username', username);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (homePage && currentScrollY > 40) {
         setBackgroundColor('#00a1b2');
-      } else if(homePage){
-        setBackgroundColor('transparent');      
+      } else if (homePage) {
+        setBackgroundColor('transparent');
       }
     }
     window.addEventListener('scroll', handleScroll);
@@ -44,33 +41,16 @@ export default function AuthenticatedAppHeader({username}) {
     dropdown6: false,
     dropdown7: false,
   });
+  const [dropdownBorder, setDropdownBorder] = useState('2px solid transparent');
 
   const handleMouseEnter = (id) => {
     setDropdownShows(prev => ({ ...prev, [id]: true }));
+    setDropdownBorder(prev => ({ ...prev, [id]: '2px solid white' }))
   };
 
   const handleMouseLeave = (id) => {
     setDropdownShows(prev => ({ ...prev, [id]: false }));
-  };
-
-  const isLoggedIn = useContext(AuthContext);
-  console.log('=============>>>>>>>>>>>>>>>', isLoggedIn);
-
-  const logout = async event => {
-    console.log('Logging out');
-    event.preventDefault();
-    await fetch('/api/v3/logout')
-      .then(response => {
-        if (response.status === 200) {
-          console.log('User logged out');
-          window.location.href = '/react/home/';
-        } else if (response.status === 401) {
-          console.log('User is not logged in');
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    setDropdownBorder(prev => ({ ...prev, [id]: '2px solid transparent' }))
   };
 
   return (<Navbar variant="dark" expand="lg"
@@ -89,79 +69,73 @@ export default function AuthenticatedAppHeader({username}) {
   >
     <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '25%'}}>
-      <Nav className="mr-auto" id='nav' style={{ 
-        display: 'flex', 
-        justifyContent: 'flex-end', 
-        width: '100%' ,
-
-        }}>
+    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '25%' }}>
+      <Nav className="mr-auto" id='nav' style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        width: '100%',
+      }}>
         {authenticatedMenu(username).map((item, idx) => (
-          <Nav className="me-auto">
-            <NavDropdown 
+          <Nav className="me-auto" key={idx}>
+            <NavDropdown
               title={
                 <span style={{ color: 'white' }}>
                   <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
-                  <DownIcon color={'white'}/>
-                </span>} 
+                  {' '}
+                  <DownIcon color={'white'} />
+                </span>}
               id={`basic-nav-dropdown${idx}`}
-              style={{ color: 'white', height: 30 }}
+              style={{ color: 'white', boxSizing: 'border-box', 
+                borderBottom: dropdownBorder[`dropdown${idx + 1}`] || '2px solid transparent'}}
               onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
               onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
-              show={dropdownShows[`dropdown${idx + 1}`]  }
-              >
-              
+              show={dropdownShows[`dropdown${idx + 1}`]}
+            >
+
               {
                 Object.values(item)[0].map((subItem, idx) => {
                   return (
-                  subItem.sub 
-                  ? <NavDropdown title={
-                      // <span style={{ color: 'black' }}>
-                      //   {subItem.name}
-                      //   <span style={{paddingLeft: '34px'}}><RightIcon /></span>
-                      // </span>
-                      <a 
-                        style={{
-                          color: 'black',
-                          fontSize: '0.9rem',
-                          textDecoration: 'none'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          e.preventDefault();
-                          window.location.href = subItem.href; 
-                        }}
-                        href={subItem.href}>
+                    subItem.sub
+                      ? <NavDropdown title={
+                        <a
+                          style={{
+                            color: 'black',
+                            fontSize: '0.9rem',
+                            textDecoration: 'none'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            window.location.href = subItem.href;
+                          }}
+
+                          href={subItem.href}>
                           {subItem.name}
-                          <span style={{paddingLeft: '34px'}}>
+                          <span style={{ paddingLeft: '34px' }}>
                             <RightIcon />
                           </span>
-                      </a>
-                    }
-                      style={{
-                        paddingLeft: 8,
-                        fontSize: '0.9rem'
-                      }}
-                      // href={subItem.href}
-                      onMouseEnter={() => handleMouseEnter(`dropdown7`)}
-                      onMouseLeave={() => handleMouseLeave(`dropdown7`)}
-                      show={dropdownShows[`dropdown7`]  }
-                      // onClick={(e) => {
-                      //   e.preventDefault();
-                      //   console.log('clicked', subItem.href); 
-                      //   navigate(subItem.href);}}
-                  > 
-                  {subItem.sub.map((sub, idx) => {
-                    return <NavDropdown.Item href={sub.href} style={{ color: 'black', fontSize: '0.9rem' }}>
-                      {sub.name}
-                    </NavDropdown.Item> 
-                  }
-                  )}
-                </NavDropdown>
-                : <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem'}}>
-                  {subItem.name}
-                </NavDropdown.Item>)
-              })}
+                        </a>
+                      }
+                        drop="end"
+                        style={{
+                          paddingLeft: 8,
+                          fontSize: '0.9rem'
+                        }}
+                        onMouseEnter={() => handleMouseEnter(`dropdown7`)}
+                        onMouseLeave={() => handleMouseLeave(`dropdown7`)}
+                        show={dropdownShows[`dropdown7`]}
+                      >
+                        {subItem.sub.map((sub) => {
+                          return <NavDropdown.Item href={sub.href} style={{ color: 'black', fontSize: '0.9rem' }}>
+                            {sub.name}
+                          </NavDropdown.Item>
+                        }
+                        )}
+                      </NavDropdown>
+                      : <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem' }}>
+                        {subItem.name}
+                      </NavDropdown.Item>)
+                })}
             </NavDropdown>
           </Nav>
         ))}
@@ -169,26 +143,7 @@ export default function AuthenticatedAppHeader({username}) {
       </Nav>
       <NotificationButton count={1} />
       <MultiLanguageDropdown />
-      <Nav style={{ alignItems: 'center', marginLeft: '20px', width: 50 }}>
-        <NavDropdown 
-          title={<Avatar />} 
-          id="basic-nav-dropdown" 
-          drop="down"
-          >
-          <NavDropdown.Item href={'/react/home/'} style={{ color: 'black' }}>
-           <FormattedMessage id="LANDING_PAGE"/>
-          </NavDropdown.Item>
-          <NavDropdown.Item href={'/myAccount.jsp'} style={{ color: 'black' }}>
-          <FormattedMessage id="USER_PROFILE" />
-          </NavDropdown.Item>
-          
-          <NavDropdown.Item onClick={logout} style={{ color: 'black' }}>
-            <FormattedMessage id="LOGOUT" />
-          </NavDropdown.Item>
-          {/* <NavDropdown.Divider /> */}
-
-        </NavDropdown>
-      </Nav>
+      <AvatarAndUserProfile username={username} avatar={avatar} />
     </Navbar.Collapse>
   </Navbar>)
 }
