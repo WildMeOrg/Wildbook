@@ -578,7 +578,7 @@ public class User implements Serializable {
         projects2.removeAll(projects1);
         projects1.addAll(projects2);
         // sort new list
-        projects1.sort((o1, o2) -> o1.getTimeLastModifiedLongNonNull().compareTo(o2.getTimeLastModifiedLongNonNull()));
+        projects1.sort((o1, o2) -> o2.getTimeLastModifiedLongNonNull().compareTo(o1.getTimeLastModifiedLongNonNull()));
         return projects1;
     }
 
