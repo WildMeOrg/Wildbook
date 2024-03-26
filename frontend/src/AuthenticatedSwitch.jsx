@@ -1,34 +1,22 @@
-import React, { useContext } from 'react';
-import { get } from 'lodash-es';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import About from './About';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import NotFound from './NotFound';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Footer from './components/Footer';
-import AuthContext from './AuthProvider';
-import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
+ import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 import useGetMe from './models/auth/users/useGetMe';
 
-// import useSiteSettings from './models/site/useSiteSettings';
-export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) {
-  //   const { data: siteSettings } = useSiteSettings();
-  //   const siteNeedsSetup = get(siteSettings, [
-  //     'site.needsSetup',
-  //     'value',
-  //   ]);
+export default function AuthenticatedSwitch({ adminUserInitialized, isLoggedIn }) {
 
-  console.log('AuthenticatedSwitch');
+  const { isFetched, data, error } = useGetMe();
+  console.log('data', data);
+  const username = data?.displayName;
+  const avatar = data?.imageURL || '/react/images/forest.png';
 
-  const isLoggedIn = useContext(AuthContext);
-  const result = useGetMe();
-  const username = result.data?.displayName;
-
-  // const siteName = useSite
-
-  console.log('isLoggedIn: ', isLoggedIn);
+  console.log('switch avatar: ', avatar);
   return (
     <main>
 
@@ -41,8 +29,9 @@ export default function AuthenticatedSwitch({ adminUserInitialized, loggedIn }) 
                   zIndex: '100',
                   width: '100%',
                 }}>            
-                  {/* <UnAuthenticatedAppHeader /> */}
-                  <AuthenticatedAppHeader username={username}/>
+                  {isLoggedIn ? <AuthenticatedAppHeader username={username} avatar={avatar}/>
+                  : <UnAuthenticatedAppHeader />  
+                }
             </div>
 
       <div
