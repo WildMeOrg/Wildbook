@@ -11,20 +11,23 @@ export default function AuthenticatedAppHeader() {
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
-  const [ backgroundColor, setBackgroundColor ] = useState(homePage ? 'transparent' : '#00a1b2');
+  const [backgroundColor, setBackgroundColor] = useState(homePage ? 'transparent' : '#00a1b2');
 
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
     dropdown2: false,
     dropdown3: false,
   });
+  const [dropdownBorder, setDropdownBorder] = useState('2px solid transparent');
 
   const handleMouseEnter = (id) => {
     setDropdownShows(prev => ({ ...prev, [id]: true }));
+    setDropdownBorder(prev => ({ ...prev, [id]: '2px solid white' }))
   };
 
   const handleMouseLeave = (id) => {
     setDropdownShows(prev => ({ ...prev, [id]: false }));
+    setDropdownBorder(prev => ({ ...prev, [id]: '2px solid transparent' }))
   };
 
   useEffect(() => {
@@ -32,8 +35,8 @@ export default function AuthenticatedAppHeader() {
       const currentScrollY = window.scrollY;
       if (homePage && currentScrollY > 40) {
         setBackgroundColor('#00a1b2');
-      } else if(homePage){
-        setBackgroundColor('transparent');      
+      } else if (homePage) {
+        setBackgroundColor('transparent');
       }
     }
     window.addEventListener('scroll', handleScroll);
@@ -42,7 +45,7 @@ export default function AuthenticatedAppHeader() {
   return (<Navbar variant="dark" expand="lg"
 
     style={{
-      backgroundColor: backgroundColor,
+      backgroundColor: '#00a1b2',
       height: '43px',
       fontSize: '1rem',
       position: 'fixed',
@@ -63,15 +66,20 @@ export default function AuthenticatedAppHeader() {
             <NavDropdown title={
               <span style={{ color: 'white' }}>
                 <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />
+                {' '}
                 <DownIcon />
               </span>} id={`basic-nav-dropdown${item}`}
-              style={{ color: 'white' }}
+              style={{
+                color: 'white', 
+                boxSizing: 'border-box',
+                borderBottom: dropdownBorder[`dropdown${idx + 1}`] || '2px solid transparent'
+              }}
               onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
-              onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}   
-              show={dropdownShows[`dropdown${idx + 1}`]       }    
-              >
+              onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
+              show={dropdownShows[`dropdown${idx + 1}`]}
+            >
               {Object.values(item)[0].map((subItem, idx) => {
-                return <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem'}}>
+                return <NavDropdown.Item href={subItem.href} style={{ color: 'black', fontSize: '0.9rem' }}>
                   {subItem.name}
                 </NavDropdown.Item>
               })}
@@ -79,7 +87,7 @@ export default function AuthenticatedAppHeader() {
           </Nav>
         ))}
 
-      </Nav>     
+      </Nav>
 
       <MultiLanguageDropdown />
       <Button
@@ -92,8 +100,8 @@ export default function AuthenticatedAppHeader() {
           width: '100px',
         }}
         href={"/react/login"}>{
-          <FormattedMessage id='LOGIN'/>
-                        }
+          <FormattedMessage id='LOGIN' />
+        }
       </Button>
 
     </Navbar.Collapse>
