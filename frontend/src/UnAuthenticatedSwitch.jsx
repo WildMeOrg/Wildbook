@@ -41,7 +41,7 @@ export default function UnAuthenticatedSwitch() {
         
           <Routes>
             {/* <Route path="/about" element={<Login />} /> */}
-            <Route path="/home" element={<Home />} />
+            <Route path="/home" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Login />} />
             <Route path="*" element={<NotFound />} />

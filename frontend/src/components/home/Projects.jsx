@@ -58,14 +58,14 @@ export default function Projects ({ data }) {
                     : <h1>No projects found</h1>
             }
 
-                <Progress 
+                {/* <Progress 
                     name='Fake Project' 
                     encounters = '126' 
                     progress='25'
                     href='/projects/projectList.jsp'
                     noUnderline
                     newTab
-                    />    
+                    />     */}
                 <a href='/projects/projectList.jsp'
                     style={{
                         color: 'black',

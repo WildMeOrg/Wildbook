@@ -28,6 +28,7 @@ export default function Home() {
             }
 
             const result = await response.json();
+            console.log("home api result");
             // result.latestBulkImportTask = {
             //     "id": "task_12345",
             //             "dateTimeCreated": "2023-03-20T10:00:00Z",
@@ -43,7 +44,6 @@ export default function Home() {
             //     "dateTimeCreated": "2023-03-19T09:45:00Z",
             //     "encounterId": "enc_98765",
             // }
-            console.log(result);
             setData(result);
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
@@ -58,8 +58,8 @@ export default function Home() {
         <>
             <div className="col-12">
                 <LandingImage />
-                <LatestData data={data.latestEncounters || []} username={data?.user?.displayName}/>
-                <PickUp data={data}/>
+                <LatestData data={data.latestEncounters || []} username={data?.user?.displayName} />
+                <PickUp data={data} />
                 <Report />
                 <Projects data={data.projects} />
             </div>

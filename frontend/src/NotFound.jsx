@@ -5,6 +5,11 @@ export default function NotFound() {
         <div style={{
             position: 'relative',
             zIndex: '200',
+            paddingTop: '100px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '80vh',
         }}>
             {/* <img 
                 src="/react/images/notFound.png" alt="notFound-forest"
