@@ -8,9 +8,12 @@ export default function LatestActivity({
   num,
   date, 
   text,
+  latestId,
   disabled,
   onViewClick
 }) {
+
+  console.log(name, num, date, text, latestId, disabled)
 
     return (
         <div className="activity-item" style={{ marginBottom: '0.5em'}}>
@@ -23,7 +26,10 @@ export default function LatestActivity({
           <span >
             {date}
           </span>
-          <BrutalismButton>
+          <BrutalismButton 
+            link={latestId}
+            disabled={disabled}
+          >
             {text ? <FormattedMessage id="VIEW"/> : <FormattedMessage id="NONE"/>}
           </BrutalismButton>
         </div>

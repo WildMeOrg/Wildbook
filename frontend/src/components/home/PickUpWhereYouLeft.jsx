@@ -4,8 +4,15 @@ import LatestActivityItem from './LatestActivityItem';
 import { formatDate } from '../../utils/formatters';
 import { FormattedMessage } from 'react-intl';
 
-const PickUp = ({data}) => {
+const PickUp = ({ data }) => {
     console.log('PickUp data', data);
+    const matchActionDate = data?.latestMatchTask?.dateTimeCreated || new Date();
+    const date = new Date(matchActionDate);
+    const now = new Date();
+    const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000)); 
+    const matchActionButtonUrl = date < twoWeeksAgo 
+        ? `/actions.jsp?id=${data?.latestMatchTask?.id}`
+        : `/iaResults.jsp?taskId=${data?.latestMatchTask?.encounterId}`;
     return (
         <div style={{
             marginTop: '40px',
@@ -32,18 +39,21 @@ const PickUp = ({data}) => {
                     date={formatDate(data?.latestBulkImportTask?.dateTimeCreated, true)}
                     text={data?.latestBulkImportTask}
                     disabled={!data?.latestBulkImportTask}
+                    latestId={`/import.jsp?taskId=${data?.latestBulkImportTask?.id}`}
                 />
                 <LatestActivityItem
                     name="LATEST_INDIVIDUAL"
-                    date={formatDate(data?.latestBulkImportIndividual?.dateTimeCreated, true)}
-                    text={data?.latestBulkImportIndividual}
-                    disabled={!data?.latestBulkImportIndividual}
+                    date={formatDate(data?.latestIndividual?.dateTimeCreated, true)}
+                    text={data?.latestIndividual}
+                    disabled={!data?.latestIndividual}
+                    latestId={`/individuals.jsp?id=${data?.latestIndividual?.id}`}
                 />
                 <LatestActivityItem
                     name="LATEST_MATCHING_ACTION"
                     date={formatDate(data?.latestMatchTask?.dateTimeCreated, true)}
                     text={data?.latestMatchTask}
                     disabled={!data?.latestMatchTask}
+                    latestId={matchActionButtonUrl}
                 />
 
             </div>
