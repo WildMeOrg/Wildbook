@@ -205,9 +205,19 @@ finally{
             }
 
             function extendSession() {
-                $.get("ExtendSession", function() {
-                    console.log("Session extended.");
+
+                $.ajax({
+                url: wildbookGlobals.baseUrl + '../ExtendSession',
+                type: 'GET',
+                success: function(data) {
+                    console.log(data);
                     startSessionTimer();
+                },
+                error: function(x,y,z) {
+                    console.warn('%o %o %o', x, y, z);
+                    startSessionTimer();
+
+                }
                 });
             }
 
