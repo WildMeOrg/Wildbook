@@ -42,6 +42,7 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 
@@ -268,7 +269,6 @@ if(request.getUserPrincipal()!=null){
 
 
 
-
     <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -285,7 +285,6 @@ if(request.getUserPrincipal()!=null){
         </div>
         </div>
     </div>
-
 
       <!-- Google Tag Manager (noscript) -->
       <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
