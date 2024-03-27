@@ -338,7 +338,117 @@ public class EncounterQueryProcessor extends QueryProcessor {
     }
     //end individualID filters-----------------------------------------------
 
+    //socialunit filters------------------------------------------------------------------
+    //community search
+    if(request.getParameterValues("community")!=null){
+        String[] communities=request.getParameterValues("community");
+        int numCommunities=communities.length;
+        prettyPrint.append("Social unit is one of the following: ");
 
+        Set<String> individualsIdsSet = new HashSet<String>();
+
+        for(int i=0;i<numCommunities;i++){
+          prettyPrint.append(communities[i]+" ");
+
+          SocialUnit su =myShepherd.getSocialUnit(communities[i]);
+          for (Membership member : su.getAllMembers()){
+            if(member.getMarkedIndividual()!=null){
+              individualsIdsSet.add(member.getMarkedIndividual().getId());
+            }
+          }
+
+        }
+
+        List<String> individualsIds =  new ArrayList<String>(individualsIdsSet);
+
+        String locIDFilter="individual.individualID == \""+individualsIds.get(0)+"\" ";
+        for(int j=1;j<individualsIds.size();j++){
+          locIDFilter+=" || individual.individualID == \""+individualsIds.get(j)+"\" ";
+        }
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+        else{filter+=(" && "+locIDFilter);}
+
+        prettyPrint.append("<br />");
+    }
+
+
+      //role search
+      if(request.getParameterValues("role")!=null)
+      {
+        boolean orRoles=true;
+
+        Iterator<MarkedIndividual> allSharks = myShepherd.getAllMarkedIndividuals();
+        Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();
+        if(allSharks!=null){
+          while (allSharks.hasNext()) {
+            MarkedIndividual temp_shark=allSharks.next();
+            rIndividuals.add(temp_shark);
+          }
+        }
+
+        if(request.getParameter("andRoles")!=null){orRoles=false;}
+        String[] roles=request.getParameterValues("role");
+        int numRoles=roles.length;
+        if(!orRoles){
+          prettyPrint.append("Social roles include all of the following: ");
+        }
+        else{
+          prettyPrint.append("Social roles is one of the following: ");
+        }
+        for(int h=0;h<numRoles;h++){
+          prettyPrint.append(roles[h]+"&nbsp;");
+        }
+
+
+
+        //logical OR the roles
+        for (int q = 0; q<rIndividuals.size(); q++)
+        {
+            MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+            List<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
+
+            if(orRoles){
+
+              //logical OR the role
+              boolean hasRole=false;
+              int f=0;
+              while(!hasRole && (f<numRoles)){
+                if(myRoles.contains(roles[f])){hasRole=true;}
+                f++;
+              }
+              if(!hasRole) {
+                  rIndividuals.remove(q);
+                  q--;
+              }
+            }
+            else{
+
+              //logical AND the roles
+              boolean hasRole=true;
+              int f=0;
+              while(hasRole && (f<numRoles)){
+                if(!myRoles.contains(roles[f])){hasRole=false;}
+                f++;
+              }
+              if(!hasRole) {
+                  rIndividuals.remove(q);
+                  q--;
+              }
+
+            }
+
+      }
+
+        String locIDFilter=" (individual.individualID == \""+rIndividuals.get(0).getId()+"\" ) ";
+        for(int j=1;j<rIndividuals.size();j++){
+          locIDFilter+=" || (individual.individualID == \""+rIndividuals.get(j).getId()+"\" ) ";
+        }
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+        else{filter+=(" && "+locIDFilter);}
+
+
+        prettyPrint.append("<br />");
+      }
 
 
 
