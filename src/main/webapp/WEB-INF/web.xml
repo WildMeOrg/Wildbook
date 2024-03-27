@@ -8,6 +8,9 @@
 			version="3.0"
 			metadata-complete="true">
 
+<session-config>
+	<session-timeout>30</session-timeout>
+</session-config>
 
 <listener>
     <description>ServletContextListener</description>
@@ -1767,9 +1770,20 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
 
+	<servlet>
+      <servlet-name>sessionExtend</servlet-name>
+      <servlet-class>org.ecocean.servlet.SessionExtend</servlet-class>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>ProjectCreate</servlet-name>
     <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+    <servlet-name>sessionExtend</servlet-name>
+    <url-pattern>/ExtendSession</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
