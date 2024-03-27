@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Set;
+import java.util.HashSet;
+
 
 import java.io.*;
 
@@ -23,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
+import org.ecocean.social.SocialUnit;
+import org.ecocean.social.Membership;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
