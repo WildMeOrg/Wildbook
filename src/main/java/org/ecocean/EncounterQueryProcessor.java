@@ -358,6 +358,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
     //socialunit filters------------------------------------------------------------------
     //community search
+     /*
+     * to filter Encounnter based on community firstly we need to get the social units
+     * associated with the communities and get the individualIDs from the social units
+     * and then use these individualIDs to filter the Encounters
+     */
+
     if(request.getParameterValues("community")!=null){
         String[] communities=request.getParameterValues("community");
         int numCommunities=communities.length;
@@ -391,6 +397,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
 
       //role search
+       /*
+       * to filter Encounnter based on role fetch all the MarkedIndividuals
+       * for each MarkedIndividuals gets all roles then check if requested role
+       * is not present remove that MarkedIndividuals
+       * finally use these individualIDs to filter the Encounters
+       */
       if(request.getParameterValues("role")!=null)
       {
         boolean orRoles=true;
@@ -457,9 +469,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
       }
 
-        String locIDFilter=" (individual.individualID == \""+rIndividuals.get(0).getId()+"\" ) ";
+        String locIDFilter=" individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
         for(int j=1;j<rIndividuals.size();j++){
-          locIDFilter+=" || (individual.individualID == \""+rIndividuals.get(j).getId()+"\" ) ";
+          locIDFilter+=" || individual.individualID == \""+rIndividuals.get(j).getId()+"\"  ";
         }
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
         else{filter+=(" && "+locIDFilter);}
