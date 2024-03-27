@@ -1442,8 +1442,8 @@ else {
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span> <font
-      color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
+      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=props.getProperty("socialFilters") %></a></h4>
   </td>
 </tr>
 <tr>
