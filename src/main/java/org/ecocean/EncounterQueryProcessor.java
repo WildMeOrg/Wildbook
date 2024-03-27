@@ -372,10 +372,11 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
         List<String> individualsIds =  new ArrayList<String>(individualsIdsSet);
 
-        String locIDFilter="individual.individualID == \""+individualsIds.get(0)+"\" ";
+        String locIDFilter=" ( individual.individualID == \""+individualsIds.get(0)+"\" ";
         for(int j=1;j<individualsIds.size();j++){
           locIDFilter+=" || individual.individualID == \""+individualsIds.get(j)+"\" ";
         }
+        locIDFilter = locIDFilter + " ) ";
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
         else{filter+=(" && "+locIDFilter);}
 
@@ -456,10 +457,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
       }
 
-        String locIDFilter=" individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
+        String locIDFilter=" ( individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
         for(int j=1;j<rIndividuals.size();j++){
           locIDFilter+=" || individual.individualID == \""+rIndividuals.get(j).getId()+"\"  ";
         }
+        locIDFilter = locIDFilter + " ) ";
+
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
         else{filter+=(" && "+locIDFilter);}
 
