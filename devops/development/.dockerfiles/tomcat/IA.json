@@ -2,14 +2,14 @@
 	"_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
 	"_global": {
 		"_note": "according to drew, these are not used and should be set within _confs below!",
-		"add_images": "http://localhost:82/api/image/json/",
-		"add_annotations": "http://localhost:82/api/annot/json/",
-		"start_identify": "http://localhost:82/api/engine/query/graph/",
-		"identify_review": "http://localhost:82/api/review/query/graph/",
-		"start_detect": "http://localhost:82/api/engine/detect/cnn/lightnet/",
-		"detect_review": "http://localhost:82/api/review/detect/cnn/yolo/",
-		"get_job_status": "http://localhost:82/api/engine/job/status/",
-		"get_job_result": "http://localhost:82/api/engine/job/result/"
+		"add_images": "http://wbia:5000/api/image/json/",
+		"add_annotations": "http://wbia:5000/api/annot/json/",
+		"start_identify": "http://wbia:5000/api/engine/query/graph/",
+		"identify_review": "http://wbia:5000/api/review/query/graph/",
+		"start_detect": "http://wbia:5000/api/engine/detect/cnn/lightnet/",
+		"detect_review": "http://wbia:5000/api/review/detect/cnn/yolo/",
+		"get_job_status": "http://wbia:5000/api/engine/job/status/",
+		"get_job_result": "http://wbia:5000/api/engine/job/result/"
 	},
 	"_default": "@Giraffa.camelopardalis.reticulata",
 
@@ -47,7 +47,7 @@
 			"_detect_conf": [
 				{
 					"xclass": "giraffe_reticulated",
-					"start_detect": "http://localhost:82/api/engine/detect/cnn/lightnet/",
+					"start_detect": "http://wbia:5000/api/engine/detect/cnn/lightnet/",
 					"labeler_algo": "densenet",
                     			"labeler_model_tag": "giraffe_v1",
                     			"model_tag": "giraffe_v1",
