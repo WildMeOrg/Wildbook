@@ -178,7 +178,7 @@ function LoginPage() {
                 <span style={{
                   marginLeft: '8px',
                 }}>
-                  <a href="https://www.wildme.org/platforms.html">{
+                  <a href="https://us7.list-manage.com/contact-form?u=c5af097df0ca8712f52ea1768&form_id=335cfeba915bbb2a6058d6ba705598ce">{
                     intl.formatMessage({
                       id: 'REQUEST_ACCOUNT',
                     })}
