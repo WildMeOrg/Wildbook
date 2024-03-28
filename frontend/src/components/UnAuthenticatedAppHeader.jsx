@@ -6,6 +6,7 @@ import DownIcon from './svg/DownIcon';
 import Button from 'react-bootstrap/Button';
 import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
 import { FormattedMessage } from 'react-intl';
+import NotificationButton from './navBar/NotificationButton';
 
 export default function AuthenticatedAppHeader() {
   const location = window.location;
@@ -88,7 +89,6 @@ export default function AuthenticatedAppHeader() {
         ))}
 
       </Nav>
-
       <MultiLanguageDropdown />
       <Button
         variant="basic"
