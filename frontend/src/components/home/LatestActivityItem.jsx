@@ -12,9 +12,6 @@ export default function LatestActivity({
   disabled,
   onViewClick
 }) {
-
-  console.log(name, num, date, text, latestId, disabled)
-
     return (
         <div className="activity-item" style={{ marginBottom: '0.5em'}}>
           <h5><FormattedMessage id={name} /></h5>

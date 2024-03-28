@@ -5,7 +5,6 @@ export default function useDocumentTitle () {
   const { data: siteSettings, loading, refresh } = useGetSiteSettings();
   document.title = siteSettings?.siteName || 'wildbook';
   useEffect(() => {
-    console.log('siteSettings changing', siteSettings);
     let iconURL = siteSettings?.siteFavicon;
     let link = document.querySelector("link[rel*='icon']");
 

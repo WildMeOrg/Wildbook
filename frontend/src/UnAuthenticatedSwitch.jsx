@@ -23,7 +23,6 @@ export default function UnAuthenticatedSwitch() {
             width: '100%',
           }}>            
             <UnAuthenticatedAppHeader />
-            {/* <AuthenticatedAppHeader /> */}
       </div>
       <div
         style={{

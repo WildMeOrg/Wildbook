@@ -4,8 +4,6 @@ import Progress from './Progress';
 import { FormattedMessage } from "react-intl";
 
 export default function Projects ({ data }) {
-
-    console.log(data);
     
     return <div style={{
         display: 'flex',

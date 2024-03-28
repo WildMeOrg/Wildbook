@@ -4,8 +4,6 @@ import More from '../CircledMoreButton';
 import { formatDate } from '../../utils/formatters';
 
 export default function LatestData({data, username}) {
-    console.log('LatestData', data);
-
     return (
         <div className="content col-12"
             style = {{

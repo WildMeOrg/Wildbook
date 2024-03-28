@@ -11,9 +11,7 @@ export default function Home() {
 
     useDocumentTitle('HOME');
     const [data, setData] = useState([]);
-
     async function fetchData() {
-        console.log('fetching data');
         try {
             const response = await fetch('/api/v3/home', {
                 method: 'GET',
@@ -21,14 +19,12 @@ export default function Home() {
                     'Content-Type': 'application/json',
                 },
             });
-            console.log(response);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
 
             const result = await response.json();
-            console.log("home api result");
             // result.latestBulkImportTask = {
             //     "id": "task_12345",
             //             "dateTimeCreated": "2023-03-20T10:00:00Z",
