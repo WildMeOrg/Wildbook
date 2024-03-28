@@ -88,12 +88,12 @@ String rootDir = getServletContext().getRealPath("/");
 File xlsFile = org.ecocean.servlet.importer.StandardImport.importXlsFile(rootDir);
 if (xlsFile == null) {
 %>
-    <b class="error">There was an error finding the latest <b>Wildbook Standard Format XLS</b> file.  Please contact your admin.</b>
+    <b class="error">There was an error finding the latest <b>WN Wildbook Standard Format XLS</b> file.  Please contact your admin.</b>
     </p><p>
 <% } else {
         DateTime dt = new DateTime(xlsFile.lastModified());
 %>
-  	<a href="<%=xlsFile.getName()%>">Download the <b>Wildbook Standard Format XLS template</b> here.</a>
+  	<a href="<%=xlsFile.getName()%>">Download the <b>WN Wildbook Standard Format XLS template</b> here.</a>
         <i>("<%=xlsFile.getName()%>", updated <%=dt.toString().substring(0,10)%>)</i>
 <% } %>
 
