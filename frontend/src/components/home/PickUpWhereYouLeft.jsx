@@ -5,7 +5,6 @@ import { formatDate } from '../../utils/formatters';
 import { FormattedMessage } from 'react-intl';
 
 const PickUp = ({ data }) => {
-    console.log('PickUp data', data);
     const matchActionDate = data?.latestMatchTask?.dateTimeCreated || new Date();
     const date = new Date(matchActionDate);
     const now = new Date();

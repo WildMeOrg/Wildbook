@@ -12,9 +12,7 @@ export default function AvatarAndUserProfile({ username, avatar }) {
   const navigate = useNavigate();
   const [shows, setShows] = useState(false);
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
-  console.log('AvatarAndUserProfile', avatar);
   const logout = async event => {
-    console.log('Logging out');
     event.preventDefault();
     await fetch('/api/v3/logout')
       .then(response => {

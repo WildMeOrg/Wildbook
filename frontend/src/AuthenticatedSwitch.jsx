@@ -14,7 +14,7 @@ export default function AuthenticatedSwitch({ adminUserInitialized, isLoggedIn }
   const { isFetched, data, error } = useGetMe();
   console.log('data', data);
   const username = data?.displayName;
-  const avatar = data?.imageURL || '/react/images/forest.png';
+  const avatar = data?.imageURL || '/react/images/Avatar.png';
 
   console.log('switch avatar: ', avatar);
   return (

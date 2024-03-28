@@ -6,6 +6,7 @@ function sortIfArray(value) {
     me: 'me',
     settingsSchema: 'settingsSchema',
     siteInfo: 'siteInfo',
+    notifications: 'notifications',
     detectionConfig: 'detectionConfig',
     keywords: 'keywords',
     users: 'users',
