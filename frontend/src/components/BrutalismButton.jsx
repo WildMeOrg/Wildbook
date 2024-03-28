@@ -11,6 +11,7 @@ export default function BrutalismButton({
     type = 'button',
     className = '',
     children,
+    style,
     ...rest
 }) {
 
@@ -46,6 +47,7 @@ export default function BrutalismButton({
                 fontWeight: 'bold',
                 margin: '8px 8px 0 0',
                 whiteSpace: 'nowrap',
+                ...style
             }}
 
             {...rest}
