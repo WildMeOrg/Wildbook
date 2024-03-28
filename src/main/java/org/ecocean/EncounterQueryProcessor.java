@@ -362,6 +362,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
           prettyPrint.append(communities[i]+" ");
 
           SocialUnit su =myShepherd.getSocialUnit(communities[i]);
+
+          if (su == null) continue;
+
           for (Membership member : su.getAllMembers()){
             if(member.getMarkedIndividual()!=null){
               individualsIdsSet.add(member.getMarkedIndividual().getId());
@@ -372,13 +375,19 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
         List<String> individualsIds =  new ArrayList<String>(individualsIdsSet);
 
-        String locIDFilter=" ( individual.individualID == \""+individualsIds.get(0)+"\" ";
-        for(int j=1;j<individualsIds.size();j++){
-          locIDFilter+=" || individual.individualID == \""+individualsIds.get(j)+"\" ";
+        if (individualsIds.size() > 0){
+
+          String locIDFilter=" ( individual.individualID == \""+individualsIds.get(0)+"\" ";
+          for(int j=1;j<individualsIds.size();j++){
+            locIDFilter+=" || individual.individualID == \""+individualsIds.get(j)+"\" ";
+          }
+          locIDFilter = locIDFilter + " ) ";
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+          else{filter+=(" && "+locIDFilter);}
+
         }
-        locIDFilter = locIDFilter + " ) ";
-        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
-        else{filter+=(" && "+locIDFilter);}
+
+
 
         prettyPrint.append("<br />");
     }
@@ -416,8 +425,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
         for(int h=0;h<numRoles;h++){
           prettyPrint.append(roles[h]+"&nbsp;");
         }
-
-
 
         //logical OR the roles
         for (int q = 0; q<rIndividuals.size(); q++)
@@ -457,15 +464,17 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
       }
 
-        String locIDFilter=" ( individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
-        for(int j=1;j<rIndividuals.size();j++){
-          locIDFilter+=" || individual.individualID == \""+rIndividuals.get(j).getId()+"\"  ";
+        if (rIndividuals.size() > 0)
+        {
+            String locIDFilter=" ( individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
+            for(int j=1;j<rIndividuals.size();j++){
+                locIDFilter+=" || individual.individualID == \""+rIndividuals.get(j).getId()+"\"  ";
+            }
+            locIDFilter = locIDFilter + " ) ";
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
         }
-        locIDFilter = locIDFilter + " ) ";
-
-        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
-        else{filter+=(" && "+locIDFilter);}
-
 
         prettyPrint.append("<br />");
       }
