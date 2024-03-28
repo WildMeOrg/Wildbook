@@ -46,7 +46,7 @@ export default function FrontDesk() {
       </AuthContext.Provider>
     );
   }
-  if (error) {
+  if (error || !isLoggedIn) {
     console.log('Error', error);
     return <UnauthenticatedSwitch />
   };
