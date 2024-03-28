@@ -1,7 +1,6 @@
 import React from 'react';
 
 export default function Avatar({ avatar }) {
-    console.log('Avatar', avatar);
     return (
         <div className="content col-1"
             style={{
