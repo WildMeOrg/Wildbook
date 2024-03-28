@@ -12,12 +12,16 @@ import { FormattedMessage } from 'react-intl';
 import AvatarAndUserProfile from './header/AvatarAndUserProfile';
 
 export default function AuthenticatedAppHeader({ username, avatar }) {
-  console.log('AuthenticatedAppHeader', avatar);
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
   const [backgroundColor, setBackgroundColor] = useState(homePage ? 'transparent' : '#00a1b2');
-
+  
+  const { 
+    notificationTitle,
+    notificationData,
+    getNotifications,
+  } = useContext(AuthContext);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -141,7 +145,11 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
         ))}
 
       </Nav>
-      <NotificationButton count={1} />
+      <NotificationButton 
+        notificationTitle={notificationTitle} 
+        notificationData={notificationData}
+        getNotifications={getNotifications}
+      />
       <MultiLanguageDropdown />
       <AvatarAndUserProfile username={username} avatar={avatar} />
     </Navbar.Collapse>
