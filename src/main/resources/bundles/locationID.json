@@ -30,17 +30,18 @@
 { "name": "Central America", "id": "Central America", "locationID":[
 			{"name": "Guatemala", "id": "Guatemala", "locationID":[] },
 			{"name": "Nicaragua", "id": "Nicaruaga", "locationID":[] },
-			{"name": "Costa Rica", "id": "Costa Rica", "locationID":[] },
-		{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve", "locationID":[] },
+			{"name": "Costa Rica", "id": "Costa Rica", "locationID":[
+				{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve", "locationID":[] },
+			] },
 			{"name": "Panama", "id": "Panama", "locationID":[] },
 		] },
 
 	] },
 	{ "name": "South America", "id": "South America", "locationID":[
 		{"name": "Argentina", "id": "Argentina", "locationID":[] },
-		{"name": "Brazil", "id": "Brazil", "locationID":[] },
+		{"name": "Brazil", "id": "Brazil", "locationID":[
 			{"name": " Pará", "id": " Pará", "locationID":[] },
-
+		] },
 		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
 		{"name": "Chile", "id": "Chile", "locationID":[] },
 		{"name": "Columbia", "id": "Columbia", "locationID":[] },
