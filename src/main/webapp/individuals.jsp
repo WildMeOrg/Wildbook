@@ -2598,6 +2598,16 @@ if (sharky.getNames() != null) {
 
    </script>
 
+   <script type="text/javascript">
+		function encountTableAuxClick(el) {
+			goToEncounterURL(el.getAttribute("class"));
+			return false;
+		}
+		function cooccurTableAuxClick(el) {
+			goToWhaleURL(el.getAttribute("class"));
+    		return false;
+		}
+   </script>
 
 </div>
 
