@@ -19,10 +19,6 @@
 
 	{ "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
-	{ "name":"NSW-Henry’s Head", "id":"NSW-Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-
-	{ "name":"NSW-Magic Point", "id":"NSW-Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-
 	{ "name":"NSW- Shellharbour-Bass Point- Gutter", "id":"NSW- Shellharbour- Bass Point- Gutter", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
@@ -31,12 +27,18 @@
 	
 	{ "name":"NSW-Sydney-Cabbage Tree Bay", "id":"NSW-Sydney-Cabbage Tree Bay", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
+	{ "name":"NSW-Sydney-Henry’s Head", "id":"NSW-Sydney-Henry’s Head", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+
 	{ "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+
+	{ "name":"NSW-Sydney-Magic Point", "id":"NSW-Sydney-Magic Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 
 	{ "name":"NSW-Sydney-Oak Park", "id":"NSW-Sydney-Oak Park", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
 	
 	{ "name":"NSW-Sydney-Old Mans Hat", "id":"NSW-Sydney-Old Mans Hat", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
-	
+
+	{ "name":"NSW-Sydney-Shark Point", "id":"NSW-Sydney-Shark Point", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4 },
+
 	{ "name":"NSW-Sydney-Voodoo", "id":"NSW-Sydney-Voodoo", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-34.0421495,"long":151.2124331} },
 
   { "name":"NSW-Terrigal Haven", "id":"NSW-Terrigal Haven", "locationID":[],"prefix": "NSW-", "prefixDigitPadding": 4, "geospatialInfo":{"lat":-33.44324321481046,"long":151.4484855323446} },
