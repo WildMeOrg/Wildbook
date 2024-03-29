@@ -40,12 +40,12 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 
-if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
+
+
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
 if (pageTitle == null) {
@@ -66,33 +66,37 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
 String notifications="";
-myShepherd.beginDBTransaction();
-try {
+//check if user is logged in and has pending notifications
+if(request.getUserPrincipal()!=null){
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("header.jsp");
+	myShepherd.beginDBTransaction();
+	try {
+	
+	  notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+	
+	  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
+	    user = myShepherd.getUser(request);
+	    username = (user!=null) ? user.getUsername() : null;
+	    String orgName = "indocet";
+	    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
+	    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
+	  	if(user.getUserImage()!=null){
+	  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+	  	}
+	  }
+	}
+	catch(Exception e){
+	  System.out.println("Exception on indocetCheck in header.jsp:");
+	  e.printStackTrace();
+	  myShepherd.closeDBTransaction();
+	}
+	finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+	}
 
-	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
-  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
-    user = myShepherd.getUser(request);
-    username = (user!=null) ? user.getUsername() : null;
-    String orgName = "indocet";
-    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
-  	if(user.getUserImage()!=null){
-  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-  	}
-  }
 }
-catch(Exception e){
-  System.out.println("Exception on indocetCheck in header.jsp:");
-  e.printStackTrace();
-  myShepherd.closeDBTransaction();
-}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
-
-
 %>
 
 
@@ -189,6 +193,57 @@ finally{
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <%
+        if(user != null && !loggingOut){
+      %>
+        <script type="text/javascript">
+        $(document).ready(function() {
+
+            // Session warning times in minutes
+            var warningTime = <%=sessionWarningTime %>;
+
+            function showWarning() {
+              $('#sessionModal').modal('show');
+            }
+
+            function extendSession() {
+
+                $.ajax({
+                url: wildbookGlobals.baseUrl + '../ExtendSession',
+                type: 'GET',
+                success: function(data) {
+                    console.log(data);
+                    startSessionTimer();
+                },
+                error: function(x,y,z) {
+                    console.warn('%o %o %o', x, y, z);
+                    startSessionTimer();
+
+                }
+                });
+            }
+
+            function startSessionTimer() {
+                setTimeout(showWarning, (warningTime * 60 * 1000));
+            }
+
+            // Start the session timer as soon as the page is ready
+            startSessionTimer();
+
+            // Attach the click event listener to the "Extend Session" button
+            $("#extendSessionBtn").click(function() {
+                extendSession();
+            });
+
+
+
+        });
+    </script>
+      <%
+        }
+      %>
+
+
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
@@ -210,6 +265,27 @@ finally{
     </head>
 
     <body role="document">
+
+
+
+
+    <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sessionModalLabel"><%=props.getProperty("sessionHeaderWarning") %></h5>
+          </div>
+          <div class="modal-body">
+            <%=props.getProperty("sessionModalContent") %>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-dismiss="modal" ><%=props.getProperty("extendButton") %></button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal"><%=props.getProperty("closeButton") %></button>
+          </div>
+        </div>
+        </div>
+    </div>
+
 
       <!-- Google Tag Manager (noscript) -->
       <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
