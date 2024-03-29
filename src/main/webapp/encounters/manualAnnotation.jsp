@@ -300,6 +300,15 @@ try{
 		}
 		
 	}
+	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")>-1){
+		//exception case - if there is only one annotation and it is a part
+		if(annots.size()==1){
+			Annotation annot1 = annots.get(0);
+			if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+				cloneEncounter=true;
+			}
+		}
+	}
 
 
 
