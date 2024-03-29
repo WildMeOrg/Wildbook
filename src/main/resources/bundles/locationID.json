@@ -286,15 +286,15 @@
 			  "id": "Northern Weser Hills",
 			  "locationID": [
 				  {
-					  "name": "Ballertasche",
-					  "id": "BAL",
-					  "locationID": []
-				  },
-				  {
 					  "name": "Bernsen",
 					  "id": "BNS",
 					  "locationID": []
 				  },
+				  {
+					"name": "Bokshorn",
+					"id": "BOK",
+					"locationID": []
+				},
 				  {
 					  "name": "Brinkmeier/Edler",
 					  "id": "BRM",
@@ -303,73 +303,99 @@
 				  {
 					  "name": "Bückeberg",
 					  "id": "BKB",
-					  "locationID": []
+					  "locationID": [
+						{
+							"name": "Alter Steinbruch Liekwegen",
+							"id": "ASB",
+							"locationID":[]
+						},
+						{
+							"name": "Feuchte Waldwiese",
+							"id": "FWW",
+							"locationID": []
+						},
+						{
+							"name": "Höhenweg",
+							"id": "HOW",
+							"locationID": []
+						},
+						{
+							"name": "Holzlagerplatz",
+							"id": "HLP",
+							"locationID":[]
+						},
+						{
+							"name": "JBF-Wiese",
+							"id": "JBF",
+							"locationID": []
+						},
+						{
+							"name": "Liekwegen",
+							"id": "LIE",
+							"locationID": []
+						},
+						{
+							"name": "Nullfläche",
+							"id": "NFL",
+							"locationID": []
+						},
+						{
+							"name": "Nato-Station Reinsdorf",
+							"id": "NAT",
+							"locationID": []
+						},
+						{
+							"name": "Obernkirchener SSB",
+							"id": "OSB",
+							"locationID": []
+						},
+						{
+							"name": "Promilleweg",
+							"id": "PRW",
+							"locationID": []
+						}
+					]
+				},
+				{
+					"name": "Eisberger Werder",
+					"id": "EIW",
+					"locationID": []
 				  },
 				  {
-					  "name": "Coppengrave",
-					  "id": "COP",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Doberg",
-					  "id": "DOB",
-					  "locationID": []
-				  },
+					"name": "Hehler Feld",
+					"id": "HEF",
+					"locationID": []
+				},
 				  {
 					  "name": "Hils-Klinkerwerk",
 					  "id": "HKB",
 					  "locationID": []
 				  },
 				  {
-					  "name": "Himmelsthür",
-					  "id": "HIM",
-					  "locationID": []
-				  },
-				  {
 					  "name": "Hohenbüchen",
 					  "id": "HOH",
 					  "locationID": []
-				  },	
+				  },
+				  {
+					"name": "Langenfeld",
+					"id": "LAN",
+					"locationID": []
+				},	
 				  {
 					  "name": "Holzhauser Mark",
 					  "id": "HHM",
 					  "locationID": []
 				  },	
 				  {
-					  "name": "Liekwegen",
-					  "id": "LIE",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Lohoffscher Bruch",
-					  "id": "LOH",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Mehholz",
-					  "id": "MEH",
-					  "locationID": []
-				  },
-				  {
 					  "name": "Messingberg",
 					  "id": "MES",
 					  "locationID": []
 				  },
 				  {
-					  "name": "Nato-Station Reinsdorf",
-					  "id": "NAT",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Ochtersum",
-					  "id": "OCH",
-					  "locationID": []
-				  },
-				  {
-					  "name": "Obernkirchener SSB",
-					  "id": "OSB",
-					  "locationID": []
-				  },
+					"name": "Pötzen",
+					"id": "POT",
+					"locationID": []
+				},
 				  {
 					  "name": "Rohden",
 					  "id": "ROD",
@@ -381,20 +407,89 @@
 					  "locationID": []
 				  },
 				  {
-					  "name": "Weenzer Bruch",
-					  "id": "WEE",
-					  "locationID": []
-				  },
+					"name": "Tongrube Borstel",
+					"id": "BSL",
+					"locationID": []
+				},
 				  {
 					  "name": "Wuelpker Egge",
 					  "id": "WLP",
 					  "locationID": []
 				  }
-			  
-			  
-			  
 			  ]
 		  },
+		  {
+			"name": "Central Weser Hills",
+			"id": "Central Weser Hills",
+			"locationID": [
+				{
+					"name": "Coppengrave",
+					"id": "COP",
+					"locationID": []
+				},
+				{
+					"name": "Doberg",
+					"id": "DOB",
+					"locationID": []
+				},
+				{
+					"name": "Himmelsthür",
+					"id": "HIM",
+					"locationID": []
+				},
+				{
+					"name": "Hils-Klinkerwerk",
+					"id": "HKW",
+					"locationID":[]
+				},
+				{
+					"name": "Hohenbüchen",
+					"id": "HOH",
+					"locationID": []
+				},
+				{
+					"name": "Ochtersum",
+					"id": "OCH",
+					"locationID": []
+				},
+				{
+					"name": "Weenzer Bruch",
+					"id": "WEE",
+					"locationID": []
+				},
+				{
+					"name": "Tongrube Otavi",
+					"id": "OTA",
+					"locationID": []
+				}
+			]
+		},
+				{
+				"name": "Southern Weser Hills and Harz",
+				"id": "Southern Weser Hills and Harz",
+				"locationID": [
+					{
+						"name": "Ballertasche",
+						"id": "BAL",
+						"locationID": []
+					},
+					{
+						"name": "Lohoffscher Bruch",
+						"id": "LOH",
+						"locationID": []
+					},
+					{
+						"name": "Mehholz",
+						"id": "MEH",
+						"locationID": []
+					},
+					{
+						"name": "Pfaffenholz",
+						"id": "PFA",
+						"locationID": []
+					}
+				]
+			},
 		  {
 			  "name": "Wasserburgertal",
 			  "id": "WBT",
