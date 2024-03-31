@@ -910,11 +910,11 @@ public class StandardImport extends HttpServlet {
     //start check for missing or unconfigured genus+species
     if (!hasGenus) {
         //mark genus empty
-    	feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),"GENUS", row);
+    	feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),"GENUS", row, "MISSING GENUS");
     }
     if (!hasSpecificEpithet) {
         //mark specific epithet
-        feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap),"SPECIFIC EPITHET", row);
+        feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap),"SPECIFIC EPITHET", row, "MISSING SPECIFIC EPITHET");
     }
     //now validate that a present genus and species value are supported
     if(hasGenus && hasSpecificEpithet) {
@@ -922,8 +922,8 @@ public class StandardImport extends HttpServlet {
     	List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", myShepherd.getContext());
     	if(configuredSpecies!=null && configuredSpecies.size()>0 && configuredSpecies.toString().indexOf(enc.getTaxonomyString())<0) {
     		//if bad values
-    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row);
-    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row);
+    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row,"UNCONFIGURED VALUE: "+genus);
+    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row, "UNCONFIGURED VALUE: "+specificEpithet);
     	}
     	
     }
