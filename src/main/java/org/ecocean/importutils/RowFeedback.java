@@ -58,8 +58,12 @@ public class RowFeedback {
         } 
       }
     }
-
+    
     public void logParseError(int colNum, Object value, Row row) {
+    	logParseError(colNum, value, row, null);
+    }
+
+    public void logParseError(int colNum, Object value, Row row, String exactMessageToDisplay) {
       try {
         if (!committing) {
           if (colNum<this.cells.length&&this.cells[colNum]!=null) {
@@ -70,7 +74,12 @@ public class RowFeedback {
             this.cells[colNum].setSuccess(false);
             this.cells[colNum].setIsBlank(false);
             //TODO replace this universal NOT FOUND for an overwrite with something specific.
-            this.cells[colNum].setValueString(value+" NOT FOUND");
+            if(exactMessageToDisplay!=null) {
+            	this.cells[colNum].setValueString(exactMessageToDisplay);
+            }
+            else {
+            	this.cells[colNum].setValueString(value+" NOT FOUND");
+            }
             //}
           } 
           else {
