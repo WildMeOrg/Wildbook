@@ -894,10 +894,40 @@ public class StandardImport extends HttpServlet {
     if (sex!=null) enc.setSex(sex);
 
     String genus = getString(row, "Encounter.genus",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-    if (genus!=null) enc.setGenus(genus);
+    boolean hasGenus=false;
+    if (genus!=null && !genus.trim().equals("")) {
+    	hasGenus=true;
+    	enc.setGenus(genus.trim());
+    }
 
     String specificEpithet = getString(row, "Encounter.specificEpithet",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-    if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
+    boolean hasSpecificEpithet=false;
+    if (specificEpithet!=null && !specificEpithet.trim().equals("")) {
+    	hasSpecificEpithet=true;
+    	enc.setSpecificEpithet(specificEpithet.trim());
+    }
+    
+    //start check for missing or unconfigured genus+species
+    if (!hasGenus) {
+        //mark genus empty
+    	feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),"GENUS", row);
+    }
+    if (!hasSpecificEpithet) {
+        //mark specific epithet
+        feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap),"SPECIFIC EPITHET", row);
+    }
+    //now validate that a present genus and species value are supported
+    if(hasGenus && hasSpecificEpithet) {
+    	
+    	List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", myShepherd.getContext());
+    	if(configuredSpecies!=null && configuredSpecies.size()>0 && configuredSpecies.toString().indexOf(enc.getTaxonomyString())<0) {
+    		//if bad values
+    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row);
+    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row);
+    	}
+    	
+    }
+    //end check for missing or unconfigured genus+species
 
     String submitterOrganization = getString(row, "Encounter.submitterOrganization",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
