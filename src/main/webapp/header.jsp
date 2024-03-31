@@ -42,7 +42,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+//String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 
 
@@ -283,10 +283,7 @@ if(request.getUserPrincipal()!=null){
         </div>
     </div>
 
-      <!-- Google Tag Manager (noscript) -->
-      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
-          style="display:none;visibility:hidden"></iframe></noscript>
-      <!-- End Google Tag Manager (noscript) -->
+
 
         <!-- ****header**** -->
         <header class="page-header clearfix" style="padding-top: 0px;padding-bottom:0px;">
