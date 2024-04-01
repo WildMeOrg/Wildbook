@@ -8,6 +8,12 @@ module.exports = function override(config, env) {
     console.log('source-map');
     // config.devtool = 'cheap-module-source-map';
   }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.SITE_NAME': JSON.stringify(process.env.SITE_NAME),
+      })
+    );
     return config;
   };
   
