@@ -59,8 +59,6 @@ services:
       DB_CONNECTION_URL: "${WILDBOOK_DB_CONNECTION_URL}"
       # Admin user created on startup,
       # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
-      ADMIN_EMAIL: "${EDM_AUTHENTICATIONS_USERNAME__DEFAULT}"
-      ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
       # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
       JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 
