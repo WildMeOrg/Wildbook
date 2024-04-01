@@ -47,7 +47,7 @@
     "SEARCH" : "Search",
     "ADMINISTER" : "Administer",
     "FOOTER_DESC" : "AI tools for collaborative, international wildlife conservation",
-    "FOOTER_COPYRIGHT" : "© 2024 @ Conservation X Labs | All Rights Reserved",
+    "FOOTER_COPYRIGHT" : "2024 © Conservation X Labs | All Rights Reserved",
     "HOME": "Home",
     "DOCUMENTATION": "Documentation",
     "COMMUNITY_FORUM": "Community Forum",
@@ -72,5 +72,11 @@
     "PICK_UP_PART2" : "you left",
     "REPORT_AN_ENCOUNTER": "Report an Encounter",
     "SUBMIT_NEW_DATA": "Submit new data",
-    "LANDING_PAGE": "Landing Page"
+    "LANDING_PAGE": "Landing Page",
+    "NO_NEW_MESSAGE" : "No New Message",
+    "INDIVIDUAL_MERGE_NOTIFICATIONS": "Individual Merge Notifications",
+    "MERGE_MESSAGE" : "Merge of {user2} into {user1} has been initiated. Auto completion date: {date}, 2 week delayed execution. ",
+    "INITIATED_BY_USER": "Initiated by user {user}",
+    "IGNORE" : "Ignore",
+    "DENY" : "Deny"
 }
