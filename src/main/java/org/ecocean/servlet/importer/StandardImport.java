@@ -551,7 +551,7 @@ public class StandardImport extends HttpServlet {
     }
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
-    out.println("<h2>Import Overview: </h2>");
+    out.println("<h2>Import Overview</h2>");
     out.println("<ul>");
     out.println("<li>Excel File Name: "+filename+"</li>");
     out.println("<li>Excel File Successfully Found = "+dataFound+"</li>");
@@ -560,8 +560,17 @@ public class StandardImport extends HttpServlet {
     out.println("<li>Excel Columns = "+cols+"</li>");
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
-
     out.println("</ul>");
+    
+    out.println("<h3 style='color: red;'>Errors</h3>");
+    out.println("<p>Number of errors: <span id='errorCount'></span></p>");
+    out.println("<script>");
+    out.println("     const err_elements = document.querySelectorAll('.cellFeedback.error');");
+    out.println("     const errorCount = err_elements.length;");
+    out.println("     document.getElementById('errorCount').textContent=errorCount");
+    out.println("</script>");
+    
+    
 
     String uName = request.getUserPrincipal().getName();
     if (committing&&uName!=null) out.println("<p><a href=\"../encounters/searchResults.jsp?username="+uName+"\">Search encounters owned by current user \""+uName+"\"</a></p>");
