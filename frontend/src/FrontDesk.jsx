@@ -4,39 +4,33 @@ import AuthenticatedSwitch from './AuthenticatedSwitch';
 import axios from 'axios';
 import AuthContext from './AuthProvider';
 // import ThemeProvider from './ThemeProvider';
+import getMergeNotifications from './models/notifications/getMergeNotifications';
+import getCollaborationNotifications from './models/notifications/getCollaborationNotifications';
+import { merge } from 'lodash-es';
+
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [notificationTitle, setNotificationTitle] = useState();
-  const [notificationData, setNotificationData] = useState([]);
-  const [error, setError] = useState();
-  
-  const getNotifications = async () => {
-    try {
-      const response = await fetch(`/Collaborate?json=1&getNotifications=1`);   
-      const data = await response.json();   
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(data?.content, 'text/html');
-      const title = doc.querySelector('h2')?.innerText;
-      if(title) {
-        setNotificationTitle(title);
-        const invites = [...doc.querySelectorAll('.collaboration-invite-notification')];     
-        setNotificationData(invites);        
-      }else {        
-        setNotificationTitle('');
-        setNotificationData([]);
-        console.log('No title found');
-      };
-      console.log(data);
-    } catch (error) {
-      console.error('Error:', error); 
-    } finally {
-    }
-  };
+  const [error, setError] = useState();  
+  const [collaborationTitle, setCollaborationTitle] = useState();
+  const [collaborationData, setCollaborationData] = useState([]);
+  const [mergeData, setMergeData] = useState([]);
 
+  // const { collaborationTitle, collaborationData } = getCollaborationNotifications();
+  // const { notifications: mergeData, error: mergeError, loading: mergeLoading } = getMergeNotifications();
+
+  console.log('FrontDesk collaborationData:', collaborationData, mergeData);
   useEffect(() => {
-    getNotifications();
-  }, []);
+    const fetchData = async () => {
+      const { collaborationTitle, collaborationData } = await getCollaborationNotifications();
+      const mergeData = await getMergeNotifications();
+      setCollaborationTitle(collaborationTitle);
+      setCollaborationData(collaborationData);
+      setMergeData(mergeData);
+    };
+  
+    fetchData();
+  }, []); // 
 
   const checkLoginStatus = () => {
     console.log("Polling API...");
@@ -50,15 +44,12 @@ export default function FrontDesk() {
         setError(error);
       });
   };
-
   
   useEffect(() => {
     checkLoginStatus();
-
     const intervalId = setInterval(() => {
       checkLoginStatus();
     }, 60000);
-
 
     return () => clearInterval(intervalId);
   }, []);
@@ -68,9 +59,9 @@ export default function FrontDesk() {
       <AuthContext.Provider value={{ 
         isLoggedIn, 
         setIsLoggedIn, 
-        notificationTitle,       
-        notificationData,
-        getNotifications,
+        collaborationTitle,       
+        collaborationData,
+        mergeData
          }}>
          {/* <ThemeProvider>           */}
           <AuthenticatedSwitch isLoggedIn={isLoggedIn}/>
