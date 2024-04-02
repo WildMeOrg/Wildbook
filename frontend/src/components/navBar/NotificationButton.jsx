@@ -2,11 +2,55 @@ import React, { useState } from 'react';
 import { Button, Badge } from 'react-bootstrap';
 import { Bell } from 'react-bootstrap-icons';
 import Modal from 'react-bootstrap/Modal';
-import BrutalismButton from '../BrutalismButton';
+import CollaborationMessages from './CollaborationMessages';
+import MergeMessages from './MergeMessages';
 
-const NotificationButton = ({ notificationTitle, notificationData, getNotifications }) => {
+const NotificationButton = ({ 
+  collaborationTitle, 
+  collaborationData, 
+  mergeData,
+}) => {
 
   const [modalOpen, setModalOpen] = React.useState(false);
+
+  // const { notifications: mergeData, error: mergeError, loading: mergeLoading } = useGetCollaborationNotifications();
+
+//   const mergeData = [
+//     {
+//       "primaryIndividualName": "merge002",
+//       "mergeExecutionDate": "2024/04/15",
+//       "secondaryIndividualName": "merge001",
+//       "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
+//       "initiator": "erin1",
+//       "ownedByMe": "false",
+//       "notificationType": "mergePending",
+//       "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
+//       "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
+//   },
+//   {
+//     "primaryIndividualName": "merge002",
+//     "mergeExecutionDate": "2024/04/15",
+//     "secondaryIndividualName": "merge001",
+//     "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
+//     "initiator": "erin1",
+//     "ownedByMe": "false",
+//     "notificationType": "mergeComplete",
+//     "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
+//     "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
+// },
+// {
+//   "primaryIndividualName": "merge002",
+//   "mergeExecutionDate": "2024/04/15",
+//   "secondaryIndividualName": "merge001",
+//   "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
+//   "initiator": "erin2",
+//   "deniedBy": "erin999",
+//   "ownedByMe": "false",
+//   "notificationType": "mergeDenied",
+//   "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
+//   "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
+// },]
+//   console.log('NotificationButton mergeData:', mergeData);
 
   const handleBlur = (e) => {
     console.log(111, e);
@@ -14,58 +58,6 @@ const NotificationButton = ({ notificationTitle, notificationData, getNotificati
     //   setModalOpen(true); 
     // }
   };
-  console.log('NotificationButton notificationData:', notificationData);
-  const content = notificationData?.map(data => {
-    const username = data.getAttribute('data-username');
-    const access = data.textContent.includes('view-only') ? 'View-Only' : 'Edit';
-    const email = data.textContent.match(/\S+@\S+\.\S+/);
-    const buttons = [...data.querySelectorAll('input[type="button"]')].map(button => {
-      console.log('button class',button.getAttribute('class'));
-      console.log('button value',button.getAttribute('value'));
-      return {
-        'class': button.getAttribute('class'),
-        'value': button.getAttribute('value')
-      }
-    });
-    const id = data.getAttribute('id');
-    const collabString = id ? `&collabId=${id.replace("edit-", "")} :` : '';
-
-    console.log(username, " ------", access, '========', id, '--------', collabString);
-
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-
-        <h6>{username}{' '}({access}) {email}</h6>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-        }}>
-          {buttons.map(button => (
-            <BrutalismButton
-              style={{
-                margin: '0 5px 10px 0',
-              }}
-              onClick={async () => {
-                console.log(button.class);
-                const response = await fetch(`/Collaborate?json=1&username=${username}&approve=${button.class}&actionForExisting=${button.class}${collabString}`);
-                const data = await response.json();
-                console.log(data);
-                getNotifications();
-                setModalOpen(false);                
-              }}
-            >
-              {button.value}
-            </BrutalismButton>
-          ))}
-        </div>
-      </div>
-    );
-  })
   return (
     <div
       style={{
@@ -78,7 +70,7 @@ const NotificationButton = ({ notificationTitle, notificationData, getNotificati
       <Modal.Dialog style={{
         position: 'absolute',
         top: '50px',
-        right: '-150px',
+        right: '-50px',
         zIndex: '100',
         width: '800px',
         display: modalOpen ? 'block' : 'none',
@@ -91,9 +83,19 @@ const NotificationButton = ({ notificationTitle, notificationData, getNotificati
         <Modal.Body style={{
           display: 'flex',
           flexDirection: 'column',
+          maxHeight: '1000px',
+          contentOverflow: 'scroll',
         }}>
-          {notificationTitle? <h5>{notificationTitle}</h5> : <h5>No new message</h5>}
-          {content}
+          <CollaborationMessages
+            collaborationTitle={collaborationTitle}
+            collaborationData={collaborationData}
+            mergeData={mergeData}
+            setModalOpen={setModalOpen}
+          />
+          <MergeMessages 
+            mergeData={mergeData}
+            setModalOpen={setModalOpen}
+          />
         </Modal.Body>
 
       </Modal.Dialog>
@@ -115,7 +117,7 @@ const NotificationButton = ({ notificationTitle, notificationData, getNotificati
         }}
       >
         <Bell color="white" />
-        {notificationTitle && (
+        {collaborationTitle && (
           <Badge pill bg="danger" style={{
             width: '12px',
             height: '12px',
@@ -128,7 +130,7 @@ const NotificationButton = ({ notificationTitle, notificationData, getNotificati
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            {notificationData?.length}
+            {collaborationData?.length}
           </Badge>
         )}
       </Button>
