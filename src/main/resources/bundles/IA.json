@@ -1,0 +1,60 @@
+{
+	"_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
+	"_global": {
+		"add_images": "https://troutspotter.hydra.dyn.wildme.io/api/image/json/",
+		"add_annotations": "https://troutspotter.hydra.dyn.wildme.io/api/annot/json/",
+		"start_identify": "https://troutspotter.hydra.dyn.wildme.io/api/engine/query/graph/",
+		"identify_review": "https://troutspotter.hydra.dyn.wildme.io/api/review/query/graph/",
+                "start_detect":"https://troutspotter.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+		"detect_review": "https://troutspotter.hydra.dyn.wildme.io/api/review/detect/cnn/yolo/",
+		"get_job_status": "https://troutspotter.hydra.dyn.wildme.io/api/engine/job/status/",
+		"get_job_result": "https://troutspotter.hydra.dyn.wildme.io/api/engine/job/result/"
+	},
+	"_default": "@Salvelinus.fontinalis",
+
+	"Salvelinus": {
+		"fontinalis": {
+			"_detect_conf": [
+				{
+					"start_detect": "https://troutspotter.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+					"model_tag": "trout_v1",
+					"labeler_model_tag": "trout_effnet_v0",
+					"labeler_algo": "efficientnet",
+					"nms_thresh": 0.40,
+					"sensitivity": 0.65,
+					"use_labeler_species": false,
+					"orienter_algo": "plugin:orientation",
+					"orienter_model_tag": "trout_v0"
+				}
+			],
+			"trout": {
+				"_id_conf": [
+					{
+						"query_config_dict": {
+							"pipeline_root": "MiewId"
+						},
+						"description": "MiewID Matcher",
+						"default": true
+					},
+					{
+						"query_config_dict": {
+							"sv_on": true,
+							"n": 20
+						},
+						"default": false,
+						"description": "HotSpotter pattern-matcher"
+					}
+				]
+			}
+		}
+	},
+
+	"Salmo": {
+		"trutta": "@Salvelinus.fontinalis"
+	},
+
+	"Oncorhynchus": {
+		"mykiss": "@Salvelinus.fontinalis"
+	}
+
+}
