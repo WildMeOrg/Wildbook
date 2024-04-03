@@ -891,10 +891,7 @@ try{
 		%>
 		 <div style="margin-bottom: 20px;">   	
 		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
+                        <%=LocationID.getHTMLSelector(true, null, null, "id-locationids", "locationID", "") %>
 		   </div>
 		    	
 		    <%
