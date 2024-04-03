@@ -44,6 +44,8 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -564,10 +566,30 @@ public class StandardImport extends HttpServlet {
     
     out.println("<h3 style='color: red;'>Errors</h3>");
     out.println("<p>Number of errors: <span id='errorCount'></span></p>");
+    out.println("<p>Error columns: <span id='errorElements'></span></p>");
     out.println("<script>");
+    out.println("	  var errorElementNames = [];");
     out.println("     const err_elements = document.querySelectorAll('.cellFeedback.error');");
     out.println("     const errorCount = err_elements.length;");
+    out.println("     for (var i = 0; i < err_elements.length; i ++ ){");
+    out.println("       console.log('count: '+i)");
+    out.println("     	var errorElement = err_elements[i];");
+    out.println("       console.log('errorElement: '+errorElement.textContent);");
+    out.println("       var table = errorElement.closest('table');");
+    out.println("       var headerRow = table.querySelector('tbody tr.headerRow');");
+    out.println("       var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
+    out.println("       if(!errorElementNames.includes(th))errorElementNames.push(th); ");
+    out.println("     }");
     out.println("     document.getElementById('errorCount').textContent=errorCount");
+    out.println("     var errorList = document.getElementById('errorElements')");
+    
+    out.println("     const ul = document.createElement('ul');");
+    out.println("     errorElementNames.toString().split(',').forEach((item) => {");
+    out.println("          const li = document.createElement('li');");
+    out.println("     	   li.textContent = item;");
+    out.println("          ul.appendChild(li);");
+    out.println("     });");
+    out.println("     errorList.appendChild(ul);");
     out.println("</script>");
     
     
@@ -931,8 +953,8 @@ public class StandardImport extends HttpServlet {
     	List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", myShepherd.getContext());
     	if(configuredSpecies!=null && configuredSpecies.size()>0 && configuredSpecies.toString().indexOf(enc.getTaxonomyString())<0) {
     		//if bad values
-    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row,"UNCONFIGURED VALUE: "+genus);
-    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row, "UNCONFIGURED VALUE: "+specificEpithet);
+    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row,"UNSUPPORTED VALUE: "+genus);
+    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row, "UNSUPPORTED VALUE: "+specificEpithet);
     	}
     	
     }
