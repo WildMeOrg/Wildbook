@@ -564,32 +564,38 @@ public class StandardImport extends HttpServlet {
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
     out.println("</ul>");
     
-    out.println("<h3 style='color: red;'>Errors</h3>");
+    out.println("<h3 id='errorHeader' style='color: red;'>Errors</h3>");
     out.println("<p>Number of errors: <span id='errorCount'></span></p>");
     out.println("<p>Error columns: <span id='errorElements'></span></p>");
     out.println("<script>");
     out.println("	  var errorElementNames = [];");
     out.println("     const err_elements = document.querySelectorAll('.cellFeedback.error');");
     out.println("     const errorCount = err_elements.length;");
-    out.println("     for (var i = 0; i < err_elements.length; i ++ ){");
-    out.println("       console.log('count: '+i)");
-    out.println("     	var errorElement = err_elements[i];");
-    out.println("       console.log('errorElement: '+errorElement.textContent);");
-    out.println("       var table = errorElement.closest('table');");
-    out.println("       var headerRow = table.querySelector('tbody tr.headerRow');");
-    out.println("       var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
-    out.println("       if(!errorElementNames.includes(th))errorElementNames.push(th); ");
-    out.println("     }");
     out.println("     document.getElementById('errorCount').textContent=errorCount");
-    out.println("     var errorList = document.getElementById('errorElements')");
+    out.println("     if(errorCount>0){");
+    out.println("        var errorTitle = document.getElementById('errorHeader');  ");
+    out.println("        var errorMessage = document.createElement('p');  ");
+    out.println("        errorMessage.style.color='red';  ");
+    out.println("        errorMessage.innerText='Errors are preventing submission of this bulk import.';  ");
+    out.println("        errorTitle.insertAdjacentElement('afterend', errorMessage);   ");
+
     
-    out.println("     const ul = document.createElement('ul');");
-    out.println("     errorElementNames.toString().split(',').forEach((item) => {");
+    out.println("     	for (var i = 0; i < err_elements.length; i ++ ){");
+    out.println("     		var errorElement = err_elements[i];");
+    out.println("     	  var table = errorElement.closest('table');");
+    out.println("     	  var headerRow = table.querySelector('tbody tr.headerRow');");
+    out.println("     	  var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
+    out.println("     	  if(!errorElementNames.includes(th))errorElementNames.push(th); ");
+    out.println("     	}");
+    out.println("     	var errorList = document.getElementById('errorElements')");    
+    out.println("     	const ul = document.createElement('ul');");
+    out.println("     	errorElementNames.toString().split(',').forEach((item) => {");
     out.println("          const li = document.createElement('li');");
     out.println("     	   li.textContent = item;");
     out.println("          ul.appendChild(li);");
-    out.println("     });");
-    out.println("     errorList.appendChild(ul);");
+    out.println("     	});");
+    out.println("     	errorList.appendChild(ul);");
+    out.println("     }");
     out.println("</script>");
     
     
