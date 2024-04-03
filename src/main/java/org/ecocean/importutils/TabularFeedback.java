@@ -100,10 +100,14 @@ public class TabularFeedback {
     }
 
     public void logParseError(int colNum, Object value, Row row) {
-      if (!committing) {
-        this.currentRow.logParseError(colNum, value, row);
-      }
+    	logParseError(colNum, value, row, null);
     }
+    
+    public void logParseError(int colNum, Object value, Row row, String exactMessageToDisplay) {
+        if (!committing) {
+          this.currentRow.logParseError(colNum, value, row, exactMessageToDisplay);
+        }
+      }
 
     public void logParseNoValue(int colNum) {
       if (!committing) {
