@@ -1023,4 +1023,25 @@ public class CommonConfiguration {
     }
   }
 
+      /**
+     * Returns the session expiration countdown time in minutes from the application's settings.
+     * Defaults to 10 minutes if not specified or on error.
+     *
+     * @param context Webapp context
+     * @return Session warning countdown time in minutes.
+     */
+    public static int getSessionCountdownTime(String context) {
+
+    int def = 10;
+    String prop = getProperty("sessionCountdownTime", context);
+    if (prop != null && "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
+  }
+
 }
