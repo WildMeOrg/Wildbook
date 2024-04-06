@@ -269,6 +269,7 @@ if(request.getUserPrincipal()!=null){
 
 
 
+
     <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
