@@ -824,15 +824,16 @@ try{
 	function resendToID() {
 	    if (!confirmCommitID()) return;
 	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-	    var locationIds = $('#id-locationids').val();
+	    //var locationIds = $('#id-locationids').val();
 	    var locationIds = '';
-	    $("#id-locationids > option").each(function(){
+	    $("#id-locationids option:selected").each(function(){
 	    	locationIds+='&locationID='+this.value;
 	    });
 	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
 	        dataType: 'json',
@@ -847,6 +848,7 @@ try{
 		    }
 	        }
 	    });
+	    
 	}
 	 
 	</script>
