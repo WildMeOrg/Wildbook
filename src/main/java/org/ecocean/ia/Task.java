@@ -424,6 +424,8 @@ public class Task implements java.io.Serializable {
         return roots;
     }
     
+    public String getStatusNoWBIA(){return status;}
+    
     public String getStatus(Shepherd myShepherd){
       //if status is not null, just send it
       if(status!=null) return status;
