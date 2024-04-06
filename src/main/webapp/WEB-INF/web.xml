@@ -8,6 +8,9 @@
 			version="3.0"
 			metadata-complete="true">
 
+<session-config>
+	<session-timeout>30</session-timeout>
+</session-config>
 
 <listener>
     <description>ServletContextListener</description>
@@ -235,6 +238,7 @@
 				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+				 /EncounterAnnotationExportExcelFile = authc, roles[researcher]
                  /EncounterSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
@@ -1165,6 +1169,11 @@
     <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
   </servlet>
 
+	<servlet>
+    <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterAnnotationExportExcelFile</servlet-class>
+  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -1767,9 +1776,20 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
 
+	<servlet>
+      <servlet-name>sessionExtend</servlet-name>
+      <servlet-class>org.ecocean.servlet.SessionExtend</servlet-class>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>ProjectCreate</servlet-name>
     <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+    <servlet-name>sessionExtend</servlet-name>
+    <url-pattern>/ExtendSession</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -2312,6 +2332,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+
+	<servlet-mapping>
+        <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+        <url-pattern>/EncounterAnnotationExportExcelFile</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>

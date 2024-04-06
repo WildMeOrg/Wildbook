@@ -528,6 +528,10 @@ public class CommonConfiguration {
     return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  public static String getGoogleTagManagerKey(String context) {
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("gtm_key",context);
+  }
+
   /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
@@ -1012,6 +1016,27 @@ public class CommonConfiguration {
    */
   public static String getWildbookCommunityURL(String context) {
     return getProperty("wildbookCommunityUrl", context).trim();
+  }
+
+    /**
+     * Returns the session expiration warning time in minutes from the application's settings.
+     * Defaults to 20 minutes if not specified or on error.
+     *
+     * @param context Webapp context
+     * @return Session warning time in minutes.
+     */
+    public static int getSessionWarningTime(String context) {
+
+    int def = 20;
+    String prop = getProperty("sessionWarningTime", context);
+    if (prop == null || "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
   }
 
 }
