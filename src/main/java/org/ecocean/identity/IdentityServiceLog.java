@@ -290,7 +290,7 @@ public class IdentityServiceLog implements java.io.Serializable {
         	if(queueStatus!=null)j.put("queueStatus", queueStatus);
         }
         else {
-        	j.put("queueStatus", "completed");
+        	j.put("queueStatus", "complete");
         }
         return j;
     }

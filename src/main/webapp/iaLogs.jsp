@@ -39,8 +39,8 @@ long startTime=System.currentTimeMillis();
 
 //if the Task is completed, we can skip some checks
 if(request.getParameter("taskId")!=null){
-	Task t=myShepherd.getTask(request.getParameter("taskID"));
-	if(t!=null && t.getStatusNoWBIA()!=null && t.getStatusNoWBIA().equals("completed")){
+	Task t=myShepherd.getTask(request.getParameter("taskId"));
+	if(t!=null && t.getCompletionDateInMilliseconds()!=null){
 		taskCompleted=true;
 	}
 }
@@ -53,11 +53,7 @@ try{
 	} else {
 		
 		logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
-		long queryTime=System.currentTimeMillis();
 		Collections.reverse(logs);  //so it has newest first like mostRecent above
-		long reverseTime=System.currentTimeMillis();
-		System.out.println("Query time: "+(queryTime-startTime));
-		System.out.println("Reverse time: "+(reverseTime-queryTime));
 	}
 	
 	if (logs == null) {
@@ -80,15 +76,12 @@ try{
 			all.put(projectData);
 		}
 	}
-	System.out.println("projectTime: "+(System.currentTimeMillis()-startTime));
 	
 	for (IdentityServiceLog l : logs) {
 		all.put(l.toJSONObject(taskCompleted));
 	}
 	
-	System.out.println("islPutTime: "+(System.currentTimeMillis()-startTime));
-	
-	
+
 	out.println(all.toString());
 
 }

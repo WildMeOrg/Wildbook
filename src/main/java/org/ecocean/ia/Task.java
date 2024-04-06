@@ -424,7 +424,19 @@ public class Task implements java.io.Serializable {
         return roots;
     }
     
-    public String getStatusNoWBIA(){return status;}
+    public boolean areSelfAndOrAllChildrenComplete() {
+    	boolean complete=false;
+    	if(!hasChildren()&&completionDateInMilliseconds!=null) {complete=true;}
+    	else if(hasChildren()) {
+    		List<Task> children=getChildren();
+    		complete=true;
+    		for(Task t:children) {
+    			if(!t.areSelfAndOrAllChildrenComplete())complete=false;
+    		}
+    	}
+    	return complete;
+    }
+    
     
     public String getStatus(Shepherd myShepherd){
       //if status is not null, just send it
