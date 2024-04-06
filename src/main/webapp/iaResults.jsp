@@ -84,7 +84,7 @@ if(request.getParameter("taskId")!=null){
 	if(t!=null && t.getParameters()!=null && t.getParameters().optBoolean("fastlane", false)){
 		fastlane=true;
 	}
-	if(t.getStatusNoWBIA()!=null && t.getStatusNoWBIA().equals("completed"))taskCompleted=true;
+	if(t!=null && t.areSelfAndOrAllChildrenComplete())taskCompleted=true;
 
 }
 int wbiaIDQueueSize = 0;
