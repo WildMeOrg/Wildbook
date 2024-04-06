@@ -12,7 +12,8 @@ org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.identity.*,
 org.ecocean.Project,
-org.ecocean.media.*"
+org.ecocean.media.*,
+org.ecocean.ia.Task"
 %>
 
 
@@ -22,6 +23,7 @@ org.ecocean.media.*"
 String id = request.getParameter("id");
 String taskId = request.getParameter("taskId");
 String projectId = request.getParameter("projectId");
+boolean taskCompleted=false;
 if ((id == null) && (taskId == null)) {
 	out.println("{\"success\": false, \"error\": \"no object/task id passed\"}");
 	return;
@@ -30,7 +32,18 @@ if ((id == null) && (taskId == null)) {
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.setAction("iaLogs.jsp");
 
+
+
 myShepherd.beginDBTransaction();
+long startTime=System.currentTimeMillis();
+
+//if the Task is completed, we can skip some checks
+if(request.getParameter("taskId")!=null){
+	Task t=myShepherd.getTask(request.getParameter("taskID"));
+	if(t!=null && t.getStatusNoWBIA()!=null && t.getStatusNoWBIA().equals("completed")){
+		taskCompleted=true;
+	}
+}
 
 try{
 	
@@ -38,8 +51,13 @@ try{
 	if (id != null) {
 		logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", id, myShepherd);
 	} else {
+		
 		logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
+		long queryTime=System.currentTimeMillis();
 		Collections.reverse(logs);  //so it has newest first like mostRecent above
+		long reverseTime=System.currentTimeMillis();
+		System.out.println("Query time: "+(queryTime-startTime));
+		System.out.println("Reverse time: "+(reverseTime-queryTime));
 	}
 	
 	if (logs == null) {
@@ -62,11 +80,13 @@ try{
 			all.put(projectData);
 		}
 	}
+	System.out.println("projectTime: "+(System.currentTimeMillis()-startTime));
 	
 	for (IdentityServiceLog l : logs) {
-		all.put(l.toJSONObject());
+		all.put(l.toJSONObject(taskCompleted));
 	}
 	
+	System.out.println("islPutTime: "+(System.currentTimeMillis()-startTime));
 	
 	
 	out.println(all.toString());
