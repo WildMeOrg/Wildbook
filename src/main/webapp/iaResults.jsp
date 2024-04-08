@@ -78,37 +78,40 @@ if (Util.stringExists(projectIdPrefix)) {
 //do queue stuff
 String queueStatementID="";
 boolean fastlane=false;
+boolean taskCompleted=false;
 if(request.getParameter("taskId")!=null){
 	Task t=myShepherd.getTask(request.getParameter("taskId"));
 	if(t!=null && t.getParameters()!=null && t.getParameters().optBoolean("fastlane", false)){
 		fastlane=true;
 	}
+	if(t!=null && t.areSelfAndOrAllChildrenComplete())taskCompleted=true;
 
 }
 int wbiaIDQueueSize = 0;
-if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
-else{wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);}
-if(wbiaIDQueueSize==0){
-	queueStatementID = "The machine learning queue is working.";
-}
-else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
-	String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
-	String queueType="bulk import";
-	if(fastlane){
-		val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
-		queueType="small batch";
+if(!taskCompleted){
+	if(fastlane){wbiaIDQueueSize =  WbiaQueueUtil.getSizeDetectionJobQueue(false);}
+	else{wbiaIDQueueSize = WbiaQueueUtil.getSizeIDJobQueue(false);}
+	if(wbiaIDQueueSize==0){
+		queueStatementID = "The machine learning queue is working.";
 	}
-	try{
-		if(wbiaIDQueueSize>1){
-			Double d = Double.parseDouble(val);
-			d=d/60.0;
-			queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+	else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_id")!=null){
+		String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_id");
+		String queueType="bulk import";
+		if(fastlane){
+			val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+			queueType="small batch";
 		}
+		try{
+			if(wbiaIDQueueSize>1){
+				Double d = Double.parseDouble(val);
+				d=d/60.0;
+				queueStatementID = "There are currently "+wbiaIDQueueSize+" ID jobs in the "+queueType+" queue. Time per job is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be much faster or slower.";
+			}
+		}
+		catch(Exception de){de.printStackTrace();}
 	}
-	catch(Exception de){de.printStackTrace();}
 }
-
-//do queue stuff
+//end do queue stuff
 
 
 
