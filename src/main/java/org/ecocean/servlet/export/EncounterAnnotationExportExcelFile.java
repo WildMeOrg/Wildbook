@@ -352,7 +352,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         MultiValue names = (ind!=null) ? ind.getNames() : null;
         List<String> sortedNameKeys = (names!=null) ? names.getSortedKeys() : null;
         List<MediaAsset> mas = enc.getMedia();
-        List<Annotation> anns = enc.getAnnotations();
         List<User> submitters = enc.getSubmitters();
         List<SocialUnit> socialUnits = ( ind!=null)? myShepherd.getAllSocialUnitsForMarkedIndividual(ind) : null;
         List<User> photographers = enc.getPhotographers();
@@ -377,23 +376,18 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
           }
           else if (exportCol.isFor(Annotation.class)) {
 
-            boolean alreadyMatched = false;
+            int num = exportCol.getMaNum();
+            if (num >= mas.size()) continue;
+            MediaAsset ma = mas.get(num);
+            if (ma == null) continue;
+            List<Annotation> anns = enc.getAnnotations(ma);
 
-            for (int annNum=0;annNum<anns.size();annNum++)
+            for (int annNum=0; annNum<anns.size(); annNum++)
             {
-                Annotation ann = anns.get(annNum);
-
                 if (ann.getMatchAgainst())
                 {
-                    alreadyMatched = true;
                     exportCol.writeLabel(ann, row, sheet);
                 }
-                else{
-                    if (!alreadyMatched){
-                        exportCol.writeLabel(ann, row, sheet);
-                    }
-                }
-
             }
 
           }
