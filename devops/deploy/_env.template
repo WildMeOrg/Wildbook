@@ -5,6 +5,12 @@ POSTGRES_PASSWORD=development
 PGADMIN_DEFAULT_EMAIL=dev@example.com
 PGADMIN_DEFAULT_PASSWORD=development
 
+# this should be a directory on your host system where you want to put your files related to development
+#   you *must* create:
+#   - $WILDBOOK_BASE_DIR/webapps/   (this is where you will deploy your war file to, under a subdir wildbook/)
+#   - $WILDBOOK_BASE_DIR/logs/      (logs will go here)
+WILDBOOK_BASE_DIR=/tmp
+
 WILDBOOK_DB_NAME=wildbook
 WILDBOOK_DB_USER=wildbook
 WILDBOOK_DB_PASSWORD=development
@@ -21,3 +27,5 @@ WBIA_DB_URI=postgresql://wbia:development@db/wbia
 #: Location within the container
 WBIA_DB_DIR=/data/db
 
+
+SERVER_URL=http://wildbook.example.com
