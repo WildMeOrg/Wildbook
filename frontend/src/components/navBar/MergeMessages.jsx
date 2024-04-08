@@ -6,6 +6,7 @@ import getMergeNotifications from '../../models/notifications/getMergeNotificati
 
 export default function MergeMessages({
     mergeData,
+    getAllNotifications,
     setModalOpen, }) {
 
     console.log('CollaborationMessages mergeData:', mergeData);
@@ -13,8 +14,9 @@ export default function MergeMessages({
     const handleClick = (action, taskId) => {
         const result = changeIndividualMergeState(action, taskId);
         // setError('Error: ' + result);
-        getMergeNotifications();
-        setModalOpen(false);        
+        // getMergeNotifications();
+        getAllNotifications();
+        setModalOpen(false);
     }
 
     const [showError, setShowError] = useState(false);
@@ -30,7 +32,7 @@ export default function MergeMessages({
         console.log('each data:', data.ownedByMe);
         return <div style={{
             borderBottom: '1px solid #ccc',
-            padding: '10px',
+            padding: '10px 0 0 10px',
         }}>
 
             {
@@ -144,8 +146,9 @@ export default function MergeMessages({
     return <div style={{
         maxHeight: '500px',
         overflow: 'auto',
+        marginTop: '20px',
     }}>
-        <h4><FormattedMessage id="INDIVIDUAL_MERGE_NOTIFICATIONS" /></h4>
+        {mergeData.length > 0 && <h4><FormattedMessage id="INDIVIDUAL_MERGE_NOTIFICATIONS" /></h4>}
         {content}
         {showError && <h6>{error}</h6>}
     </div>
