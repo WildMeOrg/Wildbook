@@ -131,7 +131,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
     String formattedDate = fmt.print(timeNow);
 
     //set up the files
-    String filename = "Encounter_annotations_export_" + request.getRemoteUser() + "_" + formattedDate + ".xls";
+    String filename = "Encounter_annotations_export_" + request.getRemoteUser() + "_" + formattedDate + ".xlsx";
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -186,12 +186,10 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       Method markedIndividualLifeStageName   = MarkedIndividual.class.getMethod("getLastLifeStage");
       Method occurrenceComments   = Occurrence.class.getMethod("getCommentsExport");
 
-
-
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
-      newEasyColumn("Occurrence.occurrenceID", columns);
 
-      String sourceEncounterUrlColName = "Encounter.sourceurl";
+      newEasyColumn("Occurrence.occurrenceID", columns);
+      String sourceEncounterUrlColName = "Encounter.sourceUrl";
       ExportColumn sourceEncounterUrlCol = new ExportColumn(Encounter.class, sourceEncounterUrlColName, null, columns);
 
 
@@ -259,8 +257,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
        maPathK.setMaNum(subNum);
 
       }
-
-
 
       ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographer0.Email", photographerEmail, columns);
       photographerEmailCol.setMaNum(0);
