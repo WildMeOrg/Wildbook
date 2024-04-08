@@ -189,6 +189,11 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
 
       newEasyColumn("Occurrence.occurrenceID", columns);
+
+      // added new Column for Encounter weburl
+      // method is null as we current approach does not support parameters
+      // used Encounter.getWebUrl(request, enc.getCatalogNumber()
+      // to fill this column value manually
       String sourceEncounterUrlColName = "Encounter.sourceUrl";
       ExportColumn sourceEncounterUrlCol = new ExportColumn(Encounter.class, sourceEncounterUrlColName, null, columns);
 
@@ -293,23 +298,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         annMatchAgainstK.setMaNum(maNum);
 
 
-        // for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
-        //   String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
-        //   ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, keywordGetName, columns);
-        //   keywordCol.setMaNum(maNum);
-        //   keywordCol.setKwNum(kwNum);
-        // }
-
-        // List<String> labels = myShepherd.getAllKeywordLabels();
-        // for(String label:labels) {
-        //   String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
-        //   ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName, labeledKeywordGetValue, columns);
-        //   keywordCol.setMaNum(maNum);
-        //   keywordCol.setLabeledKwName(label);
-
-        // }
-
-
       }
 
 
@@ -332,18 +320,18 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       }
       // end sorting
 
-
-
       for (ExportColumn exportCol: columns) {
         exportCol.writeHeaderLabel(sheet);
       }
 
       // Excel export =========================================================
       int row = 0;
+
       for (int i=0;i<numMatchingEncounters && i<rowLimit;i++) {
+        // get the Encounter and check if user
+        // has permission oterwise hide the encounter
 
         Encounter enc=(Encounter)rEncounters.get(i);
-        // Security: skip this row if user doesn't have permission to view this encounter
         if (hiddenData.contains(enc)) continue;
         row++;
 
@@ -363,9 +351,11 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         for (ExportColumn exportCol: columns) {
           if (exportCol.isFor(Encounter.class)) 
           {
-            if (exportCol.header.contains("Encounter.sourceurl")){
-              String Encurl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
-              exportCol.writeStringLabel(Encurl, row, sheet);
+            //added new column which holds the encounter url
+            if (exportCol.header.contains("Encounter.sourceUrl"))
+            {
+              String EncUrl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
+              exportCol.writeStringLabel(EncUrl, row, sheet);
             }
             else{
               exportCol.writeLabel(enc, row, sheet);
