@@ -105,7 +105,8 @@ public class KinalyzerExport extends HttpServlet{
             headerRow+=", "+locus+" Allele2";
         }
 
-        
+        //write out header row
+        outp.write(headerRow+"\r\n");
         
         //now write out POP2 for search2
         for(int i=0;i<numSearch2Individuals;i++){
