@@ -4,60 +4,18 @@ import { Bell } from 'react-bootstrap-icons';
 import Modal from 'react-bootstrap/Modal';
 import CollaborationMessages from './CollaborationMessages';
 import MergeMessages from './MergeMessages';
+import { FormattedMessage } from 'react-intl';
 
 const NotificationButton = ({ 
+  count,
   collaborationTitle, 
   collaborationData, 
   mergeData,
+  getAllNotifications,
 }) => {
 
   const [modalOpen, setModalOpen] = React.useState(false);
-
-  // const { notifications: mergeData, error: mergeError, loading: mergeLoading } = useGetCollaborationNotifications();
-
-//   const mergeData = [
-//     {
-//       "primaryIndividualName": "merge002",
-//       "mergeExecutionDate": "2024/04/15",
-//       "secondaryIndividualName": "merge001",
-//       "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
-//       "initiator": "erin1",
-//       "ownedByMe": "false",
-//       "notificationType": "mergePending",
-//       "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
-//       "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
-//   },
-//   {
-//     "primaryIndividualName": "merge002",
-//     "mergeExecutionDate": "2024/04/15",
-//     "secondaryIndividualName": "merge001",
-//     "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
-//     "initiator": "erin1",
-//     "ownedByMe": "false",
-//     "notificationType": "mergeComplete",
-//     "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
-//     "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
-// },
-// {
-//   "primaryIndividualName": "merge002",
-//   "mergeExecutionDate": "2024/04/15",
-//   "secondaryIndividualName": "merge001",
-//   "secondaryIndividualId": "a05ac02d-dc6f-47c8-a51a-42767b3837a5",
-//   "initiator": "erin2",
-//   "deniedBy": "erin999",
-//   "ownedByMe": "false",
-//   "notificationType": "mergeDenied",
-//   "taskId": "31a34e01-4b99-499d-bcb4-9084731eef25",
-//   "primaryIndividualId": "53d2eaf3-065e-46ee-88d4-e614e1261e43"
-// },]
-//   console.log('NotificationButton mergeData:', mergeData);
-
-  const handleBlur = (e) => {
-    console.log(111, e);
-    // if (!e.currentTarget.contains(e.relatedTarget)) {
-    //   setModalOpen(true); 
-    // }
-  };
+  
   return (
     <div
       style={{
@@ -65,7 +23,6 @@ const NotificationButton = ({
         position: 'relative',
       }}
       tabIndex={0}
-      onBlur={handleBlur}
     >
       <Modal.Dialog style={{
         position: 'absolute',
@@ -86,16 +43,23 @@ const NotificationButton = ({
           maxHeight: '1000px',
           contentOverflow: 'scroll',
         }}>
-          <CollaborationMessages
+          {
+            count > 0 ? <>
+              <CollaborationMessages
             collaborationTitle={collaborationTitle}
             collaborationData={collaborationData}
             mergeData={mergeData}
+            getAllNotifications={getAllNotifications}
             setModalOpen={setModalOpen}
           />
           <MergeMessages 
             mergeData={mergeData}
+            getAllNotifications={getAllNotifications}
             setModalOpen={setModalOpen}
           />
+            </>
+            : <h5><FormattedMessage id="NO_NEW_MESSAGE" /></h5>
+          }          
         </Modal.Body>
 
       </Modal.Dialog>
@@ -117,7 +81,7 @@ const NotificationButton = ({
         }}
       >
         <Bell color="white" />
-        {collaborationTitle && (
+        {count > 0 && (
           <Badge pill bg="danger" style={{
             width: '12px',
             height: '12px',
@@ -130,7 +94,7 @@ const NotificationButton = ({
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            {collaborationData?.length}
+            {count}
           </Badge>
         )}
       </Button>
