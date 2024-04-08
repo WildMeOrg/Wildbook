@@ -103,7 +103,7 @@ services:
       - intranet
     ports:
       # BBB deprecated in favor or port 80, remains for backward compat
-      - "84:80"
+      - "80:80"
 
   autoheal:
     image: willfarrell/autoheal
