@@ -327,9 +327,11 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       // Excel export =========================================================
       int row = 0;
 
-      for (int i=0;i<numMatchingEncounters && i<rowLimit;i++) {
+      for (int i=0;i<numMatchingEncounters && i<rowLimit;i++)
+      {
+
         // get the Encounter and check if user
-        // has permission oterwise hide the encounter
+        // has permission otherwise hide the encounter
 
         Encounter enc=(Encounter)rEncounters.get(i);
         if (hiddenData.contains(enc)) continue;
