@@ -37,12 +37,18 @@ services:
         condition: service_healthy
     labels:
       - autoheal=true
+    entrypoint: /docker-entrypoint.sh
     volumes:
-      - wildbook-var:/data/wildbook_data_dir
-      #- .dockerfiles/db/initdb.d/:/docker-entrypoint-initdb.d/
-      - /data/tomcat9/wildbook_docker_webapps/:/usr/local/tomcat/webapps/
-      - /data/tomcat9/logs/:/usr/local/tomcat/logs/
-      - /data/tomcat9/server.xml:/usr/local/tomcat/conf/server.xml
+      # lets let this live in /webapps/ instead
+      #- wildbook-var:/usr/local/tomcat/webapps/wildbook_data_dir
+      - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
+      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
+      - .dockerfiles/tomcat/watermark.png:/usr/local/tomcat/watermark.png
+      - .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
+      - .dockerfiles/tomcat/IA.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
+      - .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
+      - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
+      - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
     networks:
       - intranet
     ports:
