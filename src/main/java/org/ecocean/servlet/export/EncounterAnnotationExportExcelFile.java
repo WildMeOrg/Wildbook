@@ -187,8 +187,13 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       Method occurrenceComments   = Occurrence.class.getMethod("getCommentsExport");
 
 
+
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
       newEasyColumn("Occurrence.occurrenceID", columns);
+
+      String sourceEncounterUrlColName = "Encounter.sourceurl";
+      ExportColumn sourceEncounterUrlCol = new ExportColumn(Encounter.class, sourceEncounterUrlColName, null, columns);
+
 
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
         String mediaAssetColName = "Encounter.mediaAsset"+maNum;
@@ -343,7 +348,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
         Encounter enc=(Encounter)rEncounters.get(i);
         // Security: skip this row if user doesn't have permission to view this encounter
-        //if (hiddenData.contains(enc)) continue;
+        if (hiddenData.contains(enc)) continue;
         row++;
 
         // get attached objects
@@ -360,7 +365,19 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         // use exportColumns, passing in the appropriate object for each column
         // (can't use switch statement bc Class is not a java primitive type)
         for (ExportColumn exportCol: columns) {
-          if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
+          if (exportCol.isFor(Encounter.class)) 
+          {
+            if (exportCol.header.contains("Encounter.sourceurl")){
+              String Encurl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
+              exportCol.writeStringLabel(Encurl, row, sheet);
+            }
+            else{
+              exportCol.writeLabel(enc, row, sheet);
+
+            }
+
+          }
+          
           else if (exportCol.isFor(Occurrence.class)) exportCol.writeLabel(occ, row, sheet);
           else if (exportCol.isFor(MarkedIndividual.class)) exportCol.writeLabel(ind, row, sheet);
           else if (exportCol.isFor(MultiValue.class)) {
@@ -384,6 +401,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
             for (int annNum=0; annNum<anns.size(); annNum++)
             {
+                Annotation ann = anns.get(annNum);
                 if (ann.getMatchAgainst())
                 {
                     exportCol.writeLabel(ann, row, sheet);

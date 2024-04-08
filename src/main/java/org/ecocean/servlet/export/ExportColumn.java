@@ -102,6 +102,11 @@ public class ExportColumn {
       sheet.addCell(getLabel(obj, rowNum));
     }
 
+    public void writeStringLabel(String obj, int rowNum, WritableSheet sheet) throws jxl.write.WriteException, InvocationTargetException, IllegalAccessException {
+      if (obj==null) return;
+      sheet.addCell(new Label(colNum,rowNum, obj));
+    }
+
   // this would be a static method of above subclass if java allowed that
   public static ExportColumn newEasyColumn(String classDotFieldNameHeader, List<ExportColumn> columns) throws ClassNotFoundException, NoSuchMethodException {
 
