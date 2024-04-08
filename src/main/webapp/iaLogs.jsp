@@ -35,7 +35,6 @@ myShepherd.setAction("iaLogs.jsp");
 
 
 myShepherd.beginDBTransaction();
-long startTime=System.currentTimeMillis();
 
 //if the Task is completed, we can skip some checks
 if(request.getParameter("taskId")!=null){
