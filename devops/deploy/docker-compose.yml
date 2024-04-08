@@ -104,6 +104,8 @@ services:
     ports:
       # BBB deprecated in favor or port 80, remains for backward compat
       - "80:80"
+    depends_on:
+      - wildbook
 
   autoheal:
     image: willfarrell/autoheal
