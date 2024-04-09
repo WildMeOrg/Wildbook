@@ -3,13 +3,10 @@ import { Routes, Route } from 'react-router-dom';
 import NotFound from './NotFound';
 import Login from './pages/Login';
 import Footer from './components/Footer';
-import Home from './pages/Home';
 
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
-
 export default function UnAuthenticatedSwitch() {
-  console.log('UnAuthenticatedSwitch');
 
   return (
     <main>

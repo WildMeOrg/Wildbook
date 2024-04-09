@@ -9,17 +9,14 @@ import Footer from './components/Footer';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 import useGetMe from './models/auth/users/useGetMe';
 
-export default function AuthenticatedSwitch({ adminUserInitialized, isLoggedIn }) {
+export default function AuthenticatedSwitch({ isLoggedIn }) {
 
   const { isFetched, data, error } = useGetMe();
-  console.log('data', data);
   const username = data?.displayName;
   const avatar = data?.imageURL || '/react/images/Avatar.png';
 
-  console.log('switch avatar: ', avatar);
   return (
     <main>
-
       <div style={{
                   position: 'fixed',
                   top: 0,

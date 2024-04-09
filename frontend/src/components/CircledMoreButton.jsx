@@ -2,7 +2,6 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 
 const CircleButton = ({href, color='#cfe2ff'}) => {
-  console.log('CircleButton href:', href);
   const circleButtonStyle = {
     width: '50px', 
     height: '50px', 

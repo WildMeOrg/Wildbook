@@ -20,9 +20,7 @@ export default function About() {
 
         fetchData();
     }, []);
-
-    console.log(data);
-      
+          
     return (
         <div>
         <h1>About</h1>
