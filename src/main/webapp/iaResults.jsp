@@ -164,7 +164,7 @@ String taskId = request.getParameter("taskId");
 			<p class="algoInstructions"><ul>
 				<li>Hover mouse over results below to <b>compare candidates</b> to target.</li>
 				<li>Links to <b>encounters</b> and <b>individuals</b> are next to each match score.</li>
-				<li>Select <b>correct match</b> by hovering over the correct result and checking the checkbox</li>
+				<li>Select <b>correct match</b> by clicking at the correct result and checking the checkbox</li>
 				<li>Use the buttons below to switch between result types:<ul>
 					<li><b>Image Scores:</b> computes the match score for every <em>image</em> in the database when compared to the query image</li>
 					<li><b>Individual Scores:</b> computes one match score for every <em>individual</em> in the database. This is the aggregate of each image score for that individual.</li>
@@ -413,7 +413,7 @@ function toggleScoreType() {
 	init2();
 }
 
-var headerDefault = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
+var headerDefault = 'Select <b>correct match</b> from results below by <i>clicking</i> at result and checking the <i>checkbox</i>.';
 // we use the same space as
 
 function init2() {   //called from wildbook.init() when finished
@@ -932,8 +932,17 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			}
 
 		}
-		$('.annot-summary').on('mousemove', function(ev) {
-			//console.log('mouseover2 with num viewers: '+viewers.size);
+		$('.annot-summary').on('click', function(ev) {
+			console.log('mouse click with num viewers: '+viewers.size);			
+        	$('.annot-summary').css('background-color', ''); 
+        	$(this).css('background-color', '#8E8'); 
+			const checkbox = $(this).find('.annot-action-checkbox-inactive');
+			if (checkbox.length) {
+				console.log('clickinggggggggggggg');
+				checkbox.click();
+			}
+			
+   		
 			annotClick(ev);
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
@@ -1248,22 +1257,28 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				console.log("indivId: "+indivId+" projectIdPrefix: "+projectIdPrefix+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
 
 				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
+				let thisAnnotInfo = thisResultLine.find('.annot-info');
 
                 if (encId) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
 					// make whole encounter line clickable
-					let click = false
-					thisResultLine.click(function(ev) {
-						  click = true;
-						  rowClick(ev, thisResultLine, encId);
-					});
-					//For browsers such as Chrome where 'click' does not work for scroll wheel click
-					thisResultLine.mousedown(function(ev) { 
-						  if (!click && ev.button == 1) {
-							  rowClick(ev, thisResultLine, encId); 
-						  }
+					// thisResultLine.click(function(event) {
+					// 	let tar = $(event.target);
+					// 	if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
+					// 		// window.location.href = 'encounters/encounter.jsp?number='+encId;
+					// 		console.log("clicked on encounter line");
+					// 	}
+					// });
+
+					// make annot info clickable
+					thisAnnotInfo.click(function(event) {
+						console.log("clicked on annot info");
+						let tar = $(event.target).parent();
+						if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
+							window.location.href = 'encounters/encounter.jsp?number='+encId;
+						}
 					});
 
 					//console.log("Main asset encId = "+encId);

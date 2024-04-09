@@ -58,7 +58,7 @@ export default function AuthenticatedAppHeader() {
       width: '100%',
     }}
   >
-    <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>Amphibian Wildbook</Navbar.Brand>
+    <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
     <Navbar.Toggle aria-controls="basic-navbar-nav" />
     <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '50%' }}>
       <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
@@ -90,6 +90,7 @@ export default function AuthenticatedAppHeader() {
 
       </Nav>
       <MultiLanguageDropdown />
+      <NotificationButton />
       <Button
         variant="basic"
         style={{

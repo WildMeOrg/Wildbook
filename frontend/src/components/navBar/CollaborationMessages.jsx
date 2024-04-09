@@ -7,9 +7,8 @@ import getCollaborationNotifications from '../../models/notifications/getCollabo
 export default function CollaborationMessages({
     collaborationTitle,
     collaborationData,
+    getAllNotifications,
     setModalOpen, }) {
-
-    // console.log('CollaborationMessages collaborationTitleData:', collaborationTitleData);
 
     const [loading, setLoading] = useState(false);
     const [showError, setShowError] = useState(false);
@@ -20,8 +19,6 @@ export default function CollaborationMessages({
         const access = data.textContent.includes('view-only') ? 'View-Only' : 'Edit';
         const email = data.textContent.match(/\S+@\S+\.\S+/);
         const buttons = [...data.querySelectorAll('input[type="button"]')].map(button => {
-            console.log('button class', button.getAttribute('class'));
-            console.log('button value', button.getAttribute('value'));
             return {
                 'class': button.getAttribute('class'),
                 'value': button.getAttribute('value')
@@ -30,18 +27,17 @@ export default function CollaborationMessages({
         const id = data.getAttribute('id');
         const collabString = id ? `&collabId=${id.replace("edit-", "")} :` : '';
 
-        console.log(username, " ------", access, '========', id, '--------', collabString);
-
         return (
             <div style={{
                 display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                flexDirection: 'column',
+                padding: '10px',
+                borderBottom: '1px solid #ccc',
             }}>
 
                 <h6>{username}{' '}({access}) {email}</h6>
                 <div style={{
+                    marginTop: '10px',
                     display: 'flex',
                     flexDirection: 'row',
                 }}>
@@ -52,20 +48,17 @@ export default function CollaborationMessages({
                             }}
                             onClick={async () => {
                                 setLoading(true);
-                                console.log(button.class);
                                 const response = await fetch(`/Collaborate?json=1&username=${username}&approve=${button.class}&actionForExisting=${button.class}${collabString}`);
                                 const data = await response.json();
-                                setLoading(false);
-                                console.log(data);
                                 if (data.error) {
                                     setShowError(true);
                                     setError(data.error);
                                 } else {
                                     setShowError(false);
-                                    getCollaborationNotifications();
+                                    getAllNotifications();
                                     setModalOpen(false);
                                 }
-
+                                setLoading(false);
                             }}
                         >
                             {button.value}
@@ -76,11 +69,14 @@ export default function CollaborationMessages({
         );
     })
 
-    return <>
-        {collaborationTitle ? <h5>{collaborationTitle}</h5> : <h5><FormattedMessage id="NO_NEW_MESSAGE" /></h5>}
+    return <div style={{
+        maxHeight: '500px',
+        overflow: 'auto',
+    }}>
+        {<h4>{collaborationTitle}</h4>}
         {content}
         {showError && <h6>{error}</h6>}
-    </>
+    </div>
 }
 
 

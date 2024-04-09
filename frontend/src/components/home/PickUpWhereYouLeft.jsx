@@ -9,9 +9,10 @@ const PickUp = ({ data }) => {
     const date = new Date(matchActionDate);
     const now = new Date();
     const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000)); 
-    const matchActionButtonUrl = date < twoWeeksAgo 
-        ? `/actions.jsp?id=${data?.latestMatchTask?.id}`
-        : `/iaResults.jsp?taskId=${data?.latestMatchTask?.encounterId}`;
+    const matchActionButtonUrl = date > twoWeeksAgo 
+        ? `/iaResults.jsp?taskId=${data?.latestMatchTask?.id}`
+        : `/encounters/encounter.jsp?number=${data?.latestMatchTask?.encounterId}`;
+
     return (
         <div style={{
             marginTop: '40px',

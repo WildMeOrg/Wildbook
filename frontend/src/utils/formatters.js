@@ -2,7 +2,7 @@ import { format, formatDistance } from 'date-fns';
 
 export const formatDate = (input, fancy = false, fallback = '') => {
 
-    console.log('formatDate', input);
+    // console.log('formatDate', input);
     const formatter = fancy ? 'PP' : 'yyyy-MM-dd HH:mm';
     try {
       const jsDate =
@@ -10,7 +10,7 @@ export const formatDate = (input, fancy = false, fallback = '') => {
       const formattedDate = format(jsDate, formatter);
       return formattedDate;
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       return fallback;
     }
   };
