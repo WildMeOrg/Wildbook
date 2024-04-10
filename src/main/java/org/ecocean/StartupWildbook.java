@@ -20,7 +20,9 @@ import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 
@@ -81,7 +83,23 @@ public class StartupWildbook implements ServletContextListener {
         info.put("context", myShepherd.getContext());
         CommonConfiguration.setServerInfo(myShepherd, info);
         System.out.println("StartupWildbook.ensureServerInfo updated server info to: " + info.toString());
+        updateAssetStore(myShepherd);  // piggyback here, thus we ensure we have a *good* SERVER_URL
     }
+
+
+    // note: this (currently) is ONLY for docker-based deployment (hence reliance on SERVER_URL)
+    public static void updateAssetStore(Shepherd myShepherd) {
+        String urlString = System.getenv("SERVER_URL");
+        if (urlString == null) return;
+        AssetStore as = AssetStore.getDefault(myShepherd);  //should exist either (or both) cuz of ensureAssetStore and/or sql
+        if (as == null) return;
+        AssetStoreConfig newConfig = new AssetStoreConfig();
+        newConfig.put("root", "/usr/local/tomcat/webapps/wildbook_data_dir");  // docker-specific
+        newConfig.put("webroot", urlString + "/wildbook_data_dir");
+	System.out.println("StartupWildbook.updateAssetStore() changing " + as + " config from [" + as.getConfig() + "] to [" + newConfig + "]");
+	as.setConfig(newConfig);
+    }
+
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
