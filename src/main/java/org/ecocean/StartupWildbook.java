@@ -25,7 +25,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 
 import java.util.concurrent.ThreadPoolExecutor;
-
+import org.json.JSONObject;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -49,9 +49,39 @@ public class StartupWildbook implements ServletContextListener {
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
+    ensureServerInfo(myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
   }
+
+
+    /*
+        right now this *only* uses SERVER_URL env variable
+        TODO: should _probably_ make this work in the more general case where it isnt
+            e.g. CommonConfiguration.checkServerInfo(myShepherd, request)
+    */
+    public static void ensureServerInfo(Shepherd myShepherd) {
+        String urlString = System.getenv("SERVER_URL");
+        if (urlString == null) return;
+        URL url = null;
+        try {
+            url = new URL(urlString);
+        } catch (java.net.MalformedURLException mal) {
+            System.out.println("StartupWildbook.ensureServerInfo failed on " + urlString + ": " + mal.toString());
+            return;
+        }
+        JSONObject info = new JSONObject();
+        info.put("scheme", url.getProtocol());
+        info.put("serverName", url.getHost());
+        int port = url.getPort();
+        if (port > 0) info.put("serverPort", port);
+        info.put("contextPath", url.getFile());
+        //if (!isValidServerName(req.getServerName())) return false;  //dont update if we got wonky name like "localhost"
+        info.put("timestamp", System.currentTimeMillis());
+        info.put("context", myShepherd.getContext());
+        CommonConfiguration.setServerInfo(myShepherd, info);
+        System.out.println("StartupWildbook.ensureServerInfo updated server info to: " + info.toString());
+    }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
