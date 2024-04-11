@@ -25,7 +25,7 @@ The following docker containers should launch if started with `docker-compose [-
 
 ## .env and war file deployment
 
-You must manually deploy your `.war` file in order for tomcat to find the application.
+You must manually deploy your `.war` file in order for tomcat to find the application and start up correctly.
 
 **Where** you do this depends on
 what you have set `WILDBOOK_BASE_DIR` to in your `.env` file. For example, if you have `WILDBOOK_BASE_DIR=/dir/wildbook-dev`,
