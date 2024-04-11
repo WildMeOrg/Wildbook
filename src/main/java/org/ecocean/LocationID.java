@@ -336,47 +336,82 @@ public class LocationID {
   /*
   * Return an HTML selector of hierarchical locationIDs with indenting
   */
-  public static String getHTMLSelector(boolean multiselect, String selectedID,String qualifier, String htmlID, String htmlName, String htmlClass) {
-    
-    String multiselector="";
-    if(multiselect)multiselector=" multiple=\"multiple\"";
-    
-    StringBuffer selector=new StringBuffer("<select style=\"resize:both;\" name=\""+htmlName+"\" id=\""+htmlID+"\" class=\""+htmlClass+"\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
-
-     createSelectorOptions(getLocationIDStructure(qualifier),selector,0,selectedID);
-    
-    selector.append("</select>\n\r");
-    return selector.toString();
-
-  }
+  // 
   
-  private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel, String selectedID) {
+  public static String getHTMLSelector(boolean multiselect, String selectedID, String qualifier, String htmlID, String htmlName, String htmlClass) {
     
-    int localNestingLevel=nestingLevel;
-    String selected="";
-    String spacing="";
-    for(int i=0;i<localNestingLevel;i++) {spacing+="&nbsp;&nbsp;&nbsp;";}
-    //see if we can add this item to the list
-    try {
-      if(selectedID!=null && jsonobj.getString("id").equals(selectedID))selected=" selected=\"selected\"";
-      selector.append("<option value=\""+jsonobj.getString("id")+"\" "+selected+">"+spacing+jsonobj.getString("name")+"</option>\n\r");
-      localNestingLevel++;
-    }
-    catch(JSONException e) {}
+    StringBuffer selector = new StringBuffer("<input type=\"text\" id=\"" + htmlID + "Input\" class=\"form-control\" oninput=\"filterOptions('" + htmlID + "Options', this.value)\">\n\r");
+    
+    selector.append("<div id=\"" + htmlID + "Options\" class=\"" + htmlClass + "\" style=\"display:none;\">\n\r");
+    
+    createSelectorOptions(getLocationIDStructure(qualifier), selector, 0, selectedID);
+    
+    selector.append("</div>\n\r");
+    
+    selector.append("<script>\n\r");
+    selector.append("function filterOptions(optionsId, value) {\n\r");
+    selector.append("  var options = document.getElementById(optionsId).children;\n\r");
+    selector.append("  for (var i = 0; i < options.length; i++) {\n\r");
+    selector.append("    if (options[i].innerText.toLowerCase().includes(value.toLowerCase())) {\n\r");
+    selector.append("      options[i].style.display = 'block';\n\r");
+    selector.append("    } else {\n\r");
+    selector.append("      options[i].style.display = 'none';\n\r");
+    selector.append("    }\n\r");
+    selector.append("  }\n\r");
+    selector.append("}\n\r");
+    selector.append("</script>\n\r");
+    
+    return selector.toString();
+}
+
+  
+  // private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel, String selectedID) {
+    
+  //   int localNestingLevel=nestingLevel;
+  //   String selected="";
+  //   String spacing="";
+  //   for(int i=0;i<localNestingLevel;i++) {spacing+="&nbsp;&nbsp;&nbsp;";}
+  //   //see if we can add this item to the list
+  //   try {
+  //     if(selectedID!=null && jsonobj.getString("id").equals(selectedID))selected=" selected=\"selected\"";
+  //     selector.append("<option value=\""+jsonobj.getString("id")+"\" "+selected+">"+spacing+jsonobj.getString("name")+"</option>\n\r");
+  //     localNestingLevel++;
+  //   }
+  //   catch(JSONException e) {}
 
     
-    //iterate locationID array
-    try {
-        JSONArray locs=jsonobj.getJSONArray("locationID");
-        int numLocs=locs.length();
-        for(int i=0;i<numLocs;i++) {
+  //   //iterate locationID array
+  //   try {
+  //       JSONArray locs=jsonobj.getJSONArray("locationID");
+  //       int numLocs=locs.length();
+  //       for(int i=0;i<numLocs;i++) {
           
-          JSONObject loc=locs.getJSONObject(i);
-          createSelectorOptions(loc,selector,localNestingLevel,selectedID);
+  //         JSONObject loc=locs.getJSONObject(i);
+  //         createSelectorOptions(loc,selector,localNestingLevel,selectedID);
+  //       }
+  //   }
+  //   catch(JSONException e) {}
+  // }
+
+  private static void createSelectorOptions(JSONObject jsonobj, StringBuffer selector, int nestingLevel, String selectedID) {
+    
+    try {
+        if (jsonobj.getString("id").equals(selectedID)) {
+            selector.append("<div style=\"padding-left:" + (nestingLevel * 10) + "px; display:block;\">" + jsonobj.getString("name") + "</div>\n\r");
+        } else {
+            selector.append("<div style=\"padding-left:" + (nestingLevel * 10) + "px;\">" + jsonobj.getString("name") + "</div>\n\r");
         }
-    }
-    catch(JSONException e) {}
-  }
+    } catch (JSONException e) {}
+
+    try {
+        JSONArray locs = jsonobj.getJSONArray("locationID");
+        for (int i = 0; i < locs.length(); i++) {
+            JSONObject loc = locs.getJSONObject(i);
+            createSelectorOptions(loc, selector, nestingLevel + 1, selectedID);
+        }
+    } catch (JSONException e) {}
+}
+
   
     public static String getBootstrapMenu(String qualifier, String urlPrefix) {
         if (urlPrefix == null) urlPrefix = "./";   //probably not what you want
