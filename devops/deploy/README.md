@@ -1,5 +1,7 @@
 # Deployable Wildbook
 
+**THIS IS CURRENTLY UNDER DEVELOPMENT - DRAFT ONLY**
+
 This will launch an instance of Wildbook for the sake of testing or using in production.
 It can be used to deploy on a VM/host on the internet or locally.
 
