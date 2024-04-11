@@ -5,14 +5,13 @@ via your own Java environment. <!-- TODO: link/explain java and maven instructio
 
 ## WBIA / ML
 
-Presently, this deployment does not start a local WBIA (image analysis) docker container. This feature will be
-added in future development.
+Presently, this deployment does not start a local WBIA (image analysis) docker container. This feature will be added in future development.
 
 
 # Setup and running
 
-1. copy `_env.template` to `.env` and edit this new file (if needed)
-1. make required directories under your `WILDBOOK_BASE_DIR` (default is `~/wildbook-dev/`):
+1. In this folder, create a `.env` file and copy the contents of `_env.template` to it. By default, no changes should be needed, but you can edit this new file.
+1. In your terminal, create your base directory (value of `WILDBOOK_BASE_DIR`) and the required subdirectories. The default is `~/wildbook-dev/`):
 	```
 	mkdir -p ~/wildbook-dev/webapps/wildbook
 	mkdir ~/wildbook-dev/logs
@@ -23,8 +22,8 @@ added in future development.
 	jar -xvf /path/to/wildbook-xxx.war
 	```
 1. return to the `devops/development/` directory in the wildbook repo
-1. run `docker-compose up [-d]` (will launch latest postgresql and tomcat9 docker images)
-1. open in browser http://localhost:81/ when tomcat has started
+1. run `docker-compose up [-d]`, which will launch latest postgresql and tomcat9 docker images
+1. To verify successful launch, open in browser http://localhost:81/ when tomcat has started
 
 ## When developing
 
