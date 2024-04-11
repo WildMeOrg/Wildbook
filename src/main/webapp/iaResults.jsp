@@ -938,7 +938,6 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
         	$(this).css('background-color', '#8E8'); 
 			const checkbox = $(this).find('.annot-action-checkbox-inactive');
 			if (checkbox.length) {
-				console.log('clickinggggggggggggg');
 				checkbox.click();
 			}
 			
@@ -1262,15 +1261,6 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 if (encId) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
-
-					// make whole encounter line clickable
-					// thisResultLine.click(function(event) {
-					// 	let tar = $(event.target);
-					// 	if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
-					// 		// window.location.href = 'encounters/encounter.jsp?number='+encId;
-					// 		console.log("clicked on encounter line");
-					// 	}
-					// });
 
 					// make annot info clickable
 					thisAnnotInfo.click(function(event) {
