@@ -97,10 +97,22 @@ public class KinalyzerExport extends HttpServlet{
         //iterate through the loci
         List<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
+        ArrayList<String> allowedLoci=new ArrayList<String>();
+        
+        //filter to only loci of query individuals
+        for(int i=0;i<numSearch2Individuals;i++){
+            MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(i);
+            for(int r=0;r<numLoci;r++){
+            	if(indie.hasLocus(loci.get(r))) {
+            		if(!allowedLoci.contains(loci.get(r))) {allowedLoci.add(loci.get(r));}
+            	}
+            }
+        }
+        int numAllowedLoci=allowedLoci.size();
         
         //let's add loci to the header row
-        for(int r=0;r<numLoci;r++){
-            String locus=loci.get(r);
+        for(int r=0;r<numAllowedLoci;r++){
+            String locus=allowedLoci.get(r);
             headerRow+=", "+locus+" Allele1";
             headerRow+=", "+locus+" Allele2";
         }
@@ -130,8 +142,8 @@ public class KinalyzerExport extends HttpServlet{
           lociString+=sexString+",";
           
 
-          for(int r=0;r<numLoci;r++){
-            String locus=loci.get(r);
+          for(int r=0;r<numAllowedLoci;r++){
+            String locus=allowedLoci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
               lociString+=(values.get(0)+",");
