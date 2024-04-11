@@ -1300,7 +1300,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive annot-action-checkbox" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1402,10 +1402,12 @@ function annotCheckbox(el) {
     var task = getCachedTask(taskId);
     var queryAnnotation = jel.closest('.task-content').data();
     console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
-	annotCheckboxReset();
+	//annotCheckboxReset();
   	if (!taskId || !task) return;
 	if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
+	let allSelected = $('.annot-action-checkbox:checked');
+        console.log('allSelected %o', allSelected);
 	jel.parent().addClass('annot-summary-checked');
 
 
