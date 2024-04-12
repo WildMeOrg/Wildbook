@@ -936,10 +936,10 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			console.log('mouse click with num viewers: '+viewers.size);			
         	$('.annot-summary').css('background-color', ''); 
         	$(this).css('background-color', '#8E8'); 
-			const checkbox = $(this).find('.annot-action-checkbox-inactive');
-			if (checkbox.length) {
-				checkbox.click();
-			}
+			// const checkbox = $(this).find('.annot-action-checkbox-inactive');
+			// if (checkbox.length) {
+			// 	checkbox.click();
+			// }
 			
    		
 			annotClick(ev);
