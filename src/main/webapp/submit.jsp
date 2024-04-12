@@ -24,8 +24,6 @@
 <!-- Select2 JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script> -->
-
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -94,21 +92,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <script>
-$(document).ready( function() {
-  const locationIDSelector = document.getElementById('locationID');
-  console.log("---------================",locationIDSelector);
-  // console.log('+++++++++++++++++++++++++',locationIDSelector.select2());
-  console.log("1111111",$);
-  
+$(document).ready( function() {  
 
-  setTimeout(function() {
-    console.log("2224444",$.fn.select2);
-            $('#locationID').select2();
-        }, 1000); 
+   $('#locationID').select2({width: '100%', height:'50px'});
+   $('#country').select2({width: '100%', height:'50px'});
 
-  // locationIDSelector.select2();
-
-  // $('#locationID').select2();
 	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 	<%
 	if(user != null){
