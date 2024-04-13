@@ -1587,8 +1587,8 @@ public class StandardImport extends HttpServlet {
     String fullPath = null;
     try {
 
-      if (localPath==null||"null".equals(localPath)) {
-        feedback.logParseError(assetColIndex(i, allColsMap), localPath, row);
+      if (localPath==null||"null".equals(localPath)||"".equals(localPath.trim())) {
+        feedback.logParseNoValue(assetColIndex(i, allColsMap));
         return null;
       }
 
