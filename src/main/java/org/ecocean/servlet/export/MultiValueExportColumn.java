@@ -17,6 +17,10 @@ import jxl.Workbook;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+
 public class MultiValueExportColumn extends ExportColumn {
 
     // since we have multiple names per row, we need to know this
@@ -57,6 +61,30 @@ public class MultiValueExportColumn extends ExportColumn {
       String writeValue = (isLabel) ? key : value; // are we writing the key or value
       writeValue = cleanWriteValue(writeValue);
       sheet.addCell(new Label(colNum, rowNum, writeValue));     
+
+    }
+
+
+    public void writeLabel(List<String> sortedKeys, MultiValue names, int rowNum, Sheet sheet) throws InvocationTargetException, IllegalAccessException {
+      if (names==null || sortedKeys.size()<(nameNum+1)) {
+        return; // out of bounds for this names list
+      }
+      String key = sortedKeys.get(nameNum);
+      String value = names.getValue(key);
+      if (!Util.stringExists(value)) return; // don't print out names without values
+
+      String writeValue = (isLabel) ? key : value; // are we writing the key or value
+      writeValue = cleanWriteValue(writeValue);
+
+
+      // Ensure the row exists in the sheet
+      Row row = sheet.getRow(rowNum);
+      if (row == null) {
+          row = sheet.createRow(rowNum);
+      }
+  
+      Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
+      cell.setCellValue(writeValue);  
 
     }
 

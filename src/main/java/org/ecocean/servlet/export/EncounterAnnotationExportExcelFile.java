@@ -13,9 +13,6 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.*;
 import javax.jdo.*;
 import java.lang.StringBuffer;
-import jxl.write.*;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -23,6 +20,10 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 public class EncounterAnnotationExportExcelFile extends HttpServlet {
@@ -131,7 +132,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
     String formattedDate = fmt.print(timeNow);
 
     //set up the files
-    String filename = "Encounter_annotations_export_" + request.getRemoteUser() + "_" + formattedDate + ".xlsx";
+    String filename = "AnnotnExp_" + formattedDate + ".xlsx";
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -159,10 +160,9 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
 
       // business logic start here
-      WorkbookSettings ws = new WorkbookSettings();
-      ws.setEncoding( "UTF-8" );
-      WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile,ws);
-      WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
+      Workbook wb = new XSSFWorkbook(); // Create a new workbook
+      Sheet sheet = wb.createSheet("Search Results");
+      Sheet hiddenSheet = wb.createSheet("Hidden Data Report");
 
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
@@ -297,7 +297,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         ExportColumn annMatchAgainstK = new ExportColumn(Annotation.class, MatchAgainst, annMatchAgainst, columns);
         annMatchAgainstK.setMaNum(maNum);
 
-
       }
 
 
@@ -357,7 +356,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
             if (exportCol.header.contains("Encounter.sourceUrl"))
             {
               String EncUrl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
-              exportCol.writeStringLabel(EncUrl, row, sheet);
+              exportCol.writeLabel(EncUrl, row, sheet);
             }
             else{
               exportCol.writeLabel(enc, row, sheet);
@@ -474,10 +473,13 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
      	} //end for loop iterating encounters
 
       // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
-      hiddenData.writeHiddenDataReport(excelWorkbook);
+      hiddenData.writeHiddenDataReport(hiddenSheet);
 
-      excelWorkbook.write();
-      excelWorkbook.close();
+      FileOutputStream fileOut = new FileOutputStream(excelFile);
+      wb.write(fileOut); // Write the workbook to the FileOutputStream
+      fileOut.close(); // Close the FileOutputStream
+      wb.close(); // Close the workbook
+
       // end Excel export and business logic ===============================================
       System.out.println("Done with EncounterAnnotationExportExcelFile. We hid "+hiddenData.size()+" encounters.");
     }
