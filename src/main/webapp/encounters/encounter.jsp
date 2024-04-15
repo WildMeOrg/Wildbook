@@ -123,6 +123,14 @@
 	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
 
 <%
 
@@ -1696,6 +1704,10 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
+
+                      $('#selectCode').select2({width: '100%', height:'50px'});
+                      $('#selectCountry').select2({width: '100%', height:'50px'});
+
                       populateNewIndWithDisabledButton();
                       populateAddToExistingIndWithDisabledButton();
                       setUpIdActionOnClick();
