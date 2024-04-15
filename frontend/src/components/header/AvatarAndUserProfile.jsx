@@ -17,11 +17,9 @@ export default function AvatarAndUserProfile({ username, avatar }) {
     await fetch('/api/v3/logout')
       .then(response => {
         if (response.status === 200) {
-          console.log('User logged out');
           setIsLoggedIn(false);
         } else if (response.status === 401) {
-          console.log('User is not logged in');
-        }        
+          console.log('Unauthorized');}        
         navigate('/login/');
 
       })

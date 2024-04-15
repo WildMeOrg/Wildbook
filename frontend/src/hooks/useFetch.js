@@ -31,8 +31,7 @@ export default function useFetch({
 }) {
   const [displayedError, setDisplayedError] = useState(null);
   const [displayedLoading, setDisplayedLoading] = useState(
-    !queryOptions.disabled, // should this use enabled instead of disabled? I couldn't find anything in the react-query documentation about disabled.
-    // agreed, I think it should be enabled
+    !queryOptions.disabled, // enabled? or disabled?
   );
 
   const apiUrl = `/api/v3${url}`;   

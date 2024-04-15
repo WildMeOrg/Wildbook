@@ -30,7 +30,6 @@ export default function FrontDesk() {
   };
 
   const getAllNotifications = async () => {
-    console.log("frontend getting all notifications");
     const { collaborationTitle, collaborationData } = await getCollaborationNotifications();
     const mergeData = await getMergeNotifications();
     const count = collaborationData.length + mergeData.length;
@@ -39,8 +38,6 @@ export default function FrontDesk() {
     setMergeData(mergeData);
     setCount(count);
   }
-
-  console.log('FrontDesk collaborationData:', collaborationData, mergeData);
 
   useEffect(() => {      
     getAllNotifications();  

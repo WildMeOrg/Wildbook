@@ -23,24 +23,9 @@ export default function Home() {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-
             const result = await response.json();
-            // result.latestBulkImportTask = {
-            //     "id": "task_12345",
-            //             "dateTimeCreated": "2023-03-20T10:00:00Z",
-            //             "numberEncounters": 15,
-            //             "numberMediaAssets": 10
-            //                     };
-            // result.latestBulkImportIndividual = {
-            //     "id": "indiv_67890",
-            //     "dateTimeCreated": "2023-03-18T08:30:00Z"
-            // }
-            // result.latestMatchTask = {
-            //     "id": "match_54321",
-            //     "dateTimeCreated": "2023-03-19T09:45:00Z",
-            //     "encounterId": "enc_98765",
-            // }
             setData(result);
+            
         } catch (error) {
             console.error('There has been a problem with your fetch operation:', error);
         }

@@ -19,7 +19,6 @@ export default function MultiLanguageDropdown() {
             alignItems: 'center',
             justifyContent: 'center',
             position: 'relative', 
-            // padding: '10px',
             margin: '10px',
         }}>
             

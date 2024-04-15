@@ -17,7 +17,6 @@ function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const intl = useIntl();
-  const [rememberMe, setRememberMe] = useState(false);
   const { authenticate, error, setError, loading } = useLogin();
   const actionDisabled = loading || username === '' || password === '';
   const [show, setShow] = useState(false);
@@ -35,11 +34,6 @@ function LoginPage() {
     setError(null);
     setShow(false);
     authenticate(username, password);
-    // if (rememberMe) {
-    //   Cookies.set('rememberMe', 'true', { expires: 1/3 });
-    // } else {
-    //   Cookies.set('rememberMe', 'true');
-    // }  
   }
 
   return (
