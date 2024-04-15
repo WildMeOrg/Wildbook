@@ -97,7 +97,6 @@ export default function AuthenticatedAppHeader() {
           backgroundColor: 'transparent',
           color: 'white',
           border: 'none',
-          // marginLeft: '10px',
           width: '100px',
         }}
         href={"/react/login"}>{

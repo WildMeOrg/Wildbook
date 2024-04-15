@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+<!-- <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
@@ -935,19 +935,13 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		$('.annot-summary').on('click', function(ev) {
 			console.log('mouse click with num viewers: '+viewers.size);			
         	$('.annot-summary').css('background-color', ''); 
-        	$(this).css('background-color', '#8E8'); 
-			// const checkbox = $(this).find('.annot-action-checkbox-inactive');
-			// if (checkbox.length) {
-			// 	checkbox.click();
-			// }
-			
+        	$(this).css('background-color', '#8E8'); 						
    		
 			annotClick(ev);
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
 			if(viewers.has(taskId+"+"+m_acmId )){
-				//console.log("Found viewer: "+taskId+"+"+m_acmId );
 				var viewer=viewers.get(taskId+"+"+m_acmId );
 				var eventArgs={
 					acmId: m_acmId,
@@ -1262,6 +1256,18 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
+					let click = false
+					thisResultLine.click(function(ev) {
+						  click = true;
+						  rowClick(ev, thisResultLine, encId);
+					});
+					//For browsers such as Chrome where 'click' does not work for scroll wheel click
+					thisResultLine.mousedown(function(ev) { 
+						  if (!click && ev.button == 1) {
+							  rowClick(ev, thisResultLine, encId); 
+						  }
+						});
+
 					// make annot info clickable
 					thisAnnotInfo.click(function(event) {
 						console.log("clicked on annot info");
@@ -1272,8 +1278,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 					});
 
 					//console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
-                    //thisResultLine.append('<a class="enc-link" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
+                    h += ' for <a  class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
+                    //thisResultLine.append('<a class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
 
 					if (!indivId) {
 						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
@@ -1282,27 +1288,27 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 				if (isProjectSelected()) {
 					console.log("trying to show project-based id for asset...(UUID: "+projectUUID+" )");
-					h += ' in <a class="project-link" href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
+					h += ' in <a class="project-link"  href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
 
 					if (incrementalProjectId) {
-						thisResultLine.append('<a class="indiv-link" href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+						thisResultLine.append('<a class="indiv-link"  href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
 					}
 				}
 
 				if (taxonomy && taxonomy!='Eubalaena glacialis' && indivId && (incrementalProjectId!=displayName)) {
-                    h += '<a class="indiv-link" title="open individual page" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
-                    thisResultLine.append('<a class="indiv-link" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                    h += '<a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    thisResultLine.append('<a class="indiv-link"  href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                     
                     //add social unit name
                     console.log("socialunit name: "+socialUnitName);
                     if(socialUnitName){
                     	
-                    	thisResultLine.append('<a class="indiv-link" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                    	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
                     }
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
-                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
+                    //h += ' <a class="indiv-link" title="open individual page"  href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    thisResultLine.append('<a class="indiv-link"  href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog #'+displayName+'</a>');
                 }
 				<%
 				if(request.getUserPrincipal()!=null){
@@ -1380,13 +1386,13 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 var indivId = ft.individualId;
                 var displayName = ft.displayName;
                 if (encId) {
-                	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
+                	imgInfo += ' <a xstyle="margin-top: -6px;" class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
                 	console.log("another encId = "+encId);
                 }
-                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
+                if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
                 //add social unit name
                 if(socialUnitName){
-                	thisResultLine.append('<a class="indiv-link" href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
                 }
             }
             imgInfo += '</li>';
@@ -1693,7 +1699,7 @@ console.info('waiting to try again...');
       			altIDString = ', altID '+altIDString;
     		}
 
-		$('#results').html('One match found (<a href="encounters/encounter.jsp?number=' +
+		$('#results').html('One match found (<a  href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
 			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
@@ -1714,7 +1720,7 @@ console.info('waiting to try again...');
 	if (altIDString && altIDString.length > 0) {
 		altIDString = ' (altID: '+altIDString+')';
 	}
-		h += '<li data-i="' + i + '"><a href="encounters/encounter.jsp?number=' +
+		h += '<li data-i="' + i + '"><a  href="encounters/encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
 			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
@@ -1800,11 +1806,11 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 			console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
-				var indivLink = ' <a class="indiv-link" title="open individual page" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
+				var indivLink = ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
 				if (encID2) {
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
-					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
 					// updates encounters in results list with name and link to indy
 					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
@@ -2015,4 +2021,4 @@ function selectedProjectContainsEncounter(acmId) {
 
 }
 
-</script>
+</script> -->

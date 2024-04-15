@@ -15,14 +15,6 @@ function Link(
   },
   ref,
 ) {
-
-//   const styles = {
-//     color: disabled ? theme.palette.text.disabled : 'unset',
-//     textDecoration: noUnderline ? 'unset' : 'underline',
-//     cursor: disabled ? 'default' : 'pointer',
-//     ...style,
-//   };
-
     const styles = {
         color: disabled ? 'grey' : 'unset',
         textDecoration: noUnderline ? 'unset' : 'underline',

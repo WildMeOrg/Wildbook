@@ -14,7 +14,6 @@ export default function MergeMessages({
     const handleClick = (action, taskId) => {
         const result = changeIndividualMergeState(action, taskId);
         // setError('Error: ' + result);
-        // getMergeNotifications();
         getAllNotifications();
         setModalOpen(false);
     }
