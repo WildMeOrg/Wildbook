@@ -275,13 +275,18 @@ finally{
             function startCountdown() {
 
                 var warningCountdownTime = <%= sessionCountdownTime %>; // Session countdown time in minutes.
-                var countdownTime = warningCountdownTime * 60;
+                var countdownTimeout = warningCountdownTime * 60 * 1000;
 
                 countdownInterval = setInterval(function()
                 {
-                    updateCountdownDisplay(countdownTime);
-                    countdownTime = countdownTime - 1;
-                    if (countdownTime <= 0) {
+
+                    var now = Date.now();
+                    lastActivityTimestamp = parseInt(localStorage.getItem('lastActivity'));
+                    var countDownTime = (lastActivityTimestamp + activityTimeout + countdownTimeout) - now
+                    var countDownTimeSeconds = Math.floor(countDownTime / 1000);
+                    updateCountdownDisplay(countDownTimeSeconds);
+
+                    if (countDownTime < 0 ) {
                         clearInterval(countdownInterval);
                         $('#extendSessionBtn').text("<%=props.getProperty("sessionLoginButton") %>");
                         $('#extendSessionBtn').data('action', 'login'); // Change the data-action attribute to 'login'
@@ -357,7 +362,7 @@ finally{
             <div id="countdown" style="display: inline-block;"></div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-action="extendSession" data-dismiss="modal" ><%=props.getProperty("extendButton") %></button>
+            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-action="extendSession"><%=props.getProperty("extendButton") %></button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal"><%=props.getProperty("closeButton") %></button>
           </div>
         </div>
