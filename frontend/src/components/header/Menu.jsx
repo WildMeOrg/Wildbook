@@ -5,7 +5,9 @@ import DownIcon from '../svg/DownIcon';
 import RightIcon from '../svg/RightIcon';
 import { authenticatedMenu } from '../../constants/navMenu';
 
-export default function Menu(username) {
+export default function Menu({username}) {
+
+    console.log('user name',username);
 
     const [dropdownColor, setDropdownColor] = useState('transparent');
   
