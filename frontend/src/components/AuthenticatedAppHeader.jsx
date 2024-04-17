@@ -56,7 +56,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
           justifyContent: 'flex-end',
           width: '100%',
         }}>
-          <Menu />
+          <Menu username={username}/>
         </Nav>
         <NotificationButton
           collaborationTitle={collaborationTitle}
