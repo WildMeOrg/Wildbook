@@ -7,8 +7,6 @@ import { authenticatedMenu } from '../../constants/navMenu';
 
 export default function Menu({username}) {
 
-    console.log('user name',username);
-
     const [dropdownColor, setDropdownColor] = useState('transparent');
   
     const [dropdownShows, setDropdownShows] = useState({});
