@@ -1257,9 +1257,9 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
 					thisResultLine.find('.annot-info').each(function() {
-						var content = $(this).contents();
-						var href = 'encounters/encounter.jsp?number='+encId;
-						var newAnchor = $('<a></a>').attr('href', href).css('white-space', 'nowrap').append(content);
+						const content = $(this).contents();
+						const href = 'encounters/encounter.jsp?number='+encId;
+						const newAnchor = $('<a></a>').attr('href', href).css('white-space', 'nowrap').append(content);
 						$(this).replaceWith(newAnchor);
 				});
 					//console.log("Main asset encId = "+encId);
