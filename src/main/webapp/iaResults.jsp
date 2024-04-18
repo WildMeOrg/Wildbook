@@ -1407,9 +1407,17 @@ function annotCheckbox(el) {
 	if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	let allSelected = $('.annot-action-checkbox:checked');
-        console.log('allSelected %o', allSelected);
+        console.log('allSelected %d %o', allSelected.length, allSelected);
 	jel.parent().addClass('annot-summary-checked');
 
+        let indivs = {};
+        if (queryAnnotation.indivId) indivs[queryAnnotation.indivId] = indivs[queryAnnotation.indivId] + 1 || 1;
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o .... queryAnnotation %o', sel, queryAnnotation);
+            if (sel.individ) indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+        }
+console.log('INDIVS CT: %o', indivs);
 
 	let selectedProjectIdPrefix = getSelectedProjectIdPrefix();
 	if (selectedProjectIdPrefix==NONE_SELECTED) selectedProjectIdPrefix = '';
