@@ -100,7 +100,7 @@ export default function AuthenticatedAppHeader() {
           width: '100px',
         }}
         href={"/react/login"}>{
-          <FormattedMessage id='LOGIN' />
+          <FormattedMessage id='LOGIN_LOGIN' />
         }
       </Button>
 

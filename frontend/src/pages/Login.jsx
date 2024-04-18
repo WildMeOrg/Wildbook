@@ -95,7 +95,7 @@ function LoginPage() {
               <Form.Group controlId="formBasicEmail">
                 <Form.Label>{
                   intl.formatMessage({
-                    id: 'USERNAME',
+                    id: 'LOGIN_USERNAME',
                   })
                 }</Form.Label>
                 <Form.Control type="text" placeholder="Username" onChange={e => {
@@ -107,7 +107,7 @@ function LoginPage() {
               <Form.Group controlId="formBasicPassword">
                 <Form.Label>{
                   intl.formatMessage({
-                    id: 'PASSWORD',
+                    id: 'LOGIN_PASSWORD',
                   })
                 }</Form.Label>
                 <Form.Control autoComplete="current-password" type="password" placeholder="Password" onChange={e => {
@@ -147,11 +147,11 @@ function LoginPage() {
                 color='#00ACCE'
                 borderColor='#00ACCE'
               // borderColor={theme.primaryColors.primary500}
-              // disabled={actionDisabled}
+              disabled={actionDisabled}
               >
                 {
                   intl.formatMessage({
-                    id: 'SIGN_IN',
+                    id: 'LOGIN_SIGN_IN',
                   })
                 }
               </BrutalismButton>
@@ -164,7 +164,7 @@ function LoginPage() {
                 <span>
                   <a href="/resetPassword.jsp">{
                     intl.formatMessage({
-                      id: 'FORGOT_PASSWORD',
+                      id: 'LOGIN_FORGOT_PASSWORD',
                     })
                   }</a>
                 </span>
@@ -174,7 +174,7 @@ function LoginPage() {
                 }}>
                   <a href="https://us7.list-manage.com/contact-form?u=c5af097df0ca8712f52ea1768&form_id=335cfeba915bbb2a6058d6ba705598ce">{
                     intl.formatMessage({
-                      id: 'REQUEST_ACCOUNT',
+                      id: 'LOGIN_REQUEST_ACCOUNT',
                     })}
                   </a>
                 </span>
