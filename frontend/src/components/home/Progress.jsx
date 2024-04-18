@@ -1,4 +1,5 @@
 import React from "react";
+import { FormattedMessage } from "react-intl";
 
 export default function Progress({ 
     name, 
@@ -48,7 +49,7 @@ export default function Progress({
                     }}
                 >
                     <h5>{name}</h5>
-                    <span>{encounters} encounters</span>
+                    <span>{encounters} <FormattedMessage id='ENCOUNTERS'/></span>
                 </a>
             </div>
             <div style={{

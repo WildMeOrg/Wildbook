@@ -44,7 +44,7 @@ export default function AvatarAndUserProfile({ username, avatar }) {
         <FormattedMessage id="USER_PROFILE" />
       </NavDropdown.Item>
       <NavDropdown.Item onClick={logout} style={{ color: 'black' }}>
-        <FormattedMessage id="LOGOUT" />
+        <FormattedMessage id="LOGIN_LOGOUT" />
       </NavDropdown.Item>
     </NavDropdown>
   </Nav>
