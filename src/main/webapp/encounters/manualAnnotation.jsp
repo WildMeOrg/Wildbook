@@ -46,7 +46,7 @@ catch (NumberFormatException nex) {}
 
 String iaClass = request.getParameter("iaClass");
 String maparam = request.getParameter("matchAgainst");
-boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+boolean matchAgainst = Util.booleanNotFalse(maparam);
 String rtparam = request.getParameter("removeTrivial");
 boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
