@@ -1256,6 +1256,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
+					//To make the browser behave consistent with other links when encounter number is left/middle/right clicked, change the encounter number to a link
 					thisResultLine.find('.annot-info').each(function() {
 						const content = $(this).contents();
 						const href = 'encounters/encounter.jsp?number='+encId;
