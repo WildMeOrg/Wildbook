@@ -28,13 +28,13 @@ const PickUp = ({ data }) => {
                 zIndex: 1,
             }}>
                 <h1 style={{ fontSize: '4em' }}>
-                    <FormattedMessage id='PICK_UP_PART1' />
+                    <FormattedMessage id='HOME_PICK_UP_1' />
                 </h1>
                 <h1 style={{ fontSize: '4em', }}>
-                    <FormattedMessage id='PICK_UP_PART2' />
+                    <FormattedMessage id='HOME_PICK_UP_2' />
                 </h1>
                 <LatestActivityItem
-                    name="LATEST_BULK_REPORT"
+                    name="HOME_LATEST_BULK_REPORT"
                     num={data?.latestBulkImportTask?.numberMediaAssets || '0'}
                     date={formatDate(data?.latestBulkImportTask?.dateTimeCreated, true)}
                     text={data?.latestBulkImportTask}
@@ -42,14 +42,14 @@ const PickUp = ({ data }) => {
                     latestId={`/import.jsp?taskId=${data?.latestBulkImportTask?.id}`}
                 />
                 <LatestActivityItem
-                    name="LATEST_INDIVIDUAL"
+                    name="HOME_LATEST_INDIVIDUAL"
                     date={formatDate(data?.latestIndividual?.dateTimeCreated, true)}
                     text={data?.latestIndividual}
                     disabled={!data?.latestIndividual}
                     latestId={`/individuals.jsp?id=${data?.latestIndividual?.id}`}
                 />
                 <LatestActivityItem
-                    name="LATEST_MATCHING_ACTION"
+                    name="HOME_LATEST_MATCHING_ACTION"
                     date={formatDate(data?.latestMatchTask?.dateTimeCreated, true)}
                     text={data?.latestMatchTask}
                     disabled={!data?.latestMatchTask}
