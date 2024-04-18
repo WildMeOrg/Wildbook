@@ -1256,27 +1256,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
-					let click = false
-					thisResultLine.click(function(ev) {
-						  click = true;
-						  rowClick(ev, thisResultLine, encId);
-					});
-					//For browsers such as Chrome where 'click' does not work for scroll wheel click
-					thisResultLine.mousedown(function(ev) { 
-						  if (!click && ev.button == 1) {
-							  rowClick(ev, thisResultLine, encId); 
-						  }
-						});
-
-					// make annot info clickable
-					thisAnnotInfo.click(function(event) {
-						console.log("clicked on annot info");
-						let tar = $(event.target).parent();
-						if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
-							window.location.href = 'encounters/encounter.jsp?number='+encId;
-						}
-					});
-
+					//To make the browser behave consistent with other links when encounter number is left/middle/right clicked, change the encounter number to a link
+					thisResultLine.find('.annot-info').each(function() {
+						const content = $(this).contents();
+						const href = 'encounters/encounter.jsp?number='+encId;
+						const newAnchor = $('<a></a>').attr('href', href).css('white-space', 'nowrap').append(content);
+						$(this).replaceWith(newAnchor);
+				});
 					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
                     //thisResultLine.append('<a class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
@@ -1403,14 +1389,6 @@ console.info('qdata[%s] = %o', taskId, qdata);
     if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
-function rowClick(ev, el, encId) {
-	let evTarget = $(ev.target);
-	if (evTarget.is(el) || evTarget.is(el.find('.annot-info-num')[0]) || evTarget.is(el.find('.annot-info')[0])) {
-		  var target = (ev.metaKey && ev.button == 0) || (ev.button == 1) ? '_blank' : '_self';
-		  var w = window.open('encounters/encounter.jsp?number='+encId, target);
-		  w.focus();
-    }
-}
 
 function getSelectedProjectIdPrefix() {
 	let selectedValue = $("#projectDropdown option:selected").val();
