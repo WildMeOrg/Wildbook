@@ -22,15 +22,15 @@ const Footer = () => {
           <Col xs lg="2">
             <FooterLink 
               href="https://www.wildme.org/donate.html" 
-              text={<FormattedMessage id='DONATE'/>}
+              text={<FormattedMessage id='FOOTER_DONATE'/>}
             />
             <FooterLink 
               href="https://docs.wildme.org/product-docs/en/wildbook/getting-started-with-wildbook" 
-              text={<FormattedMessage id='DOCUMENTATION'/>}
+              text={<FormattedMessage id='FOOTER_DOCUMENTATION'/>}
             />
             <FooterLink 
               href="/terms-of-use.jsp" 
-              text={<FormattedMessage id='TERM_OF_USE'/>}
+              text={<FormattedMessage id='FOOTER_TERM_OF_USE'/>}
             />
 
           </Col>
@@ -38,30 +38,30 @@ const Footer = () => {
           <Col xs lg="2">
             <FooterLink 
               href="https://community.wildme.org" 
-              text={<FormattedMessage id='COMMUNITY_FORUM'/>}
+              text={<FormattedMessage id='FOOTER_COMMUNITY_FORUM'/>}
             />
               <FooterLink 
               href="https://github.com/WildMeOrg" 
-              text={<FormattedMessage id='GITHUB'/>}
+              text={<FormattedMessage id='FOOTER_GITHUB'/>}
             />
           </Col>
 
           <Col xs lg="2">
             <FooterLink 
               href="https://www.instagram.com/conservationxlabs" 
-              text={<FormattedMessage id='INSTAGRAM'/>}
+              text={<FormattedMessage id='FOOTER_INSTAGRAM'/>}
             />
             <FooterLink 
               href="https://www.facebook.com/ConservationXLabs" 
-              text={<FormattedMessage id='FACEBOOK'/>}
+              text={<FormattedMessage id='FOOTER_FACEBOOK'/>}
             />
             <FooterLink 
               href="https://twitter.com/conservationx" 
-              text={<FormattedMessage id='TWITTER'/>}
+              text={<FormattedMessage id='FOOTER_TWITTER'/>}
             />
             <FooterLink 
               href="https://www.linkedin.com/company/conservationxlabs/" 
-              text={<FormattedMessage id='LINKEDIN'/>}
+              text={<FormattedMessage id='FOOTER_LINKEDIN'/>}
             />
 
           </Col>

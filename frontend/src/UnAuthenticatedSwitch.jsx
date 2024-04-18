@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import NotFound from './NotFound';
 import Login from './pages/Login';
 import Footer from './components/Footer';
+import Home from './pages/Home';
 
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
@@ -37,7 +38,7 @@ export default function UnAuthenticatedSwitch() {
         
           <Routes>
             {/* <Route path="/about" element={<Login />} /> */}
-            <Route path="/home" element={<Login />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Login />} />
             <Route path="*" element={<NotFound />} />
