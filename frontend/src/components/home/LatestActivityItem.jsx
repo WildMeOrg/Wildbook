@@ -17,7 +17,7 @@ export default function LatestActivity({
           <h5><FormattedMessage id={name} /></h5>
           {
             num && <span>
-              <FormattedMessage id='FILES_LOADED' values={{num: num}}/> |{' '}
+              <FormattedMessage id='HOME_FILES_LOADED' values={{num: num}}/> |{' '}
             </span>
           }          
           <span >
