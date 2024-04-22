@@ -2405,7 +2405,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   private List<MarkedIndividual> getAllMarkedIndividualsForUser(Shepherd myShepherd, User u) {
-    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u, myShepherd);
+    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u);
     List<Encounter> sIdEncs = myShepherd.getEncountersByField("submitterID", u.getUsername());
     HashSet<Encounter> uniqueEncs = new HashSet<>();
     uniqueEncs.addAll(uEncs);
