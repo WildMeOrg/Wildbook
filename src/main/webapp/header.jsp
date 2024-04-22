@@ -405,8 +405,7 @@ if(request.getUserPrincipal()!=null){
 	                      else{
 	                      %>
 
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
+                          <li><a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a></li>
 	                      <%
 	                      }
 
@@ -571,8 +570,6 @@ if(request.getUserPrincipal()!=null){
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-
-                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
                       <li class="dropdown">
