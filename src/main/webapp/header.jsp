@@ -45,9 +45,6 @@ String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
-int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
-
-
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
 if (pageTitle == null) {
