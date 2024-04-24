@@ -1506,8 +1506,7 @@ console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
 		h += ' data-match-display-name="' + jel.data('displayname') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
-h = '(TODO 2)';
+		h += ' /> <input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
 $('#enc-action').html(h);
@@ -1796,6 +1795,10 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
 	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
+        if (encID2 == 'TODO_FIXME_SOME_ENC') {
+            alert('EXCEPTION CASE');
+            return;
+        }
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
 		displayName = indivID;
@@ -1804,7 +1807,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
 	if ((!indivID || !encID) && !useLocation) {
-		jQuery(msgTarget).html('Argument errors');
+		jQuery(msgTarget).html('Argument errors (No name provided?)');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
@@ -1816,8 +1819,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		console.log('adding projectId to URL for new name!!');
 	}
 	if (encID2) url += '&encOther=' + encID2.split(',').join('&encOther=');
-//console.log('url => %s', url);
-//alert(url); return;
+//console.log('url => %s', url); alert(url); return;
 
 	jQuery.ajax({
 		url: url,
@@ -1855,7 +1857,20 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
+        let otherEncIds = [];
+	let allSelected = $('.annot-action-checkbox:checked');
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o', sel);
+/*
+            if (sel.individ) {
+                indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+                if (sel.displayname) displayName[sel.individ] = sel.displayname;
+            } else {
+*/
+            otherEncIds.push(sel.encid);
+        }
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), otherEncIds.join(','), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
