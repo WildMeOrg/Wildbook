@@ -282,9 +282,8 @@ try{
 
 	//we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
 	//also don't clone if this is a part
-	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
+	if(annots.size()>1 && iaClass!=null){
 		cloneEncounter=true;
-		
 	}
 	//also don't clone if this is a part
 	//if the one annot isn't trivial, then we have to clone the encounter as well
@@ -292,13 +291,21 @@ try{
 		cloneEncounter=true;
 		
 		//exception case - if there is only one annotation and it is a part
-		if(annots.size()==1){
+		Annotation annot1 = annots.get(0);
+		if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+			cloneEncounter=false;
+		}
+
+		
+	}
+	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")>-1){
+		//exception case - if there is only one annotation and it is a part
+
 			Annotation annot1 = annots.get(0);
 			if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
-				cloneEncounter=false;
+				cloneEncounter=true;
 			}
-		}
-		
+
 	}
 
 
