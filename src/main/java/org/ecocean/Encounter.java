@@ -135,6 +135,49 @@ public class Encounter implements java.io.Serializable {
 
   private ArrayList<Observation> observations = new ArrayList<Observation>();
 
+    // OnWaterApp (troutspotter) specific
+    private String gearType;
+    private Double temperature;
+    private String temperatureUnit;
+    private Double flowAmount;
+    private String flowUnit;
+    private String waterClarity;
+    private String waterClarityUri;
+    private Double measuredLength;
+    private Double estimatedLengthBody;
+    private Double estimatedLengthEye;
+    private String appUserId;
+
+    public String getGearType() { return gearType; }
+    public void setGearType(String val) { gearType = val; }
+
+    public Double getTemperature() { return temperature; }
+    public void setTemperature(Double val) { temperature = val; }
+    public String getTemperatureUnit() { return temperatureUnit; }
+    public void setTemperatureUnit(String val) { temperatureUnit = val; }
+
+    public Double getFlowAmount() { return flowAmount; }
+    public void setFlowAmount(Double val) { flowAmount = val; }
+    public String getFlowAmountUnit() { return flowUnit; }
+    public void setFlowAmountUnit(String val) { flowUnit = val; }
+
+    public String getWaterClarity() { return waterClarity; }
+    public void setWaterClarity(String val) { waterClarity = val; }
+    public String getWaterClarityUri() { return waterClarityUri; }
+    public void setWaterClarityUri(String val) { waterClarityUri = val; }
+
+    public Double getMeasuredLength() { return measuredLength; }
+    public void setMeasuredLength(Double val) { measuredLength = val; }
+
+    public Double getEstimatedLengthBody() { return estimatedLengthBody; }
+    public void setEstimatedLengthBody(Double val) { estimatedLengthBody = val; }
+    public Double getEstimatedLengthEye() { return estimatedLengthEye; }
+    public void setEstimatedLengthEye(Double val) { estimatedLengthEye = val; }
+
+    public String getAppUserId() { return appUserId; }
+    public void setAppUserId(String val) { appUserId = val; }
+    // OnWaterApp end
+
   public String getSoil() {return soil;}
   public void setSoil(String soil) {this.soil = soil;}
 
