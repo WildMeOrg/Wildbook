@@ -1408,6 +1408,10 @@ function annotCheckbox(el) {
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	let allSelected = $('.annot-action-checkbox:checked');
         console.log('allSelected %d %o', allSelected.length, allSelected);
+        if (!allSelected.length) {
+	    annotCheckboxReset();
+            return;
+        }
 	jel.parent().addClass('annot-summary-checked');
 
         let indivs = {};
