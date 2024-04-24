@@ -28,10 +28,10 @@ const Footer = () => {
               href="https://docs.wildme.org/product-docs/en/wildbook/getting-started-with-wildbook" 
               text={<FormattedMessage id='FOOTER_DOCUMENTATION'/>}
             />
-            <FooterLink 
+            {/* <FooterLink 
               href="/terms-of-use.jsp" 
               text={<FormattedMessage id='FOOTER_TERM_OF_USE'/>}
-            />
+            /> */}
 
           </Col>
           
