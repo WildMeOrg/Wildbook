@@ -13,7 +13,7 @@
       "sizes": "192x192"
     },
     {
-      "src": "/react/images/logo192.png",
+      "src": "/react/images/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
