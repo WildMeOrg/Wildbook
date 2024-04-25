@@ -158,8 +158,8 @@ public class Encounter implements java.io.Serializable {
 
     public Double getFlowAmount() { return flowAmount; }
     public void setFlowAmount(Double val) { flowAmount = val; }
-    public String getFlowAmountUnit() { return flowUnit; }
-    public void setFlowAmountUnit(String val) { flowUnit = val; }
+    public String getFlowUnit() { return flowUnit; }
+    public void setFlowUnit(String val) { flowUnit = val; }
 
     public String getWaterClarity() { return waterClarity; }
     public void setWaterClarity(String val) { waterClarity = val; }
