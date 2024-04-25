@@ -329,6 +329,7 @@ one annoying thing we attempt to handle now is that there may be plain-text retu
         try {
             br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
         } catch (IOException ioe) {
+            ioe.printStackTrace();
             br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
         }
 

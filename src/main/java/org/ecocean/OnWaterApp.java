@@ -16,7 +16,8 @@ import org.ecocean.movement.*;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.media.URLAssetStore;
+import org.ecocean.media.AssetStore;
+import org.ecocean.media.LocalAssetStore;
 import java.net.URL;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ public class OnWaterApp {
     public static String apiPassword = null;
     public static String apiUrlPrefix = null;
     public static Properties props = null;  //will be set by init()
+    public static LocalAssetStore assetStore;
 
     public static void init(HttpServletRequest request) {
         init(ServletUtilities.getContext(request));
@@ -145,8 +147,7 @@ public class OnWaterApp {
         String taxString = jin.optString("CINMS Species", null);
         if (taxString != null) occ.addSpecies(taxString, myShepherd);
 */
-        Taxonomy tax = toTaxonomy(jin.optString("CINMS Species", null), myShepherd);
-System.out.println("ciToTaxonomy => " + tax);
+        Taxonomy tax = toTaxonomy(jin.optString("species", null), myShepherd);
         if (tax != null) occ.addTaxonomy(tax);
 
 /* also notable?
@@ -199,72 +200,94 @@ Distance Category: "B"
 
     public static Encounter toEncounter(JSONObject jin, Shepherd myShepherd) {  //occJson we need for species (if not more)
         Encounter enc = new Encounter();
-        enc.setCatalogNumber(Util.generateUUID());
-        //enc.setGroupSize(findInteger(jin, "Animals Identified"));
-        enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
-        enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
-        //enc.setOccurrenceID(occId);
-        //lat/lon come from occurrence
-        //enc.setDecimalLatitude(resolveLatLon(occJson, "device_latitude", "latitude"));
-        //enc.setDecimalLongitude(resolveLatLon(occJson, "device_longitude", "longitude"));
-        //User sub = ciToUser(allJson, myShepherd);
-        //enc.addSubmitter(sub);
-        //List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
-        //enc.setInformOthers(vols);
-
-        String dc = jin.optString("create_date", null);
-        //if (dc == null) dc = occJson.optString("create_date", null); //use the Occurrence date instead
-        if (dc != null) {
-            enc.setDWCDateAdded(dc);
-            DateTime dt = toDateTime(dc);
-            if (dt != null) {
-                enc.setDWCDateAdded(dt.getMillis());
-                enc.setDateInMilliseconds(dt.getMillis());
-            }
-        }
-        //String tax[] = ciSpeciesSplit(occJson.optString("CINMS Species", null));
-        //Taxonomy tax = toTaxonomy(null);
-/*
-        if ((tax != null) && (tax.length > 1)) {
-            enc.setGenus(tax[0]);
-            enc.setSpecificEpithet(tax[1]);
-        }
-*/
-
-        //since we dont have proper images, but only references to them, we create annotations with special "placeholder" features
-        int imageStart = jin.optInt("Image Number Start", -1);
-        int imageEnd = jin.optInt("Image Number End", -1);
-        int sanityMaxNumberImages = 100;
-        if ((imageStart < 0) || (imageEnd < 0) || (imageEnd < imageStart)) {
-            enc.addComments("<p class=\"error\"><b>NOTE:</b> invalid range for image start/end; ignored</p><p class=\"json\">" + jin.toString(4) + "</p>");
-            System.out.println("WARNING: " + enc + " had no valid image range [" + imageStart + " - " + imageEnd + "]");
-        } else if ((imageEnd - imageStart) > sanityMaxNumberImages) {
-            enc.addComments("<p class=\"error\"><b>NOTE:</b> too many images detected (" + (imageEnd - imageStart) + " > " + sanityMaxNumberImages + "); ignored</p><p class=\"json\">" + jin.toString(4) + "</p>");
-            System.out.println("WARNING: " + enc + " number images > sanity check (" + sanityMaxNumberImages + ") [" + imageEnd + " - " + imageStart + "]");
+        String id = jin.optString("id", null);
+        if (id == null) {
+            id = Util.generateUUID();
         } else {
-            ArrayList<Annotation> anns = new ArrayList<Annotation>();
-            for (int i = imageStart ; i <= imageEnd ; i++) {
-                JSONObject params = new JSONObject();
-                params.put("PID Code", jin.optString("PID Code", null));
-                params.put("Card Number", jin.optString("Card Number", null));
-                params.put("Image Number", i);
-                params.put("Image Start", imageStart);
-                params.put("Image End", imageEnd);
-                params.put("description", "Image number " + i + " (in " + imageStart + "-" + imageEnd + "); Card Number " + jin.optString("Card Number", "Unknown") + ", PID Code " + jin.optString("PID Code", "Unknown"));
-                Feature ft = new Feature("org.ecocean.MediaAssetPlaceholder", params);
-/*
-                Annotation ann = new Annotation(ciSpecies(occJson.optString("CINMS Species", null)), ft);
-System.out.println(enc + ": just made " + ann);
-                anns.add(ann);
-*/
+            enc.setDynamicProperty("OnWaterApp photo id", id);
+            if (myShepherd.isEncounter(id)) {
+                System.out.println("OnWaterApp.toEncounter: attempt to create duplicate Encounter ID " + id + "; generating random");
+                id = Util.generateUUID();
             }
-            enc.setAnnotations(anns);
         }
+        enc.setCatalogNumber(id);
+
+        String dt = jin.optString("dateTime", null);
+        if (dt != null) {
+            enc.setDWCDateAdded(dt);
+            DateTime dtObj = toDateTime(dt);
+            if (dtObj != null) {
+                enc.setDWCDateAdded(dtObj.getMillis());
+                enc.setDateInMilliseconds(dtObj.getMillis());
+            }
+        }
+        Taxonomy tax = toTaxonomy(jin.optString("species", null), myShepherd);
+        enc.setTaxonomy(tax);
+
+        MediaAsset ma = createMediaAssetFromUrl(jin.optString("uri", null), myShepherd);
+        if (ma == null) {
+            System.out.println("FAILED MediaAsset");
+        } else {
+            Annotation ann = new Annotation(enc.getTaxonomyString(), ma);
+            enc.addAnnotation(ann);
+        }
+
+        enc.setDecimalLatitude(resolveLatLon(jin, "latitude", "__FAIL__"));
+        enc.setDecimalLongitude(resolveLatLon(jin, "longitude", "__FAIL__"));
+
+        enc.setFlowAmount(findDouble(jin, "flowAmount"));
+        enc.setFlowUnit(jin.optString("flowUnit", null));
+
+        /*
+            TODO add other goodies:
+            "user": "f3dc11e8-db54-485b-b74a-b6fc0b0d8982",
+            "gearType": null,
+            "temperature": null,
+            "temperatureUnit": "°F",
+            "size": null,
+            "waterClarity": null,
+            "waterClarityUri": null,
+            "measuredLength": null,
+            "estimatedLengthBody": "18.5",
+            "estimatedLengthEye": "14.9",
+        */
+
+        /*
+        createSurvey(jin.optJSONObject("trip"));
+
+              "trip" : {
+                 "startTime" : "2024-03-12T16:05:22.686Z",
+                 "endTime" : "2024-03-13T05:31:29.587Z",
+                 "id" : "b5494275-f48a-4cc3-a20d-1d2acc0295a9",
+                 "distance" : "0.6"
+              },
+        */
+
+        String notes = jin.optString("notes", null);
+        if (notes != null) enc.addComments(notes);
 
 System.out.println("MADE " + enc);
         return enc;
     }
 
+
+
+    public static MediaAsset createMediaAssetFromUrl(String urlStr, Shepherd myShepherd) {
+        LocalAssetStore store = (LocalAssetStore)AssetStore.getDefault(myShepherd);
+        if (urlStr == null) return null;
+        URL url = null;
+        try {
+            url = new URL(urlStr);
+        } catch (java.net.MalformedURLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        MediaAsset ma = store.create(url);
+        if (ma == null) return null;
+        MediaAssetFactory.save(ma, myShepherd);
+        ma.updateStandardChildren(myShepherd);
+        return ma;
+    }
 
     public static Taxonomy findTaxonomy(Shepherd myShepherd, String tstring) {
         if (tstring == null) return null;
@@ -400,20 +423,17 @@ System.out.println("MADE " + enc);
 
 //// API-related calls (both flavors)
 
-    public static JSONObject getList(String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONArray getList(String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         int since = getLastSync(context);
-        JSONObject rtn = getListSince(since);
+        JSONArray rtn = getListSince(since);
         int last = setLastSync(context);
-        rtn.put("_since", since);
-        rtn.put("_set_last", last);
-        rtn.put("_timestamp", System.currentTimeMillis());
         return rtn;
     }
 
     //note: since is seconds (int), NOT millis (long) !!!
-    public static JSONObject getListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONArray getListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 System.out.println(">>> getListSince grabbing since " + new DateTime(new Long(since) * 1000));
-        return apiGet("/trout-spotter/photos");
+        return apiGetArray("/trout-spotter/photos");
     }
 
 /*
@@ -435,6 +455,13 @@ System.out.println(">>> getListSince grabbing since " + new DateTime(new Long(si
         String res = RestClient.get(getUrl, apiUsername, apiPassword);
         if (res == null) return null;
         return new JSONObject(res);
+    }
+    public static JSONArray apiGetArray(String apiUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        checkInit();
+        URL getUrl = new URL(apiUrlPrefix + apiUrl);
+        String res = RestClient.get(getUrl, apiUsername, apiPassword);
+        if (res == null) return null;
+        return new JSONArray(res);
     }
 
 

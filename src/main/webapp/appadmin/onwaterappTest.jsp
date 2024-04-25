@@ -11,6 +11,7 @@ java.io.File,
 java.nio.file.Files,
 org.json.JSONObject,
 org.json.JSONArray,
+java.net.URL,
 org.apache.commons.lang3.StringUtils,
 org.ecocean.movement.SurveyTrack,
 org.ecocean.servlet.ServletUtilities,
@@ -40,6 +41,14 @@ if (!OnWaterApp.hasBeenInitialized()) {
 }
 
 out.println("<p><i>Successful init.</i> Using: <b>" + OnWaterApp.apiUrlPrefix + "</b></p>");
+
+
+JSONArray list = OnWaterApp.getList(context);
+out.println("<xmp>" + list.toString(4));
+
+Encounter enc = OnWaterApp.toEncounter(list.optJSONObject(0), myShepherd);
+myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+out.println("<p>" + enc + "</p>");
 
 /*
 String idString = request.getParameter("id");
