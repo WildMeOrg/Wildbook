@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import org.ecocean.Util;
 import org.ecocean.Annotation;
+import org.ecocean.RestClient;
 //import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
@@ -145,6 +146,27 @@ System.out.println("create() has subpath = " + subpath);
         params.put("path", file.getAbsolutePath().toString());
         return create(params);
     }
+
+    public MediaAsset create(URL url) throws IllegalArgumentException {
+        File file = new File("/fakedir/" + url.getPath());  // just used for filename
+        JSONObject params = this.createParameters(file);
+        params.put("srcUrl", url.toString());
+        MediaAsset ma = create(params);
+        try {
+            File dir = Files.createTempDirectory("LocalAssetStoreUrlGet" + System.currentTimeMillis()).toFile();
+            file = new File(dir, file.getName());
+            System.out.println("LocalAssetStore.create() attempting to create " + file + " from " + url);
+            RestClient.writeToFile(url, file);
+            ma.copyIn(file);
+            ma.updateMetadata();
+        } catch (java.io.IOException ex) {
+            ex.printStackTrace();
+            logger.warn("url create failed", ex);
+            return null;
+        }
+        return ma;
+    }
+
 
     public boolean cacheLocal(MediaAsset ma, boolean force) {
         return true;  //easy!
