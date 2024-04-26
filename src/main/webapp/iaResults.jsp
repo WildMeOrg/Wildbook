@@ -1236,7 +1236,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 <%
                 if(user != null){
                 %>
-                if (isQueryAnnot) addNegativeButton(encId, displayName);
+                if (isQueryAnnot && !indivId) addNegativeButton(encId, displayName);
                 <%
                 }
                 %>
