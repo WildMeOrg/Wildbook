@@ -98,7 +98,10 @@ function LoginPage() {
                     id: 'LOGIN_USERNAME',
                   })
                 }</Form.Label>
-                <Form.Control type="text" placeholder="Username" onChange={e => {
+                <Form.Control 
+                  type="text" 
+                  placeholder={intl.formatMessage({ id: 'LOGIN_USERNAME' })} 
+                  onChange={e => {
                   setUsername(e.target.value);
                   setError(null);
                 }} />
@@ -110,7 +113,9 @@ function LoginPage() {
                     id: 'LOGIN_PASSWORD',
                   })
                 }</Form.Label>
-                <Form.Control autoComplete="current-password" type="password" placeholder="Password" onChange={e => {
+                <Form.Control autoComplete="current-password" type="password" 
+                placeholder={intl.formatMessage({ id: 'LOGIN_PASSWORD' })}  
+                onChange={e => {
                   setPassword(e.target.value);
                   setError(null);
                 }} />
