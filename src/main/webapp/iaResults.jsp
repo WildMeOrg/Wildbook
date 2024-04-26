@@ -1927,7 +1927,12 @@ function updateNameCallback(d, oldDisplayName, encId) {
 }
 
 function addNegativeButton(encId, oldDisplayName) {
-	if (<%=usesAutoNames%>) {
+        /*
+            FIXME: issue 432 uncovered some mysterious tie to org/names for the display of this button.
+            this needs further investigation to remove this for real and/or figure out why this was like this
+        */
+	//if (<%=usesAutoNames%>) {
+        if (true) {
 		console.log("Adding auto name/confirm negative button!");
 		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
 		console.log("negativeButton = "+negativeButton);
