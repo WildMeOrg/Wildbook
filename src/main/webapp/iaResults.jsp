@@ -1509,8 +1509,8 @@ console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 		h += ' /> <input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
-$('#enc-action').html(h);
-console.log(h); return;
+//$('#enc-action').html(h);
+//console.log(h); return;
 	if (allowSyncReturn) {
 		$('#enc-action').html(h);
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
