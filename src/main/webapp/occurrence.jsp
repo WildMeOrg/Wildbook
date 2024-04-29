@@ -504,11 +504,21 @@ if(visible){
 	    <td align="left" valign="top">
 	      <form name="set_latitudeLongitude" method="post" action="OccurrenceSetLatitudeLongitude">
 	            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
-                <%=props.getProperty("latitude")%>:
-                <input name="latitude" id="latitude" type="text" maxlength="20"></input>
-				<%=props.getProperty("longitude")%>:
-				<input name="longitude" id="longitude" type="text" maxlength="20"></input> 
-	        	<input name="latLongButton" type="submit" id="latLongButton" value="<%=props.getProperty("set") %>">
+	            <p>
+		            <%=props.getProperty("latitude")%>:
+	                <input name="latitude" id="latitude" type="text" maxlength="20"></input>
+	                <%=props.getProperty("longitude")%>:
+					<input name="longitude" id="longitude" type="text" maxlength="20"></input>
+	            </p>
+				<p>
+					<%=props.getProperty("bearing")%>: 
+					<input name="bearing" id="bearing" type="text" maxlength="10"></input> 
+					<%=props.getProperty("distance")%>:
+					<input name="distance" id="distance" type="text" maxlength="10"></input>
+				</p>
+				<p align="center">
+					<input name="latLongButton" type="submit" id="latLongButton" value="<%=props.getProperty("set") %>">
+				</p>
 	        </form>
 	    </td>
 	  </tr>

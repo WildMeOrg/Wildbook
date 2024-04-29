@@ -366,12 +366,18 @@ public class Occurrence implements java.io.Serializable {
     return (latStr+", "+lonStr);
   }
   
-  public void setLatLongString(final String latitude, final String longitude) {
+  public void setLatLongString(final String latitude, final String longitude, final String bearing, final String distance) {
 	  if (StringUtils.isAnyBlank(latitude, longitude)) {
 		  return;
 	  }
 	  setDecimalLatitude(Double.valueOf(latitude));
       setDecimalLongitude(Double.valueOf(longitude));
+      if (StringUtils.isNotBlank(bearing)) {
+    	  setBearing(Double.valueOf(bearing));
+      }
+      if (StringUtils.isNotBlank(distance)) {
+    	  setDistance(Double.valueOf(distance));
+      }
   }
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
