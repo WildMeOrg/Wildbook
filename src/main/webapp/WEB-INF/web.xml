@@ -8,6 +8,9 @@
 			version="3.0"
 			metadata-complete="true">
 
+<session-config>
+	<session-timeout>30</session-timeout>
+</session-config>
 
 <listener>
     <description>ServletContextListener</description>
@@ -41,8 +44,6 @@
         <init-param>
             <param-name>config</param-name>
             <param-value>
-                #See Shiro API http://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/servlet/IniShiroFilter.html
-
                 #create an object of the RoleSecurityJdbcRealm
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
@@ -68,7 +69,7 @@
                 [urls]
 
                 /rest/** = authcBasicWildbook,roles[researcher]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
+				#/xxxapi/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
 
 
@@ -237,6 +238,7 @@
 				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+				 /EncounterAnnotationExportExcelFile = authc, roles[researcher]
                  /EncounterSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
@@ -538,6 +540,70 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+	<servlet>
+		<servlet-name>ApiLogin</servlet-name>
+		<servlet-class>org.ecocean.api.Login</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiLogin</servlet-name>
+		<url-pattern>/api/v3/login</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiLogout</servlet-name>
+		<servlet-class>org.ecocean.api.Logout</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiLogout</servlet-name>
+		<url-pattern>/api/v3/logout</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<servlet-class>org.ecocean.api.UserInfo</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<url-pattern>/api/v3/user/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiUserHome</servlet-name>
+		<servlet-class>org.ecocean.api.UserHome</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiUserHome</servlet-name>
+		<url-pattern>/api/v3/home</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>SiteSettings</servlet-name>
+		<servlet-class>org.ecocean.api.SiteSettings</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SiteSettings</servlet-name>
+		<url-pattern>/api/v3/site-settings</url-pattern>
+	</servlet-mapping>
+
+  <servlet>
+    <servlet-name>ReactAppServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+      <servlet-name>ReactAppServlet</servlet-name>
+      <url-pattern>/react</url-pattern>
+  </servlet-mapping>  
+
+  <error-page>
+    <error-code>404</error-code>
+    <location>/react/index.html</location>
+  </error-page>
+  <!-- <error-page>
+    <error-code>404</error-code>
+    <location>/react/home/</location>
+  </error-page> -->
 
   <servlet>
     <servlet-name>ProjectCreate</servlet-name>
@@ -1167,6 +1233,11 @@
     <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
   </servlet>
 
+	<servlet>
+    <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterAnnotationExportExcelFile</servlet-class>
+  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -1769,9 +1840,20 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
 
+	<servlet>
+      <servlet-name>sessionExtend</servlet-name>
+      <servlet-class>org.ecocean.servlet.SessionExtend</servlet-class>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>ProjectCreate</servlet-name>
     <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+
+  <servlet-mapping>
+    <servlet-name>sessionExtend</servlet-name>
+    <url-pattern>/ExtendSession</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -2318,6 +2400,11 @@
       <servlet-mapping>
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <url-pattern>/EncounterSearchExportExcelFile</url-pattern>
+  </servlet-mapping>
+
+	<servlet-mapping>
+        <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
+        <url-pattern>/EncounterAnnotationExportExcelFile</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>

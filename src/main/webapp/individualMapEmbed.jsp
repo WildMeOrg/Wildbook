@@ -1,23 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
 
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
+
 
 <%
 String context="context0";
@@ -85,6 +68,7 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 <p><strong><%=mapping %></strong></p>
 <%
   int havegpsSize=haveGPSData.size();
@@ -236,9 +220,17 @@ String lastLatLong="";
            }
            %>
 			var marker = new google.maps.Marker({
-        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=colorToUseForMarker%>',
+        	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=colorToUseForMarker%>',
+        	   icon: " ",
         	   position:latLng,
-        	   map:map<%=zIndexString%>
+        	   map:map<%=zIndexString%>,
+        	   label: {
+        	        text: "\ue0c8",
+        	        fontFamily: "Material Symbols Outlined",
+        	        color: "<%=colorToUseForMarker %>",
+        	        fontSize: "36px",
+        	        
+        	   }
         	});
 			<%
 						String encSubdir = thisEnc.subdir();
