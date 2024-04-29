@@ -43,7 +43,7 @@ public class OccurrenceSetLatitudeLongitude extends OccurrenceSetGroupBehavior {
 		
 		try {
 			latLongString = occ.getLatLonString();
-			occ.setLatLongString(latitude, longitude);
+			occ.setLatLongString(latitude, longitude, request.getParameter("bearing"), request.getParameter("distance"));
 			occ.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed latitude, longitude from:<br><i>" + latLongString + "</i><br>to:<br><i>" + latLongStringNew + "</i></p>");
 		}
 		catch (Exception e) {
