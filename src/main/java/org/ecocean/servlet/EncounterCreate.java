@@ -376,8 +376,8 @@ NOTE: right now this is not very general-purpose; only really used for match.jsp
             if (id == null) continue;
             //TODO just trusting these are real.  we could verify... but do we need to?
             tcount++;
-            taskLinks += " - " + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
-            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResultsMulti.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
+            taskLinks += " - " + linkPrefix + "/iaResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
+            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/iaResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
         }
 /*  we are going to allow this now -- so they at least get *something* ... i.e. if encounters get made
         if (tcount < 1) {
