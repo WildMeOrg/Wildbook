@@ -493,7 +493,50 @@ if(visible){
     <%=occ.getDecimalLongitude()%> /
     <%=occ.getBearing()%> m /
     <%=occ.getDistance()%> m
+    &nbsp; 
+	<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+		<a id="latLongButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+	<%}%>
 </p>
+<div id="dialogLatLong" title="<%=props.getProperty("setLatitudeLongitude") %>" style="display:none">
+	<table border="1">
+	  <tr>
+	    <td align="left" valign="top">
+	      <form name="set_latitudeLongitude" method="post" action="OccurrenceSetLatitudeLongitude">
+	            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+	            <p>
+		            <%=props.getProperty("latitude")%>:
+	                <input name="latitude" id="latitude" type="text" maxlength="20"></input>
+	                <%=props.getProperty("longitude")%>:
+					<input name="longitude" id="longitude" type="text" maxlength="20"></input>
+	            </p>
+				<p>
+					<%=props.getProperty("bearing")%>: 
+					<input name="bearing" id="bearing" type="text" maxlength="10"></input> 
+					<%=props.getProperty("distance")%>:
+					<input name="distance" id="distance" type="text" maxlength="10"></input>
+				</p>
+				<p align="center">
+					<input name="latLongButton" type="submit" id="latLongButton" value="<%=props.getProperty("set") %>">
+				</p>
+	        </form>
+	    </td>
+	  </tr>
+	</table>
+</div>
+	  
+<script>
+	var dlglatLong = $("#dialogLatLong").dialog({
+	  autoOpen: false,
+	  draggable: false,
+	  resizable: false,
+	  width: 600
+	});
+	
+	$("a#latLongButton").click(function() {
+	  dlglatLong.dialog("open");
+	});
+</script>
 <%
 }
 %>
