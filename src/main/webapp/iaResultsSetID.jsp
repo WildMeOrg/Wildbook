@@ -54,10 +54,11 @@ boolean useLocation = Util.requestParameterSet(request.getParameter("useLocation
 
 
 if ((request.getParameter("taskId") != null) && (request.getParameter("number") != null) && ((request.getParameter("individualID") != null) || useLocation)) {
-	
+
 	String taskId = request.getParameter("taskId");
+        String[] otherEncIds = request.getParameterValues("encOther");
 	res.put("encounterId", request.getParameter("number"));
-	res.put("encounterId2", request.getParameter("enc2"));
+	res.put("encounterOther", otherEncIds);
 	res.put("individualId", request.getParameter("individualID"));
         res.put("useLocation", useLocation);
 	res.put("taskId", taskId);
@@ -67,6 +68,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		projectId = request.getParameter("projectId");
 	}
 
+        System.out.println("iaResultsSetID: INITIALIZED res=" + res);
 	Shepherd myShepherd = new Shepherd(request);
 	myShepherd.setAction("iaResultsSetID.jsp");
 	myShepherd.beginDBTransaction();
@@ -93,28 +95,34 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		return;
 	}
 
-	Encounter enc2 = null;
-	if (request.getParameter("enc2") != null) {
-		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
-		myShepherd.getPM().refresh(enc2);
+	//res.put("encounterOther", otherEncIds);
+	List<Encounter> otherEncs = new ArrayList<Encounter>();
+        List<MarkedIndividual> otherIndivs = new ArrayList<MarkedIndividual>();
+        for (String oeId : otherEncIds) {
+		Encounter oenc = myShepherd.getEncounter(oeId);
+		myShepherd.getPM().refresh(oenc);
 
-		if (enc2 == null) {
-			res.put("error", "no such encounter: " + request.getParameter("enc2"));
+		if (oenc == null) {
+			res.put("error", "no such encounter: " + oeId);
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			return;
 		}
-		else if(!ServletUtilities.isUserAuthorizedForEncounter(enc2, request,myShepherd)){
-			res.put("error", "User unauthorized for encounter: " + request.getParameter("number"));
+		else if(!ServletUtilities.isUserAuthorizedForEncounter(oenc, request,myShepherd)){
+			res.put("error", "User unauthorized for encounter: " + oeId);
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
 			return;
 		}
+                System.out.println("iaResultsSetID: adding " + oenc + " to otherEncs");
+                otherEncs.add(oenc);
+                MarkedIndividual oindiv = oenc.getIndividual();
+                if (oindiv != null) otherIndivs.add(oindiv);
 	}
 	/* now, making an assumption here (and the UI does as well):
-	   basically, we only allow a NEW INDIVIDUAL when both encounters are unnamed;
+	   basically, we only allow a NEW INDIVIDUAL when all encounters are unnamed;
 	   otherwise, we are assuming we are naming one based on the other.  thus, we MUST
 	   use an *existing* indiv in those cases (but allow a new one in the other)
 
@@ -125,19 +133,25 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 
 	String indyUUID = null;
 	MarkedIndividual indiv = null;
-	MarkedIndividual indiv2 = null;
+	//MarkedIndividual indiv2 = null;
 	String individualID = null;
+        Set<MarkedIndividual> allEncIndivs = new HashSet<MarkedIndividual>();
 	try {
 
 		individualID = request.getParameter("individualID");
 		if (individualID!=null) individualID = individualID.trim();
 		// from query enc
 		indiv = myShepherd.getMarkedIndividual(enc);
+                if (indiv != null) allEncIndivs.add(indiv);
 		// from target enc
-		indiv2 = myShepherd.getMarkedIndividual(enc2);
+		//indiv2 = myShepherd.getMarkedIndividual(enc2);
+                for (Encounter oenc : otherEncs) {
+		    MarkedIndividual oindiv = myShepherd.getMarkedIndividual(oenc);
+                    if (oindiv != null) allEncIndivs.add(oindiv);
+                }
 		
 		//if target enc2 is null and therefore indiv2 is null, use individualID
-		if(indiv2==null)indiv2=myShepherd.getMarkedIndividual(individualID);
+		//if(indiv2==null)indiv2=myShepherd.getMarkedIndividual(individualID);
 		
 		indyUUID = request.getParameter("newIndividualUUID");
 		//should take care of getting an indy stashed in the URL params
@@ -147,16 +161,13 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 
 		System.out.println("got ID: "+indyUUID+" from header set previous match");
 
-		System.out.println("did you get indiv? "+indiv+" did you get indiv2? "+indiv2);
+		//System.out.println("did you get indiv? "+indiv+" did you get indiv2? "+indiv2);
 
 		// if both have an id, throw an error. any deecision to override would be arbitrary
 		// should get to MERGE option instead of getting here anyway
-		if (indiv!=null&&indiv2!=null) {
-
-
+		if (allEncIndivs.size() > 1) {
 			// need nuance here.. if both individuals are present but there is not a project ID allow set
-
-			res.put("error", "Both encounters already have an ID. You must remove one or reassign from the Encounter page.");
+			res.put("error", "All/Some encounters already have an ID. You must remove one or reassign from the Encounter page.");
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
 			myShepherd.closeDBTransaction();
@@ -166,18 +177,17 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 	}
 
 	// allow flow either way if one or the other has an ID
-	if ((indiv == null || indiv2 == null) && (enc != null)) {
+	//if ((indiv == null || indiv2 == null) && (enc != null)) {
+        if ((indiv == null || (otherIndivs.size() == 0)) && (enc != null)) {
 
-		System.out.println("indiv OR indiv2 is null, and two viable enc have been selected!");
+		System.out.println("indiv is null OR otherIndivs is empty, and two viable enc have been selected!");
 
 		try {
-
-
 			//enc.setState("approved");
 			//enc2.setState("approved");
 
 			// neither have an individual
-			if (indiv==null&&indiv2==null) {
+			if (allEncIndivs.size() == 0) {
                                 //note that useLocation flavor has slight race condition possible here...
                                 // might be better to have way to *create* indiv with new loc-based name
                                 if (useLocation) {
@@ -213,16 +223,21 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 					res.put("individualName", indiv.getDisplayName(request, myShepherd));
 					res.put("individualId", indiv.getId());
 					enc.setIndividual(indiv);
-					if(enc2!=null)enc2.setIndividual(indiv);
-					if(enc2!=null)indiv.addEncounter(enc2);
+                                        for (Encounter oenc : otherEncs) {
+					    oenc.setIndividual(indiv);
+					    indiv.addEncounter(oenc);
+                                        }
 
 					myShepherd.updateDBTransaction();
                     setImportTaskComplete(myShepherd, enc);
-                    if(enc2!=null)setImportTaskComplete(myShepherd, enc2);
+                    for (Encounter oenc : otherEncs) {
+                        setImportTaskComplete(myShepherd, oenc);
+                    }
                     indiv.refreshNamesCache();
 
-                    if(enc2!=null)IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
-                    IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    // FIXME add these emails back in
+                    //if(enc2!=null)IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
+                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
 
 
 				} else {
@@ -231,29 +246,34 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			}
 
 			// query enc has indy, or already stashed in URL params
-			if (indiv!=null&&indiv2==null) {
+			//if (indiv!=null&&indiv2==null) {
+			if ((indiv != null) && (otherIndivs.size() < 1)) {
 				System.out.println("CASE 2: query enc indy is null");
-				if(enc2!=null){
-					 enc2.setIndividual(indiv);
-				 	indiv.addEncounter(enc2);
-				}
+                                for (Encounter oenc : otherEncs) {
+                                    oenc.setIndividual(indiv);
+                                    indiv.addEncounter(oenc);
+                                }
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-				 if(enc2!=null){
-					IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, enc2, context, langCode);
-				 	setImportTaskComplete(myShepherd, enc2);
-				 }
+				// if(enc2!=null){
+                                for (Encounter oenc : otherEncs) {
+                                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, oenc, context, langCode);
+                                    setImportTaskComplete(myShepherd, oenc);
+                                }
 			}
 
 			// target enc has indy
-			if (indiv==null&&indiv2!=null) {
+			//if (indiv==null&&indiv2!=null) {
+			if ((indiv == null) && (allEncIndivs.size() == 1)) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);
-				indiv2.addEncounter(enc);
-				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
+                                Iterator<MarkedIndividual> it = allEncIndivs.iterator();
+                                MarkedIndividual oindiv = it.next();
+				enc.setIndividual(oindiv);
+				oindiv.addEncounter(enc);
+				res.put("individualName", oindiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 
-				IndividualAddEncounter.executeEmails(myShepherd, request,indiv2,false, enc, context, langCode);
+				//IndividualAddEncounter.executeEmails(myShepherd, request,oindiv ,false, enc, context, langCode);
                                 setImportTaskComplete(myShepherd, enc);
 			}
 
@@ -262,7 +282,9 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
 			enc.setMatchedBy(matchMsg);
-			 if(enc2!=null)enc2.setMatchedBy(matchMsg);
+                        for (Encounter oenc : otherEncs) {
+			    oenc.setMatchedBy(matchMsg);
+                        }
 
 			if (res.optString("error", null) == null) res.put("success", true);
 
@@ -280,7 +302,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		return;
 	}
 
-	if (indiv == null && indiv2 == null) {
+	if ((indiv == null) && (otherIndivs.size() < 1)) {
 		res.put("error", "No valid record could be found or created for name: " + individualID);
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
