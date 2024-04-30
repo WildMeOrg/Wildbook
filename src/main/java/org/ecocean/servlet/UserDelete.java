@@ -1,22 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean.servlet;
 
 import org.ecocean.*;
@@ -62,14 +43,14 @@ public class UserDelete extends HttpServlet {
           && myShepherd.getUsername(request)!=null
           && myShepherd.getUser(myShepherd.getUsername(request))!=null
           //to delete a user either be admin or orgAdmin in at least one of the same orgs
-          && (
-              request.isUserInRole("admin")
+          && ( 
+              request.isUserInRole("admin") 
               || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
-             ))
+             )) 
     ){
       try {
         User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
-
+        
         //first delete the roles
         if(ad.getUsername()!=null) {
           List<Role> roles=myShepherd.getAllRolesForUser(ad.getUsername());
@@ -83,10 +64,10 @@ public class UserDelete extends HttpServlet {
             //}
           }
       }
-
+        
         //remove the User from Encounters
-        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad, myShepherd);
-
+        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad);
+        
         for(int l=0;l<encs.size();l++){
           Encounter enc=encs.get(l);
 
@@ -106,12 +87,12 @@ public class UserDelete extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();
         }
-
+        
         //now delete the user
         myShepherd.getPM().deletePersistent(ad);
         myShepherd.commitDBTransaction();
 
-      }
+      } 
       catch (Exception le) {
         locked = true;
         le.printStackTrace();
@@ -130,7 +111,7 @@ public class UserDelete extends HttpServlet {
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-      }
+      } 
       else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -155,3 +136,5 @@ public class UserDelete extends HttpServlet {
 
 
 }
+  
+  

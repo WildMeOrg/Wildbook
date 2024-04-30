@@ -20,12 +20,14 @@ import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 
 import java.util.concurrent.ThreadPoolExecutor;
-
+import org.json.JSONObject;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
@@ -49,9 +51,55 @@ public class StartupWildbook implements ServletContextListener {
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
+    ensureServerInfo(myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
   }
+
+
+    /*
+        right now this *only* uses SERVER_URL env variable
+        TODO: should _probably_ make this work in the more general case where it isnt
+            e.g. CommonConfiguration.checkServerInfo(myShepherd, request)
+    */
+    public static void ensureServerInfo(Shepherd myShepherd) {
+        String urlString = System.getenv("SERVER_URL");
+        if (urlString == null) return;
+        URL url = null;
+        try {
+            url = new URL(urlString);
+        } catch (java.net.MalformedURLException mal) {
+            System.out.println("StartupWildbook.ensureServerInfo failed on " + urlString + ": " + mal.toString());
+            return;
+        }
+        JSONObject info = new JSONObject();
+        info.put("scheme", url.getProtocol());
+        info.put("serverName", url.getHost());
+        int port = url.getPort();
+        if (port > 0) info.put("serverPort", port);
+        info.put("contextPath", url.getFile());
+        //if (!isValidServerName(req.getServerName())) return false;  //dont update if we got wonky name like "localhost"
+        info.put("timestamp", System.currentTimeMillis());
+        info.put("context", myShepherd.getContext());
+        CommonConfiguration.setServerInfo(myShepherd, info);
+        System.out.println("StartupWildbook.ensureServerInfo updated server info to: " + info.toString());
+        updateAssetStore(myShepherd);  // piggyback here, thus we ensure we have a *good* SERVER_URL
+    }
+
+
+    // note: this (currently) is ONLY for docker-based deployment (hence reliance on SERVER_URL)
+    public static void updateAssetStore(Shepherd myShepherd) {
+        String urlString = System.getenv("SERVER_URL");
+        if (urlString == null) return;
+        AssetStore as = AssetStore.getDefault(myShepherd);  //should exist either (or both) cuz of ensureAssetStore and/or sql
+        if (as == null) return;
+        AssetStoreConfig newConfig = new AssetStoreConfig();
+        newConfig.put("root", "/usr/local/tomcat/webapps/wildbook_data_dir");  // docker-specific
+        newConfig.put("webroot", urlString + "/wildbook_data_dir");
+	System.out.println("StartupWildbook.updateAssetStore() changing " + as + " config from [" + as.getConfig() + "] to [" + newConfig + "]");
+	as.setConfig(newConfig);
+    }
+
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
@@ -150,9 +198,26 @@ public class StartupWildbook implements ServletContextListener {
 
         try {
             startWildbookScheduledTaskThread(context);
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             e.printStackTrace();
         }
+        
+        //initialize the MarkedIndividual names cache
+        //moved initNamesCache here
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("MarkedIndividual.initNamesCache");
+        myShepherd.beginDBTransaction();
+        try {
+          System.out.println("XXXXXXXXXX INIT NAMES CACHE sTART");
+          boolean cached=org.ecocean.MarkedIndividual.initNamesCache(myShepherd);
+          System.out.println("XXXXXXXXXX INIT NAMES CACHE END: "+cached);
+        }
+        catch (Exception f) {
+          f.printStackTrace();
+        }
+        finally {myShepherd.rollbackAndClose();}
+        
     }
 
 
@@ -253,7 +318,7 @@ public class StartupWildbook implements ServletContextListener {
                 }
                 myShepherd.closeDBTransaction();
             }
-            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
             }, 0, 1, TimeUnit.HOURS);
     }
 
@@ -277,15 +342,6 @@ public class StartupWildbook implements ServletContextListener {
       es.execute(new MatchGraphCreationThread());
     }
 
-    public static void runGridClient(){
-      System.out.println("Entering runGridClient StartupWildbook method.");
-    }
-
-    public static boolean skipInit(ServletContextEvent sce, String extra) {
-        ServletContext sc = sce.getServletContext();
-/*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
-     see:  https://octopus.com/blog/defining-tomcat-context-paths
-
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
 /*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
@@ -302,11 +358,11 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
     //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
     private static boolean properStartupResource(ServletContextEvent sce) {
         if (sce == null) return false;
-        ServletContext context = sce.getServletContext();
+        ServletContext context = sce.getServletContext(); 
         if (context == null) return false;
         URL res = null;
         try {
@@ -333,3 +389,4 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 
 }
+

@@ -1,22 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -530,6 +511,10 @@ public class CommonConfiguration {
     return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  public static String getGoogleTagManagerKey(String context) {
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("gtm_key",context);
+  }
+
   /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
@@ -1005,6 +990,57 @@ public class CommonConfiguration {
     if (users.size() == 0) return false;
     return true;
   }
+  
+  /**
+   * Retrieves the Wildbook community URL.
+   * 
+   * @param context Webapp context
+   * @return The Wildbook community URL string
+   */
+  public static String getWildbookCommunityURL(String context) {
+    return getProperty("wildbookCommunityUrl", context).trim();
+  }
 
+    /**
+     * Returns the session expiration warning time in minutes from the application's settings.
+     * Defaults to 20 minutes if not specified or on error.
+     *
+     * @param context Webapp context
+     * @return Session warning time in minutes.
+     */
+    public static int getSessionWarningTime(String context) {
+
+    int def = 20;
+    String prop = getProperty("sessionWarningTime", context);
+    if (prop == null || "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
+  }
+
+      /**
+     * Returns the session expiration countdown time in minutes from the application's settings.
+     * Defaults to 10 minutes if not specified or on error.
+     *
+     * @param context Webapp context
+     * @return Session warning countdown time in minutes.
+     */
+    public static int getSessionCountdownTime(String context) {
+
+    int def = 10;
+    String prop = getProperty("sessionCountdownTime", context);
+    if (prop != null && "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
+  }
 
 }

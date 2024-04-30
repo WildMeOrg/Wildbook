@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -71,7 +70,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.tag.MetalTag;
-import org.joda.time.DateTime;
 import org.ecocean.*;
 
 //use Point2D to represent cached GPS coordinates
@@ -132,8 +130,6 @@ public class Util {
     }
     return nameArr;
   }
-
-
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -481,6 +477,11 @@ public class Util {
     public static org.json.JSONArray toggleJSONArray(org.datanucleus.api.rest.orgjson.JSONArray jin) {
       if (jin == null) return null;
       return stringToJSONArray(jin.toString());
+    }
+
+
+    public static Object jsonNull(Object obj) {
+        return (obj == null) ? org.json.JSONObject.NULL : obj;
     }
 
     //this basically just swallows exceptions in parsing and returns a null if failure

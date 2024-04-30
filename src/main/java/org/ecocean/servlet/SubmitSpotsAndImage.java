@@ -1,24 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
-/// please also see:   src/main/java/org/ecocean/servlet/SubmitSpotsAnd_README.txt
-
 package org.ecocean.servlet;
 
 import com.oreilly.servlet.multipart.FilePart;
@@ -118,8 +97,8 @@ public class SubmitSpotsAndImage extends HttpServlet {
 
     AssetStore store = AssetStore.getDefault(myShepherd);
     //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
-
-
+    
+    
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -130,7 +109,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
     String thisEncDirString=Encounter.dir(shepherdDataDir,encId);
     File thisEncounterDir=new File(thisEncDirString);
     if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
-
+    
     //now persist
     JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
 System.out.println("====> params = " + params);
@@ -181,7 +160,7 @@ System.out.println("====> params = " + params);
       IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
       myShepherd.updateDBTransaction();
       System.out.println("    + annot sent.");
-    }
+    } 
     catch (Exception e) {
       e.printStackTrace();
       System.out.println("hit above exception while trying to send CR ma & annot to IA");
@@ -192,16 +171,16 @@ System.out.println("====> params = " + params);
     if (rightSide) {
         enc.setRightSpots(spots);
         enc.setRightReferenceSpots(refSpots);
-    }
+    } 
     else {
         enc.setSpots(spots);
         enc.setLeftReferenceSpots(refSpots);
     }
-
+    
     //reset the entry in the GridManager graph
     GridManager gm = GridManagerFactory.getGridManager();
     gm.addMatchGraphEntry(encId, new EncounterLite(enc));
-
+    
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 
@@ -232,9 +211,11 @@ System.out.println("====> params = " + params);
       }
       catch(Exception e){
         e.printStackTrace();
-
+        
       }
       return null;
     }
 
 }
+
+
