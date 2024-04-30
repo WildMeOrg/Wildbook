@@ -6,4 +6,11 @@
 - src/main/java/org/ecocean/servlet/EncounterCreate.java:            taskLinks += " - " + linkPrefix + "/encounters/**matchResultsMulti.jsp**?taskId=" + id + "&accessKey=" + accessKey + "\n";
 - src/main/java/org/ecocean/servlet/EncounterCreate.java:            taskLinksHtml += " + linkPrefix + "/encounters/**matchResultsMulti.jsp**?taskId=" + id + "&accessKey=" + accessKey + "\"(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
 
+### Conclusions/Changes:
+
+- `flukeScanEnd.js` not used anywhere, rm'ed
+- `imageDisplayTools.js` changed to reference `iaResults.jsp` instead
+- url still seems in use via `CommonConfiguration.appendEmailRemoveHashString()` - put back into webapps/ dir
+- updated to reference `iaResults.jsp` instead
+- ditto
 
