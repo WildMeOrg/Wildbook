@@ -11,6 +11,6 @@
 - `flukeScanEnd.js` not used anywhere, rm'ed
 - `imageDisplayTools.js` changed to reference `iaResults.jsp` instead
 - disabled `CommonConfiguration.appendEmailRemoveHashString()` usage of this jsp
-- updated to reference `iaResults.jsp` instead
+- removed `EncounterCreate`, `match.jsp`, and `attachMedia.jsp`
 - ditto
 
