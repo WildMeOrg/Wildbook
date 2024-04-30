@@ -241,6 +241,7 @@
 				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
 				             /SOCPROGExport = authc, roles[researcher]
 				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
+				             /OccurrenceSetLatitudeLongitude = authc, roles[researcher]
 				             /EncounterSetBehavior = authc, roles[researcher]
 				      /CJS = authc, roles[researcher]
 				      /software.jsp = authc, roles[researcher]
@@ -923,6 +924,11 @@
     <servlet>
       <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
+  </servlet>
+  
+  <servlet>
+      <servlet-name>OccurrenceSetLatitudeLongitude</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceSetLatitudeLongitude</servlet-class>
   </servlet>
 
   <!--
@@ -2410,6 +2416,11 @@
       <servlet-mapping>
         <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
         <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+        <servlet-name>OccurrenceSetLatitudeLongitude</servlet-name>
+        <url-pattern>/OccurrenceSetLatitudeLongitude</url-pattern>
   </servlet-mapping>
 <!--
   <servlet-mapping>
