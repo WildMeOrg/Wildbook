@@ -36,7 +36,6 @@ import org.ecocean.movement.SurveyTrack;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
 
-
 import javax.jdo.*;
 import java.lang.AutoCloseable;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +63,7 @@ import org.apache.commons.collections4.Predicate;
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
  * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
- * Any application seeking access to	lynx	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
+ * Any application seeking access to	whale shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the
  * database.
  * <p/>
  * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data
@@ -335,7 +334,6 @@ public class Shepherd implements AutoCloseable {
       e.printStackTrace();
     }
   }
-
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
@@ -846,17 +844,6 @@ public class Shepherd implements AutoCloseable {
     return tempMA;
   }
 
-  /*
-  public Annotation getAnnotation(String num) {
-    Annotation tempMA = null;
-    try {
-      tempMA = ((Annotation) (pm.getObjectById(pm.newObjectIdInstance(Annotation.class, num.trim()), true)));
-    } catch (Exception nsoe) {
-      return null;
-    }
-    return tempMA;
-  }
-*/
   public MediaAssetSet getMediaAssetSet(String num) {
     MediaAssetSet tempMA = null;
     try {
@@ -1853,15 +1840,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   public List<Project> getParticipatingProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;
-    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
+    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' VARIABLES org.ecocean.User user";
     try {
-      if(!Util.stringExists(orderBy)){
-        queryString += "VARIABLES org.ecocean.User user";
-      }else{
-        queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
-      }
       System.out.println("getParticipatingProjectsForUserId() queryString: "+queryString);
       query = pm.newQuery(queryString);
+      if (Util.stringExists(orderBy)) query.setOrdering(orderBy);
       Collection c = (Collection) (query.execute());
       Iterator it = c.iterator();
       while (it.hasNext()) {
@@ -1874,7 +1857,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      query.closeAll();
+      if (query != null) query.closeAll();
     }
     return projects;
   }
@@ -2462,7 +2445,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves any all approved encounters that are stored in the database
    *
-   * @return an Iterator of all lynx encounters stored in the database that are approved
+   * @return an Iterator of all whale shark encounters stored in the database that are approved
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters() {
@@ -2735,7 +2718,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database in the order specified by the input String
    *
-   * @return an Iterator of all valid lynx encounters stored in the visual database, arranged by the input String
+   * @return an Iterator of all valid whale shark encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order) {
@@ -2855,7 +2838,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves a filtered list of encounters that are stored in the database in the order specified by the input String
    *
-   * @return a filtered Iterator of lynx encounters stored in the visual database, arranged by the input String
+   * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
@@ -3042,11 +3025,13 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
                alreadyCounted.add(indieEnc);
-             } else if (!alreadyCounted.contains(indieEnc)){
+             }
+             else if(!alreadyCounted.contains(indieEnc)){
                Integer oldValue=hmap.get(indieEnc.getIndividualID());
                hmap.put(indieEnc.getIndividualID(), (oldValue+1));
                //System.out.println("Iterating: "+indieEnc.getIndividualID());
              }
+
            }
          }
       }
@@ -3441,7 +3426,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
    *
-   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
@@ -3457,7 +3442,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
    *
-   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library
+   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
@@ -3495,7 +3480,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the input String
    *
-   * @return an Iterator of all lynx encounters stored in the database that are unacceptable for the visual ID library in the String order
+   * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
    * @see encounter, java.util.Iterator
    */
   public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String order) {
@@ -3567,6 +3552,21 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return theTask;
   }
 
+    public List<Task> getIdentificationTasksForUser(User user) {
+        if ((user == null) || (user.getUsername() == null)) return null;
+        //String sql = "SELECT \"TASK\".\"ID\" FROM \"TASK\" "
+        String sql = "SELECT \"ID\" FROM \"TASK\" "
+            + "JOIN \"TASK_OBJECTANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_OID\" = \"TASK\".\"ID\") "
+            + "JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_EID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") "
+            + "JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") "
+            + "WHERE \"ENCOUNTER\".\"SUBMITTERID\" = '" + user.getUsername() + "' ORDER BY \"TASK\".\"CREATED\" desc";
+        Query q = getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(Task.class);
+        Collection c = (Collection)q.execute();
+        List<Task> all = new ArrayList(c);
+        q.closeAll();
+        return all;
+    }
 
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
@@ -4968,6 +4968,25 @@ public Long countMediaAssets(Shepherd myShepherd){
     return al;
   }
 
+    public List<Occurrence> getOccurrencesByUser(User user) {
+        ArrayList al = new ArrayList();
+        if ((user == null) || (user.getUsername() == null)) return al;
+        try {
+            // apparently occurrence.submitters is garbage, so we cant use this
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE submitters.contains(user) && user.uuid == '" + user.getUUID() + "' VARIABLES org.ecocean.User user";
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+         "\" VARIABLES org.ecocean.Encounter enc";
+            String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.Encounter enc";
+            //Extent queryClass = pm.getExtent(Occurrence.class, true);
+            Query query = getPM().newQuery(filter);
+            query.setOrdering("dateTimeCreated DESC");
+            Collection c = (Collection) (query.execute());
+            al = new ArrayList(c);
+            query.closeAll();
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        return al;
+    }
+
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
    * @param myID The individual ID to return in any case.
@@ -5573,7 +5592,17 @@ public Long countMediaAssets(Shepherd myShepherd){
     q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
-    matchingEncounters = new ArrayList<Encounter>(c);
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
+      int numAdded=0;
+      while(numAdded<max){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+
+    }
+
     q.closeAll();
     return matchingEncounters;
   }
@@ -5812,10 +5841,16 @@ public Long countMediaAssets(Shepherd myShepherd){
 }
 
 
-  public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
+    public List<Encounter> getEncountersForSubmitter(User user) {
+        return getEncountersForSubmitter(user, null);
+    }
+
+  public List<Encounter> getEncountersForSubmitter(User user, String ordering) {
+      if (ordering == null) ordering = "dwcDateAddedLong DESC";
       ArrayList<Encounter> users=new ArrayList<Encounter>();
-      String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
-      Query query=myShepherd.getPM().newQuery(filter);
+      String filter="SELECT FROM org.ecocean.Encounter WHERE (submitters.contains(user) && user.uuid == \""+user.getUUID()+"\") || submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.User user";
+      Query query = getPM().newQuery(filter);
+      query.setOrdering(ordering);
       Collection c = (Collection) (query.execute());
       if(c!=null){users=new ArrayList<Encounter>(c);}
       query.closeAll();
@@ -5831,7 +5866,7 @@ public Long countMediaAssets(Shepherd myShepherd){
       query.closeAll();
       return users;
   }
-  
+
   public StoredQuery getStoredQuery(String uuid) {
     StoredQuery sq = null;
     try {
@@ -5866,6 +5901,20 @@ public Long countMediaAssets(Shepherd myShepherd){
     query.closeAll();
     return null;
   }
+
+    public List<ImportTask> getImportTasksForUser(User user) {
+        List<ImportTask> all = new ArrayList<ImportTask>();
+        String filter = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid == \"" + user.getUUID() + "\"";
+        Query query = getPM().newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            all.add((ImportTask)it.next());
+        }
+        query.closeAll();
+        return all;
+    }
 
   public User getUserByTwitterHandle(String handle) {
     User user= null;

@@ -16,6 +16,14 @@
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
 
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -91,10 +99,12 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 %>
 
-<script type="text/javascript">
+<script>
+$(document).ready( function() {  
 
+   $('#locationID').select2({width: '100%', height:'50px'});
+   $('#country').select2({width: '100%', height:'50px'});
 
-$(document).ready( function() {
 	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 	<%
 	if(user != null){
@@ -845,7 +855,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" onChange="$('.required-missing').removeClass('required-missing');">
+        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" onChange="$('.required-missing').removeClass('required-missing')">
       </div>
 
 <%

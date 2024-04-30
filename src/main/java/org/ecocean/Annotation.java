@@ -602,6 +602,10 @@ public class Annotation implements java.io.Serializable {
     }
 */
 
+    public String getBboxAsString(){
+        return Arrays.toString(this.getBbox());
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)

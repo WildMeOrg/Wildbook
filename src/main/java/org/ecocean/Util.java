@@ -11,16 +11,10 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
-import java.text.Normalizer;
-import static java.nio.charset.StandardCharsets.*;
-
-import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -34,9 +28,6 @@ import java.util.regex.Pattern;
 import net.jpountz.xxhash.XXHashFactory;
 import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
-
-
-
 
 //EXIF-related imports
 import java.io.File;
@@ -70,9 +61,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
-
-
-
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
@@ -480,8 +468,8 @@ public class Util {
         if (jin == null) return null;
         return stringToJSONObject(jin.toString());
     }
-    
-    
+
+
     public static org.datanucleus.api.rest.orgjson.JSONArray toggleJSONArray(org.json.JSONArray jin) {
       if (jin == null) return null;
       return stringToDatanucleusJSONArray(jin.toString());
@@ -490,7 +478,11 @@ public class Util {
       if (jin == null) return null;
       return stringToJSONArray(jin.toString());
     }
-    
+
+
+    public static Object jsonNull(Object obj) {
+        return (obj == null) ? org.json.JSONObject.NULL : obj;
+    }
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {
@@ -529,15 +521,15 @@ public class Util {
       }
       return j;
     }
-    
+
     //NEW
-    
+
     //this basically just swallows exceptions in parsing and returns a null if failure
-    public static org.json.JSONArray stringToJSONArray(String s) {
-        org.json.JSONArray j = null;
+    public static JSONArray stringToJSONArray(String s) {
+        JSONArray j = null;
         if (s == null) return j;
         try {
-            j = new org.json.JSONArray(s);
+            j = new JSONArray(s);
         } catch (JSONException je) {
             System.out.println("error parsing json string (" + s + "): " + je.toString());
         }
@@ -656,26 +648,6 @@ public class Util {
     public static double latDegreesToMeters(double degLat) {
         return degLat * 111320.0d;
     }
-
-    // http://stackoverflow.com/a/15190787
-    public static String stripAccents(String s) {
-        String str = Normalizer.normalize(s, Normalizer.Form.NFD);
-        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-        return str;
-    }
-
-    public static String utf8ize(String str) {
-      String value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
-      return value;
-    }
-
-
-
-    public static boolean stringsEqual(String str1, String str2) {
-      if (str1==null) return (str2==null);
-      return str1.equals(str2);
-    }
-
     public static double lonDegreesToMeters(double degLon, double degLat) {
         return degLon * (40075000.0d * Math.cos(degLat) / 360d);
     }
@@ -873,7 +845,6 @@ public class Util {
     public static boolean shouldReplace(String val1, String val2) {
       return (stringExists(val1) && !stringExists(val2));
     }
-
 
     // only if one of the Strings should replace the other, return that string
     public static String betterValue(String val1, String val2) {

@@ -124,6 +124,18 @@
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
+
+
 <%
 
 
@@ -1442,9 +1454,17 @@ $(window).on('load',function() {
            	%>
 
        marker = new google.maps.Marker({
-    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   icon: " ",
     	   position:latLng,
-    	   map:map
+    	   map:map,
+    	   label: {
+   	        text: "\ue0c8",
+   	        fontFamily: "Material Symbols Outlined",
+   	        color: "<%=haploColor %>",
+   	        fontSize: "36px",
+   	        
+   	   	   }
     	});
 
 	   		<%
@@ -1594,9 +1614,16 @@ $(window).on('load',function() {
                     emptyMarkers();
                     var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
                     var newMarker = new google.maps.Marker({
-                 	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                 	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                 	   icon: " ",
                  	   position:newLatLng,
-                 	   map:map
+                 	   map:map,
+                	   label: {
+	               	        text: "\ue0c8",
+	               	        fontFamily: "Material Symbols Outlined",
+	               	        color: "<%=haploColor %>",
+	               	        fontSize: "36px",
+               	       }
                  	});
                     markers.push(newMarker);
               	}
@@ -1845,6 +1872,10 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
+
+                      $('#selectCode').select2({width: '100%', height:'50px'});
+                      $('#selectCountry').select2({width: '100%', height:'50px'});
+
                       populateNewIndWithDisabledButton();
                       populateAddToExistingIndWithDisabledButton();
                       setUpIdActionOnClick();

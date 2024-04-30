@@ -1,22 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean.servlet;
 
 import org.ecocean.*;
@@ -93,8 +74,8 @@ public class TissueSampleSetHaplotype extends HttpServlet {
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Added or updated mitochondrial DNA analysis (haplotype) "+request.getParameter("analysisID")+" for tissue sample "+request.getParameter("sampleID")+".<br />"+mtDNA.getHTMLString());
         
         //check if this affects the MarkedIndividual.localHaplotypeReflection
-        if(enc.getIndividualID()!=null){
-            MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
+        if(enc.getIndividual()!=null){
+            MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividual().getIndividualID());
             indie.doNotSetLocalHaplotypeReflection(mtDNA.getHaplotype());
         }
 
