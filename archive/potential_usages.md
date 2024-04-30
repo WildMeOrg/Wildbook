@@ -10,7 +10,7 @@
 
 - `flukeScanEnd.js` not used anywhere, rm'ed
 - `imageDisplayTools.js` changed to reference `iaResults.jsp` instead
-- url still seems in use via `CommonConfiguration.appendEmailRemoveHashString()` - put back into webapps/ dir
+- disabled `CommonConfiguration.appendEmailRemoveHashString()` usage of this jsp
 - updated to reference `iaResults.jsp` instead
 - ditto
 
