@@ -43,8 +43,8 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
 Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
+//Shepherd myShepherd = new Shepherd(context);
+//myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
