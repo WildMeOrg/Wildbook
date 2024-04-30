@@ -787,13 +787,6 @@ public class CommonConfiguration {
   public static String appendEmailRemoveHashString(HttpServletRequest request, String
                                                    originalString, String emailAddress, String context) {
         return null;  // disabled via issue #397
-/*
-    initialize(context);
-    if (getProperty("removeEmailString",context) != null) {
-      originalString=originalString.replaceAll("REMOVEME",("\n\n" + getProperty("removeEmailString",context) + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress)));
-    }
-    return originalString;
-*/
   }
 
   public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
