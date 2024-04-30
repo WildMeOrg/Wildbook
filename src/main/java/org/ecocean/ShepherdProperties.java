@@ -8,12 +8,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -22,6 +26,11 @@ public class ShepherdProperties {
   public static final String[] overrideOrgsArr = {"indocet"};
   // set for easy .contains() checking
   public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
+
+  // The "catalina.home" property is the path to the Tomcat install ("Catalina Server").
+  // This is often set as the working directory.
+  // Property files are resolved relative to this directory.
+  private static final Path propertiesBase = Paths.get(System.getProperty("catalina.home"));
 
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
@@ -162,10 +171,8 @@ public class ShepherdProperties {
    * @param defaults The value to return if the properties cannot be read or parsed.
    * @return The parsed properties from the path provided, or the default value.
    */
-  public static Properties loadProperties(String pathStr, Properties defaults) {
-    // The "catalina.home" property is the path to the Tomcat install ("Catalina Server").
-    // This is often set as the working directory.
-    File propertiesFile = new File(System.getProperty("catalina.home") + "/" + pathStr);
+  public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
+    File propertiesFile = propertiesBase.resolve(pathStr).toFile();
     if (!propertiesFile.exists()) return defaults;
     try {
       InputStream inputStream = Files.newInputStream(propertiesFile.toPath());
@@ -179,7 +186,8 @@ public class ShepherdProperties {
     }
     return defaults;
   }
-  public static Properties loadProperties(String pathStr) {
+  @Nullable
+  public static Properties loadProperties(@Nonnull String pathStr) {
     return loadProperties(pathStr, null);
   }
   public static Properties getContextsProperties(){
