@@ -5,6 +5,8 @@
     java.util.Arrays,
 		java.util.Iterator,
 		java.util.List,
+		java.util.Set,
+		java.util.LinkedHashSet,
 		org.json.JSONObject,
 		org.ecocean.media.*,
 		org.ecocean.Annotation,
@@ -191,8 +193,9 @@ myShepherd.beginDBTransaction();
 
 try{
 	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
-	Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
-	List results = (List)q.execute();
+	final String noViewpoint = "----------";
+	vlist += "<option value=\"\"" + (viewpoint == null || viewpoint.equals("") ? " selected" : "") + ">" + noViewpoint + "</option>";
+	final Set<String> results = new LinkedHashSet<>(Annotation.getAllValidViewpoints());
 	Iterator it = results.iterator();
 	while (it.hasNext()) {
 	    String v = (String)it.next();
@@ -200,7 +203,6 @@ try{
 	    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
 	}
 	vlist += "</select></p>";
-	q.closeAll();
 
 	//ok, we now know that we have a MediaAsset
 	//now let's check if we need to force Encounter cloning
@@ -352,7 +354,7 @@ try{
 	function pulldownUpdate(el) {
 	//console.info('%o', el.name);
 	    var u = window.location.href;
-	    var m = u.match(new RegExp(el.name + '=\\w+'));
+	    var m = u.match(new RegExp(el.name + '=\\w*'));
 	    if (!m) {  //was not (yet) in url
 	        u += '&' + el.name + '=' + encodeURIComponent(el.value);
 	    } else {
