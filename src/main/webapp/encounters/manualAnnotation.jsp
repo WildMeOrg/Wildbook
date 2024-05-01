@@ -194,7 +194,7 @@ myShepherd.beginDBTransaction();
 try{
 	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
 	final String noViewpoint = "----------";
-	vlist += "<option" + (noViewpoint.equals(viewpoint) ? " selected" : "") + ">" + noViewpoint + "</option>";
+	vlist += "<option value=\"\"" + (viewpoint == null || viewpoint.equals("") ? " selected" : "") + ">" + noViewpoint + "</option>";
 	final Set<String> results = new LinkedHashSet<>(Annotation.getAllValidViewpoints());
 	Iterator it = results.iterator();
 	while (it.hasNext()) {
@@ -354,7 +354,7 @@ try{
 	function pulldownUpdate(el) {
 	//console.info('%o', el.name);
 	    var u = window.location.href;
-	    var m = u.match(new RegExp(el.name + '=\\w+'));
+	    var m = u.match(new RegExp(el.name + '=\\w*'));
 	    if (!m) {  //was not (yet) in url
 	        u += '&' + el.name + '=' + encodeURIComponent(el.value);
 	    } else {
