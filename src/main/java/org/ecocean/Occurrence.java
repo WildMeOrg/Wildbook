@@ -210,6 +210,17 @@ public class Occurrence implements java.io.Serializable {
     return res;
   }
 
+    public List<Annotation> getAnnotations() {
+        List<Annotation> annots = new ArrayList<Annotation>();
+        for (Encounter enc : encounters) {
+            annots.addAll(enc.getAnnotations());
+        }
+        return annots;
+    }
+    public int getNumberAnnotations() {
+        return this.getAnnotations().size();
+    }
+
   public boolean addAsset(MediaAsset ma){
     if(assets==null){assets=new ArrayList<MediaAsset>();}
 
@@ -389,6 +400,10 @@ public class Occurrence implements java.io.Serializable {
   public String getOccurrenceID(){
     return occurrenceID;
   }
+
+    public String getId() {
+        return occurrenceID;
+    }
 
   public void setOccurrenceID(String id){
     occurrenceID = id;
@@ -570,6 +585,20 @@ public class Occurrence implements java.io.Serializable {
     }
     return result;
   }
+
+    public List<String> getAllSpeciesDeep() {
+        List<String> result = new ArrayList<String>();
+        for (Taxonomy tax: taxonomies) {
+            String sciName = tax.getScientificName();
+            if (sciName != null && !result.contains(sciName)) result.add(sciName);
+        }
+        for (Encounter enc: encounters) {
+            String sciName = enc.getTaxonomyString();
+            if (sciName != null && !result.contains(sciName)) result.add(sciName);
+        }
+        return result;
+    }
+
   public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
     addTaxonomy(taxy);

@@ -1587,8 +1587,8 @@ public class StandardImport extends HttpServlet {
     String fullPath = null;
     try {
 
-      if (localPath==null||"null".equals(localPath)) {
-        feedback.logParseError(assetColIndex(i, allColsMap), localPath, row);
+      if (localPath==null||"null".equals(localPath)||"".equals(localPath.trim())) {
+        feedback.logParseNoValue(assetColIndex(i, allColsMap));
         return null;
       }
 
@@ -2410,7 +2410,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   private List<MarkedIndividual> getAllMarkedIndividualsForUser(Shepherd myShepherd, User u) {
-    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u, myShepherd);
+    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u);
     List<Encounter> sIdEncs = myShepherd.getEncountersByField("submitterID", u.getUsername());
     HashSet<Encounter> uniqueEncs = new HashSet<>();
     uniqueEncs.addAll(uEncs);
