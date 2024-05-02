@@ -2258,14 +2258,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
     // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
     jobj.put("thumbnailUrl", this.thumbnailUrl);
+    jobj.put("livingStatus", this.isDeceased() ? "dead" : "alive");
 
-    if(includeEncounters) {
-      Vector<String> encIDs = new Vector<String>();
-      for (Encounter enc : this.encounters) {
+    Vector<String> encIDs = new Vector<String>();
+    Encounter firstEncounter = null;
+    Encounter lastEncounter = null;
+    for (Encounter enc : this.getDateSortedEncounters()) {
         encIDs.add(enc.getCatalogNumber());
-      }
-      jobj.put("encounterIDs", encIDs.toArray());
+        if (firstEncounter == null) firstEncounter = enc;
+        lastEncounter = enc;
     }
+    if (includeEncounters) jobj.put("encounterIDs", encIDs.toArray());
+    if (firstEncounter != null) jobj.put("firstSightingDate", firstEncounter.getDate());
+    if (lastEncounter != null) jobj.put("mostRecentSightingDate", lastEncounter.getDate());
+
     return sanitizeJson(request,decorateJson(request, jobj));
   }
 
