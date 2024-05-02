@@ -614,7 +614,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     //}
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if (temp.getLivingStatus().equals("dead")) {
+      if ((temp.getLivingStatus() != null) && temp.getLivingStatus().equals("dead")) {
         return true;
       }
     }
