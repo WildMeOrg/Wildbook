@@ -7,7 +7,7 @@ export default function useLogin() {
   const intl = useIntl();
 
   const errorMessage = intl.formatMessage({
-    id: 'INVALID_EMAIL_OR_PASSWORD',
+    id: 'LOGIN_INVALID_EMAIL_OR_PASSWORD',
   });
 
   const [error, setError] = useState(null);
