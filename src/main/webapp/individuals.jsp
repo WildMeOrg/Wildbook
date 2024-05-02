@@ -2541,7 +2541,7 @@ if (sharky.getNames() != null) {
             <p>
               <form action="IndividualAddComment" method="post" name="addComments">
                 <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-                <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+                <input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
                 <input name="action" type="hidden" value="comments" id="action">
 
                   <p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
