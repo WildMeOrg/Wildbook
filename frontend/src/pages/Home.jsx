@@ -39,7 +39,7 @@ export default function Home() {
         <>
             <div className="col-12">
                 <LandingImage />
-                <LatestData data={data.latestEncounters || []} username={data?.user?.displayName} />
+                <LatestData data={data.latestEncounters || []} username={data?.user?.username} />
                 <PickUp data={data} />
                 <Report />
                 <Projects data={data.projects} />
