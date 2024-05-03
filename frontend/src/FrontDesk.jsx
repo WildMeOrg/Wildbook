@@ -14,7 +14,7 @@ export default function FrontDesk() {
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-
+  const [showAlert, setShowAlert] = useState(true);
 
   const checkLoginStatus = () => {
     console.log("Polling API...");
@@ -61,14 +61,14 @@ export default function FrontDesk() {
         getAllNotifications,
       }}>
         {/* <ThemeProvider>           */}
-        <AuthenticatedSwitch isLoggedIn={isLoggedIn} />
+        <AuthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert} />
         {/* </ThemeProvider> */}
       </AuthContext.Provider>
     );
   }
   if (error || !isLoggedIn) {
     console.log('Error', error);
-    return <UnauthenticatedSwitch />
+    return <UnauthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert}/>
   };
 
   return (
