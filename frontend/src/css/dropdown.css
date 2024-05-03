@@ -9,3 +9,7 @@
   .nav-item .dropdown-item:hover, .nav-item .dropdown-item:focus {
     background-color: #CCF0FF !important;
   }
+
+  .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
+    background-color: #CCF0FF !important;
+}
