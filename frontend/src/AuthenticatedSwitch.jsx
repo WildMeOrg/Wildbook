@@ -5,11 +5,12 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Footer from './components/Footer';
- import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
+import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
 import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
 import useGetMe from './models/auth/users/useGetMe';
+import AlertBanner from './components/AlertBanner';
 
-export default function AuthenticatedSwitch({ isLoggedIn }) {
+export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
 
   const { isFetched, data, error } = useGetMe();
   const username = data?.displayName;
@@ -18,18 +19,23 @@ export default function AuthenticatedSwitch({ isLoggedIn }) {
   return (
     <main>
       <div style={{
-                  position: 'fixed',
-                  top: 0,
-                  maxWidth: '1440px',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  zIndex: '100',
-                  width: '100%',
-                }}>            
-                  {isLoggedIn ? <AuthenticatedAppHeader username={username} avatar={avatar}/>
-                  : <UnAuthenticatedAppHeader />  
-                }
-            </div>
+        position: 'fixed',
+        top: 0,
+        maxWidth: '1440px',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        zIndex: '100',
+        width: '100%',
+      }}>
+
+        {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
+        <AuthenticatedAppHeader
+          username={username}
+          avatar={avatar}
+          showAlert={showAlert}
+          setShowAlert={setShowAlert} />
+
+      </div>
 
       <div
         style={{
