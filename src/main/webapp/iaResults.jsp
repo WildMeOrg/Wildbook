@@ -1236,7 +1236,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 <%
                 if(user != null){
                 %>
-                if (isQueryAnnot) addNegativeButton(encId, displayName);
+                if (isQueryAnnot && !indivId) addNegativeButton(encId, displayName);
                 <%
                 }
                 %>
@@ -1256,27 +1256,13 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 
 					thisResultLine.prop('title', 'From Encounter: '+encId);
 
-					let click = false
-					thisResultLine.click(function(ev) {
-						  click = true;
-						  rowClick(ev, thisResultLine, encId);
-					});
-					//For browsers such as Chrome where 'click' does not work for scroll wheel click
-					thisResultLine.mousedown(function(ev) { 
-						  if (!click && ev.button == 1) {
-							  rowClick(ev, thisResultLine, encId); 
-						  }
-						});
-
-					// make annot info clickable
-					thisAnnotInfo.click(function(event) {
-						console.log("clicked on annot info");
-						let tar = $(event.target).parent();
-						if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
-							window.location.href = 'encounters/encounter.jsp?number='+encId;
-						}
-					});
-
+					//To make the browser behave consistent with other links when encounter number is left/middle/right clicked, change the encounter number to a link
+					thisResultLine.find('.annot-info').each(function() {
+						const content = $(this).contents();
+						const href = 'encounters/encounter.jsp?number='+encId;
+						const newAnchor = $('<a></a>').attr('href', href).css('white-space', 'nowrap').append(content);
+						$(this).replaceWith(newAnchor);
+				});
 					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
                     //thisResultLine.append('<a class="enc-link"  href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
@@ -1314,7 +1300,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
 				if(request.getUserPrincipal()!=null){
 				%>
                 if (encId || indivId) {
-					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<div style="display:inline-block;float: right;padding-right: 25;padding-top: 2px;"><input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive annot-action-checkbox" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 <%
             	}
@@ -1403,14 +1389,6 @@ console.info('qdata[%s] = %o', taskId, qdata);
     if (taxonomy && taxonomy!='Eubalaena glacialis' && imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
-function rowClick(ev, el, encId) {
-	let evTarget = $(ev.target);
-	if (evTarget.is(el) || evTarget.is(el.find('.annot-info-num')[0]) || evTarget.is(el.find('.annot-info')[0])) {
-		  var target = (ev.metaKey && ev.button == 0) || (ev.button == 1) ? '_blank' : '_self';
-		  var w = window.open('encounters/encounter.jsp?number='+encId, target);
-		  w.focus();
-    }
-}
 
 function getSelectedProjectIdPrefix() {
 	let selectedValue = $("#projectDropdown option:selected").val();
@@ -1424,26 +1402,60 @@ function annotCheckbox(el) {
     var task = getCachedTask(taskId);
     var queryAnnotation = jel.closest('.task-content').data();
     console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
-	annotCheckboxReset();
+	//annotCheckboxReset();
   	if (!taskId || !task) return;
-	if (!el.checked) return;
+	//if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
+	let allSelected = $('.annot-action-checkbox:checked');
+        console.log('allSelected %d %o', allSelected.length, allSelected);
+        if (!allSelected.length) {
+	    annotCheckboxReset();
+            return;
+        }
 	jel.parent().addClass('annot-summary-checked');
 
+        let indivs = {};
+        let displayName = {};
+        let unassignedEncs = [];
+        if (queryAnnotation.indivId) {
+            indivs[queryAnnotation.indivId] = indivs[queryAnnotation.indivId] + 1 || 1;
+            if (queryAnnotation.displayName) indivs[queryAnnotation.indivId] = queryAnnotation.displayName;
+        } else {
+            unassignedEncs.push(queryAnnotation.encId);
+        }
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o .... queryAnnotation %o', sel, queryAnnotation);
+            if (sel.individ) {
+                indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+                if (sel.displayname) displayName[sel.individ] = sel.displayname;
+            } else {
+                unassignedEncs.push(sel.encid);
+            }
+        }
+        let numIndivsSelected = Object.keys(indivs).length;
+console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 
 	let selectedProjectIdPrefix = getSelectedProjectIdPrefix();
 	if (selectedProjectIdPrefix==NONE_SELECTED) selectedProjectIdPrefix = '';
 	let allowSyncReturn = true;
 
 	var h = '<i>Getting next ID...</i>';
-	if (!queryAnnotation.encId || !jel.data('encid')) {
-		h = '<i>Insufficient encounter data for any actions</i>';
-	} else if (jel.data('individ')==queryAnnotation.indivId) {
-		h = 'The target and candidate are already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
-	} else if (jel.data('individ') && queryAnnotation.indivId) {
+        if (numIndivsSelected > 2) {
+            h = '<i>You cannot merge <b>more than 2 individuals</b> here.</i>';
+
+	} else if (numIndivsSelected == 2) {
 		// construct link to merge page
-		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
+		var link = "merge.jsp?individualA=" + Object.keys(indivs)[0] + "&individualB=" + Object.keys(indivs)[1];
+                if (unassignedEncs.length) link += '&encounterId=' + unassignedEncs.join('&encounterId=');
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
+
+	} else if (numIndivsSelected == 1 && !unassignedEncs.length) {
+		h = 'All encounters already assigned to the <b>same individual ID</b>. No further action is needed to confirm this match.'
+
+	} else if (!queryAnnotation.encId || !unassignedEncs.length) {
+		h = '<i>Insufficient encounter data for any actions</i>';
+
 	} else if (selectedProjectIdPrefix.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
 		allowSyncReturn = false;
 		let requestJSON = {};
@@ -1478,10 +1490,14 @@ function annotCheckbox(el) {
 			}
 		});
 
-	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
-	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
+	//} else if (jel.data('individ')) {
+        } else if (!queryAnnotation.indivId && numIndivsSelected == 1) {
+                let indivId = Object.keys(indivs)[0];
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + indivId + '\', \'' + 'TODO_FIXME_SOME_ENC' + '\' , \'' + taskId + '\' , \'' + displayName[indivId] + '\');" type="button" value="Set to individual ' + displayName[indivId] + '" />';
+
+	} else if (queryAnnotation.indivId && unassignedEncs.length) {
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + queryAnnotation.indivId + '\', \'' + unassignedEncs.join(',') + '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match(es) below" />';
+
 	} else {
 		h = '';
 		if (annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId) h += '<label for="lbcheckbox" title="' + annotData[queryAnnotId][0].encounterLocationId + '">Use next name based on location</label><input type="checkbox" class="location-based-checkbox" onClick="return locationBasedCheckbox(this, \'' + queryAnnotId + '\');" />';
@@ -1490,9 +1506,11 @@ function annotCheckbox(el) {
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' data-match-task-id="' + taskId + '" ';
 		h += ' data-match-display-name="' + jel.data('displayname') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
+		h += ' /> <input type="button" value="Set individual on all encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
+//$('#enc-action').html(h);
+//console.log(h); return;
 	if (allowSyncReturn) {
 		$('#enc-action').html(h);
 		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
@@ -1777,6 +1795,10 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
 	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
+        if (encID2 == 'TODO_FIXME_SOME_ENC') {
+            alert('EXCEPTION CASE');
+            return;
+        }
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
 		displayName = indivID;
@@ -1785,7 +1807,7 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
 	if ((!indivID || !encID) && !useLocation) {
-		jQuery(msgTarget).html('Argument errors');
+		jQuery(msgTarget).html('Argument errors (No name provided?)');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
@@ -1796,7 +1818,8 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 		url += '&projectId='+projectId;
 		console.log('adding projectId to URL for new name!!');
 	}
-	if (encID2) url += '&enc2=' + encID2;
+	if (encID2) url += '&encOther=' + encID2.split(',').join('&encOther=');
+//console.log('url => %s', url); alert(url); return;
 
 	jQuery.ajax({
 		url: url,
@@ -1834,7 +1857,20 @@ function approveNewIndividual(el) {
 	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
 	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
+        let otherEncIds = [];
+	let allSelected = $('.annot-action-checkbox:checked');
+        for (let isel = 0 ; isel < allSelected.length ; isel++) {
+            let sel = $(allSelected[isel]).data();  // WARN this flattens case to lower on keys :(
+            console.log('>>>> sel %o', sel);
+/*
+            if (sel.individ) {
+                indivs[sel.individ] = indivs[sel.individ] + 1 || 1;
+                if (sel.displayname) displayName[sel.individ] = sel.displayname;
+            } else {
+*/
+            otherEncIds.push(sel.encid);
+        }
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), otherEncIds.join(','), jel.data('match-task-id'), jel.data('match-display-name'), jel.parent().find('.location-based-checkbox').is(':checked'));
 }
 
 function encDisplayString(encId) {
@@ -1891,7 +1927,12 @@ function updateNameCallback(d, oldDisplayName, encId) {
 }
 
 function addNegativeButton(encId, oldDisplayName) {
-	if (<%=usesAutoNames%>) {
+        /*
+            FIXME: issue 432 uncovered some mysterious tie to org/names for the display of this button.
+            this needs further investigation to remove this for real and/or figure out why this was like this
+        */
+	//if (<%=usesAutoNames%>) {
+        if (true) {
 		console.log("Adding auto name/confirm negative button!");
 		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
 		console.log("negativeButton = "+negativeButton);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { FormattedMessage } from 'react-intl';
 
 export default function DiamondCard ({ date, title, annotations, animals }) {
 
@@ -23,7 +24,7 @@ export default function DiamondCard ({ date, title, annotations, animals }) {
             {title}
         </text>
         <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
-            {`${annotations} annotations`}
+            {`${annotations}`}<FormattedMessage id='ANNOTATIONS'/>
         </text>
         {/* <text x="50%" y="76%" dominant-baseline="middle" text-anchor="middle" fill="black" dy="-5">
             {`${animals} animals`}
