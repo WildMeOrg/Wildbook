@@ -2314,14 +2314,6 @@ if (sharky.getNames() != null) {
 	        <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
 	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
       	      </div>
-              <div class="coOccurrenceSliderWrapper">
-	        <label for="temporal">Temporal Threshold (Hours) - <span class="sliderLabel" id="temporalVal"></span></label>
-	  	<input type="range" min=0 class="graphSlider" id="temporal">
-      	      </div>
-      	      <div class="coOccurrenceSliderWrapper">
-	        <label for="spatial">Spatial Threshold (Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
-		<input type="range" min=0 class="graphSlider" id="spatial">
-      	      </div>
     	    </div>
 	      <script type="text/javascript">
 	        let querier = new JSONQuerier(wildbookGlobals);
