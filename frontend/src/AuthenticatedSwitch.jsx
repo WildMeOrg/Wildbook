@@ -13,7 +13,7 @@ import AlertBanner from './components/AlertBanner';
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
 
   const { isFetched, data, error } = useGetMe();
-  const username = data?.displayName;
+  const username = data?.username;
   const avatar = data?.imageURL || '/react/images/Avatar.png';
 
   return (
