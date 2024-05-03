@@ -60,7 +60,7 @@ export default function AuthenticatedAppHeader() {
   >
     <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '50%' }}>
+    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '40%' }}>
       <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
         {unAuthenticatedMenu.map((item, idx) => (
           <Nav className="me-auto">
@@ -98,9 +98,11 @@ export default function AuthenticatedAppHeader() {
           color: 'white',
           border: 'none',
           width: '100px',
+          whiteSpace: 'nowrap',
+          padding: 5
         }}
         href={"/react/login"}>{
-          <FormattedMessage id='LOGIN' />
+          <FormattedMessage id='LOGIN_LOGIN' />
         }
       </Button>
 

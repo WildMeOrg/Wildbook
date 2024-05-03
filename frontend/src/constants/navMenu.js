@@ -13,8 +13,8 @@ const authenticatedMenu = (username) => [
             { name: <FormattedMessage id="menu.learn.contactUs" defaultMessage="Contact Us" />, href: '/contactus.jsp' },
             { name: <FormattedMessage id="menu.learn.citingWildbook" defaultMessage="Citing Wildbook" />, href: '/citing.jsp' },
             { name: <FormattedMessage id="menu.learn.howToPhotograph" defaultMessage="How to Photograph" />, href: '/photographing.jsp' },
-            { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
-            { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
+            // { name: <FormattedMessage id="menu.learn.privacyPolicy" defaultMessage="Privacy Policy" />, href: '/privacyPolicy.jsp' },
+            // { name: <FormattedMessage id="menu.learn.termsOfUse" defaultMessage="Terms of Use" />, href: '/termsOfUse.jsp' },
         ]
     },
     
