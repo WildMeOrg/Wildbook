@@ -2,6 +2,7 @@ import React from 'react';
 import DiamondCard from '../DiamondCard';
 import More from '../CircledMoreButton';
 import { formatDate } from '../../utils/formatters';
+import { FormattedMessage } from 'react-intl';
 
 export default function LatestData({data, username}) {
     return (
@@ -16,7 +17,9 @@ export default function LatestData({data, username}) {
             
             }}
         >
-            <h1 style={{fontSize: 48}}>Latest Data</h1>
+            <h1 style={{fontSize: 48}}>
+                <FormattedMessage id="HOME_LATEST_DATA"/>
+            </h1>
             <div style={{
                 display: 'flex',
                 flexDirection: 'row',

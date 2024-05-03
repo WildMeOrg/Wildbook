@@ -50,7 +50,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
     >
       <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '25%' }}>
+      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '20%' }}>
         <Nav className="mr-auto" id='nav' style={{
           display: 'flex',
           justifyContent: 'flex-end',

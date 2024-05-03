@@ -18,6 +18,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.text.StringEscapeUtils;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+
+
 public class ExportColumn {
 
     public final String header;
@@ -102,6 +107,36 @@ public class ExportColumn {
       sheet.addCell(getLabel(obj, rowNum));
     }
 
+    public void writeHeaderLabel(Sheet sheet) throws InvocationTargetException, IllegalAccessException {
+
+      Row row = sheet.getRow(0);
+      if (row == null) {
+          row = sheet.createRow(0);
+      }
+
+      Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
+      cell.setCellValue(header);  
+    }
+
+    public void writeLabel(Object obj, int rowNum, Sheet sheet) throws InvocationTargetException, IllegalAccessException {
+      if (obj == null) return;
+  
+      // Ensure the row exists in the sheet
+      Row row = sheet.getRow(rowNum);
+      if (row == null) {
+          row = sheet.createRow(rowNum);
+      }
+  
+      Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
+      if (obj instanceof String)
+      {
+          cell.setCellValue((String)obj);
+      }
+      else{
+          cell.setCellValue(getStringValue(obj));
+      }
+  }
+    
   // this would be a static method of above subclass if java allowed that
   public static ExportColumn newEasyColumn(String classDotFieldNameHeader, List<ExportColumn> columns) throws ClassNotFoundException, NoSuchMethodException {
 

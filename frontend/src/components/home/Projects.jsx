@@ -24,12 +24,12 @@ export default function Projects({ data }) {
             <h1 style={{
                 fontSize: '4em',
             }}>
-                View your
+                <FormattedMessage id="HOME_VIEW_PROJECT_1"/>
             </h1>
             <h1 style={{
                 fontSize: '4em',
             }}>
-                projects
+                <FormattedMessage id="HOME_VIEW_PROJECT_2"/>
             </h1>
         </div>
         <div style={{
@@ -53,7 +53,9 @@ export default function Projects({ data }) {
                             newTab
                         />
                     })
-                    : <h1>No projects found</h1>
+                    : <h1>
+                        <FormattedMessage id="HOME_NO_PROJECT"/>
+                    </h1>
             }
             <a href='/projects/projectList.jsp'
                 style={{
