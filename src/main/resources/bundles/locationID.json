@@ -20,7 +20,309 @@
       {"name":"Montana","id":"Montana","locationID":[]},
       {"name":"Nevada","id":"Nevada","locationID":[]},
       {"name":"New Mexico","id":"New Mexico","locationID":[]},
-      {"name":"Oregon","id":"Oregon","locationID":[]},
+      {"name":"Oregon","id":"Oregon","locationID":[
+		
+		{
+		   "name": "081090", 
+		   "id": "081090" 
+		}
+		,
+		{
+		   "name": "128101", 
+		   "id": "128101" 
+		}
+		,
+		{
+		   "name": "129276", 
+		   "id": "129276" 
+		}
+		,
+		{
+		   "name": "130102", 
+		   "id": "130102" 
+		}
+		,
+		{
+		   "name": "146764", 
+		   "id": "146764" 
+		}
+		,
+		{
+		   "name": "155365", 
+		   "id": "155365" 
+		}
+		,
+		{
+		   "name": "161191", 
+		   "id": "161191" 
+		}
+		,
+		{
+		   "name": "179439", 
+		   "id": "179439" 
+		}
+		,
+		{
+		   "name": "217961", 
+		   "id": "217961" 
+		}
+		,
+		{
+		   "name": "257002", 
+		   "id": "257002" 
+		}
+		,
+		{
+		   "name": "286789", 
+		   "id": "286789" 
+		}
+		,
+		{
+		   "name": "364070", 
+		   "id": "364070" 
+		}
+		,
+		{
+		   "name": "400605", 
+		   "id": "400605" 
+		}
+		,
+		{
+		   "name": "544292", 
+		   "id": "544292" 
+		}
+		,
+		{
+		   "name": "593665", 
+		   "id": "593665" 
+		}
+		,
+		{
+		   "name": "594580", 
+		   "id": "594580" 
+		}
+		,
+		{
+		   "name": "650846", 
+		   "id": "650846" 
+		}
+		,
+		{
+		   "name": "HOBO-014", 
+		   "id": "HOBO-014" 
+		}
+		,
+		{
+		   "name": "HOBO-016", 
+		   "id": "HOBO-016" 
+		}
+		,
+		{
+		   "name": "HOBO-032", 
+		   "id": "HOBO-032" 
+		}
+		,
+		{
+		   "name": "HOBO-036", 
+		   "id": "HOBO-036" 
+		}
+		,
+		{
+		   "name": "HOBO-040", 
+		   "id": "HOBO-040" 
+		}
+		,
+		{
+		   "name": "HOBO-053", 
+		   "id": "HOBO-053" 
+		}
+		,
+		{
+		   "name": "HOBO-060", 
+		   "id": "HOBO-060" 
+		}
+		,
+		{
+		   "name": "HOBO-200", 
+		   "id": "HOBO-200" 
+		}
+		,
+		{
+		   "name": "HOBO-204", 
+		   "id": "HOBO-204" 
+		}
+		,
+		{
+		   "name": "HOBO-207", 
+		   "id": "HOBO-207" 
+		}
+		,
+		{
+		   "name": "HOBO-209", 
+		   "id": "HOBO-209" 
+		}
+		,
+		{
+		   "name": "HOBO-211", 
+		   "id": "HOBO-211" 
+		}
+		,
+		{
+		   "name": "HOBO-216", 
+		   "id": "HOBO-216" 
+		}
+		,
+		{
+		   "name": "HOBO-233", 
+		   "id": "HOBO-233" 
+		}
+		,
+		{
+		   "name": "HOBO-242", 
+		   "id": "HOBO-242" 
+		}
+		,
+		{
+		   "name": "HOBO-244", 
+		   "id": "HOBO-244" 
+		}
+		,
+		{
+		   "name": "HOBO-246", 
+		   "id": "HOBO-246" 
+		}
+		,
+		{
+		   "name": "HOBO-248", 
+		   "id": "HOBO-248" 
+		}
+		,
+		{
+		   "name": "HOBO-250", 
+		   "id": "HOBO-250" 
+		}
+		,
+		{
+		   "name": "HOBO-265", 
+		   "id": "HOBO-265" 
+		}
+		,
+		{
+		   "name": "HOBO-302", 
+		   "id": "HOBO-302" 
+		}
+		,
+		{
+		   "name": "HOBO-304", 
+		   "id": "HOBO-304" 
+		}
+		,
+		{
+		   "name": "HOBO-308", 
+		   "id": "HOBO-308" 
+		}
+		,
+		{
+		   "name": "HOBO-310", 
+		   "id": "HOBO-310" 
+		}
+		,
+		{
+		   "name": "HOBO-312", 
+		   "id": "HOBO-312" 
+		}
+		,
+		{
+		   "name": "HOBO-315", 
+		   "id": "HOBO-315" 
+		}
+		,
+		{
+		   "name": "HOBO-317", 
+		   "id": "HOBO-317" 
+		}
+		,
+		{
+		   "name": "HOBO-331", 
+		   "id": "HOBO-331" 
+		}
+		,
+		{
+		   "name": "HOBO-335", 
+		   "id": "HOBO-335" 
+		}
+		,
+		{
+		   "name": "HOBO-337", 
+		   "id": "HOBO-337" 
+		}
+		,
+		{
+		   "name": "HOBO-341", 
+		   "id": "HOBO-341" 
+		}
+		,
+		{
+		   "name": "HOBO-345", 
+		   "id": "HOBO-345" 
+		}
+		,
+		{
+		   "name": "HOBO-347", 
+		   "id": "HOBO-347" 
+		}
+		,
+		{
+		   "name": "HOBO-349", 
+		   "id": "HOBO-349" 
+		}
+		,
+		{
+		   "name": "HOBO-351", 
+		   "id": "HOBO-351" 
+		}
+		,
+		{
+		   "name": "HOBO-353", 
+		   "id": "HOBO-353" 
+		}
+		,
+		{
+		   "name": "HOBO-357", 
+		   "id": "HOBO-357" 
+		}
+		,
+		{
+		   "name": "SM-02", 
+		   "id": "SM-02" 
+		}
+		,
+		{
+		   "name": "SM-03", 
+		   "id": "SM-03" 
+		}
+		,
+		{
+		   "name": "SM-04", 
+		   "id": "SM-04" 
+		}
+		,
+		{
+		   "name": "SM-06", 
+		   "id": "SM-06" 
+		}
+		,
+		{
+		   "name": "SM-09", 
+		   "id": "SM-09" 
+		}
+		,
+		{
+		   "name": "SM-PG", 
+		   "id": "SM-PG" 
+		}
+
+	  ]},
       {"name":"Utah","id":"Utah","locationID":[]},
       {"name":"Washington","id":"Washington","locationID":[]},
       {"name":"Wyoming","id":"Wyoming","locationID":[]}
