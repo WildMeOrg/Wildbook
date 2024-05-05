@@ -2,6 +2,34 @@
 	"description": "we require a root-level node here fwiw",
 	"locationID": [
 		{
+			"name": "Botswana",
+			"id": "Botswana",
+			"locationID": [
+				{
+					"name": "Tuli Block",
+					"id": "Tuli Block",
+					"locationID": [
+						{
+							"name": "Central Tuli",
+							"id": "Central Tuli",
+							"geospatialInfo": {
+								"lat": -22.335196,
+								"long": 28.889281
+							}
+						},
+						{
+							"name": "Northern Tuli Game Reserve",
+							"id": "Northern Tuli Game Reserve",
+							"geospatialInfo": {
+								"lat": -22.149146,
+								"long": 29.120104
+							}
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Cameroon",
 			"id": "Cameroon",
        "geospatialInfo":{
@@ -122,6 +150,11 @@
 							"name": "Bilashaka Farm",
 							"id": "Bilashaka Farm",
 							"description": "Bilashaka Farm"
+						},
+						{
+							"name": "Colour Crops Farm",
+							"id": "Colour Crops Farm",
+							"description": "Colour Crops Farm"
 						},
 					{
 						"name": "Crater Lake Game Sanctuary",
@@ -395,6 +428,18 @@
 							"prefixDigitPadding": 3
 						},
 						{
+							"name": "Buffalo Springs National Reserve",
+							"id": "Buffalo Springs National Reserve",
+							"prefix": "BSNR",
+							"prefixDigitPadding": 4
+						},
+						{
+							"name": "Chololo Ranch",
+							"id": "Chololo Ranch",
+							"prefix": "Cho",
+							"prefixDigitPadding": 3
+						},
+						{
 							"name": "Il Mamusi",
 							"id": "Il Mamusi",
 							"prefix": "IlMa",
@@ -526,6 +571,12 @@
 								"lat":0.0,
 								"long":37
 							 }
+						},
+						{
+							"name": "Samburu National Reserve",
+							"id": "Samburu National Reserve",
+							"prefix": "SNR",
+							"prefixDigitPadding": 3
 						},
 						{
 							"name": "Segera",
