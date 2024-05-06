@@ -107,11 +107,12 @@ a.pt-vm-button:hover {
 
 td.tdw {
 	position: relative;
+	max-width: 0; // cell width is determined by the content
 }
 
 td.tdw div {
 	height: 16px;
-	overflow-y: hidden;
+	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
