@@ -45,8 +45,8 @@ try {
 catch (NumberFormatException nex) {}
 
 String iaClass = request.getParameter("iaClass");
-String maparam = request.getParameter("matchAgainst");
-boolean matchAgainst = Util.booleanNotFalse(maparam);
+//String maparam = request.getParameter("matchAgainst");
+//boolean matchAgainst = Util.booleanNotFalse(maparam);
 String rtparam = request.getParameter("removeTrivial");
 boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
@@ -428,7 +428,10 @@ try{
 	    ma.addFeature(ft);
 	    ma.setDetectionStatus("complete");
 	    Annotation ann = new Annotation(null, ft, iaClass);
-	    ann.setMatchAgainst(matchAgainst);
+		IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+	    if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
+            ann.setMatchAgainst(true);
+        }
 	    ann.setViewpoint(viewpoint);
 	    String encMsg = "(no encounter)";
 	    if (enc != null) {
