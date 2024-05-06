@@ -2070,6 +2070,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.maximumElevationInMeters = newElev;
   }
 
+    public String getId() {
+        return catalogNumber;
+    }
 
   public String getCatalogNumber() {
     return catalogNumber;
@@ -2810,6 +2813,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
+    // all an enc's annotations on a given asset (might be multiple if parts are involved)
+    public List<Annotation> getAnnotations(MediaAsset ma) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (Annotation ann: getAnnotations()) {
+          if (ann.getMediaAsset() == ma) anns.add(ann);
+        }
+        return anns;
+    }
+
     public void setAnnotations(ArrayList<Annotation> anns) {
         annotations = anns;
     }
