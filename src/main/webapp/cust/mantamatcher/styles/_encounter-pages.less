@@ -107,24 +107,16 @@ a.pt-vm-button:hover {
 
 td.tdw {
 	position: relative;
+	max-width: 0; // cell width is determined by the content
 }
 
 td.tdw div {
 	height: 16px;
-	overflow-y: hidden;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	// prevent wrapping so that ellipsis shows instead of text going into the void (overflow:hidden)
+	white-space: nowrap;
 }
-
-
-td.tdw:hover div {
-	position: absolute;
-	z-index: 20;
-	background-color: #EFA;
-	outline: 3px solid #EFA;
-	min-height: 16px;
-	height: auto;
-	overflow-y: auto;
-}
-
 
   #tabmenu {
     color: #000;
