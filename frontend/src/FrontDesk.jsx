@@ -3,7 +3,6 @@ import UnauthenticatedSwitch from './UnAuthenticatedSwitch';
 import AuthenticatedSwitch from './AuthenticatedSwitch';
 import axios from 'axios';
 import AuthContext from './AuthProvider';
-// import ThemeProvider from './ThemeProvider';
 import getMergeNotifications from './models/notifications/getMergeNotifications';
 import getCollaborationNotifications from './models/notifications/getCollaborationNotifications';
 
@@ -60,14 +59,11 @@ export default function FrontDesk() {
         mergeData,
         getAllNotifications,
       }}>
-        {/* <ThemeProvider>           */}
         <AuthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert} />
-        {/* </ThemeProvider> */}
       </AuthContext.Provider>
     );
   }
   if (error || !isLoggedIn) {
-    console.log('Error', error);
     return <UnauthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert}/>
   };
 
