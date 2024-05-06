@@ -3,7 +3,6 @@ import UnauthenticatedSwitch from './UnAuthenticatedSwitch';
 import AuthenticatedSwitch from './AuthenticatedSwitch';
 import axios from 'axios';
 import AuthContext from './AuthProvider';
-// import ThemeProvider from './ThemeProvider';
 import getMergeNotifications from './models/notifications/getMergeNotifications';
 import getCollaborationNotifications from './models/notifications/getCollaborationNotifications';
 
@@ -14,7 +13,7 @@ export default function FrontDesk() {
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-
+  const [showAlert, setShowAlert] = useState(true);
 
   const checkLoginStatus = () => {
     console.log("Polling API...");
@@ -60,15 +59,12 @@ export default function FrontDesk() {
         mergeData,
         getAllNotifications,
       }}>
-        {/* <ThemeProvider>           */}
-        <AuthenticatedSwitch isLoggedIn={isLoggedIn} />
-        {/* </ThemeProvider> */}
+        <AuthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert} />
       </AuthContext.Provider>
     );
   }
   if (error || !isLoggedIn) {
-    console.log('Error', error);
-    return <UnauthenticatedSwitch />
+    return <UnauthenticatedSwitch showAlert={showAlert} setShowAlert={setShowAlert}/>
   };
 
   return (

@@ -141,6 +141,7 @@ public class User implements Serializable {
         info.put("imageURL", Util.jsonNull(this.getUserImageURL(context)));
         if (includeSensitive) {
             info.put("email", this.getEmailAddress());
+            info.put("username", this.getUsername());
         }
         return info;
     }
