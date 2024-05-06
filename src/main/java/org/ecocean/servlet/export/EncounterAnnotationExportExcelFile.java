@@ -13,9 +13,6 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.*;
 import javax.jdo.*;
 import java.lang.StringBuffer;
-import jxl.write.*;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -23,6 +20,10 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 public class EncounterAnnotationExportExcelFile extends HttpServlet {
@@ -75,7 +76,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
       if (enc.getSubmitters().size() > maxSubmitters) maxSubmitters = enc.getSubmitters().size();
       if (enc.getMeasurements().size() > maxNumMeasurements) maxNumMeasurements = enc.getMeasurements().size();
-      ArrayList<MediaAsset> mas = enc.getMedia();
+      ArrayList<MediaAsset> masDuplicates = enc.getMedia();
+      ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
       int numMedia = mas.size();
       if (numMedia > maxNumMedia) maxNumMedia = numMedia;
       for (MediaAsset ma : mas) {
@@ -131,7 +133,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
     String formattedDate = fmt.print(timeNow);
 
     //set up the files
-    String filename = "Encounter_annotations_export_" + request.getRemoteUser() + "_" + formattedDate + ".xls";
+    String filename = "AnnotnExp_" + formattedDate + ".xlsx";
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -159,10 +161,9 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
 
       // business logic start here
-      WorkbookSettings ws = new WorkbookSettings();
-      ws.setEncoding( "UTF-8" );
-      WritableWorkbook excelWorkbook = Workbook.createWorkbook(excelFile,ws);
-      WritableSheet sheet = excelWorkbook.createSheet("Search Results", 0);
+      Workbook wb = new XSSFWorkbook(); // Create a new workbook
+      Sheet sheet = wb.createSheet("Search Results");
+      Sheet hiddenSheet = wb.createSheet("Hidden Data Report");
 
       Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
@@ -186,9 +187,17 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       Method markedIndividualLifeStageName   = MarkedIndividual.class.getMethod("getLastLifeStage");
       Method occurrenceComments   = Occurrence.class.getMethod("getCommentsExport");
 
-
       List<ExportColumn> columns = new ArrayList<ExportColumn>();
+
       newEasyColumn("Occurrence.occurrenceID", columns);
+
+      // added new Column for Encounter weburl
+      // method is null as we current approach does not support parameters
+      // used Encounter.getWebUrl(request, enc.getCatalogNumber()
+      // to fill this column value manually
+      String sourceEncounterUrlColName = "Encounter.sourceUrl";
+      ExportColumn sourceEncounterUrlCol = new ExportColumn(Encounter.class, sourceEncounterUrlColName, null, columns);
+
 
       for (int maNum = 0; maNum < numMediaAssetCols; maNum++) { // numMediaAssetCols set by setter above
         String mediaAssetColName = "Encounter.mediaAsset"+maNum;
@@ -255,11 +264,11 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
 
       }
 
-
-
-      ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographerEmail", photographerEmail, columns);
+      ExportColumn photographerEmailCol = new ExportColumn(User.class, "Encounter.photographer0.Email", photographerEmail, columns);
       photographerEmailCol.setMaNum(0);
 
+      ExportColumn photographerNameCol = new ExportColumn(User.class, "Encounter.photographer0.fullName", FullName, columns);
+      photographerNameCol.setMaNum(0);
 
       newEasyColumn("Encounter.state", columns);
 
@@ -289,24 +298,6 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         ExportColumn annMatchAgainstK = new ExportColumn(Annotation.class, MatchAgainst, annMatchAgainst, columns);
         annMatchAgainstK.setMaNum(maNum);
 
-
-        // for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
-        //   String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
-        //   ExportColumn keywordCol = new ExportColumn(Keyword.class, keywordColName, keywordGetName, columns);
-        //   keywordCol.setMaNum(maNum);
-        //   keywordCol.setKwNum(kwNum);
-        // }
-
-        // List<String> labels = myShepherd.getAllKeywordLabels();
-        // for(String label:labels) {
-        //   String keywordColName = "Encounter.mediaAsset"+maNum+"."+label;
-        //   ExportColumn keywordCol = new ExportColumn(LabeledKeyword.class, keywordColName, labeledKeywordGetValue, columns);
-        //   keywordCol.setMaNum(maNum);
-        //   keywordCol.setLabeledKwName(label);
-
-        // }
-
-
       }
 
 
@@ -329,19 +320,21 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
       }
       // end sorting
 
-
-
       for (ExportColumn exportCol: columns) {
         exportCol.writeHeaderLabel(sheet);
       }
 
       // Excel export =========================================================
       int row = 0;
-      for (int i=0;i<numMatchingEncounters && i<rowLimit;i++) {
+
+      for (int i=0;i<numMatchingEncounters && i<rowLimit;i++)
+      {
+
+        // get the Encounter and check if user
+        // has permission otherwise hide the encounter
 
         Encounter enc=(Encounter)rEncounters.get(i);
-        // Security: skip this row if user doesn't have permission to view this encounter
-        //if (hiddenData.contains(enc)) continue;
+        if (hiddenData.contains(enc)) continue;
         row++;
 
         // get attached objects
@@ -349,8 +342,8 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
         MultiValue names = (ind!=null) ? ind.getNames() : null;
         List<String> sortedNameKeys = (names!=null) ? names.getSortedKeys() : null;
-        List<MediaAsset> mas = enc.getMedia();
-        List<Annotation> anns = enc.getAnnotations();
+        ArrayList<MediaAsset> masDuplicates = enc.getMedia();
+        ArrayList<MediaAsset> mas = new ArrayList<>(new HashSet<MediaAsset>(masDuplicates)); // remove Media Asset duplicates
         List<User> submitters = enc.getSubmitters();
         List<SocialUnit> socialUnits = ( ind!=null)? myShepherd.getAllSocialUnitsForMarkedIndividual(ind) : null;
         List<User> photographers = enc.getPhotographers();
@@ -359,7 +352,21 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         // use exportColumns, passing in the appropriate object for each column
         // (can't use switch statement bc Class is not a java primitive type)
         for (ExportColumn exportCol: columns) {
-          if (exportCol.isFor(Encounter.class)) exportCol.writeLabel(enc, row, sheet);
+          if (exportCol.isFor(Encounter.class)) 
+          {
+            //added new column which holds the encounter url
+            if (exportCol.header.contains("Encounter.sourceUrl"))
+            {
+              String EncUrl = Encounter.getWebUrl(enc.getCatalogNumber(), request);
+              exportCol.writeLabel(EncUrl, row, sheet);
+            }
+            else{
+              exportCol.writeLabel(enc, row, sheet);
+
+            }
+
+          }
+          
           else if (exportCol.isFor(Occurrence.class)) exportCol.writeLabel(occ, row, sheet);
           else if (exportCol.isFor(MarkedIndividual.class)) exportCol.writeLabel(ind, row, sheet);
           else if (exportCol.isFor(MultiValue.class)) {
@@ -375,23 +382,19 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
           }
           else if (exportCol.isFor(Annotation.class)) {
 
-            boolean alreadyMatched = false;
+            int num = exportCol.getMaNum();
+            if (num >= mas.size()) continue;
+            MediaAsset ma = mas.get(num);
+            if (ma == null) continue;
+            List<Annotation> anns = enc.getAnnotations(ma);
 
-            for (int annNum=0;annNum<anns.size();annNum++)
+            for (int annNum=0; annNum<anns.size(); annNum++)
             {
                 Annotation ann = anns.get(annNum);
-
                 if (ann.getMatchAgainst())
                 {
-                    alreadyMatched = true;
                     exportCol.writeLabel(ann, row, sheet);
                 }
-                else{
-                    if (!alreadyMatched){
-                        exportCol.writeLabel(ann, row, sheet);
-                    }
-                }
-
             }
 
           }
@@ -399,7 +402,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
             int num = exportCol.getMaNum();
             User user = null;
 
-            if (exportCol.header.contains("photographerEmail")){
+            if (exportCol.header.contains("photographer")){
 
               if (num >= photographers.size()) continue;
               user = photographers.get(num);
@@ -472,10 +475,13 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
      	} //end for loop iterating encounters
 
       // Security: log the hidden data report in excel so the user can request collaborations with owners of hidden data
-      hiddenData.writeHiddenDataReport(excelWorkbook);
+      hiddenData.writeHiddenDataReport(hiddenSheet);
 
-      excelWorkbook.write();
-      excelWorkbook.close();
+      FileOutputStream fileOut = new FileOutputStream(excelFile);
+      wb.write(fileOut); // Write the workbook to the FileOutputStream
+      fileOut.close(); // Close the FileOutputStream
+      wb.close(); // Close the workbook
+
       // end Excel export and business logic ===============================================
       System.out.println("Done with EncounterAnnotationExportExcelFile. We hid "+hiddenData.size()+" encounters.");
     }
