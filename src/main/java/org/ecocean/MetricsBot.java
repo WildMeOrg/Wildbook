@@ -280,6 +280,10 @@ public class MetricsBot {
         else if(contributorsLabels.endsWith(",")) {contributorsLabels="\""+contributorsLabels.substring(0,(contributorsLabels.length()-1))+"\"";}
         csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.User WHERE username == null", "wildbook_datacontributors_total","Number of public data contributors",context,contributorsLabels));
         
+
+
+        
+        
         // Machine learning tasks
         addTasksToCsv(csvLines, context);
 
