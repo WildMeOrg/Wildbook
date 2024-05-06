@@ -3,17 +3,21 @@ package org.ecocean;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.Properties; 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -22,6 +26,11 @@ public class ShepherdProperties {
   public static final String[] overrideOrgsArr = {"indocet"};
   // set for easy .contains() checking
   public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
+
+  // The "catalina.home" property is the path to the Tomcat install ("Catalina Server").
+  // This is often set as the working directory.
+  /** Property files are resolved relative to this directory. */
+  private static final Path propertiesBase = Paths.get(System.getProperty("catalina.home"));
 
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
@@ -156,24 +165,29 @@ public class ShepherdProperties {
     return (Properties)loadProperties(customUserPathString, props);
   }
 
-  public static Properties loadProperties(String pathStr, Properties defaults) {
-    //System.out.println("loadProperties called for path "+pathStr);
-    File propertiesFile = new File(pathStr);
-    if (propertiesFile == null || !propertiesFile.exists()) return defaults;
+  /**
+   * Loads the properties file at the specified path, returning a default value upon failure.
+   * @param pathStr The path to the properties file, relative to the Tomcat install.
+   * @param defaults The value to return if the properties cannot be read or parsed.
+   * @return The parsed properties from the path provided, or the default value.
+   */
+  public static Properties loadProperties(@Nonnull String pathStr, Properties defaults) {
+    File propertiesFile = propertiesBase.resolve(pathStr).toFile();
+    if (!propertiesFile.exists()) return defaults;
     try {
-      InputStream inputStream = new FileInputStream(propertiesFile);
-      if (inputStream == null) return null;
+      InputStream inputStream = Files.newInputStream(propertiesFile.toPath());
       LinkedProperties props = (defaults!=null) ? new LinkedProperties(defaults) : new LinkedProperties();
-      props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
-      if (inputStream!=null) inputStream.close();
-      return (Properties)props;
+      props.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+      inputStream.close();
+      return props;
     } catch (Exception e) {
       System.out.println("Exception on loadProperties()");
       e.printStackTrace();
     }
     return defaults;
   }
-  public static Properties loadProperties(String pathStr) {
+  @Nullable
+  public static Properties loadProperties(@Nonnull String pathStr) {
     return loadProperties(pathStr, null);
   }
   public static Properties getContextsProperties(){
