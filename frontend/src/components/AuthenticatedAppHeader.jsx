@@ -8,7 +8,7 @@ import AvatarAndUserProfile from './header/AvatarAndUserProfile';
 import { debounce } from 'lodash';
 import Menu from './header/Menu';
 
-export default function AuthenticatedAppHeader({ username, avatar }) {
+export default function AuthenticatedAppHeader({ username, avatar, showAlert}) {
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
@@ -39,7 +39,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
         height: '43px',
         fontSize: '1rem',
         position: 'fixed',
-        top: 0,
+        top: showAlert? 60 : 0,
         maxWidth: '1440px',
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -50,7 +50,7 @@ export default function AuthenticatedAppHeader({ username, avatar }) {
     >
       <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '25%' }}>
+      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '20%' }}>
         <Nav className="mr-auto" id='nav' style={{
           display: 'flex',
           justifyContent: 'flex-end',
