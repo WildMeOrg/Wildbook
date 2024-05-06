@@ -130,6 +130,22 @@ public class User implements Serializable {
       this.lastLogin=-1;
     }
 
+    public org.json.JSONObject infoJSONObject(String context) {
+        return this.infoJSONObject(context, false);
+    }
+    // only admin and user-themself should have includeSensitive=true
+    public org.json.JSONObject infoJSONObject(String context, boolean includeSensitive) {
+        org.json.JSONObject info = new org.json.JSONObject();
+        info.put("id", this.uuid);
+        info.put("displayName", this.getDisplayName());
+        info.put("imageURL", Util.jsonNull(this.getUserImageURL(context)));
+        if (includeSensitive) {
+            info.put("email", this.getEmailAddress());
+            info.put("username", this.getUsername());
+        }
+        return info;
+    }
+
   public void RefreshDate()
   {
     this.dateInMilliseconds = new Date().getTime();
@@ -320,6 +336,11 @@ public class User implements Serializable {
     public void setUserImage(SinglePhotoVideo newImage) {
       if(newImage!=null){userImage = newImage;}
     else{userImage=null;}
+    }
+
+    public String getUserImageURL(String context) {
+        if (this.userImage == null) return null;
+        return "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/" + this.getUsername() + "/" + this.userImage.getFilename();
     }
 
     public void setUserURL(String newURL) {
@@ -548,6 +569,30 @@ public class User implements Serializable {
 
     public String getProjectIdForPreferredContext() {
       return getPreference(PROJECT_CONTEXT);
+    }
+
+    // all projects, owned or participating in
+    public List<Project> getProjects(Shepherd myShepherd) {
+        List<Project> projects1 = this.getProjectsOwned(myShepherd);
+        List<Project> projects2 = this.getProjectsParticipating(myShepherd);
+        // remove duplicates
+        projects2.removeAll(projects1);
+        projects1.addAll(projects2);
+        // sort new list
+        projects1.sort((o1, o2) -> o2.getTimeLastModifiedLongNonNull().compareTo(o1.getTimeLastModifiedLongNonNull()));
+        return projects1;
+    }
+
+    public List<Project> getProjectsParticipating(Shepherd myShepherd) {
+        List<Project> projects = myShepherd.getParticipatingProjectsForUserId(this.getUsername(), "dateLastModifiedLong DESC");
+        if (projects == null) projects = new ArrayList<Project>();
+        return projects;
+    }
+
+    public List<Project> getProjectsOwned(Shepherd myShepherd) {
+        List<Project> projects = myShepherd.getOwnedProjectsForUserId(this.getId(), "dateLastModifiedLong DESC");
+        if (projects == null) projects = new ArrayList<Project>();
+        return projects;
     }
 
     public static List<User> sortUsersByFullnameDefaultUsername(final List<User> originalList) {
