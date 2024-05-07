@@ -807,11 +807,19 @@ public class Encounter implements java.io.Serializable {
 		mmaCompatible = b;
 	}
 
-  public String getComments() {
-    return occurrenceRemarks;
-  }
+	/**
+	 * ##DEPRECATED #509 - Base class getComments() method
+	 * Returns Occurrence Remarks.
+	 * 
+	 * @return Occurrence Remarks String
+	 */
+	public String getComments() {
+		return occurrenceRemarks;
+	}
 
   /**
+   * ##DEPRECATED #509 - Base class setComments() method
+   * 
    * Sets the initially submitted comments about markings and additional details on the shark.
    */
   public void setComments(String newComments) {
@@ -829,6 +837,7 @@ public class Encounter implements java.io.Serializable {
   }
 
   /**
+   * ##DEPRECATED #509 - Base class addComments() method
    * Adds additional comments about the encounter
    *
    * @param newComments any additional comments to be added to the encounter
@@ -2070,22 +2079,37 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.maximumElevationInMeters = newElev;
   }
 
-    public String getId() {
-        return catalogNumber;
-    }
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
+  public String getId() {
+	  return catalogNumber;
+  }
 
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
   public String getCatalogNumber() {
     return catalogNumber;
   }
 
+  /**
+   * ##DEPRECATED #509 - Base class setId() method
+   */
   public void setCatalogNumber(String newNumber) {
     this.catalogNumber = newNumber;
   }
 
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
   public String getID() {
     return catalogNumber;
   }
 
+  /**
+   * ##DEPRECATED #509 - Base class setId() method
+   */
   public void setID(String newNumber) {
     this.catalogNumber = newNumber;
   }

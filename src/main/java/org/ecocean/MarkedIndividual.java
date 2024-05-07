@@ -153,6 +153,9 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getId() {
         return individualID;
     }
@@ -846,9 +849,12 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       return names.getValue(keyHint);
     }
 
-  public String getIndividualID() {
-      return individualID;
-  }
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
+    public String getIndividualID() {
+    	return individualID;
+    }
 
 /*
     now part of migration of all names to .names MultiValue property
@@ -892,7 +898,9 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       return legacyIndividualID;
     }
 
-
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setIndividualID(String id) {
         individualID = id;
     }
@@ -1012,6 +1020,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   */
 
   /**
+   * ##DEPRECATED #509 - Base class getComments() method
    * Returns any additional, general comments recorded for this MarkedIndividual as a whole.
    *
    * @return a String of comments
@@ -1026,6 +1035,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   }
 
   /**
+   * ##DEPRECATED #509 - Base class addComments() method
    * Adds any general comments recorded for this MarkedIndividual as a whole.
    *
    * @return a String of comments
@@ -1038,8 +1048,16 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
       comments = newComments;
     }
   }
+  
+  
+  /**
+   * ##DEPRECATED #509 - Base class setComments() method
+   * Sets any additional, general comments recorded for this MarkedIndividual as a whole.
+   * 
+   * @param comments to set
+   */
   public void setComments(String comments) {
-    this.comments = comments;
+	  this.comments = comments;
   }
 
   /**

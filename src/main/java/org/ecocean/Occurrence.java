@@ -394,10 +394,16 @@ public class Occurrence implements java.io.Serializable {
     return names;
   }
 
-    public void setID(String id) {
-        occurrenceID = id;
-    }
+  /**
+   * ##DEPRECATED #509 - Base class setId() method
+   */
+  public void setID(String id) {
+	  occurrenceID = id;
+  }
 
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
   public String getID(){
     return occurrenceID;
   }
@@ -409,14 +415,23 @@ public class Occurrence implements java.io.Serializable {
     return getWebUrl(getOccurrenceID(), req);
   }
   
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
   public String getOccurrenceID(){
     return occurrenceID;
   }
 
-    public String getId() {
-        return occurrenceID;
-    }
+  /**
+   * ##DEPRECATED #509 - Base class getId() method
+   */
+  public String getId() {
+	  return occurrenceID;
+  }
 
+  /**
+   * ##DEPRECATED #509 - Base class setId() method
+   */ 
   public void setOccurrenceID(String id){
     occurrenceID = id;
   }
@@ -479,6 +494,7 @@ public class Occurrence implements java.io.Serializable {
 }
 
   /**
+   * ##DEPRECATED #509 - Base class getComments() method
    * Returns any additional, general comments recorded for this Occurrence as a whole.
    *
    * @return a String of comments
@@ -507,6 +523,7 @@ public class Occurrence implements java.io.Serializable {
   }
 
   /**
+   * ##DEPRECATED #509 - Base class addComments() method
    * Adds any general comments recorded for this Occurrence as a whole.
    *
    * @return a String of comments
