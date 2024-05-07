@@ -116,7 +116,7 @@ public class IAGateway extends HttpServlet {
                                                                                // just blindly
                                                                                // writes out to
                                                                                // queue and is done!
-                                                                               //  magic?
+                                                                               // magic?
                 // TODO if queue is not active/okay, fallback to synchronous???
                 // TODO could probably add other stuff (e.g. security/user etc)
                 j.put("__context", context);
@@ -168,7 +168,7 @@ public class IAGateway extends HttpServlet {
                     res.remove("error");
                 } else {
                     System.out.println("ERROR: taskId=" + taskId + " was NOT enqueued successfully")
-                        ;
+                    ;
                     res.put("error", "addToQueue() returned false");
                 }
                 res.put("success", ok);
@@ -325,7 +325,7 @@ public class IAGateway extends HttpServlet {
  */
         JSONObject opt = jin.optJSONObject("opt");
         ArrayList<Annotation> anns = new ArrayList<Annotation>(); // what we ultimately run on.
-                                                                  //  occurrences are irrelevant now
+                                                                  // occurrences are irrelevant now
                                                                   // right?
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1); // really "only" for
@@ -483,7 +483,7 @@ public class IAGateway extends HttpServlet {
                         "WARNING: limited identification matchingSet list size from " + matchingSet.
                             size() + " to " + limitTargetSize);
                     matchingSet = new ArrayList<Annotation>(matchingSet.subList(0, limitTargetSize))
-                        ;
+                    ;
                 }
                 taskRes.put("matchingSetSize", matchingSet.size());
             }
@@ -748,8 +748,11 @@ public class IAGateway extends HttpServlet {
             myShepherd.closeDBTransaction();
         } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) !=
             null)) {                                                                                        //
+                                                                                                            //
                                                                                                             // ditto
+                                                                                                            //
                                                                                                             // about
+                                                                                                            //
                                                                                                             // taskId
             System.out.println("identify TOP!");
             JSONObject res = new JSONObject("{\"success\": false}");
@@ -975,9 +978,9 @@ public class IAGateway extends HttpServlet {
         myShepherd.commitDBTransaction();
         // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and
         // queued " + task);
-        JSONObject qjob = new JSONObject(jin.toString());      // clone it to start with so we get
-                                                               // all same content
-        qjob.remove("bulkImport");      // ... but then lose this
+        JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get
+                                                          // all same content
+        qjob.remove("bulkImport"); // ... but then lose this
         qjob.put("taskId", task.getId());
         qjob.put("mediaAssetIds", maIds);
         qjob.put("v2", true);

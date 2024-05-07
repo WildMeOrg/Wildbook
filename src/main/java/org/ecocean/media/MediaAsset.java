@@ -745,8 +745,8 @@ public class MediaAsset implements java.io.Serializable {
 
     /**
      * Return a full web-accessible url to the asset, or null if the asset is not web-accessible.
-     *NOTE: now you should *almost always* use .safeURL() to return something to a user -- this will
-     *hide original files when necessary
+     * NOTE: now you should *almost always* use .safeURL() to return something to a user -- this
+     * will hide original files when necessary
      */
     public URL webURL() {
         if (store == null) {
@@ -1049,8 +1049,8 @@ public class MediaAsset implements java.io.Serializable {
                         orgjson.JSONObject();
                 Feature ft = fts.get(i);
                 jf.put("id", ft.getId());
-                try {      // for some reason(?) this will get a jdo error for "row not found".
-                           //  why???  anyhow, we catch it
+                try { // for some reason(?) this will get a jdo error for "row not found".
+                      // why???  anyhow, we catch it
                     jf.put("type", ft.getType());
                 } catch (Exception ex) {
                     jf.put("type", "unknown");
@@ -1095,8 +1095,8 @@ public class MediaAsset implements java.io.Serializable {
                 "attributes")));
         }
         DateTime dt = getDateTime();
-        if (dt != null) jobj.put("dateTime", dt.toString());      // DateTime.toString() gives
-                                                                  // iso8601, noice!
+        if (dt != null) jobj.put("dateTime", dt.toString()); // DateTime.toString() gives
+                                                             // iso8601, noice!
 
         // note? warning? i guess this will traverse... gulp?
         URL u = safeURL(myShepherd, request);
@@ -1117,7 +1117,7 @@ public class MediaAsset implements java.io.Serializable {
             jobj.put("userLatitude", this.getLatitude());
             jobj.put("userLongitude", this.getLongitude());
             jobj.put("userDateTime", this.getUserDateTime());
-            jobj.put("filename", this.getFilename());    // this can "vary" depending on store type
+            jobj.put("filename", this.getFilename()); // this can "vary" depending on store type
         }
         jobj.put("occurrenceID", this.getOccurrenceID());
         if (this.getLabels() != null) jobj.put("labels", this.getLabels());
@@ -1199,7 +1199,7 @@ public class MediaAsset implements java.io.Serializable {
             throw new IOException("could not get localPath on source or target");
         boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false);
         System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok)
-            ;
+        ;
         return ok;
     }
 
@@ -1567,8 +1567,8 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAssetMetadata updateMetadata()
-    throws IOException {                                             // TODO should this overwrite
-                                                                     // existing, or append?
+    throws IOException { // TODO should this overwrite
+                         // existing, or append?
         if (store == null) return null;
         metadata = store.extractMetadata(this);
         return metadata;
@@ -1754,7 +1754,9 @@ public class MediaAsset implements java.io.Serializable {
                     IAJsonProperties iaJson = new IAJsonProperties();
                     whichever.setTaxonomy(iaJson.taxonomyFromIAClass(needsEncounter.get(0).
                             getIAClass(), myShepherd));                                                                 //
+                                                                                                                        //
                                                                                                                         // might
+                                                                                                                        //
                                                                                                                         // work!
                 } catch (Exception ex) {
                     System.out.println(

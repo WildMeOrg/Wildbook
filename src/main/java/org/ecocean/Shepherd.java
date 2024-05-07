@@ -2,15 +2,15 @@
  * The Shepherd Project - A Mark-Recapture Framework
  *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
- *GNU General Public License as published by the Free Software Foundation; either version 2 of the
- *License, or (at your option) any later version.
+ * GNU General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- *even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *General Public License for more details.
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with this program; if
- *not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
 package org.ecocean;
@@ -54,15 +54,15 @@ import org.json.JSONArray;
 
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and
- *persistence class to	be used	for	all	shepherd project applications. The
+ * persistence class to	be used	for	all	shepherd project applications. The
  *<code>shepherd</code>	class interacts directly with the database and	all	persistent objects
- *stored within it. Any application seeking access to	whale shark	data must invoke an	instance
- *of	shepherd first and use it to retrieve any data stored in the database.
+ * stored within it. Any application seeking access to	whale shark	data must invoke an	instance
+ * of	shepherd first and use it to retrieve any data stored in the database.
  * <p/>
  * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no
- *data can be retrieved until a new Transaction has been	started. Changes made using the
- *Transaction must be committed (store changes) or rolled back (ignore changes) before the
- *application can finish. Example:
+ * data can be retrieved until a new Transaction has been	started. Changes made using the
+ * Transaction must be committed (store changes) or rolled back (ignore changes) before the
+ * application can finish. Example:
  * <p align="center"><code>
  * <p/>
  * shepherd myShepherd=new shepherd();<br>
@@ -150,13 +150,13 @@ public class Shepherd {
 
     /**
      * Stores a new, unassigned encounter in the database for later retrieval and analysis. Each new
-     *encounter is assigned a unique number which is also its unique retrievable ID in the database.
-     *This method will be the primary method used for future web submissions to shepherd from
-     *web-based applications.
+     * encounter is assigned a unique number which is also its unique retrievable ID in the
+     * database. This method will be the primary method used for future web submissions to shepherd
+     * from web-based applications.
      *
      * @param enc the new, unassociated encounter to be considered for addition to the database
      * @return an Integer number that represents the unique number of this new encounter in the
-     *datatbase
+     * datatbase
      * @ see encounter
      */
     public String storeNewEncounter(Encounter enc, String uniqueID) {
@@ -304,7 +304,7 @@ public class Shepherd {
             rollbackDBTransaction();
             System.out.println(
                 "I failed to create a new MarkedIndividual in Shepherd.storeNewMarkedIndividual().")
-                ;
+            ;
             e.printStackTrace();
             return false;
         }
@@ -407,7 +407,7 @@ public class Shepherd {
             rollbackDBTransaction();
             System.out.println(
                 "I failed to create a new social unit Membership in shepherd.storeNewMembership().")
-                ;
+            ;
             e.printStackTrace();
             return false;
         }
@@ -2075,10 +2075,10 @@ public class Shepherd {
 
     /**
      * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed -
-     *to see whether they represent new or already persistent sharks
+     * to see whether they represent new or already persistent sharks
      *
      * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned
-     *to an existing shark in the database
+     * to an existing shark in the database
      * @see encounter, java.util.Iterator
      */
     /*
@@ -2629,10 +2629,10 @@ public class Shepherd {
 
     /**
      * Retrieves all encounters that are stored in the database in the order specified by the input
-     *String
+     * String
      *
      * @return an Iterator of all valid whale shark encounters stored in the visual database,
-     *arranged by the input String
+     * arranged by the input String
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllEncounters(String order) {
@@ -2752,10 +2752,10 @@ public class Shepherd {
 
     /**
      * Retrieves a filtered list of encounters that are stored in the database in the order
-     *specified by the input String
+     * specified by the input String
      *
      * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged
-     *by the input String
+     * by the input String
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
@@ -3356,10 +3356,10 @@ public class Shepherd {
 
     /**
      * Retrieves all encounters that are stored in the database but which have been rejected for the
-     *visual database
+     * visual database
      *
      * @return an Iterator of all whale shark encounters stored in the database that are
-     *unacceptable for the visual ID library
+     * unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
@@ -3374,10 +3374,10 @@ public class Shepherd {
 
     /**
      * Retrieves all new encounters that are stored in the database but which have been approved for
-     *public viewing in the visual database
+     * public viewing in the visual database
      *
      * @return an Iterator of all whale shark encounters stored in the database that are
-     *unacceptable for the visual ID library
+     * unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
@@ -3413,10 +3413,10 @@ public class Shepherd {
 
     /**
      * Retrieves all encounters that are stored in the database but which have been rejected for the
-     *visual database in the order identified by the input String
+     * visual database in the order identified by the input String
      *
      * @return an Iterator of all whale shark encounters stored in the database that are
-     *unacceptable for the visual ID library in the String order
+     * unacceptable for the visual ID library in the String order
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String
@@ -3656,10 +3656,10 @@ public class Shepherd {
 
     /**
      * Returns all of the names of the sharks that can be used for training purporses - i.e. have
-     *more than one encounter - in a Vector format
+     * more than one encounter - in a Vector format
      *
      * @return a Vector of shark names that have more than one encounter with spots associated with
-     *them
+     * them
      * @see encounter, shark, java.util.Vector
      */
     public Vector getPossibleTrainingIndividuals() {
@@ -3780,10 +3780,10 @@ public class Shepherd {
 
     /**
      * Retrieves an Iterator of all the sharks in the database, ordered according to the input
-     *String
+     * String
      *
      * @return an Iterator containing all of the shark objects that have been stored in the
-     *database, ordered according to the input String
+     * database, ordered according to the input String
      * @see shark, java.util.Iterator
      */
     public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order) {
@@ -4131,7 +4131,7 @@ public class Shepherd {
      * Returns the <i>i</i>th numbered encounter for a shark
      *
      * @param  tempShark  the shark to retrieve an encounter from i			the number
-     *of the shark to get, numbered from 0...<i>n</i>
+     * of the shark to get, numbered from 0...<i>n</i>
      * @return the <i>i</i>th encounter of the specified shark
      * @see MarkedIndividual
      */
@@ -4944,7 +4944,7 @@ public class Shepherd {
 
     /**
      * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance
-     *of such it finds.
+     * of such it finds.
      * @param myID The individual ID to return in any case.
      * @return
      */

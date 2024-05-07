@@ -220,8 +220,11 @@ public class StandardImport extends HttpServlet {
         boolean dataFound = (dataFile != null && dataFile.exists());
         committing = (request.getParameter("commit") != null && !request.getParameter("commit").
                 toLowerCase().equals("false"));                                                                            //
+                                                                                                                           //
                                                                                                                            // false
+                                                                                                                           //
                                                                                                                            // by
+                                                                                                                           //
                                                                                                                            // default
         if (!dataFound) return;
         Workbook wb = null;
@@ -303,7 +306,7 @@ public class StandardImport extends HttpServlet {
             } else {
                 System.out.println("astore is null...BOO!!");
                 out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>")
-                    ;
+                ;
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
                 return;
@@ -1866,14 +1869,18 @@ public class StandardImport extends HttpServlet {
     // not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
         if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename; //
+                                                                                                  //
                                                                                                   // has
+                                                                                                  //
                                                                                                   // ext
         return filename + ".jpg"; // :(
     }
 
     private String noExtensionUpper(String filename) {
         if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename; //
+                                                                                                  //
                                                                                                   // has
+                                                                                                  //
                                                                                                   // ext
         return filename + ".JPG"; // :(
     }
@@ -2294,7 +2301,8 @@ public class StandardImport extends HttpServlet {
 
     public Double getDouble(Row row, int i, TabularFeedback feedback) {
         String originalString = null; // i'd like to make a copy of what actually resides in the
-                                      // field for feedback before i try to crush it into a double
+
+        // field for feedback before i try to crush it into a double
 
         try {
             // maybe things will just be perfect
@@ -2663,7 +2671,7 @@ public class StandardImport extends HttpServlet {
 
     // This would be cool to put in Encounter or something.
     // tho I'm not immediately sure how we'd get the url context, or determine if we want to include
-    // /encounters/ or not
+    ///encounters/ or not
     public static String getEncounterURL(Encounter enc) {
         if (enc == null || enc.getCatalogNumber() == null) return null;
         return "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
@@ -2764,7 +2772,7 @@ public class StandardImport extends HttpServlet {
 
     /**
      * h/t
-     *http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
+     * http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
      */
     public static String getCellValueAsString(Cell cell) {
         String strCellValue = null;
@@ -2788,10 +2796,10 @@ public class StandardImport extends HttpServlet {
                     case Cell.CELL_TYPE_BOOLEAN:
                         strCellValue = new String(new Boolean(cell.getBooleanCellValue()).toString()
                             );
-                            break;
-                            case Cell.CELL_TYPE_BLANK:
-                                strCellValue = "";
-                                break;
+                        break;
+                    case Cell.CELL_TYPE_BLANK:
+                        strCellValue = "";
+                        break;
                 }
             } catch (Exception parseError) {
                 strCellValue = "<em>parse error</em>";
