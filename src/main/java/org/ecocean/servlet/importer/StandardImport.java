@@ -1835,7 +1835,7 @@ public class StandardImport extends HttpServlet {
         int n = 0;
 
         while (getString(row, "Encounter.mediaAsset" + n, colIndexMap, verbose, missingColumns,
-            unusedColumns, feedback) != null) n++;
+            unusedColumns, feedback) != null) { n++; }
         return n;
     }
 
@@ -1974,8 +1974,9 @@ public class StandardImport extends HttpServlet {
             createMarkedIndividualCacheForUser(myShepherd, u, userIndividualCache);
         }
         Iterator uIt = userIndividualCache.keySet().iterator();
-        while (uIt.hasNext())
+        while (uIt.hasNext()) {
             User itU = (User)uIt.next();
+        }
         MarkedIndividual mark = null;
         String uuid = individualCache.get(individualID);
         // this is fine UNLESS you have two same species, same name individuals assigned to two
