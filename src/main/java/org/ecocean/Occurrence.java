@@ -37,7 +37,7 @@ import org.ecocean.media.AssetStoreType;
  * @author Jason Holmberg
  *
  */
-public class Occurrence implements java.io.Serializable {
+public class Occurrence extends Base implements java.io.Serializable {
     /**
      *
      */
@@ -402,10 +402,16 @@ public class Occurrence implements java.io.Serializable {
         return names;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setID(String id) {
         occurrenceID = id;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getID() {
         return occurrenceID;
     }
@@ -418,14 +424,36 @@ public class Occurrence implements java.io.Serializable {
         return getWebUrl(getOccurrenceID(), req);
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getOccurrenceID() {
         return occurrenceID;
     }
 
+    /**
+	 * Retrieves the Occurrence Id.
+	 * 
+	 * @return Occurrence Id String
+	 */
+    @Override
     public String getId() {
         return occurrenceID;
     }
+    
+    /**
+     * Sets the Occurrence Id.
+     * 
+     * @param id The Occurrence Id to set
+     */
+    @Override
+	public void setId(String id) {
+    	occurrenceID = id;
+	}
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */ 
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -492,6 +520,7 @@ public class Occurrence implements java.io.Serializable {
      *
      * @return a String of comments
      */
+    @Override
     public String getComments() {
         if (comments != null) {
             return comments;
@@ -499,6 +528,16 @@ public class Occurrence implements java.io.Serializable {
             return "None";
         }
     }
+    
+    /**
+     * Sets any additional, general comments recorded for this Occurrence as a whole.
+     *
+     * @return a String of comments
+     */
+    @Override
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
 
     /**
      * Returns any additional, general comments recorded for this Occurrence as a whole.
@@ -518,6 +557,7 @@ public class Occurrence implements java.io.Serializable {
      *
      * @return a String of comments
      */
+    @Override
     public void addComments(String newComments) {
         if ((comments != null) && (!(comments.equals("None")))) {
             comments += newComments;
@@ -1390,4 +1430,9 @@ public class Occurrence implements java.io.Serializable {
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
     }
+    
+    @Override
+	public long getVersion() {
+    	return Util.getVersionFromModified(modified);
+	}
 }
