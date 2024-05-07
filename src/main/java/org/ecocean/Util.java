@@ -22,6 +22,8 @@ import org.json.JSONObject;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.regex.Pattern;
 import net.jpountz.xxhash.StreamingXXHash32;
@@ -1171,4 +1173,24 @@ public class Util {
         if (original == null) return null;
         return new JSONObject(original, JSONObject.getNames(original));
     }
+    
+    /**
+     * Generates and returns version long value using 'modified', returns 0 for now if the 'modified' property 
+     * does not have any value or can't be converted to Long.
+     * 
+     * @param modified String value
+     * @return Version long value generated using modified string
+     */
+    public static long getVersionFromModified(final String modified) {
+    	try {
+    		if (StringUtils.isBlank(modified)) {
+    			return 0;
+    		}
+    		final DateTimeFormatter fmt = ISODateTimeFormat.date();
+    		return fmt.parseMillis(StringUtils.split(modified)[0]);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		return 0;
+    	}
+	}
 }
