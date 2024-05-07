@@ -4,7 +4,7 @@ import More from '../CircledMoreButton';
 import { formatDate } from '../../utils/formatters';
 import { FormattedMessage } from 'react-intl';
 
-export default function LatestData({data, username}) {
+export default function LatestData({data, username, loading=true}) {
     return (
         <div className="content col-12"
             style = {{
@@ -39,7 +39,10 @@ export default function LatestData({data, username}) {
                     )
                 }
                 
-                <More href={`/encounters/searchResults.jsp?username=${username}`}/>
+                <More 
+                    href={`/encounters/searchResults.jsp?username=${username}`}
+                    loading = {loading}
+                />
             </div>
         </div>
     );
