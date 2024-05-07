@@ -8,7 +8,7 @@ import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
 import { FormattedMessage } from 'react-intl';
 import NotificationButton from './navBar/NotificationButton';
 
-export default function AuthenticatedAppHeader() {
+export default function AuthenticatedAppHeader({ showAlert }) {
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
@@ -50,7 +50,7 @@ export default function AuthenticatedAppHeader() {
       height: '43px',
       fontSize: '1rem',
       position: 'fixed',
-      top: 0,
+      top: showAlert? 60 : 0,
       maxWidth: '1440px',
       marginLeft: 'auto',
       marginRight: 'auto',

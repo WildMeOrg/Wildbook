@@ -214,7 +214,7 @@ public class UserCreate extends HttpServlet {
                 role.setUsername(username);
                 role.setContext("context"+d);
                 myShepherd.getPM().makePersistent(role);
-                addedRoles+=("SEPARATORSTART"+ContextConfiguration.getNameForContext("context"+d)+":"+roles[i]+"SEPARATOREND");
+                addedRoles+=("SEPARATORSTART"+roles[i]+"SEPARATOREND");
                 //System.out.println(addedRoles);
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
