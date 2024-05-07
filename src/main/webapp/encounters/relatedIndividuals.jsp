@@ -100,6 +100,7 @@ if (indiv == null) {
 Set<MarkedIndividual> already = new HashSet<MarkedIndividual>();
 try {
 	JSONArray jarr = new JSONArray();
+        jarr.put(uiJson(indiv, request));
 	for (Relationship rel : indiv.getAllRelationships(myShepherd)) {
 		MarkedIndividual other = rel.getMarkedIndividual1();
 		if (other.getId().equals(indiv.getId())) other = rel.getMarkedIndividual2();
