@@ -29,7 +29,7 @@ public abstract class Base {
 	 * 
 	 * @param id to set
 	 */
-	public abstract void setID(final String id);
+	public abstract void setId(final String id);
 	
 	/**
 	 * The computed version, such as a value computed using the 'modified' property of Encounter.java
