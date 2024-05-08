@@ -22,6 +22,10 @@ import java.util.HashMap;
 import jxl.write.*;
 import jxl.Workbook;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+
 /**
  * a HiddenDataReporter is a simple, non-persistent class.
  * Its intended use is mainly in exporters or search results.
@@ -209,6 +213,54 @@ abstract class HiddenDataReporter<T> {
   		String sampleLink = getCollabUrl(sampleEncId);
   		hiddenDataSheet.addCell(new Label(2, currentRow, sampleLink));
   	}
+	}
+
+	public void writeHiddenDataReport( Sheet hiddenSheet) throws IllegalArgumentException, IllegalAccessException {
+
+		String[] missingDataColHeaders = new String[]{
+   		"username",
+   		"number of their "+className+"s hidden from your results",
+   		"example "+className+" page (click through to initialize a collaboration)"
+   		};
+
+		Row row = hiddenSheet.getRow(0);
+		if (row == null) {
+			   row = hiddenSheet.createRow(0);
+		}
+	   
+  		for (int i=0; i<missingDataColHeaders.length; i++) {
+
+			Cell cell = row.createCell(i, Cell.CELL_TYPE_STRING);
+			cell.setCellValue(missingDataColHeaders[i]);  
+  		}
+
+  		Map<String,Set<String>> hiddenEncsByOwner = getHiddenDataByOwner();
+  		int currentRow=0;
+  		for (String owner: hiddenEncsByOwner.keySet()) {
+  			currentRow++;
+
+			Row row2 = hiddenSheet.getRow(currentRow);
+			if (row2 == null) {
+				row2 = hiddenSheet.createRow(currentRow);
+			}
+
+			Cell cell1 = row2.createCell(0, Cell.CELL_TYPE_STRING);
+			cell1.setCellValue(owner);  
+
+			String numEncs = String.valueOf(hiddenEncsByOwner.get(owner).size());
+
+
+			Cell cell2 = row2.createCell(1, Cell.CELL_TYPE_STRING);
+			cell2.setCellValue(numEncs);  
+
+  			String sampleEncId = null;
+  			if (hiddenEncsByOwner.get(owner).size()>0) sampleEncId = hiddenEncsByOwner.get(owner).iterator().next();
+  			String sampleLink = getCollabUrl(sampleEncId);
+
+			Cell cell3 = row2.createCell(2, Cell.CELL_TYPE_STRING);
+			cell3.setCellValue(sampleLink);  
+
+  		}
 	}
 
 	public void writeHiddenDataReport(WritableWorkbook excelOut) throws jxl.write.WriteException { 

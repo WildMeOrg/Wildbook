@@ -43,6 +43,7 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
+int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
@@ -195,47 +196,131 @@ if(request.getUserPrincipal()!=null){
         if(user != null && !loggingOut){
       %>
         <script type="text/javascript">
-        $(document).ready(function() {
 
-            // Session warning times in minutes
-            var warningTime = <%=sessionWarningTime %>;
+        $(document).ready(function()
 
+        {
+            var warningTime = <%= sessionWarningTime %>; // Session warning time in minutes.
+            var activityTimeout = warningTime * 60 * 1000; // Convert warning time to milliseconds.
+            var activityCheckInterval = 1000; // Frequency to check for activity in milliseconds.
+            var lastActivityTimestamp;
+            var countdownInterval;
+
+            // Function to show session warning modal.
             function showWarning() {
-              $('#sessionModal').modal('show');
+                var now = Date.now();
+                lastActivityTimestamp = localStorage.getItem('lastActivity');
+                var timeSinceLastActivity = now - lastActivityTimestamp;
+
+                if (timeSinceLastActivity < activityTimeout) {
+                    // User has been active recently, postpone the warning.
+                    $('#sessionModal').modal('hide');
+                    startSessionTimer();
+                    return;
+                }
+                $('#sessionModal').modal('show');
+                startCountdown();
             }
 
-            function extendSession() {
 
-                $.ajax({
-                url: wildbookGlobals.baseUrl + '../ExtendSession',
-                type: 'GET',
-                success: function(data) {
-                    console.log(data);
-                    startSessionTimer();
-                },
-                error: function(x,y,z) {
-                    console.warn('%o %o %o', x, y, z);
-                    startSessionTimer();
+            function handleSessionButtonClick(element) {
+
+                var action = $(element).data('action');
+
+                if (action === 'login'){
+                     window.open('<%=urlLoc %>/welcome.jsp', '_blank');
+                }
+                else {
+
+                    $.ajax({
+                        url: wildbookGlobals.baseUrl + '../ExtendSession',
+                        type: 'GET',
+                        success: function(data) {
+                            console.log(data);
+                            // Indicate that the session has been extended and hide the modal.
+                            localStorage.setItem('sessionExtended', Date.now().toString());
+                            $('#sessionModal').modal('hide');
+                            clearInterval(countdownInterval); // Stop the countdown timer.
+                            resetActivity(); // Restart the session timer for the next expiration warning.
+                        },
+                        error: function(x, y, z) {
+                            console.warn('%o %o %o', x, y, z);
+                        }
+                    });
 
                 }
-                });
+
+
+
             }
 
+            // Starts a timer to show the session expiration warning modal at the configured warning time.
             function startSessionTimer() {
-                setTimeout(showWarning, (warningTime * 60 * 1000));
+                $('#extendSessionBtn').text('<%=props.getProperty("extendButton") %>');
+                $('#extendSessionBtn').data('action', 'extendSession'); // Change the data-action attribute
+                $('#modal-text').text('<%=props.getProperty("sessionModalContent") %>');
+                $('#sessionModal').modal('hide');
+                clearTimeout(countdownInterval); // Clear any existing timer.
+                countdownInterval = setTimeout(showWarning, activityTimeout); // Set new timer for warning.
             }
 
-            // Start the session timer as soon as the page is ready
-            startSessionTimer();
+            // Function to update activity timestamp.
+            function resetActivity() {
+                lastActivityTimestamp = Date.now();
+                localStorage.setItem('lastActivity', lastActivityTimestamp.toString());
+                startSessionTimer(); // Reset the session timer.
+            }
 
-            // Attach the click event listener to the "Extend Session" button
+            // Starts a countdown timer based on the session's warning time.
+            function startCountdown() {
+
+                var warningCountdownTime = <%= sessionCountdownTime %>; // Session countdown time in minutes.
+                var countdownTimeout = warningCountdownTime * 60 * 1000;
+
+                countdownInterval = setInterval(function()
+                {
+
+                    var now = Date.now();
+                    lastActivityTimestamp = parseInt(localStorage.getItem('lastActivity'));
+                    var countDownTime = (lastActivityTimestamp + activityTimeout + countdownTimeout) - now
+                    var countDownTimeSeconds = Math.floor(countDownTime / 1000);
+                    updateCountdownDisplay(countDownTimeSeconds);
+
+                    if (countDownTime < 0 ) {
+                        clearInterval(countdownInterval);
+                        $('#extendSessionBtn').text("<%=props.getProperty("sessionLoginButton") %>");
+                        $('#extendSessionBtn').data('action', 'login'); // Change the data-action attribute to 'login'
+                        $('#modal-text').text("<%=props.getProperty("sessionLoginModalContent") %>");
+                        $('.modal-body #countdown').text("");
+                    }
+                }, 1000);
+            }
+
+            function updateCountdownDisplay(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                var secondsLeft = seconds % 60;
+                $('.modal-body #countdown').text(minutes + ':' + (secondsLeft < 10 ? '0' : '') + secondsLeft); // Format and display the countdown.
+            }
+
             $("#extendSessionBtn").click(function() {
-                extendSession();
+                handleSessionButtonClick(this);
             });
 
+            // Storage event listener to handle updates across tabs.
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'lastActivity') {
+                    lastActivityTimestamp = parseInt(e.newValue);
+                    startSessionTimer(); // Adjust the session timer based on new activity.
+                } else if (e.key === 'sessionExtended') {
+                    resetActivity();
+                }
+            });
 
-
+            resetActivity();
         });
+
+
+
     </script>
       <%
         }
@@ -274,10 +359,11 @@ if(request.getUserPrincipal()!=null){
             <h5 class="modal-title" id="sessionModalLabel"><%=props.getProperty("sessionHeaderWarning") %></h5>
           </div>
           <div class="modal-body">
-            <%=props.getProperty("sessionModalContent") %>
+            <div id="modal-text" style="display: inline-block;"><%=props.getProperty("sessionModalContent") %></div>
+            <div id="countdown" style="display: inline-block;"></div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-dismiss="modal" ><%=props.getProperty("extendButton") %></button>
+            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-action="extendSession"><%=props.getProperty("extendButton") %></button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal"><%=props.getProperty("closeButton") %></button>
           </div>
         </div>
@@ -318,8 +404,7 @@ if(request.getUserPrincipal()!=null){
 	                      else{
 	                      %>
 
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
+                          <li><a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a></li>
 	                      <%
 	                      }
 
@@ -473,8 +558,6 @@ if(request.getUserPrincipal()!=null){
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-
-                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
                       <li class="dropdown">

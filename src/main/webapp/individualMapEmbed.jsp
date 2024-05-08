@@ -68,6 +68,7 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
 <p><strong><%=mapping %></strong></p>
 <%
   int havegpsSize=haveGPSData.size();
@@ -219,9 +220,17 @@ String lastLatLong="";
            }
            %>
 			var marker = new google.maps.Marker({
-        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=colorToUseForMarker%>',
+        	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=colorToUseForMarker%>',
+        	   icon: " ",
         	   position:latLng,
-        	   map:map<%=zIndexString%>
+        	   map:map<%=zIndexString%>,
+        	   label: {
+        	        text: "\ue0c8",
+        	        fontFamily: "Material Symbols Outlined",
+        	        color: "<%=colorToUseForMarker %>",
+        	        fontSize: "36px",
+        	        
+        	   }
         	});
 			<%
 						String encSubdir = thisEnc.subdir();

@@ -44,8 +44,6 @@
         <init-param>
             <param-name>config</param-name>
             <param-value>
-                #See Shiro API http://shiro.apache.org/static/current/apidocs/org/apache/shiro/web/servlet/IniShiroFilter.html
-
                 #create an object of the RoleSecurityJdbcRealm
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
@@ -71,7 +69,7 @@
                 [urls]
 
                 /rest/** = authcBasicWildbook,roles[researcher]
-				#/api/** = authcBasicWildbook,roles[rest-readonly]
+				#/xxxapi/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
 
 
@@ -104,9 +102,6 @@
 		/GenePopExport = authc, roles[researcher]
 
 		/IndividualSetName = authc, roles[researcher]
-
-    	/match.jsp = authc
-
 
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
@@ -241,6 +236,7 @@
 				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
 				             /SOCPROGExport = authc, roles[researcher]
 				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
+				             /OccurrenceSetLatitudeLongitude = authc, roles[researcher]
 				             /EncounterSetBehavior = authc, roles[researcher]
 				      /CJS = authc, roles[researcher]
 				      /software.jsp = authc, roles[researcher]
@@ -360,7 +356,6 @@
 
 				/AddOccToTrack = authc, roles[researcher]
 				/MediaAssetCreate = authc, roles[researcher]
-				/EncounterCreate = authc, roles[researcher]
 				/MediaAssetsForUser = authc
 				/MediaAssetAttach= authc, roles[researcher]
 				/EncounterResetDate = authc, roles[researcher]
@@ -481,7 +476,6 @@
 		  /submitSurvey.jsp = authc, roles[researcher]
 		  /dl.jsp = authc
 		  /projects/editProject.jsp = authc, roles[researcher]
-		  /attachMedia.jsp = authc
 		  /findXXHash.jsp = authc
 		  /encounters/encounterCR.jsp = authc
 		  /encounters/encounterSearchResultsAnalysisEmbed.jsp = authc
@@ -528,6 +522,70 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+	<servlet>
+		<servlet-name>ApiLogin</servlet-name>
+		<servlet-class>org.ecocean.api.Login</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiLogin</servlet-name>
+		<url-pattern>/api/v3/login</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiLogout</servlet-name>
+		<servlet-class>org.ecocean.api.Logout</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiLogout</servlet-name>
+		<url-pattern>/api/v3/logout</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<servlet-class>org.ecocean.api.UserInfo</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiUserInfo</servlet-name>
+		<url-pattern>/api/v3/user/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>ApiUserHome</servlet-name>
+		<servlet-class>org.ecocean.api.UserHome</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiUserHome</servlet-name>
+		<url-pattern>/api/v3/home</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>SiteSettings</servlet-name>
+		<servlet-class>org.ecocean.api.SiteSettings</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SiteSettings</servlet-name>
+		<url-pattern>/api/v3/site-settings</url-pattern>
+	</servlet-mapping>
+
+  <servlet>
+    <servlet-name>ReactAppServlet</servlet-name>
+    <servlet-class>org.ecocean.servlet.ReactAppServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+      <servlet-name>ReactAppServlet</servlet-name>
+      <url-pattern>/react</url-pattern>
+  </servlet-mapping>  
+
+  <error-page>
+    <error-code>404</error-code>
+    <location>/react/index.html</location>
+  </error-page>
+  <!-- <error-page>
+    <error-code>404</error-code>
+    <location>/react/home/</location>
+  </error-page> -->
 
   <servlet>
     <servlet-name>ProjectCreate</servlet-name>
@@ -858,6 +916,11 @@
       <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceSetGroupBehavior</servlet-class>
   </servlet>
+  
+  <servlet>
+      <servlet-name>OccurrenceSetLatitudeLongitude</servlet-name>
+      <servlet-class>org.ecocean.servlet.OccurrenceSetLatitudeLongitude</servlet-class>
+  </servlet>
 
   <!--
   <servlet>
@@ -988,11 +1051,6 @@
   <servlet>
     <servlet-name>MediaAssetCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
-  </servlet>
-
-  <servlet>
-    <servlet-name>EncounterCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
   </servlet>
 
   <servlet>
@@ -2006,11 +2064,6 @@
       <url-pattern>/MediaAssetCreate</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-      <servlet-name>EncounterCreate</servlet-name>
-      <url-pattern>/EncounterCreate</url-pattern>
-    </servlet-mapping>
-
       <servlet-mapping>
              <servlet-name>MediaAssetsForUser</servlet-name>
              <url-pattern>/MediaAssetsForUser</url-pattern>
@@ -2344,6 +2397,11 @@
       <servlet-mapping>
         <servlet-name>OccurrenceSetGroupBehavior</servlet-name>
         <url-pattern>/OccurrenceSetGroupBehavior</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+        <servlet-name>OccurrenceSetLatitudeLongitude</servlet-name>
+        <url-pattern>/OccurrenceSetLatitudeLongitude</url-pattern>
   </servlet-mapping>
 <!--
   <servlet-mapping>
