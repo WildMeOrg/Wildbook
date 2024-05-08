@@ -105,6 +105,7 @@ public class Login extends ApiBase {
         }
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
+        myShepherd.rollbackAndClose();
 
     }
 }
