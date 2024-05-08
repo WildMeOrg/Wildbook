@@ -42,7 +42,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-//String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
