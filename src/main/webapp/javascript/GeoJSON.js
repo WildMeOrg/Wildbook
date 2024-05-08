@@ -10,20 +10,29 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 				opts.position = new google.maps.LatLng(geojsonGeometry.coordinates[1], geojsonGeometry.coordinates[0]);
 				googleObj = new google.maps.Marker(opts);
 				
+				googleObj.setIcon(' ');
+				var pinColor=geojsonGeometry.color;
+				
 				if(aspect == "sex"){
-					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.sexColor);
+					//googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.sexColor);
+					pinColor=geojsonGeometry.sexColor;
 				}
 				else if(aspect == "haplotype"){
-					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.haplotypeColor);
+					//googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.haplotypeColor);
+					pinColor=geojsonGeometry.haplotypeColor;
 				}
 				else if(aspect == "species"){
-									googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.speciesColor);
-				}
-				else{
-					googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.color);
+					//googleObj.setIcon('https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=|'+geojsonGeometry.speciesColor);
+					pinColor=geojsonGeometry.speciesColor;
 				}
 				
-				
+				var labelText={
+								text: '\ue0c8',
+								fontFamily: 'Material Symbols Outlined', 
+								color: pinColor,
+								fontSize: '36px'
+							 };
+				googleObj.set("label",labelText);
 					 
 				//reset bounds
 				bounds.extend(googleObj.getPosition());

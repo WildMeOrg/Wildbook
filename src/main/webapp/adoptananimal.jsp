@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
-	<h1 class="intro-adopt">Adopt a(n) <%=CommonConfiguration.getAnimalSingular(context)%></h1>
+	<h1 class="intro-adopt">Adopt a <%=CommonConfiguration.getAnimalSingular(context)%></h1>
 	<h2>Support cutting edge <%=CommonConfiguration.getAnimalSingular(context)%> research.</h2>
 	<section class="adoption-details">
 		<p>

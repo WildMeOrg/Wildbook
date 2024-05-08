@@ -380,7 +380,7 @@ try{
 					}
 				$('#results-table').append(th + '</tr></thead>');
 				for (var i = 0 ; i < howMany ; i++) {
-					var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
+					var r = '<tr onClick="return rowClick(this);" onAuxClick="return rowClick(this);" class="clickable pageableTable-visible">';
 					for (var c = 0 ; c < colDefn.length ; c++) {
 						r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
 					}
@@ -410,7 +410,8 @@ try{
 			
 			function rowClick(el) {
 				console.log(el);
-				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), '_blank');
+				var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+				var w = window.open('import.jsp?taskId=' + el.getAttribute('data-id'), target);
 				w.focus();
 				return false;
 			}

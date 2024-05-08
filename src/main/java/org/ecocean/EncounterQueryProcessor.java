@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Set;
+import java.util.HashSet;
+
 
 import java.io.*;
 
@@ -23,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.ecocean.Util.MeasurementEventDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
+import org.ecocean.social.SocialUnit;
+import org.ecocean.social.Membership;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -323,6 +328,19 @@ public class EncounterQueryProcessor extends QueryProcessor {
     }
     //end individualID filters-----------------------------------------------
 
+    //occurrenceID filters-------------------------------------------------
+    String occurrenceID=request.getParameter("occurrenceID");
+    if((occurrenceID!=null)&&(!occurrenceID.equals("None"))&&(!occurrenceID.trim().equals(""))){
+          prettyPrint.append("occurrence ID contains the following: ");
+
+            String locIDFilter=" occurrenceID == \""+occurrenceID+"\"";
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end occurrenceID filters-----------------------------------------------
+
     //------------------------------------------------------------------
     //individualIDExact filters-------------------------------------------------
     //supports one individualID parameter as well as comma-separated lists of individualIDs within them
@@ -338,7 +356,141 @@ public class EncounterQueryProcessor extends QueryProcessor {
     }
     //end individualID filters-----------------------------------------------
 
+    //socialunit filters------------------------------------------------------------------
+    //community search
+     /*
+     * to filter Encounnter based on community firstly we need to get the social units
+     * associated with the communities and get the individualIDs from the social units
+     * and then use these individualIDs to filter the Encounters
+     */
 
+    if(request.getParameterValues("community")!=null){
+        String[] communities=request.getParameterValues("community");
+        int numCommunities=communities.length;
+        prettyPrint.append("Social unit is one of the following: ");
+
+        Set<String> individualsIdsSet = new HashSet<String>();
+
+        for(int i=0;i<numCommunities;i++){
+          prettyPrint.append(communities[i]+" ");
+
+          SocialUnit su =myShepherd.getSocialUnit(communities[i]);
+
+          if (su == null) continue;
+
+          for (Membership member : su.getAllMembers()){
+            if(member.getMarkedIndividual()!=null){
+              individualsIdsSet.add(member.getMarkedIndividual().getId());
+            }
+          }
+
+        }
+
+        List<String> individualsIds =  new ArrayList<String>(individualsIdsSet);
+
+        if (individualsIds.size() > 0){
+
+          String locIDFilter=" ( individual.individualID == \""+individualsIds.get(0)+"\" ";
+          for(int j=1;j<individualsIds.size();j++){
+            locIDFilter+=" || individual.individualID == \""+individualsIds.get(j)+"\" ";
+          }
+          locIDFilter = locIDFilter + " ) ";
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+          else{filter+=(" && "+locIDFilter);}
+
+        }
+
+
+
+        prettyPrint.append("<br />");
+    }
+
+
+      //role search
+       /*
+       * to filter Encounnter based on role fetch all the MarkedIndividuals
+       * for each MarkedIndividuals gets all roles then check if requested role
+       * is not present remove that MarkedIndividuals
+       * finally use these individualIDs to filter the Encounters
+       */
+      if(request.getParameterValues("role")!=null)
+      {
+        boolean orRoles=true;
+
+        Iterator<MarkedIndividual> allSharks = myShepherd.getAllMarkedIndividuals();
+        Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();
+        if(allSharks!=null){
+          while (allSharks.hasNext()) {
+            MarkedIndividual temp_shark=allSharks.next();
+            rIndividuals.add(temp_shark);
+          }
+        }
+
+        if(request.getParameter("andRoles")!=null){orRoles=false;}
+        String[] roles=request.getParameterValues("role");
+        int numRoles=roles.length;
+        if(!orRoles){
+          prettyPrint.append("Social roles include all of the following: ");
+        }
+        else{
+          prettyPrint.append("Social roles is one of the following: ");
+        }
+        for(int h=0;h<numRoles;h++){
+          prettyPrint.append(roles[h]+"&nbsp;");
+        }
+
+        //logical OR the roles
+        for (int q = 0; q<rIndividuals.size(); q++)
+        {
+            MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+            List<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
+
+            if(orRoles){
+
+              //logical OR the role
+              boolean hasRole=false;
+              int f=0;
+              while(!hasRole && (f<numRoles)){
+                if(myRoles.contains(roles[f])){hasRole=true;}
+                f++;
+              }
+              if(!hasRole) {
+                  rIndividuals.remove(q);
+                  q--;
+              }
+            }
+            else{
+
+              //logical AND the roles
+              boolean hasRole=true;
+              int f=0;
+              while(hasRole && (f<numRoles)){
+                if(!myRoles.contains(roles[f])){hasRole=false;}
+                f++;
+              }
+              if(!hasRole) {
+                  rIndividuals.remove(q);
+                  q--;
+              }
+
+            }
+
+      }
+
+        if (rIndividuals.size() > 0)
+        {
+            String locIDFilter=" ( individual.individualID == \""+rIndividuals.get(0).getId()+"\"  ";
+            for(int j=1;j<rIndividuals.size();j++){
+                locIDFilter+=" || individual.individualID == \""+rIndividuals.get(j).getId()+"\"  ";
+            }
+            locIDFilter = locIDFilter + " ) ";
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+        }
+
+        prettyPrint.append("<br />");
+      }
 
 
 

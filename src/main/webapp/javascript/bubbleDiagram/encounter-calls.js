@@ -11,6 +11,7 @@ var getIndividualIDFromEncounterToString = function(encToString) {
     //var id = encToString.split("individualID=")[1].split(",")[0];
     var id = encToString.displayName; // since this is for display, and individualIDs are UUIDs now
     if (!id) return false;
+    id = id.concat(" id=", encToString.individualID); // appending UUID, which is needed while forming the co-occurrence table URL
     return id;
 }
 
@@ -18,6 +19,7 @@ var getData = function(individualID, displayName) {
     var occurrenceObjectArray = [];
     var items = [];
     var encounterArray = [];
+    var encArrWithUUID = [];
     var occurrenceArray = [];
     var dataObject = {};
 
@@ -45,14 +47,15 @@ var getData = function(individualID, displayName) {
 		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-				if (!thisEncIndID || (thisEncIndID===displayName)) continue;  //unknown indiv -> false
-				if(encounterArray.includes(thisEncIndID)) {
-				} 
-				else {
-		    		encounterArray.push(thisEncIndID);
+				if (!thisEncIndID) continue;
+				var individualName = thisEncIndID.split(" id=")[0];
+				if (individualName === displayName) continue;  //unknown indiv -> false
+				if(!encounterArray.includes(individualName)) {
+					encounterArray.push(individualName);
+					encArrWithUUID.push(thisEncIndID);
 				}
             }
-            occurrenceArray = occurrenceArray.concat(encounterArray);
+            occurrenceArray = occurrenceArray.concat(encArrWithUUID);
             var occurrenceID = jsonData[i].occurrenceID;
             var index = encounterArray.indexOf(individualID.toString());
             if (~index) {
@@ -67,6 +70,7 @@ var getData = function(individualID, displayName) {
             }
 			occurrenceObjectArray.push(occurrenceObject);
             encounterArray = [];
+            encArrWithUUID = [];
 	}
 
 	for(var i = 0; i < occurrenceArray.length; ++i) {
@@ -84,10 +88,12 @@ var getData = function(individualID, displayName) {
 	//}
 	
 	makeTable(items, "#coHead", "#coBody", null,["occurringWith", "occurrenceNumber","sex","location"]);
-	$('#cooccurrenceTable tr').click(function() {
-            selectedWhale = ($(this).attr("class"));
-            goToWhaleURL(selectedWhale);
-	});
+	$('#cooccurrenceTable tr').attr("onClick", "return cooccurTableAuxClick(this);")
+							  .attr("onAuxClick", "return cooccurTableAuxClick(this);")
+							  .each(function() {
+								indivUrl = "individuals.jsp?number=" + ($(this).attr("class"));
+								$(this).find("td").first().wrapInner("<a href=\""+indivUrl+"\"></a>");
+							  });
 	
 	getEncounterTableData(occurrenceObjectArray, individualID);
     });
@@ -177,7 +183,17 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		    return refreshTable(d);
 		}
 	    });
-
+	
+	var indivArray = [];
+	if(tableBodyLocation == "#coBody") {
+		for (var i = 0; i < items.length; i++) {
+			var nameIdArr = items[i].text.split(" id=");
+			var individual = { name: nameIdArr[0], uuid: nameIdArr[1] }
+			indivArray.push(individual);
+			items[i].text = nameIdArr[0];
+		}
+	}
+	
 	//console.log("ITEMS", items)
 	var tr = d3.select(tableBodyLocation).selectAll("tr")
 	    .data(items).enter()
@@ -186,9 +202,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		if(d.relationshipID !=null && d.relationshipID != 'undefined') {
 		    return d.relationshipID;
 		}
+		if(tableBodyLocation == "#coBody") {
+			return indivArray.find(indiv => (indiv.name == d3.values(d)[0])).uuid;
+		}
 		return d3.values(d)[0];
 	    });
-
+	
 	//console.log("TR", tr.selectAll("td"))
 	var td = tr.selectAll("td")
 	    .data(function(d){
@@ -227,11 +246,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 			return d[0].italics() + "-" + d[1];
 		    }
 		    if(d.length > 2) {
-			return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+			return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
 		    }
 		}
 		if(d == "GOS") {
-		    return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+		    return "<a href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
 		}
 		return d; 
 	    });
@@ -407,14 +426,14 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 				    	return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 					}
 					if(d.length > 2) {
-						return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+						return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
 			    	}
 					return d[0].italics() + "-" + d[1];
 			    	//}
 			    
 				}
 				if(d == "socialUnit") {
-			    	return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+			    	return "<a href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
 				}
 			
 				//couldn't find it so dump it as text
@@ -543,19 +562,23 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             encounterData.push(encounter);
 	}
 	makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
-	$('#encountTable tr').click(function() {
-            selectedWhale = ($(this).attr("class"));
-            goToEncounterURL(selectedWhale);
-	});
+	$('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
+						 .attr("onAuxClick", "return encountTableAuxClick(this);")
+						 .each(function() {
+							encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
+							$(this).find("td").first().wrapInner("<a href=\""+encountUrl+"\"></a>");
+						 });
     });
 }
 
 var goToEncounterURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
+	var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale, target);
 }
 
 var goToWhaleURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale);
+	var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale, target);
 }
 
 var getRelationshipData = function(relationshipID) {

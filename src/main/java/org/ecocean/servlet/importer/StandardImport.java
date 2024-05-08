@@ -44,6 +44,8 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -551,7 +553,7 @@ public class StandardImport extends HttpServlet {
     }
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
-    out.println("<h2>Import Overview: </h2>");
+    out.println("<h2>Import Overview</h2>");
     out.println("<ul>");
     out.println("<li>Excel File Name: "+filename+"</li>");
     out.println("<li>Excel File Successfully Found = "+dataFound+"</li>");
@@ -560,8 +562,43 @@ public class StandardImport extends HttpServlet {
     out.println("<li>Excel Columns = "+cols+"</li>");
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
-
     out.println("</ul>");
+    
+    out.println("<h3 id='errorHeader' style='color: red;'>Errors</h3>");
+    out.println("<p>Number of errors: <span id='errorCount'></span></p>");
+    out.println("<p>Error columns: <span id='errorElements'></span></p>");
+    out.println("<script>");
+    out.println("	  var errorElementNames = [];");
+    out.println("     const err_elements = document.querySelectorAll('.cellFeedback.error');");
+    out.println("     const errorCount = err_elements.length;");
+    out.println("     document.getElementById('errorCount').textContent=errorCount");
+    out.println("     if(errorCount>0){");
+    out.println("        var errorTitle = document.getElementById('errorHeader');  ");
+    out.println("        var errorMessage = document.createElement('p');  ");
+    out.println("        errorMessage.style.color='red';  ");
+    out.println("        errorMessage.innerText='Errors are preventing submission of this bulk import.';  ");
+    out.println("        errorTitle.insertAdjacentElement('afterend', errorMessage);   ");
+
+    
+    out.println("     	for (var i = 0; i < err_elements.length; i ++ ){");
+    out.println("     		var errorElement = err_elements[i];");
+    out.println("     	  var table = errorElement.closest('table');");
+    out.println("     	  var headerRow = table.querySelector('tbody tr.headerRow');");
+    out.println("     	  var th = headerRow.children[errorElement.cellIndex].querySelector('th div span.tableFeedbackColumnHeader').innerHTML;");
+    out.println("     	  if(!errorElementNames.includes(th))errorElementNames.push(th); ");
+    out.println("     	}");
+    out.println("     	var errorList = document.getElementById('errorElements')");    
+    out.println("     	const ul = document.createElement('ul');");
+    out.println("     	errorElementNames.toString().split(',').forEach((item) => {");
+    out.println("          const li = document.createElement('li');");
+    out.println("     	   li.textContent = item;");
+    out.println("          ul.appendChild(li);");
+    out.println("     	});");
+    out.println("     	errorList.appendChild(ul);");
+    out.println("     }");
+    out.println("</script>");
+    
+    
 
     String uName = request.getUserPrincipal().getName();
     if (committing&&uName!=null) out.println("<p><a href=\"../encounters/searchResults.jsp?username="+uName+"\">Search encounters owned by current user \""+uName+"\"</a></p>");
@@ -894,10 +931,40 @@ public class StandardImport extends HttpServlet {
     if (sex!=null) enc.setSex(sex);
 
     String genus = getString(row, "Encounter.genus",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-    if (genus!=null) enc.setGenus(genus);
+    boolean hasGenus=false;
+    if (genus!=null && !genus.trim().equals("")) {
+    	hasGenus=true;
+    	enc.setGenus(genus.trim());
+    }
 
     String specificEpithet = getString(row, "Encounter.specificEpithet",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
-    if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
+    boolean hasSpecificEpithet=false;
+    if (specificEpithet!=null && !specificEpithet.trim().equals("")) {
+    	hasSpecificEpithet=true;
+    	enc.setSpecificEpithet(specificEpithet.trim());
+    }
+    
+    //start check for missing or unconfigured genus+species
+    if (!hasGenus) {
+        //mark genus empty
+    	feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),"GENUS", row, "MISSING GENUS");
+    }
+    if (!hasSpecificEpithet) {
+        //mark specific epithet
+        feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap),"SPECIFIC EPITHET", row, "MISSING SPECIFIC EPITHET");
+    }
+    //now validate that a present genus and species value are supported
+    if(hasGenus && hasSpecificEpithet) {
+    	
+    	List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", myShepherd.getContext());
+    	if(configuredSpecies!=null && configuredSpecies.size()>0 && configuredSpecies.toString().indexOf(enc.getTaxonomyString())<0) {
+    		//if bad values
+    		feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus, row,"UNSUPPORTED VALUE: "+genus);
+    		feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet", colIndexMap), specificEpithet, row, "UNSUPPORTED VALUE: "+specificEpithet);
+    	}
+    	
+    }
+    //end check for missing or unconfigured genus+species
 
     String submitterOrganization = getString(row, "Encounter.submitterOrganization",colIndexMap, verbose, missingColumns, unusedColumns, feedback);
     if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
@@ -1520,8 +1587,8 @@ public class StandardImport extends HttpServlet {
     String fullPath = null;
     try {
 
-      if (localPath==null||"null".equals(localPath)) {
-        feedback.logParseError(assetColIndex(i, allColsMap), localPath, row);
+      if (localPath==null||"null".equals(localPath)||"".equals(localPath.trim())) {
+        feedback.logParseNoValue(assetColIndex(i, allColsMap));
         return null;
       }
 
@@ -2338,7 +2405,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   private List<MarkedIndividual> getAllMarkedIndividualsForUser(Shepherd myShepherd, User u) {
-    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u, myShepherd);
+    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u);
     List<Encounter> sIdEncs = myShepherd.getEncountersByField("submitterID", u.getUsername());
     HashSet<Encounter> uniqueEncs = new HashSet<>();
     uniqueEncs.addAll(uEncs);

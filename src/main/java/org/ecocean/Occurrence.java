@@ -18,6 +18,7 @@ import org.ecocean.media.MediaAsset;
 import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
@@ -214,6 +215,17 @@ public class Occurrence implements java.io.Serializable {
     return res;
   }
 
+    public List<Annotation> getAnnotations() {
+        List<Annotation> annots = new ArrayList<Annotation>();
+        for (Encounter enc : encounters) {
+            annots.addAll(enc.getAnnotations());
+        }
+        return annots;
+    }
+    public int getNumberAnnotations() {
+        return this.getAnnotations().size();
+    }
+
   public boolean addAsset(MediaAsset ma){
     if(assets==null){assets=new ArrayList<MediaAsset>();}
 
@@ -360,6 +372,20 @@ public class Occurrence implements java.io.Serializable {
     String lonStr = (decimalLongitude!=null) ? decimalLongitude.toString() : "";
     return (latStr+", "+lonStr);
   }
+  
+  public void setLatLongString(final String latitude, final String longitude, final String bearing, final String distance) {
+	  if (StringUtils.isAnyBlank(latitude, longitude)) {
+		  return;
+	  }
+	  setDecimalLatitude(Double.valueOf(latitude));
+      setDecimalLongitude(Double.valueOf(longitude));
+      if (StringUtils.isNotBlank(bearing)) {
+    	  setBearing(Double.valueOf(bearing));
+      }
+      if (StringUtils.isNotBlank(distance)) {
+    	  setDistance(Double.valueOf(distance));
+      }
+  }
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
     ArrayList<String> names=new ArrayList<String>();
@@ -393,6 +419,10 @@ public class Occurrence implements java.io.Serializable {
   public String getOccurrenceID(){
     return occurrenceID;
   }
+
+    public String getId() {
+        return occurrenceID;
+    }
 
   public void setOccurrenceID(String id){
     occurrenceID = id;
@@ -466,6 +496,20 @@ public class Occurrence implements java.io.Serializable {
       return comments;
     } else {
       return "None";
+    }
+  }
+
+    /**
+   * Returns any additional, general comments recorded for this Occurrence as a whole.
+   *
+   * @return a String of comments 
+   */
+  public String getCommentsExport() {
+    if (comments != null && !(comments.equals("None"))) {
+
+      return comments;
+    } else {
+      return "";
     }
   }
 
@@ -560,6 +604,20 @@ public class Occurrence implements java.io.Serializable {
     }
     return result;
   }
+
+    public List<String> getAllSpeciesDeep() {
+        List<String> result = new ArrayList<String>();
+        for (Taxonomy tax: taxonomies) {
+            String sciName = tax.getScientificName();
+            if (sciName != null && !result.contains(sciName)) result.add(sciName);
+        }
+        for (Encounter enc: encounters) {
+            String sciName = enc.getTaxonomyString();
+            if (sciName != null && !result.contains(sciName)) result.add(sciName);
+        }
+        return result;
+    }
+
   public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
     addTaxonomy(taxy);

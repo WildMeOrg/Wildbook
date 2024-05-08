@@ -41,8 +41,10 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
+int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
@@ -64,42 +66,41 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
 String notifications="";
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
-
+//check if user is logged in and has pending notifications
 if(request.getUserPrincipal()!=null){
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("header.jsp");
 	myShepherd.beginDBTransaction();
-	if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
-		try {
-		
-			notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-		
-		  if(!indocetUser && !loggingOut){
-		    user = myShepherd.getUser(request);
-		    username = (user!=null) ? user.getUsername() : null;
-		    String orgName = "indocet";
-		    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-		    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
-		  	if(user.getUserImage()!=null){
-		  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-		  	}
-		  }
-		}
-		catch(Exception e){
-		  System.out.println("Exception on indocetCheck in header.jsp:");
-		  e.printStackTrace();
-		}
-		finally{
-		  myShepherd.rollbackDBTransaction();
-		  
-		}
+	try {
+	
+	  notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+	
+	  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
+	    user = myShepherd.getUser(request);
+	    username = (user!=null) ? user.getUsername() : null;
+	    String orgName = "indocet";
+	    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
+	    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
+	  	if(user.getUserImage()!=null){
+	  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+	  	}
+	  }
+	}
+	catch(Exception e){
+	  System.out.println("Exception on indocetCheck in header.jsp:");
+	  e.printStackTrace();
+	  myShepherd.closeDBTransaction();
+	}
+	finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+	}
+
 }
-myShepherd.closeDBTransaction();
-
-
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+
+<html>
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -112,8 +113,21 @@ myShepherd.closeDBTransaction();
         gtag('config', 'UA-30944767-9');
       </script>
 
+
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
+
+      <!-- Google Tag Manager -->
+      <script>(function (w, d, s, l, i) {
+          w[l] = w[l] || []; w[l].push({
+            'gtm.start':
+              new Date().getTime(), event: 'gtm.js'
+          }); var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+              'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', '<%=gtmKey %>');</script>
+      <!-- End Google Tag Manager -->
+
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <meta name="Description"
@@ -178,6 +192,141 @@ myShepherd.closeDBTransaction();
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <%
+        if(user != null && !loggingOut){
+      %>
+        <script type="text/javascript">
+
+        $(document).ready(function()
+
+        {
+            var warningTime = <%= sessionWarningTime %>; // Session warning time in minutes.
+            var activityTimeout = warningTime * 60 * 1000; // Convert warning time to milliseconds.
+            var activityCheckInterval = 1000; // Frequency to check for activity in milliseconds.
+            var lastActivityTimestamp;
+            var countdownInterval;
+
+            // Function to show session warning modal.
+            function showWarning() {
+                var now = Date.now();
+                lastActivityTimestamp = localStorage.getItem('lastActivity');
+                var timeSinceLastActivity = now - lastActivityTimestamp;
+
+                if (timeSinceLastActivity < activityTimeout) {
+                    // User has been active recently, postpone the warning.
+                    $('#sessionModal').modal('hide');
+                    startSessionTimer();
+                    return;
+                }
+                $('#sessionModal').modal('show');
+                startCountdown();
+            }
+
+
+            function handleSessionButtonClick(element) {
+
+                var action = $(element).data('action');
+
+                if (action === 'login'){
+                     window.open('<%=urlLoc %>/welcome.jsp', '_blank');
+                }
+                else {
+
+                    $.ajax({
+                        url: wildbookGlobals.baseUrl + '../ExtendSession',
+                        type: 'GET',
+                        success: function(data) {
+                            console.log(data);
+                            // Indicate that the session has been extended and hide the modal.
+                            localStorage.setItem('sessionExtended', Date.now().toString());
+                            $('#sessionModal').modal('hide');
+                            clearInterval(countdownInterval); // Stop the countdown timer.
+                            resetActivity(); // Restart the session timer for the next expiration warning.
+                        },
+                        error: function(x, y, z) {
+                            console.warn('%o %o %o', x, y, z);
+                        }
+                    });
+
+                }
+
+
+
+            }
+
+            // Starts a timer to show the session expiration warning modal at the configured warning time.
+            function startSessionTimer() {
+                $('#extendSessionBtn').text('<%=props.getProperty("extendButton") %>');
+                $('#extendSessionBtn').data('action', 'extendSession'); // Change the data-action attribute
+                $('#modal-text').text('<%=props.getProperty("sessionModalContent") %>');
+                $('#sessionModal').modal('hide');
+                clearTimeout(countdownInterval); // Clear any existing timer.
+                countdownInterval = setTimeout(showWarning, activityTimeout); // Set new timer for warning.
+            }
+
+            // Function to update activity timestamp.
+            function resetActivity() {
+                lastActivityTimestamp = Date.now();
+                localStorage.setItem('lastActivity', lastActivityTimestamp.toString());
+                startSessionTimer(); // Reset the session timer.
+            }
+
+            // Starts a countdown timer based on the session's warning time.
+            function startCountdown() {
+
+                var warningCountdownTime = <%= sessionCountdownTime %>; // Session countdown time in minutes.
+                var countdownTimeout = warningCountdownTime * 60 * 1000;
+
+                countdownInterval = setInterval(function()
+                {
+
+                    var now = Date.now();
+                    lastActivityTimestamp = parseInt(localStorage.getItem('lastActivity'));
+                    var countDownTime = (lastActivityTimestamp + activityTimeout + countdownTimeout) - now
+                    var countDownTimeSeconds = Math.floor(countDownTime / 1000);
+                    updateCountdownDisplay(countDownTimeSeconds);
+
+                    if (countDownTime < 0 ) {
+                        clearInterval(countdownInterval);
+                        $('#extendSessionBtn').text("<%=props.getProperty("sessionLoginButton") %>");
+                        $('#extendSessionBtn').data('action', 'login'); // Change the data-action attribute to 'login'
+                        $('#modal-text').text("<%=props.getProperty("sessionLoginModalContent") %>");
+                        $('.modal-body #countdown').text("");
+                    }
+                }, 1000);
+            }
+
+            function updateCountdownDisplay(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                var secondsLeft = seconds % 60;
+                $('.modal-body #countdown').text(minutes + ':' + (secondsLeft < 10 ? '0' : '') + secondsLeft); // Format and display the countdown.
+            }
+
+            $("#extendSessionBtn").click(function() {
+                handleSessionButtonClick(this);
+            });
+
+            // Storage event listener to handle updates across tabs.
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'lastActivity') {
+                    lastActivityTimestamp = parseInt(e.newValue);
+                    startSessionTimer(); // Adjust the session timer based on new activity.
+                } else if (e.key === 'sessionExtended') {
+                    resetActivity();
+                }
+            });
+
+            resetActivity();
+        });
+
+
+
+    </script>
+      <%
+        }
+      %>
+
+
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
@@ -199,6 +348,33 @@ myShepherd.closeDBTransaction();
     </head>
 
     <body role="document">
+
+
+
+
+    <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sessionModalLabel"><%=props.getProperty("sessionHeaderWarning") %></h5>
+          </div>
+          <div class="modal-body">
+            <div id="modal-text" style="display: inline-block;"><%=props.getProperty("sessionModalContent") %></div>
+            <div id="countdown" style="display: inline-block;"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="extendSessionBtn" data-action="extendSession"><%=props.getProperty("extendButton") %></button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal"><%=props.getProperty("closeButton") %></button>
+          </div>
+        </div>
+        </div>
+    </div>
+
+
+      <!-- Google Tag Manager (noscript) -->
+      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
+          style="display:none;visibility:hidden"></iframe></noscript>
+      <!-- End Google Tag Manager (noscript) -->
 
         <!-- ****header**** -->
         <header class="page-header clearfix">
@@ -250,8 +426,7 @@ myShepherd.closeDBTransaction();
 	                      else{
 	                      %>
 
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
+                          <li><a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a></li>
 	                      <%
 	                      }
 
@@ -412,7 +587,6 @@ myShepherd.closeDBTransaction();
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
                       <% if(request.isUserInRole("researcher")) { %>

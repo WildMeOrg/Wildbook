@@ -178,8 +178,7 @@ Click here</a>
 </p>
 
 	<p>	<table border="1" bordercolor="black" cellspacing="0">
-			<tr><td bgcolor="#CCCCCC"><strong>Kinalyzer CSV File</strong></td></tr>
-			<tr><td bgcolor="#FFFFFF">Link: <a href="http://kinalyzer.cs.uic.edu">http://kinalyzer.cs.uic.edu</a></td></tr>
+			<tr><td bgcolor="#CCCCCC"><strong>Genetics Export CSV File</strong></td></tr>
 			<tr><td bgcolor="#FFFFFF">
 		<a href="//<%=CommonConfiguration.getURLLocation(request)%>/KinalyzerExport?<%=queryString%>">
 Click here</a>
