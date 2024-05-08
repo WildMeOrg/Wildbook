@@ -18,6 +18,7 @@ import org.ecocean.media.MediaAsset;
 import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
@@ -377,6 +378,20 @@ public class Occurrence implements java.io.Serializable {
     String latStr = (decimalLatitude!=null) ? decimalLatitude.toString() : "";
     String lonStr = (decimalLongitude!=null) ? decimalLongitude.toString() : "";
     return (latStr+", "+lonStr);
+  }
+  
+  public void setLatLongString(final String latitude, final String longitude, final String bearing, final String distance) {
+	  if (StringUtils.isAnyBlank(latitude, longitude)) {
+		  return;
+	  }
+	  setDecimalLatitude(Double.valueOf(latitude));
+      setDecimalLongitude(Double.valueOf(longitude));
+      if (StringUtils.isNotBlank(bearing)) {
+    	  setBearing(Double.valueOf(bearing));
+      }
+      if (StringUtils.isNotBlank(distance)) {
+    	  setDistance(Double.valueOf(distance));
+      }
   }
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){

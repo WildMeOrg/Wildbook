@@ -805,11 +805,7 @@ public class CommonConfiguration {
 
   public static String appendEmailRemoveHashString(HttpServletRequest request, String
                                                    originalString, String emailAddress, String context) {
-    initialize(context);
-    if (getProperty("removeEmailString",context) != null) {
-      originalString=originalString.replaceAll("REMOVEME",("\n\n" + getProperty("removeEmailString",context) + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress)));
-    }
-    return originalString;
+        return null;  // disabled via issue #397
   }
 
   public static Map<String,String> getEmailReplacementStrings(String context) {

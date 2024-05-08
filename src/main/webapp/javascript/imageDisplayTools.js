@@ -51,7 +51,7 @@ maLib.startIdentify = function(el) {
   		success: function(d) {
   			console.info('identify returned %o', d);
   			if (d.taskID) {
-  				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+  				window.location.href = 'iaResults.jsp?taskId=' + d.taskID;
   			} else {
   				alert('error starting identification');
   			}
