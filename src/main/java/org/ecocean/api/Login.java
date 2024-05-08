@@ -96,6 +96,7 @@ public class Login extends ApiBase {
                     myShepherd.closeDBTransaction();
 		}
             }
+            myShepherd.rollbackAndClose();
         }
 
         if (success) {
@@ -105,7 +106,6 @@ public class Login extends ApiBase {
         }
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
-        myShepherd.rollbackAndClose();
 
     }
 }
