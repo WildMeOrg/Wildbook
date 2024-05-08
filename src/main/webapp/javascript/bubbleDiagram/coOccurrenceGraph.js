@@ -23,19 +23,19 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	else this.parser = new JSONParser(null, true, 30);
 
 	//Expand upon graphAbstract's {this.sliders} attribute
-	this.sliders = {
-	    ...this.sliders,
-	    "temporal": {
-		"filter": this.filterByOccurrence,
-		"def": 0,
-		"precision": 1
-	    },
-	    "spatial": {
-		"filter": this.filterByOccurrence,
-		"def": 0,
-		"precision": 2
-	    }
-	};
+//	this.sliders = {
+//	    ...this.sliders,
+//	    "temporal": {
+//		"filter": this.filterByOccurrence,
+//		"def": 0,
+//		"precision": 1
+//	    },
+//	    "spatial": {
+//		"filter": this.filterByOccurrence,
+//		"def": 0,
+//		"precision": 2
+//	    }
+//	};
     }
 
     /**
@@ -81,26 +81,26 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     /**
      * Updates the maximum values for the spatial/temporal sliders
      */	
-    updateRangeSliderAttr() {
-	super.updateRangeSliderAttr();
-
-	let [distArr, timeArr] = this.analyzeNodeData(this.focusedNode);
-	this.calcSliderMax(this.sliders.temporal, timeArr);
-	this.calcSliderMax(this.sliders.spatial, distArr);
-    }
+//    updateRangeSliderAttr() {
+//	super.updateRangeSliderAttr();
+//
+//	let [distArr, timeArr] = this.analyzeNodeData(this.focusedNode);
+//	this.calcSliderMax(this.sliders.temporal, timeArr);
+//	this.calcSliderMax(this.sliders.spatial, distArr);
+//    }
 
     /**
      * Calculates the maximum threshold for a given slider (supporting decimal thresholds)
      * @param {slider} [obj] - The contextual slider being updated
      * @param {thresholdArr} [list] - A list of threshold values
      */
-    calcSliderMax(slider, thresholdArr) {
-	let precision = slider.precision;
-	let rawMin = Math.pow(0.1, precision-1);
-	let buffer = Math.pow(0.1, precision+0.5); //Fixes a jquery bug where decimal sliders cannot reach their max value
-	let rawMax = Math.max(...thresholdArr, rawMin) + buffer;
-	slider.max = this.ceilToFixed(rawMax, precision+1);
-    }
+//    calcSliderMax(slider, thresholdArr) {
+//	let precision = slider.precision;
+//	let rawMin = Math.pow(0.1, precision-1);
+//	let buffer = Math.pow(0.1, precision+0.5); //Fixes a jquery bug where decimal sliders cannot reach their max value
+//	let rawMax = Math.max(...thresholdArr, rawMin) + buffer;
+//	slider.max = this.ceilToFixed(rawMax, precision+1);
+//    }
 
     /**
      * Rounds upwards for a specified decimal precision
@@ -108,10 +108,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {precision} [float] - The number of decimals to include
      * @return {roundedValue} [float] - A rounded version of value
      */
-    ceilToFixed(value, precision){
-	var ceil = Math.pow(10, precision);
-	return parseFloat((Math.round(value * ceil) / ceil).toFixed(precision));
-    }
+//    ceilToFixed(value, precision){
+//	var ceil = Math.pow(10, precision);
+//	return parseFloat((Math.round(value * ceil) / ceil).toFixed(precision));
+//    }
 
     /**
      * Calculate the minimum spatial/temporal differences between all nodes and the {focusedNode}
@@ -119,18 +119,18 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @return {distArr, timeArr} [2D list] - The spatial/temporal minimum differences 
      *   for each node
      */	
-    analyzeNodeData(focusedNode) {
-	let distArr = [], timeArr = []
-	this.nodeData.forEach(d => {
-	    if (d.id !== focusedNode.id) {
-		let [dist, time] = this.getNodeMin(focusedNode, d);		
-		distArr.push(dist)
-		timeArr.push(time);
-	    }
-	});
-
-	return [distArr, timeArr]
-    }
+//    analyzeNodeData(focusedNode) {
+//	let distArr = [], timeArr = []
+//	this.nodeData.forEach(d => {
+//	    if (d.id !== focusedNode.id) {
+//		let [dist, time] = this.getNodeMin(focusedNode, d);		
+//		distArr.push(dist)
+//		timeArr.push(time);
+//	    }
+//	});
+//
+//	return [distArr, timeArr]
+//    }
 
     /**
      * Returns the minimum spatial/temporal difference between two nodes as specified
@@ -140,11 +140,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      *   should be returned
      * @return {min} [int] - The minimum distance or time value
      */
-    getNodeMinType(node1, node2, type) {
-	let [dist, time] = this.getNodeMin(node1, node2);
-	if (type == "spatial") return dist;
-	else if (type == "temporal") return time;
-    }
+//    getNodeMinType(node1, node2, type) {
+//	let [dist, time] = this.getNodeMin(node1, node2);
+//	if (type == "spatial") return dist;
+//	else if (type == "temporal") return time;
+//    }
 
     /**
      * Finds the minimum spatial/temporal differences between two nodes, 
@@ -153,24 +153,24 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {node2} [Node] - The second node being compared
      * @return {minDist, minTime} [list] - The minimum distance and time values
      */
-    getNodeMin(node1, node2) {
-	let sights1 = this.getSightingsData(node1.data.sightings);
-	let sights2 = this.getSightingsData(node2.data.sightings);
-
-	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
-							["lat", "lon", "time"],
-							this.calculateSightingsDiff);
-
-	try {
-	    let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
-	    let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
-
-	    return [minDist, minTime];
-	}
-	catch(err) {
-	    return [Infinity, Infinity]; //Arbitrarily large min values
-	}
-    }
+//    getNodeMin(node1, node2) {
+//	let sights1 = this.getSightingsData(node1.data.sightings);
+//	let sights2 = this.getSightingsData(node2.data.sightings);
+//
+//	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
+//							["lat", "lon", "time"],
+//							this.calculateSightingsDiff);
+//
+//	try {
+//	    let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
+//	    let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
+//
+//	    return [minDist, minTime];
+//	}
+//	catch(err) {
+//	    return [Infinity, Infinity]; //Arbitrarily large min values
+//	}
+//    }
 
     /**
      * Generates a list of relevant spatial and temporal sightings data objects
@@ -178,13 +178,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @return {sightingsData} [list of objs] - Returns a list of important spatial/temporal 
      *   sightings data
      */
-    getSightingsData(sightings) {
-	return sightings.map(d => {
-	    let loc = d.location;
-	    let time = d.time.datetime;
-	    return {"lat": loc.lat, "lon": loc.lon, "time": time};
-	});
-    }
+//    getSightingsData(sightings) {
+//	return sightings.map(d => {
+//	    let loc = d.location;
+//	    let time = d.time.datetime;
+//	    return {"lat": loc.lat, "lon": loc.lon, "time": time};
+//	});
+//    }
 
     /**
      * Calculates the minimum difference between two arrays in n^2 time
@@ -193,16 +193,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {diffFunc} [lambda] - Calculates the difference between two elements
      * @return {min} [number] - Returns the minimum difference from {arr1} and {arr2}
      */
-    getNodeMinBruteForce(arr1, arr2, diffFunc) {
-	let min = Number.MAX_SAFE_INTEGER;
-	arr1.forEach(el1 => {
-	    arr2.forEach(el2 => {
-		let diff = diffFunc(el1, el2);
-		if (diff < min) min = diff;
-	    });
-	});
-	return min;
-    }
+//    getNodeMinBruteForce(arr1, arr2, diffFunc) {
+//	let min = Number.MAX_SAFE_INTEGER;
+//	arr1.forEach(el1 => {
+//	    arr2.forEach(el2 => {
+//		let diff = diffFunc(el1, el2);
+//		if (diff < min) min = diff;
+//	    });
+//	});
+//	return min;
+//    }
 
     /**
      * Calculates the minimu difference between two arrays in nlog(n) time. May be slower than
@@ -214,21 +214,21 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {diffFunc} [lambda] - Calculates the difference between two elements
      * @return {min} [number] - Returns the minimum difference from {arr1} and {arr2}
      */
-    getNodeMinKDTree(arr1, arr2, dimensions, diffFunc) {
-	let tree = new kdTree(arr1, diffFunc, dimensions);
-
-	let minCoordPair = null;
-	let min = Number.MAX_SAFE_INTEGER;
-	arr2.forEach(point => {
-	    let [coords, dist] = tree.nearest(point, 1)[0];
-	    if (dist < min) {
-		minCoordPair = [point, coords];
-		min = dist;
-	    }
-	});
-
-	return [min, minCoordPair];
-    }
+//    getNodeMinKDTree(arr1, arr2, dimensions, diffFunc) {
+//	let tree = new kdTree(arr1, diffFunc, dimensions);
+//
+//	let minCoordPair = null;
+//	let min = Number.MAX_SAFE_INTEGER;
+//	arr2.forEach(point => {
+//	    let [coords, dist] = tree.nearest(point, 1)[0];
+//	    if (dist < min) {
+//		minCoordPair = [point, coords];
+//		min = dist;
+//	    }
+//	});
+//
+//	return [min, minCoordPair];
+//    }
 
     /**
      * Update the occurrence data for each link to satisfy the current spatial/temporal thresholds
@@ -236,8 +236,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      */
     updateLinkThreshCount(focusedNode) {
 	let focusedId = focusedNode.id;
-	let spatialThresh = parseFloat($("#spatial").val());
-	let temporalThresh = parseFloat($("#temporal").val());
+//	let spatialThresh = parseFloat($("#spatial").val());
+//	let temporalThresh = parseFloat($("#temporal").val());
 
 	this.linkData.forEach(link => {
 	    let targetId = link.target.id || link.target;
@@ -246,9 +246,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    
 	    let node = this.nodeData.find(node => node.id === linkId);
 	    if (node) {
-		let threshEncounters = this.getLinkThreshEncounters(focusedNode, node,
-								    spatialThresh, temporalThresh);
-		link.validEncounters = threshEncounters;
+//		let threshEncounters = this.getLinkThreshEncounters(focusedNode, node,
+//								    spatialThresh, temporalThresh);
+	    let threshEncounters = node.data.sightings;
+	    link.validEncounters = threshEncounters;
 		link.count = threshEncounters.length;
 		link.explicitOccurrence = node.data.sightings.explicit;
 	    }
@@ -264,26 +265,26 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {temporalThresh} [int] - The maximum temporal difference allowed
      * @return {validEncounters} [list] - All occurrences which satisfy the given constraints 
      */
-    getLinkThreshEncounters(node1, node2, spatialThresh, temporalThresh) {
-	let node1Sightings = node1.data.sightings;
-	let node2Sightings = node2.data.sightings;
-	
-	let validEncounters = [], idxSet = new Set();
-	node1Sightings.forEach(sight1 => {
-	    node2Sightings.forEach((sight2, idx) => {
-		let spatialVal = this.calculateDist(sight1.location, sight2.location);
-		let temporalVal = this.calculateTime(sight1.time.datetime, sight2.time.datetime);
-		
-		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh &&
-		    !idxSet.has(idx)) {
-		    idxSet.add(idx);
-		    validEncounters.push(sight2);
-		}
-	    });
-	});
-
-	return validEncounters;
-    }
+//    getLinkThreshEncounters(node1, node2, spatialThresh, temporalThresh) {
+//	let node1Sightings = node1.data.sightings;
+//	let node2Sightings = node2.data.sightings;
+//	
+//	let validEncounters = [], idxSet = new Set();
+//	node1Sightings.forEach(sight1 => {
+//	    node2Sightings.forEach((sight2, idx) => {
+//		let spatialVal = this.calculateDist(sight1.location, sight2.location);
+//		let temporalVal = this.calculateTime(sight1.time.datetime, sight2.time.datetime);
+//		
+//		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh &&
+//		    !idxSet.has(idx)) {
+//		    idxSet.add(idx);
+//		    validEncounters.push(sight2);
+//		}
+//	    });
+//	});
+//
+//	return validEncounters;
+//    }
 
     /**
      * Calculates an unweighted distance for the sightings space between two given nodes
@@ -293,10 +294,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      *   position of node2 within the sightings space
      * @return {dist} [int] - Describes the distance between the two node positions. Defaults to -1
      */
-    calculateSightingsDiff(node1, node2) {
-	return Math.pow(node1.lat - node2.lat, 2) + Math.pow(node1.lon - node2.lon, 2) +
-	    Math.pow(node1.time - node2.time, 2);
-    }
+//    calculateSightingsDiff(node1, node2) {
+//	return Math.pow(node1.lat - node2.lat, 2) + Math.pow(node1.lon - node2.lon, 2) +
+//	    Math.pow(node1.time - node2.time, 2);
+//    }
     
     /**
      * Calculate the spatial difference between two node sighting locations
@@ -306,13 +307,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      *   position of node2
      * @return {dist} [int] - Describes the distance between the two node positions. Defaults to -1
      */
-    calculateDist(node1Loc, node2Loc) {
-	if (node1Loc && node2Loc) {
-	    return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
-			    Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
-	}
-	return -1;
-    }
+//    calculateDist(node1Loc, node2Loc) {
+//	if (node1Loc && node2Loc) {
+//	    return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
+//			    Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
+//	}
+//	return -1;
+//    }
 
     /**
      * Calculate the temporal difference between two node sightings
@@ -320,12 +321,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {node2Time} [int] - The time at which node2 was observed
      * @return {time} [int] - Describes the difference between the two node times
      */
-    calculateTime(node1Time, node2Time) {
-	if (typeof node1Time === "number" && typeof node2Time === "number") {
-	    return Math.abs(node1Time - node2Time)
-	}
-	return -1;
-    }
+//    calculateTime(node1Time, node2Time) {
+//	if (typeof node1Time === "number" && typeof node2Time === "number") {
+//	    return Math.abs(node1Time - node2Time)
+//	}
+//	return -1;
+//    }
         
     /**
      * Filter nodes by spatial/temporal differences, displaying those less than the set threshold
@@ -334,17 +335,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {occType} [String] - Determines whether links should be filtered by 
      *   "temporal" or "spatial" considerations
      */
-    filterByOccurrence(self, thresh, occType) {
-	//Update slider label value
-	$("#" + occType + "Val").text(thresh)
-	
-	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh || d.data.sightings.explicit)
-	let linkFilter = (d) => ((self.getNodeMinType(focusedNode, d.source, occType) <= thresh) && (self.getNodeMinType(focusedNode, d.target, occType) <= thresh) || d.explicitOccurrence)
-
-	let validFilters = self.validFilters.concat([occType]);
-	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
-    }
+//    filterByOccurrence(self, thresh, occType) {
+//	//Update slider label value
+//	$("#" + occType + "Val").text(thresh)
+//	
+//	let focusedNode = self.nodeData.find(d => d.data.isFocused);
+//	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh || d.data.sightings.explicit)
+//	let linkFilter = (d) => ((self.getNodeMinType(focusedNode, d.source, occType) <= thresh) && (self.getNodeMinType(focusedNode, d.target, occType) <= thresh) || d.explicitOccurrence)
+//
+//	let validFilters = self.validFilters.concat([occType]);
+//	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
+//    }
 
     /**
      * Updates link occurrence counts and visibility

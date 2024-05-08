@@ -86,5 +86,6 @@
     "MERGE_PENDING_MESSAGE": "La fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> ha sido iniciada. Fecha de finalización automática: <bold>{mergeDate}</bold>, ejecución retrasada 2 semanas.",
     "MERGE_DENIED_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>denegada</bold>. Iniciada por <bold>{initiator}</bold>. Denegada por el usuario: <bold>{deniedBy}</bold>",
     "DISMISS": "Descartar",
-    "MERGE_COMPLETE_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>completada</bold>. Iniciada por <bold>{initiator}</bold>. Fecha de finalización: <bold>{mergeDate}</bold>"
+    "MERGE_COMPLETE_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>completada</bold>. Iniciada por <bold>{initiator}</bold>. Fecha de finalización: <bold>{mergeDate}</bold>",
+    "BANNER_ALERT": "¡Wildbook está renovando su imagen! Gracias por tu paciencia mientras realizamos estos cambios."
 }

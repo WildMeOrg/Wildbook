@@ -87,5 +87,6 @@
     "MERGE_PENDING_MESSAGE": "Merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> has been initiated. Auto completion date: <bold>{mergeDate}</bold>, 2 week delayed execution.",
     "MERGE_DENIED_MESSAGE" : "A merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> was <bold>denied</bold>. Initiated by <bold>{initiator}</bold>. Denied by user: <bold>{deniedBy}</bold> ",
     "DISMISS": "Dismiss",
-    "MERGE_COMPLETE_MESSAGE" : "A merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> was <bold>completed</bold>. Initiated by <bold>{initiator}</bold>. Completion date: <bold>{mergeDate}</bold>"
+    "MERGE_COMPLETE_MESSAGE" : "A merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> was <bold>completed</bold>. Initiated by <bold>{initiator}</bold>. Completion date: <bold>{mergeDate}</bold>",
+    "BANNER_ALERT": "Wildbook is getting a new look! Thank you for your patience as we make these changes."
 }
