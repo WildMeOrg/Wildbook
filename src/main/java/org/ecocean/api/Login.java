@@ -96,6 +96,7 @@ public class Login extends ApiBase {
                     myShepherd.closeDBTransaction();
 		}
             }
+            myShepherd.rollbackAndClose();
         }
 
         if (success) {
