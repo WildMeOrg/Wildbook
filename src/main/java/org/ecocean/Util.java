@@ -487,6 +487,9 @@ public class Util {
     }
 
 
+    public static Object jsonNull(Object obj) {
+        return (obj == null) ? org.json.JSONObject.NULL : obj;
+    }
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {

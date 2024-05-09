@@ -616,6 +616,7 @@ try{
 		int numWithACMID=0;
 		int numAllowedIA=0;
 		int numDetectionComplete=0;
+		ArrayList<MediaAsset> invalidMediaAssets=new ArrayList<MediaAsset>();
 		for(MediaAsset asset:allAssets){
 			if(asset.getAcmId()!=null)numWithACMID++;
 			
@@ -624,6 +625,10 @@ try{
 				if(asset.isValidImageForIA().booleanValue()){numAllowedIA++;}
 			}
 			else if(asset.validateSourceImage()){numAllowedIA++;myShepherd.updateDBTransaction();}
+			
+			if(asset.isValidImageForIA() == null || !asset.isValidImageForIA().booleanValue()){
+				invalidMediaAssets.add(asset);
+			}
 			
 			
 			if(asset.getDetectionStatus()!=null && (asset.getDetectionStatus().equals("complete")||asset.getDetectionStatus().equals("pending"))) numDetectionComplete++;
@@ -634,6 +639,24 @@ try{
 		<ul>
 			<li>Number with acmIDs: <%=numWithACMID %></li>
 			<li>Number valid for image analysis: <%=numAllowedIA %></li>
+			
+			<%
+			if("complete".equals(itask.getStatus()) && invalidMediaAssets.size()>0){
+			%>
+			<li>Number invalid for image analysis: <%=invalidMediaAssets.size()%>
+					<ol>
+					<%
+					for(MediaAsset inv_asset:invalidMediaAssets){
+					%>
+						<li><a target="_blank" href="obrowse.jsp?type=MediaAsset&id=<%=inv_asset.getId() %>"><%=inv_asset.getId() %></a></li>
+					<%
+					}
+					%>
+					</ol>
+				</li>
+			<%
+			}
+			%>
 			<li>Number that have completed detection: <%=numDetectionComplete %></li>
 		</ul>
 	</p>
@@ -801,15 +824,16 @@ try{
 	function resendToID() {
 	    if (!confirmCommitID()) return;
 	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-	    var locationIds = $('#id-locationids').val();
+	    //var locationIds = $('#id-locationids').val();
 	    var locationIds = '';
-	    $("#id-locationids > option").each(function(){
+	    $("#id-locationids option:selected").each(function(){
 	    	locationIds+='&locationID='+this.value;
 	    });
 	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
 	        dataType: 'json',
@@ -824,6 +848,7 @@ try{
 		    }
 	        }
 	    });
+	    
 	}
 	 
 	</script>
@@ -866,10 +891,7 @@ try{
 		%>
 		 <div style="margin-bottom: 20px;">   	
 		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
+                        <%=LocationID.getHTMLSelector(true, null, null, "id-locationids", "locationID", "") %>
 		   </div>
 		    	
 		    <%

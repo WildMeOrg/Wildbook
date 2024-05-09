@@ -124,6 +124,18 @@
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,1,0" />
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/js/select2.min.js" defer></script>
+
+
 <%
 
 
@@ -693,7 +705,7 @@ $(function() {
 
       <%
       //set a default date if we cann
-      if(enc.getDateInMilliseconds()!=null){
+      if(isOwner && enc.getDateInMilliseconds()!=null){
 
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
 
@@ -867,10 +879,9 @@ else {
 
 
 <%
-if(enc.getLocation()!=null){
+if(isOwner && enc.getLocation()!=null){
 %>
-
-<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
+	<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
 }
 %>
@@ -887,11 +898,14 @@ if(enc.getLocation()!=null){
 	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
 	int sizeHier=hier.size();
 	String displayPath="";
-	for(int q=0;q<sizeHier;q++){
-		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
-		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+	if(isOwner || isPublic){
+		for(int q=0;q<sizeHier;q++){
+			if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
+			else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+		}
+		if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	}
-        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
+        
 	%>
 		<%=displayPath %>
 	</span>
@@ -908,7 +922,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
 
   <%
-  if(enc.getCountry()!=null){
+  if(isOwner && enc.getCountry()!=null){
   %>
   <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
@@ -1291,9 +1305,17 @@ if(CommonConfiguration.showProperty("showCountry",context)){
            	%>
 
        marker = new google.maps.Marker({
-    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   icon: " ",
     	   position:latLng,
-    	   map:map
+    	   map:map,
+    	   label: {
+   	        text: "\ue0c8",
+   	        fontFamily: "Material Symbols Outlined",
+   	        color: "<%=haploColor %>",
+   	        fontSize: "36px",
+   	        
+   	   	   }
     	});
 
 	   		<%
@@ -1443,9 +1465,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                     emptyMarkers();
                     var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
                     var newMarker = new google.maps.Marker({
-                 	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                 	   //icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+                 	   icon: " ",
                  	   position:newLatLng,
-                 	   map:map
+                 	   map:map,
+                	   label: {
+	               	        text: "\ue0c8",
+	               	        fontFamily: "Material Symbols Outlined",
+	               	        color: "<%=haploColor %>",
+	               	        fontSize: "36px",
+               	       }
                  	});
                     markers.push(newMarker);
               	}
@@ -1694,6 +1723,10 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
+
+                      $('#selectCode').select2({width: '100%', height:'50px'});
+                      $('#selectCountry').select2({width: '100%', height:'50px'});
+
                       populateNewIndWithDisabledButton();
                       populateAddToExistingIndWithDisabledButton();
                       setUpIdActionOnClick();
@@ -2331,7 +2364,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){
+	       if(isOwner && enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2415,7 +2448,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){
+	       if(isOwner && enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
@@ -3102,7 +3135,7 @@ if(request.getUserPrincipal()!=null){
   <div class="highlight resultMessageDiv" id="autoCommentErrorDiv"></div>
     <%
     String rComments="";
-    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    if(isOwner && enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
     <div id="autoCommentsDiv" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
@@ -3632,7 +3665,7 @@ else {
        <%}%>
 
     <p>
-    <%if(enc.getDateInMilliseconds()!=null && visible){ %>
+    <%if(isOwner && visible && enc.getDateInMilliseconds()!=null){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
@@ -3649,7 +3682,7 @@ else {
     <br />
     <em><%=encprops.getProperty("verbatimEventDate")%></em>:
         <%
-    				if(enc.getVerbatimEventDate()!=null){
+    				if(isOwner && enc.getVerbatimEventDate()!=null){
     				%>
         <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
         <%
@@ -6997,10 +7030,14 @@ for (JSONObject algConfig : identConfigsValues) {
   algNum++;
 }
 
+//add the no-available-algorithm option
+out.println("<p id=\"noalgo\" style=\"visibility: hidden;\"><em>No configured algorithm for this annotation class.</em></p>");
+
+
 %>
 
 <div class="ia-match-filter-section">
-    <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
+    <input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
     <input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
         onClick="$('.ia-match-filter-dialog').hide()" />
 </div>

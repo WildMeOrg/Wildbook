@@ -1,5 +1,5 @@
-.settings/org.eclipse*
-.settings
+.settings/
+.project
 .factorypath
 *.DS_Store
 target
@@ -29,11 +29,6 @@ src/main/caribwhale_data_dir
 .vscode/
 *.swp
 
-\.classpath
-.classpath
-
-catalina.base_IS_UNDEFINED
-
 src/main/webapp/javascript/dev/MarkedIndividual.json
 src/main/webapp/javascript/dev/Relationship.json
 
@@ -41,3 +36,9 @@ src/main/webapp/javascript/dev/Relationship.json
 .classpath
 
 catalina.base_IS_UNDEFINED
+
+/frontend/node_modules
+/frontend/dist
+/frontend/.env
+/frontend/build
+/frontend/.env

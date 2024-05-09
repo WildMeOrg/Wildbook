@@ -1011,10 +1011,7 @@ public class Shepherd {
     int numRoles=roles.size();
     String rolesFound="";
     for(int i=0;i<numRoles;i++){
-      String context="context0";
-      if(roles.get(i).getContext()!=null){context=roles.get(i).getContext();}
-      String contextName=ContextConfiguration.getNameForContext(context);
-      rolesFound+=(contextName+":"+roles.get(i).getRolename()+"\r");
+      rolesFound+=(roles.get(i).getRolename()+"\r");
     }
     acceptedEncounters.closeAll();
     return rolesFound;
@@ -1622,15 +1619,11 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
   public List<Project> getParticipatingProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;
-    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
+    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' VARIABLES org.ecocean.User user";
     try {
-      if(!Util.stringExists(orderBy)){
-        queryString += "VARIABLES org.ecocean.User user";
-      }else{
-        queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
-      }
       System.out.println("getParticipatingProjectsForUserId() queryString: "+queryString);
       query = pm.newQuery(queryString);
+      if (Util.stringExists(orderBy)) query.setOrdering(orderBy);
       Collection c = (Collection) (query.execute());
       Iterator it = c.iterator();
       while (it.hasNext()) {
@@ -1643,7 +1636,7 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      query.closeAll();
+      if (query != null) query.closeAll();
     }
     return projects;
   }
@@ -3327,6 +3320,22 @@ public ArrayList<Project> getProjectsOwnedByUser(User user) {
     return theTask;
   }
 
+    public List<Task> getIdentificationTasksForUser(User user) {
+        if ((user == null) || (user.getUsername() == null)) return null;
+        //String sql = "SELECT \"TASK\".\"ID\" FROM \"TASK\" "
+        String sql = "SELECT \"ID\" FROM \"TASK\" "
+            + "JOIN \"TASK_OBJECTANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_OID\" = \"TASK\".\"ID\") "
+            + "JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"TASK_OBJECTANNOTATIONS\".\"ID_EID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") "
+            + "JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") "
+            + "WHERE \"ENCOUNTER\".\"SUBMITTERID\" = '" + user.getUsername() + "' ORDER BY \"TASK\".\"CREATED\" desc";
+        Query q = getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(Task.class);
+        Collection c = (Collection)q.execute();
+        List<Task> all = new ArrayList(c);
+        q.closeAll();
+        return all;
+    }
+
   public MarkedIndividual getMarkedIndividualQuiet(String name) {
     MarkedIndividual indiv = null;
     try {
@@ -4256,10 +4265,10 @@ public Long countMediaAssets(Shepherd myShepherd){
     try {
       allOccurs = pm.getExtent(Keyword.class, true);
       Query acceptedOccurs = pm.newQuery(allOccurs);
-      Collection c = (Collection) (acceptedOccurs.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      Collection<Keyword> c = (Collection) (acceptedOccurs.execute());
+      Set<Keyword> keywords = new TreeSet<>(c);
       acceptedOccurs.closeAll();
-      it = al.iterator();
+      it = keywords.iterator();
     }
     catch (javax.jdo.JDOException x) {
       x.printStackTrace();
@@ -4793,6 +4802,25 @@ public Long countMediaAssets(Shepherd myShepherd){
     catch(Exception e){e.printStackTrace();}
     return al;
   }
+
+    public List<Occurrence> getOccurrencesByUser(User user) {
+        ArrayList al = new ArrayList();
+        if ((user == null) || (user.getUsername() == null)) return al;
+        try {
+            // apparently occurrence.submitters is garbage, so we cant use this
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE submitters.contains(user) && user.uuid == '" + user.getUUID() + "' VARIABLES org.ecocean.User user";
+            //String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+         "\" VARIABLES org.ecocean.Encounter enc";
+            String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.Encounter enc";
+            //Extent queryClass = pm.getExtent(Occurrence.class, true);
+            Query query = getPM().newQuery(filter);
+            query.setOrdering("dateTimeCreated DESC");
+            Collection c = (Collection) (query.execute());
+            al = new ArrayList(c);
+            query.closeAll();
+        }
+        catch (Exception e) { e.printStackTrace(); }
+        return al;
+    }
 
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
@@ -5705,10 +5733,16 @@ public Long countMediaAssets(Shepherd myShepherd){
 }
 
 
-  public List<Encounter> getEncountersForSubmitter(User user, Shepherd myShepherd){
+    public List<Encounter> getEncountersForSubmitter(User user) {
+        return getEncountersForSubmitter(user, null);
+    }
+
+  public List<Encounter> getEncountersForSubmitter(User user, String ordering) {
+      if (ordering == null) ordering = "dwcDateAddedLong DESC";
       ArrayList<Encounter> users=new ArrayList<Encounter>();
-      String filter="SELECT FROM org.ecocean.Encounter WHERE submitters.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
-      Query query=myShepherd.getPM().newQuery(filter);
+      String filter="SELECT FROM org.ecocean.Encounter WHERE (submitters.contains(user) && user.uuid == \""+user.getUUID()+"\") || submitterID == \"" + user.getUsername() + "\" VARIABLES org.ecocean.User user";
+      Query query = getPM().newQuery(filter);
+      query.setOrdering(ordering);
       Collection c = (Collection) (query.execute());
       if(c!=null){users=new ArrayList<Encounter>(c);}
       query.closeAll();
@@ -5759,6 +5793,20 @@ public Long countMediaAssets(Shepherd myShepherd){
     query.closeAll();
     return null;
   }
+
+    public List<ImportTask> getImportTasksForUser(User user) {
+        List<ImportTask> all = new ArrayList<ImportTask>();
+        String filter = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid == \"" + user.getUUID() + "\"";
+        Query query = getPM().newQuery(filter);
+        query.setOrdering("created DESC");
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            all.add((ImportTask)it.next());
+        }
+        query.closeAll();
+        return all;
+    }
 
   public User getUserByTwitterHandle(String handle) {
     User user= null;

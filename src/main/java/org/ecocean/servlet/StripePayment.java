@@ -68,7 +68,7 @@ public class StripePayment extends HttpServlet {
         cardMap.put("source", token);
         cardMap.put("amount", pennyAmount);
         cardMap.put("currency", "usd");
-        cardMap.put("description", "Spot A Shark time donation.");
+        cardMap.put("description", "Whaleshark.org one time donation.");
 
         Map<String, String> initialMetadata = new HashMap<String, String>();
         initialMetadata.put("name", name);
@@ -113,7 +113,6 @@ public class StripePayment extends HttpServlet {
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
-        e.printStackTrace();
         System.out.println("Generic error from stripe on subscribe. ");
         System.out.println("Token: " + token );
       }
@@ -133,7 +132,7 @@ public class StripePayment extends HttpServlet {
         String langCode = "en";
         String to = email;
         String type = "oneTimeDonation";
-        String message = "Thank you for you donation to of $" + amount + " dollars. Wild Me is a 5013c nonprifit , and donations are tax deductable in the United States.";
+        String message = "Thank you for you donation to Wild Me of $" + amount + " dollars. Wild Me is a lab under Conservation X Labs, a 5013c nonprofit, and donations are tax deductable in the United States.";
         System.out.println("About to email one time donor...");
         // Retrieve background service for processing emails
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();

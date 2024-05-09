@@ -1,22 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean.servlet;
 
 
@@ -422,8 +403,31 @@ System.out.println("anns -> " + anns);
         for (int i = 0 ; i < anns.size() ; i++) {
             Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i),myShepherd,fastlane);
+            JSONObject taskRes = new JSONObject();
+            Task subTask = subTasks.get(i);
+            try {
+                taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTask, myShepherd,fastlane);
+            } catch (Exception ex) {  // unsure if maybe _some_ exceptions should be treated differently here?
+                System.out.println("subTask failure on " + subTask + ": " + ex.toString());
+                taskRes.put("success", false);
+                taskRes.put("error", ex.toString());
+System.out.println(">>>>>>> parentTask: " + parentTask);
+                JSONObject jobj = new JSONObject();
+                jobj.put("identify", new JSONObject());
+                jobj.getJSONObject("identify").put("annotationIds", new JSONArray());
+                jobj.getJSONObject("identify").getJSONArray("annotationIds").put(ann.getId());
+                jobj.put("taskId", subTask.getId());
+                jobj.put("__baseUrl", baseUrl);
+                jobj.put("__context", context);
+                jobj.put("__queueActualRetries", jin.optInt("__queueActualRetries", 0));
+                jobj.put("__queueRetries", jin.optInt("__queueRetries", 0));
+                jobj.put("__queueStart", jin.optLong("__queueStart", System.currentTimeMillis()));
+                requeueJob(jobj, true);
+            }
+            taskRes.put("subTaskId", subTask.getId());
+            taskRes.put("subTaskIndex", i);
             taskList.put(taskRes);
+            System.out.println("subTask[" + i + "] => " + taskRes.toString());
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
         res.put("tasks", taskList);

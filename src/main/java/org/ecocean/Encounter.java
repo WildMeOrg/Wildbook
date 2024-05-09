@@ -1,22 +1,3 @@
-/*
- * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -456,12 +437,32 @@ public class Encounter implements java.io.Serializable {
         occ.removeEncounter(enc2);
         occ.addEncounter(this); // duplicate-safe
       }
+      
+      //Remove it from an ImportTask if needed
+      ImportTask task=myShepherd.getImportTaskForEncounter(enc2.getCatalogNumber());
+      if(task!=null) {
+        task.removeEncounter(enc2);
+        myShepherd.updateDBTransaction();
+      }
+      
+      //Remove from Project if needed
+      List<Project> projects = myShepherd.getProjectsForEncounter(enc2);
+      if (projects!=null&&!projects.isEmpty()) {
+        for (Project project : projects) {
+          project.removeEncounter(enc2);
+          myShepherd.updateDBTransaction();
+        }
+      }
+      
       // remove tissue samples because of bogus foreign key constraint that prevents deletion
       int numTissueSamples = 0;
       if (enc2.getTissueSamples()!=null) numTissueSamples = enc2.getTissueSamples().size();
       for (int i=0; i<numTissueSamples; i++) {
         enc2.removeTissueSample(0);
       }
+      
+      this.addComments("<p>Merged in encounter "+enc2.getCatalogNumber()+".");;
+      
       myShepherd.throwAwayEncounter(enc2);
     }
     // copies otherEnc's data into thisEnc, not overwriting anything
@@ -2147,6 +2148,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.maximumElevationInMeters = newElev;
   }
 
+    public String getId() {
+        return catalogNumber;
+    }
 
   public String getCatalogNumber() {
     return catalogNumber;
@@ -2887,6 +2891,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
+    // all an enc's annotations on a given asset (might be multiple if parts are involved)
+    public List<Annotation> getAnnotations(MediaAsset ma) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (Annotation ann: getAnnotations()) {
+          if (ann.getMediaAsset() == ma) anns.add(ann);
+        }
+        return anns;
+    }
+
     public void setAnnotations(ArrayList<Annotation> anns) {
         annotations = anns;
     }
