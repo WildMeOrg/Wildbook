@@ -67,6 +67,7 @@
     "css-loader": "^6.10.0",
     "date-fns": "^3.6.0",
     "html-webpack-plugin": "^5.6.0",
+    "husky": "^9.0.11",
     "react-app-rewired": "^2.2.1",
     "react-bootstrap-icons": "^1.11.3",
     "react-query": "^3.39.3",

@@ -4,7 +4,9 @@
   "description": "node for cypress testing",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install",
+    "lint": "eslint '**/*.js'"
   },
   "repository": {
     "type": "git",
@@ -28,7 +30,20 @@
     "url": "https://github.com/WildbookOrg/Wildbook/issues"
   },
   "homepage": "https://github.com/WildbookOrg/Wildbook#readme",
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
-    "cypress": "^13.7.1"
+    "cypress": "^13.7.1",
+    "@eslint/js": "^9.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.1",
+    "globals": "^15.0.0",
+    "husky": "^7.0.4",
+    "lint-staged": ">=8",
+    "prettier": "^3.2.5"
   }
 }
