@@ -72,6 +72,10 @@
         <h1 class="intro">
           <%=props.getProperty("loginSuccess")%>
         </h1>
+        <%-- when user sucessfully login it adds variable in localStorage which triggers storage listener to close warning popup in other tabs --%>
+        <script type="text/javascript">
+           localStorage.setItem('sessionExtended', Date.now().toString());
+        </script>
       <%
       }
       %>
