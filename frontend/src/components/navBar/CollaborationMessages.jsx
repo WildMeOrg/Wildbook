@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import BrutalismButton from "../BrutalismButton";
-import { FormattedMessage } from "react-intl";
 
 export default function CollaborationMessages({
   collaborationTitle,
