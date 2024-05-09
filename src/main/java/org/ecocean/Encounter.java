@@ -2878,7 +2878,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (!ann.isTrivial()) {
           Annotation trivialAnn = ann.revertToTrivial(myShepherd, true);
           if (commit) {
-            myShepherd.throwAwayAnnotation(ann, true);
+            myShepherd.throwAwayAnnotation(ann);
             myShepherd.storeNewAnnotation(trivialAnn);
           }
         }
@@ -2887,7 +2887,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
           for (int i=1; i<thisMaAnns.size(); i++) {
             Annotation oldAnn = thisMaAnns.get(i);
             this.removeAnnotation(oldAnn);
-            if (commit) myShepherd.throwAwayAnnotation(oldAnn, true);
+            if (commit) myShepherd.throwAwayAnnotation(oldAnn);
           }
         }
         ma.setDetectionStatus(null); // we certainly haven't detected the image with all these annots killed
