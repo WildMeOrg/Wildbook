@@ -2070,9 +2070,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.maximumElevationInMeters = newElev;
   }
 
-    public String getId() {
-        return catalogNumber;
-    }
 
   public String getCatalogNumber() {
     return catalogNumber;

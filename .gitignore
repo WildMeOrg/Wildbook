@@ -1,5 +1,4 @@
 .settings/
-.project
 .factorypath
 *.DS_Store
 target
@@ -36,9 +35,3 @@ src/main/webapp/javascript/dev/Relationship.json
 .classpath
 
 catalina.base_IS_UNDEFINED
-
-/frontend/node_modules
-/frontend/dist
-/frontend/.env
-/frontend/build
-/frontend/.env

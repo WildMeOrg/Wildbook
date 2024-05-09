@@ -274,10 +274,6 @@ public class IdentityServiceLog implements java.io.Serializable {
 */
 
     public JSONObject toJSONObject() {
-    	return toJSONObject(false);
-    }
-    
-    public JSONObject toJSONObject(boolean completed) {
         JSONObject j = new JSONObject();
         j.put("serviceName", this.getServiceName());
         j.put("serviceJobId", this.getServiceJobID());
@@ -285,13 +281,8 @@ public class IdentityServiceLog implements java.io.Serializable {
         j.put("timestamp", this.getTimestamp());
         if (this.getObjectIDs() != null) j.put("objectIds", new JSONArray(this.getObjectIDs()));
         j.put("status", this.getStatusJson());
-        if(!completed) {
-        	String queueStatus = WbiaQueueUtil.getStatusWBIAJob(this.getTaskID(), false);
-        	if(queueStatus!=null)j.put("queueStatus", queueStatus);
-        }
-        else {
-        	j.put("queueStatus", "complete");
-        }
+        String queueStatus = WbiaQueueUtil.getStatusWBIAJob(this.getTaskID(), false);
+        if(queueStatus!=null)j.put("queueStatus", queueStatus);
         return j;
     }
 

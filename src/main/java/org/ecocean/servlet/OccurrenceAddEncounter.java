@@ -124,7 +124,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
       } 
       else {
         //out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> You are trying to add this encounter to a sighting ID that does not exist.");
+        out.println("<strong>Error:</strong> You can't add this encounter to an occurrence when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent occurrence.");
         //out.println(ServletUtilities.getFooter(context));
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         myShepherd.rollbackDBTransaction();

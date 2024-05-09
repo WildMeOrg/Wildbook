@@ -190,11 +190,6 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
-    public Long getTimeLastModifiedLongNonNull() {
-        if (dateLastModifiedLong != null) return dateLastModifiedLong;
-        return -1L;
-    }
-
     public void setResearchProjectName(final String researchProjectName) {
         setTimeLastModified();
         this.researchProjectName = researchProjectName;

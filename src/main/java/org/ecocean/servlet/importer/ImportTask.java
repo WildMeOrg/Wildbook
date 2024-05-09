@@ -8,7 +8,6 @@ import java.util.HashMap;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
-import org.ecocean.MarkedIndividual;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
@@ -66,16 +65,6 @@ public class ImportTask implements java.io.Serializable {
     }
     public User getCreator() {
         return creator;
-    }
-
-    public List<MarkedIndividual> getMarkedIndividuals() {
-        if (encounters == null) return null;
-        List<MarkedIndividual> all = new ArrayList<MarkedIndividual>();
-        for (Encounter enc : encounters) {
-            MarkedIndividual indiv = enc.getIndividual();
-            if ((indiv != null) && !all.contains(indiv)) all.add(indiv);
-        }
-        return all;
     }
 
     //TODO should we consider occ.assets ?

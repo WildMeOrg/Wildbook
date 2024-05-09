@@ -12,8 +12,7 @@ org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.identity.*,
 org.ecocean.Project,
-org.ecocean.media.*,
-org.ecocean.ia.Task"
+org.ecocean.media.*"
 %>
 
 
@@ -23,7 +22,6 @@ org.ecocean.ia.Task"
 String id = request.getParameter("id");
 String taskId = request.getParameter("taskId");
 String projectId = request.getParameter("projectId");
-boolean taskCompleted=false;
 if ((id == null) && (taskId == null)) {
 	out.println("{\"success\": false, \"error\": \"no object/task id passed\"}");
 	return;
@@ -32,17 +30,7 @@ if ((id == null) && (taskId == null)) {
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.setAction("iaLogs.jsp");
 
-
-
 myShepherd.beginDBTransaction();
-
-//if the Task is completed, we can skip some checks
-if(request.getParameter("taskId")!=null){
-	Task t=myShepherd.getTask(request.getParameter("taskId"));
-	if(t!=null && t.getCompletionDateInMilliseconds()!=null){
-		taskCompleted=true;
-	}
-}
 
 try{
 	
@@ -50,7 +38,6 @@ try{
 	if (id != null) {
 		logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", id, myShepherd);
 	} else {
-		
 		logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
 		Collections.reverse(logs);  //so it has newest first like mostRecent above
 	}
@@ -77,10 +64,11 @@ try{
 	}
 	
 	for (IdentityServiceLog l : logs) {
-		all.put(l.toJSONObject(taskCompleted));
+		all.put(l.toJSONObject());
 	}
 	
-
+	
+	
 	out.println(all.toString());
 
 }

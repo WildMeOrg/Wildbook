@@ -1,0 +1,159 @@
+<html><head><title>YouTube results</title>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script>
+
+
+$(document).ready(function() {
+	init();
+});
+
+
+function init() {
+	checkStatus(document.location.search.substring(1));
+}
+
+function checkStatus(taskId) {
+	$('#results').html('<p>checking on <b>' + taskId + '</b></p>');
+	$.ajax({
+		url: 'iaLogs.jsp?taskId=' + taskId,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(d) { showResults(d); }
+	});
+}
+
+function showResults(d) {
+	console.info(d);
+	if (!d || !d.responseJSON || !d.responseJSON.length) {
+		$('#results').html('<p class="error">there was an error getting results</p>');
+		return;
+	}
+	$('#results').html('');
+	for (var i = 0 ; i < d.responseJSON.length ; i++) {
+console.log(d.responseJSON[i]);
+		showLogEntry(d.responseJSON[i]);
+	}
+}
+
+function showLogEntry(entry) {
+	var h = '<div class="entry action-' + ((entry.status && entry.status._action) ? entry.status._action : 'unknownaction') + '">';
+	if (entry.timestamp) {
+		h += '<span class="timestamp">' + new Date(entry.timestamp).toLocaleString() + '</span>';
+	} else {
+		h += '<span class="timestamp">(unknown time)</span>';
+	}
+	var taskid = (entry.serviceJobId ? 'title="serviceJobId: ' + entry.serviceJobId + '" ' : '');
+	if (!entry.status) {
+		h += '<span ' + taskid + 'class="action error">no status</span>';
+	} else {
+		h += '<span ' + taskid + 'class="action">' + (entry.status._action || '(unknown action)') + '</span>';
+
+		var w = 75;
+		if (entry.status.collatedEncounters && (entry.status.collatedEncounters.length > 0)) {
+			h += '<span style="width: ' + (entry.status.needReview ? 20 : w) + '%;" class="enc"><b>' + entry.status.collatedEncounters.length + ' encounter' + (entry.status.collatedEncounters.length == 1 ? '' : 's') + '</b> made! ';
+			h += '<a title="' + entry.status.collatedOccurrence + '" href="occurrence.jsp?number=' + entry.status.collatedOccurrence + '" target="_new">occurrence</a>';
+			h += '</span>';
+			w -= 20;
+		}
+
+		if (entry.status.needReview) {
+			h += '<span style="width: ' + w + '%;" class="reviews">frames detected, but low confidence: ';
+			for (var i = 0 ; i < entry.status.needReview.length ; i++) {
+				h += '<a target="_new" href="obrowse.jsp?type=MediaAsset&id=' + entry.status.needReview[i] + '">' + entry.status.needReview[i] + '</a> ';
+			}
+			h += '</span>';
+		} else if ((entry.status._action == 'getJobResult') && entry.status._response && entry.status._response.response && entry.status._response.response.json_result && entry.status._response.response.json_result.results_list) {
+			h += '<span class="other"><div class="detail-button">detection results <div class="detail-body">' + JSON.stringify(entry.status._response.response.json_result.results_list, null, 4) + '</div></div></span>'
+		}
+	}
+	h += '</div>';
+	$('.detail-button').on('click', function(ev) {
+		$('#detail-info').html('<pre>' + $(ev.target).find('.detail-body').html() + '</pre>');
+	});
+	$('#results').append(h);
+}
+
+</script>
+<style>
+body {
+	font-family: arial, sans;
+}
+
+.entry {
+	font-size: 0.8em;
+	margin: 3px;
+	background-color: #DDF;
+	padding: 3px;
+}
+
+.entry span {
+	margin: 0 8px;
+	white-space: nowrap;
+	overflow: hidden;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+
+.timestamp {
+	width: 10%;
+	font-size: 0.9em;
+	color: #555;
+}
+
+.action-processedCallbackDetect {
+	background-color: #9DA;
+}
+
+.action {
+	width: 10%;
+	font-weight: bold;
+	font-size: 0.85em;
+	color: #025;
+}
+
+
+.reviews:hover {
+	white-space: normal;
+}
+
+.enc {
+	background-color: #DD0;
+	text-align: center;
+}
+
+.reviews a, .enc a {
+	text-decoration: none;
+	color: #EEE;
+	background-color: #888;
+	cursor: pointer;
+	border-radius: 3px;
+	font-size: 0.8em;
+	padding: 0 3px;
+}
+.reviews a:hover, .enc a {
+	background-color: #555;
+}
+
+.detail-button {
+	display: inline-block;
+	cursor: pointer;
+	background-color: #EEE;
+	font-size: 0.9em;
+	padding: 0 3px;
+	border-radius: 3px;
+}
+.detail-body {
+	display: none;
+}
+</style>
+
+</head>
+<body>
+
+<div id="results"></div>
+
+<div id="detail-info"></div>
+
+</body>
+</html>

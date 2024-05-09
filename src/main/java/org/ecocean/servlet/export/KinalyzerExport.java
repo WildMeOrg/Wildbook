@@ -21,12 +21,7 @@ import java.net.URI;
 
 
 
-/*
- * Originally created to support allele export for kinship analysis with the University of Chicago's
- * Kinalyzer tool (now gone), this export format has been modified to be a generic inividual genetics tool,
- * allowing for export of individual ID, haplotype, genetic sex, and named allele pairs for any species.
- * 
- */
+//adds spots to a new encounter
 public class KinalyzerExport extends HttpServlet{
   
 
@@ -53,7 +48,7 @@ public class KinalyzerExport extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("IndividualSearchGeneticsExport");
+    myShepherd.setAction("KinalyzerExport");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -63,7 +58,7 @@ public class KinalyzerExport extends HttpServlet{
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdirs();}
 
-    String kinFilename = "individualSearch_genetics_export_" + request.getRemoteUser() + ".csv";
+    String kinFilename = "kinalyzer_export_" + request.getRemoteUser() + ".csv";
     File kinFile = new File(encountersDir.getAbsolutePath()+"/" + kinFilename);
 
 
@@ -89,61 +84,31 @@ public class KinalyzerExport extends HttpServlet{
         query2Individuals = queryResult2.getResult();
         int numSearch2Individuals = query2Individuals.size();
         
-        //now let's start writing header row
-        String headerRow = "Individual ID, Individual Default Name, Haplotype, Genetic Sex";
+        //now let's start writing output
+        
         
         //Lines 2+: write the loci
         //let's calculate Fst for each of the loci
         //iterate through the loci
         List<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
-        ArrayList<String> allowedLoci=new ArrayList<String>();
-        
-        //filter to only loci of query individuals
-        for(int i=0;i<numSearch2Individuals;i++){
-            MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(i);
-            for(int r=0;r<numLoci;r++){
-            	if(indie.hasLocus(loci.get(r))) {
-            		if(!allowedLoci.contains(loci.get(r))) {allowedLoci.add(loci.get(r));}
-            	}
-            }
-        }
-        int numAllowedLoci=allowedLoci.size();
-        
-        //let's add loci to the header row
-        for(int r=0;r<numAllowedLoci;r++){
-            String locus=allowedLoci.get(r);
-            headerRow+=", "+locus+" Allele1";
-            headerRow+=", "+locus+" Allele2";
-        }
 
-        //write out header row
-        outp.write(headerRow+"\r\n");
+        //List<String> haplos=myShepherd.getAllHaplotypes();
+        //int numHaplos=haplos.size();
+        
         
         //now write out POP2 for search2
         for(int i=0;i<numSearch2Individuals;i++){
           MarkedIndividual indie=(MarkedIndividual)query2Individuals.get(i);
           boolean hasValues=false;
+          //outp.write("Sample_ID,Individual_ID,Latitude,Longitude,Date_Time,Region,Sex,Haplotype"+locusString.toString()+",Occurrence_ID\n");
           
-          //add individual UUID
+          
           String lociString=indie.getIndividualID()+",";
-          
-          //add individual default name
-          lociString+=indie.getDefaultName()+",";
-          
-          //add individual haplotype
-          String haploString="";
-          if(indie.getHaplotype()!=null)haploString=indie.getHaplotype();
-          lociString+=haploString+",";
-          
-          //add individualgenetic sex
-          String sexString="";
-          if(indie.getGeneticSex()!=null)sexString=indie.getGeneticSex();
-          lociString+=sexString+",";
-          
-
-          for(int r=0;r<numAllowedLoci;r++){
-            String locus=allowedLoci.get(r);
+          //NumberFormat myFormat = NumberFormat.getInstance();
+          //myFormat.setMinimumIntegerDigits(3);
+          for(int r=0;r<numLoci;r++){
+            String locus=loci.get(r);
             ArrayList<Integer> values=indie.getAlleleValuesForLocus(locus);
             if(indie.getAlleleValuesForLocus(locus).size()==2){
               lociString+=(values.get(0)+",");
@@ -154,8 +119,7 @@ public class KinalyzerExport extends HttpServlet{
               lociString+=(values.get(0)+","+values.get(0)+",");
               hasValues=true;
             }
-            //else{lociString+="-1,-1,";}
-            else{lociString+=",,";}
+            else{lociString+="-1,-1,";}
 
           }
           
@@ -163,7 +127,7 @@ public class KinalyzerExport extends HttpServlet{
 
           if(hasValues)outp.write(lociString.substring(0, (length-1))+"\r\n");
          
-
+          //test
           
         }
         
@@ -199,12 +163,10 @@ public class KinalyzerExport extends HttpServlet{
       //out.println("<p><strong>Error encountered</strong></p>");
       //out.println("<p>Please let the webmaster know you encountered an error at: KinalyzerExport servlet.</p>");
       e.printStackTrace();
-
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
-    finally{
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
+    myShepherd=null;
     //out.close();
     //out=null;
   }
