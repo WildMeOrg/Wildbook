@@ -26,6 +26,8 @@
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
+             org.ecocean.Util,
+             org.ecocean.Organization,
              java.util.Properties,
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
@@ -66,7 +68,7 @@ String organization = request.getParameter("organization");
 if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
-String notifications="";
+
 //check if user is logged in and has pending notifications
 if(request.getUserPrincipal()!=null){
 	Shepherd myShepherd = new Shepherd(context);
@@ -406,15 +408,18 @@ if(request.getUserPrincipal()!=null){
 	                      if(request.getUserPrincipal()!=null){
 	                    	  //myShepherd = new Shepherd(context);
 	                    	  //myShepherd.setAction("header.jsp");
+	                    	  	Shepherd myShepherd = new Shepherd(context);
+								myShepherd.setAction("header.jsp2");
+								myShepherd.beginDBTransaction();
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
 	                        	  notifications=Collaboration.getNotificationsWidgetHtml(request,myShepherd) ;
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
+		                    	  //String username = request.getUserPrincipal().toString();
+		                    	  //User user = myShepherd.getUser(username);
 		                    	  String fullname=username;
 		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+		                    	  //String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 		                          if(user.getUserImage()!=null){
 		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
 		                          }
@@ -427,6 +432,7 @@ if(request.getUserPrincipal()!=null){
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
+	                          finally{myShepherd.rollbackAndClose();}
 
 	                      }
 	                      else{
@@ -899,7 +905,6 @@ if(request.getUserPrincipal()!=null){
 
         <%
         //close up the Shepherd
-  	  myShepherd.rollbackDBTransaction();
-  	  myShepherd.closeDBTransaction();
+
 
         %>
