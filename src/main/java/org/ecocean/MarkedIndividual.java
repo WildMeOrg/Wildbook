@@ -1,22 +1,3 @@
-/*
- * Wildbook - A Mark-Recapture Framework
- * Copyright (C) 2011-2013 Jason Holmberg
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 package org.ecocean;
 
 import java.io.IOException;
@@ -2641,7 +2622,11 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         NAMES_KEY_CACHE = new HashMap<Integer,String>();
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
         Collection c = (Collection) (query.execute());
+        int numIndividuals = c.size();
+        int currentIndy=0;
         for (Object m : c) {
+            currentIndy++;
+            myShepherd.setAction("MarkedIndividual.initNamesCache_"+currentIndy+"_"+numIndividuals);
             MarkedIndividual ind = (MarkedIndividual) m;
             if (ind.names == null) continue;
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
