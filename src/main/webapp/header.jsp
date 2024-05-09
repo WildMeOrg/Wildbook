@@ -38,23 +38,21 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
+
+
+
+
+
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+String homeLinkTarget = urlLoc;
+
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
-
-
-boolean isUserLoggedIn = false;
-if (request.getUserPrincipal()!=null) {
-  isUserLoggedIn = true;
-}
-String homeLinkTarget = urlLoc;
-if (!isUserLoggedIn) {
-  homeLinkTarget = "https://spotasharkusa.com/";
-}
 
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
@@ -66,12 +64,24 @@ if (pageTitle == null) {
 
 String username = null;
 User user = null;
-String profilePhotoURL=urlLoc+"/images/image-not-found.jpg";
+String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+// we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
 boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
+boolean indocetUser = false;
+String organization = request.getParameter("organization");
+if (organization!=null && organization.toLowerCase().equals("indocet"))  {
+  indocetUser = true;
+}
 String notifications="";
+
+boolean isUserLoggedIn=false;
+
 //check if user is logged in and has pending notifications
 if(request.getUserPrincipal()!=null){
+	isUserLoggedIn=true;
+	homeLinkTarget = "https://spotasharkusa.com/";
+	
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction("header.jsp");
 	myShepherd.beginDBTransaction();
@@ -100,29 +110,7 @@ if(request.getUserPrincipal()!=null){
 	  myShepherd.closeDBTransaction();
 	}
 
-myShepherd.beginDBTransaction();
-try {
-
-	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
-  if(request.getUserPrincipal()!=null && !loggingOut){
-    user = myShepherd.getUser(request);
-    username = (user!=null) ? user.getUsername() : null;
-  	if(user.getUserImage()!=null){
-  	  profilePhotoURL="/wildbook_data_dir/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-      System.out.println("new profilePhotoURL is: " + profilePhotoURL);
-  	}
-  }
 }
-catch(Exception e){
-  e.printStackTrace();
-  myShepherd.closeDBTransaction();
-}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
-
 %>
 
 <html>
