@@ -1,17 +1,14 @@
 /*
  * The Shepherd Project - A Mark-Recapture Framework
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package org.ecocean;
 
@@ -53,15 +50,13 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 
 /**
- * <code>Shepherd</code>	is the main	information	retrieval, processing, and
- * persistence class to	be used	for	all	shepherd project applications. The
- *<code>shepherd</code>	class interacts directly with the database and	all	persistent objects
- * stored within it. Any application seeking access to	whale shark	data must invoke an	instance
- * of	shepherd first and use it to retrieve any data stored in the database.
+ * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd
+ * project applications. The
+ *<code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it. Any application seeking access to	whale
+ * shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored in the database.
  * <p/>
- * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no
- * data can be retrieved until a new Transaction has been	started. Changes made using the
- * Transaction must be committed (store changes) or rolled back (ignore changes) before the
+ * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data can be retrieved until a new
+ * Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes) before the
  * application can finish. Example:
  * <p align="center"><code>
  * <p/>
@@ -149,14 +144,12 @@ public class Shepherd {
     // }
 
     /**
-     * Stores a new, unassigned encounter in the database for later retrieval and analysis. Each new
-     * encounter is assigned a unique number which is also its unique retrievable ID in the
-     * database. This method will be the primary method used for future web submissions to shepherd
-     * from web-based applications.
+     * Stores a new, unassigned encounter in the database for later retrieval and analysis. Each new encounter is assigned a unique number which is
+     * also its unique retrievable ID in the database. This method will be the primary method used for future web submissions to shepherd from
+     * web-based applications.
      *
      * @param enc the new, unassociated encounter to be considered for addition to the database
-     * @return an Integer number that represents the unique number of this new encounter in the
-     * datatbase
+     * @return an Integer number that represents the unique number of this new encounter in the datatbase
      * @ see encounter
      */
     public String storeNewEncounter(Encounter enc, String uniqueID) {
@@ -347,8 +340,8 @@ public class Shepherd {
         } catch (Exception e) {
             rollbackDBTransaction();
             e.printStackTrace();
-            System.out.println("I failed to store the new ScanTask number: " + scanTask.
-                    getUniqueNumber());
+            System.out.println("I failed to store the new ScanTask number: " +
+                scanTask.getUniqueNumber());
             return false;
         }
     }
@@ -596,8 +589,8 @@ public class Shepherd {
         Encounter tempEnc = null;
 
         try {
-            tempEnc = ((Encounter)(pm.getObjectById(pm.newObjectIdInstance(Encounter.class, num.trim
-                ()), true)));
+            tempEnc = ((Encounter)(pm.getObjectById(pm.newObjectIdInstance(Encounter.class,
+                num.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -608,8 +601,8 @@ public class Shepherd {
         ImportTask tempEnc = null;
 
         try {
-            tempEnc = ((ImportTask)(pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, num.
-                    trim()), true)));
+            tempEnc = ((ImportTask)(pm.getObjectById(pm.newObjectIdInstance(ImportTask.class,
+                num.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -620,8 +613,8 @@ public class Shepherd {
         Annotation annot = null;
 
         try {
-            annot = ((Annotation)(pm.getObjectById(pm.newObjectIdInstance(Annotation.class, uuid.
-                    trim()), true)));
+            annot = ((Annotation)(pm.getObjectById(pm.newObjectIdInstance(Annotation.class,
+                uuid.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -632,8 +625,8 @@ public class Shepherd {
         MediaAsset tempMA = null;
 
         try {
-            tempMA = ((MediaAsset)(pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.
-                    trim()), true)));
+            tempMA = ((MediaAsset)(pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class,
+                num.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -766,8 +759,8 @@ public class Shepherd {
 
     public ArrayList<MediaAsset> getMediaAssetsForOwner(String owner, String status) {
         String enquotedOwner = (owner == null || owner.equals("")) ? "null" : "\"" + owner + "\"";
-        String enquotedStatus = (status == null || status.equals("")) ? "null" : "\"" + status +
-            "\"";
+        String enquotedStatus = (status == null ||
+            status.equals("")) ? "null" : "\"" + status + "\"";
         String filter = "accessControl.username == " + enquotedOwner + " && detectionStatus == " +
             enquotedStatus;
         Extent allMediaAssets = pm.getExtent(MediaAsset.class, true);
@@ -853,11 +846,11 @@ public class Shepherd {
         return null;
     }
 
-    public Relationship getRelationship(String type, String indie1, String indie2, String indieRole1
-        , String indieRole2) {
+    public Relationship getRelationship(String type, String indie1, String indie2,
+        String indieRole1, String indieRole2) {
         Relationship tempRel = null;
-        String filter = "this.type == \"" + type + "\" && this.markedIndividualName1 == \"" + indie1
-            + "\" && this.markedIndividualName2 == \"" + indie2 +
+        String filter = "this.type == \"" + type + "\" && this.markedIndividualName1 == \"" +
+            indie1 + "\" && this.markedIndividualName2 == \"" + indie2 +
             "\" && this.markedIndividualRole1 == \"" + indieRole1 +
             "\" && this.markedIndividualRole2 == \"" + indieRole2 + "\"";
         Extent encClass = pm.getExtent(Relationship.class, true);
@@ -880,11 +873,11 @@ public class Shepherd {
         return null;
     }
 
-    public Relationship getRelationship(String type, String indie1, String indie2, String indieRole1
-        , String indieRole2, String relatedCommunityName) {
+    public Relationship getRelationship(String type, String indie1, String indie2,
+        String indieRole1, String indieRole2, String relatedCommunityName) {
         Relationship tempRel = null;
-        String filter = "this.type == \"" + type + "\" && this.markedIndividualName1 == \"" + indie1
-            + "\" && this.markedIndividualName2 == \"" + indie2 +
+        String filter = "this.type == \"" + type + "\" && this.markedIndividualName1 == \"" +
+            indie1 + "\" && this.markedIndividualName2 == \"" + indie2 +
             "\" && this.markedIndividualRole1 == \"" + indieRole1 +
             "\" && this.markedIndividualRole2 == \"" + indieRole2 +
             "\" && this.relatedSocialUnitName == \"" + relatedCommunityName + "\"";
@@ -912,8 +905,8 @@ public class Shepherd {
         SocialUnit tempCom = null;
 
         try {
-            tempCom = ((SocialUnit)(pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class, name.
-                    trim()), true)));
+            tempCom = ((SocialUnit)(pm.getObjectById(pm.newObjectIdInstance(SocialUnit.class,
+                name.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -973,8 +966,8 @@ public class Shepherd {
         SinglePhotoVideo tempEnc = null;
 
         try {
-            tempEnc = ((SinglePhotoVideo)(pm.getObjectById(pm.newObjectIdInstance(SinglePhotoVideo.
-                    class, num.trim()), true)));
+            tempEnc = ((SinglePhotoVideo)(pm.getObjectById(pm.newObjectIdInstance(
+                SinglePhotoVideo.class, num.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -987,8 +980,8 @@ public class Shepherd {
 
         for (int i = 0; i < numRoles; i++) {
             Role kw = (Role)roles.get(i);
-            if ((kw.getRolename().equals(rolename)) && (kw.getUsername().equals(username)) && (kw.
-                    getContext().equals(context))) {
+            if ((kw.getRolename().equals(rolename)) && (kw.getUsername().equals(username)) &&
+                (kw.getContext().equals(context))) {
                 return kw;
             }
         }
@@ -1286,8 +1279,8 @@ public class Shepherd {
         User user = null;
 
         try {
-            user = ((User)(pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()), true)))
-                ;
+            user = ((User)(pm.getObjectById(pm.newObjectIdInstance(User.class, uuid.trim()),
+                true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -1337,8 +1330,8 @@ public class Shepherd {
         return null;
     }
 
-    public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID, String
-        encounterNumber, String analysisID) {
+    public MitochondrialDNAAnalysis getMitochondrialDNAAnalysis(String sampleID,
+        String encounterNumber, String analysisID) {
         try {
             MitochondrialDNAAnalysis mtDNA = (MitochondrialDNAAnalysis)getGeneticAnalysis(sampleID,
                 encounterNumber, analysisID, "MitochondrialDNA");
@@ -1382,8 +1375,8 @@ public class Shepherd {
         }
     }
 
-    public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID, String
-        encounterNumber, String analysisID) {
+    public MicrosatelliteMarkersAnalysis getMicrosatelliteMarkersAnalysis(String sampleID,
+        String encounterNumber, String analysisID) {
         try {
             MicrosatelliteMarkersAnalysis msDNA = (MicrosatelliteMarkersAnalysis)getGeneticAnalysis(
                 sampleID, encounterNumber, analysisID, "MicrosatelliteMarkers");
@@ -1480,8 +1473,8 @@ public class Shepherd {
         ScanTask tempTask = null;
 
         try {
-            tempTask = ((ScanTask)(pm.getObjectById(pm.newObjectIdInstance(ScanTask.class, uniqueID.
-                    trim()), true)));
+            tempTask = ((ScanTask)(pm.getObjectById(pm.newObjectIdInstance(ScanTask.class,
+                uniqueID.trim()), true)));
         } catch (Exception nsoe) {
             return null;
         }
@@ -1507,14 +1500,14 @@ public class Shepherd {
         // lookout!  hactacular uuid-ahead!
         if (scientificName.matches(
             "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")) {
-            System.out.println("WARNING: Shepherd.getTaxonomy() assuming passed '" + scientificName
-                + "' is UUID; hack is passing to getTaxonomyById()");
+            System.out.println("WARNING: Shepherd.getTaxonomy() assuming passed '" +
+                scientificName + "' is UUID; hack is passing to getTaxonomyById()");
             return getTaxonomyById(scientificName);
         }
         List al = new ArrayList();
         try {
-            String filter = "this.scientificName.toLowerCase() == \"" + scientificName.toLowerCase()
-                + "\"";
+            String filter = "this.scientificName.toLowerCase() == \"" +
+                scientificName.toLowerCase() + "\"";
             Extent keyClass = pm.getExtent(Taxonomy.class, true);
             Query acceptedKeywords = pm.newQuery(keyClass, filter);
             Collection c = (Collection)(acceptedKeywords.execute());
@@ -1575,8 +1568,8 @@ public class Shepherd {
 
         while (keywords.hasNext()) {
             Keyword kw = keywords.next();
-            if ((kw.getReadableName() != null && kw.getReadableName().equals(readableName)) || (kw.
-                    getIndexname().equals(readableName))) { return kw; }
+            if ((kw.getReadableName() != null && kw.getReadableName().equals(readableName)) ||
+                (kw.getIndexname().equals(readableName))) { return kw; }
         }
         return null;
     }
@@ -1761,8 +1754,8 @@ public class Shepherd {
 
     public boolean isSurvey(String num) {
         try {
-            Survey tempSvy = ((org.ecocean.Survey)(pm.getObjectById(pm.newObjectIdInstance(Survey.
-                    class, num.trim()), true)));
+            Survey tempSvy = ((org.ecocean.Survey)(pm.getObjectById(pm.newObjectIdInstance(
+                Survey.class, num.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -1771,8 +1764,8 @@ public class Shepherd {
 
     public boolean isSurveyTrack(String num) {
         try {
-            SurveyTrack tempTrack = ((org.ecocean.movement.SurveyTrack)(pm.getObjectById(pm.
-                    newObjectIdInstance(SurveyTrack.class, num.trim()), true)));
+            SurveyTrack tempTrack = ((org.ecocean.movement.SurveyTrack)(pm.getObjectById(
+                pm.newObjectIdInstance(SurveyTrack.class, num.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -1803,8 +1796,8 @@ public class Shepherd {
 
     public boolean isCommunity(String comName) {
         try {
-            SocialUnit tempCom = ((org.ecocean.social.SocialUnit)(pm.getObjectById(pm.
-                    newObjectIdInstance(SocialUnit.class, comName.trim()), true)));
+            SocialUnit tempCom = ((org.ecocean.social.SocialUnit)(pm.getObjectById(
+                pm.newObjectIdInstance(SocialUnit.class, comName.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -1909,8 +1902,8 @@ public class Shepherd {
         return null;
     }
 
-    public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String
-        analysisID, String type) {
+    public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber,
+        String analysisID, String type) {
         String filter = "this.analysisType == \"" + type + "\" && this.analysisID == \"" +
             analysisID + "\" && this.sampleID == \"" + sampleID +
             "\" && this.correspondingEncounterNumber == \"" + encounterNumber + "\"";
@@ -1956,8 +1949,8 @@ public class Shepherd {
 
     public boolean isSinglePhotoVideo(String indexname) {
         try {
-            SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo)(pm.getObjectById(pm.
-                    newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
+            SinglePhotoVideo tempEnc = ((org.ecocean.SinglePhotoVideo)(pm.getObjectById(
+                pm.newObjectIdInstance(SinglePhotoVideo.class, indexname.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -1976,8 +1969,8 @@ public class Shepherd {
 
     public boolean isMarkedIndividual(String name) {
         try {
-            MarkedIndividual tempShark = ((org.ecocean.MarkedIndividual)(pm.getObjectById(pm.
-                    newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+            MarkedIndividual tempShark = ((org.ecocean.MarkedIndividual)(pm.getObjectById(
+                pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -1990,8 +1983,8 @@ public class Shepherd {
 
     public boolean isOccurrence(String name) {
         try {
-            Occurrence tempShark = ((org.ecocean.Occurrence)(pm.getObjectById(pm.newObjectIdInstance
-                (Occurrence.class, name.trim()), true)));
+            Occurrence tempShark = ((org.ecocean.Occurrence)(pm.getObjectById(
+                pm.newObjectIdInstance(Occurrence.class, name.trim()), true)));
         } catch (Exception nsoe) {
             return false;
         }
@@ -2022,9 +2015,9 @@ public class Shepherd {
         return true;
     }
 
-    public boolean isRelationship(String type, String markedIndividualName1, String
-        markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, boolean
-        checkBidirectional) {
+    public boolean isRelationship(String type, String markedIndividualName1,
+        String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2,
+        boolean checkBidirectional) {
         try {
             if (getRelationship(type, markedIndividualName1, markedIndividualName2,
                 markedIndividualRole1, markedIndividualRole2) != null) {
@@ -2042,9 +2035,9 @@ public class Shepherd {
         return false;
     }
 
-    public boolean isRelationship(String type, String markedIndividualName1, String
-        markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2, String
-        relatedCommunityName, boolean checkBidirectional) {
+    public boolean isRelationship(String type, String markedIndividualName1,
+        String markedIndividualName2, String markedIndividualRole1, String markedIndividualRole2,
+        String relatedCommunityName, boolean checkBidirectional) {
         try {
             if (getRelationship(type, markedIndividualName1, markedIndividualName2,
                 markedIndividualRole1, markedIndividualRole2, relatedCommunityName) != null) {
@@ -2077,8 +2070,7 @@ public class Shepherd {
      * Retrieves any unassigned encounters that are stored in the database - but not yet analyzed -
      * to see whether they represent new or already persistent sharks
      *
-     * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned
-     * to an existing shark in the database
+     * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
      * @see encounter, java.util.Iterator
      */
     /*
@@ -2133,8 +2125,8 @@ public class Shepherd {
          * Iterator it = c.iterator();
          * return it;
          * } catch (Exception npe) {
-         * System.out.println("Error encountered when trying to execute getAllEncountersNoFilter.
-         * Returning a null collection because I didn't have a transaction to use.");
+         * System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a
+         * transaction to use.");
          * npe.printStackTrace();
          * return null;
          * }*/
@@ -2348,8 +2340,8 @@ public class Shepherd {
          * Iterator it = list.iterator();
          * return it;
          * } catch (Exception npe) {
-         * System.out.println("Error encountered when trying to execute getAllEncounters. Returning
-         * a null collection because I didn't have a transaction to use.");
+         * System.out.println("Error encountered when trying to execute getAllEncounters. Returning a null collection because I didn't have a
+         * transaction to use.");
          * npe.printStackTrace();
          * return null;
          * }*/
@@ -2618,8 +2610,8 @@ public class Shepherd {
  *    Iterator it = list.iterator();
  *    return it;
  *  } catch (Exception npe) {
- *    System.out.println("Error encountered when trying to execute getAllEncounters. Returning a
- * null collection because I didn't have a transaction to use.");
+ *    System.out.println("Error encountered when trying to execute getAllEncounters. Returning a null collection because I didn't have a transaction
+ * to use.");
  *    npe.printStackTrace();
  *    return null;
  *  }
@@ -2628,11 +2620,9 @@ public class Shepherd {
  */
 
     /**
-     * Retrieves all encounters that are stored in the database in the order specified by the input
-     * String
+     * Retrieves all encounters that are stored in the database in the order specified by the input String
      *
-     * @return an Iterator of all valid whale shark encounters stored in the visual database,
-     * arranged by the input String
+     * @return an Iterator of all valid whale shark encounters stored in the visual database, arranged by the input String
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllEncounters(String order) {
@@ -2751,11 +2741,9 @@ public class Shepherd {
     }
 
     /**
-     * Retrieves a filtered list of encounters that are stored in the database in the order
-     * specified by the input String
+     * Retrieves a filtered list of encounters that are stored in the database in the order specified by the input String
      *
-     * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged
-     * by the input String
+     * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged by the input String
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
@@ -2812,8 +2800,8 @@ public class Shepherd {
 
     public User getUserByHashedEmailAddress(String hashedEmail) {
         ArrayList<User> users = new ArrayList<User>();
-        String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \"" + hashedEmail
-            + "\"";
+        String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \"" +
+            hashedEmail + "\"";
         Query query = getPM().newQuery(filter);
         Collection c = (Collection)(query.execute());
 
@@ -2857,8 +2845,8 @@ public class Shepherd {
         }
         return null;
 
-/*   TODO figure out how to query on HashMaps within fields String filter="SELECT FROM
- * org.ecocean.User WHERE social_" + service + " == \"" + id + "\"";
+/*   TODO figure out how to query on HashMaps within fields String filter="SELECT FROM org.ecocean.User WHERE social_" + service + " == \"" + id +
+   "\"";
  *  Query query=getPM().newQuery(filter);
  *  Collection c = (Collection) (query.execute());
  *  Iterator it = c.iterator();
@@ -2919,8 +2907,8 @@ public class Shepherd {
         return projectArr;
     }
 
-    public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(MarkedIndividual
-        indiv) {
+    public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(
+        MarkedIndividual indiv) {
         HashMap<String, Integer> hmap = new HashMap<String, Integer>();
         TreeMap<String, Integer> map = new TreeMap<String, Integer>();
         String filter =
@@ -2989,8 +2977,8 @@ public class Shepherd {
     public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
         ArrayList<TissueSample> al = new ArrayList<TissueSample>();
         Query q = getPM().newQuery(
-            "SELECT FROM org.ecocean.genetics.TissueSample WHERE indy.individualID == '" + indy.
-                getIndividualID() +
+            "SELECT FROM org.ecocean.genetics.TissueSample WHERE indy.individualID == '" +
+            indy.getIndividualID() +
             "' && indy.encounters.contains(enc) && enc.tissueSamples.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.MarkedIndividual indy");
 
         try {
@@ -3038,9 +3026,8 @@ public class Shepherd {
 
 /*
  * public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
- *        String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE
- * keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES
- * org.ecocean.Keyword word0";
+ *        String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname ==
+ * \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
  *    Query samples = pm.newQuery(keywordQueryString);
  *        Collection c = (Collection) (samples.execute());
  *          ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
@@ -3060,8 +3047,8 @@ public class Shepherd {
         return myArray;
     }
 
-    public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[]
-        kwReadableNames, int maxResults) {
+    public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy,
+        String[] kwReadableNames, int maxResults) {
         String filter =
             "SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individual.individualID == \""
             + indy.getIndividualID() + "\" ";
@@ -3101,9 +3088,8 @@ public class Shepherd {
     // this method returns the MediaAsset on an Indy with the given keyword, with preference
     // for assets with the additional keyword "ProfilePhoto"
     public MediaAsset getBestKeywordPhoto(MarkedIndividual indy, String kwName) {
-        List<MediaAsset> results = getKeywordPhotosForIndividual(indy, new String[] { kwName,
-                                                                                      "ProfilePhoto" },
-            1);
+        List<MediaAsset> results = getKeywordPhotosForIndividual(indy,
+            new String[] { kwName, "ProfilePhoto" }, 1);
         MediaAsset result = (results != null && results.size() > 0) ? results.get(0) : null;
 
         if (result != null) return (result);
@@ -3113,8 +3099,8 @@ public class Shepherd {
         return null;
     }
 
-    public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID)
-            {
+    public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(
+        String locationID) {
         ArrayList<MarkedIndividual> myArray = new ArrayList<MarkedIndividual>();
         String keywordQueryString =
             "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ( enc.locationID == \""
@@ -3144,8 +3130,8 @@ public class Shepherd {
         return myArray;
     }
 
-    public ArrayList<Encounter> getAllEncountersForSpeciesWithSpots(String genus, String
-        specificEpithet) {
+    public ArrayList<Encounter> getAllEncountersForSpeciesWithSpots(String genus,
+        String specificEpithet) {
         String keywordQueryString = "SELECT FROM org.ecocean.Encounter WHERE genus == '" + genus +
             "' && specificEpithet == '" + specificEpithet + "' && spots != null";
         Query samples = pm.newQuery(keywordQueryString);
@@ -3355,11 +3341,9 @@ public class Shepherd {
     }
 
     /**
-     * Retrieves all encounters that are stored in the database but which have been rejected for the
-     * visual database
+     * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
      *
-     * @return an Iterator of all whale shark encounters stored in the database that are
-     * unacceptable for the visual ID library
+     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
@@ -3373,11 +3357,9 @@ public class Shepherd {
     }
 
     /**
-     * Retrieves all new encounters that are stored in the database but which have been approved for
-     * public viewing in the visual database
+     * Retrieves all new encounters that are stored in the database but which have been approved for public viewing in the visual database
      *
-     * @return an Iterator of all whale shark encounters stored in the database that are
-     * unacceptable for the visual ID library
+     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
@@ -3412,15 +3394,14 @@ public class Shepherd {
     }
 
     /**
-     * Retrieves all encounters that are stored in the database but which have been rejected for the
-     * visual database in the order identified by the input String
+     * Retrieves all encounters that are stored in the database but which have been rejected for the visual database in the order identified by the
+     * input String
      *
-     * @return an Iterator of all whale shark encounters stored in the database that are
-     * unacceptable for the visual ID library in the String order
+     * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
      * @see encounter, java.util.Iterator
      */
-    public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String
-        order) {
+    public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters,
+        String order) {
         unacceptedEncounters.setOrdering(order);
         Collection c = (Collection)(unacceptedEncounters.execute());
         ArrayList list = new ArrayList(c);
@@ -3488,8 +3469,8 @@ public class Shepherd {
         Task theTask = null;
 
         try {
-            theTask = ((org.ecocean.ia.Task)(pm.getObjectById(pm.newObjectIdInstance(Task.class, id.
-                    trim()), true)));
+            theTask = ((org.ecocean.ia.Task)(pm.getObjectById(pm.newObjectIdInstance(Task.class,
+                id.trim()), true)));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -3578,8 +3559,8 @@ public class Shepherd {
         Occurrence tempShark = null;
 
         try {
-            tempShark = ((org.ecocean.Occurrence)(pm.getObjectById(pm.newObjectIdInstance(Occurrence
-                    .class, id.trim()), true)));
+            tempShark = ((org.ecocean.Occurrence)(pm.getObjectById(pm.newObjectIdInstance(
+                Occurrence.class, id.trim()), true)));
         } catch (Exception nsoe) {
             // nsoe.printStackTrace();
             return null;
@@ -3599,8 +3580,8 @@ public class Shepherd {
         Survey srv = null;
 
         try {
-            srv = ((org.ecocean.Survey)(pm.getObjectById(pm.newObjectIdInstance(Survey.class, id.
-                    trim()), true)));
+            srv = ((org.ecocean.Survey)(pm.getObjectById(pm.newObjectIdInstance(Survey.class,
+                id.trim()), true)));
         } catch (Exception nsoe) {
             nsoe.printStackTrace();
             return null;
@@ -3638,8 +3619,8 @@ public class Shepherd {
         PointLocation pl = null;
 
         try {
-            pl = ((org.ecocean.PointLocation)(pm.getObjectById(pm.newObjectIdInstance(PointLocation.
-                    class, id.trim()), true)));
+            pl = ((org.ecocean.PointLocation)(pm.getObjectById(pm.newObjectIdInstance(
+                PointLocation.class, id.trim()), true)));
         } catch (Exception nsoe) {
             nsoe.printStackTrace();
             return null;
@@ -3655,11 +3636,9 @@ public class Shepherd {
     }
 
     /**
-     * Returns all of the names of the sharks that can be used for training purporses - i.e. have
-     * more than one encounter - in a Vector format
+     * Returns all of the names of the sharks that can be used for training purporses - i.e. have more than one encounter - in a Vector format
      *
-     * @return a Vector of shark names that have more than one encounter with spots associated with
-     * them
+     * @return a Vector of shark names that have more than one encounter with spots associated with them
      * @see encounter, shark, java.util.Vector
      */
     public Vector getPossibleTrainingIndividuals() {
@@ -3779,11 +3758,9 @@ public class Shepherd {
     }
 
     /**
-     * Retrieves an Iterator of all the sharks in the database, ordered according to the input
-     * String
+     * Retrieves an Iterator of all the sharks in the database, ordered according to the input String
      *
-     * @return an Iterator containing all of the shark objects that have been stored in the
-     * database, ordered according to the input String
+     * @return an Iterator containing all of the shark objects that have been stored in the database, ordered according to the input String
      * @see shark, java.util.Iterator
      */
     public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order) {
@@ -3792,8 +3769,8 @@ public class Shepherd {
         return getAllMarkedIndividuals(sharkies, order, emptyMap);
     }
 
-    public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order, Map<
-        String, Object> params) {
+    public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order,
+        Map<String, Object> params) {
         sharkies.setOrdering(order);
         Collection c = (Collection)(sharkies.executeWithMap(params));
         ArrayList list = new ArrayList(c);
@@ -4130,8 +4107,7 @@ public class Shepherd {
     /**
      * Returns the <i>i</i>th numbered encounter for a shark
      *
-     * @param  tempShark  the shark to retrieve an encounter from i			the number
-     * of the shark to get, numbered from 0...<i>n</i>
+     * @param  tempShark  the shark to retrieve an encounter from i			the number of the shark to get, numbered from 0...<i>n</i>
      * @return the <i>i</i>th encounter of the specified shark
      * @see MarkedIndividual
      */
@@ -4149,8 +4125,8 @@ public class Shepherd {
     }
 
     // Added in for media assets by specie - Sarah Schibel
-    public Long countMediaAssetsBySpecies(String genus, String specificEpithet, Shepherd myShepherd)
-            {
+    public Long countMediaAssetsBySpecies(String genus, String specificEpithet,
+        Shepherd myShepherd) {
         Long myValue = new Long(0);
         Query q2 = myShepherd.getPM().newQuery(
             "SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.genus=='" + genus +
@@ -4345,8 +4321,8 @@ public class Shepherd {
 
         for (int i = 0; i < numUsers; i++) {
             User user = users.get(i);
-            if (locationID != null && user.getUsername() != null && doesUserHaveRole(user.
-                    getUsername(), locationID.trim(), context)) {
+            if (locationID != null && user.getUsername() != null &&
+                doesUserHaveRole(user.getUsername(), locationID.trim(), context)) {
                 if ((user.getReceiveEmails()) && (user.getEmailAddress() != null)) {
                     addresses += (user.getEmailAddress() + ",");
                 }
@@ -4585,8 +4561,8 @@ public class Shepherd {
             int numImages = getNumAnnotationsForEncounter(nextCatalogNumber);
             if ((count + numImages) >= startNum) {
                 Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
-                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(enc.
-                        getCatalogNumber());
+                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(
+                    enc.getCatalogNumber());
                 for (int i = 0; i < images.size(); i++) {
                     count++;
                     if ((count <= endNum) && (count >= startNum)) {
@@ -4604,8 +4580,8 @@ public class Shepherd {
                             for (int n = 0; n < numKeywords; n++) {
                                 if (!keywords[n].equals("None")) {
                                     Keyword word = getKeyword(keywords[n]);
-                                    if ((images.get(i).getKeywords() != null) && images.get(i).
-                                            getKeywords().contains(word)) {
+                                    if ((images.get(i).getKeywords() != null) &&
+                                        images.get(i).getKeywords().contains(word)) {
                                         // if (word.isMemberOf(enc.getCatalogNumber() + "/" +
                                         // imageName)) {
 
@@ -4618,17 +4594,17 @@ public class Shepherd {
                             }
                         }
                         // check for specific filename conditions here
-                        if ((request.getParameter("filenameField") != null) && (!request.
-                                getParameter("filenameField").equals(""))) {
-                            String nameString = ServletUtilities.cleanFileName(ServletUtilities.
-                                    preventCrossSiteScriptingAttacks(request.getParameter(
-                                "filenameField").trim()));
+                        if ((request.getParameter("filenameField") != null) &&
+                            (!request.getParameter("filenameField").equals(""))) {
+                            String nameString = ServletUtilities.cleanFileName(
+                                ServletUtilities.preventCrossSiteScriptingAttacks(
+                                request.getParameter("filenameField").trim()));
                             if (!nameString.equals(imageName)) { hasKeyword = false; }
                         }
                         if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                            m_thumb = request.getScheme() + "://" + CommonConfiguration.
-                                    getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.
-                                    getEncounterNumber() + "BREAK" + imageName;
+                            m_thumb = request.getScheme() + "://" +
+                                CommonConfiguration.getURLLocation(request) + "/images/video.jpg" +
+                                "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                             // thumbs.add(m_thumb);
                             thumbs.add(images.get(i));
                         } else if (hasKeyword && isAcceptableImageFile(imageName)) {
@@ -4663,8 +4639,8 @@ public class Shepherd {
             Iterator allEncs = markie.getEncounters().iterator();
             while (allEncs.hasNext() && !stopMe) {
                 Encounter enc = (Encounter)allEncs.next();
-                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(enc.
-                        getCatalogNumber());
+                List<SinglePhotoVideo> images = getAllSinglePhotoVideosForEncounter(
+                    enc.getCatalogNumber());
                 if ((count + images.size()) >= startNum) {
                     for (int i = 0; i < images.size(); i++) {
                         count++;
@@ -4683,8 +4659,8 @@ public class Shepherd {
                                 for (int n = 0; n < numKeywords; n++) {
                                     if (!keywords[n].equals("None")) {
                                         Keyword word = getKeyword(keywords[n]);
-                                        if ((images.get(i).getKeywords() != null) && images.get(i).
-                                                getKeywords().contains(word)) {
+                                        if ((images.get(i).getKeywords() != null) &&
+                                            images.get(i).getKeywords().contains(word)) {
                                             // if (word.isMemberOf(enc.getCatalogNumber() + "/" +
                                             // imageName)) {
 
@@ -4698,22 +4674,23 @@ public class Shepherd {
                                 }
                             }
                             // check for specific filename conditions here
-                            if ((request.getParameter("filenameField") != null) && (!request.
-                                    getParameter("filenameField").equals(""))) {
-                                String nameString = ServletUtilities.cleanFileName(ServletUtilities.
-                                        preventCrossSiteScriptingAttacks(request.getParameter(
-                                    "filenameField").trim()));
+                            if ((request.getParameter("filenameField") != null) &&
+                                (!request.getParameter("filenameField").equals(""))) {
+                                String nameString = ServletUtilities.cleanFileName(
+                                    ServletUtilities.preventCrossSiteScriptingAttacks(
+                                    request.getParameter("filenameField").trim()));
                                 if (!nameString.equals(imageName)) { hasKeyword = false; }
                             }
-                            if (hasKeyword && isAcceptableVideoFile(imageName) && !thumbs.contains(
-                                images.get(i))) {
-                                m_thumb = request.getScheme() + "://" + CommonConfiguration.
-                                        getURLLocation(request) + "/images/video.jpg" + "BREAK" +
-                                    enc.getEncounterNumber() + "BREAK" + imageName;
+                            if (hasKeyword && isAcceptableVideoFile(imageName) &&
+                                !thumbs.contains(images.get(i))) {
+                                m_thumb = request.getScheme() + "://" +
+                                    CommonConfiguration.getURLLocation(request) +
+                                    "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() +
+                                    "BREAK" + imageName;
                                 // thumbs.add(m_thumb);
                                 thumbs.add(images.get(i));
-                            } else if (hasKeyword && isAcceptableImageFile(imageName) && !thumbs.
-                                    contains(images.get(i))) {
+                            } else if (hasKeyword && isAcceptableImageFile(imageName) &&
+                                !thumbs.contains(images.get(i))) {
                                 m_thumb = enc.getEncounterNumber() + "/" + (i + 1) + ".jpg" +
                                     "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                                 // thumbs.add(m_thumb);
@@ -4848,8 +4825,8 @@ public class Shepherd {
 
                 // check for video or image
                 String addTextFile = (String)enc.getAdditionalImageNames().get(i);
-                if ((!isAcceptableImageFile(addTextFile)) && (!isAcceptableVideoFile(addTextFile)))
-                        {
+                if ((!isAcceptableImageFile(addTextFile)) &&
+                    (!isAcceptableVideoFile(addTextFile))) {
                     count--;
                 }
             }
@@ -4943,8 +4920,7 @@ public class Shepherd {
     }
 
     /**
-     * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance
-     * of such it finds.
+     * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
      * @param myID The individual ID to return in any case.
      * @return
      */
@@ -5172,8 +5148,8 @@ public class Shepherd {
             al.sort(String::compareToIgnoreCase);
         } else {
             String subfilter =
-                "SELECT distinct analysis1.haplotype FROM org.ecocean.Encounter WHERE (" + filter.
-                    replaceFirst("SELECT FROM org.ecocean.MarkedIndividual",
+                "SELECT distinct analysis1.haplotype FROM org.ecocean.Encounter WHERE (" +
+                filter.replaceFirst("SELECT FROM org.ecocean.MarkedIndividual",
                 "SELECT distinct individualID FROM org.ecocean.MarkedIndividual") +
                 ").contains(individual.individualID) && tissueSamples.contains(sample1) && sample1.analyses.contains(analysis1) VARIABLES org.ecocean.genetics.TissueSample sample1;org.ecocean.genetics.MitochondrialDNAAnalysis analysis1 ORDER BY analysis1.haplotype";
             System.out.println("Filter is:\n" + filter);
@@ -5429,12 +5405,14 @@ public class Shepherd {
 
         for (int i = 0; i < numRels; i++) {
             Relationship rel = rels.get(i);
-            if ((rel.getMarkedIndividualName1().equals(indieName)) && (rel.getMarkedIndividualRole1
-                () != null) && (!roles.contains(rel.getMarkedIndividualRole1()))) {
+            if ((rel.getMarkedIndividualName1().equals(indieName)) &&
+                (rel.getMarkedIndividualRole1() != null) &&
+                (!roles.contains(rel.getMarkedIndividualRole1()))) {
                 roles.add(rel.getMarkedIndividualRole1());
             }
-            if ((rel.getMarkedIndividualName2().equals(indieName)) && (rel.getMarkedIndividualRole2
-                () != null) && (!roles.contains(rel.getMarkedIndividualRole2()))) {
+            if ((rel.getMarkedIndividualName2().equals(indieName)) &&
+                (rel.getMarkedIndividualRole2() != null) &&
+                (!roles.contains(rel.getMarkedIndividualRole2()))) {
                 roles.add(rel.getMarkedIndividualRole2());
             }
         }
@@ -5453,8 +5431,8 @@ public class Shepherd {
         return listy;
     }
 
-    public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1, String
-        individualID2) {
+    public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,
+        String individualID2) {
         int numCooccur = 0;
         ArrayList<String> occurenceIDs1 = getOccurrenceIDsForMarkedIndividual(individualID1);
         // System.out.println("zzzOccurrences for indie "+individualID1+":
@@ -5595,8 +5573,8 @@ public class Shepherd {
         return matchingEncounters;
     }
 
-    public Map<String, Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long
-        startTime) {
+    public Map<String,
+        Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long startTime) {
         Map<String, Integer> matchingUsers = new HashMap<String, Integer>();
         String filter = "submitterID != null && dwcDateAddedLong >= " + startTime;
         // System.out.println("     My filter is: "+filter);
@@ -5622,8 +5600,8 @@ public class Shepherd {
                         "SELECT FROM org.ecocean.Encounter WHERE submitterID == \"" + thisUser +
                         "\" && dwcDateAddedLong >= " + startTime;
                     // update rankings hourly
-                    CachedQuery cq = new CachedQuery(("numRecentEncounters_" + thisUser), userFilter
-                        , 3600000);
+                    CachedQuery cq = new CachedQuery(("numRecentEncounters_" + thisUser),
+                        userFilter, 3600000);
                     qc.addCachedQuery(cq);
                     matchingUsers.put(thisUser, (cq.executeCountQuery(this)));
                 }
@@ -5632,8 +5610,8 @@ public class Shepherd {
         return sortByValues(matchingUsers);
     }
 
-    public Map<String, Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<
-        String> ignoreTheseUsernames) {
+    public Map<String, Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime,
+        List<String> ignoreTheseUsernames) {
         System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
 
         Map<String, Integer> matchingUsers = new HashMap<String, Integer>();
@@ -5654,8 +5632,8 @@ public class Shepherd {
             if (qc.getQueryByName(("numRecentEncounters_" + user.getUUID())) != null) {
                 CachedQuery cq = qc.getQueryByName(("numRecentEncounters_" + user.getUUID()));
                 matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
-                System.out.println("found " + "numRecentEncounters_" + user.getUUID() + "_" + cq.
-                        executeCountQuery(this));
+                System.out.println("found " + "numRecentEncounters_" + user.getUUID() + "_" +
+                    cq.executeCountQuery(this));
             } else {
                 String userFilter = "SELECT FROM org.ecocean.Encounter WHERE dwcDateAddedLong >= " +
                     startTime + " && submitters.contains(user) && user.uuid == '" + user.getUUID() +
@@ -5665,16 +5643,16 @@ public class Shepherd {
                     userFilter, 3600000);
                 qc.addCachedQuery(cq);
                 matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
-                System.out.println("not found " + "numRecentEncounters_" + user.getUUID() + "_" + cq
-                        .executeCountQuery(this));
+                System.out.println("not found " + "numRecentEncounters_" + user.getUUID() + "_" +
+                    cq.executeCountQuery(this));
             }
         }
         System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
         return sortByValues(matchingUsers);
     }
 
-    public Map<String, Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<
-        String> ignoreTheseUsernames) {
+    public Map<String, Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime,
+        List<String> ignoreTheseUsernames) {
         System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
 
         Map<String, Integer> matchingUsers = new HashMap<String, Integer>();
@@ -5699,8 +5677,8 @@ public class Shepherd {
                     cq.executeCountQuery(this));
             } else {
                 String userFilter = "SELECT FROM org.ecocean.Encounter WHERE dwcDateAddedLong >= " +
-                    startTime + " && photographers.contains(user) && user.uuid == '" + user.getUUID
-                    () + "' VARIABLES org.ecocean.User user";
+                    startTime + " && photographers.contains(user) && user.uuid == '" +
+                    user.getUUID() + "' VARIABLES org.ecocean.User user";
                 // update rankings hourly
                 CachedQuery cq = new CachedQuery(("numRecentPhotoEncounters_" + user.getUUID()),
                     userFilter, 3600000);
@@ -5902,8 +5880,8 @@ public class Shepherd {
     public List<ImportTask> getImportTasksForUser(User user) {
         List<ImportTask> all = new ArrayList<ImportTask>();
         String filter =
-            "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid == \"" + user.
-                getUUID() + "\"";
+            "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid == \"" +
+            user.getUUID() + "\"";
         Query query = getPM().newQuery(filter);
 
         query.setOrdering("created DESC");

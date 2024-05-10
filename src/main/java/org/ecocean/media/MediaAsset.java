@@ -135,8 +135,7 @@ public class MediaAsset implements java.io.Serializable {
 /*
  *  public MediaAsset(final AssetStore store, final JSONObject params, final String category)
  *  {
- *      this(MediaAssetFactory.NOT_SAVED, store, params,
- * MediaAssetType.fromFilename(path.toString()), category);
+ *      this(MediaAssetFactory.NOT_SAVED, store, params, MediaAssetType.fromFilename(path.toString()), category);
  *  }
  */
 
@@ -268,10 +267,8 @@ public class MediaAsset implements java.io.Serializable {
         uuid = u;
     }
 
-    /* note: this is used for *new* MediaAssets (via constructor), so we want it to *always* give us
-     * something.
-     * this we try to get a value no matter what.  in 99% of the cases, a new MediaAsset will have
-     * id = -1, so generateUUIDv3() will fail.
+    /* note: this is used for *new* MediaAssets (via constructor), so we want it to *always* give us something.
+     * this we try to get a value no matter what.  in 99% of the cases, a new MediaAsset will have id = -1, so generateUUIDv3() will fail.
      * thus this essentially will almost always use a v4 uuid (random).  so be it! */
     private void setUUID() {
         uuid = this.generateUUIDFromId();
@@ -393,8 +390,8 @@ public class MediaAsset implements java.io.Serializable {
         try {
             derivationMethod = new JSONObject(d);
         } catch (JSONException je) {
-            System.out.println(this + " -- error parsing derivation json string (" + d + "): " + je.
-                    toString());
+            System.out.println(this + " -- error parsing derivation json string (" + d + "): " +
+                je.toString());
             derivationMethod = null;
         }
     }
@@ -551,11 +548,9 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     /**
-     * this function resolves (how???) various difference in "when" this image was taken.  it might
-     * use different metadata (in EXIF etc) and/or human-input (e.g. perhaps encounter data might
-     * trump it?)   TODO wtf should we do?
-     * FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string), then (b)
-     * crawl metadata.exif for something date-y
+     * this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
+     * human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
+     * FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string), then (b) crawl metadata.exif for something date-y
      *
      *  TODO maybe someday this actually should be *only* punting to store.getDateTime() ????
      */
@@ -582,8 +577,7 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     /**
-     * like getDateTime() this is considered "definitive" -- so it must resolve differences in
-     * metadata vs other (e.g. encounter etc) values
+     * like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
      */
     public Double getUserLatitude() {
         return this.userLatitude;
@@ -633,8 +627,8 @@ public class MediaAsset implements java.io.Serializable {
 
     // if unity feature is appropriate, generates that; otherwise does a boundingBox one
     // 'params' is extra params to use, and can be null
-    public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params
-        ) {
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y,
+        JSONObject params) {
         if (params == null) params = new JSONObject();
         params.put("width", w);
         params.put("height", h);
@@ -645,7 +639,7 @@ public class MediaAsset implements java.io.Serializable {
         return f;
     }
 
-        public ArrayList<Annotation> getAnnotations() {
+    public ArrayList<Annotation> getAnnotations() {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
 
         if ((this.getFeatures() == null) || (this.getFeatures().size() < 1)) return anns;
@@ -695,8 +689,8 @@ public class MediaAsset implements java.io.Serializable {
  *      return annotations;
  *  }
  *
- *  //this will create the "trivial" Annotation (dimensions of the MediaAsset) iff no Annotations
- * exist public ArrayList<Annotation> getAnnotationsGenerate(String species) {
+ *  //this will create the "trivial" Annotation (dimensions of the MediaAsset) iff no Annotations exist public ArrayList<Annotation>
+ * getAnnotationsGenerate(String species) {
  *      if (annotations == null) annotations = new ArrayList<Annotation>();
  *      if (annotations.size() < 1) addTrivialAnnotation(species);
  *      return annotations;
@@ -704,9 +698,8 @@ public class MediaAsset implements java.io.Serializable {
  *
  *  //TODO check if it is already here?  maybe?
  *  public Annotation addTrivialAnnotation(String species) {
- *      Annotation ann = new Annotation(this, species);  //this will add it to our .annotations
- * collection as well String newId = generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID
- * relative to our ID  An___ if (newId != null) ann.setId(newId);
+ *      Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well String newId =
+ * generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID relative to our ID  An___ if (newId != null) ann.setId(newId);
  *      return ann;
  *  }
  *
@@ -716,8 +709,7 @@ public class MediaAsset implements java.io.Serializable {
  *  }
  *
  *  public static MediaAsset findByAnnotation(Annotation annot, Shepherd myShepherd) {
- *      String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE
- * annotations.contains(ann) && ann.id == \"" + annot.getId() + "\"";
+ *      String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE annotations.contains(ann) && ann.id == \"" + annot.getId() + "\"";
  *      Query query = myShepherd.getPM().newQuery(queryString);
  *      List results = (List)query.execute();
  *      if (results.size() < 1) return null;
@@ -744,9 +736,8 @@ public class MediaAsset implements java.io.Serializable {
  */
 
     /**
-     * Return a full web-accessible url to the asset, or null if the asset is not web-accessible.
-     * NOTE: now you should *almost always* use .safeURL() to return something to a user -- this
-     * will hide original files when necessary
+     * Return a full web-accessible url to the asset, or null if the asset is not web-accessible. NOTE: now you should *almost always* use .safeURL()
+     * to return something to a user -- this will hide original files when necessary
      */
     public URL webURL() {
         if (store == null) {
@@ -754,8 +745,8 @@ public class MediaAsset implements java.io.Serializable {
             return null;
         }
         try {
-            int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"))
-                ;
+            int i = ((store.getUsage() ==
+                null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
             if (i == 0) {
                 String localURL = store.getUsage().substring(16);
                 return new URL(localURL);
@@ -817,8 +808,8 @@ public class MediaAsset implements java.io.Serializable {
         if (containerName != null && containerName != "") {
             try {
                 System.out.println("Using containerName for MediaAsset URL domain..");
-                return new URL(store.webURL(this).getProtocol(), containerName, 80, store.webURL(
-                        this).getFile());
+                return new URL(store.webURL(this).getProtocol(), containerName, 80,
+                        store.webURL(this).getFile());
             } catch (java.net.MalformedURLException ex) {}
         }
         try {
@@ -827,8 +818,8 @@ public class MediaAsset implements java.io.Serializable {
         return null;
     }
 
-    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType
-        ) {
+    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request,
+        String bestType) {
         if (store == null) return null;
         // this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
         // TODO should be block "original" ???  is that overkill??
@@ -876,7 +867,7 @@ public class MediaAsset implements java.io.Serializable {
         return null; // got nothing!  :(
     }
 
-        public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
+    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
         return bestSafeAsset(myShepherd, request, null);
     }
 
@@ -987,14 +978,14 @@ public class MediaAsset implements java.io.Serializable {
         store.copyAssetAny(this, targetMA);
     }
 
-    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.
-            datanucleus.api.rest.orgjson.JSONObject jobj)
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj)
     throws org.datanucleus.api.rest.orgjson.JSONException {
         return sanitizeJson(request, jobj, true);
     }
 
-    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.
-            datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess)
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess)
     throws org.datanucleus.api.rest.orgjson.JSONException {
         String context = ServletUtilities.getContext(request);
 
@@ -1013,16 +1004,16 @@ public class MediaAsset implements java.io.Serializable {
         return obj;
     }
 
-    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.
-            datanucleus.api.rest.orgjson.JSONObject jobj, Shepherd myShepherd)
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj, Shepherd myShepherd)
     throws org.datanucleus.api.rest.orgjson.JSONException {
         return sanitizeJson(request, jobj, true, myShepherd);
     }
 
     // fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it
     // should win vs security(request) TODO
-    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.
-            datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess, Shepherd myShepherd)
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess, Shepherd myShepherd)
     throws org.datanucleus.api.rest.orgjson.JSONException {
         jobj.put("id", this.getId());
         jobj.put("acmId", this.getAcmId());
@@ -1042,11 +1033,11 @@ public class MediaAsset implements java.io.Serializable {
         // myShepherd.beginDBTransaction();
         ArrayList<Feature> fts = getFeatures();
         if ((fts != null) && (fts.size() > 0)) {
-            org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.
-                    JSONArray();
+            org.datanucleus.api.rest.orgjson.JSONArray jarr =
+                new org.datanucleus.api.rest.orgjson.JSONArray();
             for (int i = 0; i < fts.size(); i++) {
-                org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.
-                        orgjson.JSONObject();
+                org.datanucleus.api.rest.orgjson.JSONObject jf =
+                    new org.datanucleus.api.rest.orgjson.JSONObject();
                 Feature ft = fts.get(i);
                 jf.put("id", ft.getId());
                 try { // for some reason(?) this will get a jdo error for "row not found".
@@ -1091,8 +1082,8 @@ public class MediaAsset implements java.io.Serializable {
                 .opt("attributes") != null)) {
             // jobj.put("metadata", new
             // org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
-            jobj.put("metadata", Util.toggleJSONObject(getMetadata().getData().getJSONObject(
-                "attributes")));
+            jobj.put("metadata",
+                Util.toggleJSONObject(getMetadata().getData().getJSONObject("attributes")));
         }
         DateTime dt = getDateTime();
         if (dt != null) jobj.put("dateTime", dt.toString()); // DateTime.toString() gives
@@ -1105,8 +1096,8 @@ public class MediaAsset implements java.io.Serializable {
         if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
         // myShepherd.rollbackDBTransaction();
         if ((kids != null) && (kids.size() > 0)) {
-            org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.
-                    JSONArray();
+            org.datanucleus.api.rest.orgjson.JSONArray k =
+                new org.datanucleus.api.rest.orgjson.JSONArray();
             for (MediaAsset kid : kids) {
                 k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(),
                     fullAccess, myShepherd));
@@ -1253,21 +1244,21 @@ public class MediaAsset implements java.io.Serializable {
     // NOTE: these currrently do not recurse.  this makes a big assumption that one only wants
     // children of _original
     // (e.g. on an encounter) and will *probably* need to change in the future.    TODO?
-    public static MediaAsset findOneByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd, String
-        label) {
+    public static MediaAsset findOneByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd,
+        String label) {
         ArrayList<MediaAsset> all = findAllByLabel(mas, myShepherd, label, true);
 
         if ((all == null) || (all.size() < 1)) return null;
         return all.get(0);
     }
 
-    public static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas, Shepherd
-        myShepherd, String label) {
+    public static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas,
+        Shepherd myShepherd, String label) {
         return findAllByLabel(mas, myShepherd, label, false);
     }
 
-    private static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas, Shepherd
-        myShepherd, String label, boolean onlyOne) {
+    private static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas,
+        Shepherd myShepherd, String label, boolean onlyOne) {
         if ((mas == null) || (mas.size() < 1)) return null;
         ArrayList<MediaAsset> found = new ArrayList<MediaAsset>();
         for (MediaAsset ma : mas) {
@@ -1330,17 +1321,16 @@ public class MediaAsset implements java.io.Serializable {
 /*
  *  >> EXPERIMENTAL <<
  *  as above, but not only saves the children MediaAssets, but does so in the background.
- *  this *requires* that the asset has been presisted, as it will re-read it from the db.  this is
- * to insure that the .store is also usable. NOTE: it is better to send a huge list of ids here,
- * than iterate over them one at a time, to create a sort of pseudo-queue for large jobs, rather
- * than multiple (simultaneous) threads..  ouch!
+ *  this *requires* that the asset has been presisted, as it will re-read it from the db.  this is to insure that the .store is also usable. NOTE: it
+ * is better to send a huge list of ids here, than iterate over them one at a time, to create a sort of pseudo-queue for large jobs, rather than
+ * multiple (simultaneous) threads..  ouch!
  */
     public static void updateStandardChildrenBackground(final String context, final List<Integer>
         ids) {
         if ((ids == null) || (ids.size() < 1)) return;
         final String tid = Util.generateUUID().substring(0, 8);
-        System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " + ids.
-                size() + " MediaAsset ids >>>>");
+        System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " +
+            ids.size() + " MediaAsset ids >>>>");
         Runnable rn = new Runnable() {
             public void run() {
                 Shepherd myShepherd = new Shepherd(context);
@@ -1499,8 +1489,8 @@ public class MediaAsset implements java.io.Serializable {
 
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd, Annotation ann) {
         if (store == null)
-            return "<!-- ERROR: MediaAsset.toHtmlElement() has no .store value for " + this.toString
-                       () + " -->";
+            return "<!-- ERROR: MediaAsset.toHtmlElement() has no .store value for " +
+                       this.toString() + " -->";
         return store.mediaAssetToHtmlElement(this, request, myShepherd, ann);
     }
 
@@ -1553,8 +1543,8 @@ public class MediaAsset implements java.io.Serializable {
     public boolean hasMetadata() {
         MediaAssetMetadata data = getMetadata();
 
-        return ((data != null) && (data.getData() != null) && (data.getData().opt("attributes") !=
-                   null));
+        return ((data != null) && (data.getData() != null) &&
+                   (data.getData().opt("attributes") != null));
     }
 
     public void setMetadata(MediaAssetMetadata md) {
@@ -1580,8 +1570,8 @@ public class MediaAsset implements java.io.Serializable {
         try {
             metadata = store.extractMetadata(this, true); // true means "attributes" only
         } catch (IOException ioe) { // we silently eat IOExceptions, but will return null
-            System.out.println("WARNING: updateMinimalMetadata() on " + this + " got " + ioe.
-                    toString() + "; failed to set");
+            System.out.println("WARNING: updateMinimalMetadata() on " + this + " got " +
+                ioe.toString() + "; failed to set");
             return null;
         }
         return metadata;
@@ -1633,8 +1623,9 @@ public class MediaAsset implements java.io.Serializable {
         } catch (IllegalArgumentException ex) {
             throw new IOException("copyInBase64() could not parse: " + ex.toString());
         }
-        File file = (this.localPath() != null) ? this.localPath().toFile() : File.createTempFile(
-            "b64-" + Util.generateUUID(), ".tmp");
+        File file = (this.localPath() !=
+            null) ? this.localPath().toFile() : File.createTempFile("b64-" + Util.generateUUID(),
+            ".tmp");
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) parentDir.mkdirs();
         FileOutputStream stream = new FileOutputStream(file);
@@ -1691,14 +1682,12 @@ public class MediaAsset implements java.io.Serializable {
     }
 
 /*
- *  WB-945 new magick.  this look at our annots (which may *or may not* have been created via
- * detection results) and decide if they need to have new encounter(s) made to hold them.  this will
- * be based on their sibling annots on this asset, among other things.
+ *  WB-945 new magick.  this look at our annots (which may *or may not* have been created via detection results) and decide if they need to have new
+ * encounter(s) made to hold them.  this will be based on their sibling annots on this asset, among other things.
  *
- *  note: current logic here ignores edge-case where annots may span multiple species.  this is due
- * in part to the fact that deriving species from iaClass is a gray area in some wildbooks.  this
- * will need to be a future enhancement.  TODO IAJsonProperties.taxonomyFromIAClass() may help
- * toward this end, but it is new and can give null results.
+ *  note: current logic here ignores edge-case where annots may span multiple species.  this is due in part to the fact that deriving species from
+ * iaClass is a gray area in some wildbooks.  this will need to be a future enhancement.  TODO IAJsonProperties.taxonomyFromIAClass() may help toward
+ * this end, but it is new and can give null results.
  */
     public List<Encounter> assignEncounters(Shepherd myShepherd) {
         List<Encounter> newEncs = new ArrayList<Encounter>();
@@ -1752,8 +1741,8 @@ public class MediaAsset implements java.io.Serializable {
             if (needsEncounter.get(0).getIAClass() != null) {
                 try {
                     IAJsonProperties iaJson = new IAJsonProperties();
-                    whichever.setTaxonomy(iaJson.taxonomyFromIAClass(needsEncounter.get(0).
-                            getIAClass(), myShepherd));                                                                 //
+                    whichever.setTaxonomy(iaJson.taxonomyFromIAClass(needsEncounter.get(
+                        0).getIAClass(), myShepherd));                                                                  //
                                                                                                                         //
                                                                                                                         // might
                                                                                                                         //
@@ -1777,8 +1766,7 @@ public class MediaAsset implements java.io.Serializable {
             /*
              *  we dont know where to assign needsEncounter annots, so they each get own Encounter
              *  - if we have any trivialAnnots, we use those up first and bump them out
-             *  - when no trivialAnnots, we duplicate "a random encounter" (aka whichever) and
-             * attach there
+             *  - when no trivialAnnots, we duplicate "a random encounter" (aka whichever) and attach there
              */
             for (Annotation ann : needsEncounter) {
                 if (trivialAnnots.size() > 0) {
@@ -1810,8 +1798,8 @@ public class MediaAsset implements java.io.Serializable {
                             whichever + " for " + ann + " yielding " + newEnc);
                         if (!newEncs.contains(newEnc)) newEncs.add(newEnc);
                     } catch (Exception ex) {
-                        System.out.println("ERROR: assignEncounters() failed to clone " + whichever
-                            + " for " + ann + " -> " + ex.toString());
+                        System.out.println("ERROR: assignEncounters() failed to clone " +
+                            whichever + " for " + ann + " -> " + ex.toString());
                         ex.printStackTrace();
                     }
                 }
