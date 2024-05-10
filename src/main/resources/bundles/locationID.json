@@ -7,61 +7,61 @@
 
 		{"name":"Africa - South","id":"Africa - South","locationID":[
 		
-			{"name":"Angola","id":"Angola","locationID":[]}
-			{"name":"Botswana","id":"Botswana","locationID":[]}
-			{"name":"Eswatini","id":"Eswatini","locationID":[]}
-			{"name":"Lesotho","id":"Lesotho","locationID":[]}
-			{"name":"Malawi","id":"Malawi","locationID":[]}
-			{"name":"Mozambique","id":"Mozambique","locationID":[]}
-			{"name":"Namibia","id":"Namibia","locationID":[]}
+			{"name":"Angola","id":"Angola","locationID":[]},
+			{"name":"Botswana","id":"Botswana","locationID":[]},
+			{"name":"Eswatini","id":"Eswatini","locationID":[]},
+			{"name":"Lesotho","id":"Lesotho","locationID":[]},
+			{"name":"Malawi","id":"Malawi","locationID":[]},
+			{"name":"Mozambique","id":"Mozambique","locationID":[]},
+			{"name":"Namibia","id":"Namibia","locationID":[]},
 			{"name":"South Africa","id":"South Africa","locationID":[
 				{"name":"Great Limpopo TFCA","id":"Great Limpopo TFCA","locationID":[]}
-			]}
-			{"name":"Zambia","id":"Zambia","locationID":[]}
+			]},
+			{"name":"Zambia","id":"Zambia","locationID":[]},
 			{"name":"Zimbabwe","id":"Zimbabwe","locationID":[]}
 		
 		]},
 
 		{"name":"Africa - East","id":"Africa - East","locationID":[
-			{"name":"Burundi","id":"Burundi","locationID":[]}
-			{"name":"Djibouti","id":"Djibouti","locationID":[]}
-			{"name":"Eritrea","id":"Eritrea","locationID":[]}
-			{"name":"Ethiopia","id":" Ethiopia","locationID":[]}
-			{"name":"Kenya","id":"Kenya","locationID":[]}
-			{"name":"Rwanda","id":"Rwanda","locationID":[]}
-			{"name":"Sudan","id":"Sudan","locationID":[]}
-			{"name":"Somalia","id":"Somalia","locationID":[]}
-			{"name":"Somaliland","id":"Somaliland","locationID":[]}
-			{"name":"South Sudan","id":"South Sudan","locationID":[]}
-			{"name":"Sudan","id":"Sudan","locationID":[]}
-			{"name":"Tanzania","id":"Tanzania","locationID":[]}
+			{"name":"Burundi","id":"Burundi","locationID":[]},
+			{"name":"Djibouti","id":"Djibouti","locationID":[]},
+			{"name":"Eritrea","id":"Eritrea","locationID":[]},
+			{"name":"Ethiopia","id":" Ethiopia","locationID":[]},
+			{"name":"Kenya","id":"Kenya","locationID":[]},
+			{"name":"Rwanda","id":"Rwanda","locationID":[]},
+			{"name":"Sudan","id":"Sudan","locationID":[]},
+			{"name":"Somalia","id":"Somalia","locationID":[]},
+			{"name":"Somaliland","id":"Somaliland","locationID":[]},
+			{"name":"South Sudan","id":"South Sudan","locationID":[]},
+			{"name":"Sudan","id":"Sudan","locationID":[]},
+			{"name":"Tanzania","id":"Tanzania","locationID":[]},
 			{"name":"Uganda","id":"Uganda","locationID":[]}
 
 		]},
 		
 		{"name":"Africa - Central","id":"Africa - Central","locationID":[
-			{"name":"Cameroon","id":"Cameroon","locationID":[]}
-			{"name":"Chad","id":"Chad","locationID":[]}
-			{"name":"Congo","id":"Congo","locationID":[]}
-			{"name":"Democratic Republic of the Congo ","id":"DRC","locationID":[]}
-			{"name":"Equatorial Guinea","id":"Equatorial Guinea","locationID":[]}
-			{"name":"Gabon","id":"Gabon","locationID":[]}
+			{"name":"Cameroon","id":"Cameroon","locationID":[]},
+			{"name":"Chad","id":"Chad","locationID":[]},
+			{"name":"Congo","id":"Congo","locationID":[]},
+			{"name":"Democratic Republic of the Congo ","id":"DRC","locationID":[]},
+			{"name":"Equatorial Guinea","id":"Equatorial Guinea","locationID":[]},
+			{"name":"Gabon","id":"Gabon","locationID":[]},
 			{"name":"Central African Republic","id":"CAR","locationID":[]}
 
 		]},
 
 		{"name":"Africa - West","id":"Africa - West","locationID":[
-			{"name":"Benin","id":"Benin","locationID":[]}
-			{"name":"Burkina Faso","id":"Burkina Faso","locationID":[]}
-			{"name":"Cote d’Ivoire","id":"Cote d’Ivoire","locationID":[]}
-			{"name":"Ghana","id":"Ghana","locationID":[]}
-			{"name":"Guinea","id":"Guinea","locationID":[]}
-			{"name":"Guinea Bissau","id":"Guinea Bissau","locationID":[]}
-			{"name":"Liberia","id":"Liberia","locationID":[]}
-			{"name":"Nigeria","id":"Nigeria","locationID":[]}
-			{"name":"Senegal","id":"Senegal","locationID":[]}
-			{"name":"Sierra Leone","id":"Sierra Leone","locationID":[]}
-			{"name":"The Gambia","id":"Gambia","locationID":[]}
+			{"name":"Benin","id":"Benin","locationID":[]},
+			{"name":"Burkina Faso","id":"Burkina Faso","locationID":[]},
+			{"name":"Cote d’Ivoire","id":"Cote d’Ivoire","locationID":[]},
+			{"name":"Ghana","id":"Ghana","locationID":[]},
+			{"name":"Guinea","id":"Guinea","locationID":[]},
+			{"name":"Guinea Bissau","id":"Guinea Bissau","locationID":[]},
+			{"name":"Liberia","id":"Liberia","locationID":[]},
+			{"name":"Nigeria","id":"Nigeria","locationID":[]},
+			{"name":"Senegal","id":"Senegal","locationID":[]},
+			{"name":"Sierra Leone","id":"Sierra Leone","locationID":[]},
+			{"name":"The Gambia","id":"Gambia","locationID":[]},
 			{"name":"Togo","id":"Togo","locationID":[]}
 
 		]},
