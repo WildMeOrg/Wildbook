@@ -205,8 +205,8 @@ public class IAGateway extends HttpServlet {
     }
 
     // TODO wedge in IA.intake here i guess? (once it exists)
-    public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd, String
-        baseUrl)
+    public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd,
+        String baseUrl)
     throws ServletException, IOException {
         if (res == null)
             throw new RuntimeException("IAGateway._doDetect() called without res passed in");
@@ -279,12 +279,12 @@ public class IAGateway extends HttpServlet {
                 // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
                 res.put("sendDetect", sent);
                 String jobId = null;
-                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").
-                        optBoolean("success", false))
+                if ((sent.optJSONObject("status") != null) &&
+                    sent.getJSONObject("status").optBoolean("success", false))
                     jobId = sent.optString("response", null);
                 res.put("jobId", jobId);
-                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new
-                    JSONObject("{\"_action\": \"initDetect\"}"), context);
+                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId,
+                    new JSONObject("{\"_action\": \"initDetect\"}"), context);
             } catch (Exception ex) {
                 success = false;
                 ex.printStackTrace();
@@ -305,8 +305,8 @@ public class IAGateway extends HttpServlet {
 
     // TODO not sure why we pass 'res' in but also it is the return value... potentially should be
     // fixed; likely when we create IA package
-    public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String
-        context, String baseUrl, boolean fastlane)
+    public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd,
+        String context, String baseUrl, boolean fastlane)
     throws ServletException, IOException {
         if (res == null)
             throw new RuntimeException("IAGateway._doIdentify() called without res passed in");
@@ -319,9 +319,8 @@ public class IAGateway extends HttpServlet {
         if (j == null) return res; // "should never happen"
 /*
  *  TODO? right now this 'opt' is directly from IBEISIA.identOpts() ????? hmmmm....
- *  note then that for IBEIS this effectively gets mapped via queryConfigDict to usable values we
- * also might consider incorporating j.opt (passed within identify:{} object itself, from the
- * api/gateway) ???
+ *  note then that for IBEIS this effectively gets mapped via queryConfigDict to usable values we also might consider incorporating j.opt (passed
+ * within identify:{} object itself, from the api/gateway) ???
  */
         JSONObject opt = jin.optJSONObject("opt");
         ArrayList<Annotation> anns = new ArrayList<Annotation>(); // what we ultimately run on.
@@ -340,8 +339,8 @@ public class IAGateway extends HttpServlet {
             for (int i = 0; i < alist.length(); i++) {
                 String aid = alist.optString(i, null);
                 if (aid == null) continue;
-                Annotation ann = ((Annotation)(myShepherd.getPM().getObjectById(myShepherd.getPM().
-                        newObjectIdInstance(Annotation.class, aid), true)));
+                Annotation ann = ((Annotation)(myShepherd.getPM().getObjectById(
+                    myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
                 if (ann == null) continue;
                 anns.add(ann);
                 validIds.add(aid);
@@ -355,8 +354,8 @@ public class IAGateway extends HttpServlet {
             for (int i = 0; i < olist.length(); i++) {
                 String oid = olist.optString(i, null);
                 if (oid == null) continue;
-                Occurrence occ = ((Occurrence)(myShepherd.getPM().getObjectById(myShepherd.getPM().
-                        newObjectIdInstance(Occurrence.class, oid), true)));
+                Occurrence occ = ((Occurrence)(myShepherd.getPM().getObjectById(
+                    myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
 // System.out.println("occ -> " + occ);
                 if (occ == null) continue;
                 List<MediaAsset> mas = occ.getAssets();
@@ -383,10 +382,8 @@ public class IAGateway extends HttpServlet {
             parentTask = new Task(taskId);
         }
         JSONArray taskList = new JSONArray();
-/* currently we are sending annotations one at a time (one per query list) but later we will have to
- * support clumped sets...
- * things to consider for that - we probably have to further subdivide by species ... other
- * considerations?   */
+/* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
+ * things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         List<Task> subTasks = new ArrayList<Task>();
         if (anns.size() > 1) { // need to create child Tasks
             JSONObject params = parentTask.getParameters();
@@ -441,9 +438,9 @@ public class IAGateway extends HttpServlet {
         return res;
     }
 
-    private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl
-        , JSONObject queryConfigDict, JSONObject userConfidence, int limitTargetSize, Task task,
-        Shepherd myShepherd, boolean fastlane)
+    private static JSONObject _sendIdentificationTask(Annotation ann, String context,
+        String baseUrl, JSONObject queryConfigDict, JSONObject userConfidence, int limitTargetSize,
+        Task task, Shepherd myShepherd, boolean fastlane)
     throws IOException {
         // String iaClass = ann.getIAClass();
         boolean success = true;
@@ -471,17 +468,17 @@ public class IAGateway extends HttpServlet {
             if (limitTargetSize > -1) {
                 matchingSet = ann.getMatchingSet(myShepherd);
                 if ((matchingSet == null) || (matchingSet.size() < 5)) {
-                    System.out.println("=======> Small matching set for this Annotation id= " + ann.
-                            getId());
+                    System.out.println("=======> Small matching set for this Annotation id= " +
+                        ann.getId());
                     System.out.println("=======> Set size is: " + matchingSet.size());
-                    System.out.println("=======> Specific Epithet is: " + ann.findEncounter(
-                        myShepherd).getSpecificEpithet() + "    Genus is: " + ann.findEncounter(
-                        myShepherd).getGenus());
+                    System.out.println("=======> Specific Epithet is: " +
+                        ann.findEncounter(myShepherd).getSpecificEpithet() + "    Genus is: " +
+                        ann.findEncounter(myShepherd).getGenus());
                 }
                 if (matchingSet.size() > limitTargetSize) {
                     System.out.println(
-                        "WARNING: limited identification matchingSet list size from " + matchingSet.
-                            size() + " to " + limitTargetSize);
+                        "WARNING: limited identification matchingSet list size from " +
+                        matchingSet.size() + " to " + limitTargetSize);
                     matchingSet = new ArrayList<Annotation>(matchingSet.subList(0, limitTargetSize))
                     ;
                 }
@@ -496,20 +493,20 @@ public class IAGateway extends HttpServlet {
                 userConfidence, myShepherd, task, baseUrl, fastlane);
             if (!sent.optBoolean("success", false)) {
                 String errorMsg = sent.optString("error", "(unknown error)");
-                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " + errorMsg
-                    + "; hopefully we requeue");
+                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
+                    errorMsg + "; hopefully we requeue");
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
             }
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
-            if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean(
-                "success", false))
+            if ((sent.optJSONObject("status") != null) &&
+                sent.getJSONObject("status").optBoolean("success", false))
                 jobId = sent.optString("response", null);
             taskRes.put("jobId", jobId);
             // validIds.toArray(new String[validIds.size()])
-            IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject(
-                "{\"_action\": \"initIdentify\"}"), context);
+            IBEISIA.log(annTaskId, ann.getId(), jobId,
+                new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
             // WB-1665: log as error when we cannot send ident task
             System.out.println("WB-1665 checking for error state in sent=" + sent);
@@ -539,15 +536,12 @@ public class IAGateway extends HttpServlet {
     }
 
     /*
-     * public static JSONObject expandAnnotation(String annID, Shepherd myShepherd,
-     * HttpServletRequest request) {
+     * public static JSONObject expandAnnotation(String annID, Shepherd myShepherd, HttpServletRequest request) {
      *  if (annID == null) return null;
      *  JSONObject rtn = new JSONObject();
      *  Annotation ann = null;
      *  try {
-     *      ann = ((Annotation)
-     * (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class,
-     * annID), true)));
+     *      ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annID), true)));
      *  } catch (Exception ex) {}
      *  if (ann != null) {
      *      rtn.put("annotationID", annID);
@@ -566,8 +560,7 @@ public class IAGateway extends HttpServlet {
      *      MediaAsset ma = ann.getMediaAsset();
      *      if (ma != null) {
      *          try {
-     *              rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new
-     * org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
+     *              rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
      *          } catch (Exception ex) {}
      *      }
      *  }
@@ -713,8 +706,8 @@ public class IAGateway extends HttpServlet {
             try {
                 JSONObject rtn = _doDetect(jobj, res, myShepherd, baseUrl);
                 System.out.println(
-                    "INFO: IAGateway.processQueueMessage() 'detect' successful --> " + rtn.toString
-                    ());
+                    "INFO: IAGateway.processQueueMessage() 'detect' successful --> " +
+                    rtn.toString());
                 if (!rtn.optBoolean("success", false)) {
                     requeueIncrement = true;
                     requeue = true;
@@ -724,8 +717,8 @@ public class IAGateway extends HttpServlet {
                 }
             } catch (Exception ex) {
                 System.out.println(
-                    "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.
-                        toString());
+                    "ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " +
+                    ex.toString());
                 // now for certain returns, we want to increment our retry-ticker (this is TODO
                 // research in progress!)
                 if (ex.toString().contains("HTTP error code : 500")) {
@@ -738,16 +731,17 @@ public class IAGateway extends HttpServlet {
                     requeue = true;
                 }
                 // error - don't requeue
-                else if (ex.toString().contains("HTTP error code : 608")) { requeue = false; } else
-                        {
+                else if (ex.toString().contains("HTTP error code : 608")) {
+                    requeue = false;
+                    } else {
                     requeueIncrement = true;
                     requeue = true;
                 }
                 myShepherd.rollbackDBTransaction();
             }
             myShepherd.closeDBTransaction();
-        } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) !=
-            null)) {                                                                                        //
+        } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId",
+            null) != null)) {                                                                               //
                                                                                                             //
                                                                                                             // ditto
                                                                                                             //
@@ -774,8 +768,8 @@ public class IAGateway extends HttpServlet {
                 // here jobj contains queryconfigdict somehow
                 JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl, fastlane);
                 System.out.println(
-                    "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.
-                        toString());
+                    "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " +
+                    rtn.toString());
                 if (!rtn.optBoolean("success", false)) {
                     requeueIncrement = true;
                     requeue = true;
@@ -785,15 +779,15 @@ public class IAGateway extends HttpServlet {
                 }
             } catch (javax.jdo.JDOObjectNotFoundException ex) {
                 System.out.println(
-                    "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.
-                        toString());
+                    "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
+                    ex.toString());
                 if (ex.toString().contains("HTTP error code : 500")) requeueIncrement = false;
                 myShepherd.rollbackDBTransaction();
                 requeue = false;
             } catch (Exception ex) {
                 System.out.println(
-                    "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " + ex.
-                        toString());
+                    "ERROR: IAGateway.processQueueMessage() 'identify' from threw exception: " +
+                    ex.toString());
                 if (ex.toString().contains("HTTP error code : 500")) {
                     requeueIncrement = true;
                     requeue = true;
@@ -847,8 +841,9 @@ public class IAGateway extends HttpServlet {
                     try {
                         if (increment) whileSleepMillis = 30000;
                         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
-                        try { Thread.sleep(whileSleepMillis); } catch (java.lang.
-                                InterruptedException ex) {}
+                        try {
+                            Thread.sleep(whileSleepMillis);
+                            } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
                             false)) {
                             addToDetectionQueue(context, jobj.toString());

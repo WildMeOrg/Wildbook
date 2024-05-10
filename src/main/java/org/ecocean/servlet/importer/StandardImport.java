@@ -185,9 +185,10 @@ public class StandardImport extends HttpServlet {
     }
 
     public void doImport(String filename, File dataFile, HttpServletRequest request,
-        HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out, Sheet
-        sheet, String context, Map<String, String> individualCache, boolean verbose, Boolean
-        isUserUpload, String photoDirectory, String individualScope, HashMap<String, Integer>
+        HttpServletResponse response, int numFolderRows, boolean committing, PrintWriter out,
+        Sheet sheet, String context, Map<String, String> individualCache, boolean verbose,
+        Boolean isUserUpload, String photoDirectory, String individualScope,
+        HashMap<String, Integer>
         allColsMap) {
         // System.out.println("debug3: doImport");
         HashMap<User, List<MarkedIndividual> > userIndividualCache = new HashMap<>();
@@ -218,8 +219,8 @@ public class StandardImport extends HttpServlet {
 
         numFolderRows = 0;
         boolean dataFound = (dataFile != null && dataFile.exists());
-        committing = (request.getParameter("commit") != null && !request.getParameter("commit").
-                toLowerCase().equals("false"));                                                                            //
+        committing = (request.getParameter("commit") != null &&
+            !request.getParameter("commit").toLowerCase().equals("false"));                                                //
                                                                                                                            //
                                                                                                                            // false
                                                                                                                            //
@@ -299,8 +300,8 @@ public class StandardImport extends HttpServlet {
             AssetStore astore = getAssetStore(myShepherd);
             if (astore != null) {
                 System.out.println("astore is OK!");
-                System.out.println("Using AssetStore: " + astore.getId() + " of total " + myShepherd
-                        .getNumAssetStores());
+                System.out.println("Using AssetStore: " + astore.getId() + " of total " +
+                    myShepherd.getNumAssetStores());
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
             } else {
@@ -385,24 +386,20 @@ public class StandardImport extends HttpServlet {
                 if (!committing) feedback.startRow(row, i);
                 Map<String, MediaAsset> myAssets = new HashMap<String, MediaAsset>();
                 ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets,
-                    colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos, photoDirectory
-                    , feedback, isUserUpload, committing, missingPhotos, context, allColsMap,
-                    skipCols);
+                    colIndexMap, verbose, missingColumns, unusedColumns, foundPhotos,
+                    photoDirectory, feedback, isUserUpload, committing, missingPhotos, context,
+                    allColsMap, skipCols);
                 Encounter enc = loadEncounter(row, annotations, context, myShepherd, colIndexMap,
-                    verbose, missingColumns, unusedColumns, defaultSubmitterID, committing, feedback
-                    );
-                    occ = loadOccurrence(row, occ, enc, myShepherd, colIndexMap, verbose,
-                        missingColumns
-                        , unusedColumns, feedback);
-                    mark = loadIndividual(row, enc, myShepherd, committing, individualCache,
-                        colIndexMap
-                        , unusedColumns, verbose, missingColumns, userIndividualCache,
-                        individualScope,
-                        out, feedback, request);
-                    SocialUnit socUnit = loadSocialUnit(row, mark, myShepherd, committing,
-                        colIndexMap,
-                        verbose, missingColumns, unusedColumns, feedback);
-                    if (committing) {
+                    verbose, missingColumns, unusedColumns, defaultSubmitterID, committing,
+                    feedback);
+                occ = loadOccurrence(row, occ, enc, myShepherd, colIndexMap, verbose,
+                    missingColumns, unusedColumns, feedback);
+                mark = loadIndividual(row, enc, myShepherd, committing, individualCache,
+                    colIndexMap, unusedColumns, verbose, missingColumns, userIndividualCache,
+                    individualScope, out, feedback, request);
+                SocialUnit socUnit = loadSocialUnit(row, mark, myShepherd, committing, colIndexMap,
+                    verbose, missingColumns, unusedColumns, feedback);
+                if (committing) {
                     for (Annotation ann : annotations) {
                         try {
                             MediaAsset ma = ann.getMediaAsset();
@@ -479,8 +476,8 @@ public class StandardImport extends HttpServlet {
                 myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
                 if (itask != null)
-                    out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.
-                            getId() + "\">" + itask.getId() + "</a></b></li>");
+                    out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" +
+                        itask.getId() + "\">" + itask.getId() + "</a></b></li>");
             } catch (Exception e) {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
@@ -577,9 +574,9 @@ public class StandardImport extends HttpServlet {
         // fs.close();
     }
 
-    public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd, boolean
-        committing, Map<String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns,
-        Set<String> unusedColumns, TabularFeedback feedback) {
+    public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd,
+        boolean committing, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         String suName = getString(row, "SocialUnit.socialUnitName", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
 
@@ -621,8 +618,8 @@ public class StandardImport extends HttpServlet {
     }
 
     public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd, Map<String, Integer> colIndexMap,
-        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback
-        feedback) {
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         String sciName = getString(row, "Taxonomy.scientificName", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
 
@@ -635,10 +632,10 @@ public class StandardImport extends HttpServlet {
     }
 
     public Taxonomy loadTaxonomy1(Row row, Shepherd myShepherd, Map<String, Integer> colIndexMap,
-        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback
-        feedback) {
-        String sciName = getString(row, "Occurrence.taxonomy1", colIndexMap, verbose, missingColumns
-            , unusedColumns, feedback);
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
+        String sciName = getString(row, "Occurrence.taxonomy1", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
 
         if (sciName == null) return null;
         return myShepherd.getOrCreateTaxonomy(sciName);
@@ -662,8 +659,8 @@ public class StandardImport extends HttpServlet {
             seaSurfaceTemp = getDouble(row, "Occurrence.seaSurfaceTemp", colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
         if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
-        Integer individualCount = getInteger(row, "Occurrence.individualCount", colIndexMap, verbose
-            , missingColumns, unusedColumns, feedback);
+        Integer individualCount = getInteger(row, "Occurrence.individualCount", colIndexMap,
+            verbose, missingColumns, unusedColumns, feedback);
         if (individualCount != null) occ.setIndividualCount(individualCount);
         // covers a typo on some decimalLatitude headers ("decimalLatitiude" note the extra i in
         // Latitiude)
@@ -683,8 +680,8 @@ public class StandardImport extends HttpServlet {
             fieldStudySite = getString(row, "Encounter.locationID", colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
         if (fieldStudySite != null) occ.setFieldStudySite(fieldStudySite);
-        String groupComposition = getString(row, "Occurrence.groupComposition", colIndexMap, verbose
-            , missingColumns, unusedColumns, feedback);
+        String groupComposition = getString(row, "Occurrence.groupComposition", colIndexMap,
+            verbose, missingColumns, unusedColumns, feedback);
         if (groupComposition != null) occ.setGroupComposition(groupComposition);
         String groupBehavior = getString(row, "Occurrence.groupBehavior", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
@@ -712,8 +709,8 @@ public class StandardImport extends HttpServlet {
             missingColumns, unusedColumns, feedback);
         if (surveyComments != null && !occ.getComments().contains(surveyComments))
             occ.addComments(surveyComments);
-        String comments = getString(row, "Occurrence.comments", colIndexMap, verbose, missingColumns
-            , unusedColumns, feedback);
+        String comments = getString(row, "Occurrence.comments", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
         if (comments != null && !occ.getComments().contains(comments)) occ.addComments(comments);
         Integer numAdults = getInteger(row, "Occurrence.numAdults", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
@@ -736,14 +733,14 @@ public class StandardImport extends HttpServlet {
         Double bearing = getDouble(row, "Occurrence.bearing", colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
         if (bearing != null) occ.setBearing(bearing);
-        Double distance = getDouble(row, "Occurrence.distance", colIndexMap, verbose, missingColumns
-            , unusedColumns, feedback);
+        Double distance = getDouble(row, "Occurrence.distance", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
         if (distance != null) occ.setDistance(distance);
         Double swellHeight = getDouble(row, "Occurrence.swellHeight", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
         if (swellHeight != null) occ.setSwellHeight(swellHeight);
-        String seaState = getString(row, "Occurrence.seaState", colIndexMap, verbose, missingColumns
-            , unusedColumns, feedback);
+        String seaState = getString(row, "Occurrence.seaState", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
         if (seaState == null) {
             Integer intSeaState = getInteger(row, "Occurrence.seaState", colIndexMap, verbose,
                 missingColumns, unusedColumns, feedback);
@@ -766,14 +763,14 @@ public class StandardImport extends HttpServlet {
         if (transectName != null) occ.setTransectName(transectName);
         String initialCue = getString(row, "Occurrence.initialCue", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
-        String humanActivity = getString(row, "Occurrence.humanActivityNearby", colIndexMap, verbose
-            , missingColumns, unusedColumns, feedback);
+        String humanActivity = getString(row, "Occurrence.humanActivityNearby", colIndexMap,
+            verbose, missingColumns, unusedColumns, feedback);
         if (humanActivity != null) occ.setHumanActivityNearby(humanActivity);
         Double effortCode = getDouble(row, "Occurrence.effortCode", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
         if (effortCode != null) occ.setEffortCode(effortCode);
-        String observer = getString(row, "Occurrence.observer", colIndexMap, verbose, missingColumns
-            , unusedColumns, feedback);
+        String observer = getString(row, "Occurrence.observer", colIndexMap, verbose,
+            missingColumns, unusedColumns, feedback);
         if (observer != null && !"".equals(observer)) occ.setObserver(observer);
         Taxonomy taxy = loadTaxonomy0(row, myShepherd, colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
@@ -858,8 +855,8 @@ public class StandardImport extends HttpServlet {
         String minutes = getIntAsString(row, "Encounter.minutes", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
         if (minutes == null)
-            minutes = getIntAsString(row, "Occurrence.minutes", colIndexMap, verbose, missingColumns
-                , unusedColumns, feedback);
+            minutes = getIntAsString(row, "Occurrence.minutes", colIndexMap, verbose,
+                missingColumns, unusedColumns, feedback);
         if (minutes != null) enc.setMinutes(minutes);
         // setting milliseconds last means that (if provided) the exif/millis data will always take
         // precedence
@@ -953,19 +950,19 @@ public class StandardImport extends HttpServlet {
         if (hasGenus && hasSpecificEpithet) {
             List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues(
                 "genusSpecies", myShepherd.getContext());
-            if (configuredSpecies != null && configuredSpecies.size() > 0 && configuredSpecies.
-                    toString().indexOf(enc.getTaxonomyString()) < 0) {
+            if (configuredSpecies != null && configuredSpecies.size() > 0 &&
+                configuredSpecies.toString().indexOf(enc.getTaxonomyString()) < 0) {
                 // if bad values
-                feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap), genus
-                    , row, "UNSUPPORTED VALUE: " + genus);
+                feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),
+                    genus, row, "UNSUPPORTED VALUE: " + genus);
                 feedback.logParseError(getColIndexFromColName("Encounter.specificEpithet",
                     colIndexMap), specificEpithet, row, "UNSUPPORTED VALUE: " + specificEpithet);
             }
         }
         // end check for missing or unconfigured genus+species
 
-        String submitterOrganization = getString(row, "Encounter.submitterOrganization", colIndexMap
-            , verbose, missingColumns, unusedColumns, feedback);
+        String submitterOrganization = getString(row, "Encounter.submitterOrganization",
+            colIndexMap, verbose, missingColumns, unusedColumns, feedback);
         if (submitterOrganization != null) enc.setSubmitterOrganization(submitterOrganization);
         String submitterName = getString(row, "Encounter.submitterName", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
@@ -992,8 +989,8 @@ public class StandardImport extends HttpServlet {
             missingColumns, unusedColumns, feedback);
         if (livingStatus != null) enc.setLivingStatus(livingStatus);
         // WB-468
-        String identificationRemarks = getString(row, "Encounter.identificationRemarks", colIndexMap
-            , verbose, missingColumns, unusedColumns, feedback);
+        String identificationRemarks = getString(row, "Encounter.identificationRemarks",
+            colIndexMap, verbose, missingColumns, unusedColumns, feedback);
         if (identificationRemarks != null) enc.setIdentificationRemarks(identificationRemarks);
         String groupRole = getString(row, "Encounter.groupRole", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
@@ -1027,11 +1024,11 @@ public class StandardImport extends HttpServlet {
         for (int bg = 0; bg < numMeasureVals; bg++) {
             // by index
             String colName = "Encounter.measurement" + bg;
-            Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns
-                , feedback);
+            Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns,
+                unusedColumns, feedback);
             if (val != null) {
-                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.
-                        get(bg), "");
+                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
+                    measureUnits.get(bg), "");
                 if (committing) enc.setMeasurement(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
@@ -1040,8 +1037,8 @@ public class StandardImport extends HttpServlet {
             val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,
                 feedback);
             if (val != null) {
-                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.
-                        get(bg), "");
+                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
+                    measureUnits.get(bg), "");
                 if (committing) enc.setMeasurement(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
@@ -1064,8 +1061,8 @@ public class StandardImport extends HttpServlet {
                 if (myShepherd.getUserByEmailAddress(val.trim()) != null) {
                     newUser = false;
                     User thisPerson = myShepherd.getUserByEmailAddress(val.trim());
-                    if ((enc.getSubmitters() == null) || !enc.getSubmitters().contains(thisPerson))
-                            {
+                    if ((enc.getSubmitters() == null) ||
+                        !enc.getSubmitters().contains(thisPerson)) {
                         if (committing) enc.addSubmitter(thisPerson);
                         if (unusedColumns != null) unusedColumns.remove(colEmail);
                     }
@@ -1113,8 +1110,8 @@ public class StandardImport extends HttpServlet {
                 if (myShepherd.getUserByEmailAddress(val.trim()) != null) {
                     newUser = false;
                     User thisPerson = myShepherd.getUserByEmailAddress(val.trim());
-                    if ((enc.getPhotographers() == null) || !enc.getPhotographers().contains(
-                        thisPerson)) {
+                    if ((enc.getPhotographers() == null) ||
+                        !enc.getPhotographers().contains(thisPerson)) {
                         if (committing) enc.addPhotographer(thisPerson);
                         if (unusedColumns != null) unusedColumns.remove(colEmail);
                     }
@@ -1167,8 +1164,8 @@ public class StandardImport extends HttpServlet {
                 if (myShepherd.getUserByEmailAddress(val.trim()) != null) {
                     newUser = false;
                     User thisPerson = myShepherd.getUserByEmailAddress(val.trim());
-                    if ((enc.getInformOthers() == null) || !enc.getInformOthers().contains(
-                        thisPerson)) {
+                    if ((enc.getInformOthers() == null) ||
+                        !enc.getInformOthers().contains(thisPerson)) {
                         if (committing) enc.addInformOther(thisPerson);
                         if (unusedColumns != null) unusedColumns.remove(colEmail);
                     }
@@ -1220,8 +1217,8 @@ public class StandardImport extends HttpServlet {
                 String researchProjectName = getString(row, researchProjectNameKey, colIndexMap,
                     verbose, missingColumns, unusedColumns, feedback);
                 String ownerNameKey = "Encounter.project" + projectIncrement + ".ownerUsername";
-                String ownerName = getString(row, ownerNameKey, colIndexMap, verbose, missingColumns
-                    , unusedColumns, feedback);
+                String ownerName = getString(row, ownerNameKey, colIndexMap, verbose,
+                    missingColumns, unusedColumns, feedback);
                 if (Util.stringExists(projectIdPrefix) && Util.stringExists(researchProjectName)) {
                     projectIdPrefix = projectIdPrefix.trim();
                     // if this project already exists, use it. bail on other specifics.
@@ -1311,15 +1308,15 @@ public class StandardImport extends HttpServlet {
          */
 
         MicrosatelliteMarkersAnalysis markers = null;
-        String alleleNames = getString(row, "MicrosatelliteMarkersAnalysis.alleleNames", colIndexMap
-            , verbose, missingColumns, unusedColumns, feedback);
+        String alleleNames = getString(row, "MicrosatelliteMarkersAnalysis.alleleNames",
+            colIndexMap, verbose, missingColumns, unusedColumns, feedback);
         String alleleZeroes = getString(row, "MicrosatelliteMarkersAnalysis.alleles0", colIndexMap,
             verbose, missingColumns, unusedColumns, feedback);
         String alleleOnes = getString(row, "MicrosatelliteMarkersAnalysis.alleles1", colIndexMap,
             verbose, missingColumns, unusedColumns, feedback);
-        if (sample != null && alleleNames != null && !alleleNames.trim().equals("") && alleleZeroes
-            != null && !alleleZeroes.trim().equals("") && alleleOnes != null && !alleleOnes.trim().
-                equals("")
+        if (sample != null && alleleNames != null && !alleleNames.trim().equals("") &&
+            alleleZeroes != null && !alleleZeroes.trim().equals("") && alleleOnes != null &&
+            !alleleOnes.trim().equals("")
             ) {
             ArrayList<Locus> loci = new ArrayList<Locus>();
 
@@ -1328,8 +1325,8 @@ public class StandardImport extends HttpServlet {
             StringTokenizer namesAllele0 = new StringTokenizer(alleleZeroes, ",");
             StringTokenizer namesAllele1 = new StringTokenizer(alleleOnes, ",");
             int numNames = namesSTR.countTokens();
-            if (numNames > 0 && namesSTR.countTokens() == namesAllele0.countTokens() && namesSTR.
-                    countTokens() == namesAllele1.countTokens()) {
+            if (numNames > 0 && namesSTR.countTokens() == namesAllele0.countTokens() &&
+                namesSTR.countTokens() == namesAllele1.countTokens()) {
                 // OK, names and alleles are the same size
                 for (int i = 0; i < numNames; i++) {
                     int all0 = (Integer.parseInt(namesAllele0.nextToken()));
@@ -1377,8 +1374,8 @@ public class StandardImport extends HttpServlet {
         }
         // add haplotype
         MitochondrialDNAAnalysis haplo = null;
-        String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype", colIndexMap, verbose
-            , missingColumns, unusedColumns, feedback);
+        String haplotype = getString(row, "MitochondrialDNAAnalysis.haplotype", colIndexMap,
+            verbose, missingColumns, unusedColumns, feedback);
         if (sample != null && haplotype != null && !haplotype.trim().equals("")) {
             haplo = new MitochondrialDNAAnalysis(Util.generateUUID(), haplotype, encID,
                 tissueSampleID);
@@ -1427,21 +1424,22 @@ public class StandardImport extends HttpServlet {
         return fieldNames;
     }
 
-    public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,
-        MediaAsset> myAssets, Map<String, Integer> colIndexMap, boolean verbose, Set<String>
+    public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd,
+        Map<String, MediaAsset> myAssets, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String>
         missingColumns, Set<String> unusedColumns, List<String> foundPhotos, String photoDirectory,
         TabularFeedback feedback, Boolean isUserUpload, boolean committing, List<String>
-        missingPhotos, String context, HashMap<String, Integer> allColsMap, List<Integer> skipCols)
-            {
+        missingPhotos, String context, HashMap<String, Integer> allColsMap,
+        List<Integer> skipCols) {
         AssetStore astore = getAssetStore(myShepherd);
 
         // if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
         ArrayList<Annotation> annots = new ArrayList<Annotation>();
 
         for (int i = 0; i < getNumMediaAssets(colIndexMap); i++) {
-            MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap, verbose
-                , missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory, foundPhotos
-                , committing, missingPhotos, context, allColsMap, skipCols);
+            MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets, colIndexMap,
+                verbose, missingColumns, unusedColumns, feedback, isUserUpload, photoDirectory,
+                foundPhotos, committing, missingPhotos, context, allColsMap, skipCols);
             if (ma == null) continue;
             String species = getSpeciesString(row, colIndexMap, verbose, missingColumns,
                 unusedColumns, feedback);
@@ -1559,8 +1557,8 @@ public class StandardImport extends HttpServlet {
     // return ans;
     // }
 
-    public String getSpeciesString(Row row, Map<String, Integer> colIndexMap, boolean verbose, Set<
-        String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getSpeciesString(Row row, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         String genus = getString(row, "Encounter.genus", colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
         String species = getString(row, "Encounter.specificEpithet", colIndexMap, verbose,
@@ -1571,8 +1569,8 @@ public class StandardImport extends HttpServlet {
         return total;
     }
 
-    public String getIndividualID(Row row, Map<String, Integer> colIndexMap, boolean verbose, Set<
-        String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getIndividualID(Row row, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         String individualPrefix = "";
         String indID = getStringOrInt(row, "Encounter.individualID", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
@@ -1584,12 +1582,13 @@ public class StandardImport extends HttpServlet {
         return individualPrefix + indID;
     }
 
-    public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<
-        String, MediaAsset> myAssets, Map<String, Integer> colIndexMap, boolean verbose, Set<String>
+    public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd,
+        Map<String, MediaAsset> myAssets, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String>
         missingColumns, Set<String> unusedColumns, TabularFeedback feedback, Boolean isUserUpload,
         String photoDirectory, List<String> foundPhotos, boolean committing, List<String>
-        missingPhotos, String context, HashMap<String, Integer> allColsMap, List<Integer> skipCols)
-            {
+        missingPhotos, String context, HashMap<String, Integer> allColsMap,
+        List<Integer> skipCols) {
         try {
             if (emptyAssetColumn(i, allColsMap, skipCols)) {
                 feedback.logParseNoValue(assetColIndex(i, allColsMap));
@@ -1636,8 +1635,8 @@ public class StandardImport extends HttpServlet {
                     String suffix = arr[arr.length - 1].toLowerCase();
                     System.out.println("     suffix: " + suffix);
                     if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
-                        feedback.logParseError(assetColIndex(i, allColsMap), "Bad Img Type: " +
-                            localPath, row);
+                        feedback.logParseError(assetColIndex(i, allColsMap),
+                            "Bad Img Type: " + localPath, row);
                         return null;
                     }
                 }
@@ -1740,8 +1739,8 @@ public class StandardImport extends HttpServlet {
         try {
             return Util.fileContentHash(f);
         } catch (IOException iox) {
-            System.out.println("StandardImport.fileHash() ignorning " + f + " threw " + iox.toString
-                ());
+            System.out.println("StandardImport.fileHash() ignorning " + f + " threw " +
+                iox.toString());
         }
         return null;
     }
@@ -1768,9 +1767,9 @@ public class StandardImport extends HttpServlet {
      * return ans;
      * }
      */
-    private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd, Map<String,
-        Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns
-        , TabularFeedback feedback) {
+    private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd,
+        Map<String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns,
+        Set<String> unusedColumns, TabularFeedback feedback) {
         ArrayList<Keyword> ans = new ArrayList<Keyword>();
         String kwsName = getString(row, "Encounter.mediaAsset" + n + ".keywords", colIndexMap,
             verbose, missingColumns, unusedColumns, feedback);
@@ -1801,8 +1800,9 @@ public class StandardImport extends HttpServlet {
         return ans;
     }
 
-    private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd
-        , String context, Map<String, Integer> colIndexMap, boolean verbose, Set<String>
+    private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n,
+        Shepherd myShepherd, String context, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String>
         missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
         List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel", context);
@@ -1833,8 +1833,9 @@ public class StandardImport extends HttpServlet {
         return ans;
     }
 
-    private int getNumAssets(Row row, String context, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    private int getNumAssets(Row row, String context, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         int n = 0;
 
         while (getString(row, "Encounter.mediaAsset" + n, colIndexMap, verbose, missingColumns,
@@ -1893,8 +1894,8 @@ public class StandardImport extends HttpServlet {
         int indexOfLastSlash = filename.lastIndexOf("/");
         if (indexOfDotJpg == -1 || indexOfLastSlash == -1) return filename;
         String beforePart = filename.substring(0, indexOfLastSlash + 1);
-        String capitolizedPart = filename.substring(indexOfLastSlash + 1, indexOfDotJpg).toUpperCase
-            ();
+        String capitolizedPart = filename.substring(indexOfLastSlash + 1,
+            indexOfDotJpg).toUpperCase();
         String afterPart = filename.substring(indexOfDotJpg);
 
         return (beforePart + capitolizedPart + afterPart);
@@ -1961,11 +1962,11 @@ public class StandardImport extends HttpServlet {
      * numMediaAssets=numAssets;
      * }
      */
-    public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean
-        committing, Map<String, String> individualCache, Map<String, Integer> colIndexMap, Set<
-        String> unusedColumns, boolean verbose, Set<String> missingColumns, HashMap<User, List<
-        MarkedIndividual> > userIndividualCache, String individualScope, PrintWriter out,
-        TabularFeedback feedback, HttpServletRequest request) {
+    public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd,
+        boolean committing, Map<String, String> individualCache, Map<String, Integer> colIndexMap,
+        Set<String> unusedColumns, boolean verbose, Set<String> missingColumns,
+        HashMap<User, List<MarkedIndividual> > userIndividualCache, String individualScope,
+        PrintWriter out, TabularFeedback feedback, HttpServletRequest request) {
         boolean newIndividual = false;
         String individualID = getIndividualID(row, colIndexMap, verbose, missingColumns,
             unusedColumns, feedback);
@@ -1993,8 +1994,8 @@ public class StandardImport extends HttpServlet {
         }
         // ID not in cache.. withName gets the first choice that matches species so caution
         if (mark == null) {
-            mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(), enc.
-                    getSpecificEpithet());
+            mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),
+                enc.getSpecificEpithet());
         }
         // if nothing yet, look in user's cache for indy name and use species if present
         if (mark == null && "user".equals(individualScope)) {
@@ -2095,14 +2096,14 @@ public class StandardImport extends HttpServlet {
 
     // check if oldOcc is the same occurrence as the occurrence on this row
     // if so, return oldOcc. If not, return parseOccurrence(row)
-    public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd, Map<
-        String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String>
+    public Occurrence getCurrentOccurrence(Occurrence oldOcc, Row row, Shepherd myShepherd,
+        Map<String, Integer> colIndexMap, boolean verbose, Set<String> missingColumns, Set<String>
         unusedColumns, TabularFeedback feedback) {
         String occID = getOccurrenceID(row, colIndexMap, verbose, missingColumns, unusedColumns,
             feedback);
 
-        if (oldOcc != null && oldOcc.getOccurrenceID() != null && oldOcc.getOccurrenceID().equals(
-            occID)) return oldOcc;
+        if (oldOcc != null && oldOcc.getOccurrenceID() != null &&
+            oldOcc.getOccurrenceID().equals(occID)) return oldOcc;
         Occurrence occ = myShepherd.getOrCreateOccurrence(occID);
 
         return occ;
@@ -2112,8 +2113,8 @@ public class StandardImport extends HttpServlet {
 
 /*
  * private void initColIndexVariables(Row firstRow, Map<String,Integer> colIndexMap, Set<String>
- * unusedColumns, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback
- * feedback, Sheet sheet, boolean committing, PrintWriter out) {
+ * unusedColumns, List<Integer> skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter
+ * out) {
  *  colIndexMap = makeColIndexMap(firstRow, skipCols, allColsMap, feedback, sheet, committing, out);
  *  System.out.println("debug4: makeColIndexMap");
  *
@@ -2121,8 +2122,7 @@ public class StandardImport extends HttpServlet {
  *
  *  unusedColumns = new HashSet<String>();
  *  //Set<String> col = colIndexMap.keySet();
- *  // have to manually copy-in like this because keySet returns a POINTER (!!!) for (String
- * colName: colIndexMap.keySet()) {
+ *  // have to manually copy-in like this because keySet returns a POINTER (!!!) for (String colName: colIndexMap.keySet()) {
  *    // length restriction removes colnames like "F21"
  *    if (colName!=null && colName.length()>3) {
  *      unusedColumns.add(colName);
@@ -2134,10 +2134,8 @@ public class StandardImport extends HttpServlet {
     // Returns a map from each column header to the integer col number
 
     /*
-     * // i need to ensure we have all unused columns added to visible list private
-     * Map<String,Integer> makeColIndexMap(Row firstRow, List<Integer> skipCols,
-     * HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean
-     * committing, PrintWriter out) {
+     * // i need to ensure we have all unused columns added to visible list private Map<String,Integer> makeColIndexMap(Row firstRow, List<Integer>
+     * skipCols, HashMap<String,Integer> allColsMap, TabularFeedback feedback, Sheet sheet, boolean committing, PrintWriter out) {
      * Map<String,Integer> colMap = new HashMap<String, Integer>();
      * int numCols = firstRow.getLastCellNum();
      * System.out.println("We're making colIndexMap: numCols: "+numCols);
@@ -2192,8 +2190,8 @@ public class StandardImport extends HttpServlet {
         return false;
     }
 
-    public String getOccurrenceID(Row row, Map<String, Integer> colIndexMap, boolean verbose, Set<
-        String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getOccurrenceID(Row row, Map<String, Integer> colIndexMap, boolean verbose,
+        Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
         // some custom data-fixing just for our aswn data blend
         String occurrencePrefix = "";
         String occID = getStringOrInt(row, "Occurrence.occurrenceID", colIndexMap, verbose,
@@ -2208,8 +2206,8 @@ public class StandardImport extends HttpServlet {
     }
 
     public boolean isOccurrenceOnRow(Occurrence occ, Row row, Map<String, Integer> colIndexMap,
-        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback
-        feedback) {
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         return (occ != null && !occ.getOccurrenceID().equals(getOccurrenceID(row, colIndexMap,
                 verbose, missingColumns, unusedColumns, feedback)));
     }
@@ -2224,8 +2222,9 @@ public class StandardImport extends HttpServlet {
         }
     };
 
-    public Integer getIntFromMap(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public Integer getIntFromMap(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         String key = getString(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,
             feedback);
 
@@ -2235,8 +2234,8 @@ public class StandardImport extends HttpServlet {
 
     // following 'get' functions swallow errors
     public Integer getInteger(Row row, int i, TabularFeedback feedback) {
-        if ((row != null) && (row.getCell(i) != null) && (row.getCell(i).getCellType() == Cell.
-                CELL_TYPE_BLANK)) return null;
+        if ((row != null) && (row.getCell(i) != null) &&
+            (row.getCell(i).getCellType() == Cell.CELL_TYPE_BLANK)) return null;
         try {
             int val = (int)row.getCell(i).getNumericCellValue();
             System.out.println("extracted int for line " + i);
@@ -2352,8 +2351,8 @@ public class StandardImport extends HttpServlet {
         String str = null;
         try {
             if (cell != null && cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                System.out.println("Current cell: " + cell.toString() + " Current row: " + cell.
-                        getRowIndex() + " Current col: " + cell.getColumnIndex());
+                System.out.println("Current cell: " + cell.toString() + " Current row: " +
+                    cell.getRowIndex() + " Current col: " + cell.getColumnIndex());
                 str = cell.getStringCellValue();
             }
             // not ideal, but maybe get something
@@ -2407,8 +2406,9 @@ public class StandardImport extends HttpServlet {
 
     // Below methods are *not* static and work from column names rather than column numbers
     // IMPORTANT: ONLY WORKS IF colIndexMap HAS BEEN INITIALIZED
-    public String getString(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getString(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         if (!colIndexMap.containsKey(colName)) {
             if (verbose) missingColumns.add(colName);
             return null;
@@ -2419,8 +2419,9 @@ public class StandardImport extends HttpServlet {
         return ans;
     }
 
-    public String getIntAsString(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getIntAsString(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         Integer i = getInteger(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,
             feedback);
 
@@ -2429,8 +2430,9 @@ public class StandardImport extends HttpServlet {
         return i.toString();
     }
 
-    public String getStringOrInt(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public String getStringOrInt(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         if (!colIndexMap.containsKey(colName)) {
             if (verbose) missingColumns.add(colName);
             return null;
@@ -2455,8 +2457,8 @@ public class StandardImport extends HttpServlet {
     }
 
     public Organization getOrganizationForRow(Row row, Shepherd myShepherd, Map<String, Integer>
-        colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns, boolean
-        committing, TabularFeedback feedback) {
+        colIndexMap, boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        boolean committing, TabularFeedback feedback) {
         String orgID = getString(row, "Encounter.submitterOrganization", colIndexMap, verbose,
             missingColumns, unusedColumns, feedback);
 
@@ -2501,8 +2503,8 @@ public class StandardImport extends HttpServlet {
         return uniqueIndys;
     }
 
-    private void createMarkedIndividualCacheForUser(Shepherd myShepherd, User u, HashMap<User, List<
-        MarkedIndividual> > userIndividualCache) {
+    private void createMarkedIndividualCacheForUser(Shepherd myShepherd, User u,
+        HashMap<User, List<MarkedIndividual> > userIndividualCache) {
         List<MarkedIndividual> mis = getAllMarkedIndividualsForUser(myShepherd, u);
 
         if (!userIndividualCache.containsKey(u)) {
@@ -2510,8 +2512,8 @@ public class StandardImport extends HttpServlet {
         }
     }
 
-    private void addIndividualToUserIndividualCache(User u, MarkedIndividual mi, HashMap<User, List<
-        MarkedIndividual> > userIndividualCache) {
+    private void addIndividualToUserIndividualCache(User u, MarkedIndividual mi,
+        HashMap<User, List<MarkedIndividual> > userIndividualCache) {
         List<MarkedIndividual> mis = userIndividualCache.get(u);
 
         if (!mis.contains(mi)) {
@@ -2520,20 +2522,21 @@ public class StandardImport extends HttpServlet {
         userIndividualCache.put(u, mis);
     }
 
-    private MarkedIndividual getIndividualByNameFromUserIndividualCache(User u, String name, String
-        genus, String specificEpithet, HashMap<User, List<MarkedIndividual> > userIndividualCache) {
+    private MarkedIndividual getIndividualByNameFromUserIndividualCache(User u, String name,
+        String genus, String specificEpithet,
+        HashMap<User, List<MarkedIndividual> > userIndividualCache) {
         if (userIndividualCache.get(u) != null) {
             List<MarkedIndividual> mis = userIndividualCache.get(u);
             for (MarkedIndividual mi : mis) {
-                if (mi.getGenus() == null || mi.getSpecificEpithet() == null || "".equals(mi.
-                        getSpecificEpithet()) || "".equals(mi.getGenus())) {
+                if (mi.getGenus() == null || mi.getSpecificEpithet() == null ||
+                    "".equals(mi.getSpecificEpithet()) || "".equals(mi.getGenus())) {
                     mi.setTaxonomyFromEncounters(true);
                 }
                 if (mi.getNamesList() != null && mi.getNamesList().contains(name)) {
-                    if (genus != null && specificEpithet != null && !"".equals(genus) && !"".equals(
-                        specificEpithet)) {
-                        if (genus.equals(mi.getGenus()) && specificEpithet.equals(mi.
-                                getSpecificEpithet())) {
+                    if (genus != null && specificEpithet != null && !"".equals(genus) &&
+                        !"".equals(specificEpithet)) {
+                        if (genus.equals(mi.getGenus()) &&
+                            specificEpithet.equals(mi.getSpecificEpithet())) {
                             return mi;
                         }
                     } else {
@@ -2562,8 +2565,9 @@ public class StandardImport extends HttpServlet {
     // return ans;
     // }
 
-    public Integer getInteger(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public Integer getInteger(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         if (!colIndexMap.containsKey(colName)) {
             if (verbose) missingColumns.add(colName);
             return null;
@@ -2586,8 +2590,9 @@ public class StandardImport extends HttpServlet {
         return ans;
     }
 
-    public Double getDouble(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public Double getDouble(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         if (!colIndexMap.containsKey(colName)) {
             if (verbose) missingColumns.add(colName);
             return null;
@@ -2610,8 +2615,9 @@ public class StandardImport extends HttpServlet {
         return ans;
     }
 
-    public DateTime getDateTime(Row row, String colName, Map<String, Integer> colIndexMap, boolean
-        verbose, Set<String> missingColumns, Set<String> unusedColumns, TabularFeedback feedback) {
+    public DateTime getDateTime(Row row, String colName, Map<String, Integer> colIndexMap,
+        boolean verbose, Set<String> missingColumns, Set<String> unusedColumns,
+        TabularFeedback feedback) {
         if (!colIndexMap.containsKey(colName)) {
             if (verbose) missingColumns.add(colName);
             return null;
@@ -2659,8 +2665,9 @@ public class StandardImport extends HttpServlet {
     }
 
     public static boolean isBlank(Cell cell) {
-        return (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK || (cell.getCellType() ==
-                   Cell.CELL_TYPE_STRING && cell.getStringCellValue().isEmpty()));
+        return (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK ||
+                   (cell.getCellType() == Cell.CELL_TYPE_STRING &&
+                   cell.getStringCellValue().isEmpty()));
     }
 
     public static boolean isCellBlank(Row row, int i) {
@@ -2717,8 +2724,8 @@ public class StandardImport extends HttpServlet {
                 if (f.isFile() && f.getName().matches("WildbookStandardFormat.*\\.xlsx")) return f;
             }
         } catch (Exception ex) {
-            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " + ex.toString
-                ());
+            System.out.println("ERROR: importXlsFile() rootDir=" + rootDir + " threw " +
+                ex.toString());
             return null;
         }
         System.out.println(
@@ -2771,8 +2778,7 @@ public class StandardImport extends HttpServlet {
     }
 
     /**
-     * h/t
-     * http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
+     * h/t http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
      */
     public static String getCellValueAsString(Cell cell) {
         String strCellValue = null;
@@ -2780,26 +2786,26 @@ public class StandardImport extends HttpServlet {
         if (cell != null) {
             try {
                 switch (cell.getCellType()) {
-                    case Cell.CELL_TYPE_STRING:
-                        strCellValue = cell.toString();
-                        break;
-                    case Cell.CELL_TYPE_NUMERIC:
-                        if (DateUtil.isCellDateFormatted(cell)) {
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                            strCellValue = dateFormat.format(cell.getDateCellValue());
-                        } else {
-                            Double value = cell.getNumericCellValue();
-                            Long longValue = value.longValue();
-                            strCellValue = new String(longValue.toString());
-                        }
-                        break;
-                    case Cell.CELL_TYPE_BOOLEAN:
-                        strCellValue = new String(new Boolean(cell.getBooleanCellValue()).toString()
-                            );
-                        break;
-                    case Cell.CELL_TYPE_BLANK:
-                        strCellValue = "";
-                        break;
+                case Cell.CELL_TYPE_STRING:
+                    strCellValue = cell.toString();
+                    break;
+                case Cell.CELL_TYPE_NUMERIC:
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                        strCellValue = dateFormat.format(cell.getDateCellValue());
+                    } else {
+                        Double value = cell.getNumericCellValue();
+                        Long longValue = value.longValue();
+                        strCellValue = new String(longValue.toString());
+                    }
+                    break;
+                case Cell.CELL_TYPE_BOOLEAN:
+                    strCellValue = new String(new Boolean(cell.getBooleanCellValue()).toString()
+                        );
+                    break;
+                case Cell.CELL_TYPE_BLANK:
+                    strCellValue = "";
+                    break;
                 }
             } catch (Exception parseError) {
                 strCellValue = "<em>parse error</em>";
