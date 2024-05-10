@@ -281,7 +281,7 @@ public class ImportExcelMetadata extends HttpServlet {
                             if ((sex != null) && (!sex.equals(""))) {
                                 if (sex.equals("M")) {
                                     enc.setSex("male");
-                                    } else if (sex.equals("F")) { enc.setSex("female"); } else {
+                                } else if (sex.equals("F")) { enc.setSex("female"); } else {
                                     enc.setSex("unknown");
                                 }
                                 System.out.println("          Setting sex for row " + i +

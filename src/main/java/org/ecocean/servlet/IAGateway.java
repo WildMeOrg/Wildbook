@@ -733,7 +733,7 @@ public class IAGateway extends HttpServlet {
                 // error - don't requeue
                 else if (ex.toString().contains("HTTP error code : 608")) {
                     requeue = false;
-                    } else {
+                } else {
                     requeueIncrement = true;
                     requeue = true;
                 }
@@ -843,7 +843,7 @@ public class IAGateway extends HttpServlet {
                         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
                         try {
                             Thread.sleep(whileSleepMillis);
-                            } catch (java.lang.InterruptedException ex) {}
+                        } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
                             false)) {
                             addToDetectionQueue(context, jobj.toString());

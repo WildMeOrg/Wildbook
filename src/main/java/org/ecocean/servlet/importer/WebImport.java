@@ -503,7 +503,7 @@ public class WebImport extends HttpServlet {
 
         String satelliteTag = getString(row, "SatelliteTag.serialNumber");
         if (satelliteTag != null) {
-            SatelliteTag tag = new SatelliteTag("", satelliteTag, "");   // note the empty fields. sat tags are weird.
+            SatelliteTag tag = new SatelliteTag("", satelliteTag, ""); // note the empty fields. sat tags are weird.
             enc.setSatelliteTag(tag);
         }
         String caudalType = getIntAsString(row, "Type caudale Mn");
@@ -520,7 +520,7 @@ public class WebImport extends HttpServlet {
         try {
             for (String columnHeader : colIndexMap.keySet()) {
                 if (columnHeader.contains(className + ".")) {
-                    fieldNames.add(columnHeader.split(className + ".")[1]);           // for Encounter.date returns date
+                    fieldNames.add(columnHeader.split(className + ".")[1]); // for Encounter.date returns date
                 }
             }
         } catch (Exception e) {}
@@ -593,7 +593,7 @@ public class WebImport extends HttpServlet {
             } catch (Exception e) {
                 System.out.println("IOException creating MediaAsset for file " + f.getPath());
                 feedback.addMissingPhoto(f.getPath());
-                continue;         // skips the rest of loop for this file
+                continue; // skips the rest of loop for this file
             }
             if (ma == null) continue;
             if (key0 != null) ma.addKeyword(key0);

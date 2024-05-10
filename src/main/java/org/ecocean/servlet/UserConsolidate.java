@@ -3,7 +3,6 @@
  *
  * @author mfisher
  */
-
 package org.ecocean.servlet;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -421,10 +420,15 @@ public class UserConsolidate extends HttpServlet {
         String filter =
             "SELECT FROM org.ecocean.Encounter WHERE this.informOthers.contains(user) && user.uuid=='"
             + userToBeConsolidated.getUUID() + "' VARIABLES org.ecocean.User user";                                                                                                  //
+                                                                                                                                                                                     //
                                                                                                                                                                                      // &&
+                                                                                                                                                                                     //
                                                                                                                                                                                      // user.uuid==\""+userToBeConsolidated.getUUID()+"\"
+                                                                                                                                                                                     //
                                                                                                                                                                                      // VARIABLES
+                                                                                                                                                                                     //
                                                                                                                                                                                      // org.ecocean.User
+                                                                                                                                                                                     //
                                                                                                                                                                                      // user"
         // System.out.println("dedupe query is: " + filter);
         List<Encounter> encs = new ArrayList<Encounter>();

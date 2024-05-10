@@ -90,11 +90,9 @@ public class EncounterSearchExportShapefile extends HttpServlet {
 
         try {
             /*
-             * We use the DataUtilities class to create a FeatureType that will
-             * describe the data in our shapefile.
+             * We use the DataUtilities class to create a FeatureType that will describe the data in our shapefile.
              *
-             * See also the createFeatureType method below for another,
-             * more flexible approach.
+             * See also the createFeatureType method below for another, more flexible approach.
              */
             final SimpleFeatureType TYPE = DataUtilities.createType("Location",
                 ("the_geom:Point:srid=4326," + // <- the geometry attribute: Point type

@@ -51,7 +51,7 @@ public class UpdateStandard extends HttpServlet {
     String context;
     Map<String, Integer> colIndexMap = new HashMap<String, Integer>();
     Set<String> unusedColumns;
-    Set<String> missingColumns;     // columns we look for but don't find
+    Set<String> missingColumns; // columns we look for but don't find
     List<String> missingPhotos = new ArrayList<String>();
     List<String> foundPhotos = new ArrayList<String>();
     int numFolderRows = 0;
@@ -694,7 +694,7 @@ public class UpdateStandard extends HttpServlet {
 
         String satelliteTag = getString(row, "SatelliteTag.serialNumber");
         if (satelliteTag != null) {
-            SatelliteTag tag = new SatelliteTag("", satelliteTag, "");   // note the empty fields. sat tags are weird.
+            SatelliteTag tag = new SatelliteTag("", satelliteTag, ""); // note the empty fields. sat tags are weird.
             enc.setSatelliteTag(tag);
         }
         String caudalType = getIntAsString(row, "Type caudale Mn");
@@ -711,7 +711,7 @@ public class UpdateStandard extends HttpServlet {
         try {
             for (String columnHeader : colIndexMap.keySet()) {
                 if (columnHeader.contains(className + ".")) {
-                    fieldNames.add(columnHeader.split(className + ".")[1]);           // for Encounter.date returns date
+                    fieldNames.add(columnHeader.split(className + ".")[1]); // for Encounter.date returns date
                 }
             }
         } catch (Exception e) {}
@@ -790,7 +790,7 @@ public class UpdateStandard extends HttpServlet {
             } catch (Exception e) {
                 System.out.println("IOException creating MediaAsset for file " + f.getPath());
                 missingPhotos.add(f.getPath());
-                continue;         // skips the rest of loop for this file
+                continue; // skips the rest of loop for this file
             }
             if (ma == null) continue;
             if (key0 != null) ma.addKeyword(key0);

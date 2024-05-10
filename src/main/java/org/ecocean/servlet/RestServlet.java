@@ -539,7 +539,7 @@ public class RestServlet extends HttpServlet {
             }
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
             // boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-            boolean restAccessOk = false;              // TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
+            boolean restAccessOk = false; // TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
    System.out.println(jsonobj);
    System.out.println("+++++");
@@ -570,7 +570,7 @@ public class RestServlet extends HttpServlet {
                 resp.setHeader("Content-Type", "application/json");
                 pm.currentTransaction().commit();
             } else {
-                throw new NucleusUserException("Access denied");              // seems like what we should throw.  does it matter?
+                throw new NucleusUserException("Access denied"); // seems like what we should throw.  does it matter?
             }
         } catch (ClassNotResolvedException e) {
             try {
@@ -798,7 +798,7 @@ public class RestServlet extends HttpServlet {
             System.out.println("no such method??????????");
             // nothing to do
         }
-        if (restAccess == null) return true;                // if method doesnt exist, counts as good
+        if (restAccess == null) return true; // if method doesnt exist, counts as good
 
         System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
         // when .restAccess() is called, it should throw an exception to signal not allowed
@@ -877,7 +877,7 @@ public class RestServlet extends HttpServlet {
         try {
             sj = obj.getClass().getMethod("sanitizeJson",
                 new Class[] { HttpServletRequest.class, JSONObject.class });
-        } catch (NoSuchMethodException nsm) {     // do nothing
+        } catch (NoSuchMethodException nsm) { // do nothing
             // System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
         }
         if (sj != null) {
@@ -899,7 +899,7 @@ public class RestServlet extends HttpServlet {
         for (Object o : coll) {
             if (o instanceof Collection) {
                 jarr.put(convertToJson(req, (Collection)o, ec));
-            } else {      // TODO can it *only* be an JSONObject-worthy object at this point?
+            } else { // TODO can it *only* be an JSONObject-worthy object at this point?
                 jarr.put(convertToJson(req, o, ec));
             }
         }
@@ -932,7 +932,7 @@ public class RestServlet extends HttpServlet {
         // String s = scrubJson(req, jo).toString();
         String s = jo.toString();
 
-        if (!useComp || (s.length() < 3000)) {      // kinda guessing on size here, probably doesnt matter
+        if (!useComp || (s.length() < 3000)) { // kinda guessing on size here, probably doesnt matter
             resp.getWriter().write(s);
         } else {
             resp.setHeader("Content-Encoding", "gzip");

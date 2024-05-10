@@ -144,7 +144,8 @@ public class EncounterAddSpotFile extends HttpServlet {
                         if ((fileName != null) && (myShepherd.isAcceptableImageFile(fileName))) {
                             // File thisSharkDir = new File(thisEncounterDir.getAbsolutePath() + "/" + encounterNumber);
 
-                            // eliminate the previous JPG version of this file if it existed                                                                                    //eliminate
+                            // eliminate the previous JPG version of this file if it existed
+                            //                                                                                    //eliminate
                             // the previous JPG if it existed
                             try {
                                 String sideAddition = "";
