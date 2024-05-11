@@ -6161,15 +6161,16 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		</table>
 
     <script type="text/javascript">
-      $(window).on('load',function() {
+    $(window).on('load',function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-          var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
-          if (x.style.display === "none") {
-            x.style.display = "block";
-          } else {
-            x.style.display = "none";
-          }
-      });
+            var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        });
+    });
     </script>
 		<p>
       <span class="caption">
@@ -6785,18 +6786,23 @@ function iaMatchFilterGo() {
     Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
 Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
-for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
-    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
-        String key = idOpt.toString();
-        if (identConfigs.containsKey(key)) {
-            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
-        } else {
-            JSONArray iac = new JSONArray();
-            iac.put(iaClass);
-            idOpt.put("_iaClasses", iac);
-            identConfigs.put(key, idOpt);
+try {
+    for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+        for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+            String key = idOpt.toString();
+            if (identConfigs.containsKey(key)) {
+                identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+            } else {
+                JSONArray iac = new JSONArray();
+                iac.put(iaClass);
+                idOpt.put("_iaClasses", iac);
+                identConfigs.put(key, idOpt);
+            }
         }
     }
+} catch (Exception ex) {
+    out.println("// <!-- identConfigs/iaConfig ERROR: " + ex.toString() + "; please see catalina.out -->");
+    ex.printStackTrace();
 }
 
 //we need to keep this in the same order so we can get values out in the same way
