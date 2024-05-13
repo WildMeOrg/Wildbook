@@ -407,6 +407,12 @@ public class MediaAsset implements java.io.Serializable {
         return store.getFilename(this);
     }
 
+    // "user-provided" (fancy, may have utf8 etc) displayable filename
+    public String getUserFilename() {
+        if (store == null) return null;
+        return store.getUserFilename(this);
+    }
+
     public ArrayList<String> getLabels() {
         return labels;
     }

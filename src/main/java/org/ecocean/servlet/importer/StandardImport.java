@@ -1564,7 +1564,8 @@ public class StandardImport extends HttpServlet {
     }
 
     String localPath = getString(row, "Encounter.mediaAsset"+i, colIndexMap, verbose, missingColumns, unusedColumns,feedback);
-    System.out.println("     localPath: "+localPath);
+    String userFilename = localPath;
+    System.out.println("     localPath/userFilename: " + userFilename);
     if (Util.stringExists(localPath)){
       localPath = localPath.replaceAll("[^a-zA-Z0-9\\. ]", "");
     }
@@ -1647,6 +1648,7 @@ public class StandardImport extends HttpServlet {
     // create MediaAsset and return it
     JSONObject assetParams = astore.createParameters(f);
     assetParams.put("_localDirect", f.toString());
+    assetParams.put("userFilename", userFilename);
 
     MediaAsset ma = null;
     try {
