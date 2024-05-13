@@ -199,7 +199,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       newEasyColumn("Encounter.occurrenceRemarks", columns);
 
 
-      Method maGetFilename = MediaAsset.class.getMethod("getFilename", null);
+      Method maGetFilename = MediaAsset.class.getMethod("getUserFilename", null);
       Method maLocalPath   = MediaAsset.class.getMethod("localPath", null);
       // This will include labels in a labeledKeyword value
       Method keywordGetName   = Keyword.class.getMethod("getDisplayName");

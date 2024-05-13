@@ -252,6 +252,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                     if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
                     params = targetStore.createParameters(inFile);
+                    params.put("userFilename", fname);
                     if (accessKey != null) params.put("accessKey", accessKey);
                     targetMA = targetStore.create(params);
                     try {

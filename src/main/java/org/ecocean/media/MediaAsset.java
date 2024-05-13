@@ -1071,6 +1071,7 @@ public class MediaAsset implements java.io.Serializable {
               jobj.put("userLongitude",this.getLongitude());
               jobj.put("userDateTime",this.getUserDateTime());
               jobj.put("filename", this.getFilename());  //this can "vary" depending on store type
+              jobj.put("userFilename", this.getUserFilename());
             }
 
             jobj.put("occurrenceID",this.getOccurrenceID());
