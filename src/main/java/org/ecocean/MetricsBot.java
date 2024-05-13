@@ -74,7 +74,7 @@ public class MetricsBot {
     //basically our "listener" daemon; but is more pull (poll?) than push so to speak.
     private static void startCollector(final String context) { //throws IOException {
         collectorStartTime = System.currentTimeMillis();  //TODO should really be keyed off context!
-        long interval = 15; //number minutes between metrics refreshes of data in the CSV
+        long interval = 60; //number minutes between metrics refreshes of data in the CSV
         long initialDelay = 1; //number minutes before first execution occurs
         System.out.println("+ MetricsBot.startCollector(" + context + ") starting.");
         final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(1);
