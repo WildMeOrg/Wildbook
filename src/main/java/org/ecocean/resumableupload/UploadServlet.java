@@ -264,7 +264,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 
             for (FileItem item : parts) {
                 if (!item.isFormField()) continue;
-System.out.println(item);
+System.out.println(item.getFieldName() + " -> " + item);
                 switch (item.getFieldName()) {
                     case "flowChunkSize":
                         FlowChunkSize = HttpUtils.toInt(item.getString(), -1);
