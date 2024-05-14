@@ -3,40 +3,39 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 
-import org.ecocean.Shepherd;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
-import org.json.JSONObject;
+import org.ecocean.Shepherd;
 import org.json.JSONException;
-
+import org.json.JSONObject;
 
 public class ScheduledIndividualMergeUpdate extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    
-    @Override
-    public void init(final ServletConfig config) throws ServletException {
+
+    @Override public void init(final ServletConfig config)
+    throws ServletException {
         super.init(config);
     }
-    
-    @Override
-    public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        doGet(request,response);
+
+    @Override public void doPost(final HttpServletRequest request,
+        final HttpServletResponse response)
+    throws ServletException, IOException {
+        doGet(request, response);
     }
 
-    @Override
-    public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-
+    @Override public void doGet(final HttpServletRequest request,
+        final HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
-        
-        JSONObject res = new JSONObject();
 
+        JSONObject res = new JSONObject();
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ScheduledIndividualMergeUpdate.java");
@@ -48,40 +47,42 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
             res.put("success", "false");
 
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-
             String mergeId = j.optString("mergeId", null);
             String action = j.optString("action", null);
             String username = j.optString("username", null);
-            if (username==null||myShepherd.getUser(username)==null) {
+            if (username == null || myShepherd.getUser(username) == null) {
                 username = request.getUserPrincipal().getName();
             }
-
-            if (username!=null&&!"".equals(username)&&action!=null&&!"".equals(action)&&mergeId!=null&&!"".equals(mergeId)) {
-                ScheduledIndividualMerge merge = (ScheduledIndividualMerge) myShepherd.getWildbookScheduledTask(mergeId);
+            if (username != null && !"".equals(username) && action != null && !"".equals(action) &&
+                mergeId != null && !"".equals(mergeId)) {
+                ScheduledIndividualMerge merge =
+                    (ScheduledIndividualMerge)myShepherd.getWildbookScheduledTask(mergeId);
                 System.out.println("Have all required info...");
-                System.out.println("Merge real? "+merge.getId());
-                if (merge!=null&&merge.isUserParticipent(username)) {
-                    System.out.println("user is participant? "+merge.isUserParticipent(username));
+                System.out.println("Merge real? " + merge.getId());
+                if (merge != null && merge.isUserParticipent(username)) {
+                    System.out.println("user is participant? " + merge.isUserParticipent(username));
                     if ("deny".equals(action)) {
                         merge.setTaskDeniedStateForUser(username, true);
                         myShepherd.updateDBTransaction();
-                        System.out.println("Set ScheduledIndividual merge "+mergeId+" to DENIED for user "+username+".");
+                        System.out.println("Set ScheduledIndividual merge " + mergeId +
+                            " to DENIED for user " + username + ".");
                         res.put("success", "true");
                     } else if ("ignore".equals(action)) {
                         merge.setTaskIgnoredStateForUser(username, true);
                         myShepherd.updateDBTransaction();
-                        System.out.println("Set ScheduledIndividual merge "+mergeId+" to IGNORE for user "+username+".");
+                        System.out.println("Set ScheduledIndividual merge " + mergeId +
+                            " to IGNORE for user " + username + ".");
                         response.setStatus(HttpServletResponse.SC_OK);
                         res.put("success", "true");
-                    }   
+                    }
                 }
             } else {
-                String err = "You must have a user, mergeId and action defined to modify a ScheduledIndividualMerge.";
+                String err =
+                    "You must have a user, mergeId and action defined to modify a ScheduledIndividualMerge.";
                 System.out.println(err);
                 addErrorMessage(res, err);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
-
             PrintWriter out = response.getWriter();
             out.println(res);
             out.close();
@@ -97,15 +98,12 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            myShepherd.rollbackAndClose();
         }
-        finally {
-          myShepherd.rollbackAndClose();
-        }
-
     }
 
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
     }
-
 }
