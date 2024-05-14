@@ -1,9 +1,9 @@
 package org.ecocean.identity;
 
-import org.ecocean.Shepherd;
-import javax.jdo.Query;
-import javax.jdo.Extent;
 import java.util.Collection;
+import javax.jdo.Extent;
+import javax.jdo.Query;
+import org.ecocean.Shepherd;
 import org.json.JSONArray;
 
 public class IBEISIAIdentificationMatchingState implements java.io.Serializable {
@@ -23,7 +23,8 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
         return state;
     }
 
-    public static IBEISIAIdentificationMatchingState set(String a1, String a2, String state, Shepherd myShepherd) {
+    public static IBEISIAIdentificationMatchingState set(String a1, String a2, String state,
+        Shepherd myShepherd) {
         if ((a1 == null) || (a2 == null)) return null;
         IBEISIAIdentificationMatchingState m = load(a1, a2, myShepherd);
         if ((m != null) && m.state.equals(state)) return m;
@@ -36,11 +37,15 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
         return m;
     }
 
-    public static IBEISIAIdentificationMatchingState load(String a1, String a2, Shepherd myShepherd) {
+    public static IBEISIAIdentificationMatchingState load(String a1, String a2,
+        Shepherd myShepherd) {
         if ((a1 == null) || (a2 == null)) return null;
-        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.identity.IBEISIAIdentificationMatchingState WHERE annId1 == \"" + a1 + "\" && annId2 == \"" + a2 + "\"");
+        Query query = myShepherd.getPM().newQuery(
+            "SELECT FROM org.ecocean.identity.IBEISIAIdentificationMatchingState WHERE annId1 == \""
+            + a1 + "\" && annId2 == \"" + a2 + "\"");
         query.setUnique(true);
-        IBEISIAIdentificationMatchingState s = (IBEISIAIdentificationMatchingState)(query.execute());
+        IBEISIAIdentificationMatchingState s =
+            (IBEISIAIdentificationMatchingState)(query.execute());
         query.closeAll();
         return s;
     }
@@ -50,13 +55,12 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
         Query q = myShepherd.getPM().newQuery(all);
         Collection allC = (Collection)(q.execute());
         JSONArray jarr = new JSONArray();
+
         for (Object o : allC) {
             IBEISIAIdentificationMatchingState ms = (IBEISIAIdentificationMatchingState)o;
-            jarr.put(new JSONArray(new String[]{ms.annId1, ms.annId2, ms.state}));
+            jarr.put(new JSONArray(new String[] { ms.annId1, ms.annId2, ms.state }));
         }
         q.closeAll();
         return jarr;
     }
-
 }
-
