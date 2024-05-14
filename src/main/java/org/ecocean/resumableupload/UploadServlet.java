@@ -264,7 +264,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 
             for (FileItem item : parts) {
                 if (!item.isFormField()) continue;
-System.out.println(item);
+System.out.println(item.getFieldName() + " -> " + item);
                 switch (item.getFieldName()) {
                     case "flowChunkSize":
                         FlowChunkSize = HttpUtils.toInt(item.getString(), -1);
@@ -300,6 +300,9 @@ System.out.println("FlowIdentifier: " + FlowIdentifier);
 System.out.println("FlowFilename: " + FlowFilename);
 System.out.println("FlowRelativePath: " + FlowRelativePath);
 System.out.println("FlowFilePath: " + FlowFilePath);
+
+                    // hacky, but gets us userFilename
+                    request.getSession().setAttribute("userFilename:" + FlowFilename, FlowRelativePath);
 
 		FlowInfo info = storage.get(FlowChunkSize, FlowTotalSize,
 				FlowIdentifier, FlowFilename, FlowRelativePath, FlowFilePath);
