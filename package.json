@@ -45,8 +45,5 @@
     "husky": "^7.0.4",
     "lint-staged": ">=8",
     "prettier": "^3.2.5"
-  },
-  "dependencies": {
-    "grunt-cli": "^1.4.3"
   }
 }
