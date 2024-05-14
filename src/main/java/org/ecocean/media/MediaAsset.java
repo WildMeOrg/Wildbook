@@ -407,6 +407,12 @@ public class MediaAsset implements java.io.Serializable {
         return store.getFilename(this);
     }
 
+    // "user-provided" (fancy, may have utf8 etc) displayable filename
+    public String getUserFilename() {
+        if (store == null) return null;
+        return store.getUserFilename(this);
+    }
+
     public ArrayList<String> getLabels() {
         return labels;
     }
@@ -1065,6 +1071,7 @@ public class MediaAsset implements java.io.Serializable {
               jobj.put("userLongitude",this.getLongitude());
               jobj.put("userDateTime",this.getUserDateTime());
               jobj.put("filename", this.getFilename());  //this can "vary" depending on store type
+              jobj.put("userFilename", this.getUserFilename());
             }
 
             jobj.put("occurrenceID",this.getOccurrenceID());

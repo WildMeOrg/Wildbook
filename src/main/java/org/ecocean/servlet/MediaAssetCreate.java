@@ -246,12 +246,14 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 
                 //TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
                 String fname = params.optString("filename", null);
+                String userFilename = params.optString("userFilename", fname);
                 String url = params.optString("url", null);
                 String accessKey = params.optString("accessKey", null);  //kinda specialty use to validate certain anon-uploaded cases (e.g. match.jsp)
                 if (fname != null) {  //this is local
                     if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
                     params = targetStore.createParameters(inFile);
+                    params.put("userFilename", userFilename);
                     if (accessKey != null) params.put("accessKey", accessKey);
                     targetMA = targetStore.create(params);
                     try {

@@ -5050,6 +5050,7 @@ button#upload-button {
 
   var keyToFilename = {};
   var filenames = [];
+    var userFilenames = [];
   var pendingUpload = -1;
 
   $("button#add-image").click(function(){$(".flow-box").show()})
@@ -5066,6 +5067,7 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    file.userFilename = file.name;
     if(file && file.name){
       file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
     }
@@ -5085,8 +5087,9 @@ button#upload-button {
     var el = findElement(file.name, file.size);
     updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
     console.log('success %o %o', file, message);
-    console.log('filename: '+file.name);
+    console.log('filename: %o | userFilename: %o', file.name, file.userFilename);
     filenames.push(file.name);
+    userFilenames.push(file.userFilename);
     pendingUpload--;
     if (pendingUpload == 0) uploadFinished();
   });
@@ -5170,7 +5173,7 @@ button#upload-button {
   }
   function uploadFinished() {
     if (filenames.length > 0) {
-      console.log("creating mediaAsset for filename "+filenames[0]);
+      console.log("creating mediaAsset for filename=[%o] userFilename=[%o]", filenames[0], userFilenames[0]);
 
       let locationID = '<%=enc.getLocationID()%>';
       console.log("locationID for new asset: "+locationID);
@@ -5183,7 +5186,10 @@ button#upload-button {
         data: JSON.stringify({
           "MediaAssetCreate": [
             {"assets": [
-               {"filename": filenames[0] }
+               {
+                    "filename": filenames[0],
+                    "userFilename": userFilenames[0],
+               }
               ]
             }
           ],
