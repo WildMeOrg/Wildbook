@@ -108,6 +108,8 @@ public class MediaAssetAttach extends HttpServlet {
             if (args.optString("attach") != null && args.optString("attach").equals("true")) {
                 for (MediaAsset ma : mas) {
                     enc.addMediaAsset(ma);
+                    String comments = "Attached MediaAsset " + ma.getId() + ".";
+                    enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
                 }
                 res.put("action", "attach");
                 res.put("success", true);
