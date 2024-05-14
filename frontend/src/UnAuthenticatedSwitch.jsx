@@ -1,6 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import NotFound from "./NotFound";
+import ErrorPage from "./pages/errorPages/ErrorPage";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -36,7 +36,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
         <Footer />
       </div>
