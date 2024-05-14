@@ -301,6 +301,9 @@ System.out.println("FlowFilename: " + FlowFilename);
 System.out.println("FlowRelativePath: " + FlowRelativePath);
 System.out.println("FlowFilePath: " + FlowFilePath);
 
+                    // hacky, but gets us userFilename
+                    request.getSession().setAttribute("userFilename:" + FlowFilename, FlowRelativePath);
+
 		FlowInfo info = storage.get(FlowChunkSize, FlowTotalSize,
 				FlowIdentifier, FlowFilename, FlowRelativePath, FlowFilePath);
 		if (!info.valid()) {

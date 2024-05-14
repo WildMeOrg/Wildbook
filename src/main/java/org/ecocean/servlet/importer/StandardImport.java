@@ -1697,6 +1697,7 @@ public class StandardImport extends HttpServlet {
     // String keywordOI = getString(row, keywordOIKey);
     // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
     // if (keyword!=null) ma.addKeyword(keyword);
+    System.out.println("getMediaAsset() created " + ma + " with params: " + assetParams);
     return ma;
   }
 
