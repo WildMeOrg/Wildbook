@@ -14,8 +14,6 @@ import org.json.JSONObject;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;

@@ -1,24 +1,11 @@
 package org.ecocean;
 
-/*
-   import org.apache.commons.codec.digest.DigestUtils;
-
-   import java.util.StringTokenizer;
-   import java.util.TreeMap;
-   import java.util.Vector;
-   import java.util.GregorianCalendar;
-   import java.io.*;
- */
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.ServletContext;
 

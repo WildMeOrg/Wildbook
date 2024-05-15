@@ -13,9 +13,7 @@ import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.SinglePhotoVideo;
 import org.joda.time.DateTime;
 
 import javax.servlet.http.HttpServletRequest;

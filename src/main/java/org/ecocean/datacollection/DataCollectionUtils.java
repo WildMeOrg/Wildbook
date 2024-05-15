@@ -1,11 +1,7 @@
 package org.ecocean.datacollection;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.joda.time.DateTime;
-
 import org.ecocean.CommonConfiguration;
 
 /**

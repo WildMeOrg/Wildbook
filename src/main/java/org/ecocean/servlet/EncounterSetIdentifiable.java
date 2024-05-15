@@ -10,7 +10,6 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 // Set alternateID for this encounter/sighting
 public class EncounterSetIdentifiable extends HttpServlet {

@@ -10,7 +10,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import org.ecocean.movement.*;
 /**
  * This is an object that contains occurrences and survey tracks, with specific geographic points that were traversed. It is intended to be a measure
  * of the work

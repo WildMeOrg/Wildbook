@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import org.ecocean.CommonConfiguration;
-import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 
 import java.nio.file.attribute.BasicFileAttributes;
@@ -14,13 +13,10 @@ import java.util.Arrays;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
 /*
-
    File-based queue... not as nice as RabbitMQ but should(!?) work on "most" systems?
-
  */
 
 public class FileQueue extends Queue {

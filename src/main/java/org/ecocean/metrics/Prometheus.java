@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.Counter;
 import io.prometheus.client.exporter.common.TextFormat;
 import io.prometheus.client.Gauge;
 

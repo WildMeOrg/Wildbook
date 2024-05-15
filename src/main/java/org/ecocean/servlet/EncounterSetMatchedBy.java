@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
@@ -12,8 +11,6 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
-// import com.poet.jdo.*;
 
 public class EncounterSetMatchedBy extends HttpServlet {
     public void init(ServletConfig config)

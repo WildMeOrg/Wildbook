@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.MultiValue;
 import org.ecocean.Shepherd;
@@ -14,10 +13,6 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
-// import javax.jdo.*;
-// import com.poet.jdo.*;
-// import com.oreilly.servlet.multipart.*;
 
 // handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class IndividualSetName extends HttpServlet {

@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;

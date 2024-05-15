@@ -1,29 +1,11 @@
 package org.ecocean.servlet.importer;
 
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDateTime;
-
-import java.net.*;
-
-import org.ecocean.grid.*;
 
 import java.io.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.*;
 
-import javax.jdo.*;
-
-import java.lang.NumberFormatException;
-import java.lang.StringBuffer;
-import java.util.Iterator;
-import java.util.Vector;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -35,8 +17,6 @@ import org.ecocean.media.*;
 import org.ecocean.servlet.*;
 import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServlet;

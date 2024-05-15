@@ -10,13 +10,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 /**
  * Given a MediaAssetSet id, create the appropriate occurrences, and return their IDs.

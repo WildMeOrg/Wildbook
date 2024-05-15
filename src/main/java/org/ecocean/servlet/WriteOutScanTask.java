@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.List;
-import java.util.Properties;
 import java.util.Vector;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

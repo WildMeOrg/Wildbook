@@ -1,12 +1,9 @@
 package org.ecocean.genetics;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Locus implements java.io.Serializable {
-    /**
-     *
-     */
+
     private static final long serialVersionUID = 5458817893355984588L;
     private String name;
     private Integer allele0;

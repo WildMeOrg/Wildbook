@@ -6,8 +6,6 @@ import java.util.Properties;
 import java.util.regex.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspWriter;
-import org.ecocean.*;
-import org.ecocean.servlet.ServletUtilities;
 /**
  * Comment
  *
