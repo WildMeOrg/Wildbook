@@ -1,7 +1,6 @@
 package org.ecocean.ai.servlet.export;
 
 
-import javax.jdo.annotations.Query;
 import javax.servlet.*;
 import javax.servlet.http.*;
 

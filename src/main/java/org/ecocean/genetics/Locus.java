@@ -1,6 +1,5 @@
 package org.ecocean.genetics;
 
-import java.util.List;
 import java.util.ArrayList;
 
 public class Locus implements java.io.Serializable{

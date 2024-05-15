@@ -1,7 +1,5 @@
 package org.ecocean;
 
-import java.io.Writer;
-import javax.servlet.jsp.JspWriter;
 import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;

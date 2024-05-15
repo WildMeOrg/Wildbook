@@ -6,11 +6,8 @@
 
 package org.ecocean;
 
-import org.ecocean.ImageAttributes;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.acm.AcmBase;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.Task;
 import org.json.JSONArray;
@@ -20,9 +17,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.awt.Rectangle;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,7 +25,6 @@ import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.CollectionUtils;
 
 
 //import java.time.LocalDateTime;

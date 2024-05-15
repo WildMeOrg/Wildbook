@@ -4,7 +4,6 @@ package org.ecocean.api;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +18,6 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.session.Session;
 
-import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.servlet.ServletUtilities;

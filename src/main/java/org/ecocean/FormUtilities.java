@@ -1,6 +1,4 @@
 package org.ecocean;
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.*;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.io.IOException;

@@ -1,10 +1,6 @@
 package org.ecocean.datacollection;
 
-
 import org.ecocean.Util;
-import org.ecocean.ClassEditTemplate;
-
-import java.io.IOException;
 
 public class Amount extends DataPoint {
 

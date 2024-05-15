@@ -1,7 +1,5 @@
 package org.ecocean;
 
-import java.util.Vector;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.datanucleus.api.rest.orgjson.JSONException;

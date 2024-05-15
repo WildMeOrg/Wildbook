@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.io.IOException;
 
-import org.ecocean.cache.StoredQuery;
 import org.ecocean.Shepherd;
 import org.json.JSONObject;
 

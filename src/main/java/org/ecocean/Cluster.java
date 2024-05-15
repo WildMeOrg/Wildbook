@@ -1,30 +1,16 @@
 package org.ecocean;
 
-import org.ecocean.media.*;
-
 import org.joda.time.DateTime;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Vector;
-import java.util.Arrays;
 import java.io.*;
-import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Comparator;
 
-
-import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.datanucleus.api.rest.orgjson.JSONException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.xml.sax.InputSource;
-import java.io.StringReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

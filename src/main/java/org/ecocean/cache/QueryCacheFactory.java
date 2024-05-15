@@ -1,7 +1,5 @@
 package org.ecocean.cache;
 
-import org.ecocean.cache.QueryCache;
-
 public class QueryCacheFactory {
 
   private static QueryCache qc;

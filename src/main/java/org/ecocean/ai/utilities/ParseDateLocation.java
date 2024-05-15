@@ -12,9 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.*;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.LinkedProperties;
 import org.ecocean.Occurrence;
@@ -38,17 +35,6 @@ import com.google.api.services.youtube.model.CommentSnippet;
 import com.google.api.services.youtube.model.CommentThread;
 import com.google.api.services.youtube.model.CommentThreadReplies;
 import com.google.api.services.youtube.model.CommentThreadSnippet;
-
-import java.util.*;
-
-import edu.stanford.nlp.pipeline.*;
-import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
-
 
 import twitter4j.Status;
 

@@ -5,8 +5,6 @@
 
 package org.ecocean.acm;
 
-import java.io.Serializable;
-
 public class AcmBase implements java.io.Serializable {
 
     private String acmId;

@@ -1,6 +1,4 @@
 package org.ecocean.genetics;
-
-import org.ecocean.DataCollectionEvent;
  
 public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Serializable {
 

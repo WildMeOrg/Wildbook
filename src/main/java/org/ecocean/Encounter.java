@@ -11,7 +11,6 @@ import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.text.SimpleDateFormat;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.Vector;
 import java.util.HashMap;
 import java.util.Set;
@@ -20,8 +19,6 @@ import java.util.SortedMap;
 import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
-import java.lang.reflect.Field;
-
 import javax.jdo.Query;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -33,33 +30,16 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
-import org.ecocean.Util;
-//import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.ia.IA;
 import org.ecocean.media.*;
-import org.ecocean.PointLocation;
-import org.ecocean.Survey;
 import org.ecocean.servlet.importer.ImportTask;
 
-import javax.servlet.http.HttpServletRequest;
-
-
-
-
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.ecocean.security.Collaboration;
-import org.ecocean.servlet.ServletUtilities;
 
-import javax.servlet.http.HttpServletRequest;
-
-
-//note these are different.  so be explicit if you need the org.json.JSONObject flavor
-//import org.json.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;

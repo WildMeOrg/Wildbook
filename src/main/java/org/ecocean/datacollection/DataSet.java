@@ -1,10 +1,8 @@
 package org.ecocean.datacollection;
 
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
 import java.util.List;
-import java.util.ArrayList;
 
 
 // a time- and location-stamped collection of DataCollectionEvents

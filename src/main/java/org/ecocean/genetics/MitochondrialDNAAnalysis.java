@@ -1,9 +1,7 @@
 package org.ecocean.genetics;
 
-import java.io.IOException;
 import java.util.Properties;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.ShepherdProperties;
 
 public class MitochondrialDNAAnalysis extends GeneticAnalysis{
