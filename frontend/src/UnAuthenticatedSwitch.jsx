@@ -18,8 +18,8 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   return (
     <main className="d-flex flex-column">
       <div
-        className="position-fixed top-0 mx-auto"
-        style={{ maxWidth: "1440px", zIndex: 100, width: "100%" }}
+        className="position-fixed top-0 mx-auto w-100"
+        style={{ maxWidth: "1440px", zIndex: 100 }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <UnAuthenticatedAppHeader
@@ -28,17 +28,16 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         />
       </div>
       <div
-        className="position-absolute top-0 start-0 justify-content-center"
+        className="position-absolute top-0 start-0 justify-content-center w-100"
         style={{
           overflow: "hidden",
           boxSizing: "border-box",
-          width: "100%",
           minHeight: "calc(100vh - 64px)", // Assuming the header height is 64px
         }}
       >
         <Routes>
           {/* <Route path="/about" element={<Login />} /> */}
-          <Route path="/home" element={<Home />} />
+          <Route path="/home" element={<Unauthorized />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route path="*" element={<NotFound />} />

@@ -7,6 +7,7 @@ export default function Unauthorized() {
       errorCode="401"
       errorId="ERROR_PAGE_UNAUTHORIZED"
       errorDesc="ERROR_PAGE_UNAUTHORIZED_DESC"
+      loginRequired={true}
       position={[15, 40]}
     />
   );
