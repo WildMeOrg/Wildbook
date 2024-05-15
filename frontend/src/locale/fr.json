@@ -87,5 +87,16 @@
     "MERGE_DENIED_MESSAGE": "Une fusion de <bold>{indv2}</bold> dans <bold>{indv1}</bold> a été <bold>refusée</bold>. Initiée par <bold>{initiator}</bold>. Refusée par l'utilisateur: <bold>{deniedBy}</bold>",
     "DISMISS": "Rejeter",
     "MERGE_COMPLETE_MESSAGE": "Une fusion de <bold>{indv2}</bold> dans <bold>{indv1}</bold> a été <bold>complétée</bold>. Initiée par <bold>{initiator}</bold>. Date de finalisation: <bold>{mergeDate}</bold>",
-    "BANNER_ALERT": "Wildbook adopte un nouveau look ! Merci de votre patience pendant que nous effectuons ces changements."
+    "BANNER_ALERT": "Wildbook adopte un nouveau look ! Merci de votre patience pendant que nous effectuons ces changements.",
+    "ERROR_PAGE_NOT_FOUND": "Page non trouvée",
+    "ERROR_PAGE_NOT_FOUND_DESC": "La page que vous recherchez n'existe pas.",
+    "ERROR_BACK_HOME": "Retour à l'accueil",
+    "ERROR_PAGE_SERVER_ERROR": "Erreur interne du serveur",
+    "ERROR_PAGE_SERVER_ERROR_DESC": "Une erreur est survenue sur le serveur. Veuillez réessayer plus tard.",
+    "ERROR_PAGE_UNAUTHORIZED": "Non autorisé",
+    "ERROR_PAGE_UNAUTHORIZED_DESC": "Vous n'êtes pas autorisé à voir cette page.",
+    "ERROR_PAGE_FORBIDDEN": "Interdit",
+    "ERROR_PAGE_FORBIDDEN_DESC": "Vous n'avez pas la permission d'accéder à cette page.",
+    "ERROR_PAGE_BAD_REQUEST": "Mauvaise requête",
+    "ERROR_PAGE_BAD_REQUEST_DESC": "La requête était invalide."
 }

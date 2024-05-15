@@ -1,12 +1,12 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function NotFound() {
+export default function BadRequest() {
   return (
     <ErrorPage
-      statusCode="400"
-      error_id="BAD_REQUEST"
-      ERROR_DESC="BAD_REQUEST_DESC"
+      errorCode="400"
+      errorId="ERROR_PAGE_BAD_REQUEST"
+      errorDesc="ERROR_PAGE_BAD_REQUEST_DESC"
       position={[18, 35]}
     />
   );

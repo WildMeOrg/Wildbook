@@ -1,13 +1,13 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function NotFound() {
+export default function Forbidden() {
   return (
     <ErrorPage
-      statusCode="403"
-      error_id="FORBIDDEN"
-      error_desc="FORBIDDEN_DESC"
-      position={[18, 45]}
+      errorCode="403"
+      errorId="ERROR_PAGE_FORBIDDEN"
+      errorDesc="ERROR_PAGE_FORBIDDEN_DESC"
+      position={[18, 25]}
     />
   );
 }
