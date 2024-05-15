@@ -8,7 +8,7 @@ import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
 import { FormattedMessage } from 'react-intl';
 import NotificationButton from './navBar/NotificationButton';
 
-export default function AuthenticatedAppHeader() {
+export default function AuthenticatedAppHeader({ showAlert }) {
   const location = window.location;
   const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
   const homePage = path === '/react/home/' || path === '/react/';
@@ -50,7 +50,7 @@ export default function AuthenticatedAppHeader() {
       height: '43px',
       fontSize: '1rem',
       position: 'fixed',
-      top: 0,
+      top: showAlert? 60 : 0,
       maxWidth: '1440px',
       marginLeft: 'auto',
       marginRight: 'auto',
@@ -60,7 +60,7 @@ export default function AuthenticatedAppHeader() {
   >
     <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '50%' }}>
+    <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '40%' }}>
       <Nav className="mr-auto" style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
         {unAuthenticatedMenu.map((item, idx) => (
           <Nav className="me-auto">
@@ -98,6 +98,8 @@ export default function AuthenticatedAppHeader() {
           color: 'white',
           border: 'none',
           width: '100px',
+          whiteSpace: 'nowrap',
+          padding: 5
         }}
         href={"/react/login"}>{
           <FormattedMessage id='LOGIN_LOGIN' />
