@@ -9,9 +9,6 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
-import org.ecocean.Util;
-
-import org.apache.commons.io.FilenameUtils;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

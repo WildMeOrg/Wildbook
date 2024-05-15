@@ -1,36 +1,24 @@
 package org.ecocean.media;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import org.ecocean.Annotation;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.joda.time.DateTime;
-// import org.ecocean.ImageProcessor;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * YouTubeAssetStore references MediaAssets that reside on YouTube.

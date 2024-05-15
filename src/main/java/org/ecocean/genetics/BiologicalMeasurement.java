@@ -1,7 +1,5 @@
 package org.ecocean.genetics;
 
-import org.ecocean.DataCollectionEvent;
-
 public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Serializable {
     private static final long serialVersionUID = -7934850478287322048L;
 

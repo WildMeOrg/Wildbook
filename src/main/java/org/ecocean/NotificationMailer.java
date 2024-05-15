@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.servlet.EncounterDelete;
 import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

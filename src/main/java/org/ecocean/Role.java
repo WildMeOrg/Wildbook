@@ -1,8 +1,5 @@
 package org.ecocean;
 
-import java.io.Serializable;
-import java.util.Date;
-
 /**
  * <code>User</code> stores information about a contact/user. Examples: photographer, submitter
  * @author Ed Stastny

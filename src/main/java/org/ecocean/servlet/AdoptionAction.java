@@ -10,8 +10,6 @@ import org.ecocean.NotificationMailer;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,13 +18,10 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
