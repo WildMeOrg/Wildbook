@@ -198,16 +198,26 @@ Distance Category: "B"
 */
     }
 
-    public static Encounter toEncounter(JSONObject jin, Shepherd myShepherd) {  //occJson we need for species (if not more)
+    public static Encounter toEncounter(JSONObject jin, Shepherd myShepherd) throws IOException {
+        return toEncounter(jin, myShepherd, false);
+    }
+
+    public static Encounter toEncounter(JSONObject jin, Shepherd myShepherd, boolean createDuplicate) throws IOException {
         Encounter enc = new Encounter();
         String id = jin.optString("id", null);
         if (id == null) {
             id = Util.generateUUID();
+            enc.setDynamicProperty("OnWaterApp photo id", id);
         } else {
             enc.setDynamicProperty("OnWaterApp photo id", id);
             if (myShepherd.isEncounter(id)) {
-                System.out.println("OnWaterApp.toEncounter: attempt to create duplicate Encounter ID " + id + "; generating random");
-                id = Util.generateUUID();
+                if (createDuplicate) {
+                    System.out.println("OnWaterApp.toEncounter(): attempt to create duplicate Encounter ID " + id + "; generating random");
+                    id = Util.generateUUID();
+                } else {
+                    System.out.println("OnWaterApp.toEncounter(): will not create duplicate Encounter ID " + id);
+                    throw new IOException("Encounter with id=" + id + " already exists; will not created duplicate");
+                }
             }
         }
         enc.setCatalogNumber(id);
@@ -238,21 +248,25 @@ Distance Category: "B"
         enc.setFlowAmount(findDouble(jin, "flowAmount"));
         enc.setFlowUnit(jin.optString("flowUnit", null));
 
-        /*
-            TODO add other goodies:
-            "user": "f3dc11e8-db54-485b-b74a-b6fc0b0d8982",
-            "gearType": null,
-            "temperature": null,
-            "temperatureUnit": "°F",
-            "size": null,
-            "waterClarity": null,
-            "waterClarityUri": null,
-            "measuredLength": null,
-            "estimatedLengthBody": "18.5",
-            "estimatedLengthEye": "14.9",
-        */
+        enc.setTemperature(findDouble(jin, "temperature"));
+        enc.setTemperatureUnit(jin.optString("temperatureUnit", null));
+
+        enc.setGearType(jin.optString("gearType", null));
+
+        enc.setSize(findDouble(jin, "size"));
+
+        enc.setWaterClarity(jin.optString("waterClarity", null));
+        enc.setWaterClarityUri(jin.optString("waterClarityUri", null));
+
+        enc.setMeasuredLength(findDouble(jin, "measuredLength"));
+
+        enc.setEstimatedLengthBody(findDouble(jin, "estimatedLengthBody"));
+        enc.setEstimatedLengthEye(findDouble(jin, "estimatedLengthEye"));
+
+        enc.setAppUserId(jin.optString("user", null));
 
         /*
+        FIXME
         createSurvey(jin.optJSONObject("trip"));
 
               "trip" : {
@@ -293,6 +307,16 @@ System.out.println("MADE " + enc);
         if (tstring == null) return null;
         List<Taxonomy> found = Taxonomy.findMatch(myShepherd, "(?i)" + tstring);  //exact match (but case-insensitive)
         if (found.size() > 0) return found.get(0);
+        // ok lets try commonConfiguration
+        List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues("genusSpecies", myShepherd.getContext());
+        List<String> configuredCommonNames = CommonConfiguration.getIndexedPropertyValues("commonName", myShepherd.getContext());
+        for (String sp : configuredSpecies) {
+            if (sp.toLowerCase().equals(tstring.toLowerCase())) return new Taxonomy(sp);
+        }
+        for (int i = 0 ; i < configuredCommonNames.size() ; i++) {
+            String cn = configuredCommonNames.get(i);
+            if (cn.toLowerCase().equals(tstring.toLowerCase()) && (i < configuredSpecies.size())) return new Taxonomy(configuredSpecies.get(i));
+        }
         return null;
     }
 

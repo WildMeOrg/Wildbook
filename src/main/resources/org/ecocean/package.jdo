@@ -482,6 +482,20 @@
 
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
+	<!-- troutspotter -->
+    	<field name="gearType" persistence-modifier="persistent"></field>
+    	<field name="temperature" persistence-modifier="persistent"></field>
+    	<field name="temperatureUnit" persistence-modifier="persistent"></field>
+    	<field name="flowAmount" persistence-modifier="persistent"></field>
+    	<field name="flowUnit" persistence-modifier="persistent"></field>
+    	<field name="waterClarity" persistence-modifier="persistent"></field>
+    	<field name="waterClarityUri" persistence-modifier="persistent"></field>
+    	<field name="measuredLength" persistence-modifier="persistent"></field>
+    	<field name="estimatedLengthBody" persistence-modifier="persistent"></field>
+    	<field name="estimatedLengthEye" persistence-modifier="persistent"></field>
+    	<field name="appUserId" persistence-modifier="persistent"></field>
+	<!-- troutspotter -->
+
 
 	  <fetch-group name="searchResults">
 
