@@ -13,6 +13,7 @@ import java.util.HashMap;
 import org.ecocean.Annotation;
 import org.ecocean.RestClient;
 import org.ecocean.Util;
+// import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;
