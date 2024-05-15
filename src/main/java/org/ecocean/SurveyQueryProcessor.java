@@ -1,23 +1,14 @@
 package org.ecocean;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.*;
-import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
-
-import org.joda.time.DateTime;
 
 public class SurveyQueryProcessor extends QueryProcessor {
     private static final String BASE_FILTER =

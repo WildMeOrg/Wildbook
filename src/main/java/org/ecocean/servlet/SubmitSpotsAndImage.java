@@ -1,10 +1,5 @@
 package org.ecocean.servlet;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
@@ -16,8 +11,6 @@ import org.ecocean.Keyword;
 import org.ecocean.media.*;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
-import org.ecocean.Util;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,15 +18,11 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *

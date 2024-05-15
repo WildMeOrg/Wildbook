@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ecocean.DataCollectionEvent;
-import org.ecocean.Measurement;
-
 import javax.servlet.http.HttpServletRequest;
 
 public class TissueSample extends DataCollectionEvent {

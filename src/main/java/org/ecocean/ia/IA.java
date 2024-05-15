@@ -31,7 +31,6 @@ import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.IAJsonProperties;
-import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.servlet.ServletUtilities;

@@ -5,11 +5,7 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
-import java.lang.StringBuffer;
-import javax.jdo.*;
-import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 import org.ecocean.security.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -18,7 +14,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.poi.ss.usermodel.Sheet;

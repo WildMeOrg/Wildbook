@@ -14,7 +14,6 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class IndividualRemoveEncounter extends HttpServlet {

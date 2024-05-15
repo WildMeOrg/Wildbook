@@ -1,9 +1,6 @@
 package org.ecocean.datacollection;
 
-import org.ecocean.ClassEditTemplate;
 import org.ecocean.Util;
-
-import java.io.IOException;
 
 public class Amount extends DataPoint {
     private Double value;

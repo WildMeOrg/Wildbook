@@ -1,10 +1,7 @@
 package org.ecocean;
 
-import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -13,8 +10,6 @@ import org.joda.time.format.*;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.*;
-import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.joda.time.DateTime;

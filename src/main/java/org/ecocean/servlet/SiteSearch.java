@@ -7,25 +7,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
-import org.ecocean.User;
 import org.ecocean.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-// import com.samsix.util.string.StringUtilities;
 
 public class SiteSearch extends HttpServlet {
     private static final long serialVersionUID = 1L;

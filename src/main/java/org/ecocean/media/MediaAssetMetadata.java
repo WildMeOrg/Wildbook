@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import org.ecocean.Util;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.joda.time.DateTime;
 
 /**

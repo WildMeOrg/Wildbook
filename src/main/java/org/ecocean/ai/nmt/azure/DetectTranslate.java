@@ -6,9 +6,7 @@ import java.util.*;
 import javax.net.ssl.HttpsURLConnection;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -19,7 +17,6 @@ public class DetectTranslate {
     static String detectPath = "/detect?api-version=3.0";
     static String translatePath = "/translate?api-version=3.0";
 
-    // Whatever
     private static class RequestBody {
         String Text;
         public RequestBody(String text) {

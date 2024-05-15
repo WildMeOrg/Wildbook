@@ -1,20 +1,12 @@
 package org.ecocean.servlet;
 
-import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ia.IA;
-import org.ecocean.identity.IBEISIA;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.Shepherd;
-import org.ecocean.Taxonomy;
 import org.ecocean.Util;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,11 +15,7 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
-// import javax.jdo.*;
-// import com.poet.jdo.*;
 
 // handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class AddLabeledKeyword extends HttpServlet {

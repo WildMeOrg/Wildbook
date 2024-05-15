@@ -5,8 +5,6 @@ import java.util.Collection;
 import javax.jdo.Extent;
 import javax.jdo.Query;
 import org.ecocean.Shepherd;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * A FeatureType (still under development) will be the unique identifier of the content type of a feature, such as "fluke trailing edge". Likely it

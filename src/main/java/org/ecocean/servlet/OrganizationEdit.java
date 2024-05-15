@@ -15,7 +15,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.AccessControl;
-import org.ecocean.Annotation;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.Organization;
