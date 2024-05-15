@@ -41,7 +41,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<ServerError />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
       </div>

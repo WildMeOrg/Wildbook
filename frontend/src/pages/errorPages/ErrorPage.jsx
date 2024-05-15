@@ -74,7 +74,7 @@ export default function ErrorPage({ errorCode, errorId, errorDesc, position }) {
                 fill="#445D10"
                 fill-opacity="0.02"
               />
-              <text
+              {/* <text
                 x="54%"
                 y="33%"
                 dominant-baseline="middle"
@@ -85,17 +85,52 @@ export default function ErrorPage({ errorCode, errorId, errorDesc, position }) {
               >
                 {error}
               </text>
+              
+
               <text
                 x="54%"
                 y="45%"
                 dominant-baseline="middle"
                 text-anchor="start"
                 fill="white"
-                font-size="20"
+                font-size="18"
               >
                 {error_desc}
-              </text>
-              <foreignObject width="200" height="50" x="54%" y="55%">
+              </text> */}
+              <foreignObject x="54%" y="20%" width="400" height="50">
+                <div
+                  xmlns="http://www.w3.org/1999/xhtml"
+                  style={{
+                    color: "white",
+                    fontSize: "30px",
+                    fontWeight: "bold",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {error}
+                </div>
+              </foreignObject>
+
+              <foreignObject x="54%" y="32%" width="400" height="100">
+                <div
+                  xmlns="http://www.w3.org/1999/xhtml"
+                  style={{
+                    color: "white",
+                    fontSize: "18px",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {error_desc}
+                </div>
+              </foreignObject>
+
+              <foreignObject width="200" height="50" x="54%" y="60%">
                 <BrutalismButton
                   color="white"
                   borderColor="white"
