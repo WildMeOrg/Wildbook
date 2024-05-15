@@ -1,16 +1,12 @@
 package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.*;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 import org.joda.time.DateTime;

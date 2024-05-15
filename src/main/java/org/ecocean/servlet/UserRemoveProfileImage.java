@@ -8,11 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.Vector;
 
 public class UserRemoveProfileImage extends HttpServlet {
     public void init(ServletConfig config)

@@ -3,7 +3,6 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 
 import java.io.*;
-import java.lang.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 

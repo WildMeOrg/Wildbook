@@ -3,19 +3,11 @@ package org.ecocean.servlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
-
-import org.datanucleus.api.rest.orgjson.JSONArray;
-import org.datanucleus.api.rest.orgjson.JSONException;
-import org.datanucleus.api.rest.orgjson.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Date;
-
 import org.ecocean.*;
 
 public class WorkspacesForUser extends HttpServlet {

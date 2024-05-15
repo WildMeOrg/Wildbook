@@ -16,28 +16,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-// import java.io.FileWriter;
 import java.io.Serializable;
 
-import org.geotools.data.*;
 import org.geotools.data.*;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.shapefile.*;
 import org.geotools.data.simple.*;
-import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.*;
-import org.geotools.geometry.GeometryBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.locationtech.jts.awt.PointShapeFactory.Point;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.*;
-import org.opengis.geometry.coordinate.PointArray;
-import org.opengis.geometry.PositionFactory;
 
-// import java.sql.Date;
-// import java.net.URI;
 
 // adds spots to a new encounter
 public class EncounterSearchExportShapefile extends HttpServlet {

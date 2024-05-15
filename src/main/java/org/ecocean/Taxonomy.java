@@ -1,13 +1,11 @@
 package org.ecocean;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ecocean.Util;
 
 public class Taxonomy implements java.io.Serializable {
     private String id;
