@@ -1,14 +1,9 @@
 package org.ecocean.genetics.distance;
 
-// import java.applet.*;
-// import java.awt.*;
-// import java.io.*;
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 
 public class ShareDst {
     // NumInputBox NIBnumLoci;

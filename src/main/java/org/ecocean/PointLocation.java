@@ -1,13 +1,8 @@
 package org.ecocean;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 
-import org.ecocean.*;
 import org.joda.time.DateTime;
 
 /**

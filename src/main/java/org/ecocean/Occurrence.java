@@ -2,20 +2,16 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
-import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;

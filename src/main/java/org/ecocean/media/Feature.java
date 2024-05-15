@@ -1,30 +1,13 @@
 package org.ecocean.media;
 
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.ImageAttributes;
-import org.ecocean.Keyword;
-import org.ecocean.Shepherd;
-// import java.time.LocalDateTime;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Util;
-import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
-// import java.io.FileInputStream;
-import javax.jdo.Query;
 
 /**
  * A Feature is a unique set of (arbitrary) data that contributes to helping with detection and identification of images (or other data, e.g. audio).

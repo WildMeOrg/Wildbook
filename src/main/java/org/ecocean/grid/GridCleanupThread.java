@@ -3,7 +3,6 @@ package org.ecocean.grid;
 import com.reijns.I3S.Pair;
 import org.ecocean.Shepherd;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.jdo.Extent;
 import javax.jdo.Query;

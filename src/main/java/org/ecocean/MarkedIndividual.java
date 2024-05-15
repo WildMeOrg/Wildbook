@@ -1,6 +1,5 @@
 package org.ecocean;
 
-import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -23,11 +22,8 @@ import org.ecocean.social.SocialUnit;
 import java.text.DecimalFormat;
 
 import java.math.BigInteger;
-import java.util.regex.*;
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.ecocean.LocationID;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.

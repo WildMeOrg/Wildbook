@@ -8,13 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 import org.ecocean.security.HiddenOccReporter;
 import org.ecocean.servlet.ServletUtilities;
-
-import javax.jdo.*;
-
-import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;

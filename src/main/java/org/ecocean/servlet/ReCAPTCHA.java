@@ -11,7 +11,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.*;
 import org.json.JSONObject;
-import org.json.JSONObject;
 
 /* some ReCAPTCHA-related stuff .... note that this has some useful public utility functions, as well as is a servlet which can do standalone
    verification */

@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-// import org.ecocean.CommonConfiguration;
-// import org.ecocean.SinglePhotoVideo;
 import org.ecocean.Encounter;
 import org.ecocean.media.*;
 import org.ecocean.MarkedIndividual;
@@ -13,8 +11,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;

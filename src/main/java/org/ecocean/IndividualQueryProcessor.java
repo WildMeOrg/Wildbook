@@ -2,7 +2,6 @@ package org.ecocean;
 
 import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
-// import javax.jdo.Extent;
 import javax.jdo.Query;
 
 import org.ecocean.servlet.ServletUtilities;

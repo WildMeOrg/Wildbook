@@ -1,9 +1,6 @@
 package org.ecocean;
 
-import java.io.Writer;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspWriter;
-
 import java.io.IOException;
 
 import java.util.Enumeration;

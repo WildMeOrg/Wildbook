@@ -10,27 +10,8 @@ import java.util.Map;
 import javax.servlet.ServletContextEvent;
 import org.ecocean.Annotation;
 import org.ecocean.ia.plugin.*;
-import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Shepherd;
-
-/*
-   import org.ecocean.CommonConfiguration;
-   import org.ecocean.Annotation;
-   import org.ecocean.Util;
-   import org.ecocean.media.MediaAsset;
-   import org.ecocean.media.MediaAssetFactory;
-   import org.ecocean.identity.IBEISIA;
-   import org.ecocean.servlet.ServletUtilities;
-   import java.util.Arrays;
-   import org.json.JSONObject;
-   import org.json.JSONArray;
-   import java.util.Properties;
-   import org.ecocean.ShepherdProperties;
-   import javax.servlet.http.HttpServletRequest;
-   import javax.servlet.http.HttpServletResponse;
-   import java.io.PrintWriter;
- */
 
 public class IAPluginManager {
     private static Map<String, List<IAPlugin> > plugins = new HashMap<String, List<IAPlugin> >();

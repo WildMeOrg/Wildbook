@@ -23,14 +23,12 @@ import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 
-import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -45,8 +43,6 @@ import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 
 /**

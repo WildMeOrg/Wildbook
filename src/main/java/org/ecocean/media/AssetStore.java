@@ -22,7 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -36,16 +35,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Files;
 import javax.jdo.*;
 
 import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.*;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import java.awt.image.BufferedImage;
-import javax.imageio.IIOException;
-import javax.imageio.ImageIO;
 import org.ecocean.ImageProcessor;
 import org.ecocean.Util;
 

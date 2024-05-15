@@ -5,13 +5,10 @@
 package org.ecocean.ia;
 
 import org.ecocean.Annotation;
-import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-// import java.util.UUID;   :(
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;

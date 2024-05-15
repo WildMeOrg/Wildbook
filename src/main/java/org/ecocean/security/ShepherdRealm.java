@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.shiro.mgt.RealmSecurityManager;
-import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.apache.shiro.web.util.WebUtils;

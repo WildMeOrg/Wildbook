@@ -1,19 +1,12 @@
 package org.ecocean.grid;
 
 import org.ecocean.Encounter;
-import org.ecocean.MarkedIndividual;
-// import org.ecocean.Occurrence;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
-
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
-import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
 public class MatchGraphCreationThread implements Runnable, ISharkGridThread {

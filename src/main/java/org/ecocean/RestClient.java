@@ -6,7 +6,6 @@ package org.ecocean;
  */
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -28,7 +27,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.utils.URIBuilder;
 
 /*
    javax.ws.rs.core.UriBuilder https://stackoverflow.com/a/29053050/1525311
