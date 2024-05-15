@@ -3,9 +3,7 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.Vector;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -13,9 +11,6 @@ import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.media.MediaAsset;
-
-import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;

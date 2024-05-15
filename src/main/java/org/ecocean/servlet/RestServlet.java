@@ -30,7 +30,6 @@ import org.ecocean.Util;
 
 import java.lang.reflect.Method;
 
-import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;

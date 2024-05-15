@@ -3,7 +3,6 @@ package org.ecocean.queue;
 import org.ecocean.Util;
 import org.ecocean.CommonConfiguration;
 import java.io.File;
-import org.ecocean.servlet.ServletUtilities;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -12,15 +11,12 @@ import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.nio.file.Files;
 
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /*
-
 File-based queue... not as nice as RabbitMQ but should(!?) work on "most" systems?
-
 */
 
 public class FileQueue extends Queue {

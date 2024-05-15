@@ -3,11 +3,6 @@ package org.ecocean.servlet;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.ecocean.*;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,9 +15,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.Properties;
 import org.json.JSONObject;
-import org.ecocean.servlet.*;
 
 
 public class UserCreate extends HttpServlet {

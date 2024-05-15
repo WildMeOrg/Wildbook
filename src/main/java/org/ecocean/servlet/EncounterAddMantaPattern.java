@@ -27,12 +27,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-//import javax.imageio.spi.ImageReaderWriterSpi;
-
-import org.ecocean.servlet.*;
-
-
-
 
 /**
  * 

@@ -2,21 +2,15 @@ package org.ecocean;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Vector;
 import java.util.StringTokenizer;
-import java.io.*;
 import org.joda.time.format.*;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.security.Collaboration;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 

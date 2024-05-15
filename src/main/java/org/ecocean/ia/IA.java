@@ -24,7 +24,6 @@ import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Taxonomy;
 import org.ecocean.IAJsonProperties;
-import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;

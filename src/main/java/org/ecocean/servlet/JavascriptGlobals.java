@@ -15,10 +15,8 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.security.SocialAuth;
-import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.identity.IBEISIA;
 
-import org.w3c.dom.Document;
 import com.google.gson.Gson;
 
 public class JavascriptGlobals extends HttpServlet {

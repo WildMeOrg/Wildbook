@@ -3,7 +3,6 @@ package org.ecocean.ia.plugin;
 import javax.servlet.ServletContextEvent;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
-import org.ecocean.ShepherdPMF;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.RestClient;

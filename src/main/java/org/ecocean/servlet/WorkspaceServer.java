@@ -10,7 +10,6 @@ import javax.servlet.RequestDispatcher;
 import java.io.*;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 import java.util.Date;

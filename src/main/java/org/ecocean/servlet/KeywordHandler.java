@@ -5,7 +5,6 @@ import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
 import org.ecocean.media.MediaAsset;
 
-import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,11 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
-
-//import javax.jdo.*;
-//import com.poet.jdo.*;
 
 
 //handles operations to sharks. possible operations include, create new, add encounter, remove encounter from

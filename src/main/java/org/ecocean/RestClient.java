@@ -6,7 +6,6 @@ methods at the end of the file which will hopefully allow control over auth stuf
 */
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InputStream;
@@ -28,12 +27,7 @@ import javax.crypto.Mac;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.utils.URIBuilder;
 
-/*
-javax.ws.rs.core.UriBuilder
-https://stackoverflow.com/a/29053050/1525311
-*/
 
 public class RestClient {
     ///TODO this is IBEIS-specific -- need to generalize for RestClient to be universal

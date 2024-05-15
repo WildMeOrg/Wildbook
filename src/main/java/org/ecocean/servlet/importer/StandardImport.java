@@ -1,11 +1,5 @@
 package org.ecocean.servlet.importer;
 
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-
-import java.net.*;
-
 import java.text.SimpleDateFormat;
 import org.apache.poi.ss.usermodel.DateUtil;
 
@@ -13,15 +7,7 @@ import org.ecocean.resumableupload.UploadServlet;
 
 import java.io.*;
 import java.util.*;
-import java.io.FileInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-
-import javax.jdo.*;
-
-import java.lang.StringBuffer;
-import java.lang.NumberFormatException;
-
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.social.Membership;
@@ -33,30 +19,19 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.tag.SatelliteTag;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.hssf.usermodel.*;
-import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
-//import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
 public class StandardImport extends HttpServlet {
 

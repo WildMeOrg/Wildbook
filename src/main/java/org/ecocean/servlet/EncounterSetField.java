@@ -7,9 +7,6 @@ import java.io.*;
 import org.ecocean.*;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
-
 
 public class EncounterSetField extends HttpServlet {
 

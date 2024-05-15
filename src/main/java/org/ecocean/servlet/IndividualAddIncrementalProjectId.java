@@ -12,8 +12,6 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class IndividualAddIncrementalProjectId extends HttpServlet {
 

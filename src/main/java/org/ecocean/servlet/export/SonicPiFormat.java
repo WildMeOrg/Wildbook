@@ -6,13 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-
-import javax.jdo.*;
-
-//import com.poet.jdo.*;
-import java.lang.StringBuffer;
 
 
 //adds spots to a new encounter

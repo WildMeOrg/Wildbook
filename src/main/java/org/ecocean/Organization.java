@@ -4,23 +4,16 @@
 
 package org.ecocean;
 
-import org.ecocean.Shepherd;
-import org.ecocean.User;
-import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.joda.time.DateTime;
 import java.util.List;
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-/*
-//import java.util.UUID;   :(
-import javax.jdo.Query;
-*/
+
 
 public class Organization implements java.io.Serializable {
     public static final String ROLE_ADMIN = "orgSuper";  //this role (and "admin") can edit any org

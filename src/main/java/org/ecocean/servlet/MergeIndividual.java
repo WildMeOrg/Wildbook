@@ -5,16 +5,9 @@ import javax.servlet.http.*;
 
 import java.io.*;
 import java.security.Principal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Date;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.shiro.web.util.WebUtils;
-
 import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.security.Collaboration;

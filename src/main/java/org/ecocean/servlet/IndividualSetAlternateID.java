@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 
@@ -12,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
 
 //Set alternateID for the individual
 public class IndividualSetAlternateID extends HttpServlet {

@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.io.Serializable;
-import org.ecocean.SinglePhotoVideo;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;

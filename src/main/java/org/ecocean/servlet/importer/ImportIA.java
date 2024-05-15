@@ -17,12 +17,9 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import org.joda.time.DateTime;
-
 
 import org.json.JSONObject;
 import org.json.JSONArray;

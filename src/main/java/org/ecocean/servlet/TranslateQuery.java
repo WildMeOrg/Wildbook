@@ -9,19 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/*import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.InputStream;
-import java.io.Writer;*/
 import java.io.*;
-import java.util.StringTokenizer;
 import java.util.List;
-import java.util.Map;
 
-//import JSONObject;
-//import JSONArray;
-
-// UGH -- we use two different JSON libraries!
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;

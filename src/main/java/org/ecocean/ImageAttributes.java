@@ -1,10 +1,7 @@
 /* a mildly useful way for normalize qualities of an image (e.g. for Annotations) */
 package org.ecocean;
 
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ecocean.media.MediaAsset;
-
 
 public class ImageAttributes {
     private double width;

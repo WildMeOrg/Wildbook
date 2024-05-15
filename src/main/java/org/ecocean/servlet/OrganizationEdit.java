@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
-import org.ecocean.Annotation;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Organization;

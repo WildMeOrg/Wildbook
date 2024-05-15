@@ -5,20 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ecocean.Util;
-import org.ecocean.genetics.TissueSample;
-import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.*;
-import org.ecocean.CommonConfiguration;
-
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.output.*;
-import org.apache.commons.io.FilenameUtils;
-
 import javax.servlet.http.HttpServletRequest;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONException;

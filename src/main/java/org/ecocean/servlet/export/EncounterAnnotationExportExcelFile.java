@@ -5,22 +5,16 @@ import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.ecocean.*;
 import org.ecocean.media.*;
-import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.*;
-import javax.jdo.*;
-import java.lang.StringBuffer;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;

@@ -1,18 +1,12 @@
 package org.ecocean;
 
-//import javax.servlet.http.HttpServletRequest;
 import java.net.URL;
 import org.json.JSONObject;
-//import org.ecocean.ParseDateLocation.ParseDateLocation;
 import org.ecocean.media.AssetStoreType;
-//import org.ecocean.servlet.ServletUtilities;
-//import org.ecocean.translate.DetectTranslate;
 
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
-//import java.util.Properties;
-//import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -26,14 +20,12 @@ import java.security.InvalidKeyException;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-//import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
-//import com.google.api.services.samples.youtube.cmdline.Auth;
 import com.google.api.services.youtube.model.*;
 import com.google.api.services.youtube.YouTube.CommentThreads;
 
@@ -53,7 +45,6 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
 
 
 // see: https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword

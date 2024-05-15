@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
@@ -13,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 
 public class EncounterSetOccurrenceRemarks extends HttpServlet {

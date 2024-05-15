@@ -1,15 +1,10 @@
 package org.ecocean.servlet.importer;
 
 import org.ecocean.*;
-import org.ecocean.genetics.BiologicalMeasurement;
-import org.ecocean.genetics.SexAnalysis;
-import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.*;
-import org.ecocean.tag.SatelliteTag;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.ecocean.identity.*;
 import org.ecocean.media.*;
 
 import javax.servlet.ServletConfig;
@@ -22,7 +17,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 import org.json.JSONObject;
 
 import com.healthmarketscience.jackcess.Column;
@@ -31,10 +25,7 @@ import com.healthmarketscience.jackcess.DatabaseBuilder;
 import com.healthmarketscience.jackcess.Row;
 import com.healthmarketscience.jackcess.Table;
 
-import org.json.JSONArray;
-
 import java.io.*;
-import java.math.BigDecimal;
 
 /// DEPRECATED!!! This importer is not compatible with the new naming scheme and must be updated
 public class ImportAccess extends HttpServlet {

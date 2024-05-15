@@ -1,7 +1,5 @@
 package org.ecocean;
 
-import org.ecocean.Util;
-import org.ecocean.media.*;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import java.util.List;

@@ -27,7 +27,6 @@ import org.ecocean.social.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
-import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
@@ -37,15 +36,12 @@ import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.*;
-import java.io.File;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.ecocean.cache.CachedQuery;

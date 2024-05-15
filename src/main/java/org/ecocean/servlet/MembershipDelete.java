@@ -1,29 +1,13 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.ia.*;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.ecocean.media.*;
-import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.net.URL;
-
 import java.io.*;
 
 public class MembershipDelete extends HttpServlet {

@@ -11,12 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Given a MediaAssetSet id, create the appropriate occurrences, and return their IDs.

@@ -3,9 +3,7 @@ package org.ecocean;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
-import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ecocean.Util;
 import javax.jdo.Query;
 import java.util.Collection;
 

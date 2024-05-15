@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
-import java.io.UnsupportedEncodingException;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 
 // general note: "CI" refers to Channel Island (project) and "WA" to WhaleAlert

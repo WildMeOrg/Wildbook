@@ -5,8 +5,6 @@ import org.ecocean.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.lang.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;

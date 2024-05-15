@@ -1,13 +1,7 @@
 package org.ecocean.servlet;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Util;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
@@ -25,15 +19,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import org.json.JSONObject;
 import org.json.JSONArray;
-
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *

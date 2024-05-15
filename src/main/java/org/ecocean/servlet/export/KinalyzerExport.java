@@ -7,16 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 
-import java.lang.StringBuffer;
-
-//import javax.jdo.Query;
-
-
-import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-
-import java.net.URI;
-//import java.text.NumberFormat;;
 
 
 

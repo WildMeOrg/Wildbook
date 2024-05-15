@@ -9,11 +9,8 @@ import org.ecocean.Shepherd;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
-import org.ecocean.identity.IBEISIA;
-//import java.util.UUID;   :(
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Map;
 import java.util.HashMap;
 import org.joda.time.DateTime;

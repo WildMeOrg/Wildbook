@@ -3,22 +3,16 @@ package org.ecocean;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContext;
 import java.net.URL;
 
-import org.ecocean.*;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
-import org.ecocean.ia.IA;
 import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
-//import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.LocalAssetStore;
@@ -33,12 +27,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ScheduledFuture;
 import java.io.IOException;
-
-import java.util.concurrent.ThreadPoolExecutor;
-
-
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
 // global variables are initialized, and do so if necessary.

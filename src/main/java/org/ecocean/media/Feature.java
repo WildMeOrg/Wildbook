@@ -1,30 +1,13 @@
 package org.ecocean.media;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ImageAttributes;
-import org.ecocean.Keyword;
 import org.ecocean.Annotation;
-import org.ecocean.Shepherd;
-import org.ecocean.Encounter;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Files;
-//import java.time.LocalDateTime;
-import org.joda.time.DateTime;
-import java.util.Date;
 import org.json.JSONObject;
 import org.json.JSONException;
-import java.util.Set;
 import java.util.HashMap;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Util;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-//import java.io.FileInputStream;
-import javax.jdo.Query;
 
 
 /**

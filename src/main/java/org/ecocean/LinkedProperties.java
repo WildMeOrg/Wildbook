@@ -4,7 +4,6 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Properties;
-import java.util.HashMap;
 
 public class LinkedProperties extends Properties {
     private final HashSet<Object> keys = new LinkedHashSet<Object>();

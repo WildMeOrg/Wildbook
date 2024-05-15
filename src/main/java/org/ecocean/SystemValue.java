@@ -1,7 +1,5 @@
 package org.ecocean;
 
-import org.ecocean.Util;
-import org.ecocean.Shepherd;
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.apache.commons.lang3.builder.ToStringBuilder;

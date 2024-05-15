@@ -9,7 +9,6 @@ import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.json.JSONArray;
 
 public class Membership implements java.io.Serializable {
 

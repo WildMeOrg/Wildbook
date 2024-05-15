@@ -1,9 +1,5 @@
 package org.ecocean;
 
-import org.ecocean.Shepherd;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ContextConfiguration;
-import org.ecocean.ShepherdProperties;
 import org.json.JSONObject;
 import java.util.Properties;
 import java.io.IOException;

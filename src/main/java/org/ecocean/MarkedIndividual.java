@@ -1,6 +1,5 @@
 package org.ecocean;
 
-import java.io.IOException;
 import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -23,10 +22,7 @@ import javax.jdo.Query;
 import java.text.DecimalFormat;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
-import java.util.regex.*;
-import org.ecocean.LocationID;
 import java.math.BigInteger;
 
 /**

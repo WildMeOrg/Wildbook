@@ -8,17 +8,13 @@ package org.ecocean.security;
 
 import java.util.Properties;
 
-import org.pac4j.core.client.*;
 import org.pac4j.oauth.client.*;
 import org.ecocean.ShepherdProperties;
 
 //for flickr
 import org.scribe.builder.*;
 import org.scribe.builder.api.*;
-import org.scribe.model.*;
 import org.scribe.oauth.*;
-
-import java.util.*;
 
 
 public class SocialAuth {

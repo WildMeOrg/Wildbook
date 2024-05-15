@@ -1,20 +1,10 @@
 package org.ecocean;
 
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Util;
-
 import org.json.JSONObject;
-import org.json.JSONArray;
-
 import java.util.Properties;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.HashMap;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;

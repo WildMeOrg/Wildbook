@@ -5,14 +5,12 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.lang.StringBuffer;
 
 import javax.servlet.http.HttpServletRequest;
-//import javax.jdo.Extent;
 import javax.jdo.Query;
 
 import org.ecocean.Util.MeasurementDesc;

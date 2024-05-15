@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-import org.datanucleus.api.jdo.JDOPersistenceManager;
-import org.datanucleus.api.rest.RESTUtils;
 import org.ecocean.*;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 

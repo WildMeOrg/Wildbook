@@ -7,7 +7,6 @@ import org.json.JSONException;
 
 import org.ecocean.Util;
 
-import java.util.Date;
 import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 

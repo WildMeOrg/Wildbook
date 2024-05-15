@@ -7,9 +7,7 @@ import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.ai.nlp.SUTime;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
-import org.ecocean.ai.ocr.google.GoogleOcr;
 import org.ecocean.ai.ocr.azure.AzureOcr;
-import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.LinkedProperties;
 import org.ecocean.Shepherd;
@@ -31,15 +29,11 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.servlet.importer.ImportTask;
 
 import java.text.SimpleDateFormat;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -53,20 +47,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.net.URL;
-import java.net.URLEncoder;
-
-import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
-import org.ecocean.JsonProperties;
-
 import java.io.IOException;
 
 import javax.servlet.ServletException;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -77,12 +64,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
-
-
-
-
-
 
 //date time
 import org.joda.time.LocalDateTime;

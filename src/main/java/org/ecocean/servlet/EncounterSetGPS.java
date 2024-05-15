@@ -1,12 +1,9 @@
 package org.ecocean.servlet;
 
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
-import java.util.List;
-
 import org.ecocean.*;
 
 

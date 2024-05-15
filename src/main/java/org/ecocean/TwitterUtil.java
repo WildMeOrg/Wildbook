@@ -10,40 +10,15 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 
 import org.ecocean.servlet.ServletUtilities;
-import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.google.gson.Gson;
-
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.TwitterAssetStore;
 
-/*
-import org.ecocean.media.MediaAssetMetadata;
-import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.identity.IBEISIA;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-*/
-
-
-/*
-import java.net.URL;
-import java.io.File;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
-*/
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;

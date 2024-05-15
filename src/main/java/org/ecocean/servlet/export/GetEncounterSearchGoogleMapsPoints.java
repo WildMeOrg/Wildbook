@@ -14,18 +14,14 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.json.*;
 import org.ecocean.*;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.HiddenEncReporter;
-import org.ecocean.security.HiddenIndividualReporter;
-
 import java.util.zip.*;
 import java.io.OutputStream;
 

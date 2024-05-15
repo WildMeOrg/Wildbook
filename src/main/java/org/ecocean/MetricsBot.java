@@ -5,23 +5,18 @@ package org.ecocean;
 
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.net.URI;
-import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -33,16 +28,13 @@ import io.prometheus.client.CollectorRegistry;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.ecocean.ia.IA;
 import org.ecocean.metrics.Prometheus;
 import org.ecocean.queue.QueueUtil;
-import org.json.JSONObject;
 
 public class MetricsBot {
     private static long collectorStartTime = 0l;

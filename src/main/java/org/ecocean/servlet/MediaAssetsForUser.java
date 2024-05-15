@@ -5,15 +5,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.RequestDispatcher;
-
 import java.io.*;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
-import org.datanucleus.api.rest.orgjson.JSONException;
-
-import java.util.Date;
 import java.util.ArrayList;
 
 import org.ecocean.*;

@@ -12,18 +12,13 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
-import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
-import org.ecocean.acm.AcmBase;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.spi.FileTypeDetector;
 import java.nio.file.Files;
-//import java.time.LocalDateTime;
 import org.joda.time.DateTime;
-import java.util.Date;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,31 +33,11 @@ import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-//import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import javax.jdo.Query;
-import javax.xml.bind.DatatypeConverter;
 import javax.activation.MimeType;
-
-/*
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.util.Iterator;
-*/
-
-/*
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.*;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-*/
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used

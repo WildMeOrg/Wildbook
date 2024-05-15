@@ -1,9 +1,6 @@
 package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +10,6 @@ import org.ecocean.*;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 

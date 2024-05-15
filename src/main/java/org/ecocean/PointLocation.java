@@ -1,13 +1,8 @@
 package org.ecocean;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 
-import org.ecocean.*;
 import org.joda.time.DateTime;
 
 /**
@@ -23,9 +18,6 @@ import org.joda.time.DateTime;
 
 public class PointLocation implements java.io.Serializable {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = -3758129925666366058L;
 
   public String pointLocationID = null;

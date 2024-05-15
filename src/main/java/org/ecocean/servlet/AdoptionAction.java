@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -11,8 +10,6 @@ import org.ecocean.MailThreadExecutorService;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -21,8 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import java.io.*;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,8 +26,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.HashMap;
-
 
 public class AdoptionAction extends HttpServlet {
 

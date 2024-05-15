@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-//////
-//import java.io.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -15,10 +13,6 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -45,7 +39,6 @@ import org.ecocean.ia.Task;
 import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.IAJsonProperties;
-import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -56,30 +49,9 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
-//import java.lang.*;
-//import java.util.List;
-/*
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
-import org.ecocean.User;
-*/
 
-
-import org.apache.shiro.web.util.WebUtils;
-//import org.ecocean.*;
-import org.ecocean.security.SocialAuth;
 import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
 import org.ecocean.User;
-import org.pac4j.core.context.J2EContext;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.oauth.client.FacebookClient;
-//import org.pac4j.oauth.client.YahooClient;
-import org.pac4j.oauth.credentials.OAuthCredentials;
-import org.pac4j.oauth.profile.facebook.FacebookProfile;
 import org.ecocean.mmutil.FileUtilities;
 
 /**

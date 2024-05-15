@@ -1,11 +1,8 @@
 package org.ecocean.servlet;
 
-
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
 import org.ecocean.Resolver;
@@ -26,22 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-
-import javax.jdo.Query;
-import java.io.InputStream;
 import java.util.UUID;
 
 

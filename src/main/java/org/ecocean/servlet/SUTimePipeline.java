@@ -13,7 +13,6 @@ import edu.stanford.nlp.time.GUTimeAnnotator;
 import edu.stanford.nlp.time.HeidelTimeAnnotator;
 import edu.stanford.nlp.time.TimeAnnotator;
 import edu.stanford.nlp.time.TimeAnnotations;
-import edu.stanford.nlp.util.logging.Redwood;
 
 public class SUTimePipeline  {
 

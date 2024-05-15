@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
@@ -20,9 +19,7 @@ import java.util.ArrayList;
 
 public class EncounterSetSurveyAndTrack extends HttpServlet {
 
-  /**
-   * 
-   */
+
   private static final long serialVersionUID = 1L;
 
   public void init(ServletConfig config) throws ServletException {

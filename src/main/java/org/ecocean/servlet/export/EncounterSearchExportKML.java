@@ -6,12 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-
-import javax.jdo.*;
-
-import java.lang.StringBuffer;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper; 

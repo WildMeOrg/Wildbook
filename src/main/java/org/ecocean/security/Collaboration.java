@@ -1,20 +1,14 @@
 package org.ecocean.security;
 
-//import java.util.Date;
 import java.util.*;
-import java.io.Serializable;
 import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.regexp.recompile;
-
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-
 
 
 /**

@@ -2,11 +2,6 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-//import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -23,15 +18,6 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
-
-/*
-import org.apache.commons.lang3.StringUtils;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.CommonConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-*/
-
 
 public class AnnotationEdit extends HttpServlet {
     private static final long serialVersionUID = 1L;

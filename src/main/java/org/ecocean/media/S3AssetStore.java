@@ -5,18 +5,11 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
-import java.util.Iterator;
-import java.util.HashMap;
-
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
@@ -30,11 +23,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.ecocean.Shepherd;
 import org.ecocean.Util;
-
-import javax.jdo.*;
-import java.util.Collection;
 
 /**
  * S3AssetStore references MediaAssets on the current host's

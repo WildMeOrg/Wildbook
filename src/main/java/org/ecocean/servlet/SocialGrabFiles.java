@@ -8,28 +8,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.util.Date;
 import java.util.HashMap;
-
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.IncorrectCredentialsException;
-import org.apache.shiro.authc.UnknownAccountException;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
-
-/*
-import org.pac4j.core.client.*;
-import org.pac4j.core.context.*;
-import org.pac4j.oauth.*;
-import org.pac4j.oauth.client.*;
-import org.pac4j.oauth.credentials.*;
-import org.pac4j.oauth.profile.facebook.*;
-*/
 
 import org.apache.commons.io.FileUtils;
 
-import org.apache.shiro.web.util.WebUtils;
-//import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 
 import org.ecocean.CommonConfiguration;
@@ -39,19 +21,10 @@ import org.ecocean.Util;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.oauth.client.FacebookClient;
-//import org.pac4j.oauth.client.YahooClient;
 import org.pac4j.oauth.credentials.OAuthCredentials;
-import org.pac4j.oauth.profile.facebook.FacebookProfile;
-//import org.pac4j.oauth.profile.yahoo.YahooProfile;
-
 import java.io.File;
 import java.net.URL;
 import com.google.gson.Gson;
-
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
-import org.scribe.model.*;
-import org.scribe.oauth.*;
 
 
 

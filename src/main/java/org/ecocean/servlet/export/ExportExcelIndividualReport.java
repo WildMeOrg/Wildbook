@@ -7,14 +7,8 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 
 import org.ecocean.*;
-import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.servlet.ServletUtilities;
-
-import javax.jdo.*;
-
-import java.lang.reflect.Method;
-import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;

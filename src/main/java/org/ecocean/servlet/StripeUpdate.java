@@ -5,16 +5,12 @@ import org.ecocean.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.lang.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import com.stripe.Stripe;
-import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class StripeUpdate extends HttpServlet {
 

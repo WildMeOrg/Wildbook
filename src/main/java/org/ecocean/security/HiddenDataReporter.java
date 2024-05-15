@@ -1,27 +1,18 @@
 package org.ecocean.security;
 
 import org.ecocean.Shepherd;
-import org.ecocean.Encounter;
-import org.ecocean.Occurrence;
-import org.ecocean.MarkedIndividual;
-
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 import static org.ecocean.Util.addToMultimap;
 
-// java sucks for making us add three import lines just to use a multimap (without calling a single method on it!). INELEGANT. NEXT!
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
 // imports for actually printing the report
 import jxl.write.*;
-import jxl.Workbook;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;

@@ -8,11 +8,6 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.security.HiddenEncReporter;
-
-import javax.jdo.*;
-
-//import com.poet.jdo.*;
 import java.lang.StringBuffer;
 
 

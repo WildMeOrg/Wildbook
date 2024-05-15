@@ -1,7 +1,5 @@
 package org.ecocean.media;
 
-import org.json.JSONObject;
-import org.json.JSONException;
 import org.ecocean.Shepherd;
 import java.util.ArrayList;
 import java.util.Collection;

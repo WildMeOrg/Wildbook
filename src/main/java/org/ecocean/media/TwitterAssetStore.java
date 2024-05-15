@@ -1,7 +1,5 @@
 package org.ecocean.media;
 
-import java.util.regex.*;
-
 import twitter4j.Status;
 import java.io.File;
 import java.nio.file.Path;
@@ -10,38 +8,9 @@ import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.TwitterUtil;
-import org.ecocean.media.MediaAssetMetadata;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.ecocean.Shepherd;
-
-/*
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import org.ecocean.Util;
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Annotation;
-import org.ecocean.Twitter;
-//import org.ecocean.ImageProcessor;
-import org.json.JSONException;
-import org.apache.commons.lang3.StringUtils;
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-*/
 
 
 /**

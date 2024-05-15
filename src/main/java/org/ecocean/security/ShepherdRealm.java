@@ -1,7 +1,5 @@
 package org.ecocean.security;
 
-
-
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.*;
@@ -13,10 +11,7 @@ import java.util.TreeSet;
 import java.util.Set;
 import java.util.List;
 
-import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.ecocean.servlet.ServletUtilities;
-import org.apache.shiro.mgt.RealmSecurityManager;
-
 import org.apache.shiro.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;

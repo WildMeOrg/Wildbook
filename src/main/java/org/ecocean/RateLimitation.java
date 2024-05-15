@@ -16,7 +16,6 @@ package org.ecocean;
 
 import java.util.List;
 import java.util.ArrayList;
-import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class RateLimitation {

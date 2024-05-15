@@ -6,14 +6,11 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.JSONObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Properties;
 import java.net.URL;
 import org.ecocean.*;
-
-
 
 /* some ReCAPTCHA-related stuff .... note that this has some useful public utility functions, as well as is
    a servlet which can do standalone verification */

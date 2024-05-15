@@ -17,7 +17,6 @@ import java.io.*;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
-import com.stripe.model.Subscription;
 
 public class DeleteAdoption extends HttpServlet {
 

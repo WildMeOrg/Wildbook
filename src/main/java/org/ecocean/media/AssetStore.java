@@ -21,7 +21,6 @@ import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.EOFException;
@@ -36,18 +35,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Files;
 import javax.jdo.*;
 
 import org.ecocean.ImageProcessor;
 import org.ecocean.Util;
 import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.*;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-import javax.imageio.IIOException;
 
 /**
  * AssetStore describes a location and methods for access to a set of

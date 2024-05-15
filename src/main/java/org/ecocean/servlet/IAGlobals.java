@@ -1,8 +1,6 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.media.*;
-
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,11 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
-import java.util.concurrent.ThreadPoolExecutor;
-
 import org.json.JSONObject;
-import org.json.JSONException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,11 +1,5 @@
 package org.ecocean.grid;
 
-import org.ecocean.Encounter;
-//import org.ecocean.Occurrence;
-import org.ecocean.Shepherd;
-
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.jdo.Query;

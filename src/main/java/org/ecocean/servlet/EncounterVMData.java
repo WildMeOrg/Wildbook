@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-//import org.ecocean.CommonConfiguration;
-//import org.ecocean.SinglePhotoVideo;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -19,9 +17,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Iterator;
-
 import com.google.gson.Gson;
 
 

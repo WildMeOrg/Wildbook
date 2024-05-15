@@ -1,16 +1,11 @@
 package org.ecocean;
 
-import java.util.Map;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.Util.*;
-import org.ecocean.servlet.ServletUtilities;
 
 
 public abstract class QueryProcessor {

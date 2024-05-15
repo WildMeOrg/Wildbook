@@ -1,11 +1,7 @@
 package org.ecocean.servlet;
 
-import org.datanucleus.api.jdo.JDOPersistenceManager;
-import org.datanucleus.api.rest.RESTUtils;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
 import javax.servlet.ServletConfig;

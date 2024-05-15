@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import org.json.JSONObject;
-import org.ecocean.servlet.*;
 
 
 public class UserCheck extends HttpServlet {

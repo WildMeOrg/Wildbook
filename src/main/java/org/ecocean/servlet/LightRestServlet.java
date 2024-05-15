@@ -25,22 +25,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 
-//import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.security.Collaboration;
 import org.ecocean.CommonConfiguration;
-// import each class we have capability for
 import org.ecocean.Encounter;
-import org.ecocean.MarkedIndividual;
-
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
-
-import javax.jdo.JDOHelper;
-import javax.jdo.PersistenceManager;
-import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -52,7 +42,6 @@ import org.datanucleus.ClassLoaderResolver;
 import org.datanucleus.ExecutionContext;
 import org.datanucleus.PersistenceNucleusContext;
 import org.datanucleus.api.jdo.JDOPersistenceManager;
-import org.datanucleus.api.jdo.JDOPersistenceManagerFactory;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;

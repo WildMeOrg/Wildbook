@@ -1,11 +1,8 @@
 package org.ecocean.social;
 
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.*;
-import java.util.ArrayList;
-
 import javax.servlet.http.HttpServletRequest;
 
 /**
