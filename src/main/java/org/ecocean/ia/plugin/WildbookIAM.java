@@ -17,7 +17,6 @@ import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import org.ecocean.Shepherd;
-import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;

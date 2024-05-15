@@ -2,10 +2,8 @@ package org.ecocean;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-// import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-// import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,7 +16,6 @@ import java.util.Vector;
 import java.io.*;
 
 import javax.jdo.Query;
-import javax.measure.quantity.Length;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.security.Collaboration;

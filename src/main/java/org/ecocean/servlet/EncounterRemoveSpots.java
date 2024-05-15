@@ -9,12 +9,8 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.Shepherd;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 

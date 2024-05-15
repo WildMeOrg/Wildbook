@@ -14,7 +14,6 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.joda.time.DateTime;
 
 public class RateLimitation {
     private static long DEFAULT_MAX_EVENTS = 10000000l; // this is meant as memory/sanity check; but is it too low??
