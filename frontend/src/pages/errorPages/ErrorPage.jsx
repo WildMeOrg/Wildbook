@@ -58,11 +58,11 @@ export default function ErrorPage({
         }}
       >
         <div
+          className="d-flex w-100"
           style={{
             backdropFilter: "blur(4px)",
             WebkitBackdropFilter: "blur(4px)",
             borderRadius: "16px",
-            width: "100%",
           }}
         >
           <svg
@@ -80,40 +80,14 @@ export default function ErrorPage({
                 fill="#445D10"
                 fill-opacity="0.02"
               />
-              {/* <text
-                x="54%"
-                y="33%"
-                dominant-baseline="middle"
-                text-anchor="start"
-                fill="white"
-                font-size="30"
-                font-weight="bold"
-              >
-                {error}
-              </text>
-              
-
-              <text
-                x="54%"
-                y="45%"
-                dominant-baseline="middle"
-                text-anchor="start"
-                fill="white"
-                font-size="18"
-              >
-                {error_desc}
-              </text> */}
               <foreignObject x="54%" y="20%" width="400" height="50">
                 <div
+                  className="d-flex align-items-center w-100 h-100"
                   xmlns="http://www.w3.org/1999/xhtml"
                   style={{
                     color: "white",
                     fontSize: "30px",
                     fontWeight: "bold",
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
                   }}
                 >
                   {error}
@@ -122,14 +96,11 @@ export default function ErrorPage({
 
               <foreignObject x="54%" y="32%" width="400" height="100">
                 <div
+                  className="d-flex align-items-center w-100 h-100"
                   xmlns="http://www.w3.org/1999/xhtml"
                   style={{
                     color: "white",
                     fontSize: "18px",
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
                   }}
                 >
                   {error_desc}
