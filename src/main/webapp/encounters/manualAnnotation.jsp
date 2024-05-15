@@ -15,7 +15,8 @@
 		java.nio.charset.StandardCharsets,
 		java.io.UnsupportedEncodingException,
 		org.ecocean.identity.IBEISIA,
-		java.util.ArrayList
+		java.util.ArrayList,
+		org.apache.commons.collections4.CollectionUtils
 		"
 %>
 
@@ -218,27 +219,28 @@ try{
 	    }
 	}
 
-	if(viewpoint!=null){
-		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
-		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
-		//results = (List)q2.execute();
-		IAJsonProperties iaj=new IAJsonProperties();
-		List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
+	clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+	//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+	//results = (List)q2.execute();
+	IAJsonProperties iaj=new IAJsonProperties();
+	List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
 
-		Iterator<String> it2 = results2.iterator();
-		while (it2.hasNext()) {
-		    String v = (String)it2.next();
-		    //System.out.println("Encooded v: "+v);
-		    if (!Util.stringExists(v)) continue;
-		    //if(IBEISIA.validIAClassForIdentification(v, context)){
-		    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
-		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
-		    //}
-		}
-		clist += "</select></p>";
-		//q2.closeAll();
+	Iterator<String> it2 = results2.iterator();
+	while (it2.hasNext()) {
+	    String v = (String)it2.next();
+	    //System.out.println("Encooded v: "+v);
+	    if (!Util.stringExists(v)) continue;
+	    //if(IBEISIA.validIAClassForIdentification(v, context)){
+	    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
+	    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+	    //}
 	}
-
+	if (CollectionUtils.isEmpty(results2)) {
+		final String noneConfigured = "none_configured";
+		clist += "<option value=" + noneConfigured + (noneConfigured.equals(iaClass) ? " selected" : "") + ">" + "none configured" + "</option>";
+	}
+	clist += "</select></p>";
+	//q2.closeAll();
 
 	Feature ft = null;
 	MediaAsset ma = null;
@@ -398,7 +400,7 @@ try{
 	<b><%=vlist%></b>
 	<%
 	}
-	if(!save && viewpoint!=null){
+	if(!save){
 	%>
 	<b><%=clist%></b>
 	<%
