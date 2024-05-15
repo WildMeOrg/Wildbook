@@ -12,11 +12,8 @@ import java.util.Properties;
 import java.util.regex.*;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
-
 import org.ecocean.ai.nlp.SUTime;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.LinkedProperties;
@@ -39,23 +36,13 @@ import com.google.api.services.youtube.model.CommentThread;
 import com.google.api.services.youtube.model.CommentThreadReplies;
 import com.google.api.services.youtube.model.CommentThreadSnippet;
 
-import java.util.*;
-
-import edu.stanford.nlp.ling.CoreAnnotations.NamedEntityTagAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
-import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.pipeline.*;
-import edu.stanford.nlp.util.CoreMap;
-
 import twitter4j.Status;
 
 public class ParseDateLocation {
     public static ArrayList<String> parseLocation(String text, String context) {
         ArrayList<String> locations = new ArrayList<>();
 
-        // translate to Eglish if not English
+        // translate to English if not English
         try {
             text = detectLanguageAndTranslateToEnglish(text, context);
         } catch (RuntimeException e) {
