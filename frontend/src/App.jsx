@@ -28,7 +28,6 @@ function App() {
   const queryClient = new QueryClient();
 
   const handleLocaleChange = (newLocale) => {
-    console.log("handleLocaleChange", newLocale);
     setLocale(newLocale);
   };
 

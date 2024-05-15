@@ -17,7 +17,13 @@ const errorComponents = {
   403: Svg_403,
 };
 
-export default function ErrorPage({ errorCode, errorId, errorDesc, position }) {
+export default function ErrorPage({
+  errorCode,
+  errorId,
+  errorDesc,
+  position,
+  loginRequired,
+}) {
   const intl = useIntl();
   const { setVisible } = useContext(FooterVisibilityContext);
   const error = intl.formatMessage({ id: errorId, defaultMessage: errorId });
@@ -134,10 +140,12 @@ export default function ErrorPage({ errorCode, errorId, errorDesc, position }) {
                 <BrutalismButton
                   color="white"
                   borderColor="white"
-                  link="/react/home"
+                  link={loginRequired ? "/react/login" : "/react/home"}
                   style={{ fontSize: "16px" }}
                 >
-                  <FormattedMessage id="ERROR_BACK_HOME" />
+                  <FormattedMessage
+                    id={loginRequired ? "LOGIN_LOGIN" : "ERROR_BACK_HOME"}
+                  />
                 </BrutalismButton>
               </foreignObject>
               <g transform="translate(50, 0)">
