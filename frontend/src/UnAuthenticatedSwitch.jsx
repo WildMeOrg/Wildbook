@@ -6,6 +6,11 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
+import NotFound from "./pages/errorPages/NotFound";
+import Forbidden from "./pages/errorPages/Forbidden";
+import Unauthorized from "./pages/errorPages/Unauthorized";
+import ServerError from "./pages/errorPages/ServerError";
+import BadRequest from "./pages/errorPages/BadRequest";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   console.log("UnAuthenticatedSwitch", showAlert);
@@ -36,7 +41,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<ErrorPage />} />
+          <Route path="*" element={<ServerError />} />
         </Routes>
         <Footer />
       </div>

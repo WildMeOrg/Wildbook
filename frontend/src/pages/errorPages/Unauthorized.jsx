@@ -1,13 +1,13 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function NotFound() {
+export default function Unauthorized() {
   return (
     <ErrorPage
-      statusCode="401"
-      error_id="UNAUTHORIZED"
-      error_desc="UNAUTHORIZED_DESC"
-      position={[25, 55]}
+      errorCode="401"
+      errorId="ERROR_PAGE_UNAUTHORIZED"
+      errorDesc="ERROR_PAGE_UNAUTHORIZED_DESC"
+      position={[15, 40]}
     />
   );
 }

@@ -87,5 +87,16 @@
     "MERGE_DENIED_MESSAGE": "Una fusione di <bold>{indv2}</bold> in <bold>{indv1}</bold> è stata <bold>negata</bold>. Iniziata da <bold>{initiator}</bold>. Negata dall'utente: <bold>{deniedBy}</bold>",
     "DISMISS": "Scarta",
     "MERGE_COMPLETE_MESSAGE": "Una fusione di <bold>{indv2}</bold> in <bold>{indv1}</bold> è stata <bold>completata</bold>. Iniziata da <bold>{initiator}</bold>. Data di completamento: <bold>{mergeDate}</bold>",
-    "BANNER_ALERT": "Wildbook sta cambiando look! Grazie per la tua pazienza mentre apportiamo queste modifiche."
+    "BANNER_ALERT": "Wildbook sta cambiando look! Grazie per la tua pazienza mentre apportiamo queste modifiche.",
+    "ERROR_PAGE_NOT_FOUND": "Pagina non trovata",
+    "ERROR_PAGE_NOT_FOUND_DESC": "La pagina che stai cercando non esiste.",
+    "ERROR_BACK_HOME": "Torna alla home",
+    "ERROR_PAGE_SERVER_ERROR": "Errore interno del server",
+    "ERROR_PAGE_SERVER_SUBTITLE": "Si è verificato un errore sul server. Per favore, riprova più tardi.",
+    "ERROR_PAGE_UNAUTHORIZED": "Non autorizzato",
+    "ERROR_PAGE_UNAUTHORIZED_DESC": "Non sei autorizzato a visualizzare questa pagina.",
+    "ERROR_PAGE_FORBIDDEN": "Vietato",
+    "ERROR_PAGE_FORBIDDEN_DESC": "Non hai il permesso di accedere a questa pagina.",
+    "ERROR_PAGE_BAD_REQUEST": "Richiesta non valida",
+    "ERROR_PAGE_BAD_REQUEST_DESC": "La richiesta non era valida."
 }

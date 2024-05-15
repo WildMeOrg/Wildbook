@@ -1,13 +1,13 @@
 import React from "react";
 import ErrorPage from "./ErrorPage";
 
-export default function NotFound() {
+export default function ServerError() {
   return (
     <ErrorPage
-      statusCode="500"
-      error_id="SERVER_ERROR"
-      error_desc="SERVER_ERROR_DESC"
-      position={[20, 35]}
+      errorCode="500"
+      errorId="ERROR_PAGE_SERVER_ERROR"
+      errorDesc="ERROR_PAGE_FORBIDDEN_DESC"
+      position={[21, 30]}
     />
   );
 }
