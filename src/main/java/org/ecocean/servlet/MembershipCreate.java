@@ -1,28 +1,18 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.ia.*;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import org.ecocean.media.*;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import java.io.*;
 

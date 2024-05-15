@@ -2,7 +2,6 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 // unenhanced comment
 

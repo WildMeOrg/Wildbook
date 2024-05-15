@@ -53,7 +53,6 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jdo.Query;
-import javax.servlet.http.HttpServletRequest;
 
 // see: https://developers.google.com/youtube/v3/code_samples/java#search_by_keyword
 

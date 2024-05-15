@@ -1,35 +1,26 @@
 package org.ecocean;
 
-// import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.UUID;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
-
 import java.util.regex.Pattern;
 import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.commons.lang3.StringUtils;
 
-// EXIF-related imports
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -37,11 +28,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -50,27 +38,17 @@ import com.drew.metadata.Tag;
 import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
-import org.joda.time.DateTime;
 
-// java sucks for making us add four import lines just to use a multimap. INELEGANT. NEXT!
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
-
-// import javax.jdo.JDOException;
-// import javax.jdo.JDOHelper;
 import javax.jdo.Query;
-// import javax.jdo.PersistenceManagerFactory;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ecocean.*;
 import org.ecocean.tag.MetalTag;
 
-// use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
 
 public class Util {

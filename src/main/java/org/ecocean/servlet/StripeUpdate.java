@@ -3,7 +3,6 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 
 import java.io.*;
-import java.lang.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -11,10 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.Stripe;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class StripeUpdate extends HttpServlet {
     public void init(ServletConfig config)

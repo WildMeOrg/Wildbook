@@ -5,7 +5,6 @@ import org.ecocean.Keyword;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Shepherd;
 
-import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,11 +13,7 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
-
-// import javax.jdo.*;
-// import com.poet.jdo.*;
 
 // handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class KeywordHandler extends HttpServlet {

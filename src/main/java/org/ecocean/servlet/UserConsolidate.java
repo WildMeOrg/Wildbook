@@ -5,19 +5,10 @@
  */
 
 package org.ecocean.servlet;
-import org.ecocean.servlet.ServletUtilities;
-
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.*;
 import java.util.*;
 import java.util.LinkedList;
-import java.util.Properties;
 import java.util.Random;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,11 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.*;
-import org.ecocean.*;
 import org.ecocean.security.Collaboration;
-import org.ecocean.servlet.*;
 import org.ecocean.servlet.importer.*;
-// import javax.jdo.Query;
 import javax.jdo.*;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
