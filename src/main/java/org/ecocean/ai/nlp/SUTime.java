@@ -10,8 +10,6 @@ import org.ecocean.TwitterUtil;
 
 import java.io.IOException;
 
-import javax.servlet.http.*;
-
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.Annotator;
