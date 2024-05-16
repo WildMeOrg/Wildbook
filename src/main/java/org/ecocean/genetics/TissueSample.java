@@ -3,8 +3,8 @@ package org.ecocean.genetics;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ecocean.DataCollectionEvent;
 import javax.servlet.http.HttpServletRequest;
+import org.ecocean.DataCollectionEvent;
 
 public class TissueSample extends DataCollectionEvent {
     private static final long serialVersionUID = -4918907304313880745L;

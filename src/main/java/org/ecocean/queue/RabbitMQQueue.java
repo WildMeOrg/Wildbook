@@ -124,7 +124,7 @@ public class RabbitMQQueue extends Queue {
     }
 
     public String getNext()
-    throws java.io.IOException { return null; }                          // NOOP
+    throws java.io.IOException { return null; } // NOOP
 
     private static String getVirtualHost(String context, String def) {
         return Queue.getProperty(context, "rabbitmq_virtualhost", def);

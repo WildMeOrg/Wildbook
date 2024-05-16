@@ -16,7 +16,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-
 // handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class AddLabeledKeyword extends HttpServlet {
     // this could create a long-term leak, commenting out

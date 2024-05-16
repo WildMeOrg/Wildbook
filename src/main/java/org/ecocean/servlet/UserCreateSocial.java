@@ -244,7 +244,7 @@ public class UserCreateSocial extends javax.servlet.http.HttpServlet implements 
 
     private User createUser(String username, String emailAddress, String fullName, String context) {
         String salt = ServletUtilities.getSalt().toHex();
-        String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt);          // good luck guessing that password
+        String hashedPassword = ServletUtilities.hashAndSaltPassword(Util.generateUUID(), salt); // good luck guessing that password
         Shepherd myShepherd = new Shepherd(context);
         String origUsername = username;
         int count = 0;

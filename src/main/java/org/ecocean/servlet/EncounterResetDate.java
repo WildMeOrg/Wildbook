@@ -86,18 +86,18 @@ public class EncounterResetDate extends HttpServlet {
                     if (numTokens >= 1) {
                         try {
                             fixMe.setYear(new Integer(reportedDateTime.getYear()));
-                            } catch (Exception e) { fixMe.setYear(-1); }
+                        } catch (Exception e) { fixMe.setYear(-1); }
                     }
                     if (numTokens >= 2) {
                         try {
                             fixMe.setMonth(new Integer(reportedDateTime.getMonthOfYear()));
-                            } catch (Exception e) { fixMe.setMonth(-1); }
+                        } catch (Exception e) { fixMe.setMonth(-1); }
                     } else { fixMe.setMonth(-1); }
                     // see if we can get a day, because we do want to support only yyy-MM too
                     if (str.countTokens() >= 3) {
                         try {
                             fixMe.setDay(new Integer(reportedDateTime.getDayOfMonth()));
-                            } catch (Exception e) { fixMe.setDay(0); }
+                        } catch (Exception e) { fixMe.setDay(0); }
                     } else { fixMe.setDay(0); }
                     // see if we can get a time and hour, because we do want to support only yyy-MM too
                     StringTokenizer strTime = new StringTokenizer(request.getParameter(
@@ -105,7 +105,7 @@ public class EncounterResetDate extends HttpServlet {
                     if (strTime.countTokens() > 1) {
                         try {
                             fixMe.setHour(new Integer(reportedDateTime.getHourOfDay()));
-                            } catch (Exception e) { fixMe.setHour(-1); }
+                        } catch (Exception e) { fixMe.setHour(-1); }
                         try {
                             fixMe.setMinutes(new Integer(
                                 reportedDateTime.getMinuteOfHour()).toString());
