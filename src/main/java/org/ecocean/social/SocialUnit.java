@@ -8,8 +8,6 @@ import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
-
 import javax.servlet.http.HttpServletRequest;
 
 public class SocialUnit implements java.io.Serializable {

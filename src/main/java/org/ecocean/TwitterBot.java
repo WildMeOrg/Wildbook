@@ -3,47 +3,30 @@
  */
 package org.ecocean;
 
-import javax.servlet.http.HttpServletRequest;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
-
-import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDateTime;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
-import org.ecocean.ai.nlp.SUTime;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
-import org.ecocean.identity.IBEISIA;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.TwitterAssetStore;
 import org.ecocean.queue.*;
-import org.ecocean.RateLimitation;
-import org.ecocean.TwitterUtil;
-
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import twitter4j.*;
-import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.Status;
 
 import java.lang.Runnable;

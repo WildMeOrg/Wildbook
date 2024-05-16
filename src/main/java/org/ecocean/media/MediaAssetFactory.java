@@ -2,17 +2,10 @@ package org.ecocean.media;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-import org.json.JSONObject;
-
 import javax.jdo.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MediaAssetFactory {
     // private static final Logger logger = LoggerFactory.getLogger(MediaAssetFactory.class);

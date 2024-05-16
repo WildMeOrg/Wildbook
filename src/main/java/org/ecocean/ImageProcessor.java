@@ -1,15 +1,10 @@
 package org.ecocean;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.Calendar;
-import javax.imageio.*;
 import org.ecocean.media.MediaAsset;
-// import java.awt.image.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

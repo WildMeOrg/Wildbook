@@ -1,7 +1,5 @@
 package org.ecocean.servlet;
 
-import org.datanucleus.api.jdo.JDOPersistenceManager;
-import org.datanucleus.api.rest.RESTUtils;
 import org.ecocean.*;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 
@@ -20,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.Properties;
 
 import javax.jdo.*;

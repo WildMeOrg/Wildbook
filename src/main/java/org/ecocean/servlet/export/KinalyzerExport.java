@@ -6,16 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
-
-import java.lang.StringBuffer;
-
-// import javax.jdo.Query;
-
-import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
-
-import java.net.URI;
-// import java.text.NumberFormat;;
 
 /*
  * Originally created to support allele export for kinship analysis with the University of Chicago's Kinalyzer tool (now gone), this export format has

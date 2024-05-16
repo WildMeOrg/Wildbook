@@ -1,6 +1,5 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.LocationID;
 import org.ecocean.MarkedIndividual;
@@ -14,7 +13,6 @@ import javax.servlet.ServletException;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 // Set alternateID for this encounter/sighting
 public class EncounterSetLocationID extends HttpServlet {

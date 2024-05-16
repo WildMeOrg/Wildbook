@@ -8,12 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
 public class OccurrenceCreate extends HttpServlet {
     public void init(ServletConfig config)

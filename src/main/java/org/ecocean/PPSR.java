@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ContextConfiguration;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
 import org.json.JSONObject;
 
 public class PPSR {

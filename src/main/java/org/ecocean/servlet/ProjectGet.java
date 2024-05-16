@@ -2,8 +2,6 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
-import javax.jdo.JDOException;
-import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,8 +14,6 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 public class ProjectGet extends HttpServlet {

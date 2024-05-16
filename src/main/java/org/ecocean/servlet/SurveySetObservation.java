@@ -2,8 +2,6 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,9 +9,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
 import org.ecocean.Observation;
-import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.Survey;
 

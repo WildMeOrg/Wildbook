@@ -8,7 +8,6 @@ import javax.jdo.Query;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -20,9 +19,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.ecocean.*;
-import org.ecocean.media.MediaAsset;
 import org.ecocean.security.HiddenEncReporter;
-import org.ecocean.security.HiddenIndividualReporter;
 import org.ecocean.servlet.ServletUtilities;
 import org.json.*;
 
