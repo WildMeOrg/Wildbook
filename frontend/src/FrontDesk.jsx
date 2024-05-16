@@ -7,6 +7,7 @@ import getMergeNotifications from "./models/notifications/getMergeNotifications"
 import getCollaborationNotifications from "./models/notifications/getCollaborationNotifications";
 import NotFound from "./pages/errorPages/NotFound";
 import ServerError from "./pages/errorPages/ServerError";
+import LoadingScreen from "./components/LoadingScreen";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,6 +17,7 @@ export default function FrontDesk() {
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
   const [showAlert, setShowAlert] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = () => {
     console.log("Polling API...");
@@ -23,9 +25,11 @@ export default function FrontDesk() {
       .head("/api/v3/user")
       .then((response) => {
         setIsLoggedIn(response.status === 200);
+        setLoading(false);
       })
       .catch((error) => {
         console.log("Error", error);
+        setLoading(false);
         setIsLoggedIn(false);
         setError(error.response.status);
       });
@@ -51,6 +55,8 @@ export default function FrontDesk() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  if (loading) return <LoadingScreen />;
 
   if (isLoggedIn) {
     return (
