@@ -4,10 +4,6 @@
  */
 package org.ecocean.ia;
 
-import org.ecocean.Annotation;
-import org.ecocean.media.MediaAsset;
-import org.ecocean.Shepherd;
-import org.ecocean.Util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.Annotation;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.Shepherd;
+import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -465,7 +465,7 @@ public class Task implements java.io.Serializable {
 
         if (!hasChildren() && completionDateInMilliseconds != null) {
             complete = true;
-            } else if (hasChildren()) {
+        } else if (hasChildren()) {
             List<Task> children = getChildren();
             complete = true;
             for (Task t : children) {

@@ -3,9 +3,9 @@ package org.ecocean.media;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import javax.jdo.*;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-import javax.jdo.*;
 
 public class MediaAssetFactory {
     // private static final Logger logger = LoggerFactory.getLogger(MediaAssetFactory.class);

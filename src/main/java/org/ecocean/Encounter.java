@@ -27,15 +27,15 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
+import org.ecocean.ia.IA;
+import org.ecocean.identity.IBEISIA;
+import org.ecocean.media.*;
+import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
-import org.ecocean.ia.IA;
-import org.ecocean.identity.IBEISIA;
-import org.ecocean.media.*;
-import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.security.Collaboration;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -385,6 +385,7 @@ public class Encounter implements java.io.Serializable {
     private boolean shouldReplace(String str1, String str2) {
         return Util.shouldReplace(str1, str2);
     }
+
     // also returns true when str1 is a superstring of str2.
     private boolean shouldReplaceSuperStr(String str1, String str2) {
         return (shouldReplace(str1, str2) || (Util.stringExists(str1) && str1.contains(str2)));
@@ -1161,9 +1162,9 @@ public class Encounter implements java.io.Serializable {
     }
 
     public static String subdir(String id) {
-        String d = id;          // old-world
+        String d = id; // old-world
 
-        if (Util.isUUID(id)) {          // new-world
+        if (Util.isUUID(id)) { // new-world
             d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
         }
         return d;
@@ -3230,7 +3231,7 @@ public class Encounter implements java.io.Serializable {
         return isUserOwner(user);
     }
 
-    public boolean isUserOwner(User user) {      // the definition of this might change?
+    public boolean isUserOwner(User user) { // the definition of this might change?
         if ((user == null) || (submitters == null)) return false;
         return submitters.contains(user);
     }
@@ -3510,11 +3511,11 @@ public class Encounter implements java.io.Serializable {
         return returnEncs;
     }
 
-    public String getPrefixForLocationID() {    // convenience function
+    public String getPrefixForLocationID() { // convenience function
         return LocationID.getPrefixForLocationID(this.getLocationID(), null);
     }
 
-    public int getPrefixDigitPaddingForLocationID() {     // convenience function
+    public int getPrefixDigitPaddingForLocationID() { // convenience function
         return LocationID.getPrefixDigitPaddingForLocationID(this.getLocationID(), null);
     }
 
