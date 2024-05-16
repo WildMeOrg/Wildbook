@@ -1,7 +1,5 @@
 package org.ecocean.social;
 
-import java.util.ArrayList;
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.*;

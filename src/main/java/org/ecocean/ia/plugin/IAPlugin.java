@@ -3,7 +3,6 @@ package org.ecocean.ia.plugin;
 import java.util.List;
 import javax.servlet.ServletContextEvent;
 import org.ecocean.Annotation;
-import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.Shepherd;

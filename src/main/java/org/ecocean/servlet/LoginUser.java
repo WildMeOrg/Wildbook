@@ -15,7 +15,6 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.SecurityUtils;
 
-import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
 
 /**

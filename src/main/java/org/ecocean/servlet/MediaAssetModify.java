@@ -10,17 +10,10 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
-
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MediaAssetModify extends HttpServlet {

@@ -2,7 +2,6 @@
 package org.ecocean;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ecocean.media.MediaAsset;
 
 public class ImageAttributes {
     private double width;

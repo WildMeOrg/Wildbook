@@ -3,20 +3,12 @@ package org.ecocean.metrics.junit;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.amazonaws.services.cloudsearchv2.model.IntArrayOptions;
-
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Scanner;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.ecocean.metrics.Prometheus;
-import org.ecocean.Shepherd;
 
 public class TestJunit {
     String messsage = "Hello worl";

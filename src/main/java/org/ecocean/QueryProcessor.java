@@ -5,12 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Map;
-import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
-
-import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Util.*;
 
 public abstract class QueryProcessor {
     static String BASE_FILTER;

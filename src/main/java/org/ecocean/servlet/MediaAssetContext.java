@@ -11,17 +11,8 @@ import javax.servlet.ServletException;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 

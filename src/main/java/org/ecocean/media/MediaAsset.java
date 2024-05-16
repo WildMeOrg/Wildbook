@@ -3,15 +3,12 @@ package org.ecocean.media;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.spi.FileTypeDetector;
-import org.ecocean.acm.AcmBase;
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
-import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
@@ -21,15 +18,12 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;
-// import java.time.LocalDateTime;
-import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,27 +36,9 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-// import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import javax.activation.MimeType;
-import javax.jdo.Query;
-import javax.xml.bind.DatatypeConverter;
 
-/*
-   import java.awt.image.BufferedImage;
-   import javax.imageio.ImageIO;
-
-   import javax.imageio.ImageReader;
-   import javax.imageio.stream.ImageInputStream;
-   import java.util.Iterator;
- */
-
-/*
-   import com.drew.imaging.ImageMetadataReader;
-   import com.drew.imaging.ImageProcessingException;
-   import com.drew.metadata.*;
-   import com.drew.metadata.exif.ExifSubIFDDirectory;
- */
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used for processing and analysis.
