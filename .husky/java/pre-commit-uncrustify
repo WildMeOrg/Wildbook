@@ -61,7 +61,6 @@ else
 fi
 
 # make sure the config file and executable are correctly set
-echo "aaaaa:$UNCRUST_CONFIG"
 if [ ! -f "$UNCRUST_CONFIG" ] ; then
     printf "Error: uncrustify config file not found.\n"
     printf "Set the correct path in $CONFIG.\n"
