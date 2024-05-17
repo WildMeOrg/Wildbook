@@ -41,6 +41,7 @@
     "menu.administer.photoKeywords": "Mots-clés photo",
     "menu.administer.softwareDocs": "Documentation logicielle",
     "menu.administer.dataIntegrity": "Intégrité des données",
+    "menu.administer.bulkImportLogs": "Journaux d'importation en masse",
     "USER_PROFILE": "Profil de l'utilisateur",
     "LEARN": "Apprendre",
     "SUBMIT": "Soumettre",
