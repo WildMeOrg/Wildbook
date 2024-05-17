@@ -2,34 +2,37 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 
 public class UserPreferences extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig config)
+    throws ServletException {
         super.init(config);
     }
 
-    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doOptions(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         doPost(request, response);
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -37,7 +40,7 @@ public class UserPreferences extends HttpServlet {
 
         System.out.println("==> In UserPreferences Servlet ");
 
-        String context= ServletUtilities.getContext(request);
+        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("UserPreferences.java");
         myShepherd.beginDBTransaction();
@@ -47,12 +50,10 @@ public class UserPreferences extends HttpServlet {
         String action = j.optString("action", null);
 
         try {
-            res.put("success","false");
+            res.put("success", "false");
             if (Util.stringExists(action)) {
                 User user = myShepherd.getUser(request);
-                if(user!=null){
-                }else{
-                }
+                if (user != null) {} else {}
                 if ("setProjectContext".equals(action)) {
                     String defaultProjectId = j.optString("projectId", null);
                     if (Util.stringExists(defaultProjectId)) {
@@ -61,30 +62,28 @@ public class UserPreferences extends HttpServlet {
                         setSuccess(res, response);
                     }
                 }
-                if("setUserConsolidationChoicesTrue".equals(action)){
-                  user.setPreference("userConsolidationChoicesMade", "true");
-                  myShepherd.updateDBTransaction();
-                  setSuccess(res, response);
+                if ("setUserConsolidationChoicesTrue".equals(action)) {
+                    user.setPreference("userConsolidationChoicesMade", "true");
+                    myShepherd.updateDBTransaction();
+                    setSuccess(res, response);
                 }
-                if("setUserConsolidationChoicesFalse".equals(action)){
-                  user.setPreference("userConsolidationChoicesMade", "false");
-                  myShepherd.updateDBTransaction();
-                  setSuccess(res, response);
+                if ("setUserConsolidationChoicesFalse".equals(action)) {
+                    user.setPreference("userConsolidationChoicesMade", "false");
+                    myShepherd.updateDBTransaction();
+                    setSuccess(res, response);
                 }
-                if("getUserConsolidationChoiceStatus".equals(action)){
-                  String consolidationStatus = user.getPreference("userConsolidationChoicesMade");
-                  if(Util.stringExists(consolidationStatus)){
-                    res.put("userConsolidationChoicesMade", consolidationStatus);
-                  } else{
-                    res.put("userConsolidationChoicesMade", "false");
-                  }
-                  setSuccess(res, response);
+                if ("getUserConsolidationChoiceStatus".equals(action)) {
+                    String consolidationStatus = user.getPreference("userConsolidationChoicesMade");
+                    if (Util.stringExists(consolidationStatus)) {
+                        res.put("userConsolidationChoicesMade", consolidationStatus);
+                    } else {
+                        res.put("userConsolidationChoicesMade", "false");
+                    }
+                    setSuccess(res, response);
                 }
             }
-
             out.println(res);
             out.close();
-
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -92,7 +91,7 @@ public class UserPreferences extends HttpServlet {
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
@@ -109,7 +108,7 @@ public class UserPreferences extends HttpServlet {
     }
 
     private void setSuccess(JSONObject res, HttpServletResponse response) {
-        res.put("success","true");
+        res.put("success", "true");
         response.setStatus(HttpServletResponse.SC_OK);
     }
 }

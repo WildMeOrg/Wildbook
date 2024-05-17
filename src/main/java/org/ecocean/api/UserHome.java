@@ -2,34 +2,31 @@ package org.ecocean.api;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.joda.time.DateTime;
 import java.util.List;
+import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import org.ecocean.Annotation;
+import org.ecocean.Encounter;
+import org.ecocean.ia.Task;
+import org.ecocean.Project;
+import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
-import org.ecocean.Project;
-import org.ecocean.Occurrence;
-import org.ecocean.Encounter;
-import org.ecocean.Annotation;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.ia.Task;
-import org.ecocean.servlet.importer.ImportTask;
-import org.ecocean.servlet.ServletUtilities;
-
-
 
 public class UserHome extends ApiBase {
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.UserHome");
         myShepherd.beginDBTransaction();
 
@@ -43,7 +40,6 @@ public class UserHome extends ApiBase {
             myShepherd.closeDBTransaction();
             return;
         }
-
         home.put("user", currentUser.infoJSONObject(context, true));
 
         // TODO ES replace
@@ -93,13 +89,14 @@ public class UserHome extends ApiBase {
             matchJson.put("dateTimeCreated", new DateTime(tasks.get(0).getCreatedLong()));
             matchJson.put("encounterId", JSONObject.NULL);
             List<Annotation> anns = tasks.get(0).getObjectAnnotations();
-            if (!Util.collectionIsEmptyOrNull(anns)) for (Annotation ann : anns) {
-                Encounter enc = ann.findEncounter(myShepherd);
-                if (enc != null) {
-                    matchJson.put("encounterId", enc.getId());
-                    break;
+            if (!Util.collectionIsEmptyOrNull(anns))
+                for (Annotation ann : anns) {
+                    Encounter enc = ann.findEncounter(myShepherd);
+                    if (enc != null) {
+                        matchJson.put("encounterId", enc.getId());
+                        break;
+                    }
                 }
-            }
         }
         home.put("latestMatchTask", Util.jsonNull(matchJson));
 
@@ -122,7 +119,5 @@ public class UserHome extends ApiBase {
         response.getWriter().write(home.toString());
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-    }  	
-
+    }
 }
-

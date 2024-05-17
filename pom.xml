@@ -940,6 +940,18 @@
       			</configuration>
     		</execution>
 
+    		<execution>
+      			<id>Build React Directory</id>
+      			<phase>clean</phase>
+      			<goals>
+        			<goal>exec</goal>
+      			</goals>
+      			<configuration>
+        			<executable>${basedir}/frontend/maven-build.sh</executable>
+				<workingDirectory>${basedir}</workingDirectory>
+      			</configuration>
+    		</execution>
+
         </executions>
       </plugin>
 
