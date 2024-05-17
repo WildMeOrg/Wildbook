@@ -912,7 +912,7 @@ public class StandardImport extends HttpServlet {
             List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues(
                 "genusSpecies", myShepherd.getContext());
             if (configuredSpecies != null && configuredSpecies.size() > 0 &&
-                configuredSpecies.toString().indexOf(enc.getTaxonomyString()) < 0) {
+                configuredSpecies.toString().replaceAll("_"," ").indexOf(enc.getTaxonomyString()) < 0) {
                 // if bad values
                 feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),
                     genus, row, "UNSUPPORTED VALUE: " + genus);
