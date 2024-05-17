@@ -1,16 +1,13 @@
 package org.ecocean;
 
-import org.ecocean.Util;
-import org.ecocean.Shepherd;
-import org.json.JSONObject;
-import org.json.JSONException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.DateTime;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * SystemValue is a catchall storage of name/value(s) pairs
- *  value is stored as JSONObject (as string in db), but retrieval masks
- *  this underlying structure.  e.g.:
+ * SystemValue is a catchall storage of name/value(s) pairs value is stored as JSONObject (as string in db), but retrieval masks this underlying
+ * structure.  e.g.:
  *     SystemValue.getInteger(myShepherd, "fubar") will return Integer (null if not found / not integer)
  */
 
@@ -43,15 +40,17 @@ public class SystemValue implements java.io.Serializable {
 
     public static SystemValue load(Shepherd myShepherd, String key) {
         try {
-            return ((SystemValue) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(SystemValue.class, key), true)));
+            return ((SystemValue)(myShepherd.getPM().getObjectById(
+                       myShepherd.getPM().newObjectIdInstance(SystemValue.class, key), true)));
         } catch (Exception ex) {
             return null;
         }
     }
 
-    //load if exists, create if not
+    // load if exists, create if not
     public static SystemValue obtain(Shepherd myShepherd, String key) {
         SystemValue sv = load(myShepherd, key);
+
         if (sv != null) return sv;
         return new SystemValue(key, null);
     }
@@ -63,6 +62,7 @@ public class SystemValue implements java.io.Serializable {
 
     private static SystemValue _set(Shepherd myShepherd, String key, String type, Object val) {
         JSONObject jv = new JSONObject();
+
         jv.put("type", type);
         jv.put("value", val);
         SystemValue sv = obtain(myShepherd, key);
@@ -74,27 +74,33 @@ public class SystemValue implements java.io.Serializable {
     public static SystemValue set(Shepherd myShepherd, String key, Integer val) {
         return _set(myShepherd, key, "Integer", val);
     }
+
     public static SystemValue set(Shepherd myShepherd, String key, Long val) {
         return _set(myShepherd, key, "Long", val);
     }
+
     public static SystemValue set(Shepherd myShepherd, String key, Double val) {
         return _set(myShepherd, key, "Double", val);
     }
+
     public static SystemValue set(Shepherd myShepherd, String key, String val) {
         return _set(myShepherd, key, "String", val);
     }
+
     public static SystemValue set(Shepherd myShepherd, String key, JSONObject val) {
         return _set(myShepherd, key, "JSONObject", val);
     }
 
     public static JSONObject getValue(Shepherd myShepherd, String key) {
         SystemValue sv = load(myShepherd, key);
+
         if (sv == null) return null;
         return sv.getValue();
     }
 
     public static Integer getInteger(Shepherd myShepherd, String key) {
         JSONObject v = getValue(myShepherd, key);
+
         if (v == null) return null;
         if (v.isNull("value")) return null;
         try {
@@ -104,8 +110,10 @@ public class SystemValue implements java.io.Serializable {
             return null;
         }
     }
+
     public static Long getLong(Shepherd myShepherd, String key) {
         JSONObject v = getValue(myShepherd, key);
+
         if (v == null) return null;
         if (v.isNull("value")) return null;
         try {
@@ -115,8 +123,10 @@ public class SystemValue implements java.io.Serializable {
             return null;
         }
     }
+
     public static Double getDouble(Shepherd myShepherd, String key) {
         JSONObject v = getValue(myShepherd, key);
+
         if (v == null) return null;
         if (v.isNull("value")) return null;
         try {
@@ -126,8 +136,10 @@ public class SystemValue implements java.io.Serializable {
             return null;
         }
     }
+
     public static String getString(Shepherd myShepherd, String key) {
         JSONObject v = getValue(myShepherd, key);
+
         if (v == null) return null;
         if (v.isNull("value")) return null;
         try {
@@ -137,8 +149,10 @@ public class SystemValue implements java.io.Serializable {
             return null;
         }
     }
+
     public static JSONObject getJSONObject(Shepherd myShepherd, String key) {
         JSONObject v = getValue(myShepherd, key);
+
         if (v == null) return null;
         if (v.isNull("value")) return null;
         try {
@@ -149,14 +163,14 @@ public class SystemValue implements java.io.Serializable {
         }
     }
 
-
     public String toString() {
         return new ToStringBuilder(this)
-                .append("key", key)
-                .append("valueObj", (this.getValue() == null) ? null : this.getValue().opt("value"))
-                .append("rawValueContent", value)
-                .append("version", version)
-                .append("versionDateTime", new DateTime(version))
-                .toString();
+                   .append("key", key)
+                   .append("valueObj",
+                (this.getValue() == null) ? null : this.getValue().opt("value"))
+                   .append("rawValueContent", value)
+                   .append("version", version)
+                   .append("versionDateTime", new DateTime(version))
+                   .toString();
     }
 }

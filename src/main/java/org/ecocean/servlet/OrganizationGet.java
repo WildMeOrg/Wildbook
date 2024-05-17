@@ -2,71 +2,69 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.util.List;
 
 public class OrganizationGet extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig config)
+    throws ServletException {
         super.init(config);
     }
 
-    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doOptions(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         doPost(request, response);
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
 
         System.out.println("==> In OrganizationGet Servlet ");
 
-        String context= ServletUtilities.getContext(request);
+        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("OrganizationGet.java");
         myShepherd.beginDBTransaction();
 
         JSONObject res = new JSONObject();
         try {
-            res.put("success",false);
+            res.put("success", false);
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-
             String action = "";
             action = j.optString("action", null);
 
             boolean complete = false;
-
-            if ("getAllForUser".equals(action)||"getAll".equals(action)) {
-                User user  = myShepherd.getUser(request);
-                if (user!=null) {
+            if ("getAllForUser".equals(action) || "getAll".equals(action)) {
+                User user = myShepherd.getUser(request);
+                if (user != null) {
                     JSONArray orgJSONArr = new JSONArray();
                     List<Organization> orgs = null;
-
                     if ("getAllForUser".equals(action)) {
                         orgs = myShepherd.getAllOrganizationsForUser(user);
                     } else if ("getAll".equals(action)) {
                         orgs = myShepherd.getAllOrganizations();
                     }
-
                     for (Organization org : orgs) {
                         JSONObject orgOb = new JSONObject();
                         List<User> userArr = org.getMembers();
@@ -82,15 +80,13 @@ public class OrganizationGet extends HttpServlet {
                         orgOb.put("id", org.getId());
                         orgJSONArr.put(orgOb);
                     }
-                    res.put("organizations", orgJSONArr );
+                    res.put("organizations", orgJSONArr);
                     res.put("success", "true");
                     complete = true;
                 }
             }
-
             out.println(res);
             out.close();
-
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -113,5 +109,4 @@ public class OrganizationGet extends HttpServlet {
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
     }
-
 }
