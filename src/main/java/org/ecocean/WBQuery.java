@@ -1,6 +1,5 @@
 package org.ecocean;
 
-import org.datanucleus.api.rest.orgjson.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.jdo.Query;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 
 public class WBQuery implements java.io.Serializable {
     private static final long serialVersionUID = -7934850478934029842L;

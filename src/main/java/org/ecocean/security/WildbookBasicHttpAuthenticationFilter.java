@@ -1,12 +1,12 @@
 package org.ecocean.security;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 
 public class WildbookBasicHttpAuthenticationFilter extends BasicHttpAuthenticationFilter {
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {

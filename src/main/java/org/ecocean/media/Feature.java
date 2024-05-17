@@ -1,10 +1,10 @@
 package org.ecocean.media;
 
-import org.ecocean.Annotation;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.json.JSONException;
 import org.json.JSONObject;

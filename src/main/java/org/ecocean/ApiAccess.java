@@ -52,7 +52,7 @@ public class ApiAccess {
     public String checkRequest(Object obj, HttpServletRequest request, JSONObject jsonobj) {
         String err = null;
 
-        if (!request.getMethod().equals("POST") && !request.getMethod().equals("PUT")) return null;          // we only care about PUT/POST for now
+        if (!request.getMethod().equals("POST") && !request.getMethod().equals("PUT")) return null; // we only care about PUT/POST for now
         HashMap<String, String> perm = permissions(obj, request);
         Iterator<?> keys = jsonobj.keys();
         while (keys.hasNext()) {

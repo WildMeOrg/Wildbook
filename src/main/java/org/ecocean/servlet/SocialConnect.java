@@ -12,8 +12,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ecocean.security.SocialAuth;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.security.SocialAuth;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.pac4j.core.context.J2EContext;

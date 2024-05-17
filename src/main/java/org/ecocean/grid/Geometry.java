@@ -635,7 +635,7 @@ public final class Geometry {
      * @param yExtent Will upon return contain [yMin, yMax]
      */
     public static void findPolygonExtent(int[] x, int[] y, int[] xExtent, // xMin, xMax
-        int[] yExtent) {                               // yMin, yMax
+        int[] yExtent) { // yMin, yMax
         int xMin = +Integer.MAX_VALUE;
         int xMax = -Integer.MAX_VALUE;
         int yMin = +Integer.MAX_VALUE;
