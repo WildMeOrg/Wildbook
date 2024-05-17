@@ -41,6 +41,7 @@
     "menu.administer.photoKeywords": "Parole chiave della foto",
     "menu.administer.softwareDocs": "Documentazione software",
     "menu.administer.dataIntegrity": "Integrità dei dati",
+    "menu.administer.bulkImportLogs": "Registri di importazione massiva",
     "HOME_LATEST_DATA": "Ultimi Dati",
     "HOME_PICK_UP_1": "Riprendi da ",
     "HOME_PICK_UP_2": "dove hai lasciato",
