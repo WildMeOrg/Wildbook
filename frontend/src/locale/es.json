@@ -41,6 +41,7 @@
     "menu.administer.photoKeywords": "Palabras clave de foto",
     "menu.administer.softwareDocs": "Documentación del software",
     "menu.administer.dataIntegrity": "Integridad de los datos",
+    "menu.administer.bulkImportLogs": "Registros de Importación Masiva",
     "USER_PROFILE": "Perfil del usuario",
     "LEARN": "Aprender",
     "SUBMIT": "Enviar",
