@@ -374,7 +374,8 @@ public class ImportAccess extends HttpServlet {
         out.println("  <p> entering row loop</p>");
         for (;
             rowNum < table.getRowCount() && rowLimitForTesting != null &&
-            rowNum < rowLimitForTesting; rowNum++) {
+            rowNum < rowLimitForTesting;
+            rowNum++) {
             boolean printing = true; // ((rowNum%printPeriod)==0);
             if (printing) {
                 System.out.println("    PROCIDPHOTOS: beginning row " + rowNum + ".");
@@ -953,7 +954,7 @@ public class ImportAccess extends HttpServlet {
         Double flukeQuality = null;
         try {
             flukeQuality = new Double(thisRow.get("Fluke photo score").toString());
-            } catch (Exception e) {}
+        } catch (Exception e) {}
         System.out.println("    SHROW-Proc got flukeQuality " + flukeQuality);
         if (flukeAnn != null && flukeQuality != null) {
             flukeAnn.setQuality(flukeQuality);
@@ -967,7 +968,7 @@ public class ImportAccess extends HttpServlet {
         Double rightDorsalQuality = null;
         try {
             rightDorsalQuality = new Double(thisRow.get("Right Dorsal Fin score").toString());
-            } catch (Exception e) {}
+        } catch (Exception e) {}
         System.out.println("    SHROW-Proc got rightDorsalQuality " + rightDorsalQuality);
         if (rightDorsalAnn != null && rightDorsalQuality != null) {
             rightDorsalAnn.setQuality(rightDorsalQuality);
@@ -982,7 +983,7 @@ public class ImportAccess extends HttpServlet {
         // note non-capitalization of fin as opposed to Right Dors. Fin
         try {
             leftDorsalQuality = new Double(thisRow.get("Left Dorsal fin score").toString());
-            } catch (Exception e) {}
+        } catch (Exception e) {}
         System.out.println("    SHROW-Proc got leftDorsalQuality " + leftDorsalQuality);
         if (leftDorsalAnn != null && leftDorsalQuality != null) {
             leftDorsalAnn.setQuality(leftDorsalQuality);

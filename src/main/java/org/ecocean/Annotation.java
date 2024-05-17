@@ -2,7 +2,6 @@
    TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
  */
-
 package org.ecocean;
 
 import java.awt.Rectangle;
@@ -259,7 +258,7 @@ public class Annotation implements java.io.Serializable {
     }
 
     // TODO this needs to be fixed to mean "has the unity feature"... i think(!?) -- but migrating to features needs a legacy-compatible version!
-    //  ouch
+    // ouch
     // good luck on that one, jon
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();

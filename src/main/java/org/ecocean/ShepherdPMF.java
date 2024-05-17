@@ -65,50 +65,50 @@ public class ShepherdPMF {
                     }
                 }
                 /*
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    This code below allows you to define the Database Connection parameters (user, password, driver name and connection URL in
-                  environment variables
+                   environment variables
                    and also Docker or Kubernetes secrets.
-                  
+
                    You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin
-                  directory.
+                   directory.
                    The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.
                    This allows you specify the Database Connection parameters: user, password, driver name and connection URL at run time instead of
-                  hardcoding
+                   hardcoding
                    them in the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and
-                  Kubernetes.
+                   Kubernetes.
                    And you can also define the Database Connection parameters as Docker secrets or Kubernetes secrets which makes the credentials
-                  secure.
-                  ***************************************************************************************************************************************************
-                  
+                   secure.
+                 ***************************************************************************************************************************************************
+
                    Example setenv.sh file
-                  
-                   #!/usr/bin/env bash
+
+                 #!/usr/bin/env bash
                    printf 'Setting Database Connection environment variables\n'
-                  
+
                    export DB_USER="wildbook"                                                                                           # Example from
-                  env variable
-                   # export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                 # Example from
-                  secret
+                   env variable
+                 # export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                 # Example from
+                   secret
                    export DB_PASSWORD="Passw0rd#"                                                                                      # Example from
-                  env variable
-                   # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                         # Example from
-                  secret
+                   env variable
+                 # export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                         # Example from
+                   secret
                    export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                       # Example from
-                  env variable
-                   # export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                   # Example from
-                  secret
+                   env variable
+                 # export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                   # Example from
+                   secret
                    export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"      # Example for
-                  MySQL
-                   # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                             # Example from
-                  secret
-                  ***************************************************************************************************************************************************
-                  
+                   MySQL
+                 # export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                             # Example from
+                   secret
+                 ***************************************************************************************************************************************************
+
                    Example docker-compose.yml file below.
-                  
+
                    Put the setenv.sh script in the directory where the docker-compose.yml file exists. Docker will mount the local setenv.sh file to
                    /usr/local/tomcat/bin/setenv.sh when the docker container is started.
-                  
+
                    version: '3.3'
                    configs:
                      setenv.sh:
@@ -122,50 +122,50 @@ public class ShepherdPMF {
                            uid: '0'
                            gid: '0'
                            mode: 0700
-                  
-                  ***************************************************************************************************************************************************
+
+                 ***************************************************************************************************************************************************
                    To use Docker secrets.
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    Example setenv.sh file
-                  
-                   #!/usr/bin/env bash
+
+                 #!/usr/bin/env bash
                    printf 'Setting Database Connection environment variables\n'
-                  
-                   # export DB_USER="wildbook"                                                                                         # Example from
-                  env variable
+
+                 # export DB_USER="wildbook"                                                                                         # Example from
+                   env variable
                    export DB_USER_FILE=/run/secrets/wildbook-db-user                                                                   # Example from
-                  secret
-                  
-                   # export DB_PASSWORD="Passw0rd#"                                                                                    # Example from
-                  env variable
+                   secret
+
+                 # export DB_PASSWORD="Passw0rd#"                                                                                    # Example from
+                   env variable
                    export DB_PASSWORD_FILE=/run/secrets/wildbook-db-password                                                           # Example from
-                  secret
-                  
+                   secret
+
                    export DB_CONNECTION_URL="jdbc:postgresql://localhost:5432/wildbook"                                                # Example for
-                  PostgreSQL
-                   # export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"    # Example for
-                  MySQL
+                   PostgreSQL
+                 # export DB_CONNECTION_URL="jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true"    # Example for
+                   MySQL
                    export DB_CONNECTION_URL_FILE=/run/secrets/wildbook-db-connection-url                                               # Example from
-                  secret
-                  
-                   # export DB_DRIVER_NAME="org.postgresql.Driver"                                                                     # For
-                  PostgreSQL
-                   # export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                     # For MySQL
+                   secret
+
+                 # export DB_DRIVER_NAME="org.postgresql.Driver"                                                                     # For
+                   PostgreSQL
+                 # export DB_DRIVER_NAME="com.mysql.jdbc.Driver"                                                                     # For MySQL
                    export DB_DRIVER_NAME_FILE=/run/secrets/wildbook-db-driver-name                                                     # Example from
-                  secret
-                  
+                   secret
+
                    Create the Docker secrets
-                  
+
                    $ echo "wildbook" | docker secret create wildbook-db-user -
                    yhma28514l3spyj6033ym155y
-                  
+
                    $ echo "Passw0rd#" | docker secret create wildbook-db-password -
                    6q3gew26hvv3x314ahzxgfceb
-                  
+
                    $ echo "jdbc:mysql://mysql-wildbook:3306/wildbook?useSSL=false&allowPublicKeyRetrieval=true" | docker secret create
-                  wildbook-db-connection-url -
+                   wildbook-db-connection-url -
                    9ur97son802lopbpaj8q1ant8
-                  
+
                    $ echo "com.mysql.jdbc.Driver" | docker secret create wildbook-db-driver-name -
                    9ur97son802lopbpaj8q1ant8
                    $ docker secret ls
@@ -174,10 +174,10 @@ public class ShepherdPMF {
                    uu8bf5pwdeulo303m4pu2ibye    wildbook-db-driver-name                          4 seconds ago       4 seconds ago
                    m6q3gew26hvv3x314ahzxgfceb   wildbook-db-password                             41 seconds ago       41 seconds ago
                    yhma28514l3spyj6033ym155y    wildbook-db-user                                 About a minute ago   About a minute ago
-                  
-                  ***************************************************************************************************************************************************
+
+                 ***************************************************************************************************************************************************
                    docker-compose.yml file with the secrets.
-                  
+
                    version: '3.3'
                    configs:
                      setenv.sh:
@@ -202,15 +202,15 @@ public class ShepherdPMF {
                          - wildbook-db-user
                          - wildbook-db-password
                          - wildbook-db-connection-url
-                  
-                   # Note the same wildbook-db-user and wildbook-db-passord secrets can be specified to a MySQL docker database container.
-                  ***************************************************************************************************************************************************
+
+                 # Note the same wildbook-db-user and wildbook-db-passord secrets can be specified to a MySQL docker database container.
+                 ***************************************************************************************************************************************************
                  */
 
                 /*
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    Retrieve the Database user from an environment Variable
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                  */
                 System.out.println("Checking for the DB_USER environment variable.");
                 String dbUser = System.getenv("DB_USER");
@@ -221,9 +221,9 @@ public class ShepherdPMF {
                     dnProperties.setProperty("datanucleus.ConnectionUserName", dbUser.trim());
                 } else {
                     /*
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                        Retrieve the Database User from a file. This allows the use of Docker Secrets and Kubernetes Secrets!
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                      */
                     String dbUserSecretFile = System.getenv("DB_USER_FILE");
                     if (dbUserSecretFile != null && !dbUserSecretFile.isEmpty()) {
@@ -243,9 +243,9 @@ public class ShepherdPMF {
                     }
                 }
                 /*
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    Retrieve the Database password from an environment Variable
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                  */
                 System.out.println("Checking for the DB_PASSWORD environment variable.");
                 String dbPassword = System.getenv("DB_PASSWORD");
@@ -256,9 +256,9 @@ public class ShepherdPMF {
                     dnProperties.setProperty("datanucleus.ConnectionPassword", dbPassword.trim());
                 } else {
                     /*
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                        Retrieve the Database Password from a file. This allows the use of Docker Secrets and Kubernetes Secrets!
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                      */
                     String dbPasswordSecretFile = System.getenv("DB_PASSWORD_FILE");
                     if (dbPasswordSecretFile != null && !dbPasswordSecretFile.isEmpty()) {
@@ -279,9 +279,9 @@ public class ShepherdPMF {
                     }
                 }
                 /*
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    Retrieve the Database Connection Driver Name from an environment Variable
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                  */
                 System.out.println("Checking for the DB_DRIVER_NAME environment variable.");
                 String dbDriverName = System.getenv("DB_DRIVER_NAME");
@@ -293,9 +293,9 @@ public class ShepherdPMF {
                         dbDriverName.trim());
                 } else {
                     /*
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                        Retrieve the Database Connection Driver Name from a file. This allows the use of Docker Secrets and Kubernetes Secrets!
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                      */
                     String dbDriverNameFile = System.getenv("DB_DRIVER_NAME_FILE");
                     if (dbDriverNameFile != null && !dbDriverNameFile.isEmpty()) {
@@ -316,9 +316,9 @@ public class ShepherdPMF {
                     }
                 }
                 /*
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                    Retrieve the Database Connection URL from an environment Variable
-                  ***************************************************************************************************************************************************
+                 ***************************************************************************************************************************************************
                  */
                 System.out.println("Checking for the DB_CONNECTION_URL environment variable.");
                 String dbConnectionURL = System.getenv("DB_CONNECTION_URL");
@@ -329,9 +329,9 @@ public class ShepherdPMF {
                     dnProperties.setProperty("datanucleus.ConnectionURL", dbConnectionURL.trim());
                 } else {
                     /*
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                        Retrieve the Database Connection URL from a file. This allows the use of Docker Secrets and Kubernetes Secrets!
-                      ***************************************************************************************************************************************************
+                     ***************************************************************************************************************************************************
                      */
                     String dbConnectionURLFile = System.getenv("DB_CONNECTION_URL_FILE");
                     if (dbConnectionURLFile != null && !dbConnectionURLFile.isEmpty()) {

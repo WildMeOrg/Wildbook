@@ -149,7 +149,7 @@ public class IAQueryCache {
                sent.optString("response", null);
             taskRes.put("jobId", jobId);
             //validIds.toArray(new String[validIds.size()]) IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject("{\"_action\":
-               \"initIdentify\"}"), context);
+ \"initIdentify\"}"), context);
  */
         rtn.put("success", false); // tmp during development
         return rtn;

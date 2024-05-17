@@ -14,7 +14,6 @@ import java.nio.file.Paths;
 import org.ecocean.Shepherd;
 import org.json.JSONObject;
 
-
 /**
  * URLAssetStore references MediaAssets that reside at arbitrary URLs.
  *

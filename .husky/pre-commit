@@ -34,3 +34,9 @@ if [ "$REACT_CHANGE" -eq 1 ]; then
 else
   echo "No changes in React app, skipping linters."
 fi
+
+
+# this runs the java uncrustify scripts
+
+. "$(dirname "$0")/java/pre-commit-uncrustify"
+

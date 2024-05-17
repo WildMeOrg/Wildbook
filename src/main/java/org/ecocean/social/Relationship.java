@@ -140,6 +140,7 @@ public class Relationship implements java.io.Serializable {
     public String getMarkedIndividual1DirectionalDescriptor() {
         return markedIndividual1DirectionalDescriptor;
     }
+
     public String getMarkedIndividual2DirectionalDescriptor() {
         return markedIndividual2DirectionalDescriptor;
     }

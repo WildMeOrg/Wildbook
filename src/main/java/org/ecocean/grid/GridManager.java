@@ -721,6 +721,7 @@ public class GridManager {
     public ConcurrentHashMap<String, Long> getSpeciesCountsMapLeft() {
         return speciesCountsMapLeft;
     }
+
     public ConcurrentHashMap<String, Long> getSpeciesCountsMapRight() {
         return speciesCountsMapRight;
     }

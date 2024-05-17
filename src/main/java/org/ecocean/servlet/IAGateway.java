@@ -99,7 +99,7 @@ public class IAGateway extends HttpServlet {
             // sendtoIAscripts for bulk command line detection use this v2 option
             // uses detection queue
             if (j.optBoolean("enqueue", false) || j.optBoolean("v2", false)) { // short circuits and just blindly writes out to queue and is done!
-                                                                               //  magic?
+                                                                               // magic?
                 // TODO if queue is not active/okay, fallback to synchronous???
                 // TODO could probably add other stuff (e.g. security/user etc)
                 j.put("__context", context);
@@ -699,7 +699,7 @@ public class IAGateway extends HttpServlet {
                 // error - don't requeue
                 else if (ex.toString().contains("HTTP error code : 608")) {
                     requeue = false;
-                    } else {
+                } else {
                     requeueIncrement = true;
                     requeue = true;
                 }
@@ -803,7 +803,7 @@ public class IAGateway extends HttpServlet {
                         System.out.println("requeueJob(): backgrounding taskId=" + taskId);
                         try {
                             Thread.sleep(whileSleepMillis);
-                            } catch (java.lang.InterruptedException ex) {}
+                        } catch (java.lang.InterruptedException ex) {}
                         if (jobj.optJSONObject("detect") != null || jobj.optBoolean("fastlane",
                             false)) {
                             addToDetectionQueue(context, jobj.toString());
@@ -928,8 +928,8 @@ public class IAGateway extends HttpServlet {
         if (parentTask != null) parentTask.addChild(task);
         myShepherd.commitDBTransaction();
         // System.out.println("[INFO] IAGateway.handleBulkImport() enc " + encId + " created and queued " + task);
-        JSONObject qjob = new JSONObject(jin.toString());      // clone it to start with so we get all same content
-        qjob.remove("bulkImport");      // ... but then lose this
+        JSONObject qjob = new JSONObject(jin.toString()); // clone it to start with so we get all same content
+        qjob.remove("bulkImport"); // ... but then lose this
         qjob.put("taskId", task.getId());
         qjob.put("mediaAssetIds", maIds);
         qjob.put("v2", true);

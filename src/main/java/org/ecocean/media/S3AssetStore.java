@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import org.ecocean.Util;
 
-
 /**
  * S3AssetStore references MediaAssets on the current host's filesystem.
  *

@@ -10,7 +10,7 @@ public abstract class Ind2IndDistance {
     int alleleRepSize;
     int ploidy;
     // int [][] alleleCounts;	// overall count of each each allele at each locus
-    int numAlleleCopies;        // number of allele copies at each locus, for entire population
+    int numAlleleCopies; // number of allele copies at each locus, for entire population
     // equals ploidy times population size
 
     public final void setAlleleLengths(int[][] al) {
@@ -100,13 +100,13 @@ public abstract class Ind2IndDistance {
             // you are welcome to figure out
 
             boolean used[] = new boolean[genes1.length];
-            for (int l = 0; l < na; l += ploidy) {              // l loops over loci
-                for (int j = l; j < l + ploidy; ++j) {                  // loops over alleles at one locus
-                    for (int k = l; k < l + ploidy; ++k) {                      // loops over alleles at same locus in other individual
+            for (int l = 0; l < na; l += ploidy) { // l loops over loci
+                for (int j = l; j < l + ploidy; ++j) { // loops over alleles at one locus
+                    for (int k = l; k < l + ploidy; ++k) { // loops over alleles at same locus in other individual
                         if ((genes1[j] == genes2[k]) && !used[k]) {
                             used[k] = true;
                             ++shared;
-                            break;                                      // found a match for this allele, now quit
+                            break; // found a match for this allele, now quit
                         }
                     }
                 }

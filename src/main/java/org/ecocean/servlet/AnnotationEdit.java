@@ -19,7 +19,6 @@ import org.ecocean.User;
 import org.ecocean.Util;
 import org.json.JSONObject;
 
-
 public class AnnotationEdit extends HttpServlet {
     private static final long serialVersionUID = 1L;
 

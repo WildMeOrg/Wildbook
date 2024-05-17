@@ -11,7 +11,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-
 public class EncounterRemoveImage extends HttpServlet {
     public void init(ServletConfig config)
     throws ServletException {

@@ -134,7 +134,7 @@ public class WildbookIAM extends IAPlugin {
 /*
     note: sendMediaAssets() and sendAnnotations() need to be *batched* now in small chunks, particularly sendMediaAssets().
     this is because we **must** get the return value from the POST, in order that we can map the corresponding (returned) acmId values.  if we
-       *timeout* in the POST, this *will not happen*.  and it is a lengthy process on the IA side: as IA must grab the image over the network and
+ * timeout* in the POST, this *will not happen*.  and it is a lengthy process on the IA side: as IA must grab the image over the network and
        generate the acmId from it!  hence, batchSize... which we kind of guestimate and cross our fingers.
  */
     public JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, boolean checkFirst)

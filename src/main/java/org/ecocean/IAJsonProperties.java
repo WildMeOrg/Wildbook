@@ -190,7 +190,7 @@ public class IAJsonProperties extends JsonProperties {
         if (iaClass == null) return null;
         for (Taxonomy taxy : getAllTaxonomies(myShepherd)) {
             if (taxy.getScientificName().endsWith(" sp")) continue;
-            if (isValidIAClass(taxy, iaClass)) return taxy;      // first one wins!
+            if (isValidIAClass(taxy, iaClass)) return taxy; // first one wins!
         }
         return null;
     }
@@ -259,7 +259,7 @@ public class IAJsonProperties extends JsonProperties {
         while (keys.hasNext()) {
             String key = keys.next();
             if (!key.startsWith("_")) {
-                result.add(key);                 // iaClasses are keys, not values, in this format
+                result.add(key); // iaClasses are keys, not values, in this format
             }
         }
         return result;
@@ -337,10 +337,12 @@ public class IAJsonProperties extends JsonProperties {
     private boolean isUserSelectableIAClass(Taxonomy taxy, String key, JSONObject underTaxy) {
         if (key.startsWith("_")) { return false; } else if (key.equals("common_name")) {
             return false;
-        } else if (key.equals("match_trivial")) { return false;
-            } else if (underTaxy.get(key) instanceof String &&
-            ((String)underTaxy.get(key)).startsWith("@")) { return false;
-            } else if (underTaxy.get(key) instanceof JSONObject) {
+        } else if (key.equals("match_trivial")) {
+            return false;
+        } else if (underTaxy.get(key) instanceof String &&
+            ((String)underTaxy.get(key)).startsWith("@")) {
+            return false;
+        } else if (underTaxy.get(key) instanceof JSONObject) {
             JSONObject obj = (JSONObject)underTaxy.get(key);
             if (!obj.isNull("_save_as")) {
                 String saveAs = (String)obj.get("_save_as");

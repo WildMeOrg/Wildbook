@@ -991,7 +991,7 @@ public class SpotterConserveIO {
         Measurement elevMeas = null;
         double elev = trkpt.optDouble("ele", Double.MAX_VALUE);
         if (elev < Double.MAX_VALUE)
-            elevMeas = new Measurement(null, "elevation", elev, "m", null);                           // FIXME Measurement() seems wrong here
+            elevMeas = new Measurement(null, "elevation", elev, "m", null); // FIXME Measurement() seems wrong here
 // System.out.println(lat + "," + lon + " [" + dt + "]:" + elev);
 // System.out.println("elevMeas -> " + elevMeas);
         PointLocation ploc = new PointLocation(lat, lon, dt, elevMeas);

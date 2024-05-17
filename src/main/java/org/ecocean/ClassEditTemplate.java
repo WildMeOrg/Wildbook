@@ -1,7 +1,7 @@
 package org.ecocean;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.Enumeration;
 import java.util.List;
