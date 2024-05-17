@@ -138,6 +138,8 @@ if(request.getUserPrincipal()!=null){
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+      <link rel="stylesheet" href="<%=urlLoc %>/css/header.css" type="text/css"/>
+
 
       <%
       if (indocetUser) {
@@ -147,9 +149,7 @@ if(request.getUserPrincipal()!=null){
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
-
-      <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
+      
      <%
      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
      %>
@@ -554,7 +554,7 @@ if(request.getUserPrincipal()!=null){
                 </div>
               </div>
 
-              <div class="nav-bar-wrapper">
+              <div class="nav-bar-wrapper" style="background-color: #00a1b2">
                 <div class="container">
                   <div class="navbar-header clearfix">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -576,7 +576,7 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                            <li><a href="<%=urlLoc %>/submit.jsp" style="color: white"><%=props.getProperty("report")%></a></li>
 
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
