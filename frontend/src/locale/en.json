@@ -88,5 +88,16 @@
     "MERGE_DENIED_MESSAGE" : "A merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> was <bold>denied</bold>. Initiated by <bold>{initiator}</bold>. Denied by user: <bold>{deniedBy}</bold> ",
     "DISMISS": "Dismiss",
     "MERGE_COMPLETE_MESSAGE" : "A merge of <bold>{indv2}</bold> into <bold>{indv1}</bold> was <bold>completed</bold>. Initiated by <bold>{initiator}</bold>. Completion date: <bold>{mergeDate}</bold>",
-    "BANNER_ALERT": "Wildbook is getting a new look! Thank you for your patience as we make these changes."
+    "BANNER_ALERT": "Wildbook is getting a new look! Thank you for your patience as we make these changes.",
+    "ERROR_PAGE_NOT_FOUND": "Page Not Found",
+    "ERROR_PAGE_NOT_FOUND_DESC": "The page you're looking for doesn't exist. It may have been moved or deleted. Go back to home page.",
+    "ERROR_BACK_HOME": "Back Home",
+    "ERROR_PAGE_SERVER_ERROR": "Internal Server Error",
+    "ERROR_PAGE_SERVER_ERROR_DESC": "Oops! Something went wrong on our end. We're working to fix it. Try refreshing the page in a few minutes.",
+    "ERROR_PAGE_UNAUTHORIZED": "Unauthorized",
+    "ERROR_PAGE_UNAUTHORIZED_DESC": "You need to log in to view this page. Please log in or contact support if you're having trouble.",
+    "ERROR_PAGE_FORBIDDEN": "Forbidden",
+    "ERROR_PAGE_FORBIDDEN_DESC": " You don't have permission to access this page. If you think this is an error, contact support.",
+    "ERROR_PAGE_BAD_REQUEST": "Bad Request",
+    "ERROR_PAGE_BAD_REQUEST_DESC": "Your browser sent a request that this server could not understand. Please check the URL or contact us for help."
 }
