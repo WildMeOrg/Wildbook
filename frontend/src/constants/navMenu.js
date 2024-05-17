@@ -325,24 +325,24 @@ const unAuthenticatedMenu = [
         ),
         href: "/photographing.jsp",
       },
-      {
-        name: (
-          <FormattedMessage
-            id="menu.learn.privacyPolicy"
-            defaultMessage="Privacy Policy"
-          />
-        ),
-        href: "/privacy-policy.jsp",
-      },
-      {
-        name: (
-          <FormattedMessage
-            id="menu.learn.termsOfUse"
-            defaultMessage="Terms of Use"
-          />
-        ),
-        href: "/terms-of-use.jsp",
-      },
+      //   {
+      //     name: (
+      //       <FormattedMessage
+      //         id="menu.learn.privacyPolicy"
+      //         defaultMessage="Privacy Policy"
+      //       />
+      //     ),
+      //     href: "/privacy-policy.jsp",
+      //   },
+      //   {
+      //     name: (
+      //       <FormattedMessage
+      //         id="menu.learn.termsOfUse"
+      //         defaultMessage="Terms of Use"
+      //       />
+      //     ),
+      //     href: "/terms-of-use.jsp",
+      //   },
     ],
   },
 
