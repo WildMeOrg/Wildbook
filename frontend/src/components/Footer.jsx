@@ -3,6 +3,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import FooterLink from "./footer/FooterLink";
 import ThemeColorContext from "../ThemeColorProvider";
+import FooterVisibilityContext from "../FooterVisibilityContext";
 import {
   footerLinks1,
   footerLinks2,
@@ -11,8 +12,9 @@ import {
 
 const Footer = () => {
   const theme = useContext(ThemeColorContext);
+  const { visible } = useContext(FooterVisibilityContext);
 
-  return (
+  return visible ? (
     <footer
       className="footer mx-auto py-3"
       style={{ zIndex: 2, backgroundColor: theme.statusColors.blue100 }}
@@ -61,7 +63,7 @@ const Footer = () => {
         </Row>
       </Container>
     </footer>
-  );
+  ) : null;
 };
 
 export default Footer;

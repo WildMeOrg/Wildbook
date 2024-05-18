@@ -151,7 +151,7 @@ public class PPSR {
    in properties file, scistarter ones are prepended with "sciStarter." and PPSR with "ppsr."
 
    name scistarter_id description url origin contact_name contact_affiliation contact_email contact_phone contact_address presenting_org rsvp address
-    * city state zip country video_url blog_url twitter_name facebook_page status preregistration goal task image image_credit how_to_join
-    * special_skills gear outdoors indoors time_commitment project_type audience regions region_label UN_regions
+ * city state zip country video_url blog_url twitter_name facebook_page status preregistration goal task image image_credit how_to_join
+ * special_skills gear outdoors indoors time_commitment project_type audience regions region_label UN_regions
 
  */

@@ -12,7 +12,7 @@ public abstract class Queue {
     }
 
     public static synchronized void init(String context)
-    throws java.io.IOException {}                                                      // override in base class
+    throws java.io.IOException {} // override in base class
 
     public abstract void publish(String msg)
     throws java.io.IOException;

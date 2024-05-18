@@ -15,6 +15,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
 import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.ia.IA;
@@ -23,8 +25,6 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.media.TwitterAssetStore;
 import org.ecocean.queue.*;
-import java.util.ArrayList;
-import java.util.List;
 
 import twitter4j.*;
 import twitter4j.Status;
@@ -176,7 +176,8 @@ public class TwitterBot {
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
         Map<String, String> vars = new HashMap<String, String>(); // %SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV,
-                                                                  // %URL_SUBMIT
+
+        // %URL_SUBMIT
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));

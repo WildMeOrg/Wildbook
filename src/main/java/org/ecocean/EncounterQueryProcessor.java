@@ -136,7 +136,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             locIDFilter += " )";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br/>");
         }
         // end username filters-----------------------------------------------
@@ -214,7 +214,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             locIDFilter += " )";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end locationID filters-----------------------------------------------
@@ -298,7 +298,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             locIDFilter += " )";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end state filters-----------------------------------------------
@@ -316,7 +316,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 individualID.toLowerCase() + "\") != -1) ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end individualID filters-----------------------------------------------
@@ -330,7 +330,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String locIDFilter = " occurrenceID == \"" + occurrenceID + "\"";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end occurrenceID filters-----------------------------------------------
@@ -346,7 +346,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 "\" ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end individualID filters-----------------------------------------------
@@ -506,7 +506,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             locIDFilter += " )";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end behavior filters-----------------------------------------------
@@ -657,7 +657,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             stageFilter += " ) ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += stageFilter;
-                } else { filter += (" && " + stageFilter); }
+            } else { filter += (" && " + stageFilter); }
             prettyPrint.append("<br />");
         }
         // end lifeStage filters
@@ -682,7 +682,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             stageFilter += " ) ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += stageFilter;
-                } else { filter += (" && " + stageFilter); }
+            } else { filter += (" && " + stageFilter); }
             prettyPrint.append("<br />");
         }
         // end country filters
@@ -855,7 +855,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             locIDFilter += " )";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end verbatimEventDate filters-----------------------------------------------
@@ -961,7 +961,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 numResights + " ";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += localFilter;
-                } else { filter += (" && " + localFilter); }
+            } else { filter += (" && " + localFilter); }
             if (jdoqlVariableDeclaration.equals("")) {
                 jdoqlVariableDeclaration = " VARIABLES org.ecocean.MarkedIndividual markedindy";
             } else { jdoqlVariableDeclaration += ";org.ecocean.MarkedIndividual markedindy"; }
@@ -1437,7 +1437,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             }
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += filterString;
-                } else { filter += (" && " + filterString); }
+            } else { filter += (" && " + filterString); }
             prettyPrint.append("Related fullName or emailAddress contains: \"" + nameString +
                 "\"<br />");
         }
@@ -1451,7 +1451,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 "') != -1)";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
                 filter += filterString;
-                } else { filter += (" && " + filterString); }
+            } else { filter += (" && " + filterString); }
             prettyPrint.append("Remarks contains: \"" + nameString + "\"<br />");
         }
         // end additional comments filter--------------------------------------------------------------------------------------
@@ -1714,7 +1714,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             if ((currentUser != null) && !currentUser.equals("") && (owner != null) &&
                 !owner.equals(currentUser)) {
                 Collaboration c = Collaboration.findCollaborationWithUser(owner, collabs);
-                if ((c != null) && c.getState().equals(Collaboration.STATE_APPROVED)) {                  // log it
+                if ((c != null) && c.getState().equals(Collaboration.STATE_APPROVED)) { // log it
                     File userDir = new File(shepherdDataDir.getAbsolutePath() + "/users/" + owner);
                     if (!userDir.exists()) { userDir.mkdir(); }
                     Writer logw = null;

@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ecocean.media.*;
-import org.ecocean.servlet.ServletUtilities;
-import org.apache.commons.fileupload.FileItem;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.fileupload.FileItem;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.media.*;
+import org.ecocean.servlet.ServletUtilities;
 
 public class SinglePhotoVideo extends DataCollectionEvent {
     private static final long serialVersionUID = 7999349137348568641L;
@@ -76,7 +76,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 
         File file = new File(dir, this.filename);
         this.fullFileSystemPath = file.getAbsolutePath();
-        formFile.write(file);          // TODO catch errors and return them, duh
+        formFile.write(file); // TODO catch errors and return them, duh
         System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
     }
 
@@ -107,7 +107,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
             // string name of a
             url = (new File(url.substring(i + rootWebappPath.length())).getParentFile()).toString();
         } else {
-            url = "/unknownUrlPath";      // TODO handle this better
+            url = "/unknownUrlPath"; // TODO handle this better
         }
         try {
             String serverUrl = request.getServerName();
@@ -250,10 +250,10 @@ public class SinglePhotoVideo extends DataCollectionEvent {
         String urlPath = this.urlPath(request);
 
         jobj.put("thumbUrl", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");
-        if (fullAccess) {      // canAccess (Encounter)?
+        if (fullAccess) { // canAccess (Encounter)?
             jobj.put("url", urlPath + "/" + this.getFilename());
         } else {
-            jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");      // no full image when blocked
+            jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg"); // no full image when blocked
             jobj.remove("fullFileSystemPath");
             jobj.remove("filename");
             jobj.remove("file");

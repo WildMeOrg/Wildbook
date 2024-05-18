@@ -146,7 +146,7 @@ public class Collaboration implements java.io.Serializable {
         String state) {
         String context = ServletUtilities.getContext(request);
 
-        if (request.getUserPrincipal() == null) return null;          // TODO is this cool?
+        if (request.getUserPrincipal() == null) return null; // TODO is this cool?
         String username = request.getUserPrincipal().getName();
         return collaborationsForUser(context, username, state);
     }
@@ -285,7 +285,7 @@ public class Collaboration implements java.io.Serializable {
     }
 
     public static boolean canCollaborate(String context, String u1, String u2) {
-        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;          // TODO not sure???
+        if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true; // TODO not sure???
         if (u1.equals(u2)) return true;
         Collaboration c = collaborationBetweenUsers(u1, u2, context);
         // System.out.println("canCollaborate(String context, String u1, String u2)");
@@ -342,7 +342,7 @@ public class Collaboration implements java.io.Serializable {
         Properties collabProps = new Properties();
         collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode,
             context);
-        String notif = "";          // collabProps.getProperty("notificationsNone");
+        String notif = ""; // collabProps.getProperty("notificationsNone");
         if (request.getUserPrincipal() == null) return notif;
         String username = request.getUserPrincipal().getName();
         List<Collaboration> collabs = collaborationsForCurrentUser(request);
@@ -388,7 +388,7 @@ public class Collaboration implements java.io.Serializable {
     // "View" means "you can see that the data exists but may not necessarily access the data"
     public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request,
         Shepherd myShepherd) {
-        if (request.isUserInRole("admin")) return true;          // TODO generalize and/or allow other roles all-access
+        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
         if (ownerName == null || request.isUserInRole("admin")) return true;
         User viewer = myShepherd.getUser(request);
         User owner = myShepherd.getUser(ownerName);
@@ -405,7 +405,7 @@ public class Collaboration implements java.io.Serializable {
                                                                                                                                     // method
         // if viewer and owner have sharing turned on
         if (((viewer != null && viewer.hasSharing() && (owner == null || owner.hasSharing()))))
-            return true;                                                             // just based on sharing
+            return true; // just based on sharing
         // if they have a collaboration
         return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
     }
@@ -414,8 +414,8 @@ public class Collaboration implements java.io.Serializable {
         String context = ServletUtilities.getContext(request);
 
         if (!securityEnabled(context)) return true;
-        if (request.isUserInRole("admin")) return true;          // TODO generalize and/or allow other roles all-access
-        if (User.isUsernameAnonymous(ownerName)) return true;          // anon-owned is "fair game" to anyone
+        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
+        if (User.isUsernameAnonymous(ownerName)) return true; // anon-owned is "fair game" to anyone
         if (request.getUserPrincipal() == null) {
             return canCollaborate(context, ownerName, "public");
         }
@@ -433,7 +433,7 @@ public class Collaboration implements java.io.Serializable {
     public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
         String owner = enc.getAssignedUsername();
 
-        if (User.isUsernameAnonymous(owner)) return true;          // anon-owned is "fair game" to anyone
+        if (User.isUsernameAnonymous(owner)) return true; // anon-owned is "fair game" to anyone
         // System.out.println("canUserAccessEncounter(Encounter enc, String context, String username)");
         return canCollaborate(context, username, owner);
     }
@@ -458,7 +458,7 @@ public class Collaboration implements java.io.Serializable {
         List<Encounter> all = occ.getEncounters();
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
-            if (canUserAccessEncounter(enc, request)) return true;    // one is good enough (either owner or in collab or no security etc)
+            if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
@@ -469,7 +469,7 @@ public class Collaboration implements java.io.Serializable {
 
         if ((all == null) || (all.size() < 1)) return true;
         for (Encounter enc : all) {
-            if (canUserAccessEncounter(enc, request)) return true;              // one is good enough (either owner or in collab or no security etc)
+            if (canUserAccessEncounter(enc, request)) return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
@@ -477,11 +477,11 @@ public class Collaboration implements java.io.Serializable {
     // Check if User (via request) has edit access to every Encounter in this Individual
     public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi,
         HttpServletRequest request) {
-        if (request.isUserInRole("admin")) return true;     // TODO generalize and/or allow other roles all-access
+        if (request.isUserInRole("admin")) return true; // TODO generalize and/or allow other roles all-access
         Vector<Encounter> all = mi.getEncounters();
         if ((all == null) || (all.size() < 1)) return false;
         for (Encounter enc : all) {
-            if (!canEditEncounter(enc, request)) return false;    // one is good enough (either owner or in collab or no security etc)
+            if (!canEditEncounter(enc, request)) return false; // one is good enough (either owner or in collab or no security etc)
         }
         return true;
     }
@@ -491,7 +491,7 @@ public class Collaboration implements java.io.Serializable {
 
         if ((all == null) || (all.size() < 1)) return true;
         for (MarkedIndividual indy : all) {
-            if (canUserAccessMarkedIndividual(indy, request)) return true;    // one is good enough (either owner or in collab or no security etc)
+            if (canUserAccessMarkedIndividual(indy, request)) return true; // one is good enough (either owner or in collab or no security etc)
         }
         return false;
     }
@@ -511,7 +511,7 @@ public class Collaboration implements java.io.Serializable {
         } else if (this.getState().equals(STATE_REJECTED)) {
             return null;
         } else {
-            this.editInitiator = this.username1;             // probably old collaboration request where position 1 is always initiator
+            this.editInitiator = this.username1; // probably old collaboration request where position 1 is always initiator
             return editInitiator;
         }
     }

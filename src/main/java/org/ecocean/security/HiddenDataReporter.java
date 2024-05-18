@@ -29,9 +29,9 @@ import org.apache.poi.ss.usermodel.Sheet;
  * > print an excel report if you like with writeHiddenDataReport
  */
 abstract class HiddenDataReporter<T> {
-    protected Map<String, String> hiddenIdsToOwners;     // id: owner map listing all hidden data
-    protected final HttpServletRequest request;     // the whole thing only makes sense in the context of a request (which has attached user object)
-    public final String className;     // frustrating that I can't figure out how to get this generically from <T>
+    protected Map<String, String> hiddenIdsToOwners; // id: owner map listing all hidden data
+    protected final HttpServletRequest request; // the whole thing only makes sense in the context of a request (which has attached user object)
+    public final String className; // frustrating that I can't figure out how to get this generically from <T>
 
     // so we don't have to make a new Shepherd for each canUserView call
     // protected Shepherd myShepherd;

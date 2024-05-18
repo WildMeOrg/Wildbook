@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import org.ecocean.media.MediaAsset;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.ecocean.media.MediaAsset;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -167,7 +167,7 @@ public class Cluster {
                             case "photonumber":
                                 Integer pnum = getValueInteger(ael);
                                 if (pnum != null) {
-                                    photoOffset = new Integer(pnum - 1);      // xml is 1-indexed
+                                    photoOffset = new Integer(pnum - 1); // xml is 1-indexed
                                     if (photoOffset >= assets.size())
                                         throw new RuntimeException("photonumber " + pnum +
                                                 " > assets.size() " + assets.size());

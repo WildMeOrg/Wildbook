@@ -476,7 +476,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             refreshDependentProperties();
         }
         setTaxonomyFromEncounters(); // will only set if has no value
-        setSexFromEncounters();     // likewise
+        setSexFromEncounters(); // likewise
         return isNew;
     }
 
@@ -1837,7 +1837,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         }
         if (leftRightTogether) { return "3"; } else if (left && right) {
             return "4";
-            } else if (left) { return "1"; } else if (right) { return "2"; } else {
+        } else if (left) { return "1"; } else if (right) { return "2"; } else {
             return "0";
         }
     }

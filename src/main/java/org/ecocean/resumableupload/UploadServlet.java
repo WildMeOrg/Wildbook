@@ -97,7 +97,7 @@ public class UploadServlet extends HttpServlet {
                     recaptchaValue = item.getString("UTF-8");
             } else {
                 fileChunk = item;
-                break;      // we only do first one.  ?
+                break; // we only do first one.  ?
             }
         }
         if (!ReCAPTCHA.sessionIsHuman(request)) throw new IOException("failed sessionIsHuman()");
@@ -112,7 +112,7 @@ public class UploadServlet extends HttpServlet {
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Expires", "-1");
 
-        response.setHeader("Access-Control-Allow-Origin", "*");          // allow us stuff from localhost
+        response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
         // response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Methods", "POST");
@@ -149,7 +149,7 @@ public class UploadServlet extends HttpServlet {
         // Mark as uploaded.
         info.uploadedChunks.add(new FlowInfo.flowChunkNumber(flowChunkNumber));
         String archivoFinal = info.checkIfUploadFinished();
-        if (archivoFinal != null) {         // Check if all chunks uploaded, and
+        if (archivoFinal != null) { // Check if all chunks uploaded, and
             // change filename
             FlowInfoStorage.getInstance().remove(info);
             response.getWriter().print("{\"success\": true, \"uploadComplete\": true}");
@@ -191,7 +191,7 @@ public class UploadServlet extends HttpServlet {
         response.setHeader("Expires", "-1");
 
         // response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
-        response.setHeader("Access-Control-Allow-Origin", "*");          // allow us stuff from localhost
+        response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
         response.setHeader("Access-Control-Allow-Methods", "GET");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -204,7 +204,7 @@ public class UploadServlet extends HttpServlet {
         Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
         if (info.uploadedChunks.contains(fcn)) {
             System.out.println("Do Get arriba");
-            response.getWriter().print("Uploaded.");             // This Chunk has been
+            response.getWriter().print("Uploaded."); // This Chunk has been
             // Uploaded.
         } else {
             System.out.println("Do Get something is wrong");

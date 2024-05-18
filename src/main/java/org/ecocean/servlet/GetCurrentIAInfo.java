@@ -152,7 +152,7 @@ public class GetCurrentIAInfo extends HttpServlet {
                 Comparator<Task> byRanking = (Task tsk1,
                     Task tsk2) -> Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong());
                 Collections.sort(tasks, byRanking);
-                Collections.reverse(tasks);   // now desc, ez
+                Collections.reverse(tasks); // now desc, ez
                 if (tasks.size() > 0) annIA.put("lastTaskId", tasks.get(0).getId());
             }
         } catch (NullPointerException npe) {
