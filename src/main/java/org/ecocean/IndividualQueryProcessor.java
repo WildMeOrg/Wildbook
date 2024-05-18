@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.jdo.Query;
+import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.social.SocialUnit;
@@ -41,41 +41,41 @@ public class IndividualQueryProcessor extends QueryProcessor {
         int DOBday1 = 1, DOBday2 = 31, DOBmonth1 = 1, DOBmonth2 = 12, DOByear1 = 0, DOByear2 = 3000;
         try {
             DOBmonth1 = (new Integer(request.getParameter("DOBmonth1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DOBmonth2 = (new Integer(request.getParameter("DOBmonth2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DOByear1 = (new Integer(request.getParameter("DOByear1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DOByear2 = (new Integer(request.getParameter("DOByear2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DOBday1 = (new Integer(request.getParameter("DOBday1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DOBday2 = (new Integer(request.getParameter("DOBday2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         int DODday1 = 1, DODday2 = 31, DODmonth1 = 1, DODmonth2 = 12, DODyear1 = 0, DODyear2 = 3000;
         try {
             DODmonth1 = (new Integer(request.getParameter("DODmonth1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DODmonth2 = (new Integer(request.getParameter("DODmonth2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DODyear1 = (new Integer(request.getParameter("DODyear1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DODyear2 = (new Integer(request.getParameter("DODyear2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DODday1 = (new Integer(request.getParameter("DODday1"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         try {
             DODday2 = (new Integer(request.getParameter("DODday2"))).intValue();
-            } catch (Exception nfe) {}
+        } catch (Exception nfe) {}
         String filter = SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE;
         String jdoqlVariableDeclaration = VARIABLES_STATEMENT;
         // filter for location------------------------------------------
@@ -191,7 +191,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
                 "\" || names.valuesAsString.toLowerCase().indexOf(\"" + individualID + "\") != -1)";
             if (filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
                 filter += locIDFilter;
-                } else { filter += (" && " + locIDFilter); }
+            } else { filter += (" && " + locIDFilter); }
             prettyPrint.append("<br />");
         }
         // end individualID filters-----------------------------------------------
@@ -1110,8 +1110,8 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
            //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"')
-            * != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') !=
-            * -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
+         * != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') !=
+         * -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
            String filterString=""+
              //" ( " +
                   "("

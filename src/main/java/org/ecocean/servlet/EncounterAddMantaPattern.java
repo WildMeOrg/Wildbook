@@ -390,7 +390,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     ImageReader useReader = null;
                     while (readers.hasNext()) {
                         useReader = (ImageReader)readers.next();
-                        crImageFormat = useReader.getFormatName();                  // JPEG, png
+                        crImageFormat = useReader.getFormatName(); // JPEG, png
                     }
                     String encID = request.getParameter("encounterID");
                     myShepherd.beginDBTransaction();
@@ -400,10 +400,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
                     } else {
                         // note: matchFilename (and extension) should be the same as mmFiles, i think -jon
                         int dot = matchFilename.lastIndexOf('.');
-                        String extension = matchFilename.substring(dot + 1, matchFilename.length());                                // TODO get actual
-                                                                                                                                    // format from
-                                                                                                                                    // file magic
-                                                                                                                                    // instead?
+                        String extension = matchFilename.substring(dot + 1, matchFilename.length()); // TODO get actual
+                                                                                                     // format from
+                                                                                                     // file magic
+                                                                                                     // instead?
                         String targetFormat = null;
                         if (extension.equalsIgnoreCase("jpg") ||
                             extension.equalsIgnoreCase("jpeg")) {
@@ -411,7 +411,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                         } else if (extension.equalsIgnoreCase("png")) {
                             targetFormat = "PNG";
                         } else {
-                            targetFormat = extension.toUpperCase();                                      // hope for the best?
+                            targetFormat = extension.toUpperCase(); // hope for the best?
                         }
                         write2me = mmFiles.get("CR");
                         System.out.println("write2me -> " + write2me.toString());
@@ -427,9 +427,9 @@ public class EncounterAddMantaPattern extends HttpServlet {
                                     BufferedImage bufferedImage = new BufferedImage(image.getWidth(
                                         null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
                                     Graphics2D g2 = bufferedImage.createGraphics();
-                                    g2.drawImage(image, null, null);                                              // might need bgcolor if ever
-                                                                                                                  // transparency a problem?
-                                                                                                                  //   http://stackoverflow.com/a/1545417
+                                    g2.drawImage(image, null, null); // might need bgcolor if ever
+                                                                     // transparency a problem?
+                                                                     // http://stackoverflow.com/a/1545417
                                     ImageIO.write(bufferedImage, targetFormat, write2me);
                                 } catch (Exception e) {
                                     errorMessage = "problem converting/saving image: " +
@@ -438,7 +438,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                             } else {
                                 errorMessage = "did not have a valid image reader or image stream";
                             }
-                        } else {                                  // formats the same, easy
+                        } else { // formats the same, easy
                             System.out.println(
                                 "looks like cr format and target format are the same! -> " +
                                 targetFormat);
@@ -446,7 +446,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
                         }
                     }
                 }
-                if (errorMessage != null) {                                  // had a problem
+                if (errorMessage != null) { // had a problem
                     resultComment.append("error: " + errorMessage);
                 } else {
                     // myShepherd.commitDBTransaction();

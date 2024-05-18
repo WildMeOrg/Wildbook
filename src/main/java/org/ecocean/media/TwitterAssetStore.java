@@ -12,7 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import twitter4j.Status;
 
-
 /**
  * NOTE TwitterAssetStore references MediaAssets that reside on Twitter; tweets and their media currently this is read-only but later could be writable
  * with an API key if needed?

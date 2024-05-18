@@ -1197,7 +1197,7 @@ public class Occurrence extends Base implements java.io.Serializable {
     public Integer getGroupSizeCalculated() {
         if (individualCount != null) return individualCount;
         if ((numCalves == null) && (numJuveniles == null) && (numAdults == null))
-            return getNumberEncounters();                                                                        // meh?
+            return getNumberEncounters(); // meh?
         int s = 0;
         if (numCalves != null) s += numCalves;
         if (numJuveniles != null) s += numJuveniles;

@@ -36,13 +36,13 @@ public class WorkAppletHeadlessEpic {
      * Obtain a connection to the server to send/receive serialized content
 
        private URLConnection getConnection(String action, String newEncounterNumber, int groupSize, String nodeID, int numProcessors) throws
-        * IOException {
+     * IOException {
        String encNumParam = "";
        if (!newEncounterNumber.equals("")) {
         encNumParam = "&newEncounterNumber=" + newEncounterNumber;
        }
        URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action +
-        * encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+     * encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
        System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
        URLConnection con = u.openConnection();
        con.setDoInput(true);
@@ -437,5 +437,5 @@ public class WorkAppletHeadlessEpic {
             System.exit(0);
         }
         // System.exit(0);
-    }      // end getGoing method
+    } // end getGoing method
 }

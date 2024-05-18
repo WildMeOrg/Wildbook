@@ -3,7 +3,6 @@
  */
 package org.ecocean;
 
-import javax.jdo.Query;
 import io.prometheus.client.CollectorRegistry;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.StringTokenizer;
+import javax.jdo.Query;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;

@@ -139,7 +139,7 @@ public class TwitterUtil {
         if (Props.get(context) == null)
             Props.put(context, ShepherdProperties.getProperties("twitter.properties", "", context));
         if (Props.get(context) == null)
-            throw new RuntimeException("could not load twitter.properties for " + context);                              // ouch
+            throw new RuntimeException("could not load twitter.properties for " + context); // ouch
         return Props.get(context).getProperty(key);
     }
 
@@ -155,8 +155,8 @@ public class TwitterUtil {
         String consumerKey = getProperty(context, "consumerKey");
 
         if ((consumerKey == null) || consumerKey.equals(""))
-            throw new RuntimeException("twitter.properties missing consumerKey");                                               // hopefully enough of
-                                                                                                                                // a hint
+            throw new RuntimeException("twitter.properties missing consumerKey"); // hopefully enough of
+                                                                                  // a hint
         // String consumerSecret = props.getProperty("consumerSecret");
         // String accessToken = props.getProperty("accessToken");
         // String accessTokenSecret = props.getProperty("accessTokenSecret");

@@ -52,8 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.ecocean.Annotation;
-import org.ecocean.User;
 import org.ecocean.mmutil.FileUtilities;
+import org.ecocean.User;
 
 /**
  * Uploads a new image to the file system and associates the image with an Encounter record

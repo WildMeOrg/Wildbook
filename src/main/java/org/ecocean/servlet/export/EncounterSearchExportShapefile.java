@@ -14,9 +14,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import java.io.Serializable;
 
 import org.geotools.data.*;
 import org.geotools.data.collection.ListFeatureCollection;
@@ -27,7 +27,6 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.simple.*;
-
 
 // adds spots to a new encounter
 public class EncounterSearchExportShapefile extends HttpServlet {

@@ -505,7 +505,7 @@ public class IBEISIA {
     public static String getViewpointTag(String context, Taxonomy tax) {
         if (tax == null && IA.getProperty(context, "viewpointModelTag") == null) return null; // got nothin
         if ((tax == null) || (tax.getScientificName() == null))
-            return IA.getProperty(context, "viewpointModelTag").trim();                                                      // best we can hope for
+            return IA.getProperty(context, "viewpointModelTag").trim(); // best we can hope for
         String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " +
             tax);
@@ -596,7 +596,7 @@ public class IBEISIA {
 
     public static String getModelTag(String context, Taxonomy tax) {
         if ((tax == null) || (tax.getScientificName() == null))
-            return IA.getProperty(context, "modelTag");                                                      // best we can hope for
+            return IA.getProperty(context, "modelTag"); // best we can hope for
         String propKey = "modelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getModelTag() using propKey=" + propKey + " based on " + tax);
         String mt = IA.getProperty(context, propKey);
@@ -1685,7 +1685,7 @@ public class IBEISIA {
             for (int i = 0 ; i < idLen ; i++) {
                 if (waitingOnTask(taskIds.get(i), context)) {
    System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(i) + " so will sleep a while (countdown=" + countdown + "; passed "
-      + i + " of " + idLen +")");
+ + i + " of " + idLen +")");
                     stillWaiting = true;
                     break; //this is cause enough to sleep for a bit -- we dont need to check any more!
                 }
@@ -2000,7 +2000,7 @@ public class IBEISIA {
             rtn.put("processResult", dres);
             /*
                 for detection, we have to check if we have generated any Annotations, which we then pass on to IA.intake() for identification ... BUT
-                   *only after we commit* (below) !! since ident stuff is queue-based
+             * only after we commit* (below) !! since ident stuff is queue-based
              */
             newAnns = dres.optJSONObject("annotations");
         } else if ("identify".equals(type)) {
@@ -4246,13 +4246,13 @@ public class IBEISIA {
                             if (numTokens >= 2) {
                                 try {
                                     month = reportedDateTime.getMonthOfYear();
-                                    } catch (Exception e) { month = -1; }
+                                } catch (Exception e) { month = -1; }
                             } else { month = -1; }
                             // see if we can get a day, because we do want to support only yyy-MM too
                             if (numTokens >= 3) {
                                 try {
                                     day = reportedDateTime.getDayOfMonth();
-                                    } catch (Exception e) {
+                                } catch (Exception e) {
                                     day = 0;
                                 }
                             } else { day = -1; }

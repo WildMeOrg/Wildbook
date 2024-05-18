@@ -1,8 +1,24 @@
 package org.ecocean.media;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import javax.activation.MimeType;
+import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.AccessControl;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
@@ -18,27 +34,10 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.Taxonomy;
 import org.ecocean.Util;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.FileOutputStream;
-import javax.activation.MimeType;
-
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used for processing and analysis.
@@ -1001,7 +1000,7 @@ public class MediaAsset implements java.io.Serializable {
                     new org.datanucleus.api.rest.orgjson.JSONObject();
                 Feature ft = fts.get(i);
                 jf.put("id", ft.getId());
-                try {      // for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
+                try { // for some reason(?) this will get a jdo error for "row not found".  why???  anyhow, we catch it
                     jf.put("type", ft.getType());
                 } catch (Exception ex) {
                     jf.put("type", "unknown");
@@ -1045,7 +1044,7 @@ public class MediaAsset implements java.io.Serializable {
                 Util.toggleJSONObject(getMetadata().getData().getJSONObject("attributes")));
         }
         DateTime dt = getDateTime();
-        if (dt != null) jobj.put("dateTime", dt.toString());      // DateTime.toString() gives iso8601, noice!
+        if (dt != null) jobj.put("dateTime", dt.toString()); // DateTime.toString() gives iso8601, noice!
 
         // note? warning? i guess this will traverse... gulp?
         URL u = safeURL(myShepherd, request);
@@ -1066,7 +1065,7 @@ public class MediaAsset implements java.io.Serializable {
             jobj.put("userLatitude", this.getLatitude());
             jobj.put("userLongitude", this.getLongitude());
             jobj.put("userDateTime", this.getUserDateTime());
-            jobj.put("filename", this.getFilename());    // this can "vary" depending on store type
+            jobj.put("filename", this.getFilename()); // this can "vary" depending on store type
             jobj.put("userFilename", this.getUserFilename());
         }
         jobj.put("occurrenceID", this.getOccurrenceID());
@@ -1508,7 +1507,7 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public MediaAssetMetadata updateMetadata()
-    throws IOException {                                             // TODO should this overwrite existing, or append?
+    throws IOException { // TODO should this overwrite existing, or append?
         if (store == null) return null;
         metadata = store.extractMetadata(this);
         return metadata;

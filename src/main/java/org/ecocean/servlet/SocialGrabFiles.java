@@ -11,8 +11,8 @@ import javax.servlet.ServletException;
 import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
-import org.ecocean.security.SocialAuth;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.security.SocialAuth;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -24,7 +24,6 @@ import org.pac4j.oauth.credentials.OAuthCredentials;
 import com.google.gson.Gson;
 import java.io.File;
 import java.net.URL;
-
 
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /secure/index.jsp

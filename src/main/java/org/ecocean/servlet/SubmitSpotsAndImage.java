@@ -1,5 +1,10 @@
 package org.ecocean.servlet;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
@@ -11,11 +16,6 @@ import org.ecocean.Keyword;
 import org.ecocean.media.*;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,11 +1,11 @@
 package org.ecocean.servlet;
 
-import org.ecocean.*;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import org.ecocean.*;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;

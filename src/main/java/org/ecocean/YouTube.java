@@ -74,7 +74,7 @@ public class YouTube {
         apiKey = googleProps.getProperty("youtube_api_key");
 
         youtubeAPIKey = new com.google.api.services.youtube.YouTube.Builder(new NetHttpTransport(),
-            new JacksonFactory(), new HttpRequestInitializer(){
+            new JacksonFactory(), new HttpRequestInitializer() {
             public void initialize(com.google.api.client.http.HttpRequest request)
             throws IOException {}
         }).setApplicationName("wildbook-youtube").build();
