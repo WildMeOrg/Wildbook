@@ -97,6 +97,7 @@ class JSONQuerier {
      */
     async preFetchData(iId, genus, epithet, callbacks, diagramIds, parsers=[]) {
 	await this.queryIndividualIDNodeData(iId);
+	await this.queryIndividualIDRelatedNodeData(iId);
 	await this.queryIndividualIDRelationshipData(iId);
 	await this.queryIndividualIDOccurrences(iId);
 	
@@ -138,6 +139,16 @@ class JSONQuerier {
 	else query = "./MarkedIndividual.json";
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
+
+	queryIndividualIDRelatedNodeData(individualID) {
+		let query;
+		if (!this.localFiles) {
+			query = wildbookGlobals.baseUrl  + "/encounters/relatedIndividuals.jsp?";
+			if (individualID) query += "individualID=" + individualID;
+		}
+		else query = "./MarkedIndividual.json";
+		return this.queryData("relatedNodeData", query, this.storeQueryAsDict);
+	}
 
 
     /**
@@ -316,7 +327,7 @@ class JSONParser {
      */
     processNodeData(iId, isCoOccurrence) {
 	//Generate a two way mapping of all node relationships
-	let nodes = this.getNodeSelection();
+	let nodes = this.getNodeSelection(isCoOccurrence);
 	let relationships = this.mapRelationships(nodes);
 	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships, isCoOccurrence);
 
@@ -613,17 +624,31 @@ class JSONParser {
      * Return node data as filtered by selected nodes
      * @return {nodeData} [array] - Any node data matching {selectedNodes} ids
      */
-    getNodeSelection() {
-	if (this.selectedNodes) {
-	    let nodes = {};
-	    Object.entries(JSONParser.nodeData).forEach(([key, data]) => {
-		if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
-		    nodes[key] = data;
+    getNodeSelection(isCoOccurrence) {
+		if (isCoOccurrence) {
+			if (this.selectedNodes) {
+				let nodes = {};
+				Object.entries(JSONParser.nodeData).forEach(([key, data]) => {
+				if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
+					nodes[key] = data;
+				}
+				});
+				return nodes;
+			}
+			return JSONParser.nodeData;
+		}else {
+			if (this.selectedNodes) {
+				let nodes = {};
+				Object.entries(JSONParser.relatedNodeData).forEach(([key, data]) => {
+				if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
+					nodes[key] = data;
+				}
+				});
+				return nodes;
+			}
+			return JSONParser.relatedNodeData;
 		}
-	    });
-	    return nodes;
-	}
-	return JSONParser.nodeData;
+
     }
 
     /**

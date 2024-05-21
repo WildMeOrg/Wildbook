@@ -426,7 +426,7 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 				    	return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 					}
 					if(d.length > 2) {
-						return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+						return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + (d[1] ?? "")+ "</span><br><span>" + dict['alternateID'] + ": " + (d[2] ?? "") + "</span><br><span>" + dict['sex'] + ": " + (d[3] ?? "") + "</span><br><span>" + dict['haplotype'] +": " + (d[4] ?? "") + "</span>";
 			    	}
 					return d[0].italics() + "-" + d[1];
 			    	//}
@@ -687,48 +687,53 @@ var getRelationshipTableData = function(individualID) {
 	    	relationship = {"roles": [markedIndividualRole, relationshipWithRole], "relationshipWith": [whaleID], "type": type, "socialUnit": relatedSocialUnitName, "edit": ["edit", relationshipID], "remove": ["remove", relationshipID]};
 	    	relationshipArray.push(relationship);
 		}
-		getIndividualData(relationshipArray);
-		console.log("gonna makeRelTable");
-		makeRelTable(relationshipArray, "#relationshipHead", "#relationshipBody", "text");
+		getIndividualData(relationshipArray, function (relationshipTableData) {
+			console.log("All data has been processed:", JSON.stringify(relationshipTableData));
+			makeRelTable(relationshipTableData, "#relationshipHead", "#relationshipBody", "text");
+		});
+
     });
 }
 
-var getIndividualData = function(relationshipArray) {
-	console.log("getIndividualData");
-    var relationshipTableData = [];
-    for(var i=0; i < relationshipArray.length; i++) {
-	d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function(error, json) {
-	    if(error) {
-		console.log("error")
-	    }
-	    //console.log("json: "+JSON.stringify(json));
-	    let jsonData = json;
-	    var individualInfo = relationshipArray.filter(function(obj) {
-		return obj.relationshipWith[0] === jsonData.individualID;
-	    })[0];
-	    console.log(individualInfo.relationshipWith);
-	    individualInfo.relationshipWith[1] = jsonData.nickName;
-	    individualInfo.relationshipWith[2] = jsonData.alternateid;
-	    individualInfo.relationshipWith[3] = jsonData.sex;
-	    individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
-	    individualInfo.relationshipWith[5] = jsonData.displayName;
-	    relationshipTableData.push(individualInfo);
+var getIndividualData = function (relationshipArray, onComplete) {
+	var relationshipTableData = [];
+	var completedRequests = 0;
 
-	    if(relationshipTableData.length == relationshipArray.length) {
-		for(var j = 0; j < relationshipArray.length; j++) {
-		    if(relationshipArray[j].relationshipWith.length == 1) {
-			relationshipArray[j].relationshipWith[1] = jsonData.nickName;
-			relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
-			relationshipArray[j].relationshipWith[3] = jsonData.sex;
-			relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
-			relationshipArray[j].relationshipWith[5] = jsonData.displayName;
-		    }
-		}
-		
-	    }
-	});
-    }
+	for (var i = 0; i < relationshipArray.length; i++) {
+		d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function (error, json) {
+			if (error) {
+				console.log("Error loading data");
+				return;
+			}
 
+			let jsonData = json;
+			var individualInfo = relationshipArray.filter(function (obj) {
+				return obj.relationshipWith[0] === jsonData.individualID;
+			})[0];
+
+			individualInfo.relationshipWith[1] = jsonData.nickName;
+			individualInfo.relationshipWith[2] = jsonData.alternateid;
+			individualInfo.relationshipWith[3] = jsonData.sex;
+			individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
+			individualInfo.relationshipWith[5] = jsonData.displayName;
+
+			relationshipTableData.push(individualInfo);
+			completedRequests++;
+
+			if (completedRequests === relationshipArray.length) {
+				for (var j = 0; j < relationshipArray.length; j++) {
+					if (relationshipArray[j].relationshipWith.length == 1) {
+						relationshipArray[j].relationshipWith[1] = jsonData.nickName;
+						relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
+						relationshipArray[j].relationshipWith[3] = jsonData.sex;
+						relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
+						relationshipArray[j].relationshipWith[5] = jsonData.displayName;
+					}
+				}
+				onComplete(relationshipTableData);
+			}
+		});
+	}
 }
 
 function whatIsIt(object) {

@@ -96,10 +96,12 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
+  System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 	query.closeAll();
   	int numEncs=encs.size();
+  System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
 
   %>
@@ -147,6 +149,8 @@ function forceLink(el) {
 
 		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      //System.out.println("    EMG: got tasks "+tasks);
+
 		      MediaAsset ma = ann.getMediaAsset();
 				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
@@ -154,7 +158,8 @@ function forceLink(el) {
 
 
 
-		      String filename = ma.getFilename();
+		      String filename = ma.getUserFilename();
+		      //System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
@@ -187,8 +192,9 @@ function forceLink(el) {
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("annotationID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=Annotation&id="+ann.getId()+"\">"+ann.getId()+"</a></span></p>";
                 capos[0] += "</div>";
 
+              captionLinks.add(capos);
+		      //System.out.println("    EMG: got capos "+capos[0]);
 
-		      captionLinks.add(capos);
 		      //end caption render JSP side
 
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
@@ -239,7 +245,9 @@ function forceLink(el) {
                                                 j.put("annotation", ja);
                                                 j.put("rotation", ma.getRotationInfo());
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
+
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
+
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
 							//   also: prob should check *what* is detected. :) somewhere....
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
@@ -264,7 +272,13 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						}
 						// Should fix oman images not appearing on import
 						j.put("url", ma.webURL().toString());
+
+            if (Util.stringExists(ma.getDetectionStatus())) {
               j.put("detectionStatus",ma.getDetectionStatus());
+            } else {
+              System.out.println("DETECTION STATUS"+ma.getDetectionStatus()+" missing for ma "+ma);
+            }
+
 						all.put(j);
 					}
 		  		}
@@ -332,7 +346,6 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 figcaption div {
     position: relative;
-    display: none !important;
 }
 
 .pswp .dup-info {   /* hides duplicate block when zoom mode */
@@ -455,7 +468,7 @@ figcaption div {
     box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
 }
 .image-enhancer-wrapper:hover .image-enhancer-feature-focused {
-    /* background-color: rgba(255,255,10,0.3); */
+    background-color: rgba(255,255,10,0.3);
     box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
 
@@ -463,7 +476,7 @@ figcaption div {
 .image-enhancer-feature:hover {
     z-index: 30;
     outline: solid black 2px;
-    background-color: rgba(120,255,0,0.1) !important;
+    background-color: rgba(120,255,0,0.3) !important;
 }
 .image-enhancer-feature-toggled {
     z-index: 30;
@@ -590,7 +603,10 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
+
+  //console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
+  // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     //console.log("caption here: "+elem);
@@ -673,7 +689,6 @@ if(request.getParameter("encounterNumber")!=null){
     $('#enc-gallery').append(removeAssetLink);
 */
   });
-/*  xxxxx
   // we need to add a phantom image for alignment if there are an odd number of them
   console.log("we got some assets! length="+assets.length);
   if ((assets.length % 2) != 0) {
@@ -681,7 +696,6 @@ if(request.getParameter("encounterNumber")!=null){
     console.log("odd number! encGallery is adding a phantom div with height "+lastImageHeight);
     $("#enc-gallery").append("<div class='col-sm-6' style='visibility:hidden; height:"+lastImageHeight+"'>Look at this amazing div with all its wonderful contents</div>");
   }
-*/
 
 
 
@@ -726,11 +740,6 @@ function removeFeatAnnEnc(fid, aid, eid) {
     return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true });
 }
 
-//this will *not* delete encounter (but will remove annot/feat)
-function removeFeatAnn(fid, aid, eid) {
-    return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, removeAnnotationFeature: true });
-}
-
 function swapEncounters(aid1, aid2) {
     return annotEditAjax({ id: aid1, swapEncounterId: aid2 });
 }
@@ -743,6 +752,7 @@ function assignIndiv(annotId) {
     var indivId = $('#edit-assign-individ').val();
     return annotEditAjax({ id: annotId, assignIndividualId: indivId });
 }
+
 
 var editMode = false;
 function editClick(ev) {
@@ -767,9 +777,6 @@ console.log(ma);
     }
     h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + niceId(myFeat.annotationId) + '</b> (on <b>Enc ' + niceId(myFeat.encounterId) + '</b>)</div>';
     for (var i = 0 ; i < ma.features.length ; i++) {
-        if (!ma.features[i].type && ma.features[i].encounterId && ma.features[i].annotationId) {
-            h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove unity Feat ' + niceId(ma.features[i].id) + ' / trivial Ann ' + niceId(ma.features[i].annotationId) + ' from Enc ' + niceId(ma.features[i].encounterId) + '" onClick="return removeFeatAnn(\'' + ma.features[i].id + '\', \'' + ma.features[i].annotationId + '\', \'' + ma.features[i].encounterId + '\');" /></div>';
-        }
         if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
@@ -830,14 +837,6 @@ jQuery(document).ready(function() {
             return;
         }
         $('.image-enhancer-keyword-wrapper').hide();
-        var man = $('<div class="edit-mode-ui" style="position: absolute; left: 30px; top: -50px; font-size: 1.2em; background-color: #CCC; z-index: 2000; padding: 0 8px; cursor: pointer;">manual annot</div>');
-        man.on('click', function(ev) {
-            console.log(ev.target);
-            var mid = imageEnhancer.mediaAssetIdFromElement($(ev.target.parentNode));
-            wildbook.openInTab('../appadmin/manualAnnotation.jsp?viewpoint=CHANGEME&iaClass=CHANGEME&assetId=' + mid + '&encounterId=' + encounterNumber);
-            ev.stopPropagation();
-        });
-        $('.image-enhancer-wrapper').append(man);
         $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
 
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
@@ -850,7 +849,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
 	    var ma = assetById(mid);
-            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.userFilename) + '">' + ma.userFilename + '</a></div>';
             $(el).closest('figure').after(h);
             //$(el).closest('.my-gallery').after(h);
         });
@@ -882,12 +881,6 @@ function doImageEnhancer(sel) {
 
 
 	];
-        if (wildbook.user.getUsername() == 'admin') {
-            opt.menu.push(['image info', function(enh) {
-                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                wildbook.openInTab('../obrowse.jsp?type=MediaAsset&id=' + mid);
-            }]);
-        }
 
 			//remove annotation option for non-trivial annots
         	opt.menu.push(
@@ -922,7 +915,6 @@ function doImageEnhancer(sel) {
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
 	opt.menu.push(
-/*
             [
 		'spot mapping',
 		function(enh) {
@@ -934,7 +926,6 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
             ],
-*/
             [
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }
@@ -971,68 +962,9 @@ console.info(' ===========>   %o %o', el, enh);
 
 	opt.callback = function() {
 		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
-                applyArrows();
                 if (!wildbook.user.isAnonymous()) showDuplicates();
 	};
     imageEnhancer.applyTo(sel, opt);
-
-}
-
-function applyArrows() {
-    $('.image-enhancer-wrapper').each(function(wi, wel) {
-        var activeEl = false;
-        var otherBoxes = [];
-        $(wel).find('.image-enhancer-feature').each(function(fi, fel) {
-            var jel = $(fel);
-console.log('xxx fi=%d fel=%o', fi, fel);
-console.log('xxx pos: %o %dx%d', jel.position(), jel.width(), jel.height());
-            if (jel.hasClass('image-enhancer-feature-focused')) {
-                activeEl = jel;
-            } else {
-                otherBoxes.push([jel.position().left, jel.position().top, jel.width(), jel.height()]);
-            }
-        });
-        if (!activeEl) return;
-
-        //no arrow when only one annot.  is this cool?  i can see we might want it anyway (for when detection missed an animal)
-        if (!otherBoxes || (otherBoxes.length < 1)) return;
-
-        var arrow = $('<div class="pointer-arrow" />');
-        activeEl.append(arrow);
-        //try these, in order of preference...
-        var tryOffset = [
-            (activeEl.width() - arrow.width()) / 2,
-            (activeEl.width() - arrow.width()) * 0.25,
-            (activeEl.width() - arrow.width()) * 0.75,
-            15,
-            (activeEl.width() - arrow.width()) - 15
-        ];
-        var lowest = 999;
-        var offset = 0;
-console.log('arrow width=%d xxxx', arrow.width());
-        for (var i = 0 ; i < tryOffset.length ; i++) {
-            var num = numTouching(tryOffset[i], activeEl, arrow, otherBoxes);
-console.log('xxxx (%d) offset=%d ==> num=%d', i, tryOffset[i], num);
-            if (num < lowest) {
-                lowest = num;
-                offset = tryOffset[i];
-            }
-        }
-        arrow.css('left', offset);
-    });
-}
-
-function numTouching(offset, el, arrow, boxes) {
-    if (!boxes || (boxes.length < 1)) return 0;
-    //var ctrX = offset + el.position().left + el.width() / 2;
-    var ctrX = offset + el.position().left + arrow.width() / 2;
-console.log('xxx ctrX=%d', ctrX);
-    var num = 0;
-    for (var i = 0 ; i < boxes.length ; i++) {
-console.log('xxx %d: %d,%d %dx%d', i, boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]);
-        if ((ctrX > boxes[i][0]) && (ctrX < boxes[i][0] + boxes[i][2])) num++;
-    }
-    return num;
 }
 
 function showDuplicates() {
@@ -1045,7 +977,7 @@ function showDuplicates() {
             for (encId in assetDup[assets[i].acmId]) {
                 h += '<div><a onClick="event.stopPropagation()" target="_new" href="encounter.jsp?number=' + encId + '" title="MediaAsset ';
                 h += assetDup[assets[i].acmId][encId].asset + '">Enc ';
-                h += niceId(encId) + '</a>';
+                h += encId.substring(0,8) + '</a>';
                 if (assetDup[assets[i].acmId][encId].indiv) h += ': <b>' + assetDup[assets[i].acmId][encId].indiv + '</b>';
                 h += '</div>';
             }
@@ -1061,7 +993,7 @@ function enhancerCaption(el, opt) {
 	var ma = assetById(mid);
 //console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
-	var title = ma.sourceAsset.filename || '';
+	var title = ma.sourceAsset.userFilename || '';
 	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
 		title = ma.sourceAsset.metadata.basic.title || 'Untitled';
 		title += ' [from ' + (ma.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';
@@ -1148,7 +1080,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip = '<i>Unnamed individual</i>';
     }
     if (feat.encounterId) {
-        tooltip += '<br />Enc ' + niceId(feat.encounterId);
+        tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
@@ -1189,7 +1121,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 */
     if (feat.parameters.theta) fel.css('transform', 'rotate(' + feat.parameters.theta + 'rad)');
     if (inGalleryMode() || (feat.encounterId != encounterNumber)) {
-        fel.append('<a title="go to this encounter" onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&nbsp;</a>');
+        fel.append('<a onClick="event.stopPropagation(); return true;" href="encounter.jsp?number=' + feat.encounterId + '" class="annot-link el el-circle-arrow-right">&#x2b8a;</a>');
     }
     el.append(fel);
 }

@@ -283,6 +283,8 @@ java.util.Properties" %>
 		}
                 h += "<ul style=\"width: 65%\">";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
+		h += "<li>userFilename: <b>" + ma.getUserFilename() + "</b></li>";
+		h += "<li>filename: <b>" + ma.getFilename() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures(), req, myShepherd) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
