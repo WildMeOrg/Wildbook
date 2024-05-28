@@ -5,16 +5,16 @@ import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 
 import org.json.JSONArray;
 
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -23,23 +23,25 @@ import java.util.List;
 import java.util.Set;
 
 public class ProjectIA extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig config)
+    throws ServletException {
         super.init(config);
     }
 
-    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doOptions(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         doPost(request, response);
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -47,7 +49,7 @@ public class ProjectIA extends HttpServlet {
 
         System.out.println("==> In ProjectIA Servlet ");
 
-        String context= ServletUtilities.getContext(request);
+        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ProjectIA.java");
         myShepherd.beginDBTransaction();
@@ -58,22 +60,17 @@ public class ProjectIA extends HttpServlet {
         String queryEncounterId = null;
 
         try {
-            res.put("success","false");
+            res.put("success", "false");
 
             projectIdPrefix = j.optString("projectIdPrefix", null);
             queryEncounterId = j.optString("queryEncounterId", null);
-
-            if (Util.stringExists(queryEncounterId)&&Util.stringExists(projectIdPrefix)) {
-
+            if (Util.stringExists(queryEncounterId) && Util.stringExists(projectIdPrefix)) {
                 Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                 Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
-                if (project!=null&&queryEnc!=null) {
-
-
+                if (project != null && queryEnc != null) {
                     List<Encounter> targetEncs = project.getEncounters();
                     List<Annotation> targetAnns = new ArrayList<>();
                     JSONArray initiatedJobs = new JSONArray();
-
                     for (Annotation queryAnn : queryEnc.getAnnotations()) {
                         if (IBEISIA.validForIdentification(queryAnn)) {
                             if (targetAnns.isEmpty()) {
@@ -89,7 +86,8 @@ public class ProjectIA extends HttpServlet {
                             parentTask.setParameters(tp);
                             myShepherd.storeNewTask(parentTask);
 
-                            Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask, true);
+                            Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask,
+                                true);
                             JSONObject jobJSON = new JSONObject();
                             jobJSON.put("topTaskId", parentTask.getId());
                             jobJSON.put("childTaskId", childTask.getId());
@@ -97,16 +95,14 @@ public class ProjectIA extends HttpServlet {
                             initiatedJobs.put(jobJSON);
                         }
                     }
-                    res.put("success","true");
+                    res.put("success", "true");
                     res.put("initiatedJobs", initiatedJobs);
                     response.setStatus(HttpServletResponse.SC_OK);
-                    //JSONObject rtnIA = IBEISIA.sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, context);
+                    // JSONObject rtnIA = IBEISIA.sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, context);
                 }
             }
-
             out.println(res);
             out.close();
-
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -114,7 +110,7 @@ public class ProjectIA extends HttpServlet {
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
@@ -129,6 +125,7 @@ public class ProjectIA extends HttpServlet {
     private ArrayList<Annotation> getAnnotationList(List<Encounter> encs) {
         ArrayList<Annotation> anns = new ArrayList<>();
         Set<Annotation> annHash = new HashSet<>();
+
         for (Encounter enc : encs) {
             annHash.addAll(enc.getAnnotations());
         }
@@ -139,6 +136,4 @@ public class ProjectIA extends HttpServlet {
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
     }
-
-
 }

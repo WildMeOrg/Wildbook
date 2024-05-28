@@ -3,10 +3,7 @@ package org.ecocean.media;
 import org.ecocean.mmutil.MediaUtilities;
 
 public enum MediaAssetType {
-    UNKNOWN(0),
-    IMAGE(1),
-    VIDEO(2),
-    GPS(3);
+    UNKNOWN(0), IMAGE(1), VIDEO(2), GPS(3);
 
     private int code;
 
@@ -20,7 +17,6 @@ public enum MediaAssetType {
                 return type;
             }
         }
-
         //
         // default to unknown
         //
@@ -31,20 +27,17 @@ public enum MediaAssetType {
         if (path == null) {
             return UNKNOWN;
         }
-
         if (MediaUtilities.isAcceptableImageFile(path)) {
             return IMAGE;
         }
-
         if (MediaUtilities.isAcceptableVideoFile(path)) {
             return VIDEO;
         }
-
 /*
         if (MediaUtilities.isGpsFile(path)) {
             return GPS;
         }
-*/
+ */
 
         return UNKNOWN;
     }
