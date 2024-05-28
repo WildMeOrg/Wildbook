@@ -1,4 +1,7 @@
-
 .navbar .dropdown-menu {
-    font-size: 24px; /* Set font size to 24px */
-  }
+  font-size: 18px;
+}
+
+.navbar .dropdown-toggle {
+  font-size: 18px;
+}

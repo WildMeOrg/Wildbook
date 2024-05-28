@@ -573,7 +573,7 @@ if(request.getUserPrincipal()!=null){
                       </li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: white" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: white, font-size: 24px" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
                             <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("report")%></a></li>
