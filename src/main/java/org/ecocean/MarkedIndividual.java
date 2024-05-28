@@ -34,7 +34,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
  * @version 2.0
  * @see Encounter, Shepherd
  */
-public class MarkedIndividual implements java.io.Serializable {
+public class MarkedIndividual extends Base implements java.io.Serializable {
     private String individualID = "";
 
     private MultiValue names;
@@ -140,14 +140,25 @@ public class MarkedIndividual implements java.io.Serializable {
         refreshDependentProperties();
     }
 
-    /**Adds a new encounter to this MarkedIndividual.
-     *@param  newEncounter  the new <code>encounter</code> to add
-     *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-     *@see  Shepherd#commitDBTransaction()
-     */
+    /**
+	 * Retrieves the Individual Id.
+	 * 
+	 * @return Individual Id String
+	 */
+    @Override
     public String getId() {
         return individualID;
     }
+    
+    /**
+     * Sets the Individual Id.
+     * 
+     * @param id The Individual Id to set
+     */
+    @Override
+	public void setId(String id) {
+		individualID = id;
+	}
 
     // this is "something to show" (by default)... it falls back to the id,
     // which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
@@ -442,6 +453,11 @@ public class MarkedIndividual implements java.io.Serializable {
         }
     }
 
+    /**Adds a new encounter to this MarkedIndividual.
+     *@param  newEncounter  the new <code>encounter</code> to add
+     *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
+     *@see  Shepherd#commitDBTransaction()
+     */
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -848,6 +864,9 @@ public class MarkedIndividual implements java.io.Serializable {
         return names.getValue(keyHint);
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getIndividualID() {
         return individualID;
     }
@@ -893,6 +912,9 @@ public class MarkedIndividual implements java.io.Serializable {
         return legacyIndividualID;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setIndividualID(String id) {
         individualID = id;
     }
@@ -1021,6 +1043,7 @@ public class MarkedIndividual implements java.io.Serializable {
      *
      * @return a String of comments
      */
+    @Override
     public String getComments() {
         if (comments != null) {
             return comments;
@@ -1034,6 +1057,7 @@ public class MarkedIndividual implements java.io.Serializable {
      *
      * @return a String of comments
      */
+    @Override
     public void addComments(String newComments) {
         System.out.println("addComments called. oldComments=" + comments + " and new comments = " +
             newComments);
@@ -1044,6 +1068,12 @@ public class MarkedIndividual implements java.io.Serializable {
         }
     }
 
+    /**
+     * Sets any additional, general comments recorded for this MarkedIndividual as a whole.
+     * 
+     * @param comments to set
+     */
+    @Override
     public void setComments(String comments) {
         this.comments = comments;
     }
@@ -2815,4 +2845,10 @@ public class MarkedIndividual implements java.io.Serializable {
                    .append("numLocations", numberLocations)
                    .toString();
     }
+
+	@Override
+	public long getVersion() {
+		// Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
+		return 0;
+	}
 }
