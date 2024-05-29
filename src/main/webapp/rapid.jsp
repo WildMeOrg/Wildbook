@@ -200,7 +200,7 @@ if (Util.requestParameterSet(request.getParameter("export"))) {
         "Num calv"
     }));
     myShepherd.beginDBTransaction();
-    List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
+    List<Encounter> allEncs = itask.getEncounters();
     for (Encounter enc : allEncs) {
         if (enc == null) continue;
         Occurrence occ = myShepherd.getOccurrence(enc);
