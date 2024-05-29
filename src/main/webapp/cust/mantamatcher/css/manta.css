@@ -7809,7 +7809,7 @@ figcaption {
   font-style: italic;
   text-align: center;
   padding-top: 5px;
-    display: block !important;
+  /*  display: block !important;*/
 }
 /* Accordion */
 .accordion {
