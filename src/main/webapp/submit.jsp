@@ -90,7 +90,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 
 %>
-<%-- comment out the project stuff
+
 <script>
 $(document).ready( function() {  
 
@@ -211,7 +211,7 @@ function doAjaxForProject(requestJSON,userId){
 }
 
 </script>
-end comment out project stuff --%>
+
 
 
 <style type="text/css">
