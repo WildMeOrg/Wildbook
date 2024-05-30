@@ -1,7 +1,67 @@
+.dropdown-toggle::after {
+  display: none !important; 
+}
+
+.dropdown-toggle::before {
+  display: none !important; 
+}
+
 .navbar .dropdown-menu {
-  font-size: 18px;
+  font-size: 16px;
+  background-color: white;
 }
 
 .navbar .dropdown-toggle {
-  font-size: 18px;
+  color: white !important;
+  font-size: 16px !important;
+}
+
+.navbar-collapse {
+  display: flex;       
+  justify-content: center; 
+}
+
+.navbar-nav {
+  display: flex;  
+  padding-left: 50px;
+  padding-right: 50px;    
+  flex-grow: 1;        
+  justify-content: space-between; 
+  width: 100%;         
+}
+
+.navbar-nav > li {
+  flex-grow: 1;        
+  text-align: center;  
+}
+
+.navbar .navbar-nav > li > a:hover{
+    background-color: inherit; 
+    border-bottom: 2px solid white; 
+    box-sizing: border-box;
+}
+
+.navbar .navbar-nav .dropdown-menu > li> a:hover{
+    background-color: red !important; 
+    border-bottom: 2px solid yellow; 
+    box-sizing: border-box;
+}
+.navbar .navbar-nav .dropdown-menu > li:hover{
+  background-color: red !important; 
+  border-bottom: 2px solid yellow; 
+  box-sizing: border-box;
+}
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%; 
+  margin-top: -1px; 
+}
+
+.dropdown-submenu:hover .dropdown-menu {
+  display: block;
 }
