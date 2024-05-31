@@ -11,6 +11,7 @@ public class IBEISIAIdentificationMatchingStateIdKey implements java.io.Serializ
 
     public IBEISIAIdentificationMatchingStateIdKey(String value) {
         StringTokenizer token = new StringTokenizer(value, "::");
+
         this.annId1 = token.nextToken();
         this.annId2 = token.nextToken();
     }
@@ -29,8 +30,4 @@ public class IBEISIAIdentificationMatchingStateIdKey implements java.io.Serializ
     public String toString() {
         return this.annId1 + "::" + this.annId2;
     }
-
 }
-
-
-
