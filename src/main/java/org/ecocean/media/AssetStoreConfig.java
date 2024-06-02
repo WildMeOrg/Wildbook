@@ -15,15 +15,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * AssetStoreConfig manages configuration variables for subclasses of
- * AssetStore.
+ * AssetStoreConfig manages configuration variables for subclasses of AssetStore.
  */
 public class AssetStoreConfig implements java.io.Serializable {
     private static final long serialVersionUID = 3467831207510138929L;
-//stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
+// stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
     private static Logger log = LoggerFactory.getLogger(AssetStoreConfig.class);
     private Map<String, String> config;
-
 
     /**
      * Create an empty config.
@@ -36,7 +34,8 @@ public class AssetStoreConfig implements java.io.Serializable {
      * Create a config by deserializing a string.
      */
     public AssetStoreConfig(final String configString) {
-        Type type = new TypeToken<HashMap<String, String>>() {}.getType();
+        Type type = new TypeToken<HashMap<String, String> >() {}
+        .getType();
 
         config = new Gson().fromJson(configString, type);
     }
@@ -51,8 +50,7 @@ public class AssetStoreConfig implements java.io.Serializable {
     }
 
     /**
-     * Return a config variable of the URL type, or null if it doesn't
-     * exist or cannot be converted to a URL.
+     * Return a config variable of the URL type, or null if it doesn't exist or cannot be converted to a URL.
      */
     public URL getURL(final String key) {
         String value = config.get(key);
@@ -96,5 +94,4 @@ public class AssetStoreConfig implements java.io.Serializable {
     public String toString() {
         return configString();
     }
-
 }

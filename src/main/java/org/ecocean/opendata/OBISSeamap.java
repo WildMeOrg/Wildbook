@@ -1,33 +1,24 @@
 package org.ecocean.opendata;
 
-import org.ecocean.Shepherd;
-import org.ecocean.Encounter;
-import org.ecocean.Occurrence;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Taxonomy;
-import org.ecocean.Survey;
-import org.ecocean.User;
-import org.ecocean.Util;
-import org.ecocean.PointLocation;
-import org.ecocean.media.MediaAsset;
-import org.ecocean.security.Collaboration;
-import org.ecocean.movement.SurveyTrack;
-import org.ecocean.movement.Path;
-import javax.jdo.Query;
-import java.util.Collection;
-import java.util.List;
-import java.net.URL;
-import java.util.ArrayList;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.jdo.Query;
+import org.ecocean.Encounter;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.Occurrence;
+import org.ecocean.security.Collaboration;
+import org.ecocean.Shepherd;
+import org.ecocean.Taxonomy;
+import org.ecocean.User;
+import org.ecocean.Util;
 import org.joda.time.DateTime;
 
 public class OBISSeamap extends Share {
-
-    //this is the default attribution
-    private static final String CONTRIBUTOR = "Flukebook.org";
-
     public OBISSeamap(final String context) {
         super(context);
         this.init();
@@ -38,124 +29,82 @@ public class OBISSeamap extends Share {
             log("not enabled; exiting init()");
             return;
         }
-        //do these once to get into cache
+        // do these once to get into cache
         getCollaborationUser();
         getShareAll();
-        //TODO support organizationId (when Organization makes it to master!)
+        // TODO support organizationId (when Organization makes it to master!)
     }
 
-
-    public void generate() throws IOException {
-        generate(null, null);
-    }
-    //yeah, one is jdoql, one is sql.  sigh.
-    public void generate(String occurrence_jdoql, String encounter_sql) throws IOException {
+    public void generate()
+    throws IOException {
         String outPath = getProperty("outputFile", null);
-        if (outPath == null) throw new IllegalArgumentException("must have 'outputFile' set in properties file");
-        String effortOutPath = outPath + "_effort";  //fallback
-        int dot = outPath.lastIndexOf(".");
-        if (dot > 0) effortOutPath = outPath.substring(0,dot) + "_effort." + outPath.substring(dot+1);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
-        BufferedWriter effortWriter = new BufferedWriter(new FileWriter(effortOutPath));
 
+        if (outPath == null)
+            throw new IllegalArgumentException("must have 'outputFile' set in properties file");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction(this.typeCode() + ".generate");
         myShepherd.beginDBTransaction();
 
-        try {
-          // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
-          if (occurrence_jdoql == null) occurrence_jdoql = "SELECT FROM org.ecocean.Occurrence";
-          Query query = myShepherd.getPM().newQuery(occurrence_jdoql);
-          Collection c = (Collection) (query.execute());
-          List<Occurrence> occs = new ArrayList<Occurrence>(c);
-          query.closeAll();
-          List<String> surveyTrackIds = new ArrayList<String>();
-          for (Occurrence occ : occs) {
-              if (!isShareable(occ, myShepherd)) continue;
-              SurveyTrack trk = occ.getSurveyTrack(myShepherd);
-              String surveyTrackId = (trk == null) ? null : trk.getID();
-              //TODO do we need to check isShareable(trk) at this point??? think not cuz it references back to occ
-              if ((trk != null) && !surveyTrackIds.contains(surveyTrackId)) {
-                  String trow = tabRow(trk, myShepherd);
-                  if (trow != null) {
-                      effortWriter.write(trow);
-                  } else {
-                      surveyTrackId = null;  //dont reference via Occurrence data
-                  }
-                  surveyTrackIds.add(trk.getID());
-              }
-              String row = tabRow(occ, surveyTrackId, myShepherd);
-              if (row != null) writer.write(row);
-          }
-  
-          // cant figure out how to do this via jdoql.  :/
-          if (encounter_sql == null) encounter_sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
-          Query query2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", encounter_sql);
-          query2.setClass(Encounter.class);
-          c = (Collection) (query2.execute());
-          List<Encounter> encs = new ArrayList<Encounter>(c);
-          query2.closeAll();
-          for (Encounter enc : encs) {
-              if (!isShareable(enc, myShepherd)) continue;
-              String row = tabRow(enc, myShepherd);
-              if (row != null) writer.write(row);
-          }
-  
-          writer.close();
-          effortWriter.close();
+        // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
+        String jdoql = "SELECT FROM org.ecocean.Occurrence";
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection c = (Collection)(query.execute());
+        List<Occurrence> occs = new ArrayList<Occurrence>(c);
+        query.closeAll();
+        for (Occurrence occ : occs) {
+            if (!isShareable(occ)) continue;
+            String row = tabRow(occ, myShepherd);
+            if (row != null) writer.write(row);
         }
-        catch(Exception e) {
-          e.printStackTrace();
+        // cant figure out how to do this via jdoql.  :/
+        String sql =
+            "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
+        query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        query.setClass(Encounter.class);
+        c = (Collection)(query.execute());
+        List<Encounter> encs = new ArrayList<Encounter>(c);
+        query.closeAll();
+        for (Encounter enc : encs) {
+            if (!isShareable(enc)) continue;
+            String row = tabRow(enc, myShepherd);
+            if (row != null) writer.write(row);
         }
-        finally {
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
-        }
-        log(outPath + " and " + effortOutPath + " written by generate()");
+        writer.close();
+        myShepherd.rollbackDBTransaction();
+        log(outPath + " written by generate()");
     }
 
-    public boolean isShareable(Object obj, Shepherd myShepherd) {
+    public boolean isShareable(Object obj) {
         if (obj == null) return false;
-        if (obj instanceof Encounter) return isShareable((Encounter)obj,myShepherd);
-        if (obj instanceof Occurrence) return isShareable((Occurrence)obj,myShepherd);
-        if (obj instanceof SurveyTrack) return isShareable((SurveyTrack)obj,myShepherd);
+        if (obj instanceof Encounter) return isShareable((Encounter)obj);
+        if (obj instanceof Occurrence) return isShareable((Occurrence)obj);
         return false;
     }
 
-
-    public boolean isShareable(Encounter enc,  Shepherd myShepherd ) {
+    public boolean isShareable(Encounter enc) {
         if (enc == null) return false;
         if (getShareAll()) return true;
         User cu = getCollaborationUser();
-        if ((cu != null) && Util.stringExists(cu.getUsername()) && Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
+        if ((cu != null) && Util.stringExists(cu.getUsername()) &&
+            Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
             return true;
-        if (isShareOrganizationUser(enc.getSubmitters(), myShepherd)) return true;
+        if (isShareOrganizationUser(enc.getSubmitters())) return true;
         return false;
     }
 
-    public boolean isShareable(Occurrence occ, Shepherd myShepherd) {
+    public boolean isShareable(Occurrence occ) {
         if (occ == null) return false;
         if (getShareAll()) return true;
         if ((occ.getEncounters() == null) || (occ.getEncounters().size() < 1)) return false;
         for (Encounter enc : occ.getEncounters()) {
-            if (!isShareable(enc, myShepherd)) return false;
+            if (!isShareable(enc)) return false;
         }
         return true;
     }
 
-    public boolean isShareable(SurveyTrack trk, Shepherd myShepherd) {
-        if (trk == null) return false;
-        if (getShareAll()) return true;
-        if (Util.collectionIsEmptyOrNull(trk.getOccurrences())) return false;
-        for (Occurrence occ : trk.getOccurrences()) {
-            if (occ == null) continue;
-            if (!isShareable(occ, myShepherd)) return false;
-        }
-        return true;
-    }
-
-    //these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
-    //  NOTE: these do not include trailing newline
+    // these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
+    // NOTE: these do not include trailing newline
     public String tabRowOLD(Occurrence occ, Shepherd myShepherd) {
         if (occ == null) return null;
         List<String> fields = new ArrayList<String>();
@@ -166,7 +115,7 @@ public class OBISSeamap extends Share {
             log("cannot share " + occ + " due to invalid date!");
             return null;
         }
-        fields.add(toISO8601(d));
+        fields.add((new DateTime(d)).toString().substring(0, 16).replace("T", " "));
         occ.setLatLonFromEncs(false);
         Double dlat = occ.getDecimalLatitude();
         Double dlon = occ.getDecimalLongitude();
@@ -176,7 +125,7 @@ public class OBISSeamap extends Share {
         }
         fields.add(Double.toString(dlat));
         fields.add(Double.toString(dlon));
-        Taxonomy tx = occ.getTaxonomy();  //this often fails.  :(
+        Taxonomy tx = occ.getTaxonomy(); // this often fails.  :(
         String txString = null;
         if (tx != null) txString = tx.getScientificName();
         if ((txString == null) && (occ.getEncounters() != null)) {
@@ -209,26 +158,20 @@ public class OBISSeamap extends Share {
         return String.join("\t", fields);
     }
 
-    public String tabRow(Occurrence occ, String surveyTrackId, Shepherd myShepherd) {
+    public String tabRow(Occurrence occ, Shepherd myShepherd) {
         if ((occ == null) || Util.collectionIsEmptyOrNull(occ.getEncounters())) return null;
         String rtn = "";
         for (Encounter enc : occ.getEncounters()) {
-            String e = tabRow(enc, surveyTrackId, myShepherd);
+            String e = tabRow(enc, myShepherd);
             if (e != null) rtn += e;
         }
         return rtn;
     }
 
-//header of field contents
-//GUID	DATE	OCCURRENCE_ID	SURVEY_ID   DEC_LAT	DEC_LON	TAXONOMY	INDIV_ID	SEX	LIFE_STAGE	IMAGE_URL	CONTRIBUTERS	COPYRIGHT_INFO
     public String tabRow(Encounter enc, Shepherd myShepherd) {
-        return tabRow(enc, null, myShepherd);
-    }
-    public String tabRow(Encounter enc, String surveyTrackId, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
-        //fields.add(getGUID("E-" + enc.getCatalogNumber()));  //decided now to have url/link be "guid" (via feedback from ei)
-        fields.add(Encounter.getWebUrl(enc.getCatalogNumber(), CommonConfiguration.getServerURL(myShepherd)));
+        fields.add(getGUID("E-" + enc.getCatalogNumber()));
         String d = enc.getDate();
         if (!Util.stringExists(d)) {
             log("cannot share " + enc + " due to invalid date!");
@@ -236,7 +179,6 @@ public class OBISSeamap extends Share {
         }
         fields.add(d);
         fields.add(forceString(enc.getOccurrenceID()));
-        fields.add(forceString(surveyTrackId));
         Double dlat = enc.getLatitudeAsDouble();
         Double dlon = enc.getLongitudeAsDouble();
         if ((dlat == null) || (dlon == null)) {
@@ -258,7 +200,7 @@ public class OBISSeamap extends Share {
         if ((mas == null) || (mas.size() < 1)) {
             fields.add("");
         } else {
-            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_mid");
+            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_thumb");
             if ((kids == null) || (kids.size() < 1)) {
                 fields.add("");
             } else {
@@ -270,74 +212,21 @@ public class OBISSeamap extends Share {
                 }
             }
         }
-        fields.add(CONTRIBUTOR);
-        fields.add(getProperty("copyright", null));
+        if (Util.collectionIsEmptyOrNull(enc.getSubmitters())) {
+            fields.add("");
+        } else {
+            List<String> names = new ArrayList<String>();
+            for (User u : enc.getSubmitters()) {
+                if (u.getFullName() != null) names.add(u.getFullName());
+            }
+            fields.add(String.join(", ", names));
+        }
+        fields.add("[flukebook copyright?]");
         return String.join("\t", fields) + "\n";
     }
 
-
-/* per obis, format should be (multiple lines per survey, each line a "segment" that connects to next
-note how "dateB" becomes *start* date of next line....
-
-surv_id  date_start  date_end  lon_start  lat_start  lon_end  lat_end  time_zone (e.g. "-8")
-AAAA     dateA       dateB     .....
-AAAA     dateB       dateC     .....
-AAAA     dateD       dateE     .....
-
-*/
-    public String tabRow(SurveyTrack trk, Shepherd myShepherd) {
-        if (trk == null) return null;
-        String rtn = "";
-        String timezone = null;
-        String prevEndDate = null;
-        Double prevEndLon = null;
-        Double prevEndLat = null;
-        Path path = trk.getPath();
-        if (path == null) return null;
-        //wanna keep 5 min apart, per obis request
-        for (PointLocation pl : path.getPointLocationsSubsampledTimeGap(5L * 60000L)) {
-            String dt = pl.getDateTimeAsString();
-            if (timezone == null) timezone = obisTimezone(dt);
-            dt = obisShortDateTime(dt);
-            Double lat = pl.getLatitude();
-            Double lon = pl.getLongitude();
-            if ((dt == null) || (lat == null) || (lon == null)) continue;
-            if (prevEndDate != null) {
-                List<String> fields = new ArrayList<String>();
-                fields.add(forceString(trk.getID()));
-                fields.add(prevEndDate);
-                fields.add(dt);
-                fields.add(prevEndLon.toString());
-                fields.add(prevEndLat.toString());
-                fields.add(lon.toString());
-                fields.add(lat.toString());
-                fields.add(timezone);
-                rtn += String.join("\t", fields) + "\n";
-            }
-            prevEndDate = dt;
-            prevEndLon = lon;
-            prevEndLat = lat;
-        }
-        if (rtn.equals("")) return null;
-        return rtn;
-    }
-
-    public String obisShortDateTime(String iso) {
-        if ((iso == null) || (iso.length() < 19)) return iso;
-        return iso.substring(0,19);
-    }
-    public String obisTimezone(String iso) {
-        if ((iso == null) || (iso.length() < 25)) return null;
-        return iso.substring(23);
-    }
-
     private static String forceString(String txt) {
-        if (!Util.stringExists(txt)) return "";  //this checks for "unknown", "none", etc...
+        if (!Util.stringExists(txt)) return ""; // this checks for "unknown", "none", etc...
         return txt;
-    }
-
-    private static String toISO8601(Long millis) {
-        if (millis == null) return "";
-        return (new DateTime(millis)).toString().substring(0,16).replace("T", " ");
     }
 }

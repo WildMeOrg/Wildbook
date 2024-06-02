@@ -1213,8 +1213,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
             if(res.responseJSON.annotations[returnNum] && res.responseJSON.annotations[returnNum].encounterDate){
                 imgInfo += ' <b>' + res.responseJSON.annotations[returnNum].encounterDate.substring(0,16) + '</b> ';
             }
-            if (mainAsset.filename) {
-                var fn = mainAsset.filename;
+            if (mainAsset.userFilename) {
+                var fn = mainAsset.userFilename;
                 var j = fn.lastIndexOf('/');
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';

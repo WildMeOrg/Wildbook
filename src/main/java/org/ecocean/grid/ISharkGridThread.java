@@ -7,9 +7,5 @@ package org.ecocean.grid;
  * @since 2007
  */
 public interface ISharkGridThread {
-
-
-  public boolean isFinished();
-
-
+    public boolean isFinished();
 }
