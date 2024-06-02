@@ -1210,8 +1210,8 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
             if(res.responseJSON.annotations[returnNum] && res.responseJSON.annotations[returnNum].encounterDate){
                 imgInfo += ' <b>' + res.responseJSON.annotations[returnNum].encounterDate.substring(0,16) + '</b> ';
             }
-            if (mainAsset.filename) {
-                var fn = mainAsset.filename;
+            if (mainAsset.userFilename) {
+                var fn = mainAsset.userFilename;
                 var j = fn.lastIndexOf('/');
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
@@ -1493,7 +1493,7 @@ console.log('indivs=%o | unassignedEncs=%o', indivs, unassignedEncs);
 	//} else if (jel.data('individ')) {
         } else if (!queryAnnotation.indivId && numIndivsSelected == 1) {
                 let indivId = Object.keys(indivs)[0];
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + indivId + '\', \'' + 'TODO_FIXME_SOME_ENC' + '\' , \'' + taskId + '\' , \'' + displayName[indivId] + '\');" type="button" value="Set to individual ' + displayName[indivId] + '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + indivId + '\', \'' + unassignedEncs.join(',') + '\' , \'' + taskId + '\' , \'' + displayName[indivId] + '\');" type="button" value="Set to individual ' + displayName[indivId] + '" />';
 
 	} else if (queryAnnotation.indivId && unassignedEncs.length) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + queryAnnotation.indivId + '\', \'' + unassignedEncs.join(',') + '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match(es) below" />';
@@ -1795,10 +1795,6 @@ console.warn(' ===> approvalButtonClick(encID=%o, indivID=%o, encID2=%o, taskId=
 	let loc = annotData[queryAnnotId] && annotData[queryAnnotId][0] && annotData[queryAnnotId][0].encounterLocationId;
 	useLocation == useLocation && loc;
 	var msgTarget = '#enc-action';  //'#approval-buttons';
-        if (encID2 == 'TODO_FIXME_SOME_ENC') {
-            alert('EXCEPTION CASE');
-            return;
-        }
 
 	if (nameUUIDCache.hasOwnProperty(indivID)) {
 		displayName = indivID;

@@ -41,6 +41,7 @@
     "menu.administer.photoKeywords": "Palabras clave de foto",
     "menu.administer.softwareDocs": "Documentación del software",
     "menu.administer.dataIntegrity": "Integridad de los datos",
+    "menu.administer.bulkImportLogs": "Registros de Importación Masiva",
     "USER_PROFILE": "Perfil del usuario",
     "LEARN": "Aprender",
     "SUBMIT": "Enviar",
@@ -86,5 +87,17 @@
     "MERGE_PENDING_MESSAGE": "La fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> ha sido iniciada. Fecha de finalización automática: <bold>{mergeDate}</bold>, ejecución retrasada 2 semanas.",
     "MERGE_DENIED_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>denegada</bold>. Iniciada por <bold>{initiator}</bold>. Denegada por el usuario: <bold>{deniedBy}</bold>",
     "DISMISS": "Descartar",
-    "MERGE_COMPLETE_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>completada</bold>. Iniciada por <bold>{initiator}</bold>. Fecha de finalización: <bold>{mergeDate}</bold>"
+    "MERGE_COMPLETE_MESSAGE": "Una fusión de <bold>{indv2}</bold> en <bold>{indv1}</bold> fue <bold>completada</bold>. Iniciada por <bold>{initiator}</bold>. Fecha de finalización: <bold>{mergeDate}</bold>",
+    "BANNER_ALERT": "¡Wildbook está renovando su imagen! Gracias por tu paciencia mientras realizamos estos cambios.",
+    "ERROR_PAGE_NOT_FOUND": "Página no encontrada",
+    "ERROR_PAGE_NOT_FOUND_DESC": "La página que buscas no existe. Puede que haya sido movida o eliminada. Vuelve a la página principal.",
+    "ERROR_BACK_HOME": "Volver al inicio",
+    "ERROR_PAGE_SERVER_ERROR": "Error Interno del Servidor",
+    "ERROR_PAGE_SERVER_ERROR_DESC": "¡Vaya! Algo salió mal de nuestra parte. Estamos trabajando para solucionarlo. Intenta actualizar la página en unos minutos.",
+    "ERROR_PAGE_UNAUTHORIZED": "No autorizado",
+    "ERROR_PAGE_UNAUTHORIZED_DESC": "Necesitas iniciar sesión para ver esta página. Por favor, inicia sesión o contacta al soporte si tienes problemas.",
+    "ERROR_PAGE_FORBIDDEN": "Prohibido",
+    "ERROR_PAGE_FORBIDDEN_DESC": "No tienes permiso para acceder a esta página. Si crees que esto es un error, contacta al soporte.",
+    "ERROR_PAGE_BAD_REQUEST": "Solicitud Incorrecta",
+    "ERROR_PAGE_BAD_REQUEST_DESC": "Tu navegador ha realizado una solicitud que este servidor no puede entender. Por favor, revisa la URL o contáctanos para obtener ayuda."
 }
