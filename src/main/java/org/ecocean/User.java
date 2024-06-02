@@ -53,6 +53,8 @@ public class User implements Serializable {
     private String password;
     private String salt;
     private String uuid;
+    
+    private String twitterHandle;
 
     // String currentContext;
 
@@ -624,4 +626,7 @@ public class User implements Serializable {
         });
         return sortedCopy;
     }
+    
+    public String getTwitterHandle() {return twitterHandle;}
+    public void setTwitterHandle(String handle) {this.twitterHandle=handle;}
 }
