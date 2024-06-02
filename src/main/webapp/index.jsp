@@ -439,7 +439,7 @@ try{
 	}
     numDataContributors=myShepherd.getNumUsers();
     //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals.
-	numCitScientists=myShepherd.getNumberUniqueSubmissionEmails();
+	numCitScientists=myShepherd.getUsersWithEmailAddresses().size();
 
 } catch (Exception e){
 	System.out.println("################# Exception retrieving numbers for index.jsp counters.");
