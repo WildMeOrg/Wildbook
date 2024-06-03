@@ -62,39 +62,48 @@ public class OnWaterApp {
 
 
 
-    public static Survey ciToSurvey(JSONObject jin, Shepherd myShepherd) {
+/*
+              "trip" : {
+                 "startTime" : "2024-03-12T16:05:22.686Z",
+                 "endTime" : "2024-03-13T05:31:29.587Z",
+                 "id" : "b5494275-f48a-4cc3-a20d-1d2acc0295a9",
+                 "distance" : "0.6"
+              },
+*/
+    public static Survey toSurvey(JSONObject jin, Encounter enc, Shepherd myShepherd) {
         if (jin == null) return null;
-        DateTime startDate = toDateTime(jin.optString("start_date", null));
-        DateTime endDate = toDateTime(jin.optString("end_date", null));
-        DateTime createDate = toDateTime(jin.optString("create_date", null));
+        DateTime startDate = toDateTime(jin.optString("startTime", null));
+        DateTime endDate = toDateTime(jin.optString("endTime", null));
+        String id = jin.optString("id", Util.generateUUID());
         Survey survey = new Survey(startDate);
+        survey.setID(id);
 
-        //if (startDate != null) survey.setStartTimeMilli(startDate.getMillis());
+        double dist = jin.optDouble("distance", -1.0);
+        if (dist > 0.0) survey.setEffort(new Measurement(null, "distance", dist, "miles", null));
+
         if (endDate != null) survey.setEndTimeMilli(endDate.getMillis());
-        if (createDate != null) survey.addComments("<p>Created on source: <b>" + createDate.toString() + "</b></p>");
 
-        survey.setProjectType("Channel Island Spotter conserve.IO");
-        survey.addComments("<p>Observer Names: <b>" + jin.optString("Observer Names", "<i>none provided</i>") + "</b>, Channel Island trip ID: <b>" + jin.optInt("_tripId", 0) + "</b></p>");
-        survey.setProjectName("Channel Island");
-        survey.setOrganization("conserve.io");
+        //survey.setProjectType()
+        //survey.addComments()
+        //survey.setProjectName()
+        //survey.setOrganization()
 
-        //there will be only one SurveyTrack pulled from this data, fwiw
-        SurveyTrack st = ciToSurveyTrack(jin, myShepherd);
-        String integ = checkIntegrity(st, myShepherd);
+        Occurrence occ = new Occurrence();
+        occ.setDWCDateLastModified();
+        occ.setOccurrenceID(Util.generateUUID());
+        //occ.setDateTimeCreated()
+        //occ.setDecimalLatitude()
+        //occ.setDecimalLongitude()
+        occ.setSource("OnWaterApp trip id " + id);
+        occ.addEncounter(enc);
+        ArrayList<Occurrence> occs = new ArrayList<Occurrence>();
+        occs.add(occ);
+
+        SurveyTrack st = new SurveyTrack();
+        st.setOccurrences(occs);
+        // st.path ?
         survey.addSurveyTrack(st);
-        if (integ != null) survey.addComments("<p>Note: SurveyTrack failed integrity check</p>");
 
-///TODO do we .setEffort based on survey track lengths or what???
-
-        if (jin.optJSONArray("CINMS Weather") != null) {
-            ArrayList<Observation> wths = new ArrayList<Observation>();
-            JSONArray jw = jin.getJSONArray("CINMS Weather");
-            for (int i = 0 ; i < jw.length() ; i++) {
-                //Observation wth = ciToWeather(jw.optJSONObject(i), survey);
-                //if (wth != null) wths.add(wth);
-            }
-            survey.addObservationArrayList(wths);
-        }
         return survey;
     }
 
@@ -265,17 +274,7 @@ Distance Category: "B"
 
         enc.setAppUserId(jin.optString("user", null));
 
-        /*
-        FIXME
-        createSurvey(jin.optJSONObject("trip"));
-
-              "trip" : {
-                 "startTime" : "2024-03-12T16:05:22.686Z",
-                 "endTime" : "2024-03-13T05:31:29.587Z",
-                 "id" : "b5494275-f48a-4cc3-a20d-1d2acc0295a9",
-                 "distance" : "0.6"
-              },
-        */
+        Survey survey = toSurvey(jin.optJSONObject("trip"), enc, myShepherd);
 
         String notes = jin.optString("notes", null);
         if (notes != null) enc.addComments(notes);
