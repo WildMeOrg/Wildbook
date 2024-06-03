@@ -4261,6 +4261,40 @@ if(enc.getSex()!=null){sex=enc.getSex();}
  <!--  END SEX SECTION -->
 
 
+<!-- troutspotter fields -->
+<p class="para">Temperature recorded:
+<%=(enc.getTemperature() == null ? "-" : enc.getTemperature() + " " + enc.getTemperatureUnit())%>
+</p>
+
+<p class="para">Gear type:
+<%=(enc.getGearType() == null ? "None" : enc.getGearType())%>
+</p>
+
+<p class="para">Flow:
+<%=(enc.getFlowAmount() == null ? "-" : enc.getFlowAmount() + " " + enc.getFlowUnit())%>
+</p>
+
+<p class="para">Water clarity:
+<%=(enc.getWaterClarity() == null ? "-" : enc.getWaterClarity() + " " + (enc.getWaterClarityUri() == null ? "" : enc.getWaterClarityUri()))%>
+</p>
+
+<p class="para">Measured length:
+<%=(enc.getMeasuredLength() == null ? "-" : enc.getMeasuredLength())%>
+</p>
+
+<p class="para">Estimated length (body):
+<%=(enc.getEstimatedLengthBody() == null ? "-" : enc.getEstimatedLengthBody())%>
+</p>
+
+<p class="para">Estimated length (eye):
+<%=(enc.getEstimatedLengthEye() == null ? "-" : enc.getEstimatedLengthEye())%>
+</p>
+
+<p class="para">App user ID:
+<%=(enc.getAppUserId() == null ? "-" : enc.getAppUserId())%>
+</p>
+
+
 <!--  START SCARRING SECTION -->
 <p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
 
