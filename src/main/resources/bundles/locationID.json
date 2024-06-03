@@ -458,24 +458,110 @@
                     "name": "Bulgaria", "id": "Bulgaria"}
                 ]  },
                {
-                "name": "Caribbean Sea","id":"Caribbean Sea","locationID":[
+                "name": "Caribbean Sea",
+                "id": "Caribbean Sea",
+                "locationID":[
+                  {
+                    "name": "Anguilla",
+                    "id": "Anguilla",
+                    "locationID": []
+                  },
+                  {
+                    "name": "Antigua",
+                    "id": "Antigua",
+                    "locationID": []
+                  },
+                  { 
+                    "name": "Bahamas", 
+                    "id": "Bahamas", 
+                    "locationID": [
   
-                  { "name":"Bahamas", "id":"Bahamas", "locationID":[
-  
-                      { "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
-                      { "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] }
-  
+                      { 
+                        "name": "Bahamas-GBB", 
+                        "id": "Bahamas-GBB", 
+                        "locationID": [] 
+                      },
+                      { 
+                        "name": "Bahamas-LBB", 
+                        "id": "Bahamas-LBB", 
+                        "locationID": [] 
+                      }
                   ] },
-  
-                  { "name":"British Virgin Islands", "id":"British Virgin Islands", "locationID":[] },
-                  { "name":"Dominica", "id":"Dominica", "locationID":[] },
-                  { "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
-                  { "name":"Martinique", "id":"Martinique", "locationID":[] },
-                  { "name":"Montserrat", "id":"Montserrat", "locationID":[] },
-                  { "name":"St. Lucia", "id":"StLuciaCaribbean", "locationID":[] },
-                  { "name":"Montserrat", "id":"Montserrat", "locationID":[] },
-                  { "name":"St.Vincent", "id":"St.Vincent", "locationID":[] },
-                  { "name":"The Grenadines", "id":"the Grenadines", "locationID":[] }
+                  {
+                    "name": "Barbuda",
+                    "id": "Barbuda",
+                    "locationID": []
+                  },
+                  { 
+                    "name": "British Virgin Islands", 
+                    "id": "British Virgin Islands", 
+                    "locationID": [] 
+                  },
+                  { 
+                    "name": "Dominica", 
+                    "id": "Dominica", 
+                    "locationID": [] 
+                  },
+                  {
+                    "name": "Grenada",
+                    "id": "Grenada",
+                    "locationID": []
+                  },
+                  { 
+                    "name": "Guadeloupe", 
+                    "id": "Guadeloupe", 
+                    "locationID": [] 
+                  },
+                  { 
+                    "name": "Martinique", 
+                    "id": "Martinique", 
+                    "locationID": [] 
+                  },
+                  { 
+                    "name": "Montserrat", 
+                    "id": "Montserrat", 
+                    "locationID": [] 
+                  },
+                  {
+                    "name": "Saba",
+                    "id": "Saba",
+                    "locationID": []
+                  },
+                  {
+                    "name": "St. Barthélemy",
+                    "id": "St Barthelemy",
+                    "locationID": []
+                  },
+                  {
+                    "name": "St. Eustatius",
+                    "id": "St Eustatius",
+                    "locationID": []
+                  },
+                  {
+                    "name": "St. Kitts and Nevis",
+                    "id": "St Kitts and Nevis",
+                    "locationID": []
+                  },
+                  { 
+                    "name": "St. Lucia", 
+                    "id": "StLuciaCaribbean", 
+                    "locationID": [] 
+                  },
+                  {
+                    "name": "St. Maarten",
+                    "id": "St Maarten",
+                    "locationID": []
+                  },
+                  { 
+                    "name": "St.Vincent", 
+                    "id": "St.Vincent", 
+                    "locationID":[] 
+                  },
+                  { 
+                    "name": "The Grenadines", 
+                    "id": "the Grenadines", 
+                    "locationID": [] 
+                  }
   
                 ]
                 },
