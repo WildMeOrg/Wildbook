@@ -1,53 +1,43 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import NotFound from './NotFound';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
-import Home from './pages/Home';
-import Footer from './components/Footer';
-import AuthenticatedAppHeader from './components/AuthenticatedAppHeader';
-import UnAuthenticatedAppHeader from './components/UnAuthenticatedAppHeader';
-import useGetMe from './models/auth/users/useGetMe';
-import AlertBanner from './components/AlertBanner';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import NotFound from "./pages/errorPages/NotFound";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import Home from "./pages/Home";
+import Footer from "./components/Footer";
+import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
+import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
+import useGetMe from "./models/auth/users/useGetMe";
+import AlertBanner from "./components/AlertBanner";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
-
   const { isFetched, data, error } = useGetMe();
   const username = data?.username;
-  const avatar = data?.imageURL || '/react/images/Avatar.png';
+  const avatar = data?.imageURL || "/react/images/Avatar.png";
 
   return (
     <main>
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        maxWidth: '1440px',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        zIndex: '100',
-        width: '100%',
-      }}>
-
+      <div
+        className="position-fixed top-0 mx-auto w-100"
+        style={{
+          maxWidth: "1440px",
+          zIndex: "100",
+        }}
+      >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <AuthenticatedAppHeader
           username={username}
           avatar={avatar}
           showAlert={showAlert}
-          setShowAlert={setShowAlert} />
-
+          setShowAlert={setShowAlert}
+        />
       </div>
 
       <div
+        className="position-absolute top-0 start-0 justify-content-center align-items-center overflow-hidden w-100"
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          width: '100%',
-          minHeight: 'calc(100vh - 40px)', // Assuming the header height is 40px
+          boxSizing: "border-box",
+          minHeight: "calc(100vh - 40px)", // Assuming the header height is 40px
         }}
       >
         <Routes>
@@ -60,7 +50,6 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
         </Routes>
 
         <Footer />
-
       </div>
     </main>
   );
