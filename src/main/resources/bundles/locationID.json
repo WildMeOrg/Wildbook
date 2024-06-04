@@ -37,7 +37,8 @@
 	{ "name": "South America", "id": "South America", "locationID":[
 		{"name": "Argentina", "id": "Argentina", "locationID":[] },
 		{"name": "Brazil", "id": "Brazil", "locationID":[
-			{"name": " Pará", "id": " Pará", "locationID":[] },
+			{"name": "Pará", "id": "Pará", "locationID":[] },
+			{"name": "Rondônia", "id": "Rondônia", "locationID":[] },
 		] },
 		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
 		{"name": "Chile", "id": "Chile", "locationID":[] },
