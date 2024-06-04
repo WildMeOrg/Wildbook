@@ -90,6 +90,10 @@ public class IAJsonProperties extends JsonProperties {
     public int numDetectionAlgos(Taxonomy taxy) {
         JSONArray detectConfs = getDetectionConfigs(taxy);
 
+        if (detectConfs == null) {
+            System.out.println("WARNING: numDetectionAlgos(" + taxy + ") returned null");
+            return 0;
+        }
         return detectConfs.length();
     }
 
