@@ -47,7 +47,6 @@ JSONArray list = OnWaterApp.getList(context);
 out.println("<xmp>" + list.toString(4));
 
 Encounter enc = OnWaterApp.toEncounter(list.optJSONObject(0), myShepherd);
-myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
 out.println("<p>" + enc + "</p>");
 
 /*
