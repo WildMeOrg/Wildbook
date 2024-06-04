@@ -3,7 +3,6 @@ package org.ecocean.genetics;
 import java.util.ArrayList;
 
 public class Locus implements java.io.Serializable {
-
     private static final long serialVersionUID = 5458817893355984588L;
     private String name;
     private Integer allele0;
@@ -39,9 +38,11 @@ public class Locus implements java.io.Serializable {
     public Integer getAllele(int num) {
         if ((num == 0) && (allele0 != null)) {
             return allele0;
-            } else if ((num == 1) && (allele1 != null)) { return allele1;
-            } else if ((num == 2) && (allele2 != null)) { return allele2;
-            } else if ((num == 3) && (allele3 != null)) { return allele3; }
+        } else if ((num == 1) && (allele1 != null)) {
+            return allele1;
+        } else if ((num == 2) && (allele2 != null)) {
+            return allele2;
+        } else if ((num == 3) && (allele3 != null)) { return allele3; }
         return null;
     }
 

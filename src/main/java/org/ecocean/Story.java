@@ -80,6 +80,7 @@ public class Story implements java.io.Serializable {
     public SinglePhotoVideo getCorrespondingThumbnailSinglePhotoVideo() {
         return correspondingThumbnailSinglePhotoVideo;
     }
+
     public void setCorrespondingThumbnailSinglePhotoVideo(SinglePhotoVideo thumb) {
         if (thumb != null) {
             this.correspondingThumbnailSinglePhotoVideo = thumb;

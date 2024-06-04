@@ -8,14 +8,14 @@ import org.ecocean.MailThreadExecutorService;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.NotificationMailer;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Shepherd;
 
 import java.io.*;
 import java.util.ArrayList;

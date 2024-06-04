@@ -114,7 +114,7 @@ public class LoginUserSocial extends javax.servlet.http.HttpServlet implements j
                         response.sendRedirect("login.jsp");
 
                         return;
-                    } else {            // we found a matching user!
+                    } else { // we found a matching user!
                         username = fbuser.getUsername();
                         hashedPassword = fbuser.getPassword();
                         System.out.println("found a user that matched fb id: " + username);

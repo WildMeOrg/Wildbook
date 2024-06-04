@@ -1,8 +1,8 @@
 package org.ecocean.grid;
 
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
+import java.util.Vector;
 import javax.jdo.Query;
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {

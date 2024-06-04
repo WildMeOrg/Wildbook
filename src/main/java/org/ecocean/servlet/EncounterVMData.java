@@ -66,7 +66,7 @@ public class EncounterVMData extends HttpServlet {
                             "matchID"));
                         // System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
                         MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
-                        if (indiv == null) {                  // must have sent a new one
+                        if (indiv == null) { // must have sent a new one
                             indiv = new MarkedIndividual(matchID, enc);
                             myShepherd.getPM().makePersistent(indiv);
 
@@ -110,7 +110,7 @@ public class EncounterVMData extends HttpServlet {
                     String[] fields = { "locationID", "sex", "patterningCode" };
                     for (String f : fields) {
                         String val = request.getParameter(f);
-                        if (val != null) filter += " && " + f + " == '" + val + "'";                  // TODO safely quote!  sql injection etc
+                        if (val != null) filter += " && " + f + " == '" + val + "'"; // TODO safely quote!  sql injection etc
                     }
                     String mma = request.getParameter("mmaCompatible");
                     if ((mma != null) && !mma.equals("")) {
@@ -194,7 +194,7 @@ public class EncounterVMData extends HttpServlet {
                     rtn.put("mmaCompatible", enc.getMmaCompatible());
                     // if (!images.isEmpty()) rtn.put("images", images);
                 }
-            }     // end try
+            } // end try
             catch (Exception e) {
                 e.printStackTrace();
             } finally {

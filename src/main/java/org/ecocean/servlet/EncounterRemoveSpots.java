@@ -1,5 +1,7 @@
 package org.ecocean.servlet;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,12 +9,10 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.grid.GridManagerFactory;
-import org.ecocean.Shepherd;
-import java.io.IOException;
-import java.io.PrintWriter;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.Shepherd;
 
 public class EncounterRemoveSpots extends HttpServlet {
     public void init(ServletConfig config)

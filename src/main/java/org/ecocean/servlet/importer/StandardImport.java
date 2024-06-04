@@ -912,7 +912,7 @@ public class StandardImport extends HttpServlet {
             List<String> configuredSpecies = CommonConfiguration.getIndexedPropertyValues(
                 "genusSpecies", myShepherd.getContext());
             if (configuredSpecies != null && configuredSpecies.size() > 0 &&
-                configuredSpecies.toString().indexOf(enc.getTaxonomyString()) < 0) {
+                configuredSpecies.toString().replaceAll("_"," ").indexOf(enc.getTaxonomyString()) < 0) {
                 // if bad values
                 feedback.logParseError(getColIndexFromColName("Encounter.genus", colIndexMap),
                     genus, row, "UNSUPPORTED VALUE: " + genus);
@@ -2238,7 +2238,8 @@ public class StandardImport extends HttpServlet {
 
     public Double getDouble(Row row, int i, TabularFeedback feedback) {
         String originalString = null; // i'd like to make a copy of what actually resides in the field for feedback before i try to crush it into a
-                                      // double
+
+        // double
 
         try {
             // maybe things will just be perfect
