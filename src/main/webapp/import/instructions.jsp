@@ -20,10 +20,10 @@ String context = ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 System.out.println("Starting instructions.jsp !");
 
-String subdir = UploadServlet.getSubdirForUpload(request);
-UploadServlet.setSubdirForUpload(subdir, request);
+//String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+//UploadServlet.setSubdirForUpload(subdir, request);
 
-String dirName = UploadServlet.getUploadDir(request);
+//String dirName = UploadServlet.getUploadDir(request);
 
 String wbName = ContextConfiguration.getNameForContext(context);
 
