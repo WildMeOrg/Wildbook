@@ -435,8 +435,8 @@ try {
 
     myShepherd.beginDBTransaction();
 
-    numMarkedIndividuals=myShepherd.getMarkedIndividualsByGUID("NCAquariums").size();
-    numEncounters=myShepherd.getEncountersByGUID("NCAquariums").size();
+    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
 
     //numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
@@ -565,7 +565,7 @@ finally{
             <!-- Random user profile to select -->
             <%
             myShepherd.beginDBTransaction();
-            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
+            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             // The above limits to SASUSA users... but none have both image and statement. Only Sean B from AUS!
             //User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
             if(featuredUser!=null){
@@ -614,7 +614,7 @@ finally{
 
                        <%
                        try {
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDateNCAquariums(3);
+                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        for(int i=0;i<numResults;i++){
