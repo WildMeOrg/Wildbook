@@ -363,11 +363,11 @@
       <field name="state" persistence-modifier="persistent">
         <column length="128"/>
       </field>
-
+<!--
       <field name="charterOperator" persistence-modifier="persistent">
         <column length="256"/>
       </field>
-
+-->
       <field name="photographerEmail" persistence-modifier="persistent">
         <column length="256"/>
       </field>
