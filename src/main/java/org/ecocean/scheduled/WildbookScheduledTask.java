@@ -7,7 +7,6 @@ import org.ecocean.Shepherd;
 import org.ecocean.Util;
 
 public abstract class WildbookScheduledTask implements java.io.Serializable {
-
     private static final long serialVersionUID = 1L;
 
     protected String id = Util.generateUUID();
@@ -18,7 +17,7 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
     protected String scheduledTaskType = "WildbookScheduledTask";
     protected String initiatorName = null;
 
-    public WildbookScheduledTask() {} //empty for jdo
+    public WildbookScheduledTask() {} // empty for jdo
 
     public String getId() {
         return id;
@@ -33,7 +32,7 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
     }
 
     public long getTaskCreatedLong() {
-      return taskCreatedLong;
+        return taskCreatedLong;
     }
 
     public long getTaskScheduledExecutionTimeLong() {
@@ -44,6 +43,7 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
         Instant instant = Instant.ofEpochMilli(getTaskScheduledExecutionTimeLong());
         LocalDateTime executionDate = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+
         return dtf.format(executionDate);
     }
 
@@ -61,17 +61,19 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
 
     public boolean isTaskEligibleForExecution() {
         final long currentTime = System.currentTimeMillis();
+
         return currentTime > taskScheduledExecutionTimeLong;
     }
-    
-    //Override in inheriting class
+
+    // Override in inheriting class
     public void execute() {
-        System.out.println("[WARN]: WildbookScheduledTask.execute() was called with no defined execution strategy for task type "+this.scheduledTaskType+". Failed.");
+        System.out.println(
+            "[WARN]: WildbookScheduledTask.execute() was called with no defined execution strategy for task type "
+            + this.scheduledTaskType + ". Failed.");
     }
-    
-    //Override in inheriting class
+
+    // Override in inheriting class
     public void execute(Shepherd myShepherd) {
         execute();
     }
-
 }
