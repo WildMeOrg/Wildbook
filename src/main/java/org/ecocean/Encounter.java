@@ -22,8 +22,8 @@ import java.util.Vector;
 
 import javax.jdo.Query;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -57,6 +57,9 @@ public class Encounter extends Base implements java.io.Serializable {
     static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+
+    @Override public String opensearchIndexName() { return "encounter"; }
+
     // at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
     public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
@@ -792,23 +795,21 @@ public class Encounter extends Base implements java.io.Serializable {
         mmaCompatible = b;
     }
 
-	/**
-	 * Returns Occurrence Remarks.
-	 * 
-	 * @return Occurrence Remarks String
-	 */
-    @Override
-    public String getComments() {
+    /**
+     * Returns Occurrence Remarks.
+     *
+     * @return Occurrence Remarks String
+     */
+    @Override public String getComments() {
         return occurrenceRemarks;
     }
 
     /**
      * Sets the initially submitted comments about markings and additional details on the shark.
-     * 
+     *
      * @param newComments Occurrence remarks to set
      */
-    @Override
-    public void setComments(String newComments) {
+    @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
     }
 
@@ -826,8 +827,7 @@ public class Encounter extends Base implements java.io.Serializable {
      *
      * @param newComments any additional comments to be added to the encounter
      */
-    @Override
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
             researcherComments += newComments;
         } else {
@@ -2062,23 +2062,21 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     /**
-	 * Retrieves the Catalog Number.
-	 * 
-	 * @return Catalog Number String
-	 */
-    @Override
-    public String getId() {
+     * Retrieves the Catalog Number.
+     *
+     * @return Catalog Number String
+     */
+    @Override public String getId() {
         return catalogNumber;
     }
-    
+
     /**
-	 * Sets the Catalog Number.
-	 * 
-	 * @param newNumber The Catalog Number to set.
-	 */
-    @Override
-    public void setId(String newNumber) {
-    	this.catalogNumber = newNumber;
+     * Sets the Catalog Number.
+     *
+     * @param newNumber The Catalog Number to set.
+     */
+    @Override public void setId(String newNumber) {
+        this.catalogNumber = newNumber;
     }
 
     /**
@@ -4027,9 +4025,8 @@ public class Encounter extends Base implements java.io.Serializable {
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
-    
-	@Override
-	public long getVersion() {
-		return Util.getVersionFromModified(modified);
-	}
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
 }
