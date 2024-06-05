@@ -8,6 +8,7 @@ java.io.InputStreamReader,
 java.io.File,
 org.json.JSONObject,
 
+org.ecocean.Util,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.Encounter,
 org.ecocean.OpenSearch,
@@ -29,8 +30,10 @@ myShepherd.beginDBTransaction();
 
 
 Encounter enc = new Encounter();
+enc.setId(Util.generateUUID());
 enc.opensearchCreateIndex();
-out.println(enc.opensearchIndexName());
+enc.opensearchIndex();
+//out.println(enc.opensearchIndexName());
 /*
 OpenSearch os = new OpenSearch();
 out.println(os.client);
