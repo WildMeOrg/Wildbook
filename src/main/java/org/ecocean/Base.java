@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -8,7 +9,7 @@ import org.json.JSONObject;
  *
  * @author nishanth_nattoji
  */
-public abstract class Base {
+@JsonSerialize(using = BaseSerializer.class) public abstract class Base {
     /**
      * Retrieves Id, such as:
      *
@@ -82,6 +83,6 @@ public abstract class Base {
     throws java.io.IOException {
         OpenSearch opensearch = new OpenSearch();
 
-        opensearch.index(this.opensearchDocument(), this.opensearchIndexName());
+        opensearch.index(this, this.opensearchIndexName());
     }
 }
