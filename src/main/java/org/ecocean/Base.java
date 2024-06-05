@@ -64,14 +64,6 @@ import org.json.JSONObject;
 
     public abstract String opensearchIndexName();
 
-    public JSONObject opensearchDocument() {
-        JSONObject json = new JSONObject();
-
-        json.put("id", this.getId());
-        json.put("bar", 123);
-        return json;
-    }
-
     public void opensearchCreateIndex()
     throws java.io.IOException {
         OpenSearch opensearch = new OpenSearch();
