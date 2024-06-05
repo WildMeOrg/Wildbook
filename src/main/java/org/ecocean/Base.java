@@ -66,7 +66,7 @@ public abstract class Base {
     public JSONObject opensearchDocument() {
         JSONObject json = new JSONObject();
 
-        json.put("foo", this.getId());
+        json.put("id", this.getId());
         json.put("bar", 123);
         return json;
     }

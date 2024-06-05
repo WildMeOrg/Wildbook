@@ -59,6 +59,8 @@ import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.IndexResponse;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
+import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
 import org.opensearch.client.transport.OpenSearchTransport;
@@ -141,6 +143,33 @@ public class OpenSearch {
             indexName).build();
 
         client.indices().create(createIndexRequest);
+        System.out.println(indexName + " OpenSearch index created");
+    }
+
+    public void ensureIndex(String indexName)
+    throws java.io.IOException {
+        if (existsIndex(indexName)) return;
+        createIndex(indexName);
+    }
+
+    public void deleteIndex(String indexName)
+    throws java.io.IOException {
+        DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder().index(
+            indexName).build();
+
+        // DeleteIndexResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest);
+        client.indices().delete(deleteIndexRequest);
+        System.out.println(indexName + " OpenSearch index deleted");
+    }
+
+    public boolean existsIndex(String indexName) {
+        try {
+            client.indices().get(i -> i.index(indexName));
+            return true;
+        } catch (Exception ex) {
+            System.out.println("existsIndex(" + indexName + "): " + ex.toString());
+        }
+        return false;
     }
 
     public void index(JSONObject jobj, String indexName)
@@ -148,6 +177,7 @@ public class OpenSearch {
         String id = jobj.optString("id", null);
 
         if (id == null) throw new RuntimeException("must have id property to index");
+        ensureIndex(indexName);
         IndexRequest<JSONObject> indexRequest = new IndexRequest.Builder<JSONObject>()
                 .index(indexName)
                 .id(id)
