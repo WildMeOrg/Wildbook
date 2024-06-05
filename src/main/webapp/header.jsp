@@ -57,8 +57,29 @@
              java.util.Properties,
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
-             org.ecocean.ContextConfiguration
+             org.ecocean.ContextConfiguration,
+             org.slf4j.Logger,org.slf4j.LoggerFactory
               "
+%>
+
+<%
+    if ("logout".equals(request.getParameter("action"))) {
+        System.out.println("Logging out");
+        response.setHeader("Cache-Control", "no-cache"); 
+        response.setHeader("Cache-Control", "no-store"); 
+        response.setDateHeader("Expires", 0); 
+        response.setHeader("Pragma", "no-cache"); 
+
+        Logger log = LoggerFactory.getLogger(getClass());
+
+        if (request.getRemoteUser() != null) {
+            log.info(request.getRemoteUser() + " logged out.");
+        }
+        session.invalidate();
+
+        response.sendRedirect(request.getContextPath() + "/react/login/");
+        return;
+    }
 %>
 
 <%
@@ -140,6 +161,12 @@ if(request.getUserPrincipal()!=null){
         gtag('config', 'UA-30944767-12');
       </script>
 
+      <script>
+        function logoutAndRedirect() {
+            window.location.href = '<%= request.getContextPath() %>/header.jsp?action=logout';
+        }
+    </script>
+
       <!-- Google Tag Manager -->
       <script>(function (w, d, s, l, i) {
           w[l] = w[l] || []; w[l].push({
@@ -188,6 +215,7 @@ if(request.getUserPrincipal()!=null){
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/header.css" type="text/css"/>
+      <link rel="stylesheet" href="<%=urlLoc %>/css/footer.css" type="text/css"/>
 
         <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
         <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
@@ -219,6 +247,19 @@ if(request.getUserPrincipal()!=null){
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
     
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $('.navbar .dropdown').hover(
+            function() {
+              $(this).find('.dropdown-menu').first().stop(true, true).delay(250).show();
+            },
+            function() {
+              $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
+            }
+          );
+        });sssssss
+      </script>
+
       <%
         if(user != null && !loggingOut){
       %>
@@ -227,11 +268,7 @@ if(request.getUserPrincipal()!=null){
         $(document).ready(function()
 
         {       
-          $('.navbar .dropdown').hover(function() {
-              $(this).find('.dropdown-menu').first().stop(true, true).delay(250).show();
-          }, function() {            
-              $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
-          });
+          
 
             var warningTime = <%= sessionWarningTime %>; // Session warning time in minutes.
             var activityTimeout = warningTime * 60 * 1000; // Convert warning time to milliseconds.
@@ -410,29 +447,23 @@ if(request.getUserPrincipal()!=null){
       <!-- End Google Tag Manager (noscript) -->
 
         <!-- ****header**** -->
-        <header class="page-header clearfix" style="padding-top: 0px;padding-bottom:0px;">
-            <nav class="navbar navbar-default navbar-fixed-top" >
-              <div class="header-top-wrapper">
+        <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
+            <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+              <%-- <div class="header-top-wrapper">
                 <div class="container" >                
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
                 </div>
-              </div>
+              </div> --%>
 
-              <div style="background-color: #303336; height: 100%">
+              <div style="height: 100%">
                 <div class="container" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
-                <%-- <a  class="navbar-brand" target="_blank" href="<%=urlLoc %>"></a> --%>
-                <svg width="61.33" height="60" viewBox="0 0 92 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M2.32871 1.81909H26.3194L57.3865 45.802L45.2227 62.5228L26.3194 89.785H0.51123L33.4076 45.802L2.32871 1.81909Z" fill="white"/>
-  <path d="M64.4872 0L48.8569 22.9002L61.9428 41.075L91.0224 0H64.4872Z" fill="white"/>
-  <path d="M63.8434 90L48.2131 67.0998L61.299 48.925L90.3786 90H63.8434Z" fill="white"/>
-</svg>
-
-
-                <a class="site-name" target="_blank" href="<%=urlLoc %>">
-                    <%-- <%=props.getProperty("siteName")%> --%>
-                    Amphibian Wildbook
+                <a class="nav-brand-1" target="_blank" href="<%=urlLoc %>">                
+                  <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
                 </a>
-<%-- class="navbar-brand" --%>
+                <a class="site-name" target="_blank" href="<%=urlLoc %>">
+                    <%=props.getProperty("siteName")%>                    
+                </a>                        
+                
                   <div class="navbar-header clearfix">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                       <span class="sr-only">Toggle navigation</span>
@@ -478,11 +509,16 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-submenu">
-                            <a tabindex="-1" href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%></a>
+                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+</svg>
+                            </a>
+                            
                             <ul class="dropdown-menu">
                                 <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
                                 <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
-                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> --%>
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
                           
                             </ul>
                             </li>
@@ -541,10 +577,11 @@ if(request.getUserPrincipal()!=null){
                           </ul>
                         </li>
                       </ul>
+                      
 
                   </div>
 
-                  <div id="notifications"></div>
+                  
 
                   <script>
                     var mySvg = `
@@ -564,7 +601,17 @@ if(request.getUserPrincipal()!=null){
                 
                 <div class="search-and-secondary-wrapper" 
                 >
-                    
+                    <div id="notifications">
+                    <%
+                        if(user != null && !loggingOut){                
+                      %>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
+  <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
+</svg><%=notifications %>
+                <%
+                        }
+                %>
+</div>
 
                       <%
                         if(user != null && !loggingOut){
@@ -583,9 +630,8 @@ if(request.getUserPrincipal()!=null){
                               <ul class="dropdown-menu">
                               <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
                                   <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
-                                  <li><a href="<%=urlLoc %>/logout.jsp">Logout</a></li>
-                              </ul>
-                         
+                                  <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                              </ul>                 
 
 
 
