@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import org.ecocean.OpenSearch;
+import org.json.JSONObject;
 
 /**
  * Base class for other classes such as Encounter.java, Occurrence.java, and MarkedIndividual.java
@@ -62,8 +63,25 @@ public abstract class Base {
 
     public abstract String opensearchIndexName();
 
-    public void opensearchCreateIndex() {
+    public JSONObject opensearchDocument() {
+        JSONObject json = new JSONObject();
+
+        json.put("foo", this.getId());
+        json.put("bar", 123);
+        return json;
+    }
+
+    public void opensearchCreateIndex()
+    throws java.io.IOException {
         OpenSearch opensearch = new OpenSearch();
-        String indexName = opensearchIndexName();
+
+        opensearch.createIndex(opensearchIndexName());
+    }
+
+    public void opensearchIndex()
+    throws java.io.IOException {
+        OpenSearch opensearch = new OpenSearch();
+
+        opensearch.index(this.opensearchDocument(), this.opensearchIndexName());
     }
 }
