@@ -29,7 +29,6 @@ package org.ecocean;
 import java.io.StringReader;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import org.json.JSONObject;
 
 /*
    import org.apache.hc.client5.http.auth.AuthScope;
@@ -123,20 +122,9 @@ public class OpenSearch {
         System.out.println("got client???? " + client);
     }
 
-/*
-    public static void init(HttpServletRequest request) {
-        init(ServletUtilities.getContext(request));
-    }
+// http://localhost:9200/encounter/_search?pretty=true&q=*:*
+// http://localhost:9200/_cat/indices?v
 
-    // should be called once -- sets up credentials for REST calls
-    public static void init(String context) {
-        if (props == null)
-            props = ShepherdProperties.getProperties("opensearch.properties", "", context);
-        if (props == null) throw new RuntimeException("no opensearch.properties");
-        apiUsername = props.getProperty("apiUsername");
-        apiPassword = props.getProperty("apiPassword");
-    }
- */
     public void createIndex(String indexName)
     throws java.io.IOException {
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
@@ -172,16 +160,16 @@ public class OpenSearch {
         return false;
     }
 
-    public void index(JSONObject jobj, String indexName)
+    public void index(Base obj, String indexName)
     throws java.io.IOException {
-        String id = jobj.optString("id", null);
+        String id = obj.getId();
 
         if (id == null) throw new RuntimeException("must have id property to index");
         ensureIndex(indexName);
-        IndexRequest<JSONObject> indexRequest = new IndexRequest.Builder<JSONObject>()
+        IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
                 .id(id)
-                .document(jobj)
+                .document(obj)
                 .build();
         IndexResponse indexResponse = client.index(indexRequest);
         System.out.println(String.format("Document %s.",
