@@ -6,6 +6,7 @@
 .navbar .dropdown-toggle {
   color: white !important;
   font-size: 16px !important;
+  white-space: nowrap;
 }
 
 .navbar-collapse {
@@ -19,7 +20,7 @@
 
 .navbar-nav {
   display: flex;  
-  padding-left: 50px;
+  padding-left: 20px;
   padding-right: 50px;    
   flex-grow: 1;        
   justify-content: space-between; 
@@ -44,16 +45,16 @@
   font-weight: normal;
 }
 
-.navbar .navbar-nav .dropdown-menu > li> a:hover{
-    background-color: red !important; 
-    border-bottom: 2px solid yellow; 
-    box-sizing: border-box;
+.navbar .dropdown-menu > li> a:hover{
+    background-color: #CCF0FF !important; 
+    box-sizing: border-box;    
+    background-image: none;    
 }
-.navbar .navbar-nav .dropdown-menu > li:hover{
+/* .navbar .navbar-nav .dropdown-menu > li:hover{
   background-color: red !important; 
-  border-bottom: 2px solid yellow; 
+  border-bottom: 2px solid green; 
   box-sizing: border-box;
-}
+} */
 
 .dropdown-submenu {
   position: relative;
@@ -78,6 +79,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: 10px;
 }
 .custom-select {
   position: relative;
@@ -138,7 +140,7 @@
 }
 
 .profile-wrapper{
-  width: 40px;
+  width: 30px;
   height: 40px;
   display: flex;
   align-items: center;
@@ -170,15 +172,26 @@
 }
 
 .site-name {
-  width: 250px;
+  /* width: 250px; */
   /* height: 100%; */
-  max-height: 80px;
-  margin-left: 20px;
+  max-height: 60px;
+  margin-right: 100px;
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
+}
+
+.nav-brand-1 {
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 60px;
+  max-height: 60px;
+  margin-left: auto;
+  margin-right: 10px;
+  display: block !important;
+  /* background: url(../cust/mantamatcher/img/flukebook_logo_white.svg) no-repeat center;  */
 }
 
 .site-name:hover {
