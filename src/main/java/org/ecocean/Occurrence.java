@@ -38,6 +38,7 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      */
     private static final long serialVersionUID = -7545783883959073726L;
+    @Override public String opensearchIndexName() { return "occurrence"; }
     private String occurrenceID;
     private ArrayList<Encounter> encounters;
     private List<MediaAsset> assets;
@@ -428,28 +429,26 @@ public class Occurrence extends Base implements java.io.Serializable {
     }
 
     /**
-	 * Retrieves the Occurrence Id.
-	 * 
-	 * @return Occurrence Id String
-	 */
-    @Override
-    public String getId() {
+     * Retrieves the Occurrence Id.
+     *
+     * @return Occurrence Id String
+     */
+    @Override public String getId() {
         return occurrenceID;
     }
-    
+
     /**
      * Sets the Occurrence Id.
-     * 
+     *
      * @param id The Occurrence Id to set
      */
-    @Override
-	public void setId(String id) {
-    	occurrenceID = id;
-	}
+    @Override public void setId(String id) {
+        occurrenceID = id;
+    }
 
     /**
      * ##DEPRECATED #509 - Base class setId() method
-     */ 
+     */
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -516,24 +515,22 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public String getComments() {
+    @Override public String getComments() {
         if (comments != null) {
             return comments;
         } else {
             return "None";
         }
     }
-    
+
     /**
      * Sets any additional, general comments recorded for this Occurrence as a whole.
      *
      * @return a String of comments
      */
-    @Override
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
+    @Override public void setComments(String comments) {
+        this.comments = comments;
+    }
 
     /**
      * Returns any additional, general comments recorded for this Occurrence as a whole.
@@ -553,8 +550,7 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         if ((comments != null) && (!(comments.equals("None")))) {
             comments += newComments;
         } else {
@@ -1426,9 +1422,8 @@ public class Occurrence extends Base implements java.io.Serializable {
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
     }
-    
-    @Override
-	public long getVersion() {
-    	return Util.getVersionFromModified(modified);
-	}
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
 }
