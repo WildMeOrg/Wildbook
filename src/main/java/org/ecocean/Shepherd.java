@@ -469,8 +469,7 @@ public class Shepherd {
      * @see Encounter
      */
     public void throwAwayEncounter(Encounter enc) {
-        String number = enc.getEncounterNumber();
-
+        enc.opensearchUnindexQuiet();
         pm.deletePersistent(enc);
     }
 
@@ -539,8 +538,9 @@ public class Shepherd {
         pm.deletePersistent(word);
     }
 
-    public void throwAwayOccurrence(Occurrence word) {
-        pm.deletePersistent(word);
+    public void throwAwayOccurrence(Occurrence occ) {
+        occ.opensearchUnindexQuiet();
+        pm.deletePersistent(occ);
     }
 
     public void throwAwayProject(Project project) {
@@ -562,7 +562,7 @@ public class Shepherd {
      * @see MarkedIndividual
      */
     public void throwAwayMarkedIndividual(MarkedIndividual bye_bye_sharky) {
-        // String name=bye_bye_sharky.getName();
+        bye_bye_sharky.opensearchUnindexQuiet();
         pm.deletePersistent(bye_bye_sharky);
     }
 

@@ -310,6 +310,16 @@ public class OpenSearch {
 
     public void delete(String indexName, String id)
     throws IOException {
+        if (!existsIndex(indexName)) return;
         client.delete(b -> b.index(indexName).id(id));
+        System.out.println("deleted id=" + id + " from OpenSearch index " + indexName);
+    }
+
+    public void delete(String indexName, Base obj)
+    throws IOException {
+        String id = obj.getId();
+
+        if (id == null) throw new RuntimeException("must have id property to delete");
+        delete(indexName, id);
     }
 }

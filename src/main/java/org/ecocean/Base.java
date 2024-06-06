@@ -83,6 +83,22 @@ import org.json.JSONObject;
         opensearch.index(this.opensearchIndexName(), this);
     }
 
+    public void opensearchUnindex()
+    throws IOException {
+        OpenSearch opensearch = new OpenSearch();
+
+        opensearch.delete(this.opensearchIndexName(), this);
+    }
+
+    public void opensearchUnindexQuiet() {
+        try {
+            this.opensearchUnindex();
+        } catch (IOException ex) {
+            System.out.println("opensearchUnindexQuiet swallowed " + ex);
+            ex.printStackTrace();
+        }
+    }
+
     // should be overridden
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
