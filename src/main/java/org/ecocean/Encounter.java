@@ -25,6 +25,8 @@ import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
@@ -4024,6 +4026,12 @@ public class Encounter extends Base implements java.io.Serializable {
     public int hashCode() { // we need this along with equals() for collections methods (contains etc) to work!!
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen);
+        jgen.writeNumberField("numberAnnotations", this.numAnnotations());
     }
 
     @Override public long getVersion() {
