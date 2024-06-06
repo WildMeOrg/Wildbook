@@ -79,6 +79,15 @@
 								"locationID": []
 							},
 							{
+								"name": "Bowen Island, Jervis Bay",
+								"id": "Bowen Island, Jervis Bay",
+								"geospatialInfo": {
+									"lat": -35.115386869281544,
+									"long": 150.76506551356107
+								},
+								"locationID": []
+							},
+							{
 								"name": "Broughton Island",
 								"id": "BI",
 								"geospatialInfo":{
