@@ -1,7 +1,10 @@
 package org.ecocean;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.IOException;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -67,16 +70,23 @@ import org.json.JSONObject;
     public abstract String opensearchIndexName();
 
     public void opensearchCreateIndex()
-    throws java.io.IOException {
+    throws IOException {
         OpenSearch opensearch = new OpenSearch();
 
         opensearch.createIndex(opensearchIndexName());
     }
 
     public void opensearchIndex()
-    throws java.io.IOException {
+    throws IOException {
         OpenSearch opensearch = new OpenSearch();
 
         opensearch.index(this.opensearchIndexName(), this);
+    }
+
+    // should be overridden
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        jgen.writeStringField("id", this.getId());
+        jgen.writeNumberField("version", this.getVersion());
     }
 }

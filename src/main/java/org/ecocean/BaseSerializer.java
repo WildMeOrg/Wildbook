@@ -19,8 +19,7 @@ public class BaseSerializer extends StdSerializer<Base> {
     @Override public void serialize(Base obj, JsonGenerator jgen, SerializerProvider provider)
     throws IOException, JsonProcessingException {
         jgen.writeStartObject();
-        jgen.writeStringField("id", obj.getId());
-        jgen.writeNumberField("fubar", 1234);
+        obj.opensearchDocumentSerializer(jgen);
         jgen.writeEndObject();
     }
 }
