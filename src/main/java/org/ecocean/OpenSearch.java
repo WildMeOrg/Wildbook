@@ -133,7 +133,6 @@ public class OpenSearch {
             new JacksonJsonpMapper());
 
         client = new OpenSearchClient(transport);
-        System.out.println("got client???? " + client);
     }
 
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
@@ -252,6 +251,36 @@ public class OpenSearch {
         searchRequest.setJsonEntity(data.toString());
         String rtn = getRestResponse(searchRequest);
         return new JSONObject(rtn);
+    }
+
+    public List<Base> queryResultsToObjects(Shepherd myShepherd, String indexName,
+        final JSONObject results)
+    throws IOException {
+        JSONArray jarr = null;
+
+        try {
+            jarr = results.getJSONObject("hits").getJSONArray("hits");
+        } catch (Exception ex) {
+            System.out.println(ex);
+            throw new IOException("could not parse results");
+        }
+        List<Base> list = new ArrayList<Base>();
+        for (int i = 0; i < jarr.length(); i++) {
+            Base obj = null;
+            if ("encounter".equals(indexName)) {
+                obj = myShepherd.getEncounter(jarr.optJSONObject(i).optString("_id", "__FAIL__"));
+            } else if ("occurrence".equals(indexName)) {
+                obj = myShepherd.getEncounter(jarr.optJSONObject(i).optString("_id", "__FAIL__"));
+            } else if ("individual".equals(indexName)) {
+                obj = myShepherd.getEncounter(jarr.optJSONObject(i).optString("_id", "__FAIL__"));
+            }
+            if (obj == null) {
+                System.out.println("failed to load " + indexName + " object: " + jarr.get(i));
+            } else {
+                list.add(obj);
+            }
+        }
+        return list;
     }
 
 /*
