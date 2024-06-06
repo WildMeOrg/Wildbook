@@ -7,6 +7,9 @@
 
 		{"name":"Africa - South","id":"Africa - South","locationID":[
 		
+			{"name":"Great Limpopo TFCA","id":"Great Limpopo TFCA","locationID":[]},
+			{"name":"KAZA TFCA","id":"KAZA TFCA","locationID":[]},
+
 			{"name":"Angola","id":"Angola","locationID":[]},
 			{"name":"Botswana","id":"Botswana","locationID":[]},
 			{"name":"Eswatini","id":"Eswatini","locationID":[]},
@@ -15,7 +18,16 @@
 			{"name":"Mozambique","id":"Mozambique","locationID":[]},
 			{"name":"Namibia","id":"Namibia","locationID":[]},
 			{"name":"South Africa","id":"South Africa","locationID":[
-				{"name":"Great Limpopo TFCA","id":"Great Limpopo TFCA","locationID":[]}
+				{"name":"Eastern Cape","id":"Eastern Cape","locationID":[]},
+				{"name":"Free State","id":"Free State","locationID":[]},
+				{"name":"Gauteng","id":"Gauteng","locationID":[]},
+				{"name":"Kwazulu-Natal","id":"Kwazulu-Natal","locationID":[]},
+				{"name":"Limpopo","id":"Limpopo","locationID":[]},
+				{"name":"Mpumalanga","id":"Mpumalanga","locationID":[]},
+				{"name":"North West","id":"North West","locationID":[]},
+				{"name":"Northern Cape","id":"Northern Cape","locationID":[]},
+				{"name":"Western Cape","id":"Western Cape","locationID":[]}
+
 			]},
 			{"name":"Zambia","id":"Zambia","locationID":[]},
 			{"name":"Zimbabwe","id":"Zimbabwe","locationID":[]}
