@@ -27,6 +27,8 @@ package org.ecocean;
    import org.apache.shiro.crypto.hash.Sha256Hash;
  */
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
@@ -69,9 +71,11 @@ import org.opensearch.client.transport.OpenSearchTransport;
 
 public class OpenSearch {
     public static OpenSearchClient client = null;
+    public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     // public static Properties props = null; // will be set by init()
 
     public OpenSearch() {
+        if (client != null) return;
         // System.setProperty("javax.net.ssl.trustStore", "/full/path/to/keystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password-to-keystore");
 
@@ -151,8 +155,10 @@ public class OpenSearch {
     }
 
     public boolean existsIndex(String indexName) {
+        if (INDEX_EXISTS_CACHE.get(indexName) != null) return true;
         try {
             client.indices().get(i -> i.index(indexName));
+            INDEX_EXISTS_CACHE.put(indexName, true);
             return true;
         } catch (Exception ex) {
             System.out.println("existsIndex(" + indexName + "): " + ex.toString());
@@ -171,8 +177,11 @@ public class OpenSearch {
                 .id(id)
                 .document(obj)
                 .build();
+        client.index(indexRequest);
+/*
         IndexResponse indexResponse = client.index(indexRequest);
-        System.out.println(String.format("Document %s.",
+        System.out.println(id + ": " + String.format("Document %s.",
             indexResponse.result().toString().toLowerCase()));
+ */
     }
 }
