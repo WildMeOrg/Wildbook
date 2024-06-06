@@ -26,8 +26,12 @@ package org.ecocean;
    import java.security.NoSuchAlgorithmException;
    import org.apache.shiro.crypto.hash.Sha256Hash;
  */
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -52,6 +56,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
+import org.opensearch.client.Request;
+import org.opensearch.client.Response;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
@@ -59,6 +65,8 @@ import org.opensearch.client.transport.rest_client.RestClientTransport;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.opensearch.core.IndexRequest;
 import org.opensearch.client.opensearch.core.IndexResponse;
+import org.opensearch.client.opensearch.core.SearchRequest;
+import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexRequest;
 import org.opensearch.client.opensearch.indices.DeleteIndexResponse;
@@ -71,6 +79,7 @@ import org.opensearch.client.transport.OpenSearchTransport;
 
 public class OpenSearch {
     public static OpenSearchClient client = null;
+    public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     // public static Properties props = null; // will be set by init()
 
@@ -118,7 +127,8 @@ public class OpenSearch {
  */
 
         /////final OpenSearchTransport transport = builder.build();
-        final RestClient restClient = RestClient.builder(host).build();
+        ///final RestClient restClient = RestClient.builder(host).build();
+        restClient = RestClient.builder(host).build();
         final OpenSearchTransport transport = new RestClientTransport(restClient,
             new JacksonJsonpMapper());
 
@@ -166,7 +176,7 @@ public class OpenSearch {
         return false;
     }
 
-    public void index(Base obj, String indexName)
+    public void index(String indexName, Base obj)
     throws java.io.IOException {
         String id = obj.getId();
 
@@ -183,5 +193,61 @@ public class OpenSearch {
         System.out.println(id + ": " + String.format("Document %s.",
             indexResponse.result().toString().toLowerCase()));
  */
+    }
+
+    // https://github.com/opensearch-project/opensearch-java/issues/824
+    // https://forum.opensearch.org/t/how-can-i-create-a-simple-match-query-using-java-client/7748/2
+    // https://forum.opensearch.org/t/java-client-searchrequest-query-building-for-neural-plugin/15895/4
+    public List<Base> queryx(String indexName, String query)
+    throws java.io.IOException {
+        List<Base> results = new ArrayList<Base>();
+        final SearchRequest request = new SearchRequest.Builder()
+                .index(indexName)
+                .from(0)
+                .size(200)
+            // .sort(sortOptions)
+                .trackScores(true)
+            // .query(q -> q.queryString("{}"))
+                .build();
+
+// Unnecessary casting/deserialisation imo
+// final var response = openSearchClient.search(request, ObjectNode.class);
+
+// Unnecessary conversion
+// final var str = objectMapper.writeValueAsString(response);
+
+        // SearchResponse<Base> searchResponse = client.search(request, Base.class);
+        SearchResponse<Base> searchResponse = client.search(s -> s.index(indexName), Base.class);
+
+        for (int i = 0; i < searchResponse.hits().hits().size(); i++) {
+            System.out.println(searchResponse.hits().hits().get(i).source());
+        }
+        return results;
+    }
+
+    public List<Base> queryRaw(String indexName, String query)
+    throws java.io.IOException {
+        // final RestClient restClient = RestClient.builder(host).build();
+
+        Request searchRequest = new Request("POST", indexName + "/_search");
+
+        // Set the query in the Json Entity, you can set your neural query here.
+        searchRequest.setJsonEntity("{\"query\": { \"match_all\": {} }}");
+        // Response response = restClient.performRequest(searchRequest);
+        Response response = restClient.performRequest(searchRequest);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+            response.getEntity().getContent(), "UTF-8"), 8);
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        System.out.println(sb);
+        return null;
+    }
+
+    public void delete(String indexName, String id)
+    throws java.io.IOException {
+        client.delete(b -> b.index(indexName).id(id));
     }
 }
