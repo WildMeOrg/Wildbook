@@ -17,10 +17,7 @@ package org.ecocean;
    import org.ecocean.movement.*;
    import org.ecocean.servlet.ServletUtilities;
    import org.joda.time.DateTime;
-   import org.json.JSONArray;
-   import org.json.JSONObject;
 
-   import java.io.IOException;
    import java.net.MalformedURLException;
    import java.security.InvalidKeyException;
    import java.security.NoSuchAlgorithmException;
@@ -28,6 +25,7 @@ package org.ecocean;
  */
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /*
    import org.apache.hc.client5.http.auth.AuthScope;
@@ -81,7 +81,7 @@ public class OpenSearch {
     public static OpenSearchClient client = null;
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
-    // public static Properties props = null; // will be set by init()
+    public static String SEARCH_SCROLL_TIME = "10m";
 
     public OpenSearch() {
         if (client != null) return;
@@ -140,7 +140,7 @@ public class OpenSearch {
 // http://localhost:9200/_cat/indices?v
 
     public void createIndex(String indexName)
-    throws java.io.IOException {
+    throws IOException {
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
             indexName).build();
 
@@ -149,13 +149,13 @@ public class OpenSearch {
     }
 
     public void ensureIndex(String indexName)
-    throws java.io.IOException {
+    throws IOException {
         if (existsIndex(indexName)) return;
         createIndex(indexName);
     }
 
     public void deleteIndex(String indexName)
-    throws java.io.IOException {
+    throws IOException {
         DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder().index(
             indexName).build();
 
@@ -177,7 +177,7 @@ public class OpenSearch {
     }
 
     public void index(String indexName, Base obj)
-    throws java.io.IOException {
+    throws IOException {
         String id = obj.getId();
 
         if (id == null) throw new RuntimeException("must have id property to index");
@@ -195,11 +195,12 @@ public class OpenSearch {
  */
     }
 
+/*
     // https://github.com/opensearch-project/opensearch-java/issues/824
     // https://forum.opensearch.org/t/how-can-i-create-a-simple-match-query-using-java-client/7748/2
     // https://forum.opensearch.org/t/java-client-searchrequest-query-building-for-neural-plugin/15895/4
     public List<Base> queryx(String indexName, String query)
-    throws java.io.IOException {
+    throws IOException {
         List<Base> results = new ArrayList<Base>();
         final SearchRequest request = new SearchRequest.Builder()
                 .index(indexName)
@@ -210,11 +211,11 @@ public class OpenSearch {
             // .query(q -> q.queryString("{}"))
                 .build();
 
-// Unnecessary casting/deserialisation imo
-// final var response = openSearchClient.search(request, ObjectNode.class);
+   // Unnecessary casting/deserialisation imo
+   // final var response = openSearchClient.search(request, ObjectNode.class);
 
-// Unnecessary conversion
-// final var str = objectMapper.writeValueAsString(response);
+   // Unnecessary conversion
+   // final var str = objectMapper.writeValueAsString(response);
 
         // SearchResponse<Base> searchResponse = client.search(request, Base.class);
         SearchResponse<Base> searchResponse = client.search(s -> s.index(indexName), Base.class);
@@ -224,30 +225,62 @@ public class OpenSearch {
         }
         return results;
     }
+ */
 
-    public List<Base> queryRaw(String indexName, String query)
-    throws java.io.IOException {
-        // final RestClient restClient = RestClient.builder(host).build();
+    // https://opensearch.org/docs/2.3/opensearch/search/paginate/
+    public JSONObject queryRawScroll(String indexName, final JSONObject query, int pageSize)
+    throws IOException {
+        Request searchRequest = new Request("POST",
+            indexName + "/_search?scroll=" + SEARCH_SCROLL_TIME);
 
+        query.put("size", pageSize);
+        searchRequest.setJsonEntity(query.toString());
+        String rtn = getRestResponse(searchRequest);
+        return new JSONObject(rtn);
+    }
+
+    // this expects only json passed in, which is to continue paging on results from above
+    public JSONObject queryRawScroll(JSONObject scrollData)
+    throws IOException {
+        if (scrollData == null) throw new IOException("null data passed");
+        String scrollId = scrollData.optString("_scroll_id", null);
+        if (scrollData == null) throw new IOException("no _scroll_id");
+        JSONObject data = new JSONObject();
+        data.put("scroll", SEARCH_SCROLL_TIME);
+        data.put("scroll_id", scrollId);
+        Request searchRequest = new Request("POST", "_search/scroll");
+        searchRequest.setJsonEntity(data.toString());
+        String rtn = getRestResponse(searchRequest);
+        return new JSONObject(rtn);
+    }
+
+/*
+    public JSONObject queryRaw(String indexName, String query)
+    throws IOException {
         Request searchRequest = new Request("POST", indexName + "/_search");
 
-        // Set the query in the Json Entity, you can set your neural query here.
         searchRequest.setJsonEntity("{\"query\": { \"match_all\": {} }}");
-        // Response response = restClient.performRequest(searchRequest);
-        Response response = restClient.performRequest(searchRequest);
+        String rtn = getRestResponse(searchRequest);
+        System.out.println(rtn);
+        return new JSONObject(rtn);
+    }
+ */
+    private String getRestResponse(Request request)
+    throws IOException {
+        Response response = restClient.performRequest(request);
         BufferedReader reader = new BufferedReader(new InputStreamReader(
             response.getEntity().getContent(), "UTF-8"), 8);
         StringBuilder sb = new StringBuilder();
         String line = null;
+
         while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
+            sb.append(line);
         }
-        System.out.println(sb);
-        return null;
+        return sb.toString();
     }
 
     public void delete(String indexName, String id)
-    throws java.io.IOException {
+    throws IOException {
         client.delete(b -> b.index(indexName).id(id));
     }
 }
