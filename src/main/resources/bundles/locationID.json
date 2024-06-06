@@ -85,6 +85,12 @@
  			 },
 			"locationID": [
 				{
+					"name": "Amboseli Ecosystem",
+					"id": "Amboseli Ecosystem",
+					"prefix": "KEN_AMNP_",
+					"prefixDigitPadding": 4
+				},
+				{
     "name": "Athi-Kapiti Plains",
     "id": "Athi-Kapiti Plains",
     "description": "Athi-Kapiti Plains",
@@ -440,6 +446,12 @@
 							"prefixDigitPadding": 3
 						},
 						{
+							"name": "Gotu Conservancy",
+							"id": "Gotu Conservancy",
+							"prefix": "GOT",
+							"prefixDigitPadding": 3
+						},
+						{
 							"name": "Il Mamusi",
 							"id": "Il Mamusi",
 							"prefix": "IlMa",
@@ -455,6 +467,12 @@
 							"name": "Il Ngwesi",
 							"id": "Il Ngwesi",
 							"prefix": "IlNg",
+							"prefixDigitPadding": 3
+						},
+						{
+							"name": "Kinna Conservancy",
+							"id": "Kinna Conservancy",
+							"prefix": "KIN",
 							"prefixDigitPadding": 3
 						},
 						{
@@ -487,6 +505,12 @@
 							"name": "Loldaiga",
 							"id": "Loldaiga",
 							"prefix": "lol",
+							"prefixDigitPadding": 3
+						},
+						{
+							"name": "Melako Conservancy",
+							"id": "Melako Conservancy",
+							"prefix": "MEL",
 							"prefixDigitPadding": 3
 						},
 						{
@@ -590,7 +614,19 @@
 							"description": "Sera Conservancy",
 							"prefix": "SER",
 							"prefixDigitPadding": 3
-						},						
+						},
+						{
+							"name": "Shaba National Reserve",
+							"id": "Shaba National Reserve",
+							"prefix": "SHA",
+							"prefixDigitPadding": 3
+						},	
+						{
+							"name": "Shurr Conservancy",
+							"id": "Shurr Conservancy",
+							"prefix": "SHU",
+							"prefixDigitPadding": 3
+						},			
 						{
 							"name": "Solio Ranch Conservancy",
 							"prefix": "sol",
