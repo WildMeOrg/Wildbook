@@ -1,29 +1,3 @@
-<%-- <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
-<head>
-    <title>Your Page Title</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-</head>
-<body>
-
-    <div id="react-header"></div>
-
-    <script src="/react/header.bundle.js" ></script>
-
-    <script>
-    console.log("getting react header");
-        ReactDOM.render(
-            React.createElement(AuthenticatedAppHeader, null),
-            document.getElementById('react-header')
-        );
-    </script>
-
-</body>
-</html> --%>
-
-
-
 <%--
   ~ Wildbook - A Mark-Recapture Framework
   ~ Copyright (C) 2008-2015 Jason Holmberg
@@ -163,7 +137,7 @@ if(request.getUserPrincipal()!=null){
 
       <script>
         function logoutAndRedirect() {
-            window.location.href = '<%= request.getContextPath() %>/header.jsp?action=logout';
+            window.location.href = 'header.jsp?action=logout';
         }
     </script>
 
@@ -257,7 +231,7 @@ if(request.getUserPrincipal()!=null){
               $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
             }
           );
-        });sssssss
+        });
       </script>
 
       <%
@@ -449,15 +423,9 @@ if(request.getUserPrincipal()!=null){
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
             <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
-              <%-- <div class="header-top-wrapper">
-                <div class="container" >                
-                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
-                </div>
-              </div> --%>
-
-              <div style="height: 100%">
+              <div class="nav-bar-wrapper" style="height: 100%; background-color: transparent">
                 <div class="container" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
-                <a class="nav-brand-1" target="_blank" href="<%=urlLoc %>">                
+                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
                   <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
@@ -612,46 +580,6 @@ if(request.getUserPrincipal()!=null){
                         }
                 %>
 </div>
-
-                      <%
-                        if(user != null && !loggingOut){
-                            try {
-                              String fullname=request.getUserPrincipal().toString();
-                              if (user.getFullName()!=null) fullname=user.getFullName();
-
-
-                      %>
-
-                              
-                             
-                              <div class="profile-wrapper">
-                                <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
-                                </div>
-                              <ul class="dropdown-menu">
-                              <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
-                                  <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
-                                  <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
-                              </ul>                 
-
-
-
-
-                              <%
-                            }
-                            catch(Exception e){e.printStackTrace();}
-                        }
-                        else{
-                        %>
-
-                          <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
-                        <%
-                        }
-
-                      %>
-
-
-
-
 
                       <%
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
@@ -862,8 +790,47 @@ if(request.getUserPrincipal()!=null){
                       </label>
                     </div> --%>
                   </div>
+                  <%
+                        if(user != null && !loggingOut){
+                            try {
+                              String fullname=request.getUserPrincipal().toString();
+                              if (user.getFullName()!=null) fullname=user.getFullName();
+
+
+                      %>
+
+                              
+                             
+                              <div class="profile-wrapper">
+                                <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
+                                
+                              <ul class="dropdown-menu">
+                                  <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                  <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
+                                  <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                              </ul>   
+                              </div>              
+
+
+
+
+                              <%
+                            }
+                            catch(Exception e){e.printStackTrace();}
+                        }
+                        else{
+                        %>
+
+                          <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
+                        <%
+                        }
+
+                      %>
               </div>
+              
               </div>
+
+              
             </nav>
         </header>
 

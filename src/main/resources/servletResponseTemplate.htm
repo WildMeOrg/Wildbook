@@ -8,6 +8,8 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="shortcut icon" href="images/favicon.ico" />
   <link href="http://fonts.googleapis.com/css?family=Oswald:400,300,700" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
+  <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 
   <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
@@ -17,12 +19,12 @@
   <link rel="stylesheet" href="tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
   <link rel="stylesheet" href="css/createadoption.css">
+  <script type="text/javascript" src="javascript/jquery.blockUI.js"></script>
+  <script type="text/javascript" src="javascript/jquery.cookie.js"></script>
 
-
-  <script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
   <script type="text/javascript" src="tools/bootstrap/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="javascript/core.js"></script>
-  <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+
   <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
   <script type="text/javascript" src="JavascriptGlobals.js"></script>
   <script type="text/javascript" src="javascript/collaboration.js"></script>
@@ -171,8 +173,10 @@
 
 
 
-          <script type="text/javascript">
+          <!-- <script type="text/javascript">
             $(document).ready(function () {
+              console.log("Document ready!");
+
               $('.navbar .dropdown').hover(
                 function () {
                   $(this).find('.dropdown-menu').first().stop(true, true).delay(250).show();
@@ -181,8 +185,55 @@
                   $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
                 }
               );
+
+              document.querySelector('.lang_selector').addEventListener('click', function (event) {
+                // if (event.target.closest('.lang_selector')) {
+                //     alert("Language selector clicked!");
+                //     console.log("Language selector clicked!");
+                // }
+                console.log("Language selector clicked!");
+              });
+
             });
-          </script>
+          </script> -->
+
+          <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log("Document ready!");
+        
+                document.querySelectorAll('.navbar .dropdown').forEach(function (dropdown) {
+                    dropdown.addEventListener('mouseenter', function () {
+                        var dropdownMenu = this.querySelector('.dropdown-menu');
+                        if (dropdownMenu) {
+                            dropdownMenu.style.display = 'block';
+                            setTimeout(function () {
+                                dropdownMenu.style.opacity = 1;
+                            }, 250);
+                        }
+                    });
+        
+                    dropdown.addEventListener('mouseleave', function () {
+                        var dropdownMenu = this.querySelector('.dropdown-menu');
+                        if (dropdownMenu) {
+                            setTimeout(function () {
+                                dropdownMenu.style.display = 'none';
+                                dropdownMenu.style.opacity = 0;
+                            }, 100);
+                        }
+                    });
+                });
+        
+                document.querySelectorAll('.lang_selector').forEach(function (element) {
+                    var langCode = element.getAttribute('data-lang');
+                    var imgUrl = "/images/flag_" + langCode + ".gif";
+                    element.addEventListener('click', function (event) {
+                        console.log("Language selector clicked!");
+                        selectItem(element, langCode, imgUrl);
+                    });
+                });
+            });
+        </script>
+        
 
           <script type="text/javascript">
 
@@ -202,10 +253,13 @@
 
               console.log("Language changed to: " + langCode);
 
-              $.cookie("wildbookLangCode", langCode, {
-                path: '/',
-                secure: false
-              });
+              // $.cookie("wildbookLangCode", langCode, {
+              //   path: '/',
+              //   secure: false
+              // });
+
+              document.cookie = "wildbookLangCode=" + encodeURIComponent(langCode) + "; path=/";
+
 
               location.reload(true);
             }
@@ -225,7 +279,7 @@
 
           <script>
             function logoutAndRedirect() {
-              window.location.href = '<%= request.getContextPath() %>/header.jsp?action=logout';
+              window.location.href = 'header.jsp?action=logout';
             }
           </script>
 
@@ -315,30 +369,17 @@
             <!-- <li> -->
             <div class="custom-select-wrapper">
               <div class="custom-select" onclick="toggleDropdown()">
-                <!-- <% String selectedLangCode="en" ; Cookie[] cookies=request.getCookies(); if (cookies !=null) {
-                  for (Cookie cookie : cookies) { if ("wildbookLangCode".equals(cookie.getName())) {
-                  selectedLangCode=cookie.getValue(); break; } } } String selectedImgURL="" ; if
-                  (selectedLangCode !=null) { selectedImgURL="//" + CommonConfiguration.getURLLocation(request)
-                  + "/images/flag_" + selectedLangCode + ".gif" ; } %>
-
-                  <div class="custom-select-selected">
-                    <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
-                      class="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd"
-                        d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
-                    </svg>
-                  </div>
-                  <div class="custom-select-items hidden">
-                    <% for(int h=0;h<numSupportedLanguages;h++){ String myLang=supportedLanguages.get(h); String
-                      langName=CommonConfiguration.getProperty(myLang, context); String imgURL="//" +
-                      CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif" ; %>
-                      <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
-                        <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
-                        <%= langName %>
-                      </div>
-                      <% } %>
-                  </div> -->
+                <div class="custom-select-selected">
+                  <div class="selected-item" style="background-image: url('SELECTED_IMAGE_URL');"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
+                    class="bi bi-chevron-down" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                      d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                  </svg>
+                </div>
+                <div class="custom-select-items hidden">
+                  LANGUAGE_SELECTOR
+                </div>
               </div>
             </div>
 

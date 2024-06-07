@@ -115,14 +115,49 @@ public class ServletUtilities {
 
         }
 
+        
+
         List<String> supportedLanguages = CommonConfiguration.getIndexedPropertyValues("language", context);
         int numSupportedLanguages = supportedLanguages.size();
-        String selectedLangCode="en" ; Cookie[] cookies=request.getCookies(); if (cookies !=null) {
-            for (Cookie cookie : cookies) { if ("wildbookLangCode".equals(cookie.getName())) {
-            selectedLangCode=cookie.getValue(); break; } } } String selectedImgURL="" ; if
-            (selectedLangCode !=null) { selectedImgURL="//" + CommonConfiguration.getURLLocation(request)
+        String selectedLangCode="en" ; 
+        Cookie[] cookies=request.getCookies(); 
+        if (cookies !=null) {
+            for (Cookie cookie : cookies) { 
+                if ("wildbookLangCode".equals(cookie.getName())) {
+                    selectedLangCode=cookie.getValue(); 
+                    break; 
+                } 
+            } 
+        } 
+        String selectedImgURL="" ; 
+        if(selectedLangCode !=null) { 
+            selectedImgURL ="//" + CommonConfiguration.getURLLocation(request)
             + "/images/flag_" + selectedLangCode + ".gif" ;
+        }
+
+        StringBuilder htmlBuilder = new StringBuilder();
+        // htmlBuilder.append("<div class=\"custom-select-items hidden\">");
+
+        for(int h=0;h<numSupportedLanguages;h++){
+            String myLang = supportedLanguages.get(h);
+            String langName = CommonConfiguration.getProperty(myLang, context);
+            String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
+            htmlBuilder.append("<div class=\"lang_selector\" data-lang=")      
+                       .append(myLang)
+                       .append(">")                 
+                       .append("<img src=\"")
+                       .append(imgURL)
+                       .append("\" alt=\"Flag\" style=\"margin-right: 10px\">")
+                       .append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(langName))
+                       .append("</div>");
+        } 
+
+        // htmlBuilder.append("</div>");
+        String languageString = htmlBuilder.toString();
+
         String siteName = props.getProperty("siteName");
+        System.out.println("sitename: " + siteName);
+        System.out.println("username: " + username);
 
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
@@ -147,9 +182,12 @@ public class ServletUtilities {
             templateFile = templateFile.replaceAll("TOPGRAPHIC",
                     CommonConfiguration.getURLToMastheadGraphic(context1));
 
-            templateFile = templateFile.replaceAll("SITE_NAME", siteName);
+            // templateFile = templateFile.replaceAll("SITE_NAME", "123");
             templateFile = templateFile.replaceAll("USER_NAME", username);
             templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
+            templateFile = templateFile.replace("LANGUAGE_SELECTOR", languageString);
+            templateFile = templateFile.replace("SELECTED_IMAGE_URL", selectedImgURL);
+
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(0, end_header));
@@ -158,7 +196,8 @@ public class ServletUtilities {
             e.printStackTrace();
             String error = "<html><body><p>An error occurred while attempting to read from the template file servletResponseTemplate.htm. This probably will not affect the success of the operation you were trying to perform.";
             return error;
-        }
+        } 
+        
     }
 
     public static String getFooter(String context) {
