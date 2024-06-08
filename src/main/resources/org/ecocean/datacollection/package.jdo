@@ -15,12 +15,12 @@
     <field name="DataCollectionEventID" primary-key="true" value-strategy="native">
       <column name="dataCollectionEventID"/>
     </field>
-
+<!--
     <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
       <collection element-type="org.ecocean.Observation"/>
       <join/>
     </field>
-
+-->
     <field name="samplingProtocol">
       <column name="SAMPLINGPROTOCOL"/>
     </field>
