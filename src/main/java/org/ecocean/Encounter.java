@@ -146,6 +146,10 @@ public class Encounter implements java.io.Serializable {
     private List<User> submitters;
     private List<User> photographers;
     private List<User> informOthers;
+    
+
+    // iot customization
+    private List<DataSheet> dataSheets = new ArrayList<DataSheet>();
 
     private static HashMap<String, ArrayList<Encounter> > _matchEncounterCache = new HashMap<String,
         ArrayList<Encounter> >();
