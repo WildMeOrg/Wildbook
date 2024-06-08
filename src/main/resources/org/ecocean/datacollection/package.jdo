@@ -12,7 +12,7 @@
       <column name="CORRESPONDINGENCOUNTERNUMBER"/>
     </field>
 
-    <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
+    <field name="DataCollectionEventID" primary-key="true" value-strategy="native">
       <column name="dataCollectionEventID"/>
     </field>
 
