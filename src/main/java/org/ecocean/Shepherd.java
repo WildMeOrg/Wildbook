@@ -5911,4 +5911,45 @@ public class Shepherd {
         }
         return allAnnotIds;
     }
+    
+    
+
+    public Iterator<Nest> getAllNests() {
+      Extent allSharks = null;
+      try {
+        allSharks = pm.getExtent(Nest.class, true);
+      } catch (javax.jdo.JDOException x) {
+        x.printStackTrace();
+      }
+      Extent encClass = pm.getExtent(Nest.class, true);
+      Query sharks = pm.newQuery(encClass);
+      Collection c = (Collection) (sharks.execute());
+      ArrayList list = new ArrayList(c);
+      Iterator it = list.iterator();
+      return it;
+    }
+
+    //START IOT NEST CUSTOMIZATIONS
+    public Iterator<Nest> getAllNests(Query nests) {
+      Collection c = (Collection) (nests.execute());
+      Iterator it = c.iterator();
+      return it;
+    }
+
+    public Iterator<Nest> getAllNests(Query sharkies, String order) {
+      Map<String, Object> emptyMap = Collections.emptyMap();
+      return getAllNests(sharkies, order, emptyMap);
+    }
+
+
+    public Iterator<Nest> getAllNests(Query sharkies, String order, Map<String, Object> params) {
+      sharkies.setOrdering(order);
+      Collection c = (Collection) (sharkies.executeWithMap(params));
+      ArrayList list = new ArrayList(c);
+      //Collections.reverse(list);
+      Iterator it = list.iterator();
+      return it;
+    }
+    //END IOT NEST CUSTOMIZATIONS
+    
 } // end Shepherd class
