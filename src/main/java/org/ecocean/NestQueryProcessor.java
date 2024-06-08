@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 //import javax.jdo.Extent;
 import javax.jdo.Query;
 
-import org.ecocean.Util.MeasurementEventDesc;
+import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 
 import java.util.Iterator;
@@ -165,12 +165,12 @@ public class NestQueryProcessor {
 	    }
 
     // MeasurementEvent filters-----------------------------------------------
-    List<MeasurementEventDesc> measurementDescs = Util.findMeasurementEventDescs("en",context);
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("en",context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurementEvent = false;
     int measurementsInQuery = 0;
-    for (MeasurementEventDesc measurementDesc : measurementDescs) {
+    for (MeasurementDesc measurementDesc : measurementDescs) {
       String valueParamName= measurementPrefix + measurementDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
       if (value != null) {
