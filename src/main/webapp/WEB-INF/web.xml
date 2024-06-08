@@ -497,6 +497,9 @@
 		  /appadmin/sharedAnnotations.jsp = authc
 		  /appadmin/duplicateAnnotations.jsp = authc
 		  /appadmin/dataValuesCheck.jsp = authc
+		  
+		  /EncounterSetCharterOperator = authc, roles[researcher]
+		  
 			</param-value>
         </init-param>
     </filter>
@@ -738,6 +741,11 @@
     <servlet-name>EncounterSetSurveyAndTrack</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSurveyAndTrack</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>EncounterSetCharterOperator</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetCharterOperator</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>OccurrenceSetSurveyAndTrack</servlet-name>
@@ -910,6 +918,11 @@
     <servlet-class>org.ecocean.servlet.EncounterSetIdentifiable</servlet-class>
   </servlet>
   -->
+
+  <servlet>
+    <servlet-name>EncounterSetCharterOperator</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetCharterOperator</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetBehavior</servlet-name>

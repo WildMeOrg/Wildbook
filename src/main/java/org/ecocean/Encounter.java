@@ -66,6 +66,7 @@ public class Encounter implements java.io.Serializable {
      * <p/>
      * Wherever possible, this class will be extended with Darwin Core attributes for greater adoption of the standard.
      */
+    private String charterOperator;
     private String sex = null;
     private String locationID = null;
     private Double maximumDepthInMeters;
@@ -3988,4 +3989,17 @@ public class Encounter implements java.io.Serializable {
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
+    
+    //RESTORE NCAquaroums Custom Code
+    public void setCharterOperator(String ca) {
+      if (ca!=null&&!"".equals(ca)) {
+        charterOperator = ca;
+      }
+    }
+
+    public String getCharterOperator() {
+      return charterOperator;
+    }
+  //RESTORE NCAquaroums Custom Code
+    
 }
