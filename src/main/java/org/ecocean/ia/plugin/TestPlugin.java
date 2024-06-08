@@ -1,17 +1,17 @@
 package org.ecocean.ia.plugin;
 
+import java.io.IOException;
+import java.util.List;
 import javax.servlet.ServletContextEvent;
-import org.ecocean.Util;
-import org.ecocean.Shepherd;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.ecocean.Annotation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.*;
 import org.ecocean.queue.*;
-import org.ecocean.Annotation;
+import org.ecocean.Shepherd;
+import org.ecocean.Util;
 import org.json.JSONObject;
-import java.util.List;
-import java.io.IOException;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /*
 
@@ -23,13 +23,12 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
         -- will use handleQueueMessage() as the consumer
         -- intakeMediaAssets() and intakeAnnotations() both use addToQueue() to publish a (meaningless) job to the Queue
 
-    A Queue is not strictly necessary.  The intake methods could have simply done whatever processing necessary (e.g. send
-    the objects to a blackbox IA service) in real-time.  The Queue just demostrates how to allow intake methods
-    to asynchronously stack up jobs in the background.
+    A Queue is not strictly necessary.  The intake methods could have simply done whatever processing necessary (e.g. send the objects to a blackbox
+       IA service) in real-time.  The Queue just demostrates how to allow intake methods to asynchronously stack up jobs in the background.
 
     TODO -- mockup a TestPlugin callback, once we figure out how that will get routed thru IAGateway!!
 
-*/
+ */
 public class TestPlugin extends IAPlugin {
     private String context = null;
     private Queue queue = null;
@@ -41,33 +40,30 @@ public class TestPlugin extends IAPlugin {
         super(context);
     }
 
-    @Override
-    public boolean isEnabled() {
+    @Override public boolean isEnabled() {
         return Util.booleanNotFalse(IA.getProperty(context, "enableTestPlugin"));
     }
 
-    @Override
-    public boolean init(String context) {
+    @Override public boolean init(String context) {
         this.context = context;
         log(this.toString() + " init() called on context " + context);
         return true;
     }
 
-    @Override
-    public void startup(ServletContextEvent sce) {
+    @Override public void startup(ServletContextEvent sce) {
         log(this.toString() + " startup() called on context " + context);
 
-        //now we do stuff for initiating our Queue + consumer
+        // now we do stuff for initiating our Queue + consumer
 
         final TestPlugin me = this;
         class TestPluginMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                me.handleQueueMessage(msg);  //does the real handling of incoming messages
+                me.handleQueueMessage(msg); // does the real handling of incoming messages
                 return true;
             }
         }
 
-        //start a sort of fakey queue to listen on
+        // start a sort of fakey queue to listen on
         try {
             queue = QueueUtil.getBest(this.context, "TestPlugin");
         } catch (java.io.IOException ex) {
@@ -77,8 +73,7 @@ public class TestPlugin extends IAPlugin {
             log("WARNING: queue service NOT started");
             return;
         }
-
-        //handles incoming messages
+        // handles incoming messages
         TestPluginMessageHandler qh = new TestPluginMessageHandler();
         try {
             queue.consume(qh);
@@ -88,9 +83,10 @@ public class TestPlugin extends IAPlugin {
         }
     }
 
-    @Override
-    public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
+    @Override public Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas,
+        final Task parentTask) {
         Task t = new Task();
+
         t.setObjectMediaAssets(mas);
         JSONObject p = new JSONObject();
         p.put("testPlugin", true);
@@ -102,9 +98,11 @@ public class TestPlugin extends IAPlugin {
         }
         return t;
     }
-    @Override
-    public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+
+    @Override public Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
+        final Task parentTask) {
         Task t = new Task();
+
         t.setObjectAnnotations(anns);
         JSONObject p = new JSONObject();
         p.put("testPlugin", true);
@@ -117,38 +115,35 @@ public class TestPlugin extends IAPlugin {
         return t;
     }
 
-    //this spices up the messages a little, since this is a TestPlugin after all
+    // this spices up the messages a little, since this is a TestPlugin after all
     private static void log(String message) {
         IA.log("####### TestPlugin ####### " + message);
     }
 
     public String toString() {
         return new ToStringBuilder(this)
-                .append("TestPlugin")
-                .toString();
+                   .append("TestPlugin")
+                   .toString();
     }
-
-
 
     /*
            Queue-related stuff here.... see notes at top about Queue usage
-    */
-
+     */
     private void handleQueueMessage(String msg) {
         log(">>>>> CONSUMING '" + msg + "'");
-        //this could be some expensive, time-consuming process here.....
+        // this could be some expensive, time-consuming process here.....
     }
 
-    public void addToQueue(String content) throws IOException {
+    public void addToQueue(String content)
+    throws IOException {
         log("<<<<< PUBLISHING '" + content + "'");
         getQueue().publish(content);
     }
 
-    public Queue getQueue() throws IOException {
+    public Queue getQueue()
+    throws IOException {
         if (queue != null) return queue;
         queue = QueueUtil.getBest(this.context, "TestPlugin");
         return queue;
     }
-
-
 }

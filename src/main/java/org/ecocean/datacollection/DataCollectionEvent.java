@@ -1,10 +1,7 @@
 package org.ecocean.datacollection;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
 import org.joda.time.DateTime;
-
 
 /**
  *
@@ -12,258 +9,262 @@ import org.joda.time.DateTime;
  * @author jholmber
  */
 public abstract class DataCollectionEvent implements java.io.Serializable {
-  private static final long serialVersionUID = -4268335414161281405L;
-
+    private static final long serialVersionUID = -4268335414161281405L;
 
 /**
-* DataCollectionEvent is an abstract base class that provides registration fields
-* for common metadata related to data that may be collected about an individual during an Encounter instance
-* of wildlife data in the field. The following types of classes are expected to extend DataCollectionEvent:
-*   -PhotoVideoCollectionEvent class for managing photo and video data
-*   -GeneticCollectionEvent for managing haplotype and microsatellite marker data taken during an Encounter instance
-*   -TrackingDataEvent for managing SAT and PAT archival tag files related to an Encounter instance
-*   -MeasurementEventCollectionEvent for morphometric data (e.g., length, width, height)
-*/
+ * DataCollectionEvent is an abstract base class that provides registration fields for common metadata related to data that may be collected about an
+ * individual during an Encounter instance of wildlife data in the field. The following types of classes are expected to extend DataCollectionEvent:
+ *   -PhotoVideoCollectionEvent class for managing photo and video data
+ *   -GeneticCollectionEvent for managing haplotype and microsatellite marker data taken during an Encounter instance
+ *   -TrackingDataEvent for managing SAT and PAT archival tag files related to an Encounter instance
+ *   -MeasurementEventCollectionEvent for morphometric data (e.g., length, width, height)
+ */
 
 /**
  * correspondingEncounterNumber species which Encounter instance this data collection even corresponds with
  */
-private String correspondingEncounterNumber;
-private String type;
-protected String dataCollectionEventID;
+    private String correspondingEncounterNumber;
+    private String type;
+    private String DataCollectionEventID;
 
-private DateTime datetime;
+    private DateTime datetime;
 
-private String samplingProtocol;
-private String samplingEffort;
-private String eventStartDate;
-private String eventEndDate;
-private String fieldNumber;
-private String fieldNotes;
-private String eventRemarks;
-private String institutionID;
-private String collectionID;
-private String datasetID;
-private String institutionCode;
-private String collectionCode;
-private String datasetName;
-
-private List<Observation> observations = new ArrayList<>();
-// added date fields for searchability
-private Long eventStartDateLong;
-private Long eventEndDateLong;
-
-
+    private String samplingProtocol;
+    private String samplingEffort;
+    private String eventStartDate;
+    private String eventEndDate;
+    private String fieldNumber;
+    private String fieldNotes;
+    private String eventRemarks;
+    private String institutionID;
+    private String collectionID;
+    private String datasetID;
+    private String institutionCode;
+    private String collectionCode;
+    private String datasetName;
 
 /*
  * Empty constructor required for JDO persistence
  *
  */
-public DataCollectionEvent(){}
+    public DataCollectionEvent() {}
 
-public DataCollectionEvent(String correspondingEncounterNumber, String type){
-	this.correspondingEncounterNumber=correspondingEncounterNumber;
-	this.type=type;
-}
-
-public DataCollectionEvent(String correspondingEncounterNumber, String type, HttpServletRequest request){
-  this.correspondingEncounterNumber=correspondingEncounterNumber;
-  this.type=type;
-
-  if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
-  if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
-  if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
-  if(((request.getParameter("eventEndDate"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
-  if(((request.getParameter("fieldNumber"))!=null)&&(!request.getParameter("fieldNumber").equals(""))){this.fieldNumber=request.getParameter("fieldNumber");}
-  if(((request.getParameter("fieldNotes"))!=null)&&(!request.getParameter("fieldNotes").equals(""))){this.fieldNotes=request.getParameter("fieldNotes");}
-  if(((request.getParameter("eventRemarks"))!=null)&&(!request.getParameter("eventRemarks").equals(""))){this.eventRemarks=request.getParameter("eventRemarks");}
-  if(((request.getParameter("institutionID"))!=null)&&(!request.getParameter("institutionID").equals(""))){this.institutionID=request.getParameter("institutionID");}
-  if(((request.getParameter("collectionID"))!=null)&&(!request.getParameter("collectionID").equals(""))){this.collectionID=request.getParameter("collectionID");}
-  if(((request.getParameter("datasetID"))!=null)&&(!request.getParameter("datasetID").equals(""))){this.datasetID=request.getParameter("datasetID");}
-  if(((request.getParameter("institutionCode"))!=null)&&(!request.getParameter("institutionCode").equals(""))){this.institutionCode=request.getParameter("institutionCode");}
-  if(((request.getParameter("collectionCode"))!=null)&&(!request.getParameter("collectionCode").equals(""))){this.collectionCode=request.getParameter("collectionCode");}
-  if(((request.getParameter("datasetName"))!=null)&&(!request.getParameter("datasetName").equals(""))){this.datasetName=request.getParameter("datasetName");}
-}
-
-public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
-
-public void setCorrespondingEncounterNumber(String encounterNumber){
-  if(encounterNumber!=null){
-    this.correspondingEncounterNumber=encounterNumber;
-  }
-  else{
-    this.correspondingEncounterNumber=null;
-  }
-}
-
-public String getCorrespondingOccurrenceNumber(){return correspondingEncounterNumber;}
-
-public void setCorrespondingOccurrenceNumber(String occurrenceNumber){
-  setCorrespondingEncounterNumber(occurrenceNumber);
-}
-
-public void addObservationArrayList(ArrayList<Observation> arr) {
-  if (observations.isEmpty()) {
-    observations=arr;
-  } else {
-   observations.addAll(arr);
-  }
-}
-public void addObservation(Observation obs) {
-  observations.add(obs);
-}
-public Observation getObservationByName(String obName) {
-  System.out.println("Here with "+obName);
-  if (observations != null && observations.size() > 0) {
-    System.out.println("Not null and has > 0...");
-    for (Observation ob : observations) {
-      System.out.println("Matching observation and string? Name : "+ob.getName()+" Value: "+ob.getValue());
-      if (ob.getName() != null && ob.getName().equals(obName)) {
-        return ob;
-      }
+    public DataCollectionEvent(String correspondingEncounterNumber, String type) {
+        this.correspondingEncounterNumber = correspondingEncounterNumber;
+        this.type = type;
     }
-  }
-  return null;
-}
-public Observation getObservationByID(String obId) {
-  if (observations != null && observations.size() > 0) {
-    for (Observation ob : observations) {
-      if (ob.getID() != null && ob.getID().equals(obId)) {
-        return ob;
-      }
+
+    public DataCollectionEvent(String correspondingEncounterNumber, String type,
+        HttpServletRequest request) {
+        this.correspondingEncounterNumber = correspondingEncounterNumber;
+        this.type = type;
+        if (((request.getParameter("samplingProtocol")) != null) &&
+            (!request.getParameter("samplingProtocol").equals(""))) {
+            this.samplingProtocol = request.getParameter("samplingProtocol");
+        }
+        if (((request.getParameter("samplingEffort")) != null) &&
+            (!request.getParameter("samplingEffort").equals(""))) {
+            this.samplingEffort = request.getParameter("samplingEffort");
+        }
+        if (((request.getParameter("eventStartDate")) != null) &&
+            (!request.getParameter("eventStartDate").equals(""))) {
+            this.eventStartDate = request.getParameter("eventStartDate");
+        }
+        if (((request.getParameter("eventEndDate")) != null) &&
+            (!request.getParameter("eventEndDate").equals(""))) {
+            this.eventEndDate = request.getParameter("eventEndDate");
+        }
+        if (((request.getParameter("fieldNumber")) != null) &&
+            (!request.getParameter("fieldNumber").equals(""))) {
+            this.fieldNumber = request.getParameter("fieldNumber");
+        }
+        if (((request.getParameter("fieldNotes")) != null) &&
+            (!request.getParameter("fieldNotes").equals(""))) {
+            this.fieldNotes = request.getParameter("fieldNotes");
+        }
+        if (((request.getParameter("eventRemarks")) != null) &&
+            (!request.getParameter("eventRemarks").equals(""))) {
+            this.eventRemarks = request.getParameter("eventRemarks");
+        }
+        if (((request.getParameter("institutionID")) != null) &&
+            (!request.getParameter("institutionID").equals(""))) {
+            this.institutionID = request.getParameter("institutionID");
+        }
+        if (((request.getParameter("collectionID")) != null) &&
+            (!request.getParameter("collectionID").equals(""))) {
+            this.collectionID = request.getParameter("collectionID");
+        }
+        if (((request.getParameter("datasetID")) != null) &&
+            (!request.getParameter("datasetID").equals(""))) {
+            this.datasetID = request.getParameter("datasetID");
+        }
+        if (((request.getParameter("institutionCode")) != null) &&
+            (!request.getParameter("institutionCode").equals(""))) {
+            this.institutionCode = request.getParameter("institutionCode");
+        }
+        if (((request.getParameter("collectionCode")) != null) &&
+            (!request.getParameter("collectionCode").equals(""))) {
+            this.collectionCode = request.getParameter("collectionCode");
+        }
+        if (((request.getParameter("datasetName")) != null) &&
+            (!request.getParameter("datasetName").equals(""))) {
+            this.datasetName = request.getParameter("datasetName");
+        }
     }
-  }
-  return null;
-}
 
-public String getDataCollectionEventID(){return dataCollectionEventID;}
-public void setDataCollectionEventID(String id){this.dataCollectionEventID=id;}
+    public String getCorrespondingEncounterNumber() { return correspondingEncounterNumber; }
+    public void setCorrespondingEncounterNumber(String encounterNumber) {
+        if (encounterNumber != null) {
+            this.correspondingEncounterNumber = encounterNumber;
+        } else {
+            this.correspondingEncounterNumber = null;
+        }
+    }
 
-public DateTime getDateTime(){return datetime;}
-public void setDateTime(DateTime datetime){this.datetime = datetime;}
+    public DateTime getDateTime() { return datetime; }
+    public void setDateTime(DateTime datetime) { this.datetime = datetime; }
 
-public String getSamplingProtocol(){return samplingProtocol;}
-public void setSamplingProtocol(String protocol){this.samplingProtocol=protocol;}
+    public String getDataCollectionEventID() { return DataCollectionEventID; }
+    public void setDataCollectionEventID(String id) { this.DataCollectionEventID = id; }
 
-public String getSamplingEffort(){return samplingEffort;}
-public void setSamplingEffort(String effort){this.samplingEffort=effort;}
+    public String getSamplingProtocol() { return samplingProtocol; }
+    public void setSamplingProtocol(String protocol) { this.samplingProtocol = protocol; }
 
-public String getEventStartDate(){return eventStartDate;}
-public void setEventStartDate(String date){this.eventStartDate=date;}
+    public String getSamplingEffort() { return samplingEffort; }
+    public void setSamplingEffort(String effort) { this.samplingEffort = effort; }
 
-public String getEventEndDate(){return eventEndDate;}
-public void setEventEndDate(String date){this.eventEndDate=date;}
+    public String getEventStartDate() { return eventStartDate; }
+    public void setEventStartDate(String date) { this.eventStartDate = date; }
 
-// for realiable date searchability
-public Long getEventStartDateLong(){return eventStartDateLong;}
-public void setEventStartDateLong(Long millis) {setEventStartDateLong(millis, true);}
-public void setEventStartDateLong(Long millis, boolean syncDates) {
-  this.eventStartDateLong = millis;
-  if (syncDates && millis!=null) {
-    this.eventStartDate = (new DateTime(millis)).toString();
-  }
-}
-// for reliable date displayability
-public DateTime getEventStartDateTime(){
-  if (eventStartDateLong!=null) return new DateTime(eventStartDateLong.longValue());
-  else return null;
-}
-public void setEventStartDateTime(DateTime dt) {
-  if (dt!=null) {
-    this.eventStartDate = dt.toString();
-    this.eventStartDateLong = dt.getMillis();
-  }
-}
-// for realiable date searchability
-public Long getEventEndDateLong(){return eventEndDateLong;}
-public void setEventEndDateLong(Long millis) {setEventEndDateLong(millis, true);}
-public void setEventEndDateLong(Long millis, boolean syncDates) {
-  this.eventEndDateLong = millis;
-  if (syncDates && millis!=null) {
-    this.eventEndDate = (new DateTime(millis)).toString();
-  }
-}
-// for reliable date displayability
-public DateTime getEventEndDateTime(){
-  if (eventEndDateLong!=null) return new DateTime(eventEndDateLong.longValue());
-  else return null;
-}
-public void setEventEndDateTime(DateTime dt) {
-  if (dt!=null) {
-    this.eventEndDate = dt.toString();
-    this.eventEndDateLong = dt.getMillis();
-  }
-}
+    public String getEventEndDate() { return eventEndDate; }
+    public void setEventEndDate(String date) { this.eventEndDate = date; }
 
-public String getFieldNumber(){return fieldNumber;}
-public void setFieldNumber(String num){this.fieldNumber=num;}
+    public String getFieldNumber() { return fieldNumber; }
+    public void setFieldNumber(String num) { this.fieldNumber = num; }
 
-public String getFieldNotes(){return fieldNotes;}
-public void setFieldNotes(String notes){this.fieldNotes=notes;}
+    public String getFieldNotes() { return fieldNotes; }
+    public void setFieldNotes(String notes) { this.fieldNotes = notes; }
 
-public String getEventRemarks(){return eventRemarks;}
-public void setEventRemarks(String remarks){this.eventRemarks=remarks;}
+    public String getEventRemarks() { return eventRemarks; }
+    public void setEventRemarks(String remarks) { this.eventRemarks = remarks; }
 
-public String getInstitutionID(){return institutionID;}
-public void setInstitutionID(String id){this.institutionID=id;}
+    public String getInstitutionID() { return institutionID; }
+    public void setInstitutionID(String id) { this.institutionID = id; }
 
-public String getCollectionID(){return collectionID;}
-public void setCollectionID(String id){this.collectionID=id;}
+    public String getCollectionID() { return collectionID; }
+    public void setCollectionID(String id) { this.collectionID = id; }
 
-public String getDatasetID(){return datasetID;}
-public void setDatasetID(String id){this.datasetID=id;}
+    public String getDatasetID() { return datasetID; }
+    public void setDatasetID(String id) { this.datasetID = id; }
 
-public String getInstitutionCode(){return institutionCode;}
-public void setInstitutionCode(String id){this.institutionCode=id;}
+    public String getInstitutionCode() { return institutionCode; }
+    public void setInstitutionCode(String id) { this.institutionCode = id; }
 
-public String getCollectionCode(){return collectionCode;}
-public void setCollectionCode(String id){this.collectionCode=id;}
+    public String getCollectionCode() { return collectionCode; }
+    public void setCollectionCode(String id) { this.collectionCode = id; }
 
-public String getDatasetName(){return datasetName;}
-public void setDatasetName(String id){this.datasetName=id;}
+    public String getDatasetName() { return datasetName; }
+    public void setDatasetName(String id) { this.datasetName = id; }
 
-public String getType(){return type;}
-public void setType(String type){this.type = type;}
+    public String getType() { return type; }
 
+    public void resetAbstractClassParameters(HttpServletRequest request) {
+        if (((request.getParameter("samplingProtocol")) != null) &&
+            (!request.getParameter("samplingProtocol").equals(""))) {
+            this.samplingProtocol = request.getParameter("samplingProtocol");
+        }
+        if (((request.getParameter("samplingEffort")) != null) &&
+            (!request.getParameter("samplingEffort").equals(""))) {
+            this.samplingEffort = request.getParameter("samplingEffort");
+        }
+        if (((request.getParameter("eventStartDate")) != null) &&
+            (!request.getParameter("eventStartDate").equals(""))) {
+            this.eventStartDate = request.getParameter("eventStartDate");
+        }
+        if (((request.getParameter("eventEndDate")) != null) &&
+            (!request.getParameter("eventEndDate").equals(""))) {
+            this.eventEndDate = request.getParameter("eventEndDate");
+        }
+        if (((request.getParameter("fieldNumber")) != null) &&
+            (!request.getParameter("fieldNumber").equals(""))) {
+            this.fieldNumber = request.getParameter("fieldNumber");
+        }
+        if (((request.getParameter("fieldNotes")) != null) &&
+            (!request.getParameter("fieldNotes").equals(""))) {
+            this.fieldNotes = request.getParameter("fieldNotes");
+        }
+        if (((request.getParameter("eventRemarks")) != null) &&
+            (!request.getParameter("eventRemarks").equals(""))) {
+            this.eventRemarks = request.getParameter("eventRemarks");
+        }
+        if (((request.getParameter("institutionID")) != null) &&
+            (!request.getParameter("institutionID").equals(""))) {
+            this.institutionID = request.getParameter("institutionID");
+        }
+        if (((request.getParameter("collectionID")) != null) &&
+            (!request.getParameter("collectionID").equals(""))) {
+            this.collectionID = request.getParameter("collectionID");
+        }
+        if (((request.getParameter("datasetID")) != null) &&
+            (!request.getParameter("datasetID").equals(""))) {
+            this.datasetID = request.getParameter("datasetID");
+        }
+        if (((request.getParameter("institutionCode")) != null) &&
+            (!request.getParameter("institutionCode").equals(""))) {
+            this.institutionCode = request.getParameter("institutionCode");
+        }
+        if (((request.getParameter("collectionCode")) != null) &&
+            (!request.getParameter("collectionCode").equals(""))) {
+            this.collectionCode = request.getParameter("collectionCode");
+        }
+        if (((request.getParameter("datasetName")) != null) &&
+            (!request.getParameter("datasetName").equals(""))) {
+            this.datasetName = request.getParameter("datasetName");
+        }
+    }
 
-public void resetAbstractClassParameters(HttpServletRequest request){
-  if(((request.getParameter("samplingProtocol"))!=null)&&(!request.getParameter("samplingProtocol").equals(""))){this.samplingProtocol=request.getParameter("samplingProtocol");}
-  if(((request.getParameter("samplingEffort"))!=null)&&(!request.getParameter("samplingEffort").equals(""))){this.samplingEffort=request.getParameter("samplingEffort");}
-  if(((request.getParameter("eventStartDate"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
-  if(((request.getParameter("eventStartDateTime"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
-  if(((request.getParameter("eventStartDateLong"))!=null)&&(!request.getParameter("eventStartDate").equals(""))){this.eventStartDate=request.getParameter("eventStartDate");}
-  if(((request.getParameter("eventEndDate"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
-  if(((request.getParameter("eventEndDateTime"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
-  if(((request.getParameter("eventEndDateLong"))!=null)&&(!request.getParameter("eventEndDate").equals(""))){this.eventEndDate=request.getParameter("eventEndDate");}
-  if(((request.getParameter("fieldNumber"))!=null)&&(!request.getParameter("fieldNumber").equals(""))){this.fieldNumber=request.getParameter("fieldNumber");}
-  if(((request.getParameter("fieldNotes"))!=null)&&(!request.getParameter("fieldNotes").equals(""))){this.fieldNotes=request.getParameter("fieldNotes");}
-  if(((request.getParameter("eventRemarks"))!=null)&&(!request.getParameter("eventRemarks").equals(""))){this.eventRemarks=request.getParameter("eventRemarks");}
-  if(((request.getParameter("institutionID"))!=null)&&(!request.getParameter("institutionID").equals(""))){this.institutionID=request.getParameter("institutionID");}
-  if(((request.getParameter("collectionID"))!=null)&&(!request.getParameter("collectionID").equals(""))){this.collectionID=request.getParameter("collectionID");}
-  if(((request.getParameter("datasetID"))!=null)&&(!request.getParameter("datasetID").equals(""))){this.datasetID=request.getParameter("datasetID");}
-  if(((request.getParameter("institutionCode"))!=null)&&(!request.getParameter("institutionCode").equals(""))){this.institutionCode=request.getParameter("institutionCode");}
-  if(((request.getParameter("collectionCode"))!=null)&&(!request.getParameter("collectionCode").equals(""))){this.collectionCode=request.getParameter("collectionCode");}
-  if(((request.getParameter("datasetName"))!=null)&&(!request.getParameter("datasetName").equals(""))){this.datasetName=request.getParameter("datasetName");}
+    public String getHTMLString() {
+        String paramValues = "";
 
-
-}
-
-public String getHTMLString(){
-  String paramValues="";
-  if((this.getCollectionCode()!=null)&&(!this.getCollectionCode().equals(""))){paramValues+="     Collection code: "+this.getCollectionCode()+"<br />";}
-  if((this.getCollectionID()!=null)&&(!this.getCollectionID().equals(""))){paramValues+="     Collection ID: "+this.getCollectionID()+"<br />";}
-  if((this.getDatasetID()!=null)&&(!this.getDatasetID().equals(""))){paramValues+="     Dataset ID: "+this.getDatasetID()+"<br />";}
-  if((this.getDatasetName()!=null)&&(!this.getDatasetName().equals(""))){paramValues+="     Dataset name: "+this.getDatasetName()+"<br />";}
-  if((this.getEventStartDate()!=null)&&(!this.getEventStartDate().equals(""))){paramValues+="     Event start date: "+this.getEventStartDate()+"<br />";}
-  if((this.getEventEndDate()!=null)&&(!this.getEventEndDate().equals(""))){paramValues+="     Event end date: "+this.getEventEndDate()+"<br />";}
-  if((this.getEventRemarks()!=null)&&(!this.getEventRemarks().equals(""))){paramValues+="     Event remarks: "+this.getEventRemarks()+"<br />";}
-  if((this.getFieldNotes()!=null)&&(!this.getFieldNotes().equals(""))){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
-  if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
-  if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
-  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
-  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampling effort: "+this.getSamplingEffort()+"<br />";}
-  if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
-  return paramValues;
-}
-
+        if ((this.getCollectionCode() != null) && (!this.getCollectionCode().equals(""))) {
+            paramValues += "     Collection code: " + this.getCollectionCode() + "<br />";
+        }
+        if ((this.getCollectionID() != null) && (!this.getCollectionID().equals(""))) {
+            paramValues += "     Collection ID: " + this.getCollectionID() + "<br />";
+        }
+        if ((this.getDatasetID() != null) && (!this.getDatasetID().equals(""))) {
+            paramValues += "     Dataset ID: " + this.getDatasetID() + "<br />";
+        }
+        if ((this.getDatasetName() != null) && (!this.getDatasetName().equals(""))) {
+            paramValues += "     Dataset name: " + this.getDatasetName() + "<br />";
+        }
+        if ((this.getEventStartDate() != null) && (!this.getEventStartDate().equals(""))) {
+            paramValues += "     Event start date: " + this.getEventStartDate() + "<br />";
+        }
+        if ((this.getEventEndDate() != null) && (!this.getEventEndDate().equals(""))) {
+            paramValues += "     Event end date: " + this.getEventEndDate() + "<br />";
+        }
+        if ((this.getEventRemarks() != null) && (!this.getEventRemarks().equals(""))) {
+            paramValues += "     Event remarks: " + this.getEventRemarks() + "<br />";
+        }
+        if ((this.getFieldNotes() != null) && (!this.getFieldNotes().equals(""))) {
+            paramValues += "     Field notes: " + this.getFieldNotes() + "<br />";
+        }
+        if ((this.getFieldNumber() != null) && (!this.getFieldNumber().equals(""))) {
+            paramValues += "     Field number: " + this.getFieldNumber() + "<br />";
+        }
+        if ((this.getInstitutionCode() != null) && (!this.getInstitutionCode().equals(""))) {
+            paramValues += "     Institution code: " + this.getInstitutionCode() + "<br />";
+        }
+        if ((this.getInstitutionID() != null) && (!this.getInstitutionID().equals(""))) {
+            paramValues += "     Institution ID: " + this.getInstitutionID() + "<br />";
+        }
+        if ((this.getSamplingEffort() != null) && (!this.getSamplingEffort().equals(""))) {
+            paramValues += "     Sampli]/ng effort: " + this.getSamplingEffort() + "<br />";
+        }
+        if ((this.getSamplingProtocol() != null) && (!this.getSamplingProtocol().equals(""))) {
+            paramValues += "     Sampling protocol: " + this.getSamplingProtocol() + "<br />";
+        }
+        return paramValues;
+    }
 }

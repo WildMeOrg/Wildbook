@@ -2,36 +2,34 @@ package org.ecocean.api;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
 
-import org.ecocean.User;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.User;
 import org.json.JSONObject;
 
-
-
 public class UserInfo extends ApiBase {
-
     // for polling we do a simple HEAD response
-    protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doHead(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.UserInfo.HEAD");
         myShepherd.beginDBTransaction();
 
         User currentUser = myShepherd.getUser(request);
         if (currentUser == null) {
             response.setStatus(401);
-            //response.setHeader("Content-Type", "application/json");
-            //response.getWriter().write("{\"success\": false}");
+            // response.setHeader("Content-Type", "application/json");
+            // response.getWriter().write("{\"success\": false}");
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             return;
         }
-
         response.setStatus(200);
         response.setHeader("X-User-Id", currentUser.getId());
         // TODO could also set: notification stuff? login time? etc?
@@ -39,9 +37,11 @@ public class UserInfo extends ApiBase {
         myShepherd.closeDBTransaction();
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.UserInfo.GET");
         myShepherd.beginDBTransaction();
 
@@ -54,10 +54,9 @@ public class UserInfo extends ApiBase {
             myShepherd.closeDBTransaction();
             return;
         }
-
         JSONObject results = null;
         String arg = request.getPathInfo();
-        if ((arg == null) || arg.equals("/")) {  // current user (no guid)
+        if ((arg == null) || arg.equals("/")) { // current user (no guid)
             results = currentUser.infoJSONObject(context, true);
         } else {
             User otherUser = myShepherd.getUserByUUID(arg.substring(1));
@@ -74,12 +73,10 @@ public class UserInfo extends ApiBase {
                 results = otherUser.infoJSONObject(context, false);
             }
         }
-
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
-    }  	
-
+    }
 }

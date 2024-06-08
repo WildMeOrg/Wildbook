@@ -5054,6 +5054,7 @@ button#upload-button {
 
   var keyToFilename = {};
   var filenames = [];
+    var userFilenames = [];
   var pendingUpload = -1;
 
   $("button#add-image").click(function(){$(".flow-box").show()})
@@ -5070,6 +5071,7 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    file.userFilename = file.name;
     if(file && file.name){
       file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
     }
@@ -5089,8 +5091,9 @@ button#upload-button {
     var el = findElement(file.name, file.size);
     updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
     console.log('success %o %o', file, message);
-    console.log('filename: '+file.name);
+    console.log('filename: %o | userFilename: %o', file.name, file.userFilename);
     filenames.push(file.name);
+    userFilenames.push(file.userFilename);
     pendingUpload--;
     if (pendingUpload == 0) uploadFinished();
   });
@@ -5174,7 +5177,7 @@ button#upload-button {
   }
   function uploadFinished() {
     if (filenames.length > 0) {
-      console.log("creating mediaAsset for filename "+filenames[0]);
+      console.log("creating mediaAsset for filename=[%o] userFilename=[%o]", filenames[0], userFilenames[0]);
 
       let locationID = '<%=enc.getLocationID()%>';
       console.log("locationID for new asset: "+locationID);
@@ -5187,7 +5190,10 @@ button#upload-button {
         data: JSON.stringify({
           "MediaAssetCreate": [
             {"assets": [
-               {"filename": filenames[0] }
+               {
+                    "filename": filenames[0],
+                    "userFilename": userFilenames[0],
+               }
               ]
             }
           ],
@@ -6165,15 +6171,16 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		</table>
 
     <script type="text/javascript">
-      $(window).on('load',function() {
+    $(window).on('load',function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-          var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
-          if (x.style.display === "none") {
-            x.style.display = "block";
-          } else {
-            x.style.display = "none";
-          }
-      });
+            var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        });
+    });
     </script>
 		<p>
       <span class="caption">
@@ -6789,18 +6796,23 @@ function iaMatchFilterGo() {
     Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
 Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
-for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
-    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
-        String key = idOpt.toString();
-        if (identConfigs.containsKey(key)) {
-            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
-        } else {
-            JSONArray iac = new JSONArray();
-            iac.put(iaClass);
-            idOpt.put("_iaClasses", iac);
-            identConfigs.put(key, idOpt);
+try {
+    for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+        for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+            String key = idOpt.toString();
+            if (identConfigs.containsKey(key)) {
+                identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+            } else {
+                JSONArray iac = new JSONArray();
+                iac.put(iaClass);
+                idOpt.put("_iaClasses", iac);
+                identConfigs.put(key, idOpt);
+            }
         }
     }
+} catch (Exception ex) {
+    out.println("// <!-- identConfigs/iaConfig ERROR: " + ex.toString() + "; please see catalina.out -->");
+    ex.printStackTrace();
 }
 
 //we need to keep this in the same order so we can get values out in the same way
