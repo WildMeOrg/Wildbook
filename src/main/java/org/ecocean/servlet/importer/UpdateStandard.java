@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
@@ -537,9 +538,9 @@ public class UpdateStandard extends HttpServlet {
             String colName = "Encounter.measurement" + bg;
             Double val = getDouble(row, colName);
             if (val != null) {
-                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
+                MeasurementEvent valMeas = new MeasurementEvent(encID, measureVals.get(bg), val,
                     measureUnits.get(bg), "");
-                if (committing) enc.setMeasurement(valMeas, myShepherd);
+                if (committing) enc.setMeasurementEvent(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
         }

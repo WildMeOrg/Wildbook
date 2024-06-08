@@ -16,6 +16,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.*;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.importutils.*;
@@ -988,9 +989,9 @@ public class StandardImport extends HttpServlet {
             Double val = getDouble(row, colName, colIndexMap, verbose, missingColumns,
                 unusedColumns, feedback);
             if (val != null) {
-                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
+                MeasurementEvent valMeas = new MeasurementEvent(encID, measureVals.get(bg), val,
                     measureUnits.get(bg), "");
-                if (committing) enc.setMeasurement(valMeas, myShepherd);
+                if (committing) enc.setMeasurementEvent(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
             // by name
@@ -998,9 +999,9 @@ public class StandardImport extends HttpServlet {
             val = getDouble(row, colName, colIndexMap, verbose, missingColumns, unusedColumns,
                 feedback);
             if (val != null) {
-                Measurement valMeas = new Measurement(encID, measureVals.get(bg), val,
+                MeasurementEvent valMeas = new MeasurementEvent(encID, measureVals.get(bg), val,
                     measureUnits.get(bg), "");
-                if (committing) enc.setMeasurement(valMeas, myShepherd);
+                if (committing) enc.setMeasurementEvent(valMeas, myShepherd);
                 if (unusedColumns != null) unusedColumns.remove(colName);
             }
         }

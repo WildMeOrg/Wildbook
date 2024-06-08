@@ -6,6 +6,7 @@ import java.lang.StringBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 import org.ecocean.resumableupload.UploadServlet;
@@ -424,13 +425,13 @@ public class WebImport extends HttpServlet {
         if (alternateID != null) enc.setAlternateID(alternateID);
         Double length = getDouble(row, "Encounter.measurement.length");
         if (length != null) {
-            Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
-            if (committing) enc.setMeasurement(lengthMeas, myShepherd);
+            MeasurementEvent lengthMeas = new MeasurementEvent(encID, "length", length, "m", "");
+            if (committing) enc.setMeasurementEvent(lengthMeas, myShepherd);
         }
         Double weight = getDouble(row, "Encounter.measurement.weight");
         if (weight != null) {
-            Measurement weightMeas = new Measurement(encID, "weight", weight, "kg", "");
-            if (committing) enc.setMeasurement(weightMeas, myShepherd);
+            MeasurementEvent weightMeas = new MeasurementEvent(encID, "weight", weight, "kg", "");
+            if (committing) enc.setMeasurementEvent(weightMeas, myShepherd);
         }
         Double depth = getDouble(row, "Encounter.depth");
         if (depth != null) enc.setDepth(depth);

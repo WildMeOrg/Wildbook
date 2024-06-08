@@ -44,6 +44,7 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.joda.time.LocalDateTime;
@@ -129,8 +130,8 @@ public class EncounterForm extends HttpServlet {
     // return projects;
     // }
 
-    private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
-        List<Measurement> list = new ArrayList<Measurement>();
+    private List<MeasurementEvent> getMeasurements(Map formValues, String encID, String context) {
+        List<MeasurementEvent> list = new ArrayList<MeasurementEvent>();
         // List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
         // dynamically adapt to project-specific measurements
@@ -144,7 +145,7 @@ public class EncounterForm extends HttpServlet {
             if (value.length() > 0) {
                 try {
                     Double doubleVal = Double.valueOf(value);
-                    list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
+                    list.add(new MeasurementEvent(encID, key, doubleVal, units, samplingProtocol));
                 } catch (Exception ex) {
                     // TODO was reporting via comments, but now how to handle?
                 }
@@ -822,9 +823,9 @@ public class EncounterForm extends HttpServlet {
             for (MetalTag metalTag : metalTags) {
                 enc.addMetalTag(metalTag);
             }
-            List<Measurement> measurements = getMeasurements(formValues, encID, context);
-            for (Measurement measurement : measurements) {
-                enc.setMeasurement(measurement, myShepherd);
+            List<MeasurementEvent> measurements = getMeasurements(formValues, encID, context);
+            for (MeasurementEvent measurement : measurements) {
+                enc.setMeasurementEvent(measurement, myShepherd);
             }
             enc.setAcousticTag(getAcousticTag(formValues));
             enc.setSatelliteTag(getSatelliteTag(formValues));

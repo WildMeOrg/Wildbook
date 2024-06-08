@@ -15,6 +15,7 @@ import jxl.*;
 import jxl.write.*;
 
 import org.ecocean.Util.MeasurementDesc;
+import org.ecocean.datacollection.MeasurementEvent;
 
 // adds spots to a new encounter
 public class SOCPROGExport extends HttpServlet {
@@ -278,7 +279,7 @@ public class SOCPROGExport extends HttpServlet {
                                         String measureName = measurementTypes.get(m).getType();
                                         if ((enc.hasMeasurement(measureName)) &&
                                             (enc.getMeasurement(measureName) != null)) {
-                                            Measurement mmnt = enc.getMeasurement(measureName);
+                                            MeasurementEvent mmnt = enc.getMeasurement(measureName);
                                             jxl.write.Number popLabelX = new jxl.write.Number((m +
                                                 7), count, mmnt.getValue(), numbersFormat);
                                             sheet2.addCell(popLabelX);

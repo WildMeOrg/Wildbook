@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.media.*;
 import org.ecocean.security.*;
 import org.ecocean.servlet.ServletUtilities;
@@ -59,7 +60,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
         for (int i = 0; i < rEncounters.size() && i < rowLimit; i++) {
             Encounter enc = (Encounter)rEncounters.get(i);
             if (enc.getMeasurements().size() > 0) {
-                for (Measurement currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
+                for (MeasurementEvent currentMeasurement : enc.getMeasurements()) { // populate a list of measurementColName with measurements in current
                                                                                // encounter set only
                     String currentMeasurementType = currentMeasurement.getType();
                     if (currentMeasurementType != null &&
@@ -424,7 +425,7 @@ public class EncounterAnnotationExportExcelFile extends HttpServlet {
                             measurementNumber < enc.getMeasurements().size()) {
                             String whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList =
                                 sortedMeasurementColTitles.get(measurementNumber);
-                            Measurement currentMeasurement = enc.getMeasurement(
+                            MeasurementEvent currentMeasurement = enc.getMeasurement(
                                 whichMeasurementNameDoesThisNumberCorrespondToInTheSortedList.
                                     replace("Encounter.measurement.", ""));
                             if (currentMeasurement == null) continue;

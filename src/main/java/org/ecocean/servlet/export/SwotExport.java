@@ -101,7 +101,7 @@ public class SwotExport extends HttpServlet{
       WritableSheet dataProviderSheet = workbook.getSheet(0);
       WritableSheet nestingBeachSheet = workbook.getSheet(1);
 
-      User thisUser = myShepherd.getLoggedInUser(request);
+      User thisUser = myShepherd.getUser(request);
       if (thisUser != null) {
         System.out.println("SwotExport for user "+thisUser.getUsername());
         System.out.println("    with full name =  "+thisUser.getFullName());

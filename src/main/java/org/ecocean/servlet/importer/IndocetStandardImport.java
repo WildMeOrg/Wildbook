@@ -4,6 +4,7 @@ import java.io.*;
 import java.io.File;
 import java.util.*;
 import org.ecocean.*;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 import org.ecocean.servlet.*;
@@ -396,12 +397,12 @@ public class IndocetStandardImport extends HttpServlet {
         if (alternateID != null) enc.setAlternateID(alternateID);
         Double length = getDouble(row, "Encounter.measurement.length");
         if (length != null) {
-            Measurement lengthMeas = new Measurement(encID, "length", length, "m", "");
+            MeasurementEvent lengthMeas = new MeasurementEvent(encID, "length", length, "m", "");
             if (committing) enc.setMeasurement(lengthMeas, myShepherd);
         }
         Double weight = getDouble(row, "Encounter.measurement.weight");
         if (weight != null) {
-            Measurement weightMeas = new Measurement(encID, "weight", weight, "kg", "");
+            MeasurementEvent weightMeas = new MeasurementEvent(encID, "weight", weight, "kg", "");
             if (committing) enc.setMeasurement(weightMeas, myShepherd);
         }
         Double depth = getDouble(row, "Encounter.depth");
