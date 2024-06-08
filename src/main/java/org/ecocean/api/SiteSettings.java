@@ -2,22 +2,21 @@ package org.ecocean.api;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
 
+import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
-import org.ecocean.CommonConfiguration;
 import org.json.JSONObject;
 
-
-
 public class SiteSettings extends ApiBase {
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+
         myShepherd.setAction("api.SiteSettings");
         myShepherd.beginDBTransaction();
 
@@ -31,6 +30,5 @@ public class SiteSettings extends ApiBase {
         response.setStatus(200);
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(settings.toString());
-    }  	
-
+    }
 }
