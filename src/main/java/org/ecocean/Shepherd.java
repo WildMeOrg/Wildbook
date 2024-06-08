@@ -45,6 +45,8 @@ import org.ecocean.cache.StoredQuery;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 
+import org.ecocean.datacollection.*;
+
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd
  * project applications. The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
@@ -1400,7 +1402,8 @@ public class Shepherd {
         return tempEnc;
     }
 
-    public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
+    
+    public <T extends org.ecocean.datacollection.DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
         T dataCollectionEvent = null;
 
         try {
@@ -1409,6 +1412,8 @@ public class Shepherd {
         } catch (Exception e) {}
         return dataCollectionEvent;
     }
+    
+
 
     public <T extends GeneticAnalysis> T findGeneticAnalysis(Class<T> clazz, String num) {
         T dataCollectionEvent = null;
@@ -5950,6 +5955,49 @@ public class Shepherd {
       Iterator it = list.iterator();
       return it;
     }
+    
+    public Iterator<DataSheet> getAllDataSheetsNoQuery() {
+        try {
+          Extent dsClass = pm.getExtent(DataSheet.class, true);
+          Iterator it = dsClass.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllDataSheetsNoQuery. Returning a null iterator.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+    
+    public Iterator<DataSheet> getAllDataSheets(Query accepted, Map<String, Object> paramMap) {
+        Collection c;
+        try {
+          c = (Collection) (accepted.executeWithMap(paramMap));
+          ArrayList list = new ArrayList(c);
+          //Collections.reverse(list);
+          Iterator it = list.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllDataSheets(Query). Returning a null collection.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+    
+    public boolean storeNewUser(User u) {
+        beginDBTransaction();
+        try {
+          pm.makePersistent(u);
+          commitDBTransaction();
+    			return true;
+
+        } catch (Exception e) {
+          rollbackDBTransaction();
+          System.out.println("I failed to create a new User in shepherd.storeNewUser().");
+          e.printStackTrace();
+          return false;
+        }
+      }
+    
     //END IOT NEST CUSTOMIZATIONS
     
 } // end Shepherd class
