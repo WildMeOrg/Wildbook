@@ -1058,4 +1058,10 @@ public class CommonConfiguration {
             return def;
         }
     }
+    
+    //IOT Customizations
+    public static boolean showMeasurementEvents(String context) {
+        return showCategory("showMeasurementEvents",context);
+      }
+    
 }

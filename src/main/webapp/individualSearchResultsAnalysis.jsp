@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,
          javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,
-         org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics, java.util.stream.Collectors,
+         org.ecocean.Util.MeasurementDesc,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics, java.util.stream.Collectors,
          org.joda.time.DateTime,
 		org.joda.time.format.DateTimeFormatter,
 		org.joda.time.format.ISODateTimeFormat
@@ -68,7 +68,7 @@
 
 	
 	//prep for biomeasurements summary
-	List<MeasurementEventDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
+	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
 	int numBioMeasurementTypes=bioMeasurementTypes.size();
 	SynchronizedSummaryStatistics[] bioMeasurementValues=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
 	SynchronizedSummaryStatistics[] bioMeasurementValuesMales=new SynchronizedSummaryStatistics[numBioMeasurementTypes];

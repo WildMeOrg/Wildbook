@@ -1300,7 +1300,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <hr>
  <fieldset>
 <%
-    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
 

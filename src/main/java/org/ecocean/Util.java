@@ -1149,4 +1149,55 @@ public class Util {
         if (original == null) return null;
         return new JSONObject(original, JSONObject.getNames(original));
     }
+    
+    //IOT Customizations
+    public static List<MeasurementEventDesc> findMeasurementEventDescs(String langCode,String context) {
+        List<MeasurementEventDesc> list = new ArrayList<MeasurementEventDesc>();
+        List<String> types = CommonConfiguration.getIndexedPropertyValues(MEASUREMENT,context);
+        if (types.size() > 0) {
+          List<String> units = CommonConfiguration.getIndexedPropertyValues(UNITS,context);
+          for (int i = 0; i < types.size() && i < units.size(); i++) {
+            String type = types.get(i);
+            String unit = units.get(i);
+            String typeLabel = findLabel(type, langCode,context);
+            String unitsLabel = findLabel(unit, langCode,context);
+            list.add(new MeasurementEventDesc(type, typeLabel, unit, unitsLabel));
+          }
+        }
+        return list;
+      }
+    
+    public static class MeasurementEventDesc {
+        private String type;
+        private String label;
+        private String units;
+        private String unitsLabel;
+
+        private MeasurementEventDesc(String type, String label, String units, String unitsLabel) {
+          this.type = type;
+          this.label = label;
+          this.units = units;
+          this.unitsLabel = unitsLabel;
+        }
+
+        public String getType() {
+          return type;
+        }
+        public String getLabel() {
+          return label;
+        }
+        public String getUnits() {
+          return units;
+        }
+        public String getUnitsLabel() {
+          return unitsLabel;
+        }
+      }
+
+
+
+
+      
+      //END IOT customizations
+    
 }

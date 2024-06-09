@@ -5998,6 +5998,139 @@ public class Shepherd {
         }
       }
     
+    public Nest getNest(String num) {
+        Nest tempEnc = null;
+        try {
+          tempEnc = ((Nest) (pm.getObjectById(pm.newObjectIdInstance(Nest.class, num.trim()), true)));
+        } catch (Exception nsoe) {
+          return null;
+        }
+        return tempEnc;
+      }
+
+      public DataPoint getDataPoint(String id) {
+        DataPoint tempEnc = null;
+        try {
+          tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, id.trim()), true)));
+        } catch (Exception nsoe) {
+          return null;
+        }
+        return tempEnc;
+      }
+
+      public DataSheet getDataSheet(String id) {
+        DataSheet tempEnc = null;
+        try {
+          tempEnc = ((DataSheet) (pm.getObjectById(pm.newObjectIdInstance(DataSheet.class, id.trim()), true)));
+        } catch (Exception nsoe) {
+          return null;
+        }
+        return tempEnc;
+      }
+      
+      public boolean storeNewNest(Nest nest) {
+    	    beginDBTransaction();
+    	    try {
+    	      System.out.println("STORING. entered shepherd store method, sheets = "+nest.getDataSheets());
+    	      pm.makePersistent(nest);
+    	      System.out.println("STORING. pm.makePersistent shepherd store method, sheets = "+nest.getDataSheets());
+    	      commitDBTransaction();
+    	      System.out.println("STORING. commitDBTransaction() shepherd store method, sheets = "+nest.getDataSheets());
+    	    } catch (Exception e) {
+    	      rollbackDBTransaction();
+    	      System.out.println("I failed to create a new Nest in Shepherd.storeNewNest().");
+    	      e.printStackTrace();
+    	      return false;
+    	    } finally {
+    	      closeDBTransaction();
+    	      System.out.println("STORING. closeDBTransaction() shepherd store method, sheets = "+nest.getDataSheets());
+    	    }
+    	    return true;
+    	  }
+
+    	  public boolean storeNewDataSheet(DataSheet indie) {
+    	    System.out.println("   storeNewDataSheet: shepherd is storing new datasheet "+indie);
+    	    for (DataPoint dp: indie.getData()) {
+    	      storeNewDataPoint(dp);
+    	    }
+
+    	    beginDBTransaction();
+    	    try {
+    	      pm.makePersistent(indie);
+    	      System.out.println("   storeNewDataSheet: shepherd has successfully stored datasheet "+indie);
+    	      System.out.println("   storeNewDataSheet: shepherd.isDataSheet(indie.getID()) = "+isDataSheet(indie.getID()));
+
+    	      commitDBTransaction();
+    	      System.out.println("   storeNewDataSheet: shepherd has committed transaction");
+    	      beginDBTransaction();
+    	      System.out.println("   storeNewDataSheet: shepherd.isDataSheet(indie.getID()) = "+isDataSheet(indie.getID()));
+    	    } catch (Exception e) {
+    	      rollbackDBTransaction();
+    	      System.out.println("I failed to create a new DataSheet in Shepherd.storeNewDataSheet().");
+    	      e.printStackTrace();
+    	      return false;
+    	    }
+    	    return true;
+    	  }
+
+    	  public boolean storeNewDataPoint(DataPoint indie) {
+
+    	    beginDBTransaction();
+    	    try {
+    	      pm.makePersistent(indie);
+    	      commitDBTransaction();
+    	    } catch (Exception e) {
+    	      rollbackDBTransaction();
+    	      System.out.println("I failed to create a new Nest in Shepherd.storeNewDataPoint().");
+    	      e.printStackTrace();
+    	      return false;
+    	    }
+    	    return true;
+    	  }
+    	  
+    	  public boolean isDataSheet(String num) {
+    		    try {
+    		      DataSheet tempEnc = ((org.ecocean.datacollection.DataSheet) (pm.getObjectById(pm.newObjectIdInstance(org.ecocean.datacollection.DataSheet.class, num.trim()), true)));
+    		    } catch (Exception nsoe) {
+    		      //nsoe.printStackTrace();
+    		      return false;
+    		    }
+    		    return true;
+    		  }
+
+    	  public int getNumDataSheets() {
+    		    pm.getFetchPlan().setGroup("count");
+    		    Extent encClass = pm.getExtent(DataSheet.class, true);
+    		    Query acceptedEncounters = pm.newQuery(encClass);
+    		    try {
+    		      Collection c = (Collection) (acceptedEncounters.execute());
+    		      int num = c.size();
+    		      acceptedEncounters.closeAll();
+    		      return num;
+    		    } catch (javax.jdo.JDOException x) {
+    		      x.printStackTrace();
+    		      acceptedEncounters.closeAll();
+    		      return -1;
+    		    }
+    		  }
+
+
+    		  public int getNumNests() {
+    		    pm.getFetchPlan().setGroup("count");
+    		    Extent encClass = pm.getExtent(Nest.class, true);
+    		    Query acceptedEncounters = pm.newQuery(encClass);
+    		    try {
+    		      Collection c = (Collection) (acceptedEncounters.execute());
+    		      int num = c.size();
+    		      acceptedEncounters.closeAll();
+    		      return num;
+    		    } catch (javax.jdo.JDOException x) {
+    		      x.printStackTrace();
+    		      acceptedEncounters.closeAll();
+    		      return 0;
+    		    }
+    		  }
+    
     //END IOT NEST CUSTOMIZATIONS
     
 } // end Shepherd class

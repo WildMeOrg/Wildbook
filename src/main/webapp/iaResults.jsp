@@ -1329,7 +1329,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
             	var iaBase = wildbookGlobals.iaStatus.map.iaURL;
             	illustrationUrl = iaBase+illustrationUrl
 				let resultIndex = $(selector).closest(".has-data-index").data("index");
-				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context)%>){
+				if(resultIndex <= <%=CommonConfiguration.getNumIaResultsUserCanInspect(context) %>){
           const loadingText = '<span id="loadingText" class="illustrationLink" style="float:right;">Loading...</span>';
           const errorText = '<span class="illustrationLink" style="float:right;">Error. Something went wrong fetching the inspection image</span>';
 					const illustrationHtml = '<span class="illustrationLink" style="float:right;"><a href="'+illustrationUrl+'" target="_blank">inspect</a></span>';

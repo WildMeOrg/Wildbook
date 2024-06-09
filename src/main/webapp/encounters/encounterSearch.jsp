@@ -868,7 +868,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 %>
 <c:if test="${showMeasurementEvent}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode, context));
 %>
 <tr><td></td></tr>
 <tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>

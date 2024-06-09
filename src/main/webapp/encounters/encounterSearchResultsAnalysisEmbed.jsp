@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration,org.ecocean.security.HiddenEncReporter" %>
+         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration,org.ecocean.security.HiddenEncReporter" %>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
@@ -48,7 +48,7 @@
 
  	
  	//prep for biomeasurements summary
- 	List<MeasurementEventDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
+ 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en", context);
  	int numBioMeasurementTypes=bioMeasurementTypes.size();
  	SummaryStatistics[] bioMeasurementValues=new SummaryStatistics[numBioMeasurementTypes];
  	SummaryStatistics[] bioMeasurementValuesMales=new SummaryStatistics[numBioMeasurementTypes];
