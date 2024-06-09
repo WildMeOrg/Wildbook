@@ -6130,6 +6130,14 @@ public class Shepherd {
     		      return 0;
     		    }
     		  }
+    		  public MeasurementEvent getMeasurementEventOfTypeForEncounter(String type, String encNum) {
+    			    String filter = "type == \""+type+"\" && correspondingEncounterNumber == \""+encNum+"\"";
+    			    Extent encClass = pm.getExtent(MeasurementEvent.class, true);
+    			    Query samples = pm.newQuery(encClass, filter);
+    			    Collection c = (Collection) (samples.execute());
+    			    if((c!=null)&&(c.size()>0)){return (new ArrayList<MeasurementEvent>(c)).get(0);}
+    			    else{return null;}
+    			  }
     
     //END IOT NEST CUSTOMIZATIONS
     
