@@ -258,11 +258,11 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             }
             // end sorting
 
-            Method getMeasurementValue = Measurement.class.getMethod("toExcelFormat");
+            Method getMeasurementValue = MeasurementEvent.class.getMethod("toExcelFormat");
             if (sortedMeasurementColTitles.size() > 0) {
                 for (String currentSortedColTitle : sortedMeasurementColTitles) {
                     String measurementColName = "Encounter.measurement." + currentSortedColTitle;
-                    ExportColumn measurementCol = new ExportColumn(Measurement.class,
+                    ExportColumn measurementCol = new ExportColumn(MeasurementEvent.class,
                         measurementColName, getMeasurementValue, columns);
                     String modifiedColumnName = measurementColName.replace("Encounter.measurement.",
                         "");

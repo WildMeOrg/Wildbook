@@ -27,4 +27,10 @@ public class MeasurementEvent extends DataCollectionEvent {
     public String getUnits() {
         return units;
     }
+    
+    public String toExcelFormat() {
+        return "type: " + getType().toString() + "; value: " + value.toString() + "; units: " +
+                   units;
+    }
+    
 }
