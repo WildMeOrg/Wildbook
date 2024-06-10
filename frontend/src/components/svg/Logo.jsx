@@ -2,10 +2,17 @@ import React from "react";
 
 export default function Logo({ style }) {
   return (
-    <div style={style}>
+    <div
+      style={{
+        maxWidth: "60px",
+        maxHeight: "60px",
+        overflow: "hidden",
+        ...style,
+      }}
+    >
       <svg
-        width="60"
-        height="60"
+        width="40"
+        height="40"
         viewBox="0 0 92 90"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
