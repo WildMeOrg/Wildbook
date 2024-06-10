@@ -151,6 +151,19 @@ public class Encounter implements java.io.Serializable {
     /*
      * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
      */
+    
+    //WWF Iberian Lynx
+    // For studies with named animal populations
+    public String population;
+
+    // For studies with named government areas
+    public String governmentArea;
+
+    // For studies with named hunting states
+    public String huntingState;
+
+
+    private String studySiteID;
 
     // An URL to a thumbnail image representing the encounter.
     private String dwcImageURL;
@@ -3988,4 +4001,153 @@ public class Encounter implements java.io.Serializable {
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
+    
+    //WWF Spain Iberian lynx
+    public void setLocationIDFromStudySiteName(Shepherd myShepherd, boolean overwrite) {
+        if (overwrite) setLocationIDFromStudySiteNameForce(myShepherd);
+        else setLocationIDFromStudySiteName(myShepherd);
+      }
+      public void setLocationIDFromStudySiteName(Shepherd myShepherd) {
+        if (Util.stringExists(getLocationID()) && !"None".equals(getLocationID())) return;
+        setLocationIDFromStudySiteNameForce(myShepherd);
+      }
+      public void setLocationIDFromStudySiteNameForce(Shepherd myShepherd) {
+        if (getStudySiteID()==null) return;
+        StudySite stu = myShepherd.getStudySite(getStudySiteID());
+        String name = stu.getName();
+        if (Util.stringExists(name)) setLocationID(name);
+      }
+
+      public void addFormattedCommentsAndTimeStamp(String newComments) {
+    	    setDWCDateLastModified();
+    	    String now = "<small>" + getDWCDateLastModified() + "</small>";
+    	    if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
+    	      researcherComments += (now + " - <i>" + newComments + "</i><br>");
+    	    } else {
+    	      researcherComments = (now + " - <i>" + newComments + "</i><br>");
+    	    }
+    	  }
+    
+      public String getStudySiteID() {
+    	    return studySiteID;
+      }
+
+	  // studySiteID is always a UUID, but users will want to know the name of the site
+	  public String getStudySiteName(Shepherd myShepherd) {
+	  	StudySite stu = myShepherd.getStudySite(getStudySiteID());
+	  	return ((stu==null) ? null : stu.getName());
+	  }
+
+	  public void setStudySiteID(String studySiteID) {
+	    this.studySiteID = studySiteID;
+	  }
+
+	  public void setStudySiteByName(String studySiteName, Shepherd myShepherd) {
+	    StudySite stu = myShepherd.getStudySite(studySiteName);
+	    if (stu != null) setStudySiteID(stu.getID());
+	  }
+
+	  // does not overwrite
+	  public void importStudySiteFields(StudySite stu) {
+	    if (Util.shouldReplace(stu.getGovernmentArea(), getGovernmentArea())) {
+	      setGovernmentArea(stu.getGovernmentArea());
+	    }
+	    if (Util.shouldReplace(stu.getPopulation(), getPopulation())) {
+	      setPopulation(stu.getPopulation());
+	    }
+	    if (Util.shouldReplace(stu.getHuntingState(), getHuntingState())) {
+	      setHuntingState(stu.getHuntingState());
+	    }
+	    if (Util.shouldReplace(stu.getCountry(), getCountry())) {
+	      setCountry(stu.getCountry());
+	    }
+	    if (getDecimalLatitude() ==null && !(stu.getLatitude() ==null)) {
+	      setDecimalLatitude( stu.getLatitude());
+	    }
+	    if (getDecimalLongitude()==null && !(stu.getLongitude()==null)) {
+	      setDecimalLongitude(stu.getLongitude());
+	    }
+	    // lynx-specific
+	    setLocationID(stu.getName());
+	  }
+
+	  public void setStudySite(StudySite stu) {
+	    // OK to import both ways because data is not overwritten
+	    stu.importEncounterFields(this);
+	    importStudySiteFields(stu);
+	    setStudySiteID(stu.getID());
+	    addFormattedCommentsAndTimeStamp("Added the encounter to Study Site "+stu.getName());
+	  }
+
+	  public void clearStudySiteData(Shepherd myShepherd) {
+	    if (getStudySiteID()!=null) {
+	      StudySite stu = myShepherd.getStudySite(getStudySiteID());
+	      try {
+	        setStudySiteID(null);
+	        setGovernmentArea(null);
+	        setPopulation(null);
+	        setHuntingState(null);
+	        setCountry(null);
+	        setDecimalLatitude(null);
+	        setDecimalLongitude(null);
+	        this.locationID = "";
+	      } catch (NullPointerException | IllegalArgumentException e) {
+	        addFormattedCommentsAndTimeStamp("Failed to remove the encounter from Study Site "+stu.getName());
+	        e.printStackTrace();
+	      }
+	      addFormattedCommentsAndTimeStamp("Removed the encounter from Study Site "+stu.getName());
+	    }
+	  }
+	    // getters and setters for decimal lat/long using UTM conversion
+	    public double[] getUTMCoords(){
+	      if (decimalLatitude == null || decimalLongitude == null) {
+	        return GeocoordConverter.ERROR_dOUBLE_TUPLE;
+	      }
+	      return GeocoordConverter.gpsToUtm(decimalLatitude.doubleValue(), decimalLongitude.doubleValue());
+	    }
+	    // since the lynx project uses multiple epsg projections
+	    public void setFromUTMCoords(int easting, int northing, String epsgProjCode) {
+	      this.setLatLon(GeocoordConverter.utmToGps(easting, northing, epsgProjCode));
+	    }
+
+	    public void setFromUTMCoords(int easting, int northing, int utmZoneNum) {
+	      this.setLatLon(GeocoordConverter.utmToGps(easting, northing, utmZoneNum));
+	    }
+	    // Like above but uses GeocoordConverter's internal default zone number
+	    public void setFromUTMCoords(int easting, int northing) {
+	      this.setLatLon(GeocoordConverter.utmToGps(easting, northing));
+	    }
+	    // readability helper for all the coordinate translation going on
+	    private void setLatLon(double[] latLon) {
+	      this.setDecimalLatitude (latLon[0]);
+	      this.setDecimalLongitude(latLon[1]);
+	    }
+	    
+	    
+	    //need to get ALL project id's from db, there is no single. methods reside on shepherd
+	    @Deprecated
+	    public String getProjectId(){
+	      return "Bloop";
+	    }
+
+	  public String getPopulation() {
+	    return population;
+	  }
+	  public void setPopulation(String population) {
+	    this.population = population;
+	  }
+
+	  public String getGovernmentArea() {
+	    return governmentArea;
+	  }
+	  public void setGovernmentArea(String governmentArea) {
+	    this.governmentArea = governmentArea;
+	  }
+	  public String getHuntingState() {
+	    return huntingState;
+	  }
+	  public void setHuntingState(String huntingState) {
+	    this.huntingState = huntingState;
+	  }
+
 }

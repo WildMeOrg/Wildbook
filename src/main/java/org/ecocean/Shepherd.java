@@ -42,6 +42,7 @@ import org.ecocean.cache.CachedQuery;
 import org.ecocean.cache.QueryCache;
 import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.cache.StoredQuery;
+import org.ecocean.datacollection.DataPoint;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 
@@ -5911,4 +5912,191 @@ public class Shepherd {
         }
         return allAnnotIds;
     }
+    
+    
+    //WWF Lynx customizations
+    
+    public void throwAwayStudySite(StudySite site) {
+        pm.deletePersistent(site);
+    }
+    
+    
+    public boolean storeNewStudySite(StudySite stu) {
+
+        beginDBTransaction();
+        try {
+          pm.makePersistent(stu);
+          commitDBTransaction();
+        } catch (Exception e) {
+          rollbackDBTransaction();
+          System.out.println("I failed to create a new StudySite in Shepherd.storeNewStudySite().");
+          e.printStackTrace();
+          return false;
+        }
+        return true;
+      }
+
+      public StudySite getStudySite(String id) {
+        StudySite tempEnc = null;
+        try {
+          tempEnc = ((StudySite) (pm.getObjectById(pm.newObjectIdInstance(StudySite.class, id.trim()), true)));
+        } catch (Exception nsoe) {
+          return null;
+        }
+        return tempEnc;
+      }
+
+      public StudySite getStudySite(Encounter enc) {
+        if (enc.getStudySiteID()==null) return null;
+        return getStudySite(enc.getStudySiteID());
+      }
+
+      public StudySite getStudySiteByName(String name) {
+        try {
+          String filter = "SELECT FROM org.ecocean.StudySite WHERE name == '"+name+"'";
+          Query q = pm.newQuery(filter);
+          Collection c = (Collection) q.execute();
+          ArrayList<StudySite> sites = new ArrayList<StudySite>(c);
+          return sites.get(0);
+        } catch (Exception nsoe) {
+          return null;
+        }
+      }
+
+      public boolean isStudySiteWithName(String name) {
+        return (getStudySiteByName(name) != null);
+      }
+
+      public List<StudySite> getAllStudySites(int range) {
+        try {
+          String filter = "SELECT FROM org.ecocean.StudySite";
+          Query q = pm.newQuery(filter);
+          if (range>0) q.setRange(0, range);
+          Collection c = (Collection) q.execute();
+          return new ArrayList<StudySite>(c);
+        } catch (Exception nsoe) {
+          return new ArrayList<StudySite>();
+        }
+      }
+
+      public Iterator<StudySite> getAllStudySites(Query accepted, Map<String, Object> paramMap) {
+        Collection c;
+        try {
+          c = (Collection) (accepted.executeWithMap(paramMap));
+          ArrayList list = new ArrayList(c);
+          //Collections.reverse(list);
+          Iterator it = list.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllStudySites(Query). Returning a null collection.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+      public Iterator<StudySite> getAllStudySitesNoQuery() {
+        try {
+          Extent dsClass = pm.getExtent(StudySite.class, true);
+          Iterator it = dsClass.iterator();
+          return it;
+        } catch (Exception npe) {
+          System.out.println("Error encountered when trying to execute getAllStudySitesNoQuery. Returning a null iterator.");
+          npe.printStackTrace();
+          return null;
+        }
+      }
+
+      public int getNumStudySites() {
+        System.out.println("beginning to getNumStudySites()");
+        pm.getFetchPlan().setGroup("count");
+        Extent encClass = pm.getExtent(StudySite.class, true);
+        Query acceptedEncounters = pm.newQuery(encClass);
+        try {
+          Collection c = (Collection) (acceptedEncounters.execute());
+          int num = c.size();
+          System.out.println("found n="+num+" StudySites");
+          acceptedEncounters.closeAll();
+          return num;
+        } catch (javax.jdo.JDOException x) {
+          System.out.println("Exception on getNumStudySites()");
+          x.printStackTrace();
+          acceptedEncounters.closeAll();
+          return -1;
+        }
+      }
+
+
+
+      public List<StudySite> getAllStudySites() {
+        return getAllStudySites(-1);
+      }
+
+      public List<StudySite> getStudySitesWithNames(int range) {
+        try {
+          String filter = "SELECT FROM org.ecocean.StudySite WHERE name != null";
+          Query q = pm.newQuery(filter);
+          if (range>0) q.setRange(0, range);
+          q.setOrdering("name descending");
+          Collection c = (Collection) q.execute();
+          return new ArrayList<StudySite>(c);
+        } catch (Exception nsoe) {
+          return new ArrayList<StudySite>();
+        }
+      }
+
+
+      public List<StudySite> getStudySitesWithNames() {
+        return getStudySitesWithNames(-1);
+      }
+
+      public String[] getUniqueStudySiteNames() {
+        List<StudySite> sites = getStudySitesWithNames();
+        Set<String> names = new HashSet<String>();
+        for (StudySite stu : sites) {
+          if (!names.contains(stu.getName())) names.add(stu.getName());
+        }
+        return names.toArray(new String[0]);
+      }
+
+
+
+      public List<StudySite> getStudySitesAtLocation(String locationID) {
+        return getStudySitesAtLocation(locationID, true);
+      }
+
+
+      public List<StudySite> getStudySitesAtLocation(String locationID, boolean withNames) {
+        try {
+
+          System.out.println("getStudySitesAtLocation!"+
+                              " locationID = "+locationID+
+                              " location isNull = "+(locationID==null));
+
+          if (locationID == null) {
+            if (withNames) return getStudySitesWithNames();
+            else return getAllStudySites();
+          }
+
+          String filter = "SELECT FROM org.ecocean.StudySite WHERE locationID == '"+locationID+"'";
+          if (withNames) filter += " && name != null";
+          Query q = pm.newQuery(filter);
+          if (withNames) q.setOrdering("name ascending");
+          Collection c = (Collection) q.execute();
+          return new ArrayList<StudySite>(c);
+        } catch (Exception nsoe) {
+          System.out.println("A terrible error!");
+          return new ArrayList<StudySite>();
+        }
+      }
+      
+      public DataPoint getDataPoint(String id) {
+    	    DataPoint tempEnc = null;
+    	    try {
+    	      tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, id.trim()), true)));
+    	    } catch (Exception nsoe) {
+    	      return null;
+    	    }
+    	    return tempEnc;
+    	  }
+    
+    
 } // end Shepherd class

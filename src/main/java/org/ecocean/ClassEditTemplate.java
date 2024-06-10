@@ -209,6 +209,35 @@ public class ClassEditTemplate {
             return false;
         }
     }
+    
+    public static void printDateTimeSetterRow(Object obj, Method getDateTime, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
+        String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
+        String classNamePrefix = ""; // e.g. "occ"
+        if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
+        else classNamePrefix = className.toLowerCase();
+
+        String printValue;
+        if (getDateTime.invoke(obj)==null) printValue = "";
+        else {
+          DateTime dt = (DateTime) getDateTime.invoke(obj);
+          LocalDateTime lt = dt.toLocalDateTime();
+          System.out.println("DateTime "+dt+" converted to LocalDateTime "+lt);
+          printValue = dt.toString("MM-dd-yyyy HH:mm");
+        }
+        String fieldName = prettyFieldNameFromGetMethod(getDateTime);
+        String inputName = inputElemName(getDateTime, classNamePrefix);
+
+        out.println("<tr data-original-value=\""+printValue+"\">");
+        out.println("\t<td>"+fieldName+"</td>");
+        out.println("\t<td>");
+        // hidden input for setting default va a la http://stackoverflow.com/a/11904956
+        //out.println("\t\t<input type=\"hidden\" id=\"datepicker\" />");
+        out.println("<input class=\"form-control\" type=\"text\" id=\"datepicker\"");
+        out.println("name=\""+inputName+"\" ");
+        out.println("value=\""+printValue+"\"");
+        out.println("/>");
+        out.println("\t</td>");
+      }
 
     public static void printDateTimeSetterRow(Object obj, javax.servlet.jsp.JspWriter out)
     throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
