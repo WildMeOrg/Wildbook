@@ -419,7 +419,8 @@ if(request.getUserPrincipal()!=null){
                   <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
-                    <%=props.getProperty("siteName")%>                    
+                    <%-- <%=props.getProperty("siteName")%>                     --%>
+                    <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
                 </a>                        
                 
                   <div class="navbar-header clearfix">
