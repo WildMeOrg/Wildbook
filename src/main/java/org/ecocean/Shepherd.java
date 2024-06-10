@@ -5915,7 +5915,8 @@ public class Shepherd {
     
     
     //WWF Lynx customizations
-    
+    //
+    //
     public void throwAwayStudySite(StudySite site) {
         pm.deletePersistent(site);
     }
@@ -6098,5 +6099,16 @@ public class Shepherd {
     	    return tempEnc;
     	  }
     
+      public ArrayList<Encounter> getAllEncountersForStudySite(StudySite site) {
+    	    String id = site.getID();
+    	    String encQString = "SELECT FROM org.ecocean.Encounter WHERE this.studySiteID == \""+id+"\" ";
+    	    Query encQ = pm.newQuery(encQString);
+    	    Collection col = (Collection) (encQ.execute());
+    	    ArrayList<Encounter> arr = new ArrayList<>(col);
+    	    encQ.closeAll();
+    	    return arr;
+    	  }
+      
+      //END WWF Lynx Customizations
     
 } // end Shepherd class
