@@ -44,9 +44,16 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.ecocean.ShepherdProperties;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Shepherd;
+import org.ecocean.Util;
+import org.ecocean.Organization;
+import org.ecocean.User;
+import org.ecocean.ContextConfiguration;
+import org.slf4j.Logger;
 import org.apache.commons.text.WordUtils;
 import org.ecocean.servlet.ServletUtilities;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
@@ -57,9 +64,25 @@ public class ServletUtilities {
         String langCode = ServletUtilities.getLanguageCode(request);
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
+        System.out.println("props" + props);
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         String pageTitle = (String)request.getAttribute("pageTitle"); // allows custom override from calling jsp (must
-                                                                      // set BEFORE include:header)
+        
+        String siteName = "wildbook";        
+        try {
+            System.out.println("getting site name ");
+            String name = props.getProperty("siteName");
+            System.out.println("site name is " + name);
+            if(name != null) {
+                siteName = name;
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to get siteName property from props:");
+            e.printStackTrace();
+        }
+
+        
+        // set BEFORE include:header)
         if (pageTitle == null) {
             pageTitle = CommonConfiguration.getHTMLTitle(context);
         } else {
@@ -131,10 +154,7 @@ public class ServletUtilities {
                 .append("</div>");
         }
         String languageString = htmlBuilder.toString();
-        String siteName = props.getProperty("siteName");
-        System.out.println("sitename: " + siteName);
-        System.out.println("username: " + username);
-
+        
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
                 "servletResponseTemplate.htm"));
@@ -148,15 +168,15 @@ public class ServletUtilities {
             buffread.close();
             templateFile = SBreader.toString();
 
-            String context1 = getContext(request);
+            String templateContext = getContext(request);
 
             // process the CSS string
             templateFile = templateFile.replaceAll("CSSURL",
-                CommonConfiguration.getCSSURLLocation(request, context1));
+                CommonConfiguration.getCSSURLLocation(request, templateContext));
 
             // set the top header graphic
             templateFile = templateFile.replaceAll("TOPGRAPHIC",
-                CommonConfiguration.getURLToMastheadGraphic(context1));
+                CommonConfiguration.getURLToMastheadGraphic(templateContext));
 
             templateFile = templateFile.replaceAll("SITE_NAME", siteName);
             templateFile = templateFile.replaceAll("USER_NAME", username);

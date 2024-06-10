@@ -153,87 +153,48 @@
                   <li><a href="product-docs/en/wildbook/introduction/">Software Documentation</a></li>
                   <li><a href="appadmin/dataIntegrity.jsp">Data Integrity</a></li>
                   <li><a href="imports.jsp">Bulk Import Logs</a></li>
-
-                  <!-- <%
-                        if(CommonConfiguration.useSpotPatternRecognition(context)){
-                        %>
-                          <li class="divider"></li>
-                          <li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                          <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                          <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                        <%
-                        }
-                        %> -->
                 </ul>
               </li>
             </ul>
-
-
           </div>
-
-
-
-          <!-- <script type="text/javascript">
-            $(document).ready(function () {
-              console.log("Document ready!");
-
-              $('.navbar .dropdown').hover(
-                function () {
-                  $(this).find('.dropdown-menu').first().stop(true, true).delay(250).show();
-                },
-                function () {
-                  $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
-                }
-              );
-
-              document.querySelector('.lang_selector').addEventListener('click', function (event) {
-                // if (event.target.closest('.lang_selector')) {
-                //     alert("Language selector clicked!");
-                //     console.log("Language selector clicked!");
-                // }
-                console.log("Language selector clicked!");
-              });
-
-            });
-          </script> -->
 
           <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function () {
-                console.log("Document ready!");
-        
-                document.querySelectorAll('.navbar .dropdown').forEach(function (dropdown) {
-                    dropdown.addEventListener('mouseenter', function () {
-                        var dropdownMenu = this.querySelector('.dropdown-menu');
-                        if (dropdownMenu) {
-                            dropdownMenu.style.display = 'block';
-                            setTimeout(function () {
-                                dropdownMenu.style.opacity = 1;
-                            }, 250);
-                        }
-                    });
-        
-                    dropdown.addEventListener('mouseleave', function () {
-                        var dropdownMenu = this.querySelector('.dropdown-menu');
-                        if (dropdownMenu) {
-                            setTimeout(function () {
-                                dropdownMenu.style.display = 'none';
-                                dropdownMenu.style.opacity = 0;
-                            }, 100);
-                        }
-                    });
+              console.log("Document ready!");
+
+              document.querySelectorAll('.navbar .dropdown').forEach(function (dropdown) {
+                dropdown.addEventListener('mouseenter', function () {
+                  var dropdownMenu = this.querySelector('.dropdown-menu');
+                  if (dropdownMenu) {
+                    dropdownMenu.style.display = 'block';
+                    setTimeout(function () {
+                      dropdownMenu.style.opacity = 1;
+                    }, 250);
+                  }
                 });
-        
-                document.querySelectorAll('.lang_selector').forEach(function (element) {
-                    var langCode = element.getAttribute('data-lang');
-                    var imgUrl = "/images/flag_" + langCode + ".gif";
-                    element.addEventListener('click', function (event) {
-                        console.log("Language selector clicked!");
-                        selectItem(element, langCode, imgUrl);
-                    });
+
+                dropdown.addEventListener('mouseleave', function () {
+                  var dropdownMenu = this.querySelector('.dropdown-menu');
+                  if (dropdownMenu) {
+                    setTimeout(function () {
+                      dropdownMenu.style.display = 'none';
+                      dropdownMenu.style.opacity = 0;
+                    }, 100);
+                  }
                 });
+              });
+
+              document.querySelectorAll('.lang_selector').forEach(function (element) {
+                var langCode = element.getAttribute('data-lang');
+                var imgUrl = "/images/flag_" + langCode + ".gif";
+                element.addEventListener('click', function (event) {
+                  console.log("Language selector clicked!");
+                  selectItem(element, langCode, imgUrl);
+                });
+              });
             });
-        </script>
-        
+          </script>
+
 
           <script type="text/javascript">
 
@@ -244,26 +205,11 @@
 
             function selectItem(element, langCode, imgUrl) {
               var selectedDiv = document.querySelector('.custom-select-selected');
-              //selectedDiv.textContent = element.textContent; 
-              //selectedDiv.style.backgroundImage = 'url("' + imgUrl + '")';
-
               selectedDiv.setAttribute('data-lang', langCode);
-
               document.querySelector('.custom-select-items').classList.add('hidden');
-
-              console.log("Language changed to: " + langCode);
-
-              // $.cookie("wildbookLangCode", langCode, {
-              //   path: '/',
-              //   secure: false
-              // });
-
               document.cookie = "wildbookLangCode=" + encodeURIComponent(langCode) + "; path=/";
-
-
               location.reload(true);
             }
-
 
           </script>
 
@@ -320,53 +266,6 @@
 
             </div>
 
-            <!-- <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
-    <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>">
-        <%=props.getProperty("userWiki")%>
-      </a></li>
-    <% } List<String> contextNames=ContextConfiguration.getContextNames();
-      int numContexts=contextNames.size();
-      if(numContexts>1){
-      %>
-
-
-      <form>
-        <%=props.getProperty("switchContext") %>&nbsp;
-          <select style="color: black;" id="context" name="context">
-            <% for(int h=0;h<numContexts;h++){ String selected="" ;
-              if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\" selected\"";}
-              %>
-
-              <option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %>
-              </option>
-              <% } %>
-          </select>
-      </form>
-      </li>
-      <script type="text/javascript">
-
-        $("#context").change(function () {
-
-          //alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
-          $.cookie("wildbookContext", $("#context option:selected").val(), {
-            path: '/',          //The value of the path attribute of the cookie
-            //(default: path of page that created the cookie).
-
-            secure: false          //If set to true the secure attribute of the cookie
-            //will be set and the cookie transmission will
-            //require a secure protocol (defaults to false).
-          });
-
-          //alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-          location.reload(true);
-
-        });
-
-      </script>
-      <% } %> -->
-            <!-- Can we inject language functionality here? -->
-
-            <!-- <li> -->
             <div class="custom-select-wrapper">
               <div class="custom-select" onclick="toggleDropdown()">
                 <div class="custom-select-selected">
@@ -406,22 +305,6 @@
     <!-- end maintext -->
   </div>
   <!-- footer -->
-  <!-- <footer class="page-footer">
-      <div class="container-fluid">
-        <div class="container main-section">
-          <hr />
-          <div class="row">
-            <p class="col-sm-8 col-md-8 col-lg-8"> <small>This software is
-                distributed under the GPL v2 license and is intended to support
-                mark-recapture field studies.</small> </p>
-            <a title="This site is Powered by Wildbook" class="col-sm-4 col-md-4 col-lg-4"
-
-              href="http://www.wildbook.org"> <img class="pull-right" alt=" logo"
-
-                src="images/logo_wildbook.jpg" /> </a> </div>
-        </div>
-      </div>
-    </footer> -->
   <div class="container d-flex flex-column align-items-center justify-content-center footer-font footer-container">
     <div class="footer-row">
       <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
