@@ -11,6 +11,7 @@ import FrontDesk from "./FrontDesk";
 import { BrowserRouter, useLocation, useRoutes } from "react-router-dom";
 import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
+import Cookies from "js-cookie";
 
 function App() {
   const messageMap = {
@@ -19,7 +20,9 @@ function App() {
     fr: messagesFr,
     it: messagesIt,
   };
-  const [locale, setLocale] = useState("en");
+  const initialLocale = Cookies.get("wildbookLangCode") || "en";
+  console.log("+++++++++++initial local", initialLocale);
+  const [locale, setLocale] = useState(initialLocale);
   const [visible, setVisible] = useState(true);
   const containerStyle = {
     maxWidth: "1440px",
@@ -29,7 +32,10 @@ function App() {
 
   const handleLocaleChange = (newLocale) => {
     setLocale(newLocale);
+    Cookies.set("wildbookLangCode", newLocale);
   };
+
+  console.log("++++++++++locale", locale);
 
   return (
     <QueryClientProvider client={queryClient}>
