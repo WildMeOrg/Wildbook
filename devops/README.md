@@ -15,6 +15,7 @@ Presently, this deployment does not start a local WBIA (image analysis) docker c
 
 ### Setup and running
 
+1. `sudo sysctl -w vm.max_map_count=262144` (this only needs to be run once on your system)
 1. In this folder, create a `.env` file and copy the contents of `_env.template` to it. By default, no changes should be needed, but you can edit this new file.
 1. In your terminal, create your base directory (value of `WILDBOOK_BASE_DIR`) and the required subdirectories. The default is `~/wildbook-dev/`):
 	```
