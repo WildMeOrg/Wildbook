@@ -31,13 +31,6 @@
 				"_id_conf": [
 					{
 						"query_config_dict": {
-							"pipeline_root": "MiewId"
-						},
-						"description": "MiewID Matcher",
-						"default": true
-					},
-					{
-						"query_config_dict": {
 							"sv_on": true,
 							"n": 20
 						},
