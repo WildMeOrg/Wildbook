@@ -44,16 +44,16 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.ecocean.ShepherdProperties;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Shepherd;
-import org.ecocean.Util;
-import org.ecocean.Organization;
-import org.ecocean.User;
-import org.ecocean.ContextConfiguration;
-import org.slf4j.Logger;
 import org.apache.commons.text.WordUtils;
+import org.ecocean.CommonConfiguration;
+import org.ecocean.ContextConfiguration;
+import org.ecocean.Organization;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
+import org.ecocean.User;
+import org.ecocean.Util;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
@@ -64,24 +64,21 @@ public class ServletUtilities {
         String langCode = ServletUtilities.getLanguageCode(request);
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
-        System.out.println("props" + props);
+        // System.out.println("props" + props);
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         String pageTitle = (String)request.getAttribute("pageTitle"); // allows custom override from calling jsp (must
-        
-        String siteName = "wildbook";        
+        String siteName = "wildbook";
         try {
-            System.out.println("getting site name ");
+            // System.out.println("getting site name ");
             String name = props.getProperty("siteName");
-            System.out.println("site name is " + name);
-            if(name != null) {
+            // System.out.println("site name is " + name);
+            if (name != null) {
                 siteName = name;
             }
         } catch (Exception e) {
             System.out.println("Failed to get siteName property from props:");
             e.printStackTrace();
         }
-
-        
         // set BEFORE include:header)
         if (pageTitle == null) {
             pageTitle = CommonConfiguration.getHTMLTitle(context);
@@ -112,7 +109,6 @@ public class ServletUtilities {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Exception on indocetCheck in header.jsp:");
                 e.printStackTrace();
                 myShepherd.closeDBTransaction();
             } finally {
@@ -154,7 +150,7 @@ public class ServletUtilities {
                 .append("</div>");
         }
         String languageString = htmlBuilder.toString();
-        
+
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
                 "servletResponseTemplate.htm"));
