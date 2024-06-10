@@ -71,7 +71,6 @@ public class ServletUtilities {
         // we use this arg bc we can only log out *after* including the header on
         // logout.jsp. this way we can still show the logged-out view in the header
         boolean loggingOut = Util.requestHasVal(request, "loggedOut");
-        
         String notifications = "";
         // check if user is logged in and has pending notifications
         if (request.getUserPrincipal() != null) {
