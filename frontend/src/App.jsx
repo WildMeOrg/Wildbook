@@ -21,7 +21,6 @@ function App() {
     it: messagesIt,
   };
   const initialLocale = Cookies.get("wildbookLangCode") || "en";
-  console.log("+++++++++++initial local", initialLocale);
   const [locale, setLocale] = useState(initialLocale);
   const [visible, setVisible] = useState(true);
   const containerStyle = {
@@ -34,8 +33,6 @@ function App() {
     setLocale(newLocale);
     Cookies.set("wildbookLangCode", newLocale);
   };
-
-  console.log("++++++++++locale", locale);
 
   return (
     <QueryClientProvider client={queryClient}>

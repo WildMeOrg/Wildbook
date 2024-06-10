@@ -7,32 +7,18 @@ import Cookies from "js-cookie";
 
 export default function MultiLanguageDropdown() {
   const { onLocaleChange } = useContext(LocaleContext);
-  const initialLocale = Cookies.get("wildbookLangCode").toUpperCase() || "UK";
+  const initialLocale = Cookies.get("wildbookLangCode") || "en";
   const [flag, setFlag] = useState(initialLocale);
   return (
     <div
+      className="d-flex align-items-center justify-content-center border-0 rounded-pill m-2"
       style={{
         backgroundColor: "rgba(255, 255, 255, 0.25)",
-        border: "none",
-        borderRadius: "30px",
         minWidth: "65px",
         height: "35px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        margin: "10px",
       }}
     >
-      <Dropdown
-        style={{
-          border: "none",
-          color: "white",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <Dropdown>
         <Dropdown.Toggle variant="basic" id="dropdown-basic">
           <img
             src={`/react/flags/${flag}.png`}
