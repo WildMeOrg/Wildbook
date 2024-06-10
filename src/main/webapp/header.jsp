@@ -81,11 +81,6 @@ String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 // we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
 boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
-boolean indocetUser = false;
-String organization = request.getParameter("organization");
-if (organization!=null && organization.toLowerCase().equals("indocet"))  {
-  indocetUser = true;
-}
 String notifications="";
 //check if user is logged in and has pending notifications
 if(request.getUserPrincipal()!=null){
@@ -96,12 +91,9 @@ if(request.getUserPrincipal()!=null){
   
     notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
   
-    if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
+    if(request.getUserPrincipal()!=null && !loggingOut){
       user = myShepherd.getUser(request);
       username = (user!=null) ? user.getUsername() : null;
-      String orgName = "indocet";
-      Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-      indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
       if(user.getUserImage()!=null){
         profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
       }
@@ -241,9 +233,7 @@ if(request.getUserPrincipal()!=null){
 
         $(document).ready(function()
 
-        {       
-          
-
+        {  
             var warningTime = <%= sessionWarningTime %>; // Session warning time in minutes.
             var activityTimeout = warningTime * 60 * 1000; // Convert warning time to milliseconds.
             var activityCheckInterval = 1000; // Frequency to check for activity in milliseconds.
@@ -581,60 +571,7 @@ if(request.getUserPrincipal()!=null){
                 %>
 </div>
 
-                      <%
-                      if (CommonConfiguration.getWikiLocation(context)!=null) {
-                      %>
-                        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <%
-                      }
-
-
-
-                    List<String> contextNames=ContextConfiguration.getContextNames();
-                		int numContexts=contextNames.size();
-                		if(numContexts>1){
-                		%>
-
-                		
-                						<form>
-                						<%=props.getProperty("switchContext") %>&nbsp;
-                							<select style="color: black;" id="context" name="context">
-			                					<%
-			                					for(int h=0;h<numContexts;h++){
-			                						String selected="";
-			                						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
-			                					%>
-
-			                						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
-			                					<%
-			                					}
-			                					%>
-                							</select>
-                						</form>
-                			</li>
-                			<script type="text/javascript">
-
-	                			$( "#context" ).change(function() {
-
-		                  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
-		                  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
-		                  			   path    : '/',          //The value of the path attribute of the cookie
-		                  			                           //(default: path of page that created the cookie).
-
-		                  			   secure  : false          //If set to true the secure attribute of the cookie
-		                  			                           //will be set and the cookie transmission will
-		                  			                           //require a secure protocol (defaults to false).
-		                  			});
-
-		                  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-		                  			location.reload(true);
-
-	                			});
-
-                			</script>
-                			<%
-                		}
-                		%>
+                      
                 		   <!-- Can we inject language functionality here? -->
                     <%
 
@@ -649,30 +586,30 @@ if(request.getUserPrincipal()!=null){
                       <div class="custom-select" onclick="toggleDropdown()">
                           <% 
                           
-    String selectedLangCode = "en";
-    Cookie[] cookies = request.getCookies(); 
+                String selectedLangCode = "en";
+                Cookie[] cookies = request.getCookies(); 
 
-    if (cookies != null) {
-        for (Cookie cookie : cookies) {
-            if ("wildbookLangCode".equals(cookie.getName())) {
-                selectedLangCode = cookie.getValue(); 
-                break;
-            }
-        }
-    }
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        if ("wildbookLangCode".equals(cookie.getName())) {
+                            selectedLangCode = cookie.getValue(); 
+                            break;
+                        }
+                    }
+                }
 
-    
-    String selectedImgURL = "";
-    if (selectedLangCode != null) {
-        selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
-    }
-%>
+                
+                String selectedImgURL = "";
+                if (selectedLangCode != null) {
+                    selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
+                }
+            %>
                           
                           <div class="custom-select-selected" >
                             <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-</svg>
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+              </svg>
                           </div>
                           <div class="custom-select-items hidden">
                               <% for(int h=0;h<numSupportedLanguages;h++){
@@ -699,109 +636,36 @@ if(request.getUserPrincipal()!=null){
 
               function selectItem(element, langCode, imgUrl) {
                   var selectedDiv = document.querySelector('.custom-select-selected');
-                  //selectedDiv.textContent = element.textContent; 
-                  //selectedDiv.style.backgroundImage = 'url("' + imgUrl + '")';
-                  
                   selectedDiv.setAttribute('data-lang', langCode); 
-
                   document.querySelector('.custom-select-items').classList.add('hidden');
 
-                                  console.log("Language changed to: " + langCode);
+                  console.log("Language changed to: " + langCode);
 
-                                  $.cookie("wildbookLangCode", langCode, {
-                                      path: '/',
-                                      secure: false
-                                  });
+                  $.cookie("wildbookLangCode", langCode, {
+                      path: '/',
+                      secure: false
+                  });
 
-                                  location.reload(true);
+                  location.reload(true);
               }
-
                 
             </script>
 
-            			<%-- <li>
-
-
-            					<%
-            					for(int h=0;h<numSupportedLanguages;h++){
-            						String selected="";
-            						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
-            						String myLang=supportedLanguages.get(h);
-            					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
-            						<script type="text/javascript">
-
-            							$( "#flag_<%=myLang%>" ).click(function() {
-
-            								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
-            								$.cookie("wildbookLangCode", "<%=myLang%>", {
-            			   						path    : '/',          //The value of the path attribute of the cookie
-            			                           //(default: path of page that created the cookie).
-
-            			   						secure  : false          //If set to true the secure attribute of the cookie
-            			                           //will be set and the cookie transmission will
-            			                           //require a secure protocol (defaults to false).
-            								});
-
-            								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-            								location.reload(true);
-
-            							});
-
-            						</script>
-            					<%
-            					}
-            					%>
-
-            		</li> --%>
             		<%
             		}
             		%>
             		<!-- end language functionality injection -->
 
-
-
-
                     </ul>
 
-<%-- 
-                    <style type="text/css">
-                      #header-search-button, #header-search-button:hover {
-                        color: inherit;
-                        background-color: inherit;
-                        padding: 0px;
-                        margin: 0px;
-                      }
-                    </style>
-                    <script>
-                      $('#header-search-button').click(function() {
-                        document.forms['header-search'].submit();
-                      })
-                    </script> --%>
-
-
-                    <%-- <div class="search-wrapper">
-                      <label class="search-field-header">
-                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
-                              <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-                              <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <span class="el el-lg el-search"></span>
-                          </form>
-                      </label>
-                    </div> --%>
                   </div>
                   <%
                         if(user != null && !loggingOut){
                             try {
                               String fullname=request.getUserPrincipal().toString();
                               if (user.getFullName()!=null) fullname=user.getFullName();
-
-
                       %>
-
-                              
-                             
-                              <div class="profile-wrapper">
+                             <div class="profile-wrapper">
                                 <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
                                 
                               <ul class="dropdown-menu">
@@ -811,119 +675,21 @@ if(request.getUserPrincipal()!=null){
                               </ul>   
                               </div>              
 
-
-
-
                               <%
                             }
                             catch(Exception e){e.printStackTrace();}
                         }
                         else{
                         %>
-
                           <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
                         <%
                         }
 
                       %>
-              </div>
-              
-              </div>
-
-              
+              </div>              
+              </div>              
             </nav>
         </header>
-
-        <script>
-        $('#search-site').autocomplete({
-            // sortResults: true, // they're already sorted
-            appendTo: $('#navbar-top'),
-            response: function(ev, ui) {
-                if (ui.content.length < 1) {
-                    $('#search-help').show();
-                } else {
-                    $('#search-help').hide();
-                }
-            },
-            select: function(ev, ui) {
-                if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "encounter") {
-                  window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "locationID") {
-                  window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
-                }
-                /*
-                //restore user later
-                else if (ui.item.type == "user") {
-                    window.location.replace("/user/" + ui.item.value);
-                }
-                else {
-                    alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
-                }
-                */
-                return false;
-            },
-            //source: app.config.wildbook.proxyUrl + "/search"
-            source: function( request, response ) {
-                $.ajax({
-                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function( data ) {
-                        var res = $.map(data, function(item) {
-                            var label="";
-                            var nickname="";
-                            if ((item.type == "individual")&&(item.species!=null)) {
-//                                label = item.species + ": ";
-                            }
-                            else if (item.type == "user") {
-                                label = "User: ";
-                            } else {
-                                label = "";
-                            }
-
-                            if(item.nickname != null){
-                              nickname = " ("+item.nickname+")";
-                            }
-
-                            return {label: label + item.label+nickname,
-                                    value: item.value,
-                                    type: item.type,
-                                    nickname: nickname};
-                            });
-
-                        response(res);
-                    }
-                });
-            }
-        });
-        //prevent enter key on tyeahead
-        $('#search-site').keydown(function (e) {
-                      if (e.keyCode == 13) {
-                          e.preventDefault();
-                          return false;
-                      }
-        });
-
-
-        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
-        let urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has("organization")) {
-          let orgParam = urlParams.get("organization");
-          $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',
-              secure  : false,
-              expires : 1
-          });
-        }
-
-
-        </script>
 
         <!-- ****/header**** -->
 

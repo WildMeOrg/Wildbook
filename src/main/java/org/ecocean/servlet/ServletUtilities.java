@@ -44,44 +44,34 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.ecocean.servlet.ServletUtilities;
 import org.apache.commons.text.WordUtils;
+import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
-
         String context = "context0";
+
         context = ServletUtilities.getContext(request);
         String langCode = ServletUtilities.getLanguageCode(request);
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-        String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
-        int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
-        int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
-
-        String pageTitle = (String) request.getAttribute("pageTitle"); // allows custom override from calling jsp (must
-                                                                       // set BEFORE include:header)
+        String pageTitle = (String)request.getAttribute("pageTitle"); // allows custom override from calling jsp (must
+                                                                      // set BEFORE include:header)
         if (pageTitle == null) {
             pageTitle = CommonConfiguration.getHTMLTitle(context);
         } else {
             pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
         }
-
         String username = null;
         User user = null;
         String profilePhotoURL = urlLoc + "/images/empty_profile.jpg";
         // we use this arg bc we can only log out *after* including the header on
         // logout.jsp. this way we can still show the logged-out view in the header
         boolean loggingOut = Util.requestHasVal(request, "loggedOut");
-
-        boolean indocetUser = false;
-        String organization = request.getParameter("organization");
-        if (organization != null && organization.toLowerCase().equals("indocet")) {
-            indocetUser = true;
-        }
+        
         String notifications = "";
         // check if user is logged in and has pending notifications
         if (request.getUserPrincipal() != null) {
@@ -89,19 +79,14 @@ public class ServletUtilities {
             myShepherd.setAction("header.jsp");
             myShepherd.beginDBTransaction();
             try {
-
                 notifications = Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
-                if (!indocetUser && request.getUserPrincipal() != null && !loggingOut) {
+                if (request.getUserPrincipal() != null && !loggingOut) {
                     user = myShepherd.getUser(request);
                     username = (user != null) ? user.getUsername() : null;
-                    String orgName = "indocet";
-                    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-                    indocetUser = ((user != null && user.hasAffiliation(orgName))
-                            || (indocetOrg != null && indocetOrg.hasMember(user)));
                     if (user.getUserImage() != null) {
-                        profilePhotoURL = "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/"
-                                + user.getUsername() + "/" + user.getUserImage().getFilename();
+                        profilePhotoURL = "/" + CommonConfiguration.getDataDirectoryName(context) +
+                            "/users/" + user.getUsername() + "/" +
+                            user.getUserImage().getFilename();
                     }
                 }
             } catch (Exception e) {
@@ -112,56 +97,48 @@ public class ServletUtilities {
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
             }
-
         }
-
-        
-
-        List<String> supportedLanguages = CommonConfiguration.getIndexedPropertyValues("language", context);
+        List<String> supportedLanguages = CommonConfiguration.getIndexedPropertyValues("language",
+            context);
         int numSupportedLanguages = supportedLanguages.size();
-        String selectedLangCode="en" ; 
-        Cookie[] cookies=request.getCookies(); 
-        if (cookies !=null) {
-            for (Cookie cookie : cookies) { 
+        String selectedLangCode = "en";
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
                 if ("wildbookLangCode".equals(cookie.getName())) {
-                    selectedLangCode=cookie.getValue(); 
-                    break; 
-                } 
-            } 
-        } 
-        String selectedImgURL="" ; 
-        if(selectedLangCode !=null) { 
-            selectedImgURL ="//" + CommonConfiguration.getURLLocation(request)
-            + "/images/flag_" + selectedLangCode + ".gif" ;
+                    selectedLangCode = cookie.getValue();
+                    break;
+                }
+            }
         }
-
+        String selectedImgURL = "";
+        if (selectedLangCode != null) {
+            selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" +
+                selectedLangCode + ".gif";
+        }
         StringBuilder htmlBuilder = new StringBuilder();
-        // htmlBuilder.append("<div class=\"custom-select-items hidden\">");
-
-        for(int h=0;h<numSupportedLanguages;h++){
+        for (int h = 0; h < numSupportedLanguages; h++) {
             String myLang = supportedLanguages.get(h);
             String langName = CommonConfiguration.getProperty(myLang, context);
-            String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
-            htmlBuilder.append("<div class=\"lang_selector\" data-lang=")      
-                       .append(myLang)
-                       .append(">")                 
-                       .append("<img src=\"")
-                       .append(imgURL)
-                       .append("\" alt=\"Flag\" style=\"margin-right: 10px\">")
-                       .append(org.apache.commons.text.StringEscapeUtils.escapeHtml4(langName))
-                       .append("</div>");
-        } 
-
-        // htmlBuilder.append("</div>");
+            String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" +
+                myLang + ".gif";
+            htmlBuilder.append("<div class=\"lang_selector\" data-lang=")
+                .append(myLang)
+                .append(">")
+                .append("<img src=\"")
+                .append(imgURL)
+                .append("\" alt=\"Flag\" style=\"margin-right: 10px\">")
+                .append(langName)
+                .append("</div>");
+        }
         String languageString = htmlBuilder.toString();
-
         String siteName = props.getProperty("siteName");
         System.out.println("sitename: " + siteName);
         System.out.println("username: " + username);
 
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
-                    "servletResponseTemplate.htm"));
+                "servletResponseTemplate.htm"));
             BufferedReader buffread = new BufferedReader(fileReader);
             String templateFile = "", line;
             StringBuffer SBreader = new StringBuffer();
@@ -176,34 +153,34 @@ public class ServletUtilities {
 
             // process the CSS string
             templateFile = templateFile.replaceAll("CSSURL",
-                    CommonConfiguration.getCSSURLLocation(request, context1));
+                CommonConfiguration.getCSSURLLocation(request, context1));
 
             // set the top header graphic
             templateFile = templateFile.replaceAll("TOPGRAPHIC",
-                    CommonConfiguration.getURLToMastheadGraphic(context1));
+                CommonConfiguration.getURLToMastheadGraphic(context1));
 
-            // templateFile = templateFile.replaceAll("SITE_NAME", "123");
+            templateFile = templateFile.replaceAll("SITE_NAME", siteName);
             templateFile = templateFile.replaceAll("USER_NAME", username);
             templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
             templateFile = templateFile.replace("LANGUAGE_SELECTOR", languageString);
             templateFile = templateFile.replace("SELECTED_IMAGE_URL", selectedImgURL);
-
+            templateFile = templateFile.replace("PROFILE_PHOTO_URL", profilePhotoURL);
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(0, end_header));
         } catch (Exception e) {
             // out.println("I couldn't find the template file to read from.");
             e.printStackTrace();
-            String error = "<html><body><p>An error occurred while attempting to read from the template file servletResponseTemplate.htm. This probably will not affect the success of the operation you were trying to perform.";
+            String error =
+                "<html><body><p>An error occurred while attempting to read from the template file servletResponseTemplate.htm. This probably will not affect the success of the operation you were trying to perform.";
             return error;
-        } 
-        
+        }
     }
 
     public static String getFooter(String context) {
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
-                    "servletResponseTemplate.htm"));
+                "servletResponseTemplate.htm"));
             BufferedReader buffread = new BufferedReader(fileReader);
             String templateFile = "", line;
             StringBuffer SBreader = new StringBuffer();
@@ -214,28 +191,29 @@ public class ServletUtilities {
             buffread.close();
             templateFile = SBreader.toString();
             templateFile = templateFile.replaceAll("BOTTOMGRAPHIC",
-                    CommonConfiguration.getURLToFooterGraphic(context));
+                CommonConfiguration.getURLToFooterGraphic(context));
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(end_header + 11));
         } catch (Exception e) {
             // out.println("I couldn't find the template file to read from.");
             e.printStackTrace();
-            String error = "An error occurred while attempting to read from an HTML template file. This probably will not affect the success of the operation you were trying to perform.</p></body></html>";
+            String error =
+                "An error occurred while attempting to read from an HTML template file. This probably will not affect the success of the operation you were trying to perform.</p></body></html>";
             return error;
         }
     }
 
     /**
      * Inform (via email) researchers who've logged an interest in encounter.
-     * 
+     *
      * @param request         servlet request
      * @param encounterNumber ID of encounter to inform about
      * @param message         message to include in email notification
      * @param context         webapp context
      */
     public static void informInterestedParties(HttpServletRequest request, String encounterNumber,
-            String message, String context) {
+        String message, String context) {
         Shepherd shep = new Shepherd(context);
 
         shep.setAction("ServletUtilities.class.informInterestedParties");
@@ -248,15 +226,15 @@ public class ServletUtilities {
                     ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
                     for (String mailTo : notifyMe) {
                         Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request,
-                                enc);
+                            enc);
                         tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + encounterNumber);
                         tagMap.put(NotificationMailer.EMAIL_HASH_TAG,
-                                Encounter.getHashOfEmailString(mailTo));
+                            Encounter.getHashOfEmailString(mailTo));
                         tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG,
-                                message == null ? "" : message);
+                            message == null ? "" : message);
                         // String langCode = ServletUtilities.getLanguageCode(request);
                         NotificationMailer mailer = new NotificationMailer(context, null, mailTo,
-                                "encounterDataUpdate", tagMap);
+                            "encounterDataUpdate", tagMap);
                         es.execute(mailer);
                     }
                     es.shutdown();
@@ -269,14 +247,14 @@ public class ServletUtilities {
 
     /**
      * Inform (via email) researchers who've logged an interest in individual.
-     * 
+     *
      * @param request      servlet request
      * @param individualID ID of individual to inform about
      * @param message      message to include in email notification
      * @param context      webapp context
      */
     public static void informInterestedIndividualParties(HttpServletRequest request,
-            String individualID, String message, String context) {
+        String individualID, String message, String context) {
         Shepherd shep = new Shepherd(context);
 
         shep.setAction("ServletUtilities.informInterestedIndividualParties.class");
@@ -289,15 +267,15 @@ public class ServletUtilities {
                     ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
                     for (String mailTo : notifyMe) {
                         Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request,
-                                ind);
+                            ind);
                         tagMap.put(NotificationMailer.EMAIL_NOTRACK, "individual=" + individualID);
                         tagMap.put(NotificationMailer.EMAIL_HASH_TAG,
-                                Encounter.getHashOfEmailString(mailTo));
+                            Encounter.getHashOfEmailString(mailTo));
                         tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG,
-                                message == null ? "" : message);
+                            message == null ? "" : message);
                         // String langCode = ServletUtilities.getLanguageCode(request);
                         NotificationMailer mailer = new NotificationMailer(context, null, mailTo,
-                                "individualDataUpdate", tagMap);
+                            "individualDataUpdate", tagMap);
                         es.execute(mailer);
                     }
                     es.shutdown();
@@ -337,7 +315,7 @@ public class ServletUtilities {
 
     // Logs a new ATOM entry
     public static synchronized void addATOMEntry(String title, String link, String description,
-            File atomFile, String context) {
+        File atomFile, String context) {
         try {
             if (atomFile.exists()) {
                 // System.out.println("ATOM file found!");
@@ -403,7 +381,7 @@ public class ServletUtilities {
 
     // Logs a new entry in the library RSS file
     public static synchronized void addRSSEntry(String title, String link, String description,
-            File rssFile) {
+        File rssFile) {
         // File rssFile=new File("nofile.xml");
 
         try {
@@ -469,10 +447,10 @@ public class ServletUtilities {
 
     // there must be a less bad name for this
     public static boolean isCurrentUserOrgAdminOfTargetUser(User user, HttpServletRequest request,
-            Shepherd myShepherd) {
+        Shepherd myShepherd) {
         return request.isUserInRole("orgAdmin") &&
-                !myShepherd.getAllCommonOrganizationsForTwoUsers(user,
-                        myShepherd.getUser(myShepherd.getUsername(request))).isEmpty();
+                   !myShepherd.getAllCommonOrganizationsForTwoUsers(user,
+                myShepherd.getUser(myShepherd.getUsername(request))).isEmpty();
     }
 
     public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
@@ -492,7 +470,7 @@ public class ServletUtilities {
     }
 
     public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request,
-            Shepherd myShepherd) {
+        Shepherd myShepherd) {
         boolean isOwner = false;
 
         try {
@@ -513,13 +491,13 @@ public class ServletUtilities {
                     // if the current user is the orgAdmin for the other user, they can ave
                     // permission
                     else if (request.isUserInRole("orgAdmin") &&
-                            myShepherd.getUser(enc.getSubmitterID()) != null) {
+                        myShepherd.getUser(enc.getSubmitterID()) != null) {
                         User encounterOwner = myShepherd.getUser(enc.getSubmitterID());
                         User requester = myShepherd.getUser(request);
                         List<Organization> encounterOwnerOrgs = encounterOwner.getOrganizations();
                         List<Organization> requesterOrgs = requester.getOrganizations();
                         if (encounterOwnerOrgs != null && encounterOwnerOrgs.size() > 0 &&
-                                requesterOrgs != null && requesterOrgs.size() > 0) {
+                            requesterOrgs != null && requesterOrgs.size() > 0) {
                             for (Organization org : encounterOwnerOrgs) {
                                 if (requesterOrgs.contains(org)) {
                                     isOwner = true;
@@ -533,7 +511,7 @@ public class ServletUtilities {
                 // if the current user has a location ID-specific role matching the location ID
                 // of this Encounter, they are authorized
                 if (!isOwner && enc.getLocationCode() != null &&
-                        request.isUserInRole(enc.getLocationCode())) {
+                    request.isUserInRole(enc.getLocationCode())) {
                     isOwner = true;
                 }
                 // if the current user is in a collaboration with the Encounter owner
@@ -567,14 +545,14 @@ public class ServletUtilities {
         boolean isPublic = false;
 
         if (enc.getSubmitterID() != null &&
-                enc.getSubmitterID().toLowerCase().trim().equals("public")) {
+            enc.getSubmitterID().toLowerCase().trim().equals("public")) {
             isPublic = true;
         }
         return isPublic;
     }
 
     public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy,
-            HttpServletRequest request) {
+        HttpServletRequest request) {
         boolean isOwner = false;
         Shepherd myShepherd = new Shepherd(request);
 
@@ -591,7 +569,7 @@ public class ServletUtilities {
     }
 
     public static boolean isUserAuthorizedForIndividual(MarkedIndividual indy,
-            HttpServletRequest request, Shepherd myShepherd) {
+        HttpServletRequest request, Shepherd myShepherd) {
         if (request.getUserPrincipal() != null) {
             if (request.isUserInRole("admin")) {
                 return true;
@@ -599,7 +577,7 @@ public class ServletUtilities {
             Vector encounters = indy.getEncounters();
             int numEncs = encounters.size();
             for (int y = 0; y < numEncs; y++) {
-                Encounter enc = (Encounter) encounters.get(y);
+                Encounter enc = (Encounter)encounters.get(y);
                 if (isUserAuthorizedForEncounter(enc, request, myShepherd)) {
                     return true;
                 }
@@ -611,7 +589,7 @@ public class ServletUtilities {
     // occurrence
 
     public static boolean isUserAuthorizedForOccurrence(Occurrence occur,
-            HttpServletRequest request) {
+        HttpServletRequest request) {
         boolean isOwner = false;
         Shepherd myShepherd = new Shepherd(request);
 
@@ -628,14 +606,14 @@ public class ServletUtilities {
     }
 
     public static boolean isUserAuthorizedForImportTask(ImportTask occ, HttpServletRequest request,
-            Shepherd myShepherd) {
+        Shepherd myShepherd) {
         if (request.getUserPrincipal() != null) {
             if (request.isUserInRole("admin")) {
                 return true;
             }
             // first check if the User on the ImportTask matches the current user
             if (occ.getCreator() != null && request.getUserPrincipal() != null &&
-                    occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {
+                occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {
                 return true;
             }
             // quick collaboration check between current user and bulk import owner
@@ -644,20 +622,20 @@ public class ServletUtilities {
             // occ.getCreator().getUsername(),
             // myShepherd.getContext()))return true;
             if (request.getUserPrincipal() != null &&
-                    request.getUserPrincipal().getName() != null && occ.getCreator() != null &&
-                    occ.getCreator().getUsername() != null) {
+                request.getUserPrincipal().getName() != null && occ.getCreator() != null &&
+                occ.getCreator().getUsername() != null) {
                 Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd,
-                        request.getUserPrincipal().getName(), occ.getCreator().getUsername());
+                    request.getUserPrincipal().getName(), occ.getCreator().getUsername());
                 if (collab != null && collab.getState() != null &&
-                        (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) ||
-                                collab.getState().equals(Collaboration.STATE_APPROVED)))
+                    (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) ||
+                    collab.getState().equals(Collaboration.STATE_APPROVED)))
                     return true;
             }
             // quick orgAdminCheck
             // if this user is the orgAdmin for the bulk import's uploading user, they can
             // see it
             if (ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request,
-                    myShepherd)) {
+                myShepherd)) {
                 return true;
             }
         }
@@ -665,7 +643,7 @@ public class ServletUtilities {
     }
 
     public static boolean isUserAuthorizedForOccurrence(Occurrence occur,
-            HttpServletRequest request, Shepherd myShepherd) {
+        HttpServletRequest request, Shepherd myShepherd) {
         if (request.getUserPrincipal() != null) {
             if (request.isUserInRole("admin")) {
                 return true;
@@ -673,7 +651,7 @@ public class ServletUtilities {
             ArrayList<Encounter> encounters = occur.getEncounters();
             int numEncs = encounters.size();
             for (int y = 0; y < numEncs; y++) {
-                Encounter enc = (Encounter) encounters.get(y);
+                Encounter enc = (Encounter)encounters.get(y);
                 if (isUserAuthorizedForEncounter(enc, request, myShepherd)) {
                     return true;
                 }
@@ -709,7 +687,7 @@ public class ServletUtilities {
     /*
      * public static String cleanFileName(String aTagFragment) {
      * final StringBuffer result = new StringBuffer();
-     * 
+     *
      * final StringCharacterIterator iterator = new
      * StringCharacterIterator(aTagFragment);
      * char character = iterator.current();
@@ -741,7 +719,7 @@ public class ServletUtilities {
      */
     public static String getEncounterUrl(String encID, HttpServletRequest request) {
         return (CommonConfiguration.getServerURL(request) + "/encounters/encounter.jsp?number=" +
-                encID);
+                   encID);
     }
 
     public static String getIndividualUrl(String indID, HttpServletRequest request) {
@@ -756,7 +734,7 @@ public class ServletUtilities {
         description = description.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         description = description.replaceAll("eval\\((.*)\\)", "");
         description = description.replaceAll("[\\\"\\\'][\\s]*((?i)javascript):(.*)[\\\"\\\']",
-                "\"\"");
+            "\"\"");
         description = description.replaceAll("((?i)script)", "");
         description = description.replaceAll("onerror", "");
         // description = description.replaceAll("alert", "");
@@ -772,17 +750,17 @@ public class ServletUtilities {
     }
 
     public static Connection getConnection()
-            throws SQLException {
+    throws SQLException {
         Connection conn = null;
         Properties connectionProps = new Properties();
 
         connectionProps.put("user",
-                CommonConfiguration.getProperty("datanucleus.ConnectionUserName", "context0"));
+            CommonConfiguration.getProperty("datanucleus.ConnectionUserName", "context0"));
         connectionProps.put("password",
-                CommonConfiguration.getProperty("datanucleus.ConnectionPassword", "context0"));
+            CommonConfiguration.getProperty("datanucleus.ConnectionPassword", "context0"));
 
         conn = DriverManager.getConnection(CommonConfiguration.getProperty(
-                "datanucleus.ConnectionURL", "context0"), connectionProps);
+            "datanucleus.ConnectionURL", "context0"), connectionProps);
 
         System.out.println("Connected to database for authentication.");
         return conn;
@@ -889,7 +867,7 @@ public class ServletUtilities {
     public static String dataDir(String context, String rootWebappPath) {
         File webappsDir = new File(rootWebappPath).getParentFile();
         File shepherdDataDir = new File(webappsDir,
-                CommonConfiguration.getDataDirectoryName(context));
+            CommonConfiguration.getDataDirectoryName(context));
 
         if (!shepherdDataDir.exists()) {
             shepherdDataDir.mkdirs();
@@ -917,20 +895,20 @@ public class ServletUtilities {
      * }
      */
     private static String loadOverrideText(String shepherdDataDir, String fileName,
-            String langCode) {
+        String langCode) {
         // System.out.println("Starting loadOverrideProps");
         StringBuffer myText = new StringBuffer("");
         // Properties myProps=new Properties();
         File configDir = new File("webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
-                langCode);
+            langCode);
 
         // System.out.println(configDir.getAbsolutePath());
         // sometimes this ends up being the "bin" directory of the J2EE container
         // we need to fix that
         if ((configDir.getAbsolutePath().contains("/bin/")) ||
-                (configDir.getAbsolutePath().contains("\\bin\\"))) {
+            (configDir.getAbsolutePath().contains("\\bin\\"))) {
             String fixedPath = configDir.getAbsolutePath().replaceAll("/bin",
-                    "").replaceAll("\\\\bin", "");
+                "").replaceAll("\\\\bin", "");
             configDir = new File(fixedPath);
             // System.out.println("Fixing the bin issue in Shepherd PMF. ");
             // System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
@@ -976,7 +954,7 @@ public class ServletUtilities {
     }
 
     public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request)
-            throws IOException {
+    throws IOException {
         StringBuilder sb = new StringBuilder();
         BufferedReader reader = request.getReader();
 
@@ -1031,7 +1009,7 @@ public class ServletUtilities {
     }
 
     public static String getParameterOrAttributeOrSessionAttribute(String name,
-            HttpServletRequest request) {
+        HttpServletRequest request) {
         String result = request.getParameter(name);
 
         if (result == null) {
@@ -1055,12 +1033,12 @@ public class ServletUtilities {
 
     // handy "let anyone do anything (?) cors stuff
     public static void doOptions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST");
         if (request.getHeader("Access-Control-Request-Headers") != null)
             response.setHeader("Access-Control-Allow-Headers",
-                    request.getHeader("Access-Control-Request-Headers"));
+                request.getHeader("Access-Control-Request-Headers"));
     }
 
     /* see webapps/captchaExample.jsp for implementation */
@@ -1074,17 +1052,20 @@ public class ServletUtilities {
     public static String captchaWidget(HttpServletRequest request, String params) {
         String context = getContext(request);
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
-                context);
+            context);
 
         if (recaptchaProps == null)
-            return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
+            return
+                    "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
         String siteKey = recaptchaProps.getProperty("siteKey");
         String secretKey = recaptchaProps.getProperty("secretKey"); // really dont need this here
         if ((siteKey == null) || (secretKey == null))
-            return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
-        return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n"
-                + "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params)
-                + "' async defer></script>\n" +
+            return
+                    "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
+        return
+                "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n"
+                + "<script src='https://www.google.com/recaptcha/api.js" + ((params ==
+                null) ? "" : "?" + params) + "' async defer></script>\n" +
                 "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
     }
 
@@ -1098,7 +1079,7 @@ public class ServletUtilities {
         if (context == null)
             context = "context0";
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
-                context);
+            context);
         if (recaptchaProps == null) {
             System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
             return false;
@@ -1111,7 +1092,7 @@ public class ServletUtilities {
         }
         if (uresp == null) {
             System.out.println(
-                    "WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
+                "WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
             return false;
         }
         JSONObject cdata = new JSONObject();
@@ -1121,16 +1102,16 @@ public class ServletUtilities {
         JSONObject gresp = null;
         try {
             gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"),
-                    cdata);
+                cdata);
         } catch (Exception ex) {
             System.out.println(
-                    "WARNING: exception calling captcha api in captchaIsValid(); failing: " +
-                            ex.toString());
+                "WARNING: exception calling captcha api in captchaIsValid(); failing: " +
+                ex.toString());
             return false;
         }
         if (gresp == null) { // would this ever happen?
             System.out.println(
-                    "WARNING: null return from captcha api in captchaIsValid(); failing");
+                "WARNING: null return from captcha api in captchaIsValid(); failing");
             return false;
         }
         System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
@@ -1150,8 +1131,8 @@ public class ServletUtilities {
     }
 
     public static void importJsp(String filename, HttpServletRequest request,
-            HttpServletResponse response)
-            throws javax.servlet.ServletException, java.io.IOException {
+        HttpServletResponse response)
+    throws javax.servlet.ServletException, java.io.IOException {
         PrintWriter out = response.getWriter();
 
         request.getRequestDispatcher(filename).include(request, response);
@@ -1177,7 +1158,7 @@ public class ServletUtilities {
         // Shepherd handling w 'finally' to ensure we close the dbconnection after
         // return.
         Shepherd myShepherd = Shepherd.newActiveShepherd(request,
-                "ServletUtilities.useCustomStyle");
+            "ServletUtilities.useCustomStyle");
         try {
             // check user affiliation
             User user = myShepherd.getUser(request);
