@@ -911,7 +911,7 @@ if(isOwner && enc.getLocation()!=null){
 		<%=displayPath %>
 	</span>
 </span>
-
+<br>
 <%
 String stuID = enc.getStudySiteID();
 System.out.println("***   Encounter.jsp: got stuID = "+stuID);
@@ -944,20 +944,14 @@ if (huntingStateStr == null) huntingStateStr = "";
 <br>
 <%
 if(CommonConfiguration.showProperty("showCountry",context)){
-%>
 
-  <em><%=encprops.getProperty("country") %></em>
-<%
-}
-%>
 
-  <%
   if(isOwner && enc.getCountry()!=null){
   %>
-  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
+  <span><em><%=encprops.getProperty("country") %></em> <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
   }
-
+}
 if (stu!=null) {
 %>
 <!-- show/hide buttons and trapping station data div -->
@@ -1058,22 +1052,23 @@ if (stu!=null) {
 <!-- end trapping station div -->
     
 
-  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
-    <%
-		if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-		%>
+<!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+<%
+if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+%>
 <br />
 <em><%=encprops.getProperty("depth") %>
 
   <%
     if (enc.getDepthAsDouble() !=null) {
   %>
-  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
-  } else {
-  %> <%=encprops.getProperty("unknown") %>
+  	<span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
+  } 
+    else {
+  %> 
+  	<%=encprops.getProperty("unknown") %>
   <%
     }
-
 %>
 </em>
 <%
@@ -1291,8 +1286,10 @@ $(window).on('load',function() {
 </div>
 <!-- end locationID -->
 
-
-<!-- start depth -->
+<%
+if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+%>
+	<!-- start depth -->
 <script type="text/javascript">
   $(window).on('load',function() {
     $("#AddDepth").click(function(event) {
@@ -1346,7 +1343,9 @@ $(window).on('load',function() {
     </div>
   </form>
 </div>
-
+<%
+}
+%>
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
 <%
@@ -1365,13 +1364,7 @@ $(window).on('load',function() {
   <%
     }
 
-  %>
 
-  <%
-  %>
-
-
-<%
 %>
 <!-- start elevation -->
 <script type="text/javascript">
