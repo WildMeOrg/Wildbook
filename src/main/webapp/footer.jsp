@@ -28,28 +28,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->
-        <footer class="page-footer">
-
-            <div class="container-fluid">
-              <div class="container main-section">
-
-                <div class="row">
-                  <div class="col-sm-6" style="margin-top:40px;">
-                    <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
-                  <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                  </div>
-                  <div class="col-sm-6">
-
-
-                    <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
-                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
-                    </a>
-                </div>
-                </div>
-              </div>
+        <div class="container d-flex flex-column align-items-center footer-font footer-container"
+            
+        >
+        <div class="footer-row">
+            <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+                <a href="https://www.wildme.org/donate.html" class="footer-link text-reset px-2 footer-text">Donate</a>
+                <a href="https://docs.wildme.org/product-docs/en/wildbook/getting-started-with-wildbook/" class="footer-link footer-text" >Documentation</a>
             </div>
-
-        </footer>
+            <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+                <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
+                <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
+            </div>
+            <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+                <a href="https://www.instagram.com/conservationxlabs" class="footer-link text-reset px-2 footer-text">Instagram</a>
+                <a href="https://www.facebook.com/ConservationXLabs" class="footer-link text-reset px-2 footer-text">Facebook</a>
+                <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
+                <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+            </div>
+        </div>
+        <div class="footer-text" style="padding-left: 30%">2024 © Conservation X Labs | All Rights Reserved</div>
+    </div>
         <!-- /footer -->
     </body>
 </html>
