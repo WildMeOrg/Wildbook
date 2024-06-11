@@ -45,16 +45,16 @@ import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.text.WordUtils;
+import org.ecocean.servlet.ServletUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.Organization;
-import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
@@ -62,6 +62,7 @@ public class ServletUtilities {
 
         context = ServletUtilities.getContext(request);
         String langCode = ServletUtilities.getLanguageCode(request);
+        String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
         // System.out.println("props" + props);
@@ -180,6 +181,7 @@ public class ServletUtilities {
             templateFile = templateFile.replace("LANGUAGE_SELECTOR", languageString);
             templateFile = templateFile.replace("SELECTED_IMAGE_URL", selectedImgURL);
             templateFile = templateFile.replace("PROFILE_PHOTO_URL", profilePhotoURL);
+            templateFile = templateFile.replace("GTM_KEY", gtmKey);
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(0, end_header));
