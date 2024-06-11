@@ -17,6 +17,7 @@ import java.util.*;
 import com.google.gson.Gson;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.security.SocialAuth;
+import org.ecocean.CommonConfiguration;
 
 public class JavascriptGlobals extends HttpServlet {
     public void init(ServletConfig config)
@@ -45,6 +46,7 @@ public class JavascriptGlobals extends HttpServlet {
         String username = ((request.getUserPrincipal() ==
             null) ? "" : request.getUserPrincipal().getName());
         String langCode = ServletUtilities.getLanguageCode(request);
+        String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
         // Properties props = new Properties();
         // props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
         HashMap rtn = new HashMap();
@@ -127,6 +129,7 @@ public class JavascriptGlobals extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         rtn.put("keywords", kw);
+        rtn.put("gtmKey", gtmKey);
 
         // this might throw an exception in various ways, so we swallow them here
         try {
