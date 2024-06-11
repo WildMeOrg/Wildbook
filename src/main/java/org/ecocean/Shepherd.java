@@ -4142,6 +4142,22 @@ public class Shepherd {
                 pm.currentTransaction().begin();
             }
             ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
+
+            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
+
+/* this as unnecessary but holding for further possible use
+            // https://www.datanucleus.org/products/accessplatform_4_1/jdo/transactions.html#isolation
+            tx = pm.currentTransaction();
+            tx.setSynchronization(new javax.transaction.Synchronization() {
+                public void beforeCompletion() {
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> BEFORE");
+                }
+                public void afterCompletion(int status) {
+                    //javax.transaction.Status.STATUS_COMMITTED
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> AFTER status=" + status);
+                }
+            });
+ */
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
