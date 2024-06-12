@@ -524,6 +524,11 @@ public class CommonConfiguration {
                 context).getProperty("gtm_key", context);
     }
 
+    public static String getGoogleAnalyticsId(String context) {
+        return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES, "",
+                context).getProperty("ga_id", context);
+    }
+
     /*
        public static String getGoogleSearchKey(String context) {
        return getProperty("googleSearchKey",context);
