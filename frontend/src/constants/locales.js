@@ -9,7 +9,7 @@ const localeMap = {
 
 const languageMap = {
     en: 'English',
-    es: 'Español',
+    es: 'Espa\u00F1ol',
     fr: 'Francés',
     it: 'Italiano',
 };
