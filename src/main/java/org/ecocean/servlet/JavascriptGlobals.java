@@ -15,9 +15,9 @@ import java.io.*;
 import java.util.*;
 
 import com.google.gson.Gson;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.security.SocialAuth;
-import org.ecocean.CommonConfiguration;
 
 public class JavascriptGlobals extends HttpServlet {
     public void init(ServletConfig config)
