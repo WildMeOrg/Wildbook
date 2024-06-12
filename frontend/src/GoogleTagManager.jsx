@@ -20,7 +20,7 @@ const AnalyticsAndTagManager = () => {
   useEffect(() => {
     loadScript("/JavascriptGlobals.js", "javascriptglobals")
       .then(() => {
-        const gtmKey = window.wildbookGlobals.gtmKey;
+        const gtmKey = window.wildbookGlobals.gtmKey || "changeme";
 
         loadScript(
           "https://www.googletagmanager.com/gtag/js?id=UA-30944767-7",
