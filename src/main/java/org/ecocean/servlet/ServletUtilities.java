@@ -48,13 +48,6 @@ import org.apache.commons.text.WordUtils;
 import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ContextConfiguration;
-import org.ecocean.Organization;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
-import org.ecocean.User;
-import org.ecocean.Util;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
@@ -62,7 +55,10 @@ public class ServletUtilities {
 
         context = ServletUtilities.getContext(request);
         String langCode = ServletUtilities.getLanguageCode(request);
-        String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        String gtmKey = "changeme";
+        if (CommonConfiguration.getGoogleTagManagerKey(context) != null) {
+            gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        }            
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
         // System.out.println("props" + props);
