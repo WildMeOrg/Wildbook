@@ -48,7 +48,7 @@
 			"locationID": []
 		},
 		{
-			"name": "Tümpel KoVK",
+			"name": "T\u00FCmpel KoVK",
 			"id": "KoVK",
 			"geospatialInfo": {
 				"lat": 50.660984,
@@ -57,7 +57,7 @@
 			"locationID": []
 		},
 		{
-			"name": "Tümpelgraben TG",
+			"name": "T\u00FCmpelgraben TG",
 			"id": "TG",
 			"geospatialInfo": {
 				"lat": 50.681499,
@@ -75,7 +75,7 @@
 			"locationID": []
 		},
 		{
-			"name": "Tümpel TT",
+			"name": "T\u00FCmpel TT",
 			"id": "TT",
 			"geospatialInfo": {
 				"lat": 50.681057,
@@ -84,7 +84,7 @@
 			"locationID": []
 		},
 		{
-			"name": "Schutzhütte",
+			"name": "Schutzh\u00FCtte",
 			"id": "hut",
 			"geospatialInfo": {
 				"lat": 50.682028,
