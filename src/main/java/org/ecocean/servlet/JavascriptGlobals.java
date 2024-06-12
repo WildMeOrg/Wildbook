@@ -47,6 +47,7 @@ public class JavascriptGlobals extends HttpServlet {
             null) ? "" : request.getUserPrincipal().getName());
         String langCode = ServletUtilities.getLanguageCode(request);
         String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
         // Properties props = new Properties();
         // props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
         HashMap rtn = new HashMap();
@@ -130,6 +131,7 @@ public class JavascriptGlobals extends HttpServlet {
         myShepherd.closeDBTransaction();
         rtn.put("keywords", kw);
         rtn.put("gtmKey", gtmKey);
+        rtn.put("gaId", gaId);
 
         // this might throw an exception in various ways, so we swallow them here
         try {

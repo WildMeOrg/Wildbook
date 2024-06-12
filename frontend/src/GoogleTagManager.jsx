@@ -21,9 +21,10 @@ const AnalyticsAndTagManager = () => {
     loadScript("/JavascriptGlobals.js", "javascriptglobals")
       .then(() => {
         const gtmKey = window.wildbookGlobals.gtmKey || "changeme";
+        const gaId = window.wildbookGlobals.gaId || "changeme";
 
         loadScript(
-          "https://www.googletagmanager.com/gtag/js?id=UA-30944767-7",
+          `https://www.googletagmanager.com/gtag/js?id=${gaId}`,
           "gtag-js",
         );
 
@@ -32,7 +33,7 @@ const AnalyticsAndTagManager = () => {
                     window.dataLayer = window.dataLayer || [];
                     function gtag(){dataLayer.push(arguments);}
                     gtag('js', new Date());
-                    gtag('config', 'UA-30944767-7');
+                    gtag('config', ${gaId});
                 `;
 
         document.head.appendChild(gtagConfigScript);
