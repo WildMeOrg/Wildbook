@@ -58,7 +58,7 @@ public class ServletUtilities {
         String gtmKey = "changeme";
         if (CommonConfiguration.getGoogleTagManagerKey(context) != null) {
             gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
-        }            
+        }
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
         // System.out.println("props" + props);
