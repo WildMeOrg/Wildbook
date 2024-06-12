@@ -83,6 +83,13 @@ import org.json.JSONObject;
         opensearch.index(this.opensearchIndexName(), this);
     }
 
+    // this will index "related" objects as needed
+    // should be overridden by class-specific code
+    public void opensearchIndexDeep()
+    throws IOException {
+        this.opensearchIndex();
+    }
+
     public void opensearchUnindex()
     throws IOException {
         OpenSearch opensearch = new OpenSearch();
@@ -97,6 +104,13 @@ import org.json.JSONObject;
             System.out.println("opensearchUnindexQuiet swallowed " + ex);
             ex.printStackTrace();
         }
+    }
+
+    // this will index "related" objects as needed
+    // should be overridden by class-specific code
+    public void opensearchUnindexDeep()
+    throws IOException {
+        this.opensearchUnindex();
     }
 
     // should be overridden
