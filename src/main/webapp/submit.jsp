@@ -275,7 +275,7 @@ function doAjaxForProject(requestJSON,userId){
 	%>
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
-    animatedcollapse.addDiv('advancedInformation', 'fade=1');
+    animatedcollapse.addDiv('advancedInformation', 'fade=1,hide=0');
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -1086,7 +1086,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
     </a>
   </h4>
 
-    <div id="advancedInformation" fade="1" style="display: none;">
+    <div id="advancedInformation" fade="1" >
 
       <h3><%=props.getProperty("aboutAnimal") %></h3>
 
