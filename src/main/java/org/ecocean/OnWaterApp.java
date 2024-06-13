@@ -282,7 +282,7 @@ public class OnWaterApp {
 
         Survey survey = toSurvey(jin.optJSONObject("trip"), enc, myShepherd);
         String notes = jin.optString("notes", null);
-        if (notes != null) enc.addComments(notes);
+        if (notes != null) enc.setComments(notes);
         myShepherd.getPM().makePersistent(enc);
         myShepherd.updateDBTransaction();
         System.out.println("MADE " + enc);
