@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import org.ecocean.SystemValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -82,6 +84,7 @@ public class OpenSearch {
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static String SEARCH_SCROLL_TIME = "10m";
+    public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
 
     public OpenSearch() {
         if (client != null) return;
@@ -321,5 +324,64 @@ public class OpenSearch {
 
         if (id == null) throw new RuntimeException("must have id property to delete");
         delete(indexName, id);
+    }
+
+    public long setIndexTimestamp(Shepherd myShepherd, String indexName) {
+        long now = System.currentTimeMillis();
+
+        SystemValue.set(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName, now);
+        return now;
+    }
+
+    public Long getIndexTimestamp(Shepherd myShepherd, String indexName) {
+        return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
+    }
+
+    // TODO right now this respects index timestamp and only indexes objects with versions > timestamp.
+    // probably want to make an option to index everything and ignore version/timestamp.
+    public void indexAll(Shepherd myShepherd, Base obj)
+    throws IOException {
+        String clause = "";
+        Long last = getIndexTimestamp(myShepherd, obj.opensearchIndexName());
+
+        if (last != null) {
+            // hacky. we dont have a 'version' property on all tables.... SIGH
+            if (Encounter.class.isInstance(obj)) {
+                // LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(last), ZoneId.systemDefault());
+                String lastString = java.time.Instant.ofEpochMilli(last).toString();
+                clause = "this.modified > \"" + lastString + "\"";
+            }
+        }
+        // we set this *before* we index, cuz then it wont miss any stuff indexed after we started, as this can take a while
+        Long now = setIndexTimestamp(myShepherd, obj.opensearchIndexName());
+
+        System.out.println("indexAll() >>>>> querying using clause: " + clause);
+        Query query = myShepherd.getPM().newQuery(obj.getClass(), clause);
+        List<Base> all = null;
+        try {
+            all = (List)query.execute();
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.indexAll(" + obj.getClass() + ") failed: " + ex);
+            ex.printStackTrace();
+            return;
+        }
+        String indexName = obj.opensearchIndexName();
+        long initTime = System.currentTimeMillis();
+        System.out.println("OpenSearch.indexAll() [" +
+            java.time.Instant.ofEpochMilli(now).toString() + "] indexing " + indexName + ": " +
+            all.size() + " " + obj.getClass());
+        int ct = 0;
+        for (Base item : all) {
+            ct++;
+            if (ct > 2100) break;
+            index(indexName, item);
+            if (ct % 500 == 0)
+                System.out.println("OpenSearch.indexAll() [" +
+                    (System.currentTimeMillis() - initTime) + "] indexed " + indexName + ": " + ct +
+                    " of " + all.size());
+        }
+        query.closeAll();
+        System.out.println("OpenSearch.indexAll() [" + (System.currentTimeMillis() - initTime) +
+            "] completed indexing " + indexName);
     }
 }
