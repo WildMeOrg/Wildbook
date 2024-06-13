@@ -194,7 +194,9 @@ h2.vidcap {
         <div id="messageBox">
             <div>
                 <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
-
+				<a href="submit.jsp">
+                	<button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
+            	</a>
             </div>
         </div>
     </div>
