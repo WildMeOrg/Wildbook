@@ -342,7 +342,8 @@ public class OpenSearch {
     public void indexAll(Shepherd myShepherd, Base obj)
     throws IOException {
         String clause = "";
-        Long last = getIndexTimestamp(myShepherd, obj.opensearchIndexName());
+        String indexName = obj.opensearchIndexName();
+        Long last = getIndexTimestamp(myShepherd, indexName);
 
         if (last != null) {
             // hacky. we dont have a 'version' property on all tables.... SIGH
@@ -353,7 +354,7 @@ public class OpenSearch {
             }
         }
         // we set this *before* we index, cuz then it wont miss any stuff indexed after we started, as this can take a while
-        Long now = setIndexTimestamp(myShepherd, obj.opensearchIndexName());
+        Long now = setIndexTimestamp(myShepherd, indexName);
 
         System.out.println("indexAll() >>>>> querying using clause: " + clause);
         Query query = myShepherd.getPM().newQuery(obj.getClass(), clause);
@@ -365,11 +366,10 @@ public class OpenSearch {
             ex.printStackTrace();
             return;
         }
-        String indexName = obj.opensearchIndexName();
         long initTime = System.currentTimeMillis();
         System.out.println("OpenSearch.indexAll() [" +
-            java.time.Instant.ofEpochMilli(now).toString() + "] indexing " + indexName + ": " +
-            all.size() + " " + obj.getClass());
+            java.time.Instant.ofEpochMilli(now).toString() + "] indexing " + indexName + ": size=" +
+            all.size() + " (" + obj.getClass() + ")");
         int ct = 0;
         for (Base item : all) {
             ct++;
