@@ -64,6 +64,7 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
@@ -117,14 +118,14 @@ if(request.getUserPrincipal()!=null){
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=<%=gaId %>"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'UA-30944767-12');
+        gtag('config', '<%=gaId %>');
       </script>
 
       <script>
