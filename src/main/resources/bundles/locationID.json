@@ -1,13 +1,13 @@
 {
-  "description": "Hierarchical Encounter.locationID list in Wildbook",
-  "source": "http://en.wikipedia.org/wiki/List_of_seas",
-  "locationID": [
+	"description": "Hierarchical Encounter.locationID list in Wildbook",
+	"source": "http://en.wikipedia.org/wiki/List_of_seas",
+	"locationID": [
 		{
 			"name": "Klufterbach",
 			"id": "KB",
-			"geospatialInfo":{
-				"lat":50.686688,
-				"long":7.127002
+			"geospatialInfo": {
+				"lat": 50.686688,
+				"long": 7.127002
 			},
 			"locationID": []
 		},
@@ -48,7 +48,7 @@
 			"locationID": []
 		},
 		{
-			"name": "T\u00FCmpel KoVK",
+			"name": "Tümpel KoVK",
 			"id": "KoVK",
 			"geospatialInfo": {
 				"lat": 50.660984,
@@ -57,7 +57,7 @@
 			"locationID": []
 		},
 		{
-			"name": "T\u00FCmpelgraben TG",
+			"name": "Tümpelgraben TG",
 			"id": "TG",
 			"geospatialInfo": {
 				"lat": 50.681499,
@@ -75,7 +75,7 @@
 			"locationID": []
 		},
 		{
-			"name": "T\u00FCmpel TT",
+			"name": "Tümpel TT",
 			"id": "TT",
 			"geospatialInfo": {
 				"lat": 50.681057,
@@ -84,7 +84,7 @@
 			"locationID": []
 		},
 		{
-			"name": "Schutzh\u00FCtte",
+			"name": "Schutzhütte",
 			"id": "hut",
 			"geospatialInfo": {
 				"lat": 50.682028,
@@ -110,6 +110,5 @@
 			},
 			"locationID": []
 		},
-  ]
+	]
 }
-
