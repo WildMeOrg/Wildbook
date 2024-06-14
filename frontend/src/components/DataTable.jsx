@@ -4,6 +4,7 @@ import ReactPaginate from "react-paginate";
 import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../css/dataTable.css";
 
 const columns = [
   { name: "ID", selector: (row) => row.id, sortable: true },
@@ -46,7 +47,6 @@ const MyDataTable = () => {
   const fetchData = async (currentPage, perPage) => {
     setLoading(true);
     try {
-      // 模拟从服务器获取数据
       const response = {
         data: {
           data: Array.from({ length: perPage }, (_, i) => ({
@@ -54,7 +54,7 @@ const MyDataTable = () => {
             name: `John Doe ${currentPage * perPage + i + 1}`,
             age: Math.floor(Math.random() * 100),
           })),
-          total: 85, // 假设总共有85条数据
+          total: 85,
         },
       };
       setData(response.data.data);
@@ -89,6 +89,13 @@ const MyDataTable = () => {
     }
   };
 
+  const handlePerPageChange = (event) => {
+    const newPerPage = Number(event.target.value);
+    if (!isNaN(newPerPage) && newPerPage > 0) {
+      setPerPage(newPerPage);
+    }
+  };
+
   return (
     <Container>
       <DataTable
@@ -99,8 +106,28 @@ const MyDataTable = () => {
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
       />
-      <Row className="mt-3">
-        <Col>
+      <Row className="mt-3 d-flex justify-content-center align-items-center">
+        <Col
+          xs={12}
+          className="d-flex justify-content-center align-items-center flex-nowrap"
+        >
+          <div className="me-3">
+            <span>Total Items: {totalRows}</span>
+          </div>
+          <InputGroup className="me-3" style={{ width: "150px" }}>
+            <InputGroup.Text>Per page</InputGroup.Text>
+            <Form.Control
+              as="select"
+              value={perPage}
+              onChange={handlePerPageChange}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+              <option value={40}>40</option>
+              <option value={50}>50</option>
+            </Form.Control>
+          </InputGroup>
           <ReactPaginate
             previousLabel={"<"}
             nextLabel={">"}
@@ -118,21 +145,17 @@ const MyDataTable = () => {
             previousLinkClassName={"page-link"}
             nextClassName={"page-item"}
             nextLinkClassName={"page-link"}
-            activeClassName={"active"}
+            activeClassName={"active-page"}
             forcePage={page}
           />
-        </Col>
-        <Col className="text-right">
-          <InputGroup style={{ width: "150px" }} className="ml-auto">
+          <InputGroup className="ms-3" style={{ width: "150px" }}>
             <InputGroup.Text>Go to</InputGroup.Text>
             <Form.Control
-              type="number"
+              type="text"
               value={goToPage}
               onChange={handleGoToPageChange}
-              min="1"
-              max={Math.ceil(totalRows / perPage)}
             />
-            <Button variant="primary" onClick={handleGoToPageSubmit}>
+            <Button className="go-button" onClick={handleGoToPageSubmit}>
               Go
             </Button>
           </InputGroup>
