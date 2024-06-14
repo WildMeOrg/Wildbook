@@ -3266,6 +3266,13 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
+    public boolean canUserAccess(User user, String context) {
+        String username = user.getUsername();
+
+        if (username == null) return false;
+        return Collaboration.canUserAccessEncounter(this, context, username);
+    }
+
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
@@ -3273,6 +3280,25 @@ public class Encounter extends Base implements java.io.Serializable {
     public boolean isUserOwner(User user) { // the definition of this might change?
         if ((user == null) || (submitters == null)) return false;
         return submitters.contains(user);
+    }
+
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext()))
+                ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+        }
+        return ids;
     }
 
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)

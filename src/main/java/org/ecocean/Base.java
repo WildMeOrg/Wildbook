@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
+import java.util.List;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -67,6 +68,9 @@ import org.json.JSONObject;
      */
     public abstract void addComments(final String newComments);
 
+    public abstract List<String> userIdsWithViewAccess(Shepherd myShepherd);
+    public abstract List<String> userIdsWithEditAccess(Shepherd myShepherd);
+
     public abstract String opensearchIndexName();
 
     public void opensearchCreateIndex()
@@ -116,7 +120,26 @@ import org.json.JSONObject;
     // should be overridden
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
+        Shepherd myShepherd = new Shepherd("context0");
+
+        myShepherd.setAction("BaseSerializer");
+        myShepherd.beginDBTransaction();
         jgen.writeStringField("id", this.getId());
         jgen.writeNumberField("version", this.getVersion());
+
+        jgen.writeFieldName("viewUsers");
+        jgen.writeStartArray();
+        for (String id : this.userIdsWithViewAccess(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeFieldName("editUsers");
+        jgen.writeStartArray();
+        for (String id : this.userIdsWithEditAccess(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        myShepherd.rollbackDBTransaction();
     }
 }
