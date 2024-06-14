@@ -280,6 +280,9 @@ public class OnWaterApp {
 
         enc.setAppUserId(jin.optString("user", null));
 
+        enc.setSubmitterID("admin");
+        enc.setState("unapproved");
+
         Survey survey = toSurvey(jin.optJSONObject("trip"), enc, myShepherd);
         String notes = jin.optString("notes", null);
         if (notes != null) enc.setComments(notes);
