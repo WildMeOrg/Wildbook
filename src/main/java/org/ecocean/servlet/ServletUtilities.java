@@ -45,14 +45,7 @@ import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.text.WordUtils;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ContextConfiguration;
-import org.ecocean.Organization;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
-import org.ecocean.User;
-import org.ecocean.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +55,14 @@ public class ServletUtilities {
 
         context = ServletUtilities.getContext(request);
         String langCode = ServletUtilities.getLanguageCode(request);
+        String gtmKey = "changeme";
+        String gaId = "changeme";
+        if (CommonConfiguration.getGoogleTagManagerKey(context) != null) {
+            gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        }
+        if (CommonConfiguration.getGoogleAnalyticsId(context) != null) {
+            gaId = CommonConfiguration.getGoogleAnalyticsId(context);
+        }
         Properties props = new Properties();
         props = ShepherdProperties.getProperties("header.properties", langCode, context);
         // System.out.println("props" + props);
@@ -177,9 +178,11 @@ public class ServletUtilities {
             templateFile = templateFile.replaceAll("SITE_NAME", siteName);
             templateFile = templateFile.replaceAll("USER_NAME", username);
             templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
-            templateFile = templateFile.replace("LANGUAGE_SELECTOR", languageString);
-            templateFile = templateFile.replace("SELECTED_IMAGE_URL", selectedImgURL);
-            templateFile = templateFile.replace("PROFILE_PHOTO_URL", profilePhotoURL);
+            templateFile = templateFile.replaceAll("LANGUAGE_SELECTOR", languageString);
+            templateFile = templateFile.replaceAll("SELECTED_IMAGE_URL", selectedImgURL);
+            templateFile = templateFile.replaceAll("PROFILE_PHOTO_URL", profilePhotoURL);
+            templateFile = templateFile.replaceAll("GTM_KEY", gtmKey);
+            templateFile = templateFile.replaceAll("GA_ID", gaId);
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(0, end_header));
