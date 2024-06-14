@@ -870,6 +870,30 @@ public class Occurrence extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessOccurrence(this, request);
     }
 
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have user-flavored Collaboration.canUserAccessOccurrence yet
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have edit stuff for occurrence
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
     public JSONObject uiJson(HttpServletRequest request)
     throws JSONException {
         JSONObject jobj = new JSONObject();
