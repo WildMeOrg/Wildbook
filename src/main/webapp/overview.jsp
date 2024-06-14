@@ -7,6 +7,9 @@
         
 <h1>Troutspotter</h1>
 
+<p>
+Coming soon...
+</p>
 
         </div>
 
