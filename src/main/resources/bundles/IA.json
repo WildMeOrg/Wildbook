@@ -34,7 +34,7 @@
 							"sv_on": true,
 							"n": 20
 						},
-						"default": false,
+						"default": true,
 						"description": "HotSpotter pattern-matcher"
 					}
 				]
