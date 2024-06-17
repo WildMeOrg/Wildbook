@@ -6,6 +6,16 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
 
+const wrappedColumns = useMemo(
+  () =>
+    columnNames.map((col) => ({
+      name: col.charAt(0).toUpperCase() + col.slice(1), // Capitalize the column header
+      selector: (row) => row[col], // Accessor function for the column data
+      sortable: true, // Make the column sortable
+    })),
+  [columnNames],
+);
+
 const columns = [
   { name: "ID", selector: (row) => row.id, sortable: true },
   { name: "Name", selector: (row) => row.name, sortable: true },
@@ -36,13 +46,24 @@ const conditionalRowStyles = [
   },
 ];
 
-const MyDataTable = () => {
+const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
   const [data, setData] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0); // page is zero-based in react-paginate
+  const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [goToPage, setGoToPage] = useState("");
+  const [filterText, setFilterText] = useState("");
+
+  const wrappedColumns = useMemo(
+    () =>
+      columnNames.map((col) => ({
+        name: col.charAt(0).toUpperCase() + col.slice(1),
+        selector: (row) => row[col],
+        sortable: true,
+      })),
+    [columnNames],
+  );
 
   const fetchData = async (currentPage, perPage) => {
     setLoading(true);
@@ -79,7 +100,7 @@ const MyDataTable = () => {
   };
 
   const handleGoToPageSubmit = () => {
-    const pageNumber = Number(goToPage) - 1; // react-paginate is zero-based
+    const pageNumber = Number(goToPage) - 1;
     if (
       !isNaN(pageNumber) &&
       pageNumber >= 0 &&
@@ -96,15 +117,45 @@ const MyDataTable = () => {
     }
   };
 
+  const handleFilterChange = (event) => {
+    setFilterText(event.target.value);
+  };
+
+  const clearFilterResult = (event) => {
+    setFilterText("");
+  };
+
+  const filteredData = data.filter((item) =>
+    Object.values(item).some(
+      (value) =>
+        value &&
+        value.toString().toLowerCase().includes(filterText.toLowerCase()),
+    ),
+  );
+
   return (
     <Container>
+      <InputGroup className="mb-3" style={{ width: "300px" }}>
+        <Form.Control
+          type="text"
+          placeholder="Filter by Text"
+          value={filterText}
+          onChange={handleFilterChange}
+        />
+        <Button className="go-button">Filter</Button>
+        <Button variant="outline-secondary" onClick={clearFilterResult}>
+          Clear
+        </Button>
+      </InputGroup>
       <DataTable
         title="Server-Side Pagination"
         columns={columns}
-        data={data}
+        data={filteredData}
         progressPending={loading}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
+        selectableRows
+        selectableRowsHighlight
       />
       <Row className="mt-3 d-flex justify-content-center align-items-center">
         <Col
@@ -136,7 +187,7 @@ const MyDataTable = () => {
             breakLinkClassName={"page-link"}
             pageCount={Math.ceil(totalRows / perPage)}
             marginPagesDisplayed={2}
-            pageRangeDisplayed={5}
+            pageRangeDisplayed={2}
             onPageChange={handlePageChange}
             containerClassName={"pagination"}
             pageClassName={"page-item"}
