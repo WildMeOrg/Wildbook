@@ -1217,7 +1217,7 @@ function displayAnnotDetails(taskId, num, illustrationUrl, acmIdPassed) {
                 var encDisplay = encId;
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
                 //console.log('Taxonomy: '+taxonomy);
-                if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
+                if (encId && encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
 				var socialUnitName;
 				if(isQueryAnnot){
