@@ -21,21 +21,19 @@ public class SearchApi extends ApiBase {
         myShepherd.beginDBTransaction();
 
         User currentUser = myShepherd.getUser(request);
+        JSONObject res = new JSONObject();
         if ((currentUser == null) || (currentUser.getId() == null)) {
             response.setStatus(401);
-            response.setHeader("Content-Type", "application/json");
-            response.getWriter().write("{\"success\": false}");
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
-            return;
+            res.put("error", 401);
+        } else {
+            String arg = request.getPathInfo();
+            JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
+            response.setStatus(200);
+            res.put("success", true);
         }
-        String arg = request.getPathInfo();
-        JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
-        JSONObject results = null;
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        response.setStatus(200);
         response.setHeader("Content-Type", "application/json");
-        response.getWriter().write(results.toString());
+        response.getWriter().write(res.toString());
+        response.getWriter().close();
+        myShepherd.rollbackAndClose();
     }
 }
