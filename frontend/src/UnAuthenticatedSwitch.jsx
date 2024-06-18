@@ -11,6 +11,7 @@ import Forbidden from "./pages/errorPages/Forbidden";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import ServerError from "./pages/errorPages/ServerError";
 import BadRequest from "./pages/errorPages/BadRequest";
+import About from "./About";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   console.log("UnAuthenticatedSwitch", showAlert);
@@ -36,7 +37,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         }}
       >
         <Routes>
-          {/* <Route path="/about" element={<Login />} /> */}
+          {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Unauthorized />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
