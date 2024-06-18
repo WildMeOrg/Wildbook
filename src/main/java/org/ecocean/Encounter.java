@@ -2844,6 +2844,26 @@ public class Encounter extends Base implements java.io.Serializable {
         return annotations;
     }
 
+    public Set<String> getAnnotationViewpoints() {
+        Set<String> vps = new HashSet<String>();
+
+        if (!hasAnnotations()) return vps;
+        for (Annotation ann : annotations) {
+            if (ann.getViewpoint() != null) vps.add(ann.getViewpoint());
+        }
+        return vps;
+    }
+
+    public Set<String> getAnnotationIAClasses() {
+        Set<String> classes = new HashSet<String>();
+
+        if (!hasAnnotations()) return classes;
+        for (Annotation ann : annotations) {
+            if (ann.getIAClass() != null) classes.add(ann.getIAClass());
+        }
+        return classes;
+    }
+
     // all an enc's annotations on a given asset (might be multiple if parts are involved)
     public List<Annotation> getAnnotations(MediaAsset ma) {
         List<Annotation> anns = new ArrayList<Annotation>();
@@ -3147,6 +3167,16 @@ public class Encounter extends Base implements java.io.Serializable {
             if (image.getKeywords().contains(word)) { return true; }
         }
         return false;
+    }
+
+    public Set<Keyword> getMediaAssetKeywords() {
+        Set<Keyword> mak = new HashSet<Keyword>();
+
+        for (MediaAsset ma : this.getMedia()) {
+            ArrayList<Keyword> kws = ma.getKeywords();
+            if (kws != null) mak.addAll(kws);
+        }
+        return mak;
     }
 
     public String getState() { return state; }
@@ -4057,7 +4087,52 @@ public class Encounter extends Base implements java.io.Serializable {
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen);
+        jgen.writeStringField("locationId", this.getLocationID());
+        jgen.writeNumberField("dateMillis", this.getDateInMilliseconds());
+        jgen.writeStringField("date", this.getDate());
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        jgen.writeStringField("lifeStage", this.getLifeStage());
+
+        List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
+        jgen.writeNumberField("numberMediaAssets", mas.size());
+
+        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        for (Keyword kw : this.getMediaAssetKeywords()) {
+            jgen.writeString(kw.getDisplayName());
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationViewpoints");
+        for (String vp : this.getAnnotationViewpoints()) {
+            jgen.writeString(vp);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationIAClasses");
+        for (String cls : this.getAnnotationIAClasses()) {
+            jgen.writeString(cls);
+        }
+        jgen.writeEndArray();
+
+        Double dlat = this.getDecimalLatitudeAsDouble();
+        Double dlon = this.getDecimalLongitudeAsDouble();
+        if ((dlat == null) || (dlon == null)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        MarkedIndividual indiv = this.getIndividual();
+        if (indiv == null) {
+            jgen.writeNullField("individualId");
+        } else {
+            jgen.writeStringField("individualId", indiv.getId());
+            jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+        }
     }
 
     @Override public long getVersion() {
