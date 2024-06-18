@@ -564,6 +564,15 @@
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>SearchApi</servlet-name>
+		<servlet-class>org.ecocean.api.SearchApi</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SearchApi</servlet-name>
+		<url-pattern>/api/v3/search</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>SiteSettings</servlet-name>
 		<servlet-class>org.ecocean.api.SiteSettings</servlet-class>
 	</servlet>
