@@ -41,7 +41,7 @@ export default function AuthenticatedAppHeader({
         marginRight: "auto",
         zIndex: "100",
         width: "100%",
-        paddingRight: "20px",
+        // paddingRight: "20px",
       }}
     >
       <Navbar.Brand
@@ -53,16 +53,8 @@ export default function AuthenticatedAppHeader({
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: "20%" }}>
-        <Nav
-          className="mr-auto"
-          id="nav"
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            width: "100%",
-          }}
-        >
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="mr-auto w-100 d-flex justify-content-end" id="nav">
           <Menu username={username} />
         </Nav>
         <NotificationButton
