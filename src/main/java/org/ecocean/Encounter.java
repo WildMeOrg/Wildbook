@@ -3297,8 +3297,8 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public boolean canUserAccess(User user, String context) {
+        if (canUserEdit(user)) return true;
         String username = user.getUsername();
-
         if (username == null) return false;
         return Collaboration.canUserAccessEncounter(this, context, username);
     }
@@ -3308,8 +3308,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
-        if ((user == null) || (submitters == null)) return false;
-        return submitters.contains(user);
+        if (user == null) return false;
+        if ((submitters != null) && submitters.contains(user)) return true;
+        if ((submitterID != null) && submitterID.equals(user.getUsername())) return true;
+        return false;
     }
 
     @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
