@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import ReactPaginate from "react-paginate";
 import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
-import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
-
-const wrappedColumns = useMemo(
-  () =>
-    columnNames.map((col) => ({
-      name: col.charAt(0).toUpperCase() + col.slice(1), // Capitalize the column header
-      selector: (row) => row[col], // Accessor function for the column data
-      sortable: true, // Make the column sortable
-    })),
-  [columnNames],
-);
 
 const columns = [
   { name: "ID", selector: (row) => row.id, sortable: true },
@@ -33,66 +22,50 @@ const customStyles = {
 
 const conditionalRowStyles = [
   {
-    when: (row) => row.id % 2 === 0,
+    when: (row) => row.tableID % 2 === 0,
     style: {
       backgroundColor: "#ffffff", // Light gray color
     },
   },
   {
-    when: (row) => row.id % 2 !== 0,
+    when: (row) => row.tableID % 2 !== 0,
     style: {
       backgroundColor: "#f2f2f2", // White color
     },
   },
 ];
 
-const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
+const MyDataTable = ({
+  columnNames = [],
+  totalItems = 0,
+  tableData = [],
+  page,
+  perPage,
+  onPageChange,
+  onPerPageChange,
+  onSelectedRowsChange = () => {},
+}) => {
   const [data, setData] = useState([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [perPage, setPerPage] = useState(10);
-  const [goToPage, setGoToPage] = useState("");
   const [filterText, setFilterText] = useState("");
+  const [goToPage, setGoToPage] = useState("");
+  const perPageOptions = [10, 20, 30, 40, 45];
 
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => ({
-        name: col.charAt(0).toUpperCase() + col.slice(1),
-        selector: (row) => row[col],
-        sortable: true,
+        name: col.charAt(0).toUpperCase() + col.slice(1), // Capitalize the column header
+        selector: (row) => row[col], // Accessor function for the column data
+        sortable: true, // Make the column sortable
       })),
     [columnNames],
   );
 
-  const fetchData = async (currentPage, perPage) => {
-    setLoading(true);
-    try {
-      const response = {
-        data: {
-          data: Array.from({ length: perPage }, (_, i) => ({
-            id: currentPage * perPage + i + 1,
-            name: `John Doe ${currentPage * perPage + i + 1}`,
-            age: Math.floor(Math.random() * 100),
-          })),
-          total: 85,
-        },
-      };
-      setData(response.data.data);
-      setTotalRows(response.data.total);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData(page, perPage);
-  }, [page, perPage]);
+    setData(tableData.map((row, index) => ({ tableID: index, ...row })));
+  }, [tableData]);
 
   const handlePageChange = ({ selected }) => {
-    setPage(selected);
+    onPageChange(selected);
   };
 
   const handleGoToPageChange = (event) => {
@@ -104,16 +77,16 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
     if (
       !isNaN(pageNumber) &&
       pageNumber >= 0 &&
-      pageNumber < Math.ceil(totalRows / perPage)
+      pageNumber < Math.ceil(totalItems / perPage)
     ) {
-      setPage(pageNumber);
+      onPageChange(pageNumber);
     }
   };
 
   const handlePerPageChange = (event) => {
     const newPerPage = Number(event.target.value);
     if (!isNaN(newPerPage) && newPerPage > 0) {
-      setPerPage(newPerPage);
+      onPerPageChange(newPerPage);
     }
   };
 
@@ -121,7 +94,7 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
     setFilterText(event.target.value);
   };
 
-  const clearFilterResult = (event) => {
+  const clearFilterResult = () => {
     setFilterText("");
   };
 
@@ -149,12 +122,12 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
       </InputGroup>
       <DataTable
         title="Server-Side Pagination"
-        columns={columns}
+        columns={wrappedColumns}
         data={filteredData}
-        progressPending={loading}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
         selectableRows
+        onSelectedRowsChange={onSelectedRowsChange}
         selectableRowsHighlight
       />
       <Row className="mt-3 d-flex justify-content-center align-items-center">
@@ -163,7 +136,7 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
           <div className="me-3">
-            <span>Total Items: {totalRows}</span>
+            <span>Total Items: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>
             <InputGroup.Text>Per page</InputGroup.Text>
@@ -172,11 +145,11 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
               value={perPage}
               onChange={handlePerPageChange}
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-              <option value={40}>40</option>
-              <option value={50}>50</option>
+              {perPageOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </Form.Control>
           </InputGroup>
           <ReactPaginate
@@ -185,7 +158,7 @@ const MyDataTable = ({ columnNames, tableData, onSelectedRowsChange }) => {
             breakLabel={"..."}
             breakClassName={"page-item"}
             breakLinkClassName={"page-link"}
-            pageCount={Math.ceil(totalRows / perPage)}
+            pageCount={Math.ceil(totalItems / perPage)}
             marginPagesDisplayed={2}
             pageRangeDisplayed={2}
             onPageChange={handlePageChange}
