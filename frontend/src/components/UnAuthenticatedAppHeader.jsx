@@ -57,7 +57,10 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: "40%" }}>
+      <Navbar.Collapse
+        id="basic-navbar-nav"
+        // style={{ marginLeft: "40%" }}
+      >
         <Nav
           className="mr-auto"
           style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
@@ -98,7 +101,6 @@ export default function AuthenticatedAppHeader({ showAlert }) {
           ))}
         </Nav>
         <MultiLanguageDropdown />
-        <NotificationButton />
         <Button
           variant="basic"
           style={{
