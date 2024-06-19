@@ -569,7 +569,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>SearchApi</servlet-name>
-		<url-pattern>/api/v3/search</url-pattern>
+		<url-pattern>/api/v3/search/*</url-pattern>
 	</servlet-mapping>
 
 	<servlet>

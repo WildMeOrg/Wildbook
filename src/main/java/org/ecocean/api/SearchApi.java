@@ -6,9 +6,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class SearchApi extends ApiBase {
@@ -27,9 +29,55 @@ public class SearchApi extends ApiBase {
             res.put("error", 401);
         } else {
             String arg = request.getPathInfo();
-            JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
-            response.setStatus(200);
-            res.put("success", true);
+            if ((arg == null) || arg.equals("/")) {
+                // for multisearch later maybe?
+                response.setStatus(404);
+                res.put("error", "unsupported");
+            } else {
+                String indexName = arg.substring(1);
+                if (!OpenSearch.isValidIndexName(indexName)) {
+                    response.setStatus(404);
+                    res.put("error", "unknown index");
+                } else {
+                    JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
+                    // FIXME do stuff to query, like permission stuff
+                    // handle scroll-id
+                    OpenSearch os = new OpenSearch();
+                    try {
+                        JSONObject queryRes = os.queryRawScroll(indexName, query, 10);
+                        JSONObject outerHits = queryRes.optJSONObject("hits");
+                        if (outerHits == null) throw new IOException("could not find (outer) hits");
+                        JSONArray hits = outerHits.optJSONArray("hits");
+                        if (hits == null) throw new IOException("could not find hits");
+                        int totalHits = -2;
+                        if (outerHits.optJSONObject("total") != null)
+                            totalHits = outerHits.getJSONObject("total").optInt("value", -1);
+                        String scrollId = outerHits.optString("_scroll_id", null);
+                        JSONArray hitsArr = new JSONArray();
+                        for (int i = 0; i < hits.length(); i++) {
+                            JSONObject h = hits.optJSONObject(i);
+                            if (h == null) throw new IOException("failed to parse hits[" + i + "]");
+                            JSONObject doc = h.optJSONObject("_source");
+                            if (doc == null)
+                                throw new IOException("failed to parse doc in hits[" + i + "]");
+                            // these are kind of noisy
+                            doc.remove("viewUsers");
+                            doc.remove("editUsers");
+                            hitsArr.put(doc);
+                        }
+                        response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
+                        response.setHeader("X-Wildbook-Scroll-Id", scrollId);
+                        response.setStatus(200);
+                        res.put("success", true);
+                        res.put("hits", hitsArr);
+                    } catch (IOException ex) {
+                        response.setStatus(500);
+                        res.put("success", false);
+                        res.put("error", "query failed");
+                        ex.printStackTrace();
+                    }
+                }
+            }
         }
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(res.toString());
