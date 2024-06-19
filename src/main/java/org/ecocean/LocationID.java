@@ -329,7 +329,7 @@ public class LocationID {
     /*
      * Return an HTML selector of hierarchical locationIDs with indenting
      */
-    public static String getHTMLSelector(boolean multiselect, String selectedID, String qualifier,
+    public static String getHTMLSelector(boolean multiselect, List<String> selectedIDs, String qualifier,
         String htmlID, String htmlName, String htmlClass) {
         String multiselector = "";
 
@@ -338,14 +338,19 @@ public class LocationID {
             htmlName + "\" id=\"" + htmlID + "\" class=\"" + htmlClass + "\" " + multiselector +
             ">\n\r<option value=\"\"></option>\n\r");
 
-        createSelectorOptions(getLocationIDStructure(qualifier), selector, 0, selectedID);
+        createSelectorOptions(getLocationIDStructure(qualifier), selector, 0, selectedIDs);
 
         selector.append("</select>\n\r");
         return selector.toString();
     }
+    
+    public static String getHTMLSelector(boolean multiselect, String selectedID, String qualifier, String htmlID, String htmlName, String htmlClass) {
+    	ArrayList<String> locationIDs = new ArrayList<String>();
+		locationIDs.add(selectedID);
+		return getHTMLSelector(multiselect, locationIDs, qualifier, htmlID, htmlName, htmlClass);
+    }
 
-    private static void createSelectorOptions(JSONObject jsonobj, StringBuffer selector,
-        int nestingLevel, String selectedID) {
+    private static void createSelectorOptions(JSONObject jsonobj, StringBuffer selector, int nestingLevel, List<String> selectedIDs) {
         int localNestingLevel = nestingLevel;
         String selected = "";
         String spacing = "";
@@ -353,7 +358,7 @@ public class LocationID {
         for (int i = 0; i < localNestingLevel; i++) { spacing += "&nbsp;&nbsp;&nbsp;"; }
         // see if we can add this item to the list
         try {
-            if (selectedID != null && jsonobj.getString("id").equals(selectedID))
+            if (selectedIDs != null && selectedIDs.contains(jsonobj.getString("id")))
                 selected = " selected=\"selected\"";
             selector.append("<option value=\"" + jsonobj.getString("id") + "\" " + selected + ">" +
                 spacing + jsonobj.getString("name") + "</option>\n\r");
@@ -365,7 +370,7 @@ public class LocationID {
             int numLocs = locs.length();
             for (int i = 0; i < numLocs; i++) {
                 JSONObject loc = locs.getJSONObject(i);
-                createSelectorOptions(loc, selector, localNestingLevel, selectedID);
+                createSelectorOptions(loc, selector, localNestingLevel, selectedIDs);
             }
         } catch (JSONException e) {}
     }
