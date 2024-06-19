@@ -142,4 +142,21 @@ import org.json.JSONObject;
         jgen.writeEndArray();
         myShepherd.rollbackDBTransaction();
     }
+
+    public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
+        int pageSize)
+    throws IOException {
+        OpenSearch opensearch = new OpenSearch();
+        JSONObject res = opensearch.queryRawScroll(indexname, query, pageSize);
+
+        return res;
+    }
+
+    public static JSONObject opensearchQuery(final JSONObject scrollData)
+    throws IOException {
+        OpenSearch opensearch = new OpenSearch();
+        JSONObject res = opensearch.queryRawScroll(scrollData);
+
+        return res;
+    }
 }

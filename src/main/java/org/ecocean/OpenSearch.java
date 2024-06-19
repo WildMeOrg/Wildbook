@@ -3,7 +3,6 @@ package org.ecocean;
 /*
    import java.net.URL;
    import java.util.ArrayList;
-   import java.util.Arrays;
    import java.util.HashSet;
    import java.util.List;
    import java.util.Properties;
@@ -28,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +85,7 @@ public class OpenSearch {
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
     public static String SEARCH_SCROLL_TIME = "10m";
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
+    public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
 
     public OpenSearch() {
         if (client != null) return;
@@ -138,11 +139,16 @@ public class OpenSearch {
         client = new OpenSearchClient(transport);
     }
 
+    public static boolean isValidIndexName(String indexName) {
+        return Arrays.asList(VALID_INDICES).contains(indexName);
+    }
+
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
 
     public void createIndex(String indexName)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
             indexName).build();
 
@@ -152,12 +158,14 @@ public class OpenSearch {
 
     public void ensureIndex(String indexName)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         if (existsIndex(indexName)) return;
         createIndex(indexName);
     }
 
     public void deleteIndex(String indexName)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest.Builder().index(
             indexName).build();
 
@@ -167,6 +175,7 @@ public class OpenSearch {
     }
 
     public boolean existsIndex(String indexName) {
+        if (!isValidIndexName(indexName)) return false;
         if (INDEX_EXISTS_CACHE.get(indexName) != null) return true;
         try {
             client.indices().get(i -> i.index(indexName));
@@ -180,8 +189,8 @@ public class OpenSearch {
 
     public void index(String indexName, Base obj)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String id = obj.getId();
-
         if (id == null) throw new RuntimeException("must have id property to index");
         ensureIndex(indexName);
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
@@ -232,6 +241,7 @@ public class OpenSearch {
     // https://opensearch.org/docs/2.3/opensearch/search/paginate/
     public JSONObject queryRawScroll(String indexName, final JSONObject query, int pageSize)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         Request searchRequest = new Request("POST",
             indexName + "/_search?scroll=" + SEARCH_SCROLL_TIME);
 
@@ -313,6 +323,7 @@ public class OpenSearch {
 
     public void delete(String indexName, String id)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         if (!existsIndex(indexName)) return;
         client.delete(b -> b.index(indexName).id(id));
         System.out.println("deleted id=" + id + " from OpenSearch index " + indexName);
@@ -320,8 +331,8 @@ public class OpenSearch {
 
     public void delete(String indexName, Base obj)
     throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String id = obj.getId();
-
         if (id == null) throw new RuntimeException("must have id property to delete");
         delete(indexName, id);
     }
