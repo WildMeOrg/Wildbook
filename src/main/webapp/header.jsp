@@ -414,8 +414,8 @@ if(request.getUserPrincipal()!=null){
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
             <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
-              <div class="nav-bar-wrapper" style="height: 100%; background-color: transparent">
-                <div class="container" style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+              <div class="nav-bar-wrapper" style="background-color: transparent">
+                <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
                   <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
                 </a>
@@ -431,9 +431,8 @@ if(request.getUserPrincipal()!=null){
                       <span class="icon-bar"></span>
                       <span class="icon-bar"></span>
                     </button>
-                  </div>
 
-                  <div id="navbar" class="navbar-collapse collapse" style="width: 800px">
+                    <div id="navbar" class="navbar-collapse collapse" style="width: 800px">
                   
                     <ul class="nav navbar-nav">
 
@@ -535,31 +534,14 @@ if(request.getUserPrincipal()!=null){
                             }
                             %>
                           </ul>
+
                         </li>
-                      </ul>
-                      
+                        
 
-                  </div>
+                    </ul>
+                    </div>
 
-                  
-
-                  <script>
-                    var mySvg = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-                    </svg>
-                    `;
-
-                    document.addEventListener("DOMContentLoaded", function() {
-                        var elements = document.getElementsByClassName('svg-placeholder');
-                        for (var i = 0; i < elements.length; i++) {
-                            elements[i].innerHTML = mySvg;
-                        }
-                    });
-                </script>
-
-                
-                <div class="search-and-secondary-wrapper" 
+                    <div class="search-and-secondary-wrapper d-flex" 
                 >
                     <div id="notifications">
                     <%
@@ -583,7 +565,7 @@ if(request.getUserPrincipal()!=null){
             		if(numSupportedLanguages>1){
             		%>
                 
-                <li>
+                
                   <div class="custom-select-wrapper">
                       <div class="custom-select" onclick="toggleDropdown()">
                           <% 
@@ -657,11 +639,7 @@ if(request.getUserPrincipal()!=null){
             		}
             		%>
             		<!-- end language functionality injection -->
-
-                    </ul>
-
-                  </div>
-                  <%
+                <%
                         if(user != null && !loggingOut){
                             try {
                               String fullname=request.getUserPrincipal().toString();
@@ -688,8 +666,38 @@ if(request.getUserPrincipal()!=null){
                         }
 
                       %>
+
+                  
+                  
               </div>              
-              </div>              
+              </div> 
+                      </ul>
+                      
+
+                  </div>
+
+                  
+
+                  <script>
+                    var mySvg = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                    </svg>
+                    `;
+
+                    document.addEventListener("DOMContentLoaded", function() {
+                        var elements = document.getElementsByClassName('svg-placeholder');
+                        for (var i = 0; i < elements.length; i++) {
+                            elements[i].innerHTML = mySvg;
+                        }
+                    });
+                </script>
+
+                
+                 
+                  </div>
+
+                              
             </nav>
         </header>
 

@@ -20,8 +20,8 @@
 
 .navbar-nav {
   display: flex;  
-  padding-left: 20px;
-  padding-right: 50px;    
+  /* padding-left: 20px;
+  padding-right: 50px;     */
   flex-grow: 1;        
   justify-content: space-between; 
   width: 100%;         
@@ -206,9 +206,8 @@
 .search-and-secondary-wrapper {
   margin: 0 !important;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  list-style-type: none;
+  flex-direction: row !important;
+  align-items: flex-end;
   position: relative;
 }
 
@@ -217,3 +216,169 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   font-weight:400;
 }
+
+/* General styles for the header */
+.page-header {
+  padding: 0;
+}
+
+.navbar {
+  background-color: #303336;
+}
+
+.navbar-brand, .site-name, .search-and-secondary-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  max-height: 50px;
+}
+
+.site-name {
+  color: white;
+  font-size: 1.5em;
+  margin-left: 10px;
+}
+
+.navbar-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+/* General styles for the header */
+.navbar {
+  background-color: #303336;
+}
+
+.navbar-brand, .site-name, .search-and-secondary-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  max-height: 50px;
+}
+
+.site-name {
+  color: white;
+  font-size: 1.5em;
+  margin-left: 10px;
+}
+
+.navbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Hide the menu toggle button by default */
+.navbar-toggle {
+  display: none;
+}
+
+/* Dropdown menus */
+.navbar-nav > .dropdown > .dropdown-menu {
+  background-color: #303336;
+}
+
+.navbar-nav > .dropdown > .dropdown-menu > li > a {
+  color: white;
+}
+
+.navbar-nav > .dropdown > .dropdown-menu > li > a:hover {
+  background-color: #404448;
+}
+
+/* Notifications and profile icon */
+#notifications svg, .profile-icon {
+  fill: white;
+}
+
+.profile-icon {
+  width: 30px;
+  height: 30px;
+  background-size: cover;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 850px) {
+
+  .site-name {
+    margin-right: 40px;
+  }
+  .navbar-toggle {
+      display: block;
+  }
+
+  .navbar-collapse {
+      display: none;
+  }
+
+  .navbar-collapse.collapse.in {
+      display: block !important;
+      position: absolute;
+      top: 50px;
+      left: 0;
+      right: 0;
+      background-color: #303336;
+      width: 100%;
+  }
+
+
+  .nav-bar-wrapper {
+      flex-direction: column;
+      align-items: flex-start;
+      height: 60px;
+  }
+
+  .navbar-nav {
+      width: 100%;
+  }
+
+  .navbar-nav > li {
+      width: 100%;
+  }
+
+  .navbar-nav > li > a {
+      width: 100%;
+      text-align: left;
+  }
+
+  .dropdown-menu {
+      position: static;
+      float: none;
+      width: 100%;
+      background-color: #303336;
+      border: none;
+      box-shadow: none;
+  }
+
+  .profile-wrapper {
+      display: flex;
+      align-items: center;
+      width: 100%;
+  }
+
+  .profile-wrapper .dropdown-menu {
+      width: 100%;
+  }
+
+  .navbar-nav {
+    display: flex;       
+    flex-direction: column;
+    width: 100%;
+    
+  }
+
+  .dropdown-menu {
+    background-color: #303336;
+  }
+}
+
+

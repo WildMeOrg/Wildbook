@@ -13,3 +13,47 @@
   .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
     background-color: #CCF0FF !important;
 }
+
+
+@media (max-width: 992px) {
+  #nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar-brand {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dropdown-menu {
+    background-color: transparent;
+  }
+
+  .nav-item {
+    border: none !important;
+  }
+
+  .dropdown-menu a{
+    color: white !important;
+    padding-left: 3rem;
+  }
+
+}
+
+.navbar-collapse {
+  background-color: rgba(48, 51, 54, 0.9) !important;
+}
+
+
+.navbar-nav{
+  display:flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.nav-item> a {
+  padding: 0.5rem 1rem;
+}
+
