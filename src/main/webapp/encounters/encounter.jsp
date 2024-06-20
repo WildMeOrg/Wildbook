@@ -706,7 +706,7 @@ $(function() {
 
       <%
       //set a default date if we cann
-      if(isOwner || encounterIsPublic && enc.getDateInMilliseconds()!=null){
+      if((isOwner || encounterIsPublic) && enc.getDateInMilliseconds()!=null){
 
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
 
@@ -1324,7 +1324,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	   		<%
 	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
-        
+
 	   			marker.setVisible(true);
 
 	   		<%
