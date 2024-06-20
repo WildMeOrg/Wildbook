@@ -281,17 +281,7 @@
 }
 
 /* Dropdown menus */
-.navbar-nav > .dropdown > .dropdown-menu {
-  background-color: #303336;
-}
 
-.navbar-nav > .dropdown > .dropdown-menu > li > a {
-  color: white;
-}
-
-.navbar-nav > .dropdown > .dropdown-menu > li > a:hover {
-  background-color: #404448;
-}
 
 /* Notifications and profile icon */
 #notifications svg, .profile-icon {
@@ -376,9 +366,19 @@
     
   }
 
-  .dropdown-menu {
+  .navbar-nav > .dropdown > .dropdown-menu {
     background-color: #303336;
   }
+
+  .dropdown-menu li a {
+    background-color: #303336; 
+    color: white !important;
+  }
+
+  .navbar .navbar-nav > li > a:hover{
+    border-bottom: none; 
+}
+  
 }
 
 
