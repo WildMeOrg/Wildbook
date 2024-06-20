@@ -204,7 +204,8 @@
 }
 
 .search-and-secondary-wrapper {
-  margin: 0 !important;
+  margin-left: 50px;
+  margin-bottom: 0 !important;
   display: flex;
   flex-direction: row !important;
   align-items: flex-end;
@@ -241,13 +242,6 @@
   margin-left: 10px;
 }
 
-.navbar-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
 /* General styles for the header */
 .navbar {
   background-color: #303336;
@@ -270,31 +264,32 @@
 
 .navbar-header {
   display: flex;
+  margin-left: auto;
   align-items: center;
   justify-content: space-between;
   width: 100%;
 }
 
 /* Hide the menu toggle button by default */
-.navbar-toggle {
+/* .navbar-toggle {
   display: none;
-}
+} */
 
 /* Dropdown menus */
 
 
 /* Notifications and profile icon */
-#notifications svg, .profile-icon {
+/* #notifications svg, .profile-icon {
   fill: white;
-}
-
+} */
+/* 
 .profile-icon {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   background-size: cover;
   border-radius: 50%;
   margin-left: 10px;
-}
+} */
 
 /* Responsive adjustments */
 @media (max-width: 850px) {
@@ -304,6 +299,7 @@
   }
   .navbar-toggle {
       display: block;
+      margin-left: 80px !important;
   }
 
   .navbar-collapse {
@@ -377,8 +373,8 @@
 
   .navbar .navbar-nav > li > a:hover{
     border-bottom: none; 
-}
-  
+  }
+
 }
 
 

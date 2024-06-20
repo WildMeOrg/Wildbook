@@ -132,7 +132,7 @@ if(request.getUserPrincipal()!=null){
         function logoutAndRedirect() {
             window.location.href = 'header.jsp?action=logout';
         }
-    </script>
+      </script>
 
       <!-- Google Tag Manager -->
       <script>(function (w, d, s, l, i) {
@@ -163,13 +163,13 @@ if(request.getUserPrincipal()!=null){
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-     <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
+      <%
+      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+      %>
        <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-     <%
-     }
-     %>
+      <%
+      }
+      %>
 
 
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
@@ -184,20 +184,20 @@ if(request.getUserPrincipal()!=null){
       <link rel="stylesheet" href="<%=urlLoc %>/css/header.css" type="text/css"/>
       <link rel="stylesheet" href="<%=urlLoc %>/css/footer.css" type="text/css"/>
 
-        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
-        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 
-     <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
-     <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
 
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+      <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 
-   <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
+      <%
+      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+      %>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <%
       }
@@ -356,36 +356,32 @@ if(request.getUserPrincipal()!=null){
 
 
 
-    </script>
+      </script>
       <%
         }
       %>
 
 
 
-  <!-- Start Open Graph Tags -->
-  <meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
-    <meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-    <!-- End Open Graph Tags -->
+      <!-- Start Open Graph Tags -->
+        <meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+        <meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
+      <!-- End Open Graph Tags -->
 
 
-  <!-- Clockpicker on creatSurvey jsp -->
-    <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+      <!-- Clockpicker on creatSurvey jsp -->
+      <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
+      <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
 
-    <style>
-      ul.nav.navbar-nav {
-        width: 100%;
-      }
-
-    </style>
+      <style>
+        ul.nav.navbar-nav {
+          width: 100%;
+        }
+      </style>
 
     </head>
 
     <body role="document">
-
-
-
 
     <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -413,27 +409,25 @@ if(request.getUserPrincipal()!=null){
 
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
-            <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
-              <div class="nav-bar-wrapper" style="background-color: transparent">
-                <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+            <div class="nav-bar-wrapper" style="background-color: transparent">
+              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
                   <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
-                    <%-- <%=props.getProperty("siteName")%>                     --%>
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
                 </a>                        
-                
-                  <div class="navbar-header clearfix">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                      <span class="sr-only">Toggle navigation</span>
-                      <span class="icon-bar"></span>
-                      <span class="icon-bar"></span>
-                      <span class="icon-bar"></span>
-                    </button>
+              
+                <div class="navbar-header clearfix">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
 
-                    <div id="navbar" class="navbar-collapse collapse" style="width: 800px">
-                  
+                  <div id="navbar" class="navbar-collapse collapse">                
                     <ul class="nav navbar-nav">
 
                       <%-- <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
@@ -450,7 +444,7 @@ if(request.getUserPrincipal()!=null){
                             -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                         </ul>
+                        </ul>
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
@@ -470,8 +464,8 @@ if(request.getUserPrincipal()!=null){
                           <li class="dropdown-submenu">
                             <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
-</svg>
+                              <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
                             </a>
                             
                             <ul class="dropdown-menu">
@@ -489,8 +483,6 @@ if(request.getUserPrincipal()!=null){
 
                         </ul>
                       </li>
-                      
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
@@ -509,7 +501,6 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                         </ul>
                       </li>
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
@@ -533,172 +524,159 @@ if(request.getUserPrincipal()!=null){
                             <%
                             }
                             %>
-                          </ul>
+                        </ul>
 
-                        </li>
+                      </li>
+                      <div class="search-and-secondary-wrapper d-flex" >
+                        <!-- notifications -->
+                        <div id="notifications">
+                          <% if(user != null && !loggingOut)
+                            {  
+                          %>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
+                              <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
+                            </svg><%=notifications %>
+                          <%
+                            } 
+                          %>
+                        </div>
+                        <!-- end of notifications -->
                         
-
-                    </ul>
-                    </div>
-
-                    <div class="search-and-secondary-wrapper d-flex" 
-                >
-                    <div id="notifications">
-                    <%
-                        if(user != null && !loggingOut){                
-                      %>
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
-  <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
-</svg><%=notifications %>
-                <%
-                        }
-                %>
-</div>
-
-                      
-                		   <!-- Can we inject language functionality here? -->
-                    <%
-
-            		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
-            		int numSupportedLanguages=supportedLanguages.size();
-
-            		if(numSupportedLanguages>1){
-            		%>
-                
-                
-                  <div class="custom-select-wrapper">
-                      <div class="custom-select" onclick="toggleDropdown()">
-                          <% 
-                          
-                String selectedLangCode = "en";
-                Cookie[] cookies = request.getCookies(); 
-
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if ("wildbookLangCode".equals(cookie.getName())) {
-                            selectedLangCode = cookie.getValue(); 
-                            break;
-                        }
-                    }
-                }
-
-                
-                String selectedImgURL = "";
-                if (selectedLangCode != null) {
-                    selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
-                }
-            %>
-                          
-                          <div class="custom-select-selected" >
-                            <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-              </svg>
-                          </div>
-                          <div class="custom-select-items hidden">
-                              <% for(int h=0;h<numSupportedLanguages;h++){
-                                  String myLang = supportedLanguages.get(h);
-                                  String langName = CommonConfiguration.getProperty(myLang, context);
-                                  String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
-                              %>
-                              <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
-                                  <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
-                                  <%= langName %>
-                              </div>
-                              <% } %>
-                          </div>
-                      </div>
-                  </div>
-           
-
-            <script type="text/javascript">
-                            
-              function toggleDropdown() {
-                  var items = document.querySelector('.custom-select-items');
-                  items.classList.toggle('hidden');
-              }
-
-              function selectItem(element, langCode, imgUrl) {
-                  var selectedDiv = document.querySelector('.custom-select-selected');
-                  selectedDiv.setAttribute('data-lang', langCode); 
-                  document.querySelector('.custom-select-items').classList.add('hidden');
-
-                  console.log("Language changed to: " + langCode);
-
-                  $.cookie("wildbookLangCode", langCode, {
-                      path: '/',
-                      secure: false
-                  });
-
-                  location.reload(true);
-              }
-                
-            </script>
-
-            		<%
-            		}
-            		%>
-            		<!-- end language functionality injection -->
-                <%
-                        if(user != null && !loggingOut){
-                            try {
-                              String fullname=request.getUserPrincipal().toString();
-                              if (user.getFullName()!=null) fullname=user.getFullName();
-                      %>
-                             <div class="profile-wrapper">
-                                <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
-                                
-                              <ul class="dropdown-menu">
-                                  <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
-                                  <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
-                                  <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
-                              </ul>   
-                              </div>              
-
-                              <%
-                            }
-                            catch(Exception e){e.printStackTrace();}
-                        }
-                        else{
-                        %>
-                          <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
+                        <!-- language -->
                         <%
-                        }
 
-                      %>
+                          List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
+                          int numSupportedLanguages=supportedLanguages.size();
 
-                  
-                  
-              </div>              
-              </div> 
-                      </ul>
-                      
+                          if(numSupportedLanguages>1){
+                        %>                
+                        <div class="custom-select-wrapper">
+                          <div class="custom-select" onclick="toggleDropdown()">
+                            <%                           
+                              String selectedLangCode = "en";
+                              Cookie[] cookies = request.getCookies(); 
 
-                  </div>
-
-                  
-
-                  <script>
-                    var mySvg = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
-                    </svg>
-                    `;
-
-                    document.addEventListener("DOMContentLoaded", function() {
-                        var elements = document.getElementsByClassName('svg-placeholder');
-                        for (var i = 0; i < elements.length; i++) {
-                            elements[i].innerHTML = mySvg;
-                        }
-                    });
-                </script>
-
-                
-                 
-                  </div>
+                              if (cookies != null) {
+                                  for (Cookie cookie : cookies) {
+                                      if ("wildbookLangCode".equals(cookie.getName())) {
+                                          selectedLangCode = cookie.getValue(); 
+                                          break;
+                                      }
+                                  }
+                              }
 
                               
-            </nav>
+                              String selectedImgURL = "";
+                              if (selectedLangCode != null) {
+                                  selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
+                              }
+                            %>
+                            
+                            <div class="custom-select-selected" >
+                              <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                              </svg>
+                            </div>
+                            <div class="custom-select-items hidden">
+                                <% for(int h=0;h<numSupportedLanguages;h++){
+                                    String myLang = supportedLanguages.get(h);
+                                    String langName = CommonConfiguration.getProperty(myLang, context);
+                                    String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
+                                %>
+                                  <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
+                                    <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
+                                    <%= langName %>
+                                  </div>
+                                <%
+                                } 
+                                %>
+                            </div>
+                          </div>
+                        </div>
+                        <%
+                        }
+                        %>
+                        <!-- end of language -->
+
+                        
+                      </div>
+                    </ul>
+                  </div>
+                  <!-- start profile wrapper -->
+                        <%
+                          if(user != null && !loggingOut){
+                              try {
+                                String fullname=request.getUserPrincipal().toString();
+                                if (user.getFullName()!=null) fullname=user.getFullName();
+                        %>
+                                <div class="profile-wrapper">
+                                  <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
+                                  
+                                  <ul class="dropdown-menu">
+                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                      <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
+                                      <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                                  </ul>   
+                                </div>              
+
+                                <%
+                              }
+                              catch(Exception e){e.printStackTrace();}
+                          }
+                          else{
+                            %>
+                              <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
+                        <%
+                          }
+
+                        %>
+                  <!-- end profile wrapper -->              
+                </div> 
+                                
+
+              </div>              
+
+                <script>
+                  var mySvg = `
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                  </svg>
+                  `;
+
+                  document.addEventListener("DOMContentLoaded", function() {
+                      var elements = document.getElementsByClassName('svg-placeholder');
+                      for (var i = 0; i < elements.length; i++) {
+                          elements[i].innerHTML = mySvg;
+                      }
+                  });
+                </script>
+            </div>               
+          </nav>
+
+          <script type="text/javascript">
+                          
+            function toggleDropdown() {
+                var items = document.querySelector('.custom-select-items');
+                items.classList.toggle('hidden');
+            }
+
+            function selectItem(element, langCode, imgUrl) {
+                var selectedDiv = document.querySelector('.custom-select-selected');
+                selectedDiv.setAttribute('data-lang', langCode); 
+                document.querySelector('.custom-select-items').classList.add('hidden');
+
+                console.log("Language changed to: " + langCode);
+
+                $.cookie("wildbookLangCode", langCode, {
+                    path: '/',
+                    secure: false
+                });
+
+                location.reload(true);
+            }
+              
+          </script>
         </header>
 
         <!-- ****/header**** -->
