@@ -83,7 +83,9 @@ public class OpenSearch {
     public static OpenSearchClient client = null;
     public static RestClient restClient = null;
     public static Map<String, Boolean> INDEX_EXISTS_CACHE = new HashMap<String, Boolean>();
+    public static Map<String, String> PIT_CACHE = new HashMap<String, String>();
     public static String SEARCH_SCROLL_TIME = "10m";
+    public static String SEARCH_PIT_TIME = "10m";
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
 
@@ -237,6 +239,37 @@ public class OpenSearch {
         return results;
     }
  */
+
+    // https://opensearch.org/docs/latest/search-plugins/searching-data/point-in-time-api/
+    public String createPit(String indexName)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if (PIT_CACHE.containsKey(indexName)) return PIT_CACHE.get(indexName);
+        Request searchRequest = new Request("POST",
+            indexName + "/_search/point_in_time?keep_alive=" + SEARCH_PIT_TIME);
+        String rtn = getRestResponse(searchRequest);
+        JSONObject jrtn = new JSONObject(rtn);
+        String id = jrtn.optString("pit_id", null);
+        if (id == null) throw new IOException("failed to get PIT id");
+        PIT_CACHE.put(indexName, id);
+        return id;
+    }
+
+    public JSONObject queryPit(String indexName, final JSONObject query, int pageFrom, int pageSize)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        String pitId = createPit(indexName);
+        Request searchRequest = new Request("POST", "/_search");
+        query.put("from", pageFrom);
+        query.put("size", pageSize);
+        JSONObject jpit = new JSONObject();
+        jpit.put("id", pitId);
+        jpit.put("keep_alive", SEARCH_PIT_TIME);
+        query.put("pit", jpit);
+        searchRequest.setJsonEntity(query.toString());
+        String rtn = getRestResponse(searchRequest);
+        return new JSONObject(rtn);
+    }
 
     // https://opensearch.org/docs/2.3/opensearch/search/paginate/
     public JSONObject queryRawScroll(String indexName, final JSONObject query, int pageSize)
