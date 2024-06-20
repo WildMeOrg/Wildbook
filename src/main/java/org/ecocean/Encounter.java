@@ -2475,6 +2475,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void resetDateInMilliseconds() {
+        dateInMilliseconds = computeDateInMilliseconds();
+    }
+
+    public Long computeDateInMilliseconds() {
         if (year > 0) {
             int localMonth = 0;
             if (month > 0) { localMonth = month - 1; }
@@ -2487,11 +2491,17 @@ public class Encounter extends Base implements java.io.Serializable {
             GregorianCalendar gc = new GregorianCalendar(year, localMonth, localDay, localHour,
                 myMinutes);
 
-            dateInMilliseconds = new Long(gc.getTimeInMillis());
-        } else { dateInMilliseconds = null; }
+            return new Long(gc.getTimeInMillis());
+        }
+        return null;
     }
 
     public java.lang.Long getDateInMilliseconds() { return dateInMilliseconds; }
+
+    public Long getDateInMillisecondsFallback() {
+        if (dateInMilliseconds != null) return dateInMilliseconds;
+        return computeDateInMilliseconds();
+    }
 
     // this will set all date stuff based on ms since epoch
     public void setDateInMilliseconds(long ms) {
@@ -4095,7 +4105,8 @@ public class Encounter extends Base implements java.io.Serializable {
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen);
         jgen.writeStringField("locationId", this.getLocationID());
-        jgen.writeNumberField("dateMillis", this.getDateInMilliseconds());
+        Long dim = this.getDateInMillisecondsFallback();
+        if (dim != null) jgen.writeNumberField("dateMillis", dim);
         jgen.writeStringField("date", this.getDate());
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
