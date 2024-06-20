@@ -39,12 +39,17 @@ public class SearchApi extends ApiBase {
                     response.setStatus(404);
                     res.put("error", "unknown index");
                 } else {
+                    String fromStr = request.getParameter("from");
+                    String sizeStr = request.getParameter("size");
+                    int numFrom = 0;
+                    int pageSize = 10;
+                    try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
+                    try { pageSize = Integer.parseInt(sizeStr); } catch (Exception ex) {}
                     JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
                     // FIXME do stuff to query, like permission stuff
-                    // handle scroll-id
                     OpenSearch os = new OpenSearch();
                     try {
-                        JSONObject queryRes = os.queryRawScroll(indexName, query, 10);
+                        JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize);
                         JSONObject outerHits = queryRes.optJSONObject("hits");
                         if (outerHits == null) throw new IOException("could not find (outer) hits");
                         JSONArray hits = outerHits.optJSONArray("hits");
@@ -52,7 +57,7 @@ public class SearchApi extends ApiBase {
                         int totalHits = -2;
                         if (outerHits.optJSONObject("total") != null)
                             totalHits = outerHits.getJSONObject("total").optInt("value", -1);
-                        String scrollId = outerHits.optString("_scroll_id", null);
+                        // String scrollId = outerHits.optString("_scroll_id", null);
                         JSONArray hitsArr = new JSONArray();
                         for (int i = 0; i < hits.length(); i++) {
                             JSONObject h = hits.optJSONObject(i);
@@ -66,7 +71,7 @@ public class SearchApi extends ApiBase {
                             hitsArr.put(doc);
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
-                        response.setHeader("X-Wildbook-Scroll-Id", scrollId);
+                        // response.setHeader("X-Wildbook-Scroll-Id", scrollId);
                         response.setStatus(200);
                         res.put("success", true);
                         res.put("hits", hitsArr);
