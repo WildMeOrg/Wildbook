@@ -144,14 +144,15 @@ import org.json.JSONObject;
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
-        int pageSize)
+        int numFrom, int pageSize)
     throws IOException {
         OpenSearch opensearch = new OpenSearch();
-        JSONObject res = opensearch.queryRawScroll(indexname, query, pageSize);
+        JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize);
 
         return res;
     }
 
+/*
     public static JSONObject opensearchQuery(final JSONObject scrollData)
     throws IOException {
         OpenSearch opensearch = new OpenSearch();
@@ -159,4 +160,5 @@ import org.json.JSONObject;
 
         return res;
     }
+ */
 }

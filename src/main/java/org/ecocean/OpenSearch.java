@@ -255,12 +255,12 @@ public class OpenSearch {
         return id;
     }
 
-    public JSONObject queryPit(String indexName, final JSONObject query, int pageFrom, int pageSize)
+    public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String pitId = createPit(indexName);
         Request searchRequest = new Request("POST", "/_search");
-        query.put("from", pageFrom);
+        query.put("from", numFrom);
         query.put("size", pageSize);
         JSONObject jpit = new JSONObject();
         jpit.put("id", pitId);

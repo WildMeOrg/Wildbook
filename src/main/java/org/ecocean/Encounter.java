@@ -4096,9 +4096,10 @@ public class Encounter extends Base implements java.io.Serializable {
         return this.getCatalogNumber().hashCode();
     }
 
-    public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int pageSize)
+    public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
+        int pageSize)
     throws IOException {
-        return Base.opensearchQuery("encounter", query, pageSize);
+        return Base.opensearchQuery("encounter", query, numFrom, pageSize);
     }
 
     public void opensearchDocumentSerializer(JsonGenerator jgen)
