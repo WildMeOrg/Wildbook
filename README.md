@@ -204,4 +204,4 @@ This method also checks for the strings “none” and “unknown” which have 
 Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (now part of http://www.sharkbook.ai). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 
-Wildbook is a registered trademark of [Conservation X Labs](https://conservationxlabs.com/), a 501(c)(3) non-profit organization, and is supported by the [Wild Me](https://wildme.org) team.
+Wildbook is a trademark of [Conservation X Labs](https://conservationxlabs.com/), a 501(c)(3) non-profit organization, and is supported by the [Wild Me](https://wildme.org) team.
