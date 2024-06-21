@@ -10,7 +10,8 @@ export default function AlertBanner({ setShowAlert }) {
       className="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-center"
       role="alert"
       style={{
-        padding: 20,
+        padding: 10,
+        boxSizing: "border-box",
         minHeight: 60,
         backgroundColor: theme.primaryColors.primary100,
         border: "none",
