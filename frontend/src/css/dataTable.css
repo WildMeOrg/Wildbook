@@ -1,0 +1,15 @@
+.pagination .active-page a {
+    background-color: #007DA3 ;
+    border-color: #007DA3 ;
+    color: white ;
+}
+
+.go-button {
+    background-color: #007DA3;
+    border-color: #007DA3;
+    color: white;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
