@@ -44,7 +44,7 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
-        zIndex: "100",
+        zIndex: "200",
         width: "100%",
       }}
     >
@@ -101,21 +101,21 @@ export default function AuthenticatedAppHeader({ showAlert }) {
           ))}
         </Nav>
         <MultiLanguageDropdown />
-        <Button
-          variant="basic"
-          style={{
-            backgroundColor: "transparent",
-            color: "white",
-            border: "none",
-            width: "100px",
-            whiteSpace: "nowrap",
-            padding: 5,
-          }}
-          href={"/react/login"}
-        >
-          {<FormattedMessage id="LOGIN_LOGIN" />}
-        </Button>
       </Navbar.Collapse>
+      <Button
+        variant="basic"
+        style={{
+          backgroundColor: "transparent",
+          color: "white",
+          border: "none",
+          width: "100px",
+          whiteSpace: "nowrap",
+          padding: 5,
+        }}
+        href={"/react/login"}
+      >
+        {<FormattedMessage id="LOGIN_LOGIN" />}
+      </Button>
     </Navbar>
   ) : null;
 }

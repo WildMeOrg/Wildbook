@@ -39,7 +39,7 @@ export default function AuthenticatedAppHeader({
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
-        zIndex: "100",
+        zIndex: "200",
         width: "100%",
         // paddingRight: "20px",
       }}
@@ -65,8 +65,14 @@ export default function AuthenticatedAppHeader({
           getAllNotifications={getAllNotifications}
         />
         <MultiLanguageDropdown />
-        <AvatarAndUserProfile username={username} avatar={avatar} />
+        {/* <AvatarAndUserProfile username={username} avatar={avatar} /> */}
       </Navbar.Collapse>
+      <div
+        className="avatar-container d-flex align-items-center"
+        style={{ marginRight: "1rem" }}
+      >
+        <AvatarAndUserProfile username={username} avatar={avatar} />
+      </div>
     </Navbar>
   ) : null;
 }
