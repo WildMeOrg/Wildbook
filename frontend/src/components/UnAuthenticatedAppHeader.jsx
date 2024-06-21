@@ -44,7 +44,7 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
-        zIndex: "100",
+        zIndex: "200",
         width: "100%",
       }}
     >
@@ -57,7 +57,10 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: "40%" }}>
+      <Navbar.Collapse
+        id="basic-navbar-nav"
+        // style={{ marginLeft: "40%" }}
+      >
         <Nav
           className="mr-auto"
           style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
@@ -98,22 +101,21 @@ export default function AuthenticatedAppHeader({ showAlert }) {
           ))}
         </Nav>
         <MultiLanguageDropdown />
-        <NotificationButton />
-        <Button
-          variant="basic"
-          style={{
-            backgroundColor: "transparent",
-            color: "white",
-            border: "none",
-            width: "100px",
-            whiteSpace: "nowrap",
-            padding: 5,
-          }}
-          href={"/react/login"}
-        >
-          {<FormattedMessage id="LOGIN_LOGIN" />}
-        </Button>
       </Navbar.Collapse>
+      <Button
+        variant="basic"
+        style={{
+          backgroundColor: "transparent",
+          color: "white",
+          border: "none",
+          width: "100px",
+          whiteSpace: "nowrap",
+          padding: 5,
+        }}
+        href={"/react/login"}
+      >
+        {<FormattedMessage id="LOGIN_LOGIN" />}
+      </Button>
     </Navbar>
   ) : null;
 }
