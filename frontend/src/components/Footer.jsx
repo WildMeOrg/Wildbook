@@ -17,7 +17,11 @@ const Footer = () => {
   return visible ? (
     <footer
       className="footer mx-auto py-3"
-      style={{ zIndex: 2, backgroundColor: theme.statusColors.blue100 }}
+      style={{
+        zIndex: 2,
+        backgroundColor: theme.statusColors.blue100,
+        zIndex: 200,
+      }}
     >
       <Container>
         <Row className="justify-content-md-center text-center">
