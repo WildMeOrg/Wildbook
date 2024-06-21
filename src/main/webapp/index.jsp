@@ -147,7 +147,7 @@ h2.vidcap {
 	   /* Set the height to match that of the viewport. */
 	    
 	    width: auto;
-	    padding-top:50px!important;
+	    padding-top:-10px!important;
 	    margin: 0!important;
 	    position: relative;
 	}
@@ -166,7 +166,7 @@ h2.vidcap {
 	   /* Set the height to match that of the viewport. */
 	    
 	    width: auto;
-	    padding-top:150px!important;
+	    padding-top:-10px!important;
 	    margin: 0!important;
 	    position: relative;
 	}

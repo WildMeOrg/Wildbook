@@ -14,7 +14,7 @@ export default function MultiLanguageDropdown() {
       className="d-flex align-items-center justify-content-center border-0 rounded-pill m-2"
       style={{
         backgroundColor: "rgba(255, 255, 255, 0.25)",
-        minWidth: "65px",
+        width: "65px",
         height: "35px",
       }}
     >
