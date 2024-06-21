@@ -626,7 +626,7 @@ if(request.getUserPrincipal()!=null){
                           }
                           else{
                             %>
-                              <a href="<%= request.getContextPath() %>/react/login/" title=""><%= props.getProperty("login") %></a>
+                              <a href="<%= request.getContextPath() %>/react/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
                         <%
                           }
 
