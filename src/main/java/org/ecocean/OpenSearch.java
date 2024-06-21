@@ -60,6 +60,7 @@ import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.opensearch.client.json.jackson.JacksonJsonpMapper;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
+import org.opensearch.client.ResponseException;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.transport.rest_client.RestClientTransport;
@@ -88,6 +89,8 @@ public class OpenSearch {
     public static String SEARCH_PIT_TIME = "10m";
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+
+    private int pitRetry = 0;
 
     public OpenSearch() {
         if (client != null) return;
@@ -267,7 +270,22 @@ public class OpenSearch {
         jpit.put("keep_alive", SEARCH_PIT_TIME);
         query.put("pit", jpit);
         searchRequest.setJsonEntity(query.toString());
-        String rtn = getRestResponse(searchRequest);
+        String rtn = null;
+        try {
+            rtn = getRestResponse(searchRequest);
+            pitRetry = 0;
+        } catch (ResponseException ex) {
+            System.out.println("queryPit() using pitId=" + pitId + " failed[" + pitRetry +
+                "] with: " + ex);
+            pitRetry++;
+            if (pitRetry > 5) {
+                ex.printStackTrace();
+                throw new IOException("queryPit() failed to POST query");
+            }
+            // we try again, but attempt to get new PIT
+            PIT_CACHE.remove(indexName);
+            return queryPit(indexName, query, numFrom, pageSize);
+        }
         return new JSONObject(rtn);
     }
 
