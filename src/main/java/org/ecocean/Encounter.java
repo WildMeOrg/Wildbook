@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -4156,5 +4157,12 @@ public class Encounter extends Base implements java.io.Serializable {
 
     @Override public long getVersion() {
         return Util.getVersionFromModified(modified);
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        String sql =
+            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+
+        return getAllVersions(myShepherd, sql);
     }
 }

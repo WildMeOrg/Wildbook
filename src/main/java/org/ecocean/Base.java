@@ -5,7 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import javax.jdo.Query;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -150,6 +154,22 @@ import org.json.JSONObject;
         JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize);
 
         return res;
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd, String sql) {
+        Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        Map<String, Long> rtn = new HashMap<String, Long>();
+        List results = (List)query.execute();
+        Iterator it = results.iterator();
+
+        while (it.hasNext()) {
+            Object[] row = (Object[])it.next();
+            String id = (String)row[0];
+            Long version = (Long)row[1];
+            rtn.put(id, version);
+        }
+        query.closeAll();
+        return rtn;
     }
 
 /*

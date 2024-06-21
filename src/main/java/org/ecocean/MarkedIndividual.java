@@ -2870,4 +2870,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
         return 0;
     }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        // see above
+        String sql = "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
+
+        return getAllVersions(myShepherd, sql);
+    }
 }
