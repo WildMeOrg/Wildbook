@@ -317,6 +317,36 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
 
+    public Map<String, Long> getAllVersions(String indexName)
+    throws IOException {
+        Map<String, Long> versions = new HashMap<String, Long>();
+        boolean reachedEnd = false;
+        JSONObject query = new JSONObject("{\"sort\":[{\"version\": \"asc\"}]}");
+        JSONObject res = queryRawScroll(indexName, query, 2000);
+
+        while (!reachedEnd) {
+            JSONObject outerHits = res.optJSONObject("hits");
+            if (outerHits == null) throw new IOException("outer hits failed");
+            JSONArray hits = outerHits.optJSONArray("hits");
+            if (hits == null) throw new IOException("hits failed");
+            if (hits.length() < 1) {
+                reachedEnd = true;
+            } else {
+                for (int i = 0; i < hits.length(); i++) {
+                    String id = hits.optJSONObject(i).optString("_id", "__FAIL__");
+                    Long version = hits.optJSONObject(i).optJSONObject("_source").optLong("version",
+                        -999L);
+                    versions.put(id, version);
+                }
+                // continue with next scroll...
+                query = new JSONObject();
+                query.put("_scroll_id", res.optString("_scroll_id", "__FAIL__"));
+                res = queryRawScroll(query);
+            }
+        }
+        return versions;
+    }
+
     public List<Base> queryResultsToObjects(Shepherd myShepherd, String indexName,
         final JSONObject results)
     throws IOException {
