@@ -196,7 +196,8 @@ public class OpenSearch {
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String id = obj.getId();
-        if (id == null) throw new RuntimeException("must have id property to index");
+        if (!Util.stringExists(id))
+            throw new RuntimeException("must have id property to index: " + obj);
         ensureIndex(indexName);
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
@@ -345,6 +346,28 @@ public class OpenSearch {
             }
         }
         return versions;
+    }
+
+    // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
+    public static List<List<String> > resolveVersions(Map<String, Long> objVersions,
+        Map<String, Long> indexVersions) {
+        List<List<String> > rtn = new ArrayList<List<String> >(2);
+        List<String> needIndexing = new ArrayList<String>();
+
+        for (String objId : objVersions.keySet()) {
+            Long oVer = objVersions.get(objId); // i think these should never be null but we be careful anyway
+            Long iVer = indexVersions.get(objId);
+            if ((iVer == null) || (oVer == null) || (oVer > iVer)) needIndexing.add(objId);
+        }
+        rtn.add(needIndexing);
+
+        List<String> needRemoval = new ArrayList<String>();
+        for (String idxId : indexVersions.keySet()) {
+            if (!objVersions.containsKey(idxId)) needRemoval.add(idxId);
+        }
+        rtn.add(needRemoval);
+
+        return rtn;
     }
 
     public List<Base> queryResultsToObjects(Shepherd myShepherd, String indexName,
