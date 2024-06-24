@@ -166,7 +166,11 @@ import org.json.JSONObject;
             Object[] row = (Object[])it.next();
             String id = (String)row[0];
             Long version = (Long)row[1];
-            rtn.put(id, version);
+            if (Util.stringExists(id)) {
+                rtn.put(id, version);
+            } else {
+                System.out.println("WARNING: getAllVersions() skipping empty id; " + row);
+            }
         }
         query.closeAll();
         return rtn;
