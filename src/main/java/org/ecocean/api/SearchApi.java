@@ -46,7 +46,16 @@ public class SearchApi extends ApiBase {
                     try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
                     try { pageSize = Integer.parseInt(sizeStr); } catch (Exception ex) {}
                     JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
-                    // FIXME do stuff to query, like permission stuff
+                    try {
+                        JSONArray filter = query.getJSONObject("query").getJSONObject(
+                            "bool").getJSONArray("filter");
+                        filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" +
+                            currentUser.getId() + "\"}}"));
+                    } catch (Exception ex) {
+                        System.out.println("SearchApi failed to find filter element: " + ex);
+                    }
+                    System.out.println("SearchApi query=" + query);
+
                     OpenSearch os = new OpenSearch();
                     try {
                         JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize);
