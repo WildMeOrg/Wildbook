@@ -22,27 +22,27 @@
 				{"name": "Llera", "id": "Llera", "locationID":[] },
 				{"name": "Soto La Marina", "id": "Soto La Marina", "locationID":[] },
 				{"name": "Casas", "id": "Casas", "locationID":[] },
-				{"name": "Gomez Farias", "id": "Gomez Farias", "locationID":[] },
+				{"name": "Gomez Farias", "id": "Gomez Farias", "locationID":[] }
 			] },
-			{"name": "USA", "id": "USA", "locationID":[] },
+			{"name": "USA", "id": "USA", "locationID":[] }
 		] },
 		{ "name": "Central America", "id": "Central America", "locationID":[
 			{"name": "Guatemala", "id": "Guatemala", "locationID":[] },
 			{"name": "Nicaragua", "id": "Nicaruaga", "locationID":[] },
 			{"name": "Costa Rica", "id": "Costa Rica", "locationID":[
-				{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve", "locationID":[] },
+				{"name": " Golfo Dulce Forest Reserve", "id": " Golfo Dulce Forest Reserve", "locationID":[] }
 			] },
-			{"name": "Panama", "id": "Panama", "locationID":[] },
+			{"name": "Panama", "id": "Panama", "locationID":[] }
 		] },
 	{ "name": "South America", "id": "South America", "locationID":[
 		{"name": "Argentina", "id": "Argentina", "locationID":[] },
 		{"name": "Brazil", "id": "Brazil", "locationID":[
 			{"name": "Pará", "id": "Pará", "locationID":[] },
-			{"name": "Rondônia", "id": "Rondônia", "locationID":[] },
+			{"name": "Rondônia", "id": "Rondonia", "locationID": []}
 		] },
 		{"name": "Bolivia", "id": "Bolivia", "locationID":[] },
 		{"name": "Chile", "id": "Chile", "locationID":[] },
-		{"name": "Columbia", "id": "Columbia", "locationID":[] },
+		{"name": "Colombia", "id": "Colombia", "locationID":[] },
 		{"name": "Ecuador", "id": "Ecuador", "locationID":[] },
 		{"name": "French Guiana", "id": "French Guiana", "locationID":[] },
 		{"name": "Guyana", "id": "Guyana", "locationID":[] },
@@ -50,12 +50,12 @@
 		{"name": "Peru", "id": "Peru", "locationID":[] },
 		{"name": "Suriname", "id": "Suriname", "locationID":[] },
 		{"name": "Uruguay", "id": "Uruguay", "locationID":[] },
-		{"name": "Venezuela", "id": "Venezuela", "locationID":[] },
+		{"name": "Venezuela", "id": "Venezuela", "locationID":[] }
 		] },
 		{ "name":"Dinarides", "id":"Dinarides", "locationID":[
 				
 			{"name": "Croatia", "id": "Croatia", "locationID":[
-				{"name": "Gorski kotar", "id": "Gorski kotar", "locationID":[] },
+				{"name": "Gorski kotar", "id": "Gorski kotar", "locationID":[] }
 			] } 
 		
 		] },
@@ -67,18 +67,18 @@
 			{"name": "Germany", "id": "Germany", "locationID":[] },
 			{"name": "Italy", "id": "Italy", "locationID":[] },
 			{"name": "Luxembourg", "id": "Luxembourg", "locationID":[] },
-			{"name": "Switzerland", "id": "Switzerland", "locationID":[] },
+			{"name": "Switzerland", "id": "Switzerland", "locationID":[] }
 		] },
 		
 		{"name": "India", "id": "India", "locationID":[
-			{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] },
+			{"name": "Jhalana Reserve Forest", "id": "Jhalana Reserve Forest", "locationID":[] }
 		] },
 		{"name": "Iran", "id": "Iran", "locationID":[] },
 		{"name": "Kazakhstan", "id": "Kazakhstan", "locationID":[] },
 		{"name": "Kyrgyzstan", "id": "Kyrgyzstan", "locationID":[] },
 		{"name": "Nepal", "id": "Nepal", "locationID":[] },
 		{"name": "Turkmenistan", "id": "Turkmenistan", "locationID":[] },
-		{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] },
+		{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
  		]
 }
 
