@@ -106,7 +106,28 @@
 
 				{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[] },
 
-				{ "name":"Southern California", "id":"Southern California", "locationID":[] },
+				{ "name":"Southern California", "id":"Southern California", "locationID":[
+					{
+						"name": "La Jolla Shores",
+						"id": "La Jolla Shores",
+						"locationID": []
+					},
+					{
+						"name": "San Diego Bay",
+						"id": "San Diego Bay",
+						"locationID": []
+					},
+					{
+						"name": "San Gabriel River",
+						"id": "San Gabriel River",
+						"locationID": []
+					},
+					{
+						"name": "Seal Beach Wildlife Refuge",
+						"id": "Seal Beach Wildlife Refuge",
+						"locationID": []
+					}
+				] },
 
 				{ "name":"Southern Central California", "id":"Southern Central California", "locationID":[] },
 
