@@ -3,6 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.opensearch.client.Request,
 java.util.List, java.util.ArrayList,
+org.json.JSONObject,
 org.ecocean.*
 "%>
 
@@ -35,6 +36,19 @@ out.println(wrap(rtn, 123));
 %>
 </textarea>
 <%
+
+
+req = new Request("GET", "encounter/_mappings");
+JSONObject map = new JSONObject(os.getRestResponse(req));
+%>
+<h3>Encounter mapping</h3>
+<textarea style="height: 30em; width: 100em;">
+<%
+out.println(map.toString(4));
+%>
+</textarea>
+<%
+
 
 
 myShepherd.rollbackAndClose();
