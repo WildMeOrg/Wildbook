@@ -469,8 +469,7 @@ public class Shepherd {
      * @see Encounter
      */
     public void throwAwayEncounter(Encounter enc) {
-        String number = enc.getEncounterNumber();
-
+        enc.opensearchUnindexQuiet();
         pm.deletePersistent(enc);
     }
 
@@ -539,8 +538,9 @@ public class Shepherd {
         pm.deletePersistent(word);
     }
 
-    public void throwAwayOccurrence(Occurrence word) {
-        pm.deletePersistent(word);
+    public void throwAwayOccurrence(Occurrence occ) {
+        occ.opensearchUnindexQuiet();
+        pm.deletePersistent(occ);
     }
 
     public void throwAwayProject(Project project) {
@@ -562,7 +562,7 @@ public class Shepherd {
      * @see MarkedIndividual
      */
     public void throwAwayMarkedIndividual(MarkedIndividual bye_bye_sharky) {
-        // String name=bye_bye_sharky.getName();
+        bye_bye_sharky.opensearchUnindexQuiet();
         pm.deletePersistent(bye_bye_sharky);
     }
 
@@ -4142,6 +4142,22 @@ public class Shepherd {
                 pm.currentTransaction().begin();
             }
             ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
+
+            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
+
+/* this as unnecessary but holding for further possible use
+            // https://www.datanucleus.org/products/accessplatform_4_1/jdo/transactions.html#isolation
+            tx = pm.currentTransaction();
+            tx.setSynchronization(new javax.transaction.Synchronization() {
+                public void beforeCompletion() {
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> BEFORE");
+                }
+                public void afterCompletion(int status) {
+                    //javax.transaction.Status.STATUS_COMMITTED
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> AFTER status=" + status);
+                }
+            });
+ */
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
