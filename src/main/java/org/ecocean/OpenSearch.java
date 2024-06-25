@@ -437,7 +437,7 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
  */
-    private String getRestResponse(Request request)
+    public String getRestResponse(Request request)
     throws IOException {
         Response response = restClient.performRequest(request);
         BufferedReader reader = new BufferedReader(new InputStreamReader(
