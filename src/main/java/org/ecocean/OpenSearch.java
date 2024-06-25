@@ -263,6 +263,15 @@ public class OpenSearch {
         return id;
     }
 
+    public void deleteAllPits()
+    throws IOException {
+        Request searchRequest = new Request("DELETE", "/_search/point_in_time/_all");
+
+        getRestResponse(searchRequest);
+        PIT_CACHE.clear();
+        System.out.println("OpenSearch.deleteAllPits() completed");
+    }
+
     public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
