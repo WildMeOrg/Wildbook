@@ -242,6 +242,10 @@ public class OpenSearch {
         }
         return results;
     }
+
+   curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
+   "index.max_result_window" : "100000"
+   }'
  */
 
     // https://opensearch.org/docs/latest/search-plugins/searching-data/point-in-time-api/
@@ -263,7 +267,7 @@ public class OpenSearch {
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String pitId = createPit(indexName);
-        Request searchRequest = new Request("POST", "/_search");
+        Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
         query.put("from", numFrom);
         query.put("size", pageSize);
         JSONObject jpit = new JSONObject();
