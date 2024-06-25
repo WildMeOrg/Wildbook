@@ -39,16 +39,31 @@ out.println(wrap(rtn, 123));
 
 
 req = new Request("GET", "encounter/_mappings");
-JSONObject map = new JSONObject(os.getRestResponse(req));
+JSONObject res = new JSONObject(os.getRestResponse(req));
 %>
 <h3>Encounter mapping</h3>
 <textarea style="height: 30em; width: 100em;">
 <%
-out.println(map.toString(4));
+out.println(res.toString(4));
 %>
 </textarea>
 <%
 
+
+req = new Request("GET", "encounter/_search?pretty=true&q=*:*&size=1");
+res = new JSONObject(os.getRestResponse(req));
+%>
+<h3>Encounter example</h3>
+<textarea style="height: 30em; width: 100em;">
+<%
+out.println(res.toString(4));
+%>
+</textarea>
+<%
+
+
+
+myShepherd.rollbackAndClose();
 
 
 myShepherd.rollbackAndClose();
