@@ -81,8 +81,11 @@ import org.json.JSONObject;
     throws IOException {
         OpenSearch opensearch = new OpenSearch();
 
-        opensearch.createIndex(opensearchIndexName());
+        opensearch.createIndex(opensearchIndexName(), opensearchMapping());
     }
+
+    // this should be overriddent if any properties need special mappings (likely)
+    public JSONObject opensearchMapping() { return null; }
 
     public void opensearchIndex()
     throws IOException {
