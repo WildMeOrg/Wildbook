@@ -39,9 +39,9 @@ export default function AuthenticatedAppHeader({
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
-        zIndex: "100",
+        zIndex: "200",
         width: "100%",
-        paddingRight: "20px",
+        // paddingRight: "20px",
       }}
     >
       <Navbar.Brand
@@ -53,16 +53,8 @@ export default function AuthenticatedAppHeader({
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: "20%" }}>
-        <Nav
-          className="mr-auto"
-          id="nav"
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            width: "100%",
-          }}
-        >
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="mr-auto w-100 d-flex justify-content-end" id="nav">
           <Menu username={username} />
         </Nav>
         <NotificationButton
@@ -73,8 +65,14 @@ export default function AuthenticatedAppHeader({
           getAllNotifications={getAllNotifications}
         />
         <MultiLanguageDropdown />
-        <AvatarAndUserProfile username={username} avatar={avatar} />
+        {/* <AvatarAndUserProfile username={username} avatar={avatar} /> */}
       </Navbar.Collapse>
+      <div
+        className="avatar-container d-flex align-items-center"
+        style={{ marginRight: "1rem" }}
+      >
+        <AvatarAndUserProfile username={username} avatar={avatar} />
+      </div>
     </Navbar>
   ) : null;
 }

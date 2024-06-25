@@ -113,8 +113,8 @@ if (request.getParameter("acmId") != null) {
 								//System.out.println("found cached annotation!");
 							}
 							else{
-								if(myShepherd.getAnnotationsWithACMId(token)!=null){
-									anns.addAll(myShepherd.getAnnotationsWithACMId(token));
+								if(myShepherd.getAnnotationsWithACMId(token,true)!=null){
+									anns.addAll(myShepherd.getAnnotationsWithACMId(token,true));
 									//System.out.println("adding new annotation!");
 								}
 							}
