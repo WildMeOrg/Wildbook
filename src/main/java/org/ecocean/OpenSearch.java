@@ -243,9 +243,6 @@ public class OpenSearch {
         return results;
     }
 
-   curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
-   "index.max_result_window" : "100000"
-   }'
  */
 
     // https://opensearch.org/docs/latest/search-plugins/searching-data/point-in-time-api/
@@ -358,7 +355,23 @@ public class OpenSearch {
                 res = queryRawScroll(query);
             }
         }
+        // this is a little hacky, but allows us to page thru results enough to cover what we have
+        if (versions.size() > 10000) {
+            putSettings(indexName,
+                new JSONObject("{\"index.max_result_window\": " +
+                Math.round(1.2 * versions.size()) + "}"));
+        }
         return versions;
+    }
+
+    public void putSettings(final String indexName, final JSONObject settings)
+    throws IOException {
+        if (settings == null) throw new IOException("null data passed");
+        Request searchRequest = new Request("PUT", indexName + "/_settings?preserve_existing=true");
+        searchRequest.setJsonEntity(settings.toString());
+        String rtn = getRestResponse(searchRequest);
+        System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
+            rtn);
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
