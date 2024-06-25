@@ -2,8 +2,10 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -38,6 +40,7 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      */
     private static final long serialVersionUID = -7545783883959073726L;
+    @Override public String opensearchIndexName() { return "occurrence"; }
     private String occurrenceID;
     private ArrayList<Encounter> encounters;
     private List<MediaAsset> assets;
@@ -428,28 +431,26 @@ public class Occurrence extends Base implements java.io.Serializable {
     }
 
     /**
-	 * Retrieves the Occurrence Id.
-	 * 
-	 * @return Occurrence Id String
-	 */
-    @Override
-    public String getId() {
+     * Retrieves the Occurrence Id.
+     *
+     * @return Occurrence Id String
+     */
+    @Override public String getId() {
         return occurrenceID;
     }
-    
+
     /**
      * Sets the Occurrence Id.
-     * 
+     *
      * @param id The Occurrence Id to set
      */
-    @Override
-	public void setId(String id) {
-    	occurrenceID = id;
-	}
+    @Override public void setId(String id) {
+        occurrenceID = id;
+    }
 
     /**
      * ##DEPRECATED #509 - Base class setId() method
-     */ 
+     */
     public void setOccurrenceID(String id) {
         occurrenceID = id;
     }
@@ -516,24 +517,22 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public String getComments() {
+    @Override public String getComments() {
         if (comments != null) {
             return comments;
         } else {
             return "None";
         }
     }
-    
+
     /**
      * Sets any additional, general comments recorded for this Occurrence as a whole.
      *
      * @return a String of comments
      */
-    @Override
-	public void setComments(String comments) {
-		this.comments = comments;
-	}
+    @Override public void setComments(String comments) {
+        this.comments = comments;
+    }
 
     /**
      * Returns any additional, general comments recorded for this Occurrence as a whole.
@@ -553,8 +552,7 @@ public class Occurrence extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         if ((comments != null) && (!(comments.equals("None")))) {
             comments += newComments;
         } else {
@@ -872,6 +870,30 @@ public class Occurrence extends Base implements java.io.Serializable {
     // convenience function to Collaboration permissions
     public boolean canUserAccess(HttpServletRequest request) {
         return Collaboration.canUserAccessOccurrence(this, request);
+    }
+
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have user-flavored Collaboration.canUserAccessOccurrence yet
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have edit stuff for occurrence
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
     }
 
     public JSONObject uiJson(HttpServletRequest request)
@@ -1426,9 +1448,16 @@ public class Occurrence extends Base implements java.io.Serializable {
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
     }
-    
-    @Override
-	public long getVersion() {
-    	return Util.getVersionFromModified(modified);
-	}
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        // note: some Occurrences do not have ids.  :(
+        String sql =
+            "SELECT \"OCCURRENCEID\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+
+        return getAllVersions(myShepherd, sql);
+    }
 }
