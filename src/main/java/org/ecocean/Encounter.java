@@ -1211,7 +1211,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             date = String.format("%04d %s", year, time);
         }
-        return date;
+        return date.trim();
     }
 
     public String getShortDate() {
