@@ -4168,7 +4168,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public org.json.JSONObject opensearchMapping() {
-        org.json.JSONObject map = new org.json.JSONObject();
+        org.json.JSONObject map = super.opensearchMapping();
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;

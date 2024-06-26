@@ -84,8 +84,14 @@ import org.json.JSONObject;
         opensearch.createIndex(opensearchIndexName(), opensearchMapping());
     }
 
-    // this should be overridden if any properties need special mappings (likely)
-    public JSONObject opensearchMapping() { return null; }
+    // this should be overridden (but use this as starting point) if any properties need special mappings (likely)
+    public JSONObject opensearchMapping() {
+        JSONObject map = new JSONObject();
+
+        // we *must have* version as we likely sort on this for sync(), so even an empty index will have it in mapping
+        map.put("version", new org.json.JSONObject("{\"type\": \"long\"}"));
+        return map;
+    }
 
     public void opensearchIndex()
     throws IOException {
