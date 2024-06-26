@@ -10,6 +10,7 @@ import org.ecocean.OpenSearch;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.Util;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -41,6 +42,7 @@ public class SearchApi extends ApiBase {
                 } else {
                     String fromStr = request.getParameter("from");
                     String sizeStr = request.getParameter("size");
+                    boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
                     int numFrom = 0;
                     int pageSize = 10;
                     try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
@@ -58,6 +60,7 @@ public class SearchApi extends ApiBase {
 
                     OpenSearch os = new OpenSearch();
                     try {
+                        if (deletePit) os.deletePit(indexName);
                         JSONObject queryRes = os.queryPit(indexName, query, numFrom, pageSize);
                         JSONObject outerHits = queryRes.optJSONObject("hits");
                         if (outerHits == null) throw new IOException("could not find (outer) hits");

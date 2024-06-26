@@ -256,6 +256,20 @@ public class OpenSearch {
         System.out.println("OpenSearch.deleteAllPits() completed");
     }
 
+    public void deletePit(String indexName)
+    throws IOException {
+        String pitId = PIT_CACHE.get(indexName);
+
+        if (pitId == null) return;
+        Request req = new Request("DELETE", "/_search/point_in_time");
+        JSONObject body = new JSONObject();
+        body.put("pit_id", pitId);
+        req.setJsonEntity(body.toString());
+        getRestResponse(req);
+        PIT_CACHE.remove(indexName);
+        System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
+    }
+
     public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
