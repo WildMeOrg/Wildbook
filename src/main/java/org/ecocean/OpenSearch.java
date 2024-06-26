@@ -124,6 +124,7 @@ public class OpenSearch {
 
         client.indices().create(createIndexRequest);
         createMapping(indexName, mapping);
+        INDEX_EXISTS_CACHE.put(indexName, true);
         System.out.println(indexName + " OpenSearch index created");
     }
 
@@ -142,6 +143,7 @@ public class OpenSearch {
 
         // DeleteIndexResponse deleteIndexResponse = client.indices().delete(deleteIndexRequest);
         client.indices().delete(deleteIndexRequest);
+        INDEX_EXISTS_CACHE.remove(indexName);
         System.out.println(indexName + " OpenSearch index deleted");
     }
 
