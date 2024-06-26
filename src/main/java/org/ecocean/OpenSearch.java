@@ -1,27 +1,5 @@
 package org.ecocean;
 
-/*
-   import java.net.URL;
-   import java.util.ArrayList;
-   import java.util.HashSet;
-   import java.util.List;
-   import java.util.Properties;
-   import java.util.Random;
-   import javax.servlet.http.HttpServletRequest;
-   import org.ecocean.datacollection.*;
-   import org.ecocean.media.Feature;
-   import org.ecocean.media.MediaAsset;
-   import org.ecocean.media.MediaAssetFactory;
-   import org.ecocean.media.URLAssetStore;
-   import org.ecocean.movement.*;
-   import org.ecocean.servlet.ServletUtilities;
-   import org.joda.time.DateTime;
-
-   import java.net.MalformedURLException;
-   import java.security.InvalidKeyException;
-   import java.security.NoSuchAlgorithmException;
-   import org.apache.shiro.crypto.hash.Sha256Hash;
- */
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -31,26 +9,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.jdo.Query;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import org.ecocean.SystemValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-/*
-   import org.apache.hc.client5.http.auth.AuthScope;
-   import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-   import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
-   import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-   import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-   import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
-   import org.apache.hc.core5.function.Factory;
-   import org.apache.hc.core5.http.HttpHost;
-   import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-   import org.apache.hc.core5.reactor.ssl.TlsDetails;
-   import org.apache.hc.core5.ssl.SSLContextBuilder;
- */
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -151,21 +116,22 @@ public class OpenSearch {
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
 
-    public void createIndex(String indexName)
+    public void createIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder().index(
             indexName).build();
 
         client.indices().create(createIndexRequest);
+        createMapping(indexName, mapping);
         System.out.println(indexName + " OpenSearch index created");
     }
 
-    public void ensureIndex(String indexName)
+    public void ensureIndex(String indexName, JSONObject mapping)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         if (existsIndex(indexName)) return;
-        createIndex(indexName);
+        createIndex(indexName, mapping);
     }
 
     public void deleteIndex(String indexName)
@@ -198,7 +164,7 @@ public class OpenSearch {
         String id = obj.getId();
         if (!Util.stringExists(id))
             throw new RuntimeException("must have id property to index: " + obj);
-        ensureIndex(indexName);
+        ensureIndex(indexName, obj.opensearchMapping());
         IndexRequest<Base> indexRequest = new IndexRequest.Builder<Base>()
                 .index(indexName)
                 .id(id)
@@ -210,6 +176,25 @@ public class OpenSearch {
         System.out.println(id + ": " + String.format("Document %s.",
             indexResponse.result().toString().toLowerCase()));
  */
+    }
+
+/*
+    a mapping cannot be changed after data has been indexed, so we allow mapping to be made
+    only right after index is created. any properties we do not define will be autoset upon first document creation.
+    https://opensearch.org/docs/latest/api-reference/index-apis/put-mapping/
+ */
+    private JSONObject createMapping(String indexName, final JSONObject mapProperties)
+    throws IOException {
+        if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
+        if (!existsIndex(indexName)) throw new IOException("non-existent index: " + indexName);
+        if (mapProperties == null) return null;
+        JSONObject set = new JSONObject();
+        set.put("properties", mapProperties);
+        Request req = new Request("PUT", indexName + "/_mapping");
+        req.setJsonEntity(set.toString());
+        String rtn = getRestResponse(req);
+        System.out.println("createMapping(" + indexName + "): " + set + " => " + rtn);
+        return set;
     }
 
 /*
@@ -243,9 +228,6 @@ public class OpenSearch {
         return results;
     }
 
-   curl -XPUT 'http://localhost:9200/_all/_settings?preserve_existing=true' -d '{
-   "index.max_result_window" : "100000"
-   }'
  */
 
     // https://opensearch.org/docs/latest/search-plugins/searching-data/point-in-time-api/
@@ -261,6 +243,15 @@ public class OpenSearch {
         if (id == null) throw new IOException("failed to get PIT id");
         PIT_CACHE.put(indexName, id);
         return id;
+    }
+
+    public void deleteAllPits()
+    throws IOException {
+        Request searchRequest = new Request("DELETE", "/_search/point_in_time/_all");
+
+        getRestResponse(searchRequest);
+        PIT_CACHE.clear();
+        System.out.println("OpenSearch.deleteAllPits() completed");
     }
 
     public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize)
@@ -349,7 +340,23 @@ public class OpenSearch {
                 res = queryRawScroll(query);
             }
         }
+        // this is a little hacky, but allows us to page thru results enough to cover what we have
+        if (versions.size() > 10000) {
+            putSettings(indexName,
+                new JSONObject("{\"index.max_result_window\": " +
+                Math.round(1.2 * versions.size()) + "}"));
+        }
         return versions;
+    }
+
+    public void putSettings(final String indexName, final JSONObject settings)
+    throws IOException {
+        if (settings == null) throw new IOException("null data passed");
+        Request searchRequest = new Request("PUT", indexName + "/_settings?preserve_existing=true");
+        searchRequest.setJsonEntity(settings.toString());
+        String rtn = getRestResponse(searchRequest);
+        System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
+            rtn);
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
@@ -415,7 +422,7 @@ public class OpenSearch {
         return new JSONObject(rtn);
     }
  */
-    private String getRestResponse(Request request)
+    public String getRestResponse(Request request)
     throws IOException {
         Response response = restClient.performRequest(request);
         BufferedReader reader = new BufferedReader(new InputStreamReader(
