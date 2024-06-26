@@ -1163,13 +1163,23 @@ public class Util {
     public static long getVersionFromModified(final String modified) {
         if (!stringExists(modified)) return 0;
         try {
-            String iso8601 = modified.replace(" ", "T");
-            if (iso8601.length() == 10) iso8601 += "T00:00:00";
+            String iso8601 = getISO8601Date(modified);
+            if (iso8601 == null) return 0;
             // switching from DateTimeFormatter to DateTime here because the math seems to line up with how psql does it -jon
             return new DateTime(iso8601).getMillis();
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
         }
+    }
+
+    public static String getISO8601Date(final String date) {
+        String iso8601 = date.replace(" ", "T");
+
+        if (iso8601.length() == 10) iso8601 += "T00:00:00";
+        // TODO better testing of string format
+        if (iso8601.length() < 16) return null;
+        if (iso8601.length() == 16) iso8601 += 'Z';
+        return iso8601;
     }
 }
