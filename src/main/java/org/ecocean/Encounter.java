@@ -4109,7 +4109,8 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("locationId", this.getLocationID());
         Long dim = this.getDateInMillisecondsFallback();
         if (dim != null) jgen.writeNumberField("dateMillis", dim);
-        jgen.writeStringField("date", this.getDate());
+        String date = Util.getISO8601Date(this.getDate());
+        if (date != null) jgen.writeStringField("date", date);
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
         jgen.writeStringField("lifeStage", this.getLifeStage());
@@ -4164,6 +4165,13 @@ public class Encounter extends Base implements java.io.Serializable {
             "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
 
         return getAllVersions(myShepherd, sql);
+    }
+
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = new org.json.JSONObject();
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        return map;
     }
 
     public static int[] opensearchSyncIndex(Shepherd myShepherd)
