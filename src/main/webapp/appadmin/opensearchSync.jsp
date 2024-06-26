@@ -16,4 +16,6 @@ out.println("<p>removed: <b>" + res[1] + "</b></p>");
 
 myShepherd.rollbackAndClose();
 
+os.deleteAllPits();
+
 %>
