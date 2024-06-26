@@ -9,6 +9,7 @@ import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
+import EncounterSearch from "./pages/EncounterSearch";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { isFetched, data, error } = useGetMe();
@@ -44,6 +45,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/profile" element={<Profile />} />
           {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Home />} />
+          <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound />} />

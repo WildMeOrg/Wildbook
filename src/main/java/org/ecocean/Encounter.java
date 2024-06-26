@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -22,9 +23,11 @@ import java.util.Vector;
 
 import javax.jdo.Query;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
@@ -57,6 +60,9 @@ public class Encounter extends Base implements java.io.Serializable {
     static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+
+    @Override public String opensearchIndexName() { return "encounter"; }
+
     // at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
     public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
@@ -792,23 +798,21 @@ public class Encounter extends Base implements java.io.Serializable {
         mmaCompatible = b;
     }
 
-	/**
-	 * Returns Occurrence Remarks.
-	 * 
-	 * @return Occurrence Remarks String
-	 */
-    @Override
-    public String getComments() {
+    /**
+     * Returns Occurrence Remarks.
+     *
+     * @return Occurrence Remarks String
+     */
+    @Override public String getComments() {
         return occurrenceRemarks;
     }
 
     /**
      * Sets the initially submitted comments about markings and additional details on the shark.
-     * 
+     *
      * @param newComments Occurrence remarks to set
      */
-    @Override
-    public void setComments(String newComments) {
+    @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
     }
 
@@ -826,8 +830,7 @@ public class Encounter extends Base implements java.io.Serializable {
      *
      * @param newComments any additional comments to be added to the encounter
      */
-    @Override
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
             researcherComments += newComments;
         } else {
@@ -1208,7 +1211,7 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             date = String.format("%04d %s", year, time);
         }
-        return date;
+        return date.trim();
     }
 
     public String getShortDate() {
@@ -2062,23 +2065,21 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     /**
-	 * Retrieves the Catalog Number.
-	 * 
-	 * @return Catalog Number String
-	 */
-    @Override
-    public String getId() {
+     * Retrieves the Catalog Number.
+     *
+     * @return Catalog Number String
+     */
+    @Override public String getId() {
         return catalogNumber;
     }
-    
+
     /**
-	 * Sets the Catalog Number.
-	 * 
-	 * @param newNumber The Catalog Number to set.
-	 */
-    @Override
-    public void setId(String newNumber) {
-    	this.catalogNumber = newNumber;
+     * Sets the Catalog Number.
+     *
+     * @param newNumber The Catalog Number to set.
+     */
+    @Override public void setId(String newNumber) {
+        this.catalogNumber = newNumber;
     }
 
     /**
@@ -2475,6 +2476,10 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public void resetDateInMilliseconds() {
+        dateInMilliseconds = computeDateInMilliseconds();
+    }
+
+    public Long computeDateInMilliseconds() {
         if (year > 0) {
             int localMonth = 0;
             if (month > 0) { localMonth = month - 1; }
@@ -2487,11 +2492,17 @@ public class Encounter extends Base implements java.io.Serializable {
             GregorianCalendar gc = new GregorianCalendar(year, localMonth, localDay, localHour,
                 myMinutes);
 
-            dateInMilliseconds = new Long(gc.getTimeInMillis());
-        } else { dateInMilliseconds = null; }
+            return new Long(gc.getTimeInMillis());
+        }
+        return null;
     }
 
     public java.lang.Long getDateInMilliseconds() { return dateInMilliseconds; }
+
+    public Long getDateInMillisecondsFallback() {
+        if (dateInMilliseconds != null) return dateInMilliseconds;
+        return computeDateInMilliseconds();
+    }
 
     // this will set all date stuff based on ms since epoch
     public void setDateInMilliseconds(long ms) {
@@ -2844,6 +2855,26 @@ public class Encounter extends Base implements java.io.Serializable {
         return annotations;
     }
 
+    public Set<String> getAnnotationViewpoints() {
+        Set<String> vps = new HashSet<String>();
+
+        if (!hasAnnotations()) return vps;
+        for (Annotation ann : annotations) {
+            if (ann.getViewpoint() != null) vps.add(ann.getViewpoint());
+        }
+        return vps;
+    }
+
+    public Set<String> getAnnotationIAClasses() {
+        Set<String> classes = new HashSet<String>();
+
+        if (!hasAnnotations()) return classes;
+        for (Annotation ann : annotations) {
+            if (ann.getIAClass() != null) classes.add(ann.getIAClass());
+        }
+        return classes;
+    }
+
     // all an enc's annotations on a given asset (might be multiple if parts are involved)
     public List<Annotation> getAnnotations(MediaAsset ma) {
         List<Annotation> anns = new ArrayList<Annotation>();
@@ -3149,6 +3180,16 @@ public class Encounter extends Base implements java.io.Serializable {
         return false;
     }
 
+    public Set<Keyword> getMediaAssetKeywords() {
+        Set<Keyword> mak = new HashSet<Keyword>();
+
+        for (MediaAsset ma : this.getMedia()) {
+            ArrayList<Keyword> kws = ma.getKeywords();
+            if (kws != null) mak.addAll(kws);
+        }
+        return mak;
+    }
+
     public String getState() { return state; }
 
     public void setState(String newState) { this.state = newState; }
@@ -3266,13 +3307,41 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
+    public boolean canUserAccess(User user, String context) {
+        if (canUserEdit(user)) return true;
+        String username = user.getUsername();
+        if (username == null) return false;
+        return Collaboration.canUserAccessEncounter(this, context, username);
+    }
+
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
-        if ((user == null) || (submitters == null)) return false;
-        return submitters.contains(user);
+        if (user == null) return false;
+        if ((submitters != null) && submitters.contains(user)) return true;
+        if ((submitterID != null) && submitterID.equals(user.getUsername())) return true;
+        return false;
+    }
+
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext()))
+                ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+        }
+        return ids;
     }
 
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
@@ -4027,9 +4096,116 @@ public class Encounter extends Base implements java.io.Serializable {
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
-    
-	@Override
-	public long getVersion() {
-		return Util.getVersionFromModified(modified);
-	}
+
+    public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
+        int pageSize)
+    throws IOException {
+        return Base.opensearchQuery("encounter", query, numFrom, pageSize);
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen);
+        jgen.writeStringField("locationId", this.getLocationID());
+        Long dim = this.getDateInMillisecondsFallback();
+        if (dim != null) jgen.writeNumberField("dateMillis", dim);
+        String date = Util.getISO8601Date(this.getDate());
+        if (date != null) jgen.writeStringField("date", date);
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        jgen.writeStringField("lifeStage", this.getLifeStage());
+
+        List<MediaAsset> mas = this.getMedia();
+        jgen.writeNumberField("numberAnnotations", this.numAnnotations());
+        jgen.writeNumberField("numberMediaAssets", mas.size());
+
+        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        for (Keyword kw : this.getMediaAssetKeywords()) {
+            jgen.writeString(kw.getDisplayName());
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationViewpoints");
+        for (String vp : this.getAnnotationViewpoints()) {
+            jgen.writeString(vp);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationIAClasses");
+        for (String cls : this.getAnnotationIAClasses()) {
+            jgen.writeString(cls);
+        }
+        jgen.writeEndArray();
+
+        Double dlat = this.getDecimalLatitudeAsDouble();
+        Double dlon = this.getDecimalLongitudeAsDouble();
+        if ((dlat == null) || (dlon == null)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        MarkedIndividual indiv = this.getIndividual();
+        if (indiv == null) {
+            jgen.writeNullField("individualId");
+        } else {
+            jgen.writeStringField("individualId", indiv.getId());
+            jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+        }
+    }
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        String sql =
+            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+
+        return getAllVersions(myShepherd, sql);
+    }
+
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        return map;
+    }
+
+    public static int[] opensearchSyncIndex(Shepherd myShepherd)
+    throws IOException {
+        int[] rtn = new int[2];
+        String indexName = "encounter";
+        OpenSearch os = new OpenSearch();
+        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
+            os.getAllVersions(indexName));
+
+        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+        List<String> needIndexing = changes.get(0);
+        List<String> needRemoval = changes.get(1);
+        rtn[0] = needIndexing.size();
+        rtn[1] = needRemoval.size();
+        System.out.println("opensearchSyncIndex(): needIndexing=" + rtn[0] + ", needRemoval=" +
+            rtn[1]);
+        int ct = 0;
+        for (String id : needIndexing) {
+            Encounter enc = myShepherd.getEncounter(id);
+            if (enc != null) os.index(indexName, enc);
+            if (ct % 500 == 0)
+                System.out.println("opensearchSyncIndex needIndexing: " + ct + "/" + rtn[0]);
+            ct++;
+        }
+        System.out.println("opensearchSyncIndex() finished needIndexing");
+        ct = 0;
+        for (String id : needRemoval) {
+            os.delete(indexName, id);
+            if (ct % 500 == 0)
+                System.out.println("opensearchSyncIndex needRemoval: " + ct + "/" + rtn[1]);
+            ct++;
+        }
+        System.out.println("opensearchSyncIndex() finished needRemoval");
+        return rtn;
+    }
 }

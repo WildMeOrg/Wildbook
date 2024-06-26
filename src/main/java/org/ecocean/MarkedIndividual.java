@@ -37,6 +37,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 public class MarkedIndividual extends Base implements java.io.Serializable {
     private String individualID = "";
 
+    @Override public String opensearchIndexName() { return "individual"; }
     private MultiValue names;
     private static HashMap<Integer, String> NAMES_CACHE = new HashMap<Integer, String>(); // this is for searching
     private static HashMap<Integer, String> NAMES_KEY_CACHE = new HashMap<Integer, String>();
@@ -141,24 +142,22 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     }
 
     /**
-	 * Retrieves the Individual Id.
-	 * 
-	 * @return Individual Id String
-	 */
-    @Override
-    public String getId() {
+     * Retrieves the Individual Id.
+     *
+     * @return Individual Id String
+     */
+    @Override public String getId() {
         return individualID;
     }
-    
+
     /**
      * Sets the Individual Id.
-     * 
+     *
      * @param id The Individual Id to set
      */
-    @Override
-	public void setId(String id) {
-		individualID = id;
-	}
+    @Override public void setId(String id) {
+        individualID = id;
+    }
 
     // this is "something to show" (by default)... it falls back to the id,
     // which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
@@ -1043,8 +1042,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public String getComments() {
+    @Override public String getComments() {
         if (comments != null) {
             return comments;
         } else {
@@ -1057,8 +1055,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    @Override
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         System.out.println("addComments called. oldComments=" + comments + " and new comments = " +
             newComments);
         if (Util.stringExists(comments)) {
@@ -1070,11 +1067,10 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     /**
      * Sets any additional, general comments recorded for this MarkedIndividual as a whole.
-     * 
+     *
      * @param comments to set
      */
-    @Override
-    public void setComments(String comments) {
+    @Override public void setComments(String comments) {
         this.comments = comments;
     }
 
@@ -2269,6 +2265,30 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have user-flavored Collaboration.canUserAccessMarkedIndividual yet
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have edit stuff for MarkedIndividual
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         jobj.put("displayName", this.getDisplayName(request));
@@ -2846,9 +2866,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                    .toString();
     }
 
-	@Override
-	public long getVersion() {
-		// Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
-		return 0;
-	}
+    @Override public long getVersion() {
+        // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
+        return 0;
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        // see above
+        String sql = "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
+
+        return getAllVersions(myShepherd, sql);
+    }
 }
