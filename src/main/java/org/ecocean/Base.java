@@ -84,7 +84,7 @@ import org.json.JSONObject;
         opensearch.createIndex(opensearchIndexName(), opensearchMapping());
     }
 
-    // this should be overriddent if any properties need special mappings (likely)
+    // this should be overridden if any properties need special mappings (likely)
     public JSONObject opensearchMapping() { return null; }
 
     public void opensearchIndex()
