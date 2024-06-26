@@ -10,6 +10,12 @@ org.ecocean.*
 Shepherd myShepherd = new Shepherd(request);
 OpenSearch os = new OpenSearch();
 
+if (!os.existsIndex("encounter")) {
+        Encounter enc = new Encounter();
+        enc.opensearchCreateIndex();
+        out.println("<b>created encounter index</b>");
+}
+
 int[] res = Encounter.opensearchSyncIndex(myShepherd);
 out.println("<p>re-indexed: <b>" + res[0] + "</b></p>");
 out.println("<p>removed: <b>" + res[1] + "</b></p>");
