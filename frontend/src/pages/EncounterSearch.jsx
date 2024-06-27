@@ -3,7 +3,14 @@ import DataTable from "../components/DataTable";
 import useFilterEncounters from "../models/encounters/useFilterEncounters";
 
 export default function EncounterSearch() {
-  const columnNames = ["age", "name", "location"];
+  // const columnNames = ["id", "date", "mediaAssets", "individualId", "locationId"];
+  const columns = [
+    { name: "Encounter ID", selector: "id" },
+    { name: "Date", selector: "date" },
+    { name: "Media Assets", selector: "mediaAssets" },
+    { name: "Individual ID", selector: "individualId" },
+    { name: "Location ID", selector: "locationId" }
+  ];
 
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
@@ -62,79 +69,30 @@ export default function EncounterSearch() {
 
   const { data: encounterData, loading } = useFilterEncounters({
     queries: formFilters,
-    params: {},
+    params: {
+      sort: "date",
+      size: perPage,
+      from: page * perPage,
+    },
   });
 
   console.log("encounterData", encounterData);
+  const encounters = encounterData?.results || [];
+  const totalEncounters = encounterData?.resultCount || 0;
 
   useEffect(() => {
     console.log("Page: ", page);
     console.log("PerPage: ", perPage);
-  }, [page, perPage]);
-  const data = [
-    {
-      age: 232,
-      name: "John Doe",
-      location: "New York",
-    },
-    {
-      age: 25,
-      name: "Jane Doe",
-      location: "Los Angeles",
-    },
-    {
-      age: 27,
-      name: "John Smith",
-      location: "Chicago",
-    },
-    {
-      age: 232,
-      name: "John Doe",
-      location: "New York",
-    },
-    {
-      age: 25,
-      name: "Jane Doe",
-      location: "Los Angeles",
-    },
-    {
-      age: 27,
-      name: "John Smith",
-      location: "Chicago",
-    },
-    {
-      age: 232,
-      name: "John Doe",
-      location: "New York",
-    },
-    {
-      age: 25,
-      name: "Jane Doe",
-      location: "Los Angeles",
-    },
-    {
-      age: 27,
-      name: "John Smith",
-      location: "Chicago",
-    },
-    {
-      age: 232,
-      name: "John Doe",
-      location: "New York",
-    },
-  ];
+  }, [page, perPage]);  
 
   return (
     <div
-      style={{
-        padding: "100px",
-      }}
     >
       <DataTable
         title="Encounters"
-        columnNames={columnNames}
-        tableData={data}
-        totalItems={85}
+        columnNames={columns}
+        tableData={encounters}
+        totalItems={totalEncounters}
         page={page}
         perPage={perPage}
         onPageChange={setPage}
