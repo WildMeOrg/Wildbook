@@ -19,26 +19,23 @@ export default function useFilterEncounters({ queries, params = {} }) {
         url: "/search/encounter",
         data: queries,
         params: {
-        //   limit: 20,
-        //   offset: 0,
           sort: "date",
-        //   reverse: false,
-        size:1,
-        from: 3,
-        
-        // //   ...params,
+          //reverse: false,
+          size:1,
+          from: 3,       
+          ...params,
         },
         dataAccessor: (result) => {
             console.log("result", result);
-        const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"]);
-        return {
-            resultCount: parseInt(resultCountString, 10) || 0,
-            results: get(result, ["data", "data","hits"], []),
-        };
-        },
-        queryOptions: {
-        retry: 2,
-        },
+            const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"]);
+            return {
+                resultCount: parseInt(resultCountString, 10) || 0,
+                results: get(result, ["data", "data","hits"], []),
+            };
+            },
+            queryOptions: {
+            retry: 2,
+            },
       })
   
   

@@ -47,11 +47,13 @@ const MyDataTable = ({
 
   const wrappedColumns = useMemo(
     () =>
-      columnNames.map((col) => ({
-        name: col.charAt(0).toUpperCase() + col.slice(1),
-        selector: (row) => row[col], // Accessor function for the column data
+      columnNames.map((col) => {
+        console.log("col", col);
+        return ({        
+        name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+        selector: (row) => row[col.selector], // Accessor function for the column data
         sortable: true, // Make the column sortable
-      })),
+      })}),
     [columnNames],
   );
 
@@ -102,7 +104,7 @@ const MyDataTable = ({
   );
 
   return (
-    <Container>
+    <div className="w-100">
       <h2 className="mt-3">{title}</h2>
       <InputGroup className="mb-3" style={{ width: "300px" }}>
         <Form.Control
@@ -181,7 +183,7 @@ const MyDataTable = ({
           </InputGroup>
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 };
 
