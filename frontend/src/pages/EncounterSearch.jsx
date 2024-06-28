@@ -3,7 +3,6 @@ import DataTable from "../components/DataTable";
 import useFilterEncounters from "../models/encounters/useFilterEncounters";
 
 export default function EncounterSearch() {
-  // const columnNames = ["id", "date", "mediaAssets", "individualId", "locationId"];
   const columns = [
     { name: "Encounter ID", selector: "id" },
     { name: "Date", selector: "date" },
@@ -86,7 +85,7 @@ export default function EncounterSearch() {
   }, [page, perPage]);  
 
   return (
-    <div
+    <div className="w-100"
     >
       <DataTable
         title="Encounters"
