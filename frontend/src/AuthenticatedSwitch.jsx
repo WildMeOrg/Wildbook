@@ -17,12 +17,14 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const avatar = data?.imageURL || "/react/images/Avatar.png";
 
   return (
-    <main>
+    <div className="d-flex flex-column min-vh-100">
       <div
+        id="header"
         className="position-fixed top-0 mx-auto w-100"
         style={{
-          maxWidth: "1440px",
           zIndex: "100",
+          height: "60px",
+          maxWidth: "1440px",
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
@@ -35,24 +37,25 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
       </div>
 
       <div
-        className="position-absolute top-0 start-0 justify-content-center align-items-center overflow-hidden w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center mt-4 pt-5"
         style={{
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 40px)", // Assuming the header height is 40px
+          maxWidth: "1440px",
+          overflow: "hidden",
         }}
       >
         <Routes>
           <Route path="/profile" element={<Profile />} />
-          {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Home />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-
-        <Footer />
       </div>
-    </main>
+
+      <Footer />
+    </div>
   );
 }
