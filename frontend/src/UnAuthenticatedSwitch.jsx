@@ -12,15 +12,21 @@ import Unauthorized from "./pages/errorPages/Unauthorized";
 import ServerError from "./pages/errorPages/ServerError";
 import BadRequest from "./pages/errorPages/BadRequest";
 import About from "./About";
+import EncounterSearch from "./pages/EncounterSearch";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   console.log("UnAuthenticatedSwitch", showAlert);
 
   return (
-    <main className="d-flex flex-column">
+    <div className="d-flex flex-column min-vh-100">
       <div
+        id="header"
         className="position-fixed top-0 mx-auto w-100"
-        style={{ maxWidth: "1440px", zIndex: 100 }}
+        style={{
+          zIndex: "100",
+          height: "60px",
+          maxWidth: "1440px",
+        }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
         <UnAuthenticatedAppHeader
@@ -28,23 +34,26 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           setShowAlert={setShowAlert}
         />
       </div>
+
       <div
-        className="position-absolute top-0 start-0 justify-content-center w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center mt-4 pt-5"
         style={{
-          overflow: "hidden",
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 64px)", // Assuming the header height is 64px
+          maxWidth: "1440px",
+          overflow: "hidden",
         }}
       >
         <Routes>
-          {/* <Route path="/about" element={<About />} /> */}
+          <Route path="/about" element={<About />} />
           <Route path="/home" element={<Unauthorized />} />
+          <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Footer />
       </div>
-    </main>
-  );
+      <Footer />
+
+    </div>);
 }

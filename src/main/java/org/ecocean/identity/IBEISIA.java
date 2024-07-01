@@ -4621,6 +4621,7 @@ public class IBEISIA {
         return true;
     }
 
+    // FIXME this is likely deprecated as it uses the properties file rather than IA.json
     public static ArrayList<String> getAllIdentificationClasses(String context) {
         String className = "";
         ArrayList<String> allClasses = new ArrayList<String>();

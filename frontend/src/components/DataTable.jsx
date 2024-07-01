@@ -5,12 +5,6 @@ import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
 
-const columns = [
-  { name: "ID", selector: (row) => row.id, sortable: true },
-  { name: "Name", selector: (row) => row.name, sortable: true },
-  { name: "Age", selector: (row) => row.age, sortable: true },
-];
-
 const customStyles = {
   rows: {
     style: {
@@ -36,6 +30,7 @@ const conditionalRowStyles = [
 ];
 
 const MyDataTable = ({
+  title = "",
   columnNames = [],
   totalItems = 0,
   tableData = [],
@@ -52,11 +47,13 @@ const MyDataTable = ({
 
   const wrappedColumns = useMemo(
     () =>
-      columnNames.map((col) => ({
-        name: col.charAt(0).toUpperCase() + col.slice(1), // Capitalize the column header
-        selector: (row) => row[col], // Accessor function for the column data
+      columnNames.map((col) => {
+        console.log("col", col);
+        return ({        
+        name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+        selector: (row) => row[col.selector], // Accessor function for the column data
         sortable: true, // Make the column sortable
-      })),
+      })}),
     [columnNames],
   );
 
@@ -107,7 +104,8 @@ const MyDataTable = ({
   );
 
   return (
-    <Container>
+    <div className="w-100">
+      <h2 className="mt-3">{title}</h2>
       <InputGroup className="mb-3" style={{ width: "300px" }}>
         <Form.Control
           type="text"
@@ -121,7 +119,7 @@ const MyDataTable = ({
         </Button>
       </InputGroup>
       <DataTable
-        title="Server-Side Pagination"
+        // title={title}
         columns={wrappedColumns}
         data={filteredData}
         customStyles={customStyles}
@@ -185,7 +183,7 @@ const MyDataTable = ({
           </InputGroup>
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 };
 

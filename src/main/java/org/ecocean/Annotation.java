@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -1259,6 +1261,10 @@ public class Annotation implements java.io.Serializable {
             Collections.addAll(all, VALID_VIEWPOINTS[i]);
         }
         return all;
+    }
+
+    public static Set<String> getAllValidViewpointsSorted() {
+        return new TreeSet<String>(getAllValidViewpoints());
     }
 
     public static ArrayList<Encounter> checkForConflictingIDsforAnnotation(Annotation annot,
