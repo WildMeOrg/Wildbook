@@ -41,7 +41,7 @@ myShepherd.setAction("locationIDTester.jsp");
 
 <p>
 <form>
-<%=LocationID.getHTMLSelector(true,null,null,"id","name","class")%>
+<%=LocationID.getHTMLSelector(true,(String)null,null,"id","name","class")%>
 </form>
 </p>
 
@@ -60,7 +60,7 @@ myShepherd.setAction("locationIDTester.jsp");
 
 <p>
 <form>
-<%=LocationID.getHTMLSelector(true,null,"indocet","id","name","class")%>
+<%=LocationID.getHTMLSelector(true,(String)null,"indocet","id","name","class")%>
 </form>
 </p>
 
