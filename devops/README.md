@@ -72,6 +72,43 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
 ## Local Tomcat 
 **TODO #503: draft local tomcat instructions**
 
+1. Install build requirements on either your local machine or your vm by entering the following commands:
+    ```
+    sudo apt-get update && sudo apt-get upgrade
+    sudo apt-get install build-essential tomcat9 nginx postgresql
+    sudo apt-get install imagemagick
+    sudo apt-get install postgresql-10-postgis-2.4 (or latest version)
+    sudo apt-get install maven
+	sudo apt install nodejs
+	sudo apt install npm
+    ```
+1. Build Wildbook
+  1. Make a project folder with `mkdir code`
+  1. `cd code` to operate from your new project folder
+  1. Clone the Wildbook GitHub repor `git clone https://github.com/WildMeOrg/Wildbook.git`
+  1. `cd Wildbook` to operate from your new Wildbook folder
+  1. `git checkout <yourbranch>` to checkout your branch
+  1. `./mavenBuild.sh` to create a .WAR file, which is used to setup tomcat
+  1. Make a note of the Wildbook version being built
+	```
+    [INFO] ------------------------< org.ecocean:wildbook >------------------------
+    [INFO] Building wildbook 10.2.0
+    [INFO] --------------------------------[ war ]---------------------------------
+	```
+  1. Verify the build was successful
+    ```
+    [INFO] -----------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  02:21 min
+    [INFO] Finished at: 2024-07-02T10:52:10-07:00
+    [INFO] ------------------------------------------------------------------------
+    ```
+1. Set up tomcat
+  1. `sudo systemctl start tomcat9` to start tomcat
+  1. Tomcat is installed under `usr`, not under your user profile, so you will need to copy the .war file to tomcat.
+
+
 If you are running tomcat locally (not using docker), in order to access it as `http://localhost:8080/` (rather than with `/wildbook` trailing directory),
 you should modify the `<Host>...</Host>` block of tomcat's `conf/server.xml` to contain the following:
 
