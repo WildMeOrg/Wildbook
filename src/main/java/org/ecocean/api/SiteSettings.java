@@ -46,6 +46,9 @@ public class SiteSettings extends ApiBase {
         settings.put("sex", VALUES_SEX);
         settings.put("lifeStage",
             CommonConfiguration.getIndexedPropertyValues("lifeStage", context));
+        settings.put("livingStatus",
+            CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
+        settings.put("country", CommonConfiguration.getIndexedPropertyValues("country", context));
         settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
