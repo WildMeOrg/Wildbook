@@ -2872,6 +2872,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
+        classes.remove("____"); // blech
         return classes;
     }
 
@@ -3289,6 +3290,17 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public String getOccurrenceID() { return occurrenceID; }
+
+    public Occurrence getOccurrence(Shepherd myShepherd) {
+        return myShepherd.getOccurrence(this);
+    }
+
+    public DateTime getOccurrenceDateTime(Shepherd myShepherd) {
+        Occurrence occ = this.getOccurrence(myShepherd);
+
+        if (occ == null) return null;
+        return occ.getDateTime();
+    }
 
     public boolean hasSinglePhotoVideoByFileName(String filename) {
         int numImages = images.size();
@@ -4104,7 +4116,6 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
 /*
- * verbatim location name (text search partial match)
  * Country (multiselect dropdown, loads from commonConfig)
  * Sighting dates (date (not datetime) from sighting)
  * Verbatim event date (multiselect dropdown)
@@ -4148,14 +4159,22 @@ public class Encounter extends Base implements java.io.Serializable {
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen);
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.opensearchDocumentSerializer");
+        myShepherd.beginDBTransaction();
+
         jgen.writeStringField("locationId", this.getLocationID());
         Long dim = this.getDateInMillisecondsFallback();
         if (dim != null) jgen.writeNumberField("dateMillis", dim);
         String date = Util.getISO8601Date(this.getDate());
         if (date != null) jgen.writeStringField("date", date);
+        jgen.writeStringField("verbatimEventDate", this.getVerbatimEventDate());
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
         jgen.writeStringField("lifeStage", this.getLifeStage());
+        jgen.writeStringField("livingStatus", this.getLivingStatus());
+        jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
+        jgen.writeStringField("country", this.getCountry());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
@@ -4195,7 +4214,17 @@ public class Encounter extends Base implements java.io.Serializable {
         } else {
             jgen.writeStringField("individualId", indiv.getId());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+            jgen.writeArrayFieldStart("individualNames");
+            List<String> names = indiv.getNamesList();
+            if (names != null)
+                for (String name : names) {
+                    jgen.writeString(name);
+                }
+            jgen.writeEndArray();
         }
+        DateTime occdt = getOccurrenceDateTime(myShepherd);
+        if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
+        myShepherd.rollbackAndClose();
     }
 
     @Override public long getVersion() {
