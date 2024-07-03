@@ -2224,6 +2224,19 @@ public class Encounter extends Base implements java.io.Serializable {
         return dynamicProperties;
     }
 
+    public org.json.JSONObject getDynamicPropertiesJSONObject() {
+        org.json.JSONObject dp = new org.json.JSONObject();
+        if (dynamicProperties == null) return dp;
+        StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+            int equalPlace = token.indexOf("=");
+            if (equalPlace > 0)
+                dp.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+        }
+        return dp;
+    }
+
     public void setDynamicProperties(String allDynamicProperties) {
         this.dynamicProperties = allDynamicProperties;
     }
@@ -4175,6 +4188,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("livingStatus", this.getLivingStatus());
         jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
         jgen.writeStringField("country", this.getCountry());
+        jgen.writeStringField("behavior", this.getBehavior());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
@@ -4197,6 +4211,13 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeString(cls);
         }
         jgen.writeEndArray();
+
+        org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
+        jgen.writeObjectFieldStart("dynamicProperties");
+        for (String key : (Set<String>)dpj.keySet()) {
+            jgen.writeStringField(key, dpj.optString(key, null));
+        }
+        jgen.writeEndObject();
 
         Double dlat = this.getDecimalLatitudeAsDouble();
         Double dlon = this.getDecimalLongitudeAsDouble();
