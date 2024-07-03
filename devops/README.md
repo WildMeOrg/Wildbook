@@ -70,8 +70,6 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
 - `docker-compose up ....`
 
 ## Local Tomcat 
-**TODO #503: draft local tomcat instructions**
-
 1. Install build requirements on either your local machine or your vm by entering the following commands:
     ```
     sudo apt-get update && sudo apt-get upgrade
@@ -102,65 +100,12 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
 1. Set up tomcat
   1. `sudo systemctl start tomcat9` to start tomcat
   1. Copy files to tomcat (installed under usr, not your user) `cp wildbook-[version].war /var/lib/tomcat9/webapps/wildbook.war`
-  1. `Sudo systemctl restart tomcat9` to restart tomcat
+  1. `sudo systemctl restart tomcat9` to restart tomcat
   ```
   http://localhost:8080 tomcat is running
   http://localhost:8080/wildbook wildbook is running
   ```
-1. Creating a wildbook database in postgres
-  1. `sudo -u postgres psql`
-  1. CREATE USER wildbook(or whatever you want to call your database) WITH PASSWORD 'wildbook';
-  1. CREATE DATABASE wildbook(or whatever you want to call your database) WITH OWNER wildbook;
-  1. GRANT ALL PRIVILEGES ON DATABASE wildbook(or whatever you want to call your database) TO wildbook;
-  1. \c wildbook(or whatever you want to call your database);
-  1. CREATE EXTENSION "uuid-ossp";
-  1. CREATE EXTENSION "postgis";
-1. Setting Up Your AssetStore
-You need to set up an AssetStore (probably local). This is the repository for images that users upload to accompany sightings. Startup Wildbook might do this for you, but you should 
-  1. check that it is doing what it should (basically you should have one entry in the “ASSETSTORE” table) This check can be accomplished by visiting `https://yourWildbookUrl/appadmin/editAssetStore.jsp`
-  1. There are some FeatureTypes that need to be initialized just once:
-    1. `psql -U dbuser -h localhost dbname < repo/config/feature_types.sql`
-  1. There are (db) indices you can add, similarly: `psql -U dbuser -h localhost dbname < repo/config/indices.sql`
-■ E.g., `sudo psql -U wildbook -h localhost wildbook <
-/data/code/Wildbook/config/indices.sql`
-○ Note that when starting a new Wildbook, this table won’t yet exist
-○ You will eventually want to run this again after that table gets made
-○ It’s the kind of thing that will only matter when a wildbook grows huge after lots of
-IA tasks getting run.
-● Open editAssetStore.jsp
-(/data/code/Wildbook/src/main/webapp/appadmin/editAssetStore.jsp and rebuild and
-then copy over to tomcat or simply stop tomcat8, edit in
-/var/lib/tomcat8/webapps/wildbook/appadmin/editAssetStore.jsp, and restart tomcat8)
-● Change the id = 999 line to id = 1 if not already done.
-● Change the line newConfig.put("webroot", "http://example.com/wildbook_data_dir"); to
-your URL/wildbook_data_dir
-● Re-build and run tomcat8 anew, and navigate to
-https://yourUrl.com/appadmin/editAssetStore.jsp. If the changes look correct, execute
-the new configuration changes
-● Run: `sudo chown -R tomcat8:tomcat8 /data/wildbook_data_dir`
-● copy REPO/config/image*.sh into /usr/local/bin/
-● Test it out by submitting an encounter (and uploading an image with it). Confirm that you
-can see the image on the encounter.jsp page.
-● You may need to set the local asset store’s USAGE column with value, ‘default’, so that
-other asset stores don’t compete with it:
-○ `UPDATE “ASSETSTORE” set “USAGE”=’default’ where “NAME”=’Local
-AssetStore’; (or something similar if that’s not correct)
-
-## Troubleshooting
-- Try stopping and restarting tomcat8.
-- Is ownership of /var/lib/tomcat8/webapps/whatever_data_dir tomcat8:tomcat8?
-- commonConfigs were missing properties:defaultProjectOrganizationParameter (resulting in NPE)
-- Check hardcoded path to wildbook_data_dir in LocationID.java
-- Are IA.json and IA.properties pointing to the same WBIA? Is it the correct one?
-- Is `<Context path="" docBase="wildbook_or_whatever_you_want_to_call_it" debug="0">` in /var/lib/tomcat8/conf/server.xml configured in a desirable way? If there are other WB instances on the same server, consider removing or changing the path of the others.
-- Are there several instances of different wildbooks in /var/lib/tomcat8/webapps? Consider temporarily moving the ones you’re not working with out of that directory to streamline troubleshooting the log files.
-- Have you removed old files from /data/wildbook_data_dir or analogous directories?
-- Have you tried to run Wilbook/archive/setup.jsp, or more specifically one line, `CommonConfiguration.ensureServerInfo(myShepherd, request)` from that file? This line will replace the URL currently being referenced in the database with the current browser url.
-- Does /var/lib/tomcat8/webapps/wildbook exist? There is some hardcoding looking for this in ShepherdProperties.java.
-
-
-
-1. To access `http://localhost:8080/`:
+  1. To access `http://localhost:8080/`:
   1. Open tomcat's `conf/server.xml`
   1. Add the docBase contexts to the `<Host>...</Host>` block
   ```
@@ -169,3 +114,36 @@ AssetStore’; (or something similar if that’s not correct)
 	    <Context docBase="wildbook_data_dir" path="/wildbook_data_dir" />
     </Host>
   ```
+1. Set up react
+  TBD
+1. Create the wildbook database in postgres
+  1. `sudo -u postgres psql`
+  1. `CREATE USER [dbuser] WITH PASSWORD '[password]';`
+  1. `CREATE DATABASE [dbname] WITH OWNER [dbuser];`
+  1. `GRANT ALL PRIVILEGES ON DATABASE [dbname] TO [dbuser];`
+  1. `\c [dbname];`
+  1. `CREATE EXTENSION "uuid-ossp";`
+  1. `CREATE EXTENSION "postgis";`
+1. Startup should set up the local AssetStore, the repository for images that users upload to accompany sightings.
+  1. Verify that there is one entry in the “ASSETSTORE” table by visiting `localhost:8080/appadmin/editAssetStore.jsp`
+  1. If there is not one entry, manual initialize the AssetStore
+    - TBD
+1. Initialize some FeatureTypes.
+  - `psql -U [dbuser] -h localhost [dbname] < /[repo-path]/config/feature_types.sql`
+1. Add the database indices.
+  - `psql -U [dbuser] -h localhost [dbname] < /[repo-path]/config/indices.sql`
+1. Edit the AssetStore
+  1. stop tomcat
+  1. edit in `/var/lib/tomcat8/webapps/wildbook/appadmin/editAssetStore.jsp`
+    - Change the id = 999 line to id = 1 if not already done.
+    - Change the line `newConfig.put("webroot", "http://example.com/wildbook_data_dir");` to `http://localhost:8080/wildbook_data_dir`
+  1. restart tomcat
+  1. Re-build and run tomcat8 anew
+  1. navigate to https://yourUrl.com/appadmin/editAssetStore.jsp.
+  1. execute the new configuration changes
+    - `sudo chown -R tomcat8:tomcat8 /data/wildbook_data_dir`
+1. copy `REPO/config/image*.sh` into `/usr/local/bin/`
+  - Test by submitting an encounter with an image.
+  - Confirm that you can see the image on the `encounter.jsp` page.
+1. You may need to set the local asset store’s USAGE column with value, ‘default’, so that other asset stores don’t compete with it:
+  - `UPDATE “ASSETSTORE” set “USAGE”=’default’ where “NAME”=’Local AssetStore’;` (or something similar if that’s not correct)
