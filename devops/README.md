@@ -115,7 +115,16 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
     </Host>
   ```
 1. Set up react
-  TBD
+  1. Install dependencies (node and npm should already be installed)
+    - `npm install react-app-rewired`
+  1. Build and deploy react
+    1. Create a folder react under deployed `wildbook/` dir
+    1. Create a `.env` under the root of `[REPO]/frontend/`, add local tomcat url like this:
+      - `PUBLIC_URL=http://localhost:8080/react/`
+      - `SITE_NAME=Local Dev Wildbook`
+    1. cd to `[REPO]/frontend/` and run `npm run build`
+    1. Copy everything under `frontend/build/` to the `wildbook/react/`
+    1. Refresh your browser page by visiting `http://localhost:8080/react/`
 1. Create the wildbook database in postgres
   1. `sudo -u postgres psql`
   1. `CREATE USER [dbuser] WITH PASSWORD '[password]';`
@@ -134,14 +143,14 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
   - `psql -U [dbuser] -h localhost [dbname] < /[repo-path]/config/indices.sql`
 1. Edit the AssetStore
   1. stop tomcat
-  1. edit in `/var/lib/tomcat8/webapps/wildbook/appadmin/editAssetStore.jsp`
-    - Change the id = 999 line to id = 1 if not already done.
+  1. edit in `/var/lib/tomcat9/webapps/wildbook/appadmin/editAssetStore.jsp`
+    - Change the `id = 999` line to `id = 1` if not already done.
     - Change the line `newConfig.put("webroot", "http://example.com/wildbook_data_dir");` to `http://localhost:8080/wildbook_data_dir`
   1. restart tomcat
-  1. Re-build and run tomcat8 anew
+  1. Re-build and run tomcat anew
   1. navigate to https://yourUrl.com/appadmin/editAssetStore.jsp.
   1. execute the new configuration changes
-    - `sudo chown -R tomcat8:tomcat8 /data/wildbook_data_dir`
+    - `sudo chown -R tomcat9:tomcat9 /data/wildbook_data_dir`
 1. copy `REPO/config/image*.sh` into `/usr/local/bin/`
   - Test by submitting an encounter with an image.
   - Confirm that you can see the image on the `encounter.jsp` page.
