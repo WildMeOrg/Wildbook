@@ -2,6 +2,7 @@ package org.ecocean.api;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +56,12 @@ public class SiteSettings extends ApiBase {
         Object[] iac = iaConfig.getAllIAClasses().toArray();
         Arrays.sort(iac);
         settings.put("iaClass", iac);
+
+        List<String> behavs = myShepherd.getAllBehaviors();
+        behavs.remove(null);
+        Object[] barr = behavs.toArray();
+        Arrays.sort(barr);
+        settings.put("behavior", behavs);
 
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
