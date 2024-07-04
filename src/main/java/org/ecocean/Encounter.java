@@ -4189,6 +4189,7 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
         jgen.writeStringField("country", this.getCountry());
         jgen.writeStringField("behavior", this.getBehavior());
+        jgen.writeStringField("patterningCode", this.getPatterningCode());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
