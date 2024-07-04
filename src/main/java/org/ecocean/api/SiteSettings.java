@@ -51,6 +51,10 @@ public class SiteSettings extends ApiBase {
             CommonConfiguration.getIndexedPropertyValues("livingStatus", context));
         settings.put("country", CommonConfiguration.getIndexedPropertyValues("country", context));
         settings.put("annotationViewpoint", Annotation.getAllValidViewpointsSorted());
+        settings.put("patterningCode",
+            CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
+        settings.put("measurement",
+            CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         Object[] iac = iaConfig.getAllIAClasses().toArray();
