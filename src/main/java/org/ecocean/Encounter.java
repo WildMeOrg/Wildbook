@@ -4213,6 +4213,20 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         jgen.writeEndArray();
 
+        jgen.writeArrayFieldStart("measurements");
+        if (this.measurements != null)
+            for (Measurement meas : this.measurements) {
+                if (meas.getValue() == null) continue; // no value means we should skip
+                jgen.writeStartObject();
+                jgen.writeNumberField("value", meas.getValue());
+                if (meas.getType() != null) jgen.writeStringField("type", meas.getType());
+                if (meas.getUnits() != null) jgen.writeStringField("units", meas.getUnits());
+                if (meas.getSamplingProtocol() != null)
+                    jgen.writeStringField("samplingProtocol", meas.getSamplingProtocol());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+
         org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
         jgen.writeObjectFieldStart("dynamicProperties");
         for (String key : (Set<String>)dpj.keySet()) {
