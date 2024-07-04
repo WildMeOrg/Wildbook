@@ -5,6 +5,11 @@ import FilterPanel from "../components/FilterPanel";
 import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
 
 export default function EncounterSearch() {
+
+  const [formFilters, setFormFilters] = useState([]);
+  const [filterPanel, setFilterPanel] = useState(true);
+  const [sliderIn, setSliderIn] = useState(false);
+
   const columns = [
     { name: "Encounter ID", selector: "id" },
     { name: "Created Date", selector: "date" },
@@ -19,7 +24,7 @@ export default function EncounterSearch() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
 
-  const formFilters = {
+  const formFilters1 = {
     "query": {
       "bool": {
         "filter": [
@@ -65,15 +70,15 @@ export default function EncounterSearch() {
           //        }
           //     }
           //  },
-          {
-            geo_distance: {
-              distance: "50km",
-              locationGeoPoint: {
-                lat: 11,
-                lon: 22
-              }
-            }
-          }
+          // {
+          //   geo_distance: {
+          //     distance: "500km",
+          //     locationGeoPoint: {
+          //       lat: 11,
+          //       lon: 22
+          //     }
+          //   }
+          // }
         ],
         "must_not": []
       }
@@ -99,23 +104,35 @@ export default function EncounterSearch() {
   }, [page, perPage]);
 
   return (
-    <div className="w-100"
+
+    <div className="encounter-search"
+      style={{
+        backgroundImage: "url('/react/images/encounter_search_background.png')",
+        backgroundSize: "cover",
+        height: "800px",
+        width: "100%",
+      }}
     >
-      <FilterPanel schemas={schemas} />
-      <DataTable
-        title="Encounters"
-        columnNames={columns}
-        tableData={encounters}
-        totalItems={totalEncounters}
-        page={page}
-        perPage={perPage}
-        onPageChange={setPage}
-        onPerPageChange={setPerPage}
-        loading={false}
-        onSelectedRowsChange={(selectedRows) => {
-          console.log("Selected Rows: ", selectedRows);
-        }}
+      {filterPanel ? <FilterPanel
+        formFilters={formFilters}
+        setFormFilters={setFormFilters}
+        updateFilters={Function.prototype}
+        schemas={schemas}
       />
+        : <DataTable
+          title="Encounters"
+          columnNames={columns}
+          tableData={encounters}
+          totalItems={totalEncounters}
+          page={page}
+          perPage={perPage}
+          onPageChange={setPage}
+          onPerPageChange={setPerPage}
+          loading={false}
+          onSelectedRowsChange={(selectedRows) => {
+            console.log("Selected Rows: ", selectedRows);
+          }}
+        />}
     </div>
   );
 }
