@@ -1,108 +1,11 @@
-// import React from 'react';
-// import 'bootstrap/dist/css/bootstrap.min.css';
-// import AreaInput from '../../components/inputs/AreaInput';
 
-
-// const FilterPanel = () => {
-//   return (
-//     <div className="container-fluid">
-//       <div className="row">
-//         <div className="col-md-4">
-//           <div className="card mb-4">
-//             <div className="card-body">
-//               <h2 className="card-title">Location Map</h2>
-//               <label>Choose in map</label>
-//               <input type="text" className="form-control mb-2" placeholder="Northeast Latitude" />
-//               <input type="text" className="form-control mb-2" placeholder="Longitude" />
-//               <input type="text" className="form-control mb-2" placeholder="Southwest Latitude" />
-//               <input type="text" className="form-control mb-2" placeholder="Longitude" />
-//               <div className="map-placeholder d-flex align-items-center justify-content-center" 
-//               style={{ 
-//                 height: '400px', 
-//                 borderRadius: '5px', 
-//                 border: '1px solid #ccc', 
-//                 boxSizing: "border-box",
-//                 overflow: "hidden"  }}>
-//                 <AreaInput />
-//               </div>
-//             </div>
-//           </div>
-
-//           <div className="card mb-4">
-//             <div className="card-body">
-//               <h2 className="card-title">Location</h2>
-//               <label>Location name contains</label>
-//               <input type="text" className="form-control mb-2" placeholder="example" />
-//               <label>Location ID</label>
-//               <input type="text" className="form-control" placeholder="example" />
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="col-md-4">
-//           <div className="card mb-4">
-//             <div className="card-body">
-//               <h2 className="card-title">Image Label Filters</h2>
-//               <label>
-//                 <input type="checkbox" /> Has at least one associated photo or video
-//               </label>
-//               <label>Keyword Filters</label>
-//               <input type="text" className="form-control mb-2" placeholder="example" />
-//               <label>
-//                 <input type="checkbox" /> Use OR operator rather than AND operator for keyword matching.
-//               </label>
-//               <label>Viewpoint</label>
-//               <select className="form-control mb-2">
-//                 <option>Select viewpoint</option>
-//               </select>
-//               <label>Class</label>
-//               <select className="form-control">
-//                 <option>Select class</option>
-//               </select>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="col-md-4">
-//           <div className="card mb-4">
-//             <div className="card-body">
-//               <h2 className="card-title">Date</h2>
-//               <label>Sighting Dates</label>
-//               <input type="text" className="form-control mb-2" placeholder="From" />
-//               <input type="text" className="form-control mb-2" placeholder="To" />
-//               <label>Encounter Submission Date</label>
-//               <input type="text" className="form-control mb-2" placeholder="From" />
-//               <input type="text" className="form-control" placeholder="To" />
-//             </div>
-//           </div>
-
-//           <div className="card mb-4">
-//             <div className="card-body">
-//               <h2 className="card-title">Biological Sample & Analysis</h2>
-//               <label>
-//                 <input type="checkbox" /> Has Biological Sample
-//               </label>
-//               <label>Biological Sample ID contains</label>
-//               <input type="text" className="form-control mb-2" placeholder="Select country" />
-//               <label>Biological Chemical Measurements</label>
-//               <input type="text" className="form-control mb-2" placeholder="13C is" />
-//               <input type="text" className="form-control mb-2" placeholder="15N is" />
-//               <input type="text" className="form-control" placeholder="34S is" />
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FilterPanel;
-
-
-
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState, useRef } from 'react';
 
 import Text from './Text';
+import { Container } from 'react-bootstrap';
+import { set } from 'lodash-es';
+import ThemeContext from "../ThemeColorProvider";
+import BrutalismButton from './BrutalismButton';
 
 function setFilter(newFilter, formFilters, setFormFilters) {
   const matchingFilterIndex = formFilters.findIndex(
@@ -119,12 +22,12 @@ function setFilter(newFilter, formFilters, setFormFilters) {
 
 export default function FilterPanel({
   schemas,
-  formFilters=[],
-  setFormFilters=() => {},
+  formFilters = [],
+  setFormFilters = () => { },
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
   const handleFilterChange = filter => {
-    if(filter.selectedChoice) {
+    if (filter.selectedChoice) {
       setSelectedChoices({
         ...selectedChoices,
         [filter.filterId]: filter.selectedChoice,
@@ -141,64 +44,153 @@ export default function FilterPanel({
 
   const safeSchemas = schemas || [];
 
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  }
+
+  const [clicked, setClicked] = useState(safeSchemas[0]?.id);
+  const theme = React.useContext(ThemeContext);
+
+  const containerRef = useRef(null);
+
+  const handleWheel = (event) => {
+    event.preventDefault();
+    if (!safeSchemas.length) return;
+    const currentIndex = safeSchemas.findIndex(schema => schema.id === clicked);
+    if (event.deltaY < 0) {
+      if (currentIndex > 0) {
+        setClicked(safeSchemas[currentIndex - 1].id);
+      }
+    } else {
+      if (currentIndex < safeSchemas.length - 1) {
+        setClicked(safeSchemas[currentIndex + 1].id);
+      }
+    }
+  };
+
+  const debouncedHandleWheel = debounce(handleWheel, 100);
+
+  useEffect(() => {
+    const div = containerRef.current;
+    if (div) {
+      div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
+    }
+    return () => {
+      if (div) {
+        div.removeEventListener('wheel', debouncedHandleWheel);
+      }
+    };
+  }, [clicked, safeSchemas.length]);
+
   return (
-    <div>
+    <Container>
       <Text
-        variant="h5"
-        style={{ margin: '16px 0 16px 16px' }}
-        id="FILTERS"
+        variant="h1"
+        style={{ margin: '16px 0 16px 16px', fontWeight: '500', color: '#fff' }}
+        id="ENCOUNTER_SEARCH_FILTERS"
       />
       <div
         style={{
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           padding: '8px 16px 16px',
         }}
-        >        
-        {safeSchemas.map(schema => {
-          if(schema.dependency) {
+      >
 
-            const dependencyChioce = selectedChoices[schema.dependency];
-            if(dependencyChioce) {
-              let choices = [];
-              switch(schema.id) {
-                case 'relationshipRoles':
-                  choices = dependencyChioce.roles?.map(data => {
-                    return {
-                      label: data.label,
-                      value: data.guid
-                    }
-                  }) || [];
-                  break;
-              }
-              const componentProps = {
-                ...schema.filterComponentProps,
-                choices,
-              };
+        <div ref={containerRef}
+          style={{
+            width: '300px',
+            height: '700px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(2px)',
+            borderRadius: '10px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            padding: '20px',
+            color: 'white',
+            marginRight: '20px',
+            fontSize: '20px',
+          }}>
+
+          {safeSchemas.map(schema => {
+            return <div
+              className='d-flex justify-content-between align-items-center'
+              style={{
+                width: "100%",
+
+                height: "50px",
+                borderRadius: '10px',
+                padding: '10px',
+                marginTop: '10px',
+                backgroundColor: clicked === schema.id ? 'white' : 'transparent',
+                color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
+                cursor: 'pointer',
+              }}
+              onClick={() => {
+                setClicked(schema.id);
+              }}
+            >
+              <Text
+                id={schema.labelId}
+                style={{
+                  margin: '16px 0 16px 0',
+                  fontWeight: '500',
+
+                }}
+              >
+              </Text>
+              <span>  {" > "}   </span>
+            </div>
+          })}
+          <div className="d-flex flex-row mt-5">
+            <BrutalismButton style={{
+              color: "white",
+              backgroundColor: theme.primaryColors.primary700,
+              borderColor: theme.primaryColors.primary700,
+            }}>
+              APPLY
+            </BrutalismButton>
+            <BrutalismButton style={{
+              color: theme.primaryColors.primary700,
+              borderColor: theme.primaryColors.primary700,
+            }}>
+              RESET
+            </BrutalismButton>
+          </div>
+
+        </div>
+        <div style={{
+          width: '1000px',
+          height: '700px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(3px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          borderRadius: '10px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          padding: '20px',
+          color: 'white',
+        }}>
+          {
+            safeSchemas.map(schema => {
               return (
-                <schema.FilterComponent
-                    key={`${schema.id}-${selectedChoices[schema.dependency]?.value || ''}`}
-                    labelId={schema.labelId}
-                    onChange={handleFilterChange}
-                    onClearFilter={clearFilter}
-                    {...componentProps}
-                  />                
-              )
-            } else {
-              return <Fragment key={`${schema.id}-${selectedChoices[schema.dependency]?.value || ''}`} />;
+                schema.id === clicked && <schema.FilterComponent
+                  key={schema.id}
+                  labelId={schema.labelId}
+                  onChange={handleFilterChange}
+                  onClearFilter={clearFilter}
+                  {...schema.filterComponentProps}
+                />
+              );
             }
-          }
-          return (
-            <schema.FilterComponent
-              key={schema.id}
-              labelId={schema.labelId}
-              onChange={handleFilterChange}
-              onClearFilter={clearFilter}
-              {...schema.filterComponentProps}
-            />
-          );
-        })}
+            )}
+
+        </div>
       </div>
-    </div>
+    </Container>
   );
 }

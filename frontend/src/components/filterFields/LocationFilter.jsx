@@ -6,7 +6,6 @@ export default function LocationFilter() {
     
     return (
         <div>
-        <h1>Location Filter</h1>
         <LocationFilterMap />
         <LocationFilterText />
         </div>
