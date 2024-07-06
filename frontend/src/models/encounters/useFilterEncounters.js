@@ -26,7 +26,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
           ...params,
         },
         dataAccessor: (result) => {
-            console.log("result", result);
+            // console.log("result", result);
             const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"]);
             return {
                 resultCount: parseInt(resultCountString, 10) || 0,

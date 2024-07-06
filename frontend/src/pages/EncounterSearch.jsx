@@ -94,7 +94,7 @@ export default function EncounterSearch() {
     },
   });
 
-  console.log("encounterData", encounterData);
+  // console.log("encounterData", encounterData);
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
 
