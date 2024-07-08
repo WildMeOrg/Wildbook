@@ -371,16 +371,14 @@ export default function SimpleMap() {
                 strokeColor: '#FF0000',
                 strokeWeight: 2,
                 map: map,
-                editable: true,
-                draggable: false
+                // editable: true,
+                // draggable: false
             });
 
             rectangleRef.current = newRectangle;
 
             if (newRectangle) {
-                console.log('rectangle is not null');
                 newRectangle.addListener('mouseup', () => {
-                    console.log('mouseup2');
                     map.isMoving = false;
                     maps.event.removeListener(moveListener);
                     setDraggable(true);
