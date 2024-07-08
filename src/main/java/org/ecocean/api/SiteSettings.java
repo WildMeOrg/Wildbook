@@ -1,6 +1,7 @@
 package org.ecocean.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,6 +12,8 @@ import javax.servlet.ServletException;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.Keyword;
+import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
@@ -66,6 +69,28 @@ public class SiteSettings extends ApiBase {
         Object[] barr = behavs.toArray();
         Arrays.sort(barr);
         settings.put("behavior", behavs);
+
+        List<String> kws = new ArrayList<String>();
+        // this seems like less desirable method: getAllKeywordsNoLabeledKeywords()
+        for (Keyword kw : myShepherd.getSortedKeywordList()) {
+            if (!kws.contains(kw.getDisplayName())) kws.add(kw.getDisplayName());
+        }
+        Object[] sortArray = kws.toArray();
+        Arrays.sort(sortArray);
+        settings.put("keyword", sortArray);
+
+        List<String> kwLabels = new ArrayList<String>();
+        List<String> kwValues = new ArrayList<String>();
+        for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
+            if (!kwLabels.contains(lkw.getLabel())) kwLabels.add(lkw.getLabel());
+            if (!kwValues.contains(lkw.getValue())) kwValues.add(lkw.getValue());
+        }
+        sortArray = kwValues.toArray();
+        Arrays.sort(sortArray);
+        settings.put("labeledKeyword", sortArray);
+        sortArray = kwLabels.toArray();
+        Arrays.sort(sortArray);
+        settings.put("labeledKeywordLabel", sortArray);
 
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
