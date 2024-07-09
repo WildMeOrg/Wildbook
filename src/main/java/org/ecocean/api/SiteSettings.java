@@ -99,10 +99,17 @@ public class SiteSettings extends ApiBase {
         settings.put("relationshipRole",
             CommonConfiguration.getIndexedPropertyValues("relationshipRole", context));
 
-        settings.put("metalTagLocation",
-            CommonConfiguration.getIndexedPropertyValues("metalTagLocation", context));
-        settings.put("satelliteTagName",
-            CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context));
+        boolean enabled = CommonConfiguration.showMetalTags(context);
+        settings.put("metalTagsEnabled", enabled);
+        if (enabled)
+            settings.put("metalTagLocation",
+                CommonConfiguration.getIndexedPropertyValues("metalTagLocation", context));
+        enabled = CommonConfiguration.showSatelliteTag(context);
+        settings.put("satelliteTagEnabled", enabled);
+        if (enabled)
+            settings.put("satelliteTagName",
+                CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context));
+        settings.put("acousticTagEnabled", CommonConfiguration.showAcousticTag(context));
 
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
