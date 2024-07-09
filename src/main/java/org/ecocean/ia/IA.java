@@ -249,6 +249,7 @@ public class IA {
         return intakeAnnotations(myShepherd, anns, null, false);
     }
 
+    //appears to be only called by manual submission
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns,
         final Task parentTask, boolean fastlane) {
         // List<List<Annotation>> annses = binAnnotsByIaClass(anns);
@@ -320,22 +321,30 @@ public class IA {
                 }
             }
             if ((opts == null) || (opts.size() < 1)) continue; // no ID for this iaClass.
-            // just one IA class, one algorithm case
+            // just one IA class, one algorithm case - basic HotSpotter operation, no cloning
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 newTaskParams.put("ibeis.identification",
                     ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
                 topTask.setParameters(newTaskParams);
                 tasks.add(topTask); // topTask will be used as *the*(only) task -- no children
-            } else {
-                for (int i = 0; i < opts.size(); i++) {
-                    Task t = new Task();
-                    t.setObjectAnnotations(annsOneIAClass);
-                    newTaskParams.put("ibeis.identification",
-                        ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));                                        // overwrites each time
-                    t.setParameters(newTaskParams);
-                    topTask.addChild(t);
-                    tasks.add(t);
-                }
+            } 
+            //handles cloning and multiple annotations and images per manually submitted Encounter cases
+            else {
+            	//Issue 632 - switch clustering to be by annotation not per algorithm, which was causing the limited display of the issue
+            	//Link - https://github.com/WildMeOrg/Wildbook/issues/632
+            	for(Annotation annot: annsOneIAClass) {
+	                for (int i = 0; i < opts.size(); i++) {
+	                    Task t = new Task();
+	                    ArrayList<Annotation> annots=new ArrayList<Annotation>();
+	                    annots.add(annot);
+	                    t.setObjectAnnotations(annots);
+	                    newTaskParams.put("ibeis.identification",
+	                        ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));                                        // overwrites each time
+	                    t.setParameters(newTaskParams);
+	                    topTask.addChild(t);
+	                    tasks.add(t);
+	                }
+            	}
             }
             newTaskParams.put("fastlane", fastlane);
             if (fastlane) newTaskParams.put("lane", "fast");
