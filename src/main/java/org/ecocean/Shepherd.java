@@ -950,6 +950,18 @@ public class Shepherd {
         return mships;
     }
 
+    public List<String> getAllMembershipRoles() {
+        List<String> all = new ArrayList<String>();
+        Query query = pm.newQuery(
+            "SELECT role FROM org.ecocean.social.Membership WHERE role != null");
+
+        query.setResult("distinct role");
+        query.setOrdering("role");
+        Collection c = (Collection)(query.execute());
+        if (c != null) all = new ArrayList<String>(c);
+        return all;
+    }
+
     public SocialUnit getSocialUnit(String name) {
         return getCommunity(name);
     }
@@ -5732,12 +5744,16 @@ public class Shepherd {
     }
 
     public ArrayList<Annotation> getAnnotationsWithACMId(String acmId) {
-    	return getAnnotationsWithACMId(acmId,false);
+        return getAnnotationsWithACMId(acmId, false);
     }
-    
-    public ArrayList<Annotation> getAnnotationsWithACMId(String acmId, boolean enforceEncounterAssociation) {  	
-    	String filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\"";
-        if(enforceEncounterAssociation)filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\" && enc.annotations.contains(this) VARIABLES org.ecocean.Encounter enc";   
+
+    public ArrayList<Annotation> getAnnotationsWithACMId(String acmId,
+        boolean enforceEncounterAssociation) {
+        String filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\"";
+
+        if (enforceEncounterAssociation)
+            filter = "select from org.ecocean.Annotation where acmId == \"" + acmId +
+                "\" && enc.annotations.contains(this) VARIABLES org.ecocean.Encounter enc";
         Query anns = pm.newQuery(filter);
         Collection c = (Collection)(anns.execute());
         ArrayList<Annotation> al = new ArrayList(c);
