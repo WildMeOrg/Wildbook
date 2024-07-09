@@ -4245,6 +4245,34 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         jgen.writeEndArray();
 
+        jgen.writeArrayFieldStart("metalTags");
+        if (this.getMetalTags() != null)
+            for (MetalTag tag : this.getMetalTags()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("number", tag.getTagNumber());
+                jgen.writeStringField("location", tag.getLocation());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+        if (this.getAcousticTag() != null) {
+            jgen.writeObjectFieldStart("acousticTag");
+            jgen.writeStringField("idNumber", this.getAcousticTag().getIdNumber());
+            jgen.writeStringField("serialNumber", this.getAcousticTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getSatelliteTag() != null) {
+            jgen.writeObjectFieldStart("satelliteTag");
+            jgen.writeStringField("name", this.getSatelliteTag().getName());
+            jgen.writeStringField("serialNumber", this.getSatelliteTag().getSerialNumber());
+            jgen.writeStringField("argosPttNumber", this.getSatelliteTag().getArgosPttNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getDTag() != null) {
+            jgen.writeObjectFieldStart("digitalArchiveTag");
+            jgen.writeStringField("dTagID", this.getDTag().getDTagID());
+            jgen.writeStringField("serialNumber", this.getDTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
         org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
         jgen.writeObjectFieldStart("dynamicProperties");
         for (String key : (Set<String>)dpj.keySet()) {
