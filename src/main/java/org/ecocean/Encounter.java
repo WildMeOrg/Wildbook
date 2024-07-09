@@ -36,6 +36,8 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
@@ -4273,6 +4275,20 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeString(name);
                 }
             jgen.writeEndArray();
+
+            jgen.writeObjectFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
+            }
+            jgen.writeEndObject();
+/*
+            jgen.writeArrayFieldStart("individualRelationshipRoles");
+            for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
+                jgen.writeString(relRole);
+            }
+            jgen.writeEndArray();
+ */
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
