@@ -4195,11 +4195,27 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
 
-        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        List<String> kws = new ArrayList();
+        Map<String, String> lkws = new HashMap<String, String>();
         for (Keyword kw : this.getMediaAssetKeywords()) {
-            jgen.writeString(kw.getDisplayName());
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                lkws.put(lkw.getLabel(), lkw.getValue());
+            } else {
+                String name = kw.getDisplayName();
+                if (!kws.contains(name)) kws.add(name);
+            }
+        }
+        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        for (String kw : kws) {
+            jgen.writeString(kw);
         }
         jgen.writeEndArray();
+        jgen.writeObjectFieldStart("mediaAssetLabeledKeywords");
+        for (String kwLabel : lkws.keySet()) {
+            jgen.writeStringField(kwLabel, lkws.get(kwLabel));
+        }
+        jgen.writeEndObject();
 
         jgen.writeArrayFieldStart("annotationViewpoints");
         for (String vp : this.getAnnotationViewpoints()) {
