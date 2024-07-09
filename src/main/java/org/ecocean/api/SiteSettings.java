@@ -99,6 +99,11 @@ public class SiteSettings extends ApiBase {
         settings.put("relationshipRole",
             CommonConfiguration.getIndexedPropertyValues("relationshipRole", context));
 
+        settings.put("metalTagLocation",
+            CommonConfiguration.getIndexedPropertyValues("metalTagLocation", context));
+        settings.put("satelliteTagName",
+            CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context));
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
