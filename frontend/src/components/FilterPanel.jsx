@@ -106,6 +106,7 @@ export default function FilterPanel({
           style={{
             width: '300px',
             height: '700px',
+            overflow: 'auto',
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(3px)',
             WebkitBackdropFilter: 'blur(2px)',
@@ -122,7 +123,7 @@ export default function FilterPanel({
               className='d-flex justify-content-between align-items-center'
               style={{
                 width: "100%",
-
+                
                 height: "50px",
                 borderRadius: '10px',
                 padding: '10px',
@@ -165,8 +166,9 @@ export default function FilterPanel({
 
         </div>
         <div style={{
-          width: '1000px',
-          height: '700px',
+          minWidth: '700px',
+          maxWidth: '900px',
+          maxHeight: '700px',
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(3px)',
           WebkitBackdropFilter: 'blur(2px)',
@@ -174,6 +176,7 @@ export default function FilterPanel({
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           padding: '20px',
           color: 'white',
+          overflow: 'auto',
         }}>
           {
             safeSchemas.map(schema => {
