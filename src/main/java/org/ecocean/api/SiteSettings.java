@@ -111,6 +111,10 @@ public class SiteSettings extends ApiBase {
                 CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context));
         settings.put("acousticTagEnabled", CommonConfiguration.showAcousticTag(context));
 
+        List<String> ved = myShepherd.getAllVerbatimEventDates();
+        ved.remove(null); // sloppy
+        settings.put("verbatimEventDate", ved);
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
