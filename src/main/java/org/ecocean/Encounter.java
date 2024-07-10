@@ -3341,6 +3341,15 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, context, username);
     }
 
+    /*
+       this really is ugly cuz what is "view" vs "access", but i do NOT want to futz with canUserAccess() and
+       cause unintended consequences. so, for now, canUserView() is pretty much exclusively for search
+     */
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user,
+                myShepherd.getContext()));
+    }
+
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
@@ -3356,7 +3365,7 @@ public class Encounter extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext()))
+            if ((user.getId() != null) && this.canUserView(user, myShepherd))
                 ids.add(user.getId());
         }
         return ids;
