@@ -157,10 +157,10 @@ import org.json.JSONObject;
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
-        int numFrom, int pageSize)
+        int numFrom, int pageSize, String sort, String sortOrder)
     throws IOException {
         OpenSearch opensearch = new OpenSearch();
-        JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize);
+        JSONObject res = opensearch.queryPit(indexname, query, numFrom, pageSize, sort, sortOrder);
 
         return res;
     }
