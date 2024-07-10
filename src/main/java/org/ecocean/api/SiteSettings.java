@@ -17,6 +17,8 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
+import org.ecocean.Util.MeasurementDesc;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,6 +29,7 @@ public class SiteSettings extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        String langCode = ServletUtilities.getLanguageCode(request);
 
         myShepherd.setAction("api.SiteSettings");
         myShepherd.beginDBTransaction();
@@ -114,6 +117,15 @@ public class SiteSettings extends ApiBase {
         List<String> ved = myShepherd.getAllVerbatimEventDates();
         ved.remove(null); // sloppy
         settings.put("verbatimEventDate", ved);
+
+        settings.put("haplotype", myShepherd.getAllHaplotypes());
+        settings.put("geneticSex", myShepherd.getAllGeneticSexes());
+        JSONObject biomeas = new JSONObject();
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs(langCode, context)) {
+            biomeas.put(mdesc.getType(), mdesc.getLabel());
+        }
+        settings.put("bioMeasurement", biomeas);
+        settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
 
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
