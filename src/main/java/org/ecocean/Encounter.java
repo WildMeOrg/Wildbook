@@ -4125,9 +4125,9 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
-        int pageSize)
+        int pageSize, String sort, String sortOrder)
     throws IOException {
-        return Base.opensearchQuery("encounter", query, numFrom, pageSize);
+        return Base.opensearchQuery("encounter", query, numFrom, pageSize, sort, sortOrder);
     }
 
 /*
@@ -4337,6 +4337,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;
     }
