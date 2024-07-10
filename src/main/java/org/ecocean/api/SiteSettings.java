@@ -88,18 +88,12 @@ public class SiteSettings extends ApiBase {
         Arrays.sort(sortArray);
         settings.put("keyword", sortArray);
 
-        List<String> kwLabels = new ArrayList<String>();
-        List<String> kwValues = new ArrayList<String>();
+        JSONObject lkeyword = new JSONObject();
         for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
-            if (!kwLabels.contains(lkw.getLabel())) kwLabels.add(lkw.getLabel());
-            if (!kwValues.contains(lkw.getValue())) kwValues.add(lkw.getValue());
+            if (!lkeyword.has(lkw.getLabel())) lkeyword.put(lkw.getLabel(), new JSONArray());
+            lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
         }
-        sortArray = kwValues.toArray();
-        Arrays.sort(sortArray);
-        settings.put("labeledKeyword", sortArray);
-        sortArray = kwLabels.toArray();
-        Arrays.sort(sortArray);
-        settings.put("labeledKeywordLabel", sortArray);
+        settings.put("labeledKeyword", lkeyword);
 
         sortArray = myShepherd.getAllSocialUnitNames().toArray();
         Arrays.sort(sortArray);
