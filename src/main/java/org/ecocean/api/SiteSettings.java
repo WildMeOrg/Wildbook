@@ -92,6 +92,29 @@ public class SiteSettings extends ApiBase {
         Arrays.sort(sortArray);
         settings.put("labeledKeywordLabel", sortArray);
 
+        sortArray = myShepherd.getAllSocialUnitNames().toArray();
+        Arrays.sort(sortArray);
+        settings.put("socialUnitName", sortArray);
+        settings.put("socialUnitRole", myShepherd.getAllMembershipRoles());
+        settings.put("relationshipRole",
+            CommonConfiguration.getIndexedPropertyValues("relationshipRole", context));
+
+        boolean enabled = CommonConfiguration.showMetalTags(context);
+        settings.put("metalTagsEnabled", enabled);
+        if (enabled)
+            settings.put("metalTagLocation",
+                CommonConfiguration.getIndexedPropertyValues("metalTagLocation", context));
+        enabled = CommonConfiguration.showSatelliteTag(context);
+        settings.put("satelliteTagEnabled", enabled);
+        if (enabled)
+            settings.put("satelliteTagName",
+                CommonConfiguration.getIndexedPropertyValues("satelliteTagName", context));
+        settings.put("acousticTagEnabled", CommonConfiguration.showAcousticTag(context));
+
+        List<String> ved = myShepherd.getAllVerbatimEventDates();
+        ved.remove(null); // sloppy
+        settings.put("verbatimEventDate", ved);
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);

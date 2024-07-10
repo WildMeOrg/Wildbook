@@ -36,6 +36,8 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
@@ -4123,9 +4125,9 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
-        int pageSize)
+        int pageSize, String sort, String sortOrder)
     throws IOException {
-        return Base.opensearchQuery("encounter", query, numFrom, pageSize);
+        return Base.opensearchQuery("encounter", query, numFrom, pageSize, sort, sortOrder);
     }
 
 /*
@@ -4243,6 +4245,34 @@ public class Encounter extends Base implements java.io.Serializable {
             }
         jgen.writeEndArray();
 
+        jgen.writeArrayFieldStart("metalTags");
+        if (this.getMetalTags() != null)
+            for (MetalTag tag : this.getMetalTags()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("number", tag.getTagNumber());
+                jgen.writeStringField("location", tag.getLocation());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+        if (this.getAcousticTag() != null) {
+            jgen.writeObjectFieldStart("acousticTag");
+            jgen.writeStringField("idNumber", this.getAcousticTag().getIdNumber());
+            jgen.writeStringField("serialNumber", this.getAcousticTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getSatelliteTag() != null) {
+            jgen.writeObjectFieldStart("satelliteTag");
+            jgen.writeStringField("name", this.getSatelliteTag().getName());
+            jgen.writeStringField("serialNumber", this.getSatelliteTag().getSerialNumber());
+            jgen.writeStringField("argosPttNumber", this.getSatelliteTag().getArgosPttNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getDTag() != null) {
+            jgen.writeObjectFieldStart("digitalArchiveTag");
+            jgen.writeStringField("dTagID", this.getDTag().getDTagID());
+            jgen.writeStringField("serialNumber", this.getDTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
         org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
         jgen.writeObjectFieldStart("dynamicProperties");
         for (String key : (Set<String>)dpj.keySet()) {
@@ -4273,6 +4303,20 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeString(name);
                 }
             jgen.writeEndArray();
+
+            jgen.writeObjectFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
+            }
+            jgen.writeEndObject();
+/*
+            jgen.writeArrayFieldStart("individualRelationshipRoles");
+            for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
+                jgen.writeString(relRole);
+            }
+            jgen.writeEndArray();
+ */
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
@@ -4293,6 +4337,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;
     }

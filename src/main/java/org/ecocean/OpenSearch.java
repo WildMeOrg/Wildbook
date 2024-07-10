@@ -270,13 +270,21 @@ public class OpenSearch {
         System.out.println("OpenSearch.deletePit(" + indexName + ") [" + pitId + "] completed");
     }
 
-    public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize)
+    public JSONObject queryPit(String indexName, final JSONObject query, int numFrom, int pageSize,
+        String sort, String sortOrder)
     throws IOException {
         if (!isValidIndexName(indexName)) throw new IOException("invalid index name: " + indexName);
         String pitId = createPit(indexName);
         Request searchRequest = new Request("POST", "/_search?track_total_hits=true");
         query.put("from", numFrom);
         query.put("size", pageSize);
+        // "sort": [ {"@timestamp": {"order": "asc"}} ]
+        if (sort != null) {
+            JSONArray sortArr = new JSONArray();
+            if ((sortOrder == null) || !"desc".equals(sortOrder)) sortOrder = "asc";
+            sortArr.put(new JSONObject("{\"" + sort + "\":{\"order\":\"" + sortOrder + "\"}}"));
+            query.put("sort", sortArr);
+        }
         JSONObject jpit = new JSONObject();
         jpit.put("id", pitId);
         jpit.put("keep_alive", SEARCH_PIT_TIME);
@@ -296,7 +304,7 @@ public class OpenSearch {
             }
             // we try again, but attempt to get new PIT
             PIT_CACHE.remove(indexName);
-            return queryPit(indexName, query, numFrom, pageSize);
+            return queryPit(indexName, query, numFrom, pageSize, sort, sortOrder);
         }
         return new JSONObject(rtn);
     }
