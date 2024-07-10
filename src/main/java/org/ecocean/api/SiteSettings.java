@@ -17,6 +17,7 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
 import org.json.JSONArray;
@@ -29,11 +30,12 @@ public class SiteSettings extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-        String langCode = ServletUtilities.getLanguageCode(request);
 
         myShepherd.setAction("api.SiteSettings");
         myShepherd.beginDBTransaction();
 
+        String langCode = ServletUtilities.getLanguageCode(request);
+        User currentUser = myShepherd.getUser(request);
         JSONObject settings = new JSONObject();
         // note: there is a CommonConfiguration property: htmlShortcutIcon=images/favicon.ico?v=2
         settings.put("siteFavicon", "/images/favicon.ico");
@@ -61,6 +63,10 @@ public class SiteSettings extends ApiBase {
             CommonConfiguration.getIndexedPropertyValues("patterningCode", context));
         settings.put("measurement",
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
+
+        // TODO: there was some discussion in slack about this being derived differently
+        settings.put("encounterState",
+            CommonConfiguration.getIndexedPropertyValues("encounterState", context));
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         Object[] iac = iaConfig.getAllIAClasses().toArray();
@@ -126,7 +132,18 @@ public class SiteSettings extends ApiBase {
         }
         settings.put("bioMeasurement", biomeas);
         settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
-
+        // these are sensitive settings, that anon users should not get (e.g. user lists)
+        if (currentUser != null) {
+            JSONArray jarr = new JSONArray();
+            for (User user : myShepherd.getAllUsers("fullName")) {
+                JSONObject ju = new JSONObject();
+                ju.put("id", user.getId());
+                ju.put("username", user.getUsername());
+                ju.put("fullName", user.getFullName());
+                jarr.put(ju);
+            }
+            settings.put("users", jarr);
+        }
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
