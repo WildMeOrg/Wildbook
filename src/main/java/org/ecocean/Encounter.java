@@ -968,6 +968,64 @@ public class Encounter extends Base implements java.io.Serializable {
         return photographerPhone;
     }
 
+    // this is a cruddy "solution" to .submitterName and .submitters existing simultaneously
+    public Set<String> getAllSubmitterIds(Shepherd myShepherd) {
+        Set<String> all = new HashSet<String>();
+        User owner = this.getSubmitterUser(myShepherd);
+
+        if (owner == null) {
+            all.add(this.submitterID);
+            all.add(this.submitterEmail);
+        } else {
+            all.add(owner.getUsername());
+            all.add(owner.getFullName());
+            all.add(owner.getId());
+            all.add(owner.getEmailAddress());
+        }
+        if (this.submitters != null)
+            for (User user : this.submitters) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    // similar to above
+    public Set<String> getAllPhotographerIds() {
+        Set<String> all = new HashSet<String>();
+
+        all.add(this.photographerName);
+        if (this.photographers != null)
+            for (User user : this.photographers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    public Set<String> getAllInformOtherIds() {
+        Set<String> all = new HashSet<String>();
+
+        if (this.informOthers != null)
+            for (User user : this.informOthers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
     public String getWebUrl(HttpServletRequest req) {
         return getWebUrl(this.getCatalogNumber(), req);
     }
@@ -1614,6 +1672,10 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public String getAssignedUsername() {
         return submitterID;
+    }
+
+    public User getSubmitterUser(Shepherd myShepherd) {
+        return myShepherd.getUser(submitterID);
     }
 
     public Vector getInterestedResearchers() {
@@ -4212,10 +4274,27 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("country", this.getCountry());
         jgen.writeStringField("behavior", this.getBehavior());
         jgen.writeStringField("patterningCode", this.getPatterningCode());
+        jgen.writeStringField("state", this.getState());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
+
+        jgen.writeArrayFieldStart("submitters");
+        for (String id : this.getAllSubmitterIds(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("photographers");
+        for (String id : this.getAllPhotographerIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("informOthers");
+        for (String id : this.getAllInformOtherIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
 
         List<String> kws = new ArrayList();
         Map<String, String> lkws = new HashMap<String, String>();

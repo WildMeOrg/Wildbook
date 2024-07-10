@@ -1061,13 +1061,13 @@ public class Shepherd {
     }
 
     public User getUser(String username) {
+        if (username == null) return null;
         User user = null;
         String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username.trim() +
             "\"";
         Query query = getPM().newQuery(filter);
         Collection c = (Collection)(query.execute());
         Iterator it = c.iterator();
-
         if (it.hasNext()) {
             user = (User)it.next();
         }
