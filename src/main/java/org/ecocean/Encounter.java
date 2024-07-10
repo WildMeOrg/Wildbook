@@ -42,6 +42,7 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -3272,6 +3273,16 @@ public class Encounter extends Base implements java.io.Serializable {
         return null;
     }
 
+    public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
+        Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
+
+        for (MeasurementDesc mdesc : Util.findMeasurementDescs("en", "context0")) {
+            BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
+            if (bm != null) meas.put(mdesc.getType(), bm);
+        }
+        return meas;
+    }
+
     public BiologicalMeasurement getBiologicalMeasurement(String type) {
         if (tissueSamples != null) {
             int numTissueSamples = tissueSamples.size();
@@ -4329,6 +4340,35 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
+        jgen.writeStringField("geneticSex", this.getGeneticSex());
+        jgen.writeStringField("haplotype", this.getHaplotype());
+
+        jgen.writeArrayFieldStart("tissueSampleIds");
+        for (String id : this.getTissueSampleIDs()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        Map<String, BiologicalMeasurement> bmeas = this.getBiologicalMeasurementsByType();
+        jgen.writeObjectFieldStart("biologicalMeasurements");
+        for (String type : (Set<String>)bmeas.keySet()) {
+            jgen.writeNumberField(type, bmeas.get(type).getValue());
+        }
+        jgen.writeEndObject();
+
+/* not really sure if we need to search on TissueSamples but just putting this in for reference
+
+    this.getTissueSamples()
+
+    private String tissueType;
+    private String preservationMethod;
+    private String storageLabID;
+    private String sampleID;
+    private String alternateSampleID;
+    private List<GeneticAnalysis> analyses;
+    private String permit;
+    private String state;
+ */
         myShepherd.rollbackAndClose();
     }
 
