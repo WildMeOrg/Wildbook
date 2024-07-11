@@ -17,6 +17,9 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.User;
+import org.ecocean.Util;
+import org.ecocean.Util.MeasurementDesc;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,6 +34,8 @@ public class SiteSettings extends ApiBase {
         myShepherd.setAction("api.SiteSettings");
         myShepherd.beginDBTransaction();
 
+        String langCode = ServletUtilities.getLanguageCode(request);
+        User currentUser = myShepherd.getUser(request);
         JSONObject settings = new JSONObject();
         // note: there is a CommonConfiguration property: htmlShortcutIcon=images/favicon.ico?v=2
         settings.put("siteFavicon", "/images/favicon.ico");
@@ -59,6 +64,10 @@ public class SiteSettings extends ApiBase {
         settings.put("measurement",
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
+        // TODO: there was some discussion in slack about this being derived differently
+        settings.put("encounterState",
+            CommonConfiguration.getIndexedPropertyValues("encounterState", context));
+
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         Object[] iac = iaConfig.getAllIAClasses().toArray();
         Arrays.sort(iac);
@@ -79,18 +88,12 @@ public class SiteSettings extends ApiBase {
         Arrays.sort(sortArray);
         settings.put("keyword", sortArray);
 
-        List<String> kwLabels = new ArrayList<String>();
-        List<String> kwValues = new ArrayList<String>();
+        JSONObject lkeyword = new JSONObject();
         for (LabeledKeyword lkw : myShepherd.getAllLabeledKeywords()) {
-            if (!kwLabels.contains(lkw.getLabel())) kwLabels.add(lkw.getLabel());
-            if (!kwValues.contains(lkw.getValue())) kwValues.add(lkw.getValue());
+            if (!lkeyword.has(lkw.getLabel())) lkeyword.put(lkw.getLabel(), new JSONArray());
+            lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
         }
-        sortArray = kwValues.toArray();
-        Arrays.sort(sortArray);
-        settings.put("labeledKeyword", sortArray);
-        sortArray = kwLabels.toArray();
-        Arrays.sort(sortArray);
-        settings.put("labeledKeywordLabel", sortArray);
+        settings.put("labeledKeyword", lkeyword);
 
         sortArray = myShepherd.getAllSocialUnitNames().toArray();
         Arrays.sort(sortArray);
@@ -115,6 +118,26 @@ public class SiteSettings extends ApiBase {
         ved.remove(null); // sloppy
         settings.put("verbatimEventDate", ved);
 
+        settings.put("haplotype", myShepherd.getAllHaplotypes());
+        settings.put("geneticSex", myShepherd.getAllGeneticSexes());
+        JSONObject biomeas = new JSONObject();
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs(langCode, context)) {
+            biomeas.put(mdesc.getType(), mdesc.getLabel());
+        }
+        settings.put("bioMeasurement", biomeas);
+        settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
+        // these are sensitive settings, that anon users should not get (e.g. user lists)
+        if (currentUser != null) {
+            JSONArray jarr = new JSONArray();
+            for (User user : myShepherd.getAllUsers("fullName")) {
+                JSONObject ju = new JSONObject();
+                ju.put("id", user.getId());
+                ju.put("username", user.getUsername());
+                ju.put("fullName", user.getFullName());
+                jarr.put(ju);
+            }
+            settings.put("users", jarr);
+        }
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
