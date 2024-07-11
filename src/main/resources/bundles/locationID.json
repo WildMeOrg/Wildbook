@@ -58,6 +58,11 @@
 			"locationID": []
 		  },
 		  {
+			"name": "KOBI",
+			"id": "KOBI",
+			"locationID": []
+		  },
+		  {
 			  "name": "Kriebethal/Ehrenberg",
 			  "id": "03",
 			  "locationID": []
@@ -498,6 +503,11 @@
 				  "long": 8.853
 			  },
 			  "locationID": []
+		  },
+		  {
+			"name": "Wolbecker Tiergarten",
+			"id": "Wolbecker Tiergarten",
+			"locationID": []
 		  },
 		  {
 			"name": "Zwickau",
