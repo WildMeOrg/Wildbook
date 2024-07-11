@@ -16,6 +16,7 @@ import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
 import org.ecocean.Organization;
+import org.ecocean.Project;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
@@ -144,6 +145,12 @@ public class SiteSettings extends ApiBase {
                 jarr.put(ju);
             }
             settings.put("users", jarr);
+
+            JSONObject jp = new JSONObject();
+            for (Project proj : myShepherd.getProjectsForUser(currentUser)) {
+                jp.put(proj.getId(), proj.getResearchProjectName());
+            }
+            settings.put("projectsForUser", jp);
         }
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
