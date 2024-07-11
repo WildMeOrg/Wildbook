@@ -215,12 +215,33 @@
 	},
 	{
 		"name":"Indian Ocean", "id":"IndianOcean",
+		"defaultLatitude": -20.0,
+		"defaultLongitude": 80.0,
 		"locationID":[
-
-
-
-		    { "name":"Maldives", "id":"Maldives", "locationID":[
-
+			{"name": "Arabian Sea", "id":"Arabian sea" },
+			{ "name":"Bangladesh", "id":"BANGLADESH - West", "locationID":[] },
+			{"name":"India","id":"India","locationID":[]},
+			{"name": "Indonesia", "id": "Indonesia", "locationID":[
+				{"name": "Andaman Sea", "id": "Andaman Sea" },
+				{"name": "Arafura Sea", "id": "6" },
+				{"name": "Banda Sea", "id": "Banda Sea" },
+				{"name": "Bali Sea", "id": "7" },
+				{"name": "Celebes Sea", "id": "Celebes Sea"  },
+				{"name": "Ceram Sea", "id": "Ceram Sea" },
+				{"name": "Flores Sea", "id": "Flores Sea" },
+				{"name": "Halmahera Sea", "id": "Halmahera Sea" },
+				{"name": "Java Sea", "id": "Java Sea" },
+				{"name": "Molucca Sea", "id": "Molucca Sea" },
+				{"name": "Philippine Sea", "id": "Philippine Sea" }
+		] },
+			{"name": "Laccadive Sea", "id": "Laccadive Sea" },
+			{"name":"Madagascar","id":"Madagascar",
+			"locationID":[
+					{"name": "Nosy Be" ,"id": "Nosy Be"},
+					{"name": "Nosy Iranja" ,"id": "Nosy Iranja"},
+					{"name": "Nosy Mitsio" ,"id": "Nosy Mitsio"}
+				]},
+		    {"name": "Maldives", "id":"Maldives", "locationID":[
 				{ "name":"Addu", "id":"Addu", "locationID":[] },
 				{ "name":"Ari", "id":"Ari", "locationID":[] },
 				{ "name":"Baa", "id":"Baa", "locationID":[] },
@@ -239,100 +260,29 @@
 				{ "name":"Shaviyani", "id":"Shaviyani", "locationID":[] },
 				{ "name":"Thaa", "id":"Thaa", "locationID":[] },
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
-
 		] },
-
-		{
-			"name": "Indonesia", "id": "Indonesia", "locationID":[
-				{
-					"name": "Andaman Sea", "id": "Andaman Sea" },
-				{
-					"name": "Arafura Sea", "id": "6" },
-				{
-					"name": "Banda Sea", "id": "Banda Sea" },
-				{
-					"name": "Bali Sea", "id": "7" },
-				{
-					"name": "Celebes Sea", "id": "Celebes Sea"  },
-				{
-					"name": "Ceram Sea", "id": "Ceram Sea" },
-				{
-					"name": "Flores Sea", "id": "Flores Sea" },
-				{
-					"name": "Halmahera Sea", "id": "Halmahera Sea" },
-				{
-					"name": "Java Sea", "id": "Java Sea" },
-				{
-					"name": "Molucca Sea", "id": "Molucca Sea" },
-				{
-					"name": "Philippine Sea", "id": "Philippine Sea" }
-
-		] },
-
-		 { "name":"Bangladesh", "id":"BANGLADESH - West", "locationID":[] },
-
-		 {"name":"India","id":"India","locationID":[]},
-		 {"name":"Pakistan","id":"Pakistan","locationID":[
-			{ "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
+		   {"name": "Mauritius", "id": "Mauritius" },
+		   {"name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
+			{"name":"Mozambique", "id":"Mozambique", "locationID":[
+			   {"name": "Jangamo Bay", "id": "Jangamo Bay" }
+		   ] }
+		 ] },
+		   {"name":"Oman","id":"Oman", "locationID":[]},
+		   {"name":"Pakistan","id":"Pakistan","locationID":[
+			   { "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
 		 ]},
-
-
-		 {
-		  "name": "Andaman Sea", "id": "Andaman Sea" },
-		 {
-		  "name": "Arabian Sea", "id":"Arabian sea" },
-
-		 {
-		  "name": "Laccadive Sea", "id": "Laccadive Sea" },
-		  
-		  {
-		  "name": "Mauritius", "id": "Mauritius" },
-		  
-		 {
-		  "name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
-
-			{ "name":"Mozambique", "id":"Mozambique", "locationID":[
-			
-				{"name": "Jangamo Bay", "id": "Jangamo Bay" }
-			
-			
-			] }
-
-		  ] },
-		 {
-		  "name": "Persian Gulf", "id": "Persian Gulf" },
-		 {
-		  "name": "Red Sea", "id":"Red Sea",
+		  {"name": "Persian Gulf", "id": "Persian Gulf" },
+		  {"name": "Red Sea", "id":"Red Sea",
 		  "locationID":[
 		    {"name":"Israel","id":"Israel"}
-		  ]
-		  },
+		  ]},
+		  {"name": "Réunion", "id": "Reunion"},
           {"name": "Seychelles", "id": "Seychelles" },
-		 {
-		  "name": "Timor Sea" , "id": "Timor Sea"
-		  },
-		  {"name":"Madagascar","id":"Madagascar",
-		  "locationID":[
-				  {
-				  "name": "Nosy Be" ,"id": "Nosy Be"
-				  },
-				  {
-				  "name": "Nosy Iranja" ,"id": "Nosy Iranja"
-				  },
-				  {
-				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
-				  }
-			  ]
-			},
-		  {"name":"Oman","id":"Oman", "locationID":[]},
-
+		  {"name": "Timor Sea" , "id": "Timor Sea"},
 		  {"name":"Yemen","id":"Yemen","locationID":[
-		  				{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
+		  		{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
 		  ]}
-
-		],
-		"defaultLatitude": -20.0,
-		"defaultLongitude": 80.0
+		]
 	},
 
 	{ "name":"Brazil", "id":"Brazil", "locationID":[
