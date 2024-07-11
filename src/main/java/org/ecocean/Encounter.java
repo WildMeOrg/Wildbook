@@ -2672,6 +2672,10 @@ public class Encounter extends Base implements java.io.Serializable {
         if (researchers != null) this.submitterResearchers = new ArrayList<String>(researchers);
     }
 
+    public List<Project> getProjects(Shepherd myShepherd) {
+        return myShepherd.getProjectsForEncounter(this);
+    }
+
     // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
     /*
@@ -4279,7 +4283,11 @@ public class Encounter extends Base implements java.io.Serializable {
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
-
+        if (this.submitterID == null) {
+            jgen.writeNullField("assignedUsername");
+        } else {
+            jgen.writeStringField("assignedUsername", this.submitterID);
+        }
         jgen.writeArrayFieldStart("submitters");
         for (String id : this.getAllSubmitterIds(myShepherd)) {
             jgen.writeString(id);
@@ -4317,6 +4325,14 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField(kwLabel, lkws.get(kwLabel));
         }
         jgen.writeEndObject();
+
+        List<Project> projs = this.getProjects(myShepherd);
+        jgen.writeArrayFieldStart("projects");
+        if (projs != null)
+            for (Project proj : projs) {
+                jgen.writeString(proj.getId());
+            }
+        jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("annotationViewpoints");
         for (String vp : this.getAnnotationViewpoints()) {
