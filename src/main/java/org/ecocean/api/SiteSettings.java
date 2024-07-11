@@ -134,6 +134,12 @@ public class SiteSettings extends ApiBase {
         }
         settings.put("bioMeasurement", biomeas);
         settings.put("showMeasurements", CommonConfiguration.showMeasurements(context));
+
+        JSONArray loci = new JSONArray();
+        for (String locus : myShepherd.getAllLoci()) {
+            loci.put(locus);
+        }
+        settings.put("loci", loci);
         // these are sensitive settings, that anon users should not get (e.g. user lists)
         if (currentUser != null) {
             JSONArray jarr = new JSONArray();

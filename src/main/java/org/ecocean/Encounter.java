@@ -2918,6 +2918,20 @@ public class Encounter extends Base implements java.io.Serializable {
         return null;
     }
 
+    public List<MicrosatelliteMarkersAnalysis> getMicrosatelliteMarkers() {
+        List<MicrosatelliteMarkersAnalysis> markers =
+            new ArrayList<MicrosatelliteMarkersAnalysis>();
+
+        if (tissueSamples == null) return markers;
+        for (TissueSample tsamp : tissueSamples) {
+            for (GeneticAnalysis gan : tsamp.getGeneticAnalyses()) {
+                if (!"MicrosatelliteMarkers".equals(gan.getAnalysisType())) continue;
+                markers.add((MicrosatelliteMarkersAnalysis)gan);
+            }
+        }
+        return markers;
+    }
+
     public List<SinglePhotoVideo> getImages() { return images; }
 
     public boolean hasAnnotation(Annotation ann) {
@@ -4216,47 +4230,6 @@ public class Encounter extends Base implements java.io.Serializable {
         return Base.opensearchQuery("encounter", query, numFrom, pageSize, sort, sortOrder);
     }
 
-/*
- * Country (multiselect dropdown, loads from commonConfig)
- * Sighting dates (date (not datetime) from sighting)
- * Verbatim event date (multiselect dropdown)
- * Observation search (label:value search)
- * behavior (multiselect dropdown)
- * Group role (dropdown)
- * Patterning code (dropdown, loads from commonConfig)
- * measurements (number range) (water temp and salinity by default, different list loads from commonConfig)
- * has photo (toggle)
- * labeled keyword (label dropdown, value multiselect dropdown)
- * keyword (multiselect dropdown)
- * individual resighting (toggle with threshold)
- * no ID (toggle)
- * alternate ID (text search partial match)
- * individual name (text search partial match)
- * metal tag (text search partial match) (true by default, different list loads from commonConfig)
- * acoustic tag (true by default, set in commonConfig)
- ** serial number (text search partial match)
- ** acoustic tag ID (text search partial match)
- * satellite tag (true by default, set in commonConfig)
- ** satellite tag name (dropdown, loads from config)
- ** satellite tag serial number (text search partial match)
- ** satellite tag argos ptt number (text search partial match)
- * has bio sample (toggle)
- * biological sample ID (text search partial match)
- * bio sample haplotype (dropdown multiselect) (set in haplotypeColorCodes)
- * bio sample sex (dropdown multiselect)
- * bio measurements (list comes from commonConfig) (number range)
- * microsatellite marker (list comes from config?) (multiselect + 2 text search partial match for each + a fuzzy match adjuster)
- * social unit (dropdown multiselect)
- * social role match required (toggle)
- * social role (dropdown multiselect)
- * encounter type (dropdown multiselect, load from commonConfig)
- * submitter/photographer/inform (text search partial match)
- * Sighting ID (text search partial match) (probably needs to return both Encounter.OccurrenceID and Occurrence.OccurrenceID because it doesn't work right now)
- * Organization ID (dropdown multiselect)
- * Project name (dropdown multiselect)
- * observation comments (text search partial match)
- * assigned (multiselect dropdown (should go back to username based on user feedback)
- */
     public void opensearchDocumentSerializer(JsonGenerator jgen)
     throws IOException, JsonProcessingException {
         super.opensearchDocumentSerializer(jgen);
@@ -4439,6 +4412,26 @@ public class Encounter extends Base implements java.io.Serializable {
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
         jgen.writeStringField("geneticSex", this.getGeneticSex());
         jgen.writeStringField("haplotype", this.getHaplotype());
+
+        jgen.writeArrayFieldStart("microsatelliteMarkers");
+        for (MicrosatelliteMarkersAnalysis msm : getMicrosatelliteMarkers()) {
+            jgen.writeStartObject();
+            jgen.writeStringField("analysisId", msm.getAnalysisID());
+            jgen.writeObjectFieldStart("loci");
+            if (msm.getLoci() != null)
+                for (Locus locus : msm.getLoci()) {
+                    if (locus.getName() == null) continue; // snh
+                    jgen.writeArrayFieldStart(locus.getName());
+                    for (int i = 0; i < 4; i++) {
+                        Integer allele = locus.getAllele(i);
+                        if (allele != null) jgen.writeNumber(allele);
+                    }
+                    jgen.writeEndArray();
+                }
+            jgen.writeEndObject();
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
 
         Occurrence occ = this.getOccurrence(myShepherd);
         if (occ == null) {
