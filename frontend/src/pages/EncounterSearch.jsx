@@ -24,6 +24,8 @@ export default function EncounterSearch() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(10);
 
+  console.log("=============>>>>>>>>>>>>>", formFilters);
+
   const formFilters1 = {
     "query": {
       "bool": {

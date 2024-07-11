@@ -18,6 +18,7 @@ import SocialFilter from '../../components/filterFields/SocialFilter';
 import MetadataFilter from '../../components/filterFields/MetadataFilter';
 
 import useGetSiteSettings from '../../models/useGetSiteSettings';
+import BiologicalSamplesAndAnalysesFilter from '../../components/filterFields/BiologicalSamplesAndAnalysesFilter';
 
 export default function useEncounterSearchSchemas() {
   // const {
@@ -70,7 +71,7 @@ export default function useEncounterSearchSchemas() {
     {
       id: 'biologicalSample',
       labelId: 'Biological Sample',
-      FilterComponent: IdentityFilter,
+      FilterComponent: BiologicalSamplesAndAnalysesFilter,
     },
     {
       id: 'social',
