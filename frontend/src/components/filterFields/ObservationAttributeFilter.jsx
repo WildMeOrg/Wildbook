@@ -1,36 +1,47 @@
-import Description from "../Description";
+import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
-import { Form, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
 import BrutalismButton from "../BrutalismButton";
-import MultiSelect from "../MultiSelect";
+import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
+import FormGroupText from "../Form/FormGroupText";
+import FormDualInput from "../Form/FormDualInput";
+import { FormLabel, FormGroup } from "react-bootstrap";
+import FormMeasurements from "../Form/FormMeasurements";
 
-export default function ObservationAttributeFilter() {
-    
+export default function ObservationAttributeFilter(
+    { onChange }
+) {
+
     const sexOptions = [
         {
-            id: 1,
-            value: "female",
-            name: "Female"
+            value: 'Australia',
+            label: "Australia"
         },
         {
-            id: 2,
-            value: "male",
-            name: "Male"
+            value: 'Cambodia',
+            label: "Cambodia"
         },
-        {
-            id: 3,
-            value: "unknown",
-            name: "Unknown"
-        },
+
     ];
     const lifeStatusOptions = [];
-    const genusAndSpeciesOptions = [];
-
+    const genusAndSpeciesOptions = [
+        {
+            value: 'Equus quagga',
+            label: "Equus quagga"
+        },
+        {
+            value: 'Equus quagga',
+            label: "Equus quagga"
+        },
+    ];
+    const behaviourOptions = [];
+    const patternCodeOptions = [];
+    const measurementsOptions = [ "WaterTemperature",
+        "Salinity"];
 
     const options = [
-        { value: '1', label: 'Behaviour 1'},
-        { value: '2', label: 'Behaviour 2'},
-        { value: '3', label: 'Behaviour 3'}
+        { value: '1', label: 'Behaviour 1' },
+        { value: '2', label: 'Behaviour 2' },
+        { value: '3', label: 'Behaviour 3' }
     ];
 
 
@@ -40,90 +51,35 @@ export default function ObservationAttributeFilter() {
             <Description>
                 <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
             </Description>
-            <FormGroup>
-                <FormLabel><FormattedMessage id="FILTER_SEX" /></FormLabel>
-                <Description>
-                    <FormattedMessage id="FILTER_SEX_DESC" />
-                </Description>
 
-                <FormSelect>
-                    {sexOptions.map((location) => (
-                        <option key={location.id} value={location.id}>
-                            {location.name}
-                        </option>
-                    ))}
-                </FormSelect>
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_SEX"
+                options={sexOptions}
+            />
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_LIFE_STATUS"
+                options={lifeStatusOptions}
+            />
 
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel><FormattedMessage id="FILTER_LIFE_STATUS" /></FormLabel>
-                <Description>
-                    <FormattedMessage id="FILTER_LIFE_STATUS_DESC" />
-                </Description>
-                <FormSelect>
-                    {lifeStatusOptions.map((location) => (
-                        <option key={location.id} value={location.id}>
-                            {location.name}
-                        </option>
-                    ))}
-                </FormSelect>
-
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel><FormattedMessage id="FILTER_GENUS_AND_SPECIES" /></FormLabel>
-                <Description>
-                    <FormattedMessage id="FILTER_GENUS_AND_SPECIES_DESC" />
-                </Description>
-                <FormSelect>
-                    {genusAndSpeciesOptions.map((location) => (
-                        <option key={location.id} value={location.id}>
-                            {location.name}
-                        </option>
-                    ))}
-                </FormSelect>
-
-            </FormGroup>
-
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_GENUS_AND_SPECIES"
+                options={genusAndSpeciesOptions}
+                onChange={onChange}
+              
+            />
             <FormGroup>
                 <FormLabel><FormattedMessage id="FILTER_OBSERVATION_SEARCH" /></FormLabel>
                 <Description>
                     <FormattedMessage id="FILTER_OBSERVATION_SEARCH_DESC" />
                 </Description>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    gap: '10px',
-                    marginBottom: '10px',
-                }}>
-                    <div className="w-50">
-                        <FormLabel><FormattedMessage id="FILTER_OBSERVATION_NAME" /></FormLabel>
-                        <FormControl type="text" placeholder="Type Here" />
-                    </div>
-                    <div className="w-50">
-                        <FormLabel><FormattedMessage id="FILTER_OBSERVATION_VALUE" /></FormLabel>
-                        <FormControl type="text" placeholder="Type Here" />
-                    </div>
-
-                </div>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    gap: '10px',
-                }}>
-                    <div className="w-50">
-                        <FormLabel><FormattedMessage id="FILTER_OBSERVATION_NAME" /></FormLabel>
-                        <FormControl type="text" placeholder="Type Here" />
-                    </div>
-                    <div className="w-50">
-                        <FormLabel><FormattedMessage id="FILTER_OBSERVATION_VALUE" /></FormLabel>
-                        <FormControl type="text" placeholder="Type Here" />
-                    </div>
-
-                </div>
+                <FormDualInput
+                    label1="FILTER_OBSERVATION_NAME"
+                    label2="FILTER_OBSERVATION_VALUE"
+                    width="50"
+                />
             </FormGroup>
 
             <BrutalismButton style={{
@@ -137,24 +93,41 @@ export default function ObservationAttributeFilter() {
                 <FormattedMessage id="FILTER_ADD_OBSERVATION_SEARCH" />
             </BrutalismButton>
 
+            <FormGroupText
+                label="FILTER_OBSERVATION_COMMENTS_INCLUDE"
+            />
+
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_DEMONSTRATED_BEHAVIOUR"
+                options={behaviourOptions}
+            />
+
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_PATTERNING_CODE"
+                options={patternCodeOptions}
+            />
+
             <FormGroup>
-                <FormLabel><FormattedMessage id="FILTER_OBSERVATION_COMMENTS_INCLUDE" /></FormLabel>
+                <FormLabel><FormattedMessage id="FILTER_MEASUREMENTS" /></FormLabel>
                 <Description>
-                    <FormattedMessage id="FILTER_OBSERVATION_COMMENTS_INCLUDE_DESC" />
+                    <FormattedMessage id="FILTER_MEASUREMENTS_DESC" />
                 </Description>
-                <FormControl type="text" placeholder="Type Here" />
+                
 
-            </FormGroup>
-
-            <FormGroup>
-                <FormLabel><FormattedMessage id="FILTER_DEMONSTRATED_BEHAVIOUR" /></FormLabel>
-                <Description>
-                    <FormattedMessage id="FILTER_DEMONSTRATED_BEHAVIOUR_DESC" />
-                </Description>
-
-                <MultiSelect
-                    options={options}
-                />
+                {
+                    measurementsOptions.map((option, index) => {
+                        return (
+                            <FormMeasurements
+                                label1={option}
+                                label2={option}
+                                key={option}
+                                width="30"
+                            />
+                        );
+                    })
+                }
 
             </FormGroup>
 

@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 import Map from "../Map";
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
 import { useState } from 'react';
-import Description from '../Description';
+import Description from '../Form/Description';
 
 
 export default function LocationFilterMap() {
@@ -12,9 +12,9 @@ export default function LocationFilterMap() {
 
     return (
         <div>
-            <h3><FormattedMessage id="LOCATION_MAP" /></h3>
+            <h3><FormattedMessage id="FILTER_LOCATION_MAP" /></h3>
             <Description>
-                <FormattedMessage id="LOCATION_MAP_DESC" />
+                <FormattedMessage id="FILTER_LOCATION_MAP_DESC" />
             </Description>
 
             <div style={{
@@ -45,7 +45,7 @@ export default function LocationFilterMap() {
                 bounds={bounds}
                 setBounds={setBounds}
             />
-            <FormattedMessage id="GPS_COORDINATES" />
+            <FormattedMessage id="FILTER_GPS_COORDINATES" />
 
         </div>
     );

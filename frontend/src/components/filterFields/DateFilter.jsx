@@ -1,5 +1,5 @@
 import { FormattedMessage } from "react-intl";
-import Description from "../Description";
+import Description from "../Form/Description";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 
 export default function DateFilter() {
