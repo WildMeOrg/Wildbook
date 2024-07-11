@@ -15,6 +15,7 @@ import org.ecocean.IAJsonProperties;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.LocationID;
+import org.ecocean.Organization;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
@@ -94,6 +95,12 @@ public class SiteSettings extends ApiBase {
             lkeyword.getJSONArray(lkw.getLabel()).put(lkw.getValue());
         }
         settings.put("labeledKeyword", lkeyword);
+
+        JSONObject orgs = new JSONObject();
+        for (Organization org : myShepherd.getAllOrganizations()) {
+            orgs.put(org.getId(), org.getName());
+        }
+        settings.put("organizations", orgs);
 
         sortArray = myShepherd.getAllSocialUnitNames().toArray();
         Arrays.sort(sortArray);

@@ -4422,6 +4422,20 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("geneticSex", this.getGeneticSex());
         jgen.writeStringField("haplotype", this.getHaplotype());
 
+        Occurrence occ = this.getOccurrence(myShepherd);
+        if (occ == null) {
+            jgen.writeNullField("occurrenceId");
+        } else {
+            jgen.writeStringField("occurrenceId", occ.getId());
+        }
+        jgen.writeArrayFieldStart("organizations");
+        User owner = this.getSubmitterUser(myShepherd);
+        if ((owner != null) && (owner.getOrganizations() != null))
+            for (Organization org : owner.getOrganizations()) {
+                jgen.writeString(org.getId());
+            }
+        jgen.writeEndArray();
+
         jgen.writeArrayFieldStart("tissueSampleIds");
         for (String id : this.getTissueSampleIDs()) {
             jgen.writeString(id);
