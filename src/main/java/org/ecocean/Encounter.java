@@ -4279,6 +4279,8 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("behavior", this.getBehavior());
         jgen.writeStringField("patterningCode", this.getPatterningCode());
         jgen.writeStringField("state", this.getState());
+        jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
+        jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
