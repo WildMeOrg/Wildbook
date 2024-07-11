@@ -13,11 +13,21 @@ export default function useFilterEncounters({ queries, params = {} }) {
     bool: { filter: filterQueries, must_not: mustNotQueries || [] },
   };
 
+  const compisiteQuery = 
+    {
+      "query" : {
+         "bool" : {
+            "filter" : queries
+         }
+      }
+   }
+  
+
   return useFetch({
         method: "post",
         queryKey: getEncounterFilterQueryKey(queries, params),
         url: "/search/encounter",
-        data: queries,
+        data: compisiteQuery,
         params: {
           sort: "date",
           //reverse: false,
