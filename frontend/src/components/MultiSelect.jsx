@@ -9,15 +9,23 @@ const colourStyles = {
     singleValue: (styles) => ({ ...styles, color: 'black' }), 
 };
 
-export default function MultiSelect({ options, onChange }) {
+export default function MultiSelect({ isMulti, options, onChange }) {
     return (
         <Select
-            isMulti
+            isMulti = {isMulti}
             options={options}
             className="basic-multi-select"
             classNamePrefix="select"
             styles={colourStyles}
-            onChange={onChange}
+            onChange={(e) =>
+                onChange({
+                    "match": {
+                        ["taxonomy"]: e.value
+                    }
+
+                })
+            }
+            // onChange={(e) => console.log(e)}
         />
     );
 }
