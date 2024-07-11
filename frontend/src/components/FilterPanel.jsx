@@ -123,7 +123,6 @@ export default function FilterPanel({
               className='d-flex justify-content-between align-items-center'
               style={{
                 width: "100%",
-                
                 height: "50px",
                 borderRadius: '10px',
                 padding: '10px',
@@ -149,25 +148,24 @@ export default function FilterPanel({
             </div>
           })}
           <div className="d-flex flex-row mt-5">
-            <BrutalismButton style={{
-              color: "white",
-              backgroundColor: theme.primaryColors.primary700,
-              borderColor: theme.primaryColors.primary700,
-            }}>
+            <BrutalismButton
+              color="white"
+              backgroundColor= {theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}>
               APPLY
             </BrutalismButton>
             <BrutalismButton style={{
               color: theme.primaryColors.primary700,
-              borderColor: theme.primaryColors.primary700,
-            }}>
+
+            }}
+              borderColor={theme.primaryColors.primary700}>
               RESET
             </BrutalismButton>
           </div>
 
         </div>
         <div style={{
-          minWidth: '700px',
-          maxWidth: '900px',
+          width: '900px',
           maxHeight: '700px',
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(3px)',
