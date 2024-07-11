@@ -42,6 +42,7 @@ import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -967,6 +968,64 @@ public class Encounter extends Base implements java.io.Serializable {
         return photographerPhone;
     }
 
+    // this is a cruddy "solution" to .submitterName and .submitters existing simultaneously
+    public Set<String> getAllSubmitterIds(Shepherd myShepherd) {
+        Set<String> all = new HashSet<String>();
+        User owner = this.getSubmitterUser(myShepherd);
+
+        if (owner == null) {
+            all.add(this.submitterID);
+            all.add(this.submitterEmail);
+        } else {
+            all.add(owner.getUsername());
+            all.add(owner.getFullName());
+            all.add(owner.getId());
+            all.add(owner.getEmailAddress());
+        }
+        if (this.submitters != null)
+            for (User user : this.submitters) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    // similar to above
+    public Set<String> getAllPhotographerIds() {
+        Set<String> all = new HashSet<String>();
+
+        all.add(this.photographerName);
+        if (this.photographers != null)
+            for (User user : this.photographers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    public Set<String> getAllInformOtherIds() {
+        Set<String> all = new HashSet<String>();
+
+        if (this.informOthers != null)
+            for (User user : this.informOthers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
     public String getWebUrl(HttpServletRequest req) {
         return getWebUrl(this.getCatalogNumber(), req);
     }
@@ -1613,6 +1672,10 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public String getAssignedUsername() {
         return submitterID;
+    }
+
+    public User getSubmitterUser(Shepherd myShepherd) {
+        return myShepherd.getUser(submitterID);
     }
 
     public Vector getInterestedResearchers() {
@@ -3272,6 +3335,16 @@ public class Encounter extends Base implements java.io.Serializable {
         return null;
     }
 
+    public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
+        Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
+
+        for (MeasurementDesc mdesc : Util.findMeasurementDescs("en", "context0")) {
+            BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
+            if (bm != null) meas.put(mdesc.getType(), bm);
+        }
+        return meas;
+    }
+
     public BiologicalMeasurement getBiologicalMeasurement(String type) {
         if (tissueSamples != null) {
             int numTissueSamples = tissueSamples.size();
@@ -3341,6 +3414,15 @@ public class Encounter extends Base implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, context, username);
     }
 
+    /*
+       this really is ugly cuz what is "view" vs "access", but i do NOT want to futz with canUserAccess() and
+       cause unintended consequences. so, for now, canUserView() is pretty much exclusively for search
+     */
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user,
+                myShepherd.getContext()));
+    }
+
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
@@ -3356,7 +3438,7 @@ public class Encounter extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext()))
+            if ((user.getId() != null) && this.canUserView(user, myShepherd))
                 ids.add(user.getId());
         }
         return ids;
@@ -4192,10 +4274,27 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("country", this.getCountry());
         jgen.writeStringField("behavior", this.getBehavior());
         jgen.writeStringField("patterningCode", this.getPatterningCode());
+        jgen.writeStringField("state", this.getState());
 
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
+
+        jgen.writeArrayFieldStart("submitters");
+        for (String id : this.getAllSubmitterIds(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("photographers");
+        for (String id : this.getAllPhotographerIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("informOthers");
+        for (String id : this.getAllInformOtherIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
 
         List<String> kws = new ArrayList();
         Map<String, String> lkws = new HashMap<String, String>();
@@ -4320,6 +4419,35 @@ public class Encounter extends Base implements java.io.Serializable {
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
+        jgen.writeStringField("geneticSex", this.getGeneticSex());
+        jgen.writeStringField("haplotype", this.getHaplotype());
+
+        jgen.writeArrayFieldStart("tissueSampleIds");
+        for (String id : this.getTissueSampleIDs()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        Map<String, BiologicalMeasurement> bmeas = this.getBiologicalMeasurementsByType();
+        jgen.writeObjectFieldStart("biologicalMeasurements");
+        for (String type : (Set<String>)bmeas.keySet()) {
+            jgen.writeNumberField(type, bmeas.get(type).getValue());
+        }
+        jgen.writeEndObject();
+
+/* not really sure if we need to search on TissueSamples but just putting this in for reference
+
+    this.getTissueSamples()
+
+    private String tissueType;
+    private String preservationMethod;
+    private String storageLabID;
+    private String sampleID;
+    private String alternateSampleID;
+    private List<GeneticAnalysis> analyses;
+    private String permit;
+    private String state;
+ */
         myShepherd.rollbackAndClose();
     }
 
