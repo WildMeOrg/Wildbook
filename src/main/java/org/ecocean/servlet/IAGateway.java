@@ -385,6 +385,17 @@ public class IAGateway extends HttpServlet {
                 taskRes.put("success", false);
                 taskRes.put("error", ex.toString());
                 System.out.println(">>>>>>> parentTask: " + parentTask);
+                // in fact, this exception should be treated differently
+                if (ex.toString().contains("emptyTargetAnnotations")) {
+                    System.out.println("unrecoverable failure; will NOT requeue " + subTask);
+                    taskRes.put("subTaskId", subTask.getId());
+                    taskRes.put("subTaskIndex", i);
+                    taskList.put(taskRes);
+                    res.put("tasks", taskList);
+                    res.put("success", false);
+                    res.put("skipRequeue", true);
+                    return res;
+                }
                 JSONObject jobj = new JSONObject();
                 jobj.put("identify", new JSONObject());
                 jobj.getJSONObject("identify").put("annotationIds", new JSONArray());
@@ -730,7 +741,7 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " +
                     rtn.toString());
-                if (!rtn.optBoolean("success", false)) {
+                if (!rtn.optBoolean("success", false) && !rtn.optBoolean("skipRequeue", false)) {
                     requeueIncrement = true;
                     requeue = true;
                     myShepherd.rollbackDBTransaction();
