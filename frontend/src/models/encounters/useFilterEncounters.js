@@ -10,24 +10,24 @@ export default function useFilterEncounters({ queries, params = {} }) {
   const mustNotQueries = mustNots.map((f) => f.query);
 
   const compositeQuery = {
-    bool: { filter: filterQueries, must_not: mustNotQueries || [] },
+    "query": {bool: { filter: filterQueries, must_not: mustNotQueries || [] }},
   };
 
-  const compisiteQuery = 
-    {
-      "query" : {
-         "bool" : {
-            "filter" : queries
-         }
-      }
-   }
+  // const compisiteQuery = 
+  //   {
+  //     "query" : {
+  //        "bool" : {
+  //           "filter" : queries
+  //        }
+  //     }
+  //  }
   
 
   return useFetch({
         method: "post",
         queryKey: getEncounterFilterQueryKey(queries, params),
         url: "/search/encounter",
-        data: compisiteQuery,
+        data: compositeQuery,
         params: {
           sort: "date",
           //reverse: false,
