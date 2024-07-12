@@ -42,6 +42,12 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.transport.httpclient5.ApacheHttpClient5TransportBuilder;
 import org.opensearch.client.transport.OpenSearchTransport;
 
+import java.lang.Runnable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 // https://opensearch.org/docs/latest/clients/java/
 // https://github.com/opensearch-project/opensearch-java/blob/main/USER_GUIDE.md
 
@@ -54,6 +60,8 @@ public class OpenSearch {
     public static String SEARCH_PIT_TIME = "10m";
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
+    public static int BACKGROUND_DELAY_MINUTES = 20;
+    public static int BACKGROUND_SLICE_SIZE = 1000;
 
     private int pitRetry = 0;
 
@@ -115,6 +123,36 @@ public class OpenSearch {
 
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
+
+    public static void backgroundStartup(String context) {
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(2);
+        final ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("OpenSearch.background");
+                try {
+                    myShepherd.beginDBTransaction();
+                    System.out.println("OpenSearch background running...");
+                    Encounter.opensearchSyncIndex(myShepherd, BACKGROUND_SLICE_SIZE);
+                    System.out.println("OpenSearch background finished.");
+                    myShepherd.rollbackAndClose();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    myShepherd.rollbackAndClose();
+                }
+            }
+        }, 2, // initial delay
+            BACKGROUND_DELAY_MINUTES, // period delay *after* execution finishes
+            TimeUnit.MINUTES); // unit of delays above
+
+        try {
+            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (java.lang.InterruptedException ex) {
+            System.out.println("WARNING: OpenSearch.backgroundStartup(" + context +
+                ") interrupted: " + ex.toString());
+        }
+        System.out.println("OpenSearch.backgroundStartup(" + context + ") backgrounded");
+    }
 
     public void createIndex(String indexName, JSONObject mapping)
     throws IOException {
