@@ -5,14 +5,16 @@ import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
 
 
-export default function TagsFilter() {
-  const metalTagLocations = [
-    "Metal Tag Location 1",
-    "Metal Tag Location 2",
-    "Metal Tag Location 3",
-    "Metal Tag Location 4",
-    "Metal Tag Location 5",
-  ];
+export default function TagsFilter({
+  data, 
+  onChange
+}) {
+  const metalTagLocations = data?.metalTagLocation?.map((item) => {
+    return {
+      value: item,
+      label: item
+    };
+  }) || [];
   return (
     <div>
       <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
@@ -25,6 +27,10 @@ export default function TagsFilter() {
           <FormGroupText
             noDesc={true}
             label={location}
+            filterId={location}
+            field={location}
+            term="match"
+            onChange={onChange}
           />
         );
       })}
