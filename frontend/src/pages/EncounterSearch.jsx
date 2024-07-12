@@ -22,70 +22,7 @@ export default function EncounterSearch() {
   const schemas = useEncounterSearchSchemas();
 
   const [page, setPage] = useState(0);
-  const [perPage, setPerPage] = useState(10);
-
-  console.log("=============>>>>>>>>>>>>>", formFilters);
-
-  const formFilters1 = {
-    "query": {
-      "bool": {
-        "filter": [
-
-          //   {
-          //     "match" : {
-          //        "taxonomy" : "Giraffa tippelskirchi"
-          //     }
-          //  },
-
-          //  {
-          //     "match" : {
-          //        "individualId" : "924911ec-3c40-4678-ae29-1b4e38523f17"
-          //     }
-          //  },
-
-          // {
-          //      "match" : {
-          //      "numberAnnotations" : "1"
-          //      }
-          // },
-
-          // {
-          //      "match" : {
-          //      "id" : "a29b7e4b-e19b-4973-99e9-39a9ce12559e"
-          //      }
-          // },
-
-          // {
-          //     "range" : {
-          //        "numberAnnotations" : {
-          //           "gte" : 1,
-          //           "lte" : 5
-          //        }
-          //     }
-          //  },
-
-          //  {
-          //     "range": {
-          //        "date": {
-          //           "gte": "2022-01-01T00:00:00Z",
-          //           "lte": "2024-12-31T23:59:59Z"
-          //        }
-          //     }
-          //  },
-          // {
-          //   geo_distance: {
-          //     distance: "500km",
-          //     locationGeoPoint: {
-          //       lat: 11,
-          //       lon: 22
-          //     }
-          //   }
-          // }
-        ],
-        "must_not": []
-      }
-    }
-  }
+  const [perPage, setPerPage] = useState(20);
 
   const { data: encounterData, loading } = useFilterEncounters({
     queries: formFilters,
@@ -100,24 +37,22 @@ export default function EncounterSearch() {
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
 
-  useEffect(() => {
-    console.log("Page: ", page);
-    console.log("PerPage: ", perPage);
-  }, [page, perPage]);
-
   return (
 
-    <div className="encounter-search"
+    <div className="encounter-search container-fluid"
       style={{
         backgroundImage: "url('/react/images/encounter_search_background.png')",
         backgroundSize: "cover",
         height: "800px",
-        width: "100%",
+        width: "100%",        
+        overflow: "auto",
+        padding: "20px",
       }}
     >
       {filterPanel ? <FilterPanel
         formFilters={formFilters}
         setFormFilters={setFormFilters}
+        setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
         schemas={schemas}
       />

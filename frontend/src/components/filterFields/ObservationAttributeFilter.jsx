@@ -8,42 +8,43 @@ import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
 
 export default function ObservationAttributeFilter(
-    { onChange }
+    { onChange,
+      data,
+     }
 ) {
+    const sexOptions = data?.sex?.map((item) => {
+        return {
+            value: item,
+            label: item
+        };
+    }) || [];
+    const livingStatusOptions = data?.livingStatus?.map(item => {
+        return {
+            value: item,
+            label: item
+        };
+    })||[];
+    const genusAndSpeciesOptions = data?.siteTaxonomies?.map(item => {
+        return {
+            value: item?.scientificName,
+            label: item?.scientificName
+        };
+    })||[];
+    const behaviourOptions = data?.behavior?.map(item => {
+        return {
+            value: item,
+            label: item
+        };
+    })||[];
+    const patternCodeOptions = data?.patterningCode?.map(item => {
+        return {
+            value: item,
+            label: item
+        };
+    })||[];
+    const measurementsOptions = data?.measurement || [];
 
-    const sexOptions = [
-        {
-            value: 'Australia',
-            label: "Australia"
-        },
-        {
-            value: 'Cambodia',
-            label: "Cambodia"
-        },
-
-    ];
-    const lifeStatusOptions = [];
-    const genusAndSpeciesOptions = [
-        {
-            value: 'Equus quagga',
-            label: "Equus quagga"
-        },
-        {
-            value: 'Equus quagga',
-            label: "Equus quagga"
-        },
-    ];
-    const behaviourOptions = [];
-    const patternCodeOptions = [];
-    const measurementsOptions = [ "WaterTemperature",
-        "Salinity"];
-
-    const options = [
-        { value: '1', label: 'Behaviour 1' },
-        { value: '2', label: 'Behaviour 2' },
-        { value: '3', label: 'Behaviour 3' }
-    ];
-
+    console.log(sexOptions, livingStatusOptions, genusAndSpeciesOptions, behaviourOptions, patternCodeOptions, measurementsOptions)
 
     return (
         <div>
@@ -56,11 +57,17 @@ export default function ObservationAttributeFilter(
                 isMulti={true}
                 label="FILTER_SEX"
                 options={sexOptions}
+                onChange={onChange}
+                field="sex"
+                term="terms"
             />
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_LIFE_STATUS"
-                options={lifeStatusOptions}
+                options={livingStatusOptions}
+                onChange={onChange}
+                field="livingStatus"
+                term="terms"
             />
 
             <FormGroupMultiSelect
@@ -68,6 +75,8 @@ export default function ObservationAttributeFilter(
                 label="FILTER_GENUS_AND_SPECIES"
                 options={genusAndSpeciesOptions}
                 onChange={onChange}
+                field="taxonomy"
+                term="terms"
               
             />
             <FormGroup>
@@ -100,13 +109,19 @@ export default function ObservationAttributeFilter(
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_DEMONSTRATED_BEHAVIOUR"
+                onChange={onChange}
                 options={behaviourOptions}
+                field="behaviour"
+                term="terms"
             />
 
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_PATTERNING_CODE"
+                onChange={onChange}
                 options={patternCodeOptions}
+                field={"patternCode"}
+                term={"terms"}
             />
 
             <FormGroup>
