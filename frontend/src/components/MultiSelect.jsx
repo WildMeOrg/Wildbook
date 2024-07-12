@@ -9,7 +9,8 @@ const colourStyles = {
     singleValue: (styles) => ({ ...styles, color: 'black' }), 
 };
 
-export default function MultiSelect({ isMulti, options, onChange }) {
+export default function MultiSelect({ isMulti, options, onChange, field, term }) {
+    console.log(isMulti, options, onChange, field, term);
     return (
         <Select
             isMulti = {isMulti}
@@ -17,13 +18,25 @@ export default function MultiSelect({ isMulti, options, onChange }) {
             className="basic-multi-select"
             classNamePrefix="select"
             styles={colourStyles}
+            
             onChange={(e) =>
-                onChange({
-                    "match": {
-                        ["taxonomy"]: e.value
-                    }
+                // onChange({
+                //     [term]: {
+                //         [field]: isMulti? e.map(item=> item.value) : e.value
+                //     }
 
-                })
+                // })
+                onChange({
+                    filterId: field,
+                    clause: "filter",
+                    query:{
+                        [term]: {
+                            [field]: isMulti? e.map(item=> item.value) : e.value
+                        }
+                    }
+                    
+                }
+                )
             }
             // onChange={(e) => console.log(e)}
         />
