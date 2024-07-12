@@ -6,6 +6,7 @@ import { Container } from 'react-bootstrap';
 import { set } from 'lodash-es';
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
+import useGetSiteSettings from '../models/useGetSiteSettings';
 
 function setFilter(newFilter, formFilters, setFormFilters) {
   const matchingFilterIndex = formFilters.findIndex(
@@ -24,8 +25,13 @@ export default function FilterPanel({
   schemas,
   formFilters = [],
   setFormFilters = () => { },
+  setFilterPanel,
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
+  const [tempFormFilters, setTempFormFilters] = useState([]);
+
+  const { data } = useGetSiteSettings();
+    
   const handleFilterChange = filter => {
     if (filter.selectedChoice) {
       setSelectedChoices({
@@ -33,13 +39,13 @@ export default function FilterPanel({
         [filter.filterId]: filter.selectedChoice,
       });
     }
-    setFilter(filter, formFilters, setFormFilters);
+    setFilter(filter, tempFormFilters, setTempFormFilters);
   };
   const clearFilter = filterId => {
     const newFormFilters = formFilters.filter(
       f => f.filterId !== filterId,
     );
-    setFormFilters(newFormFilters);
+    setTempFormFilters(newFormFilters);
   };
 
   const safeSchemas = schemas || [];
@@ -150,15 +156,25 @@ export default function FilterPanel({
           <div className="d-flex flex-row mt-5">
             <BrutalismButton
               color="white"
-              backgroundColor= {theme.primaryColors.primary700}
-              borderColor={theme.primaryColors.primary700}>
+              backgroundColor={theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}
+              onClick={() => {
+                setFormFilters(tempFormFilters);
+                // setFilterPanel(false);
+              }}
+            >
               APPLY
             </BrutalismButton>
             <BrutalismButton style={{
               color: theme.primaryColors.primary700,
-
+              
             }}
-              borderColor={theme.primaryColors.primary700}>
+              borderColor={theme.primaryColors.primary700}
+              onClick={() => {
+                setFormFilters([]);
+                // setFilterPanel(false);
+              }}>
+                
               RESET
             </BrutalismButton>
           </div>
@@ -185,6 +201,7 @@ export default function FilterPanel({
                   onChange={handleFilterChange}
                   onClearFilter={clearFilter}
                   {...schema.filterComponentProps}
+                  data={data}
                 />
               );
             }
