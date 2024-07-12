@@ -393,6 +393,7 @@ public class IAGateway extends HttpServlet {
                     taskList.put(taskRes);
                     res.put("tasks", taskList);
                     res.put("success", false);
+                    res.put("skipRequeue", true);
                     return res;
                 }
                 JSONObject jobj = new JSONObject();
@@ -740,7 +741,7 @@ public class IAGateway extends HttpServlet {
                 System.out.println(
                     "INFO: IAGateway.processQueueMessage() 'identify' from successful --> " +
                     rtn.toString());
-                if (!rtn.optBoolean("success", false)) {
+                if (!rtn.optBoolean("success", false) && !rtn.optBoolean("skipRequeue", false)) {
                     requeueIncrement = true;
                     requeue = true;
                     myShepherd.rollbackDBTransaction();
