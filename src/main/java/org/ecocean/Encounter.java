@@ -4499,6 +4499,11 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public static int[] opensearchSyncIndex(Shepherd myShepherd)
     throws IOException {
+        return opensearchSyncIndex(myShepherd, 0);
+    }
+
+    public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
+    throws IOException {
         int[] rtn = new int[2];
         String indexName = "encounter";
         OpenSearch os = new OpenSearch();
@@ -4510,25 +4515,31 @@ public class Encounter extends Base implements java.io.Serializable {
         List<String> needRemoval = changes.get(1);
         rtn[0] = needIndexing.size();
         rtn[1] = needRemoval.size();
-        System.out.println("opensearchSyncIndex(): needIndexing=" + rtn[0] + ", needRemoval=" +
-            rtn[1]);
+        System.out.println("Encounter.opensearchSyncIndex(): stopAfter=" + stopAfter +
+            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
         int ct = 0;
         for (String id : needIndexing) {
             Encounter enc = myShepherd.getEncounter(id);
             if (enc != null) os.index(indexName, enc);
             if (ct % 500 == 0)
-                System.out.println("opensearchSyncIndex needIndexing: " + ct + "/" + rtn[0]);
+                System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
+                    rtn[0]);
             ct++;
+            if ((stopAfter > 0) && (ct > stopAfter)) {
+                System.out.println("Encounter.opensearchSyncIndex() breaking due to stopAfter");
+                break;
+            }
         }
-        System.out.println("opensearchSyncIndex() finished needIndexing");
+        System.out.println("Encounter.opensearchSyncIndex() finished needIndexing");
         ct = 0;
         for (String id : needRemoval) {
             os.delete(indexName, id);
             if (ct % 500 == 0)
-                System.out.println("opensearchSyncIndex needRemoval: " + ct + "/" + rtn[1]);
+                System.out.println("Encounter.opensearchSyncIndex needRemoval: " + ct + "/" +
+                    rtn[1]);
             ct++;
         }
-        System.out.println("opensearchSyncIndex() finished needRemoval");
+        System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
         return rtn;
     }
 }
