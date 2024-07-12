@@ -4242,6 +4242,8 @@ public class Encounter extends Base implements java.io.Serializable {
         if (dim != null) jgen.writeNumberField("dateMillis", dim);
         String date = Util.getISO8601Date(this.getDate());
         if (date != null) jgen.writeStringField("date", date);
+        date = Util.getISO8601Date(this.getDWCDateAdded());
+        if (date != null) jgen.writeStringField("dateSubmitted", date);
         jgen.writeStringField("verbatimEventDate", this.getVerbatimEventDate());
         jgen.writeStringField("sex", this.getSex());
         jgen.writeStringField("taxonomy", this.getTaxonomyString());
