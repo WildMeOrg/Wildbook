@@ -5,23 +5,12 @@ import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 export default function useFilterEncounters({ queries, params = {} }) {
   const [filters, mustNots] = partition(queries, (q) => q.clause === "filter");
-
   const filterQueries = filters.map((f) => f.query);
   const mustNotQueries = mustNots.map((f) => f.query);
 
   const compositeQuery = {
     "query": {bool: { filter: filterQueries, must_not: mustNotQueries || [] }},
   };
-
-  // const compisiteQuery = 
-  //   {
-  //     "query" : {
-  //        "bool" : {
-  //           "filter" : queries
-  //        }
-  //     }
-  //  }
-  
 
   return useFetch({
         method: "post",

@@ -48,7 +48,6 @@ const MyDataTable = ({
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => {
-        console.log("col", col);
         return ({        
         name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
         selector: (row) => row[col.selector], // Accessor function for the column data
@@ -133,7 +132,7 @@ const MyDataTable = ({
           xs={12}
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
-          <div className="me-3">
+          <div className="me-3" style={{color:"white"}}>
             <span>Total Items: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>
