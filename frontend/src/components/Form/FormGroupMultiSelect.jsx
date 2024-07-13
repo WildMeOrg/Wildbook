@@ -5,7 +5,6 @@ import { FormattedMessage } from 'react-intl';
 import { FormGroup, FormLabel } from 'react-bootstrap';
 
 export default function FormGroupMultiSelect({ isMulti = false, label = "", options, onChange, term, field }) {
-    console.log("...........",isMulti, label, options, onChange, term, field);
     return (
         <FormGroup>
             <FormLabel>{label}</FormLabel>

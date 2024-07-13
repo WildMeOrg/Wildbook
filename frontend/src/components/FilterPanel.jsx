@@ -28,7 +28,9 @@ export default function FilterPanel({
   setFilterPanel,
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
-  const [tempFormFilters, setTempFormFilters] = useState([]);
+  const [tempFormFilters, setTempFormFilters] = useState(formFilters);
+
+  console.log("tempFormFilters", tempFormFilters);
 
   const { data } = useGetSiteSettings();
     
@@ -160,7 +162,7 @@ export default function FilterPanel({
               borderColor={theme.primaryColors.primary700}
               onClick={() => {
                 setFormFilters(tempFormFilters);
-                // setFilterPanel(false);
+                setFilterPanel(false);
               }}
             >
               APPLY
@@ -171,8 +173,10 @@ export default function FilterPanel({
             }}
               borderColor={theme.primaryColors.primary700}
               onClick={() => {
+                console.log('reset');
                 setFormFilters([]);
-                // setFilterPanel(false);
+                setTempFormFilters([]);
+                setFilterPanel(false);
               }}>
                 
               RESET

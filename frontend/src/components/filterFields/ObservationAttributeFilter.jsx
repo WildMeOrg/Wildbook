@@ -44,8 +44,6 @@ export default function ObservationAttributeFilter(
     })||[];
     const measurementsOptions = data?.measurement || [];
 
-    console.log(sexOptions, livingStatusOptions, genusAndSpeciesOptions, behaviourOptions, patternCodeOptions, measurementsOptions)
-
     return (
         <div>
             <h3><FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" /></h3>
