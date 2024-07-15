@@ -147,7 +147,7 @@ public class SiteSettings extends ApiBase {
                 JSONObject ju = new JSONObject();
                 ju.put("id", user.getId());
                 ju.put("username", user.getUsername());
-                ju.put("fullName", user.getFullName());
+                ju.put("fullName", user.getDisplayName());
                 jarr.put(ju);
             }
             settings.put("users", jarr);
