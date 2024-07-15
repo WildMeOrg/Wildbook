@@ -158,7 +158,7 @@ function forceLink(el) {
 
 
 
-		      String filename = ma.getFilename();
+		      String filename = ma.getUserFilename();
 		      //System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
@@ -849,7 +849,7 @@ jQuery(document).ready(function() {
         $('.image-enhancer-wrapper').each(function(i, el) {
             var mid = imageEnhancer.mediaAssetIdFromElement($(el));
 	    var ma = assetById(mid);
-            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.filename) + '">' + ma.filename + '</a></div>';
+            var h = '<div class="gallery-download" onclick="event.stopPropagation();" ><a href="../imagedl/' + mid + '/' + encodeURI(ma.filename) + '" title="Download" download="' + encodeURI(ma.userFilename) + '">' + ma.userFilename + '</a></div>';
             $(el).closest('figure').after(h);
             //$(el).closest('.my-gallery').after(h);
         });
@@ -993,7 +993,7 @@ function enhancerCaption(el, opt) {
 	var ma = assetById(mid);
 //console.warn("====== enhancerCaption %o ", ma);
 	if (!ma || !ma.sourceAsset || !ma.sourceAsset.store.type == 'YouTube') return;
-	var title = ma.sourceAsset.filename || '';
+	var title = ma.sourceAsset.userFilename || '';
 	if (ma.sourceAsset.metadata && ma.sourceAsset.metadata.basic) {
 		title = ma.sourceAsset.metadata.basic.title || 'Untitled';
 		title += ' [from ' + (ma.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';

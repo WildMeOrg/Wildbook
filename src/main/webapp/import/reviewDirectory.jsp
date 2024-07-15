@@ -105,8 +105,15 @@ ol.filelist li {
     	<ol class="filelist">
   		<% 
   		for (File photo: imageFiles) {
+                        String displayName = photo.getName();
+                        String userFilename = (String)request.getSession().getAttribute("userFilename:" + displayName);
+                        if (userFilename != null) {
+                                // something is encoding the strings as ISO8859 so we have to do the conversion here
+                                byte[] charset = userFilename.getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+                                displayName = new String(charset, java.nio.charset.StandardCharsets.UTF_8);
+                        }
   			%>
-  			<li><%=photo.getName()%></li>
+                            <li><%=displayName%></li>
   			<%
 		}
   		%>
