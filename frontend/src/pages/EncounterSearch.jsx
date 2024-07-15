@@ -3,12 +3,15 @@ import DataTable from "../components/DataTable";
 import useFilterEncounters from "../models/encounters/useFilterEncounters";
 import FilterPanel from "../components/FilterPanel";
 import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
+import SideBar from "../components/filterFields/SideBar";
 
 export default function EncounterSearch() {
 
   const [formFilters, setFormFilters] = useState([]);
   const [filterPanel, setFilterPanel] = useState(true);
   const [sliderIn, setSliderIn] = useState(false);
+
+  console.log("formFilters", formFilters);
 
   const columns = [
     { name: "Encounter ID", selector: "id" },
@@ -33,7 +36,6 @@ export default function EncounterSearch() {
     },
   });
 
-  // console.log("encounterData", encounterData);
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
 
@@ -44,7 +46,7 @@ export default function EncounterSearch() {
         backgroundImage: "url('/react/images/encounter_search_background.png')",
         backgroundSize: "cover",
         height: "800px",
-        width: "100%",        
+        width: "100%",
         overflow: "auto",
         padding: "20px",
       }}
@@ -70,6 +72,11 @@ export default function EncounterSearch() {
             console.log("Selected Rows: ", selectedRows);
           }}
         />}
+      <SideBar
+        formFilters={formFilters}
+        setFilterPanel={setFilterPanel}
+        setFormFilters={setFormFilters}
+      />
     </div>
   );
 }
