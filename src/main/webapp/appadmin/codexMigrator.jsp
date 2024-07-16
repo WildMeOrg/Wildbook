@@ -1,22 +1,26 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
 import="org.ecocean.*,
+org.ecocean.servlet.ServletUtilities,
+java.io.IOException,
+javax.servlet.jsp.JspWriter,
 java.sql.*,
-    java.util.ArrayList,
-    java.util.List,
-    javax.jdo.Query,
-    org.ecocean.media.*
+java.util.ArrayList,
+java.util.List,
+java.util.Properties,
+javax.jdo.Query,
+org.ecocean.media.*
     "
 %>
 
 <%!
 
 
-private static void migrateUsers(Connection conn) throws SQLException {
+private static void migrateUsers(JspWriter out, Connection conn) throws SQLException, IOException {
     Statement st = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT * FROM \"user\"");
     while (res.next()) {
         String guid = res.getString("guid");
-        System.out.println(">>> " + guid);
+        out.println("<p>" + guid + "</p>");
     }
 }
 
@@ -26,21 +30,24 @@ private static void migrateUsers(Connection conn) throws SQLException {
 
 <%
 
-String jdbcUrl = "jdbc:postgresql://localhost:5432/seal_codex";
-String username = "example";
-String password = "example";
 
-
-/*
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.beginDBTransaction();
-*/
+
+Properties props = ShepherdProperties.getProperties("codexMigration.properties", "", context);
+"
+String dbUrl = props.getProperty("codexDbUrl", context);
+String dbUsername = props.getProperty("codexDbUsername", context);
+String dbPassword = props.getProperty("codexDbPassword", context);
 
 
-Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 
-migrateUsers(conn);
+migrateUsers(out, conn);
+
+myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 
