@@ -1,45 +1,209 @@
-import React from 'react';
-import { FormattedMessage } from 'react-intl';
-import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
-import FormGroupMultiSelect from './FormGroupMultiSelect';
-import FormGroupText from './FormGroupText';
-import Description from './Description';
-import Select from 'react-select';
-import MultiSelect from '../MultiSelect';
+// import React, { useState } from 'react';
+// import { Form, Col, Row, Container } from 'react-bootstrap';
 
-const FormMeasurements = ({ label1="", label2="", width="50" }) => {
-    const width2 = width ? 100 - width : 50;
+// function ObservationInputs({
+//     data,
+//     onChange,
+//     field,
+//     filterId
+// }) {
+//     const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
 
-    const options = [
-        { value: 'gte', label: '>=' },
-        { value: 'equals', label: '=' },
-        { value: 'lte', label: '<=' }
-    ]
+//     const handleInputChange = (index, field, value) => {
+//         const updatedInputs = inputs.map((input, i) => {
+//             if (i === index) {
+//                 return { ...input, [field]: value };
+//             }
+//             return input;
+//         });
+//         setInputs(updatedInputs);
+//         if (field === 'value' && value) {
+//             updateQuery(updatedInputs);
+//         }
+//     };
+
+//     const updateQuery = (inputs) => {
+//         console.log("Query Updated:", inputs.filter(input => input.value));
+//         // const must = inputs.filter(input => input.value).map(input => ({
+//         //     range: {
+//         //       [`${field}.${input.type}`]: {
+//         //         [input.operator]: input.value
+//         //       }
+//         //     }
+//         //   }));
+//         //   console.log("Must:", must);
+//         // inputs.forEach(input => {
+//         //     if (!input.value) {
+//         //         return;
+//         //     }
+//         //     onChange({
+//         //         filterId: `${filterId}.${input.type}`,
+//         //         clause: "filter",
+//         //         query: {
+//         //             // "range": {
+//         //             //     [`${field}.${input.type}`]: {
+//         //             //         [input.operator]: input.value
+//         //             //     }
+//         //             // }
+//         //             "bool": {
+//         //                 "must": must
+//         //             }   
+//         //         }
+//         //     });
+//         // })
+
+        
+//             const must = inputs.filter(input => input.value !== '').map(input => ([
+//               {
+//                 "term": {
+//                   [`measurements.type`]: input.type
+//                 }
+//               },
+//               {
+//                 "range": {
+//                   "measurements.value": {
+//                     [input.operator]: input.value
+//                   }
+//                 }
+//               }
+//             ])).flat(); 
+          
+//             if (must.length > 0) {
+//               onChange({
+//                 filterId,
+//                 clause: "filter",
+//                 query: {
+//                   "bool": {
+//                     "must": must
+//                   }
+//                 }
+//               });
+//             }
+//           };
+          
+//     };
+
+//     return (
+//         <Container className="mt-3">
+//             {inputs.map((input, index) => (
+//                 <Row key={index} className="mb-3">
+//                     <Col md={2} className='d-flex align-items-center '>
+//                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
+//                     </Col>
+//                     <Col md={4}>
+//                         <Form.Select
+//                             aria-label="Select operator"
+//                             value={input.operator}
+//                             onChange={e => handleInputChange(index, 'operator', e.target.value)}
+//                         >
+//                             <option value="gte">&ge;</option>
+//                             <option value="lte">&le;</option>
+//                             <option value="equals">=</option>
+//                         </Form.Select>
+//                     </Col>
+//                     <Col md={6}>
+//                         <Form.Control
+//                             type="number"
+//                             placeholder={`${input.type} value`}
+//                             value={input.value}
+//                             onChange={e => handleInputChange(index, 'value', e.target.value)}
+//                         />
+//                     </Col>
+//                 </Row>
+//             ))}
+//         </Container>
+//     );
+// }
+
+// export default ObservationInputs;
+
+import React, { useState } from 'react';
+import { Form, Col, Row, Container } from 'react-bootstrap';
+
+function ObservationInputs({
+    data,
+    onChange,
+    field,
+    filterId
+}) {
+    const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
+
+    const handleInputChange = (index, field, value) => {
+        const updatedInputs = inputs.map((input, i) => {
+            if (i === index) {
+                return { ...input, [field]: value };
+            }
+            return input;
+        });
+        setInputs(updatedInputs);
+        if (field === 'value' && value !== '') { // Ensure the value is not empty
+            updateQuery(updatedInputs);
+        }
+    };
+
+    const updateQuery = (inputs) => {
+        const must = inputs.filter(input => input.value !== '').map(input => {
+            // Adjust the query based on the operator
+            if (input.operator === "equals") {
+                return {
+                    "term": {
+                        [`measurements.${input.type}`]: input.value
+                    }
+                };
+            } else {
+                return {
+                    "range": {
+                        [`measurements.${input.type}`]: {
+                            [input.operator]: input.value
+                        }
+                    }
+                };
+            }
+        });
+
+        if (must.length > 0) {
+            onChange({
+                filterId,
+                clause: "filter",
+                query: {
+                    "bool": {
+                        "must": must
+                    }
+                }
+            });
+        }
+    };
+
     return (
-        <div className="d-flex flex-row justify-content-between gap-2 mt-1">
-            <div style={{
-                    width: `${width}%`,
-                }}
-            >
-                <FormGroupMultiSelect
-                    isMulti={false}
-                    options={options}
-                />
-                
-            </div>
-            
-            <div
-                style={{
-                    width: `${width2}%`
-                }}
-            >
-                <FormGroupText 
-                    noLabel={true}
-                />
-            </div>
-        </div>
+        <Container className="mt-3">
+            {inputs.map((input, index) => (
+                <Row key={index} className="mb-3">
+                    <Col md={2} className='d-flex align-items-center'>
+                        {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
+                    </Col>
+                    <Col md={4}>
+                        <Form.Select
+                            aria-label="Select operator"
+                            value={input.operator}
+                            onChange={e => handleInputChange(index, 'operator', e.target.value)}
+                        >
+                            <option value="gte">&ge;</option>
+                            <option value="lte">&le;</option>
+                            <option value="equals">=</option>
+                        </Form.Select>
+                    </Col>
+                    <Col md={6}>
+                        <Form.Control
+                            type="number"
+                            placeholder={`${input.type} value`}
+                            value={input.value}
+                            onChange={e => handleInputChange(index, 'value', e.target.value)}
+                        />
+                    </Col>
+                </Row>
+            ))}
+        </Container>
     );
-
 }
 
-export default FormMeasurements;
+export default ObservationInputs;
