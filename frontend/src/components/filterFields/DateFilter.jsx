@@ -10,6 +10,7 @@ export default function DateFilter({
     const [endDate, setEndDate] = useState('');
     const [submissionStartDate, setSubmissionStartDate] = useState('');
     const [submissionEndDate, setSubmissionEndDate] = useState('');
+    const [verbatimDate, setVerbatimDate] = useState('');
 
     const updateQuery1 = () => {
 
@@ -28,7 +29,7 @@ export default function DateFilter({
                 query.range.sightingDate.lte = endDate + "T23:59:59Z";
             }
             onChange({
-                filterId: "sightingDate",
+                filterId: "date",
                 clause: "filter",
                 query: query
             }
@@ -53,7 +54,7 @@ export default function DateFilter({
                 query.range.submissionDate.lte = submissionEndDate + "T23:59:59Z";
             }
             onChange({
-                filterId: "submissionDate",
+                filterId: "dateSubmitted",
                 clause: "filter",
                 query: query
             }

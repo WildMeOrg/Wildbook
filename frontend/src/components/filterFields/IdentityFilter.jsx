@@ -10,7 +10,6 @@ export default function IdentityFilter({
   onChange,
 
 }) {
-  const sightedTimes = <FormattedMessage id="SIGHTED_TIMES" />
   const includeEncounters = <FormattedMessage id="INCLUDE_ENCOUNTERS" />
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
@@ -31,6 +30,15 @@ export default function IdentityFilter({
           checked={isChecked1}
           onChange={() => {
             setIsChecked1(!isChecked1);
+            // onChange({
+            //   filterId: "individualNumberEncounters",
+            //   clause: "filter",
+            //   query: {
+            //     "match": {
+            //       "individualID": null
+            //     }
+            //   },
+            // })
           }}
         />
         <FormattedMessage id="SIGHTED_AT_LEAST" />
@@ -43,15 +51,17 @@ export default function IdentityFilter({
           }}
           placeholder="Type Here"
           onChange={(e) => {
-            onChange({
-              filterId: "individualNumberEncounters",
-              clause: "filter",
-              query: {
-                "match": {
-                  "individualNumberEncounters": e.target.value
-                }
-              },
-            });
+            if(isChecked1){
+              onChange({
+                  filterId: "individualNumberEncounters",
+                  clause: "filter",
+                  query: {
+                    "range": {
+                      "individualNumberEncounters": {"gte" :e.target.value}
+                    }
+                  },
+                });
+            }
           }}
           disabled={!isChecked1}
         />
@@ -68,23 +78,25 @@ export default function IdentityFilter({
           checked={isChecked2}
           onChange={() => {
             setIsChecked2(!isChecked2);
-            onChange({
-              filterId: "individualId",
-              clause: "filter",
-              query: {
-                "match": {
-                  "individualId": !isChecked2
-                }
-              },
-            })
-          }}
+            if(isChecked2){
+              onChange({
+                filterId: "individualId",
+                clause: "filter",
+                query: {
+                  "match": {
+                    "individualId": null
+                  }
+                },
+              })
+            
+          }}}
         />
       </Form>
       <FormGroupText
         label="FILTER_ALTERNATIVE_ID_CONTAINS"
-        field={"alternateId"}
+        field={"otherCatalogNumbers"}
         term={"match"}
-        filterId={"alternateId"}
+        filterId={"otherCatalogNumbers"}
         onChange={onChange}
 
       />
