@@ -10,7 +10,7 @@ function Sidebar({
   setFormFilters,
 }) {
   const [show, setShow] = useState(false);
-  const sidebarWidth = 300;
+  const sidebarWidth = 400;
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
