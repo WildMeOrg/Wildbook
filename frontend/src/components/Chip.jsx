@@ -35,6 +35,16 @@ function Chip({ text, children }) {
             });
         }
 
+        if(query.bool) {
+            if(query.bool.must) {
+                query.bool.must.forEach((item) => {
+                    Object.entries(item).forEach(([key, value]) => {
+                        entries.push(`${key} is "${value}"`);
+                    });
+                });
+            }
+        }
+
         return entries.length > 0 ? `${entries.join(', ')}` : `No filters set`;
     }
 
