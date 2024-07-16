@@ -1,8 +1,9 @@
 import React from "react";
-import FormDualInput from "../Form/FormDualInput";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
+import { Form, Row, Col } from "react-bootstrap";
+import FormDualInputs from "../Form/FormDualInputs";
 
 
 export default function TagsFilter({
@@ -26,32 +27,46 @@ export default function TagsFilter({
         return (
           <FormGroupText
             noDesc={true}
-            label={location}
-            filterId={location}
-            field={location}
+            label={location.item}
+            filterId={`$metalTagLocation.{location.item}`}
+            field={`$metalTagLocation.{location.item}`}
             term="match"
             onChange={onChange}
+            
           />
         );
       })}
       <h5><FormattedMessage id="FILTER_ACOUSTIC_TAGS" /></h5>
-      <FormDualInput
-        label1="FILTER_SERIAL_NUMBER"
-        label2="FILTER_ACOUSTIC_TAG_ID"
-        width="50"
+      <FormDualInputs 
+        label="acousticTags"
+        label1="SERIAL_NUMBER"
+        label2="ID"
+        onChange={onChange}
       />
       <h5><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
       <FormGroupText
         noDesc={true}
         label="NAME"
+        onChange={onChange}
+        field={"satelliteTags"}
+        term={"match"}
+        filterId={"satelliteTags"}
       />
       <FormGroupText
         noDesc={true}
         label="SERIAL_NUMBER"
+        onChange={onChange}
+        field={"satelliteTags"}
+        term={"match"}
+        filterId={"satelliteTags"}
       />
       <FormGroupText
         noDesc={true}
         label="ARGOS_PPT_NUMBER"
+        onChange={onChange}
+        field={"satelliteTags"}
+        term={"match"}
+        filterId={"satelliteTags"}
       />
     </div>
   );
