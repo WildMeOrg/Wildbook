@@ -33,7 +33,7 @@ export default function FilterPanel({
   console.log("tempFormFilters", tempFormFilters);
 
   const { data } = useGetSiteSettings();
-    
+
   const handleFilterChange = filter => {
     if (filter.selectedChoice) {
       setSelectedChoices({
@@ -169,7 +169,7 @@ export default function FilterPanel({
             </BrutalismButton>
             <BrutalismButton style={{
               color: theme.primaryColors.primary700,
-              
+
             }}
               borderColor={theme.primaryColors.primary700}
               onClick={() => {
@@ -178,7 +178,7 @@ export default function FilterPanel({
                 setTempFormFilters([]);
                 setFilterPanel(false);
               }}>
-                
+
               RESET
             </BrutalismButton>
           </div>
@@ -199,14 +199,33 @@ export default function FilterPanel({
           {
             safeSchemas.map(schema => {
               return (
-                schema.id === clicked && <schema.FilterComponent
+
+                // schema.id === clicked && <schema.FilterComponent
+                //   key={schema.id}
+                //   labelId={schema.labelId}
+                //   onChange={handleFilterChange}
+                //   onClearFilter={clearFilter}
+                //   {...schema.filterComponentProps}
+                //   data={data}
+                //   tempFormFilters={tempFormFilters}
+                // />
+                <div
                   key={schema.id}
-                  labelId={schema.labelId}
-                  onChange={handleFilterChange}
-                  onClearFilter={clearFilter}
-                  {...schema.filterComponentProps}
-                  data={data}
-                />
+                  style={{
+                    display: schema.id === clicked ? 'block' : 'none',
+                    width: '100%',
+
+                  }}
+                >
+                  <schema.FilterComponent
+                    labelId={schema.labelId}
+                    onChange={handleFilterChange}
+                    onClearFilter={clearFilter}
+                    {...schema.filterComponentProps}
+                    data={data}
+                    tempFormFilters={tempFormFilters}
+                  />
+                </div>
               );
             }
             )}
