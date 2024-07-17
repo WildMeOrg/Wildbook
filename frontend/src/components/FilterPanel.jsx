@@ -30,8 +30,6 @@ export default function FilterPanel({
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState(formFilters);
 
-  console.log("tempFormFilters", tempFormFilters);
-
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = filter => {
@@ -173,7 +171,6 @@ export default function FilterPanel({
             }}
               borderColor={theme.primaryColors.primary700}
               onClick={() => {
-                console.log('reset');
                 setFormFilters([]);
                 setTempFormFilters([]);
                 setFilterPanel(false);

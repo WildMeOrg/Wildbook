@@ -39,7 +39,6 @@ export default function BiologicalSamplesAndAnalysesFilter({
     const [length, setLength] = React.useState(null);
 
     const [bioChemicalValue, setBioChemicalValue] = React.useState(null);
-    console.log("bioChemicalOptions", bioChemicalOptions);
     return (
         <div>
             <h3><FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" /></h3>
@@ -66,10 +65,10 @@ export default function BiologicalSamplesAndAnalysesFilter({
                         // })
                         onChange({
                             filterId: "biologicalSampleId",
-                            clause: "filter",
+                            clause: "must_not",
                             query: {
-                                "term": {
-                                    "biologicalSampleId": isChecked
+                                "exists": {
+                                    "field": "tissueSampleIds"
                                 }
                             }
                         })
@@ -130,7 +129,6 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     };
 
                     const inputs = Object.keys(data.loci).map((item) => {
-                        console.log("item", item);
                         return <FormGroup className="d-flex flex-column gap-2">
                             <Form.Check
                                 type="checkbox"
