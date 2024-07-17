@@ -2968,7 +2968,10 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
-        classes.remove("____"); // blech
+        // TODO we should find out how/where bunk iaClass values are getting set
+        // and stop the via isValidIAClass() or similar
+        // also should be considered for any data integrity/repair tools
+        classes.remove("____");
         return classes;
     }
 
