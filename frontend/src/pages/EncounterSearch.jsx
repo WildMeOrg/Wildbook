@@ -9,9 +9,6 @@ export default function EncounterSearch() {
 
   const [formFilters, setFormFilters] = useState([]);
   const [filterPanel, setFilterPanel] = useState(true);
-  const [sliderIn, setSliderIn] = useState(false);
-
-  console.log("formFilters", formFilters);
 
   const columns = [
     { name: "Encounter ID", selector: "id" },

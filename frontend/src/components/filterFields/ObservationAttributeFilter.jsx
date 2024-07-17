@@ -3,14 +3,15 @@ import { FormattedMessage } from "react-intl";
 import BrutalismButton from "../BrutalismButton";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import FormGroupText from "../Form/FormGroupText";
-import FormDualInput from "../Form/FormDualInput";
+import DynamicInputs from "../Form/DynamicInputs";
 import { FormLabel, FormGroup } from "react-bootstrap";
 import FormMeasurements from "../Form/FormMeasurements";
 
 export default function ObservationAttributeFilter(
-    { onChange,
-      data,
-     }
+    {
+        onChange,
+        data,
+    }
 ) {
     const sexOptions = data?.sex?.map((item) => {
         return {
@@ -23,25 +24,25 @@ export default function ObservationAttributeFilter(
             value: item,
             label: item
         };
-    })||[];
+    }) || [];
     const genusAndSpeciesOptions = data?.siteTaxonomies?.map(item => {
         return {
             value: item?.scientificName,
             label: item?.scientificName
         };
-    })||[];
+    }) || [];
     const behaviourOptions = data?.behavior?.map(item => {
         return {
             value: item,
             label: item
         };
-    })||[];
+    }) || [];
     const patternCodeOptions = data?.patterningCode?.map(item => {
         return {
             value: item,
             label: item
         };
-    })||[];
+    }) || [];
     const measurementsOptions = data?.measurement || [];
 
     return (
@@ -75,33 +76,27 @@ export default function ObservationAttributeFilter(
                 onChange={onChange}
                 field="taxonomy"
                 term="terms"
-              
+                filterId={"Taxonomy"}
+
             />
             <FormGroup>
                 <FormLabel><FormattedMessage id="FILTER_OBSERVATION_SEARCH" /></FormLabel>
                 <Description>
                     <FormattedMessage id="FILTER_OBSERVATION_SEARCH_DESC" />
                 </Description>
-                <FormDualInput
+                <DynamicInputs
                     label1="FILTER_OBSERVATION_NAME"
                     label2="FILTER_OBSERVATION_VALUE"
                     width="50"
+                    onChange={onChange}
                 />
             </FormGroup>
-
-            <BrutalismButton style={{
-                marginTop: '10px'
-            }}
-                borderColor="#fff"
-                color="white"
-                backgroundColor="transparent"
-            >
-                <i className="bi bi-plus-square" style={{ marginRight: "10px" }}></i>
-                <FormattedMessage id="FILTER_ADD_OBSERVATION_SEARCH" />
-            </BrutalismButton>
-
             <FormGroupText
                 label="FILTER_OBSERVATION_COMMENTS_INCLUDE"
+                onChange={onChange}
+                term="match"
+                field="occurrenceRemarks"
+                filterId={"Observation Comments Include"}
             />
 
             <FormGroupMultiSelect
@@ -127,21 +122,12 @@ export default function ObservationAttributeFilter(
                 <Description>
                     <FormattedMessage id="FILTER_MEASUREMENTS_DESC" />
                 </Description>
-                
-
-                {
-                    measurementsOptions.map((option, index) => {
-                        return (
-                            <FormMeasurements
-                                label1={option}
-                                label2={option}
-                                key={option}
-                                width="30"
-                            />
-                        );
-                    })
-                }
-
+                <FormMeasurements
+                    data={measurementsOptions}
+                    onChange={onChange}
+                    filterId={"measurements"}
+                    field={"measurements"}
+                />
             </FormGroup>
 
         </div>
