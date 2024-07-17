@@ -25,6 +25,9 @@ function App() {
   const [visible, setVisible] = useState(true);
   const containerStyle = {
     maxWidth: "1440px",
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh", 
   };
 
   const queryClient = new QueryClient();

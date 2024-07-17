@@ -17,6 +17,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.AssetStoreConfig;
 import org.ecocean.media.LocalAssetStore;
+import org.ecocean.OpenSearch;
 import org.ecocean.queue.*;
 import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.servlet.ServletUtilities;
@@ -178,8 +179,8 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.startServices(context);
         MetricsBot.startServices(context);
         AcmIdBot.startServices(context);
-
         AnnotationLite.startup(sContext, context);
+        OpenSearch.backgroundStartup(context);
 
         try {
             startWildbookScheduledTaskThread(context);
@@ -192,9 +193,7 @@ public class StartupWildbook implements ServletContextListener {
         myShepherd.setAction("MarkedIndividual.initNamesCache");
         myShepherd.beginDBTransaction();
         try {
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE sTART");
             boolean cached = org.ecocean.MarkedIndividual.initNamesCache(myShepherd);
-            System.out.println("XXXXXXXXXX INIT NAMES CACHE END: " + cached);
         } catch (Exception f) {
             f.printStackTrace();
         } finally { myShepherd.rollbackAndClose(); }
