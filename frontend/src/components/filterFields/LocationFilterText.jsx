@@ -5,6 +5,7 @@ import Description from '../Form/Description';
 import useGetSiteSettings from '../../models/useGetSiteSettings';
 import MultiSelect from '../MultiSelect';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
+import FormGroupText from '../Form/FormGroupText';
 
 export default function LocationFilterText({
     onChange,
@@ -13,7 +14,6 @@ export default function LocationFilterText({
 ) {
     const { data } = useGetSiteSettings();
     console.log("+++++++++++++++++data", data);
-    const locationNameOptions = data?.location;
     const locationIDOptions = data?.location;
     const countries = data?.country.map(data => {
         return {
@@ -28,24 +28,12 @@ export default function LocationFilterText({
             <Description>
                 <FormattedMessage id="FILTER_LOCATION_DESC" />
             </Description>
-            <FormGroupMultiSelect
-                isMulti={true}
-                label="FILTER_LOCATION_NAME"
-                options={locationNameOptions}
+            <FormGroupText
+                label="FILTER_VERBATIM_LOCATION"
                 onChange={onChange}
-                term="terms"
-                field="name"
-
-            />
-
-            <FormGroupMultiSelect
-                isMulti={true}
-                label="FILTER_LOCATION_ID"
-                options={locationIDOptions}
-                onChange={onChange}
-                term="terms"
-                field="id"
-
+                term="match"
+                field="verbatimLocality"
+                filterId={"Verbatim Location"}
             />
 
             <FormGroupMultiSelect
@@ -55,7 +43,6 @@ export default function LocationFilterText({
                 onChange={onChange}
                 term="terms"
                 field="country"
-
             />
 
         </div>
