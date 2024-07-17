@@ -9,12 +9,9 @@ import FormGroupText from '../Form/FormGroupText';
 
 export default function LocationFilterText({
     onChange,
-    onClearFilter,
 }
 ) {
     const { data } = useGetSiteSettings();
-    console.log("+++++++++++++++++data", data);
-    const locationIDOptions = data?.location;
     const countries = data?.country.map(data => {
         return {
             value: data,

@@ -17,7 +17,6 @@ export default function MultiSelect({ isMulti, options, onChange, field, term })
             className="basic-multi-select"
             classNamePrefix="select"
             styles={colourStyles}
-            
             onChange={(e) =>
                 onChange({
                     filterId: field,

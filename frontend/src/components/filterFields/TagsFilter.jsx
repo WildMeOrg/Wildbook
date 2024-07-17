@@ -17,7 +17,6 @@ export default function TagsFilter({
       label: item
     };
   }) || [];
-  console.log("metalTagLocations", metalTagLocations);
   return (
     <div>
       <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>

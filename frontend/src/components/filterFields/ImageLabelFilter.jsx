@@ -80,7 +80,6 @@ export default function ImageLabelFilter({
     const field = "keywords";
     const filterId = "keywords";
 
-    console.log("labelledKeywordsValueOptions", labelledKeywordsValueOptions)
     return (
 
         <div>
