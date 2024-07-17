@@ -415,6 +415,14 @@
 								"locationID": []
 							},
 							{
+								"name": "Nurse Rock, Mooloolaba",
+								"id": "Nurse Rock, Mooloolaba",
+								"geospatialInfo": {
+									"lat": -26.647254133407646,
+									"long": 153.20777256885754
+								}
+							},
+							{
 								"name": "Wolf Rock",
 								"id": "WR",
 								"geospatialInfo": {
@@ -953,4 +961,3 @@
 
   ]
 }
-
