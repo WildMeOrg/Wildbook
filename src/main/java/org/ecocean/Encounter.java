@@ -4257,9 +4257,22 @@ public class Encounter extends Base implements java.io.Serializable {
         jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
         jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
 
+        String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
         jgen.writeNumberField("numberAnnotations", this.numAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
+        jgen.writeArrayFieldStart("mediaAssets");
+        for (MediaAsset ma : mas) {
+            jgen.writeStartObject();
+            jgen.writeNumberField("id", ma.getId());
+            jgen.writeStringField("uuid", ma.getUUID());
+            java.net.URL url = ma.safeURL(myShepherd);
+            if (url != null) jgen.writeStringField("url", url.toString());
+            jgen.writeEndObject();
+            if (featuredAssetId == null) featuredAssetId = ma.getUUID();
+        }
+        jgen.writeEndArray();
+        if (featuredAssetId != null) jgen.writeStringField("featuredAssetUuid", featuredAssetId);
         if (this.submitterID == null) {
             jgen.writeNullField("assignedUsername");
         } else {
@@ -4387,6 +4400,7 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeNullField("individualId");
         } else {
             jgen.writeStringField("individualId", indiv.getId());
+            jgen.writeStringField("individualSex", indiv.getSex());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
             jgen.writeArrayFieldStart("individualNames");
             List<String> names = indiv.getNamesList();
@@ -4395,7 +4409,11 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeString(name);
                 }
             jgen.writeEndArray();
-
+            if (indiv.getTimeOfBirth() > 0) {
+                String birthTime = Util.getISO8601Date(new DateTime(
+                    indiv.getTimeOfBirth()).toString());
+                jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
             jgen.writeObjectFieldStart("individualSocialUnits");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
