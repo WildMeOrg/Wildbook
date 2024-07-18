@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>10.2.1</version>
+  <version>10.2.2</version>
   <packaging>war</packaging>
 
   <properties>
@@ -248,6 +248,21 @@
       <groupId>javax.sql</groupId>
       <artifactId>jdbc-stdext</artifactId>
       <version>2.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opensearch.client</groupId>
+      <artifactId>opensearch-java</artifactId>
+<!--
+      <version>2.9.1</version>
+-->
+      <version>2.10.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opensearch.client</groupId>
+      <artifactId>opensearch-rest-client</artifactId>
+      <version>2.14.0</version>
     </dependency>
 
     <dependency>

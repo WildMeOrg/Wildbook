@@ -43,7 +43,7 @@ export default function BrutalismButton({
         border: `2px solid ${borderColor}`,
         boxShadow: boxShadowStyle,
         borderRadius: "4.8px",
-        fontSize: "12px",
+        fontSize: "16px",
         color: color,
         fontWeight: "bold",
         margin: "8px 8px 0 0",
