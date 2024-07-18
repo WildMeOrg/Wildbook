@@ -405,6 +405,10 @@ public class User implements Serializable {
         return false;
     }
 
+    public boolean isAdmin(Shepherd myShepherd) {
+        return hasRoleByName("admin", myShepherd);
+    }
+
     // some glorious day this would be better to recurse thru some Organization Objects to get keys.  sigh, to dream.
     public Set<String> getMultiValueKeys() {
         Set<String> rtn = new HashSet<String>();
