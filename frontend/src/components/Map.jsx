@@ -133,15 +133,20 @@
 //     );
 // }
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Button } from 'react-bootstrap';
+import BrutalismButton from './BrutalismButton';
+import ThemeContext from '../ThemeColorProvider'; 
 
 const MapComponent = ({ 
     center, 
     zoom = 10,
-    setBounds
+    bounds,
+    setBounds,
+    onChange
 }) => {
+    const theme = useContext(ThemeContext);
     
     const [rectangle, setRectangle] = useState(null);
     const drawingRef = useRef(false);
@@ -182,13 +187,17 @@ const MapComponent = ({
                 const moveListener = maps.event.addListener(map, 'mousemove', mouseMoveHandler);
     
                 const mouseUpHandler = () => {
-                    console.log("mouseup");
                     drawingRef.current = false;
                     setIsDrawing(false);
                     map.setOptions({ draggable: true });
                     maps.event.removeListener(moveListener);
                     setBounds(rect.getBounds().toJSON());
-                    console.log("rect.getBounds().toJSON()",rect.getBounds().toJSON());
+                    map.fitBounds(rect.getBounds(), {
+                        left: 50, 
+                        right: 50, 
+                        top: 50, 
+                        bottom: 50 
+                    });
                 };
                 document.addEventListener('mouseup', mouseUpHandler, { once: true });
             }
@@ -196,23 +205,52 @@ const MapComponent = ({
     };
     
     const toggleDrawing = () => {
+        if (rectangle) {
+            rectangle.setMap(null);  
+        }
         drawingRef.current = !drawingRef.current;
     };
+
+    // useEffect(() => {
+    //     if(bounds){
+    //         onChange({
+    //             filterId: "locationId",
+    //             term: "terms",
+    //             clause: "filter",
+    //             "query": {
+    //                 "geo_bounding_box": {
+    //                     "location": {
+    //                         "top_left": {
+    //                             lat: bounds.north,
+    //                             lon: bounds.west
+    //                         },
+    //                         "bottom_right": {
+    //                             lat: bounds.south,
+    //                             lon: bounds.east
+    //                         }
+    //                     }
+    //                 }
+    //             }
+                
+    //         })
+    //     }}, [bounds])
     
 
     return (
         <div style={{ height: '400px', width: '100%' }}>
-            <Button
+            <BrutalismButton
                 onClick={() => {
                     toggleDrawing();
                     setIsDrawing(!isDrawing);
                 }}
-                variant="primary"
-                style={{ position: 'absolute', zIndex: 5 }}
+                backgroundColor= {theme.primaryColors.primary700}
+                borderColor={theme.primaryColors.primary700}
+                color='white'
+                style={{ position: 'absolute', zIndex: 5, width: "100px" }}
                 disabled={isDrawing}
             >
                 {drawingRef.current ? 'Drawing' : 'Draw'}
-            </Button>
+            </BrutalismButton>
             <GoogleMapReact
                 bootstrapURLKeys={{ key: 'AIzaSyCJ9DkZBMfMVJFsGxHN9ntIqXfD6GZd1tk' }}
                 defaultCenter={center}
