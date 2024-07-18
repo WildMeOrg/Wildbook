@@ -209,32 +209,7 @@ const MapComponent = ({
             rectangle.setMap(null);  
         }
         drawingRef.current = !drawingRef.current;
-    };
-
-    // useEffect(() => {
-    //     if(bounds){
-    //         onChange({
-    //             filterId: "locationId",
-    //             term: "terms",
-    //             clause: "filter",
-    //             "query": {
-    //                 "geo_bounding_box": {
-    //                     "location": {
-    //                         "top_left": {
-    //                             lat: bounds.north,
-    //                             lon: bounds.west
-    //                         },
-    //                         "bottom_right": {
-    //                             lat: bounds.south,
-    //                             lon: bounds.east
-    //                         }
-    //                     }
-    //                 }
-    //             }
-                
-    //         })
-    //     }}, [bounds])
-    
+    };    
 
     return (
         <div style={{ height: '400px', width: '100%' }}>
@@ -246,7 +221,7 @@ const MapComponent = ({
                 backgroundColor= {theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 color='white'
-                style={{ position: 'absolute', zIndex: 5, width: "100px" }}
+                style={{ position: 'absolute', zIndex: 2, width: "100px" }}
                 disabled={isDrawing}
             >
                 {drawingRef.current ? 'Drawing' : 'Draw'}
