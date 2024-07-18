@@ -9,6 +9,8 @@ java.sql.*,
 java.io.File,
 java.util.ArrayList,
 java.util.List,
+java.util.Set,
+java.util.HashSet,
 java.util.Properties,
 javax.jdo.Query,
 org.json.JSONObject,
@@ -26,7 +28,23 @@ private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection 
     int ct = 0;
     while (res.next()) {
         String guid = res.getString("guid");
+        int staticRoles = res.getInt("static_roles");
         out.println("<li>" + guid + ": ");
+        Set<String> roles = new HashSet<String>();
+        if ((staticRoles & 0x04000) > 0) {
+            roles.add("admin");
+            roles.add("orgAdmin");
+            roles.add("researcher");
+            roles.add("rest");
+            roles.add("machinelearning");
+        }
+        if ((staticRoles & 0x80000) > 0) roles.add("orgAdmin");
+        //if ((staticRoles & 0x10000) > 0)  exporter == "N/A"
+        if ((staticRoles & 0x20000) > 0) roles.add("researcher");
+        if ((staticRoles & 0x40000) > 0) {
+            roles.add("rest");
+            roles.add("machinelearning");
+        }
         User user = myShepherd.getUserByUUID(guid);
         if (user != null) {
             out.println("<i>user exists; skipping</i>");
@@ -59,11 +77,26 @@ private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection 
  linked_accounts                  | json                        |           |          | 
  twitter_username                 | character varying           |           |          | 
 */
-            user.setUsername(res.getString("email"));
+            String username = res.getString("email");
+            user.setUsername(username);
+            user.setAffiliation(res.getString("affiliation"));
+            // location seems to often have value in codex
+            user.setUserURL(res.getString("website"));
             user.setEmailAddress(res.getString("email"));
             user.setFullName(res.getString("full_name"));
             myShepherd.getPM().makePersistent(user);
-            String msg = "created user [" + ct + "] " + user;
+
+            for (String roleName : roles) {
+                Role role = new Role();
+                role.setRolename(roleName);
+                role.setUsername(username);
+                role.setContext("context0");
+                myShepherd.getPM().makePersistent(role);
+            }
+
+            // TODO Organizations
+
+            String msg = "created user [" + ct + "] [" + String.join(",", roles) + "] " + user;
             out.println("<b>" + msg + "</b>");
             System.out.println(msg);
         }
