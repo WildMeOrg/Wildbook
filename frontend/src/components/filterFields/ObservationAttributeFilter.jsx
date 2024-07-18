@@ -44,7 +44,6 @@ export default function ObservationAttributeFilter(
         };
     }) || [];
     const measurementsOptions = data?.measurement || [];    
-    console.log("Measurements Options:", measurementsOptions);
 
     return (
         <div>

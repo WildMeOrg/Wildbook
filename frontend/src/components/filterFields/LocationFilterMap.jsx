@@ -10,7 +10,13 @@ export default function LocationFilterMap({
     onChange,
     data,
 }) {
-    const [bounds, setBounds] = useState();
+    const initialBounds = {
+        north: -1.276389, // Slightly north of Nairobi center
+        south: -1.296389, // Slightly south of Nairobi center
+        east: 36.827223,  // Slightly east of Nairobi center
+        west: 36.807223   // Slightly west of Nairobi center
+    };
+    const [bounds, setBounds] = useState(initialBounds);
 
     useEffect(() => {
         if (bounds) {
@@ -18,9 +24,6 @@ export default function LocationFilterMap({
                 filterId: "locationId",
                 clause: "filter",
                 query: {
-                    // terms: {
-                    //     locationId: data.locationData.locationID.map(location => location.id)
-                    // },
                     "geo_bounding_box": {
                         "pin.location": {
                             "top_left": {
@@ -77,15 +80,9 @@ export default function LocationFilterMap({
             <Description>
                 <FormattedMessage id="FILTER_LOCATION_MAP_DESC" />
             </Description>
+            
 
-            <FormGroupMultiSelect
-                isMulti={true}
-                label="FILTER_LOCATION_ID"
-                options={locationIDOptions}
-                onChange={onChange}
-                term="terms"
-                field="locationId"
-            />
+            
             <FormLabel><FormattedMessage id="FILTER_GPS_COORDINATES" /></FormLabel>
             <div style={{
                 margin: '12px',
@@ -116,11 +113,18 @@ export default function LocationFilterMap({
             <Map
                 bounds={bounds}
                 setBounds={setBounds}
-                center={{ lat: 39.9042, lng: 116.4074 }} 
-                zoom={12}
+                center={{ lat: -1.286389, lng: 36.817223 }} 
+                zoom={5}
                 onChange={onChange}
             />
-            <FormattedMessage id="FILTER_GPS_COORDINATES" />
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_LOCATION_ID"
+                options={locationIDOptions}
+                onChange={onChange}
+                term="terms"
+                field="locationId"
+            />
 
         </div>
     );

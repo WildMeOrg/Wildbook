@@ -66,7 +66,6 @@ import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 export default function useFilterEncounters({ queries, params = {} }) {
-  console.log("Queries:", queries);
   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
   const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
 
@@ -81,15 +80,11 @@ export default function useFilterEncounters({ queries, params = {} }) {
     }
   }));
 
-  console.log("Nested Query:", nestedQuery);
-
   const boolQuery = {
     filter: filterQueries.map(f => ({ match: f.query })),
     must_not: mustNotQueries.map(f => f.query),
     must: nestedQuery  
   };
-
-  console.log("Bool Query:", boolQuery);
 
   const compositeQuery = {
     query: {
