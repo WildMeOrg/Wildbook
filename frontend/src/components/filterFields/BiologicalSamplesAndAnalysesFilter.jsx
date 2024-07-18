@@ -6,6 +6,7 @@ import Description from '../Form/Description';
 import FormGroupText from '../Form/FormGroupText';
 import FormMeasurements from '../Form/FormMeasurements';
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
+import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 
 
 export default function BiologicalSamplesAndAnalysesFilter({
@@ -14,36 +15,35 @@ export default function BiologicalSamplesAndAnalysesFilter({
 }) {
     const label = <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" />
     const [isChecked, setIsChecked] = React.useState(false);
-    const bioChemicalOptions = Object.keys(data?.bioMeasurement || {}) || [];
-    const microSatelliteMarkerLoci = [
-        {
-            "analysisId": "ZAMBONI",
-            "loci": {
-                "X": [
-                    1,
-                    2
-                ],
-                "Y": [
-                    3,
-                    4
-                ],
-                "Z": [
-                    55,
-                    66
-                ]
-            }
-        }
-    ];
+    const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
+        item => item[0]
+    ) || [];
+    const microSatelliteMarkerLoci = data?.loci || [];
     const [checkedState, setCheckedState] = useState({});
     const [alleleLength, setAlleleLength] = React.useState(false);
     const [length, setLength] = React.useState(null);
 
+    const haploTypeOptions = data?.haplotype.map(item => {
+        return {
+            value: typeof item === "object" ? item.value : item,
+            label: typeof item === "object" ? item.label : item
+        }
+    }) || [];
+
+    const geneticSexOptions = data?.geneticSex.map(item => {
+        return {
+            value: typeof item === "object" ? item.value : item,
+            label: typeof item === "object" ? item.label : item
+        }
+    }) || [];
+
+
     const [bioChemicalValue, setBioChemicalValue] = React.useState(null);
     return (
         <div>
-            <h3><FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" /></h3>
+            <h3><FormattedMessage id="FILTER_BIOLOGICAL" /></h3>
             <Description>
-                <FormattedMessage id="FILTER_IDENTITY_DESC" />
+                <FormattedMessage id="FILTER_BIOLOGICAL_DESC" />
             </Description>
             <Form>
                 <Form.Check
@@ -53,16 +53,6 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     checked={isChecked}
                     onChange={() => {
                         setIsChecked(!isChecked);
-                        // onChange({
-                        //     filterId: "biologicalSampleId",
-                        //     clause: "filter",
-                        //     query: {
-                        //         "exists": {
-                        //             "field": "biologicalSampleId"
-                        //         }
-                        //     }
-
-                        // })
                         onChange({
                             filterId: "biologicalSampleId",
                             clause: "must_not",
@@ -78,16 +68,37 @@ export default function BiologicalSamplesAndAnalysesFilter({
             </Form>
             <FormGroupText
                 label="FILTER_BIOLOGICAL_SAMPLE_ID_CONTAINS"
+                noDesc
                 onChange={onChange}
                 field="tissueSampleIds"
                 term="match"
                 filterId={"tissueSampleIds"}
             />
-            <FormMeasurements
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_HAPLO_TYPE"
                 onChange={onChange}
-                data={bioChemicalOptions || []}
-                field={"biologicalSampleIsotopeValues"}
-                filterId={"biologicalSampleIsotopeValues"}
+                options={haploTypeOptions || []}
+                field={"haplotype"}
+                filterId={"haplotype"}
+                term={"terms"}
+            />
+
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_GENETIC_SEX"
+                onChange={onChange}
+                options={geneticSexOptions || []}
+                field={"geneticSex"}
+                term={"terms"}
+                filterId={"geneticSex"}
+            />
+
+            <FormMeasurements
+                data={bioMeasurementOptions}
+                onChange={onChange}
+                filterId={"biologicalMeasurements"}
+                field={"biologicalMeasurements"}
             />
             <div className='d-flex flex-row justify-content-between'>
                 <h5><FormattedMessage id="FILTER_MARKER_LOCI" /></h5>

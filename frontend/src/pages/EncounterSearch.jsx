@@ -12,11 +12,15 @@ export default function EncounterSearch() {
 
   const columns = [
     { name: "Encounter ID", selector: "id" },
+    { name: "Sighting ID", selector: "occurrenceId" },
+    { name: "Alternative ID", selector: "otherCatalogNumbers" },    
     { name: "Created Date", selector: "date" },
-    { name: "Individual ID", selector: "individualId" },
     { name: "Location ID", selector: "locationId" },
-    { name: "Number Annotations", selector: "numberAnnotations" },
     { name: "Species", selector: "taxonomy" },
+    { name: "Submitter", selector: "submitters" },
+    { name: "Date Submitted", selector: "dateSubmitted" },    
+    { name: "Individual ID", selector: "individualId" },    
+    { name: "Number Annotations", selector: "numberAnnotations" },    
   ];
 
   const schemas = useEncounterSearchSchemas();
@@ -35,6 +39,14 @@ export default function EncounterSearch() {
 
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
+  const tabs = [
+    "Project Management : /encounters/projectManagement.jsp", 
+    "Matching Images/Videos : /encounters/thumbnailSearchResults.jsp",
+    "Mapped Results : /encounters/mappedSearchResults.jsp",
+    "Results Calendar : /xcalendar/calendar.jsp",
+    "Analysis : /encounters/searchResultsAnalysis.jsp",
+    "Export : /encounters/exportSearchResults.jsp",
+  ];
 
   return (
 
@@ -48,27 +60,34 @@ export default function EncounterSearch() {
         padding: "20px",
       }}
     >
-      {filterPanel ? <FilterPanel
+      <FilterPanel
+        style={{
+          display: filterPanel ? "block" : "none",
+        }}
         formFilters={formFilters}
         setFormFilters={setFormFilters}
         setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
         schemas={schemas}
       />
-        : <DataTable
-          title="Encounters"
-          columnNames={columns}
-          tableData={encounters}
-          totalItems={totalEncounters}
-          page={page}
-          perPage={perPage}
-          onPageChange={setPage}
-          onPerPageChange={setPerPage}
-          loading={false}
-          onSelectedRowsChange={(selectedRows) => {
-            console.log("Selected Rows: ", selectedRows);
-          }}
-        />}
+      <DataTable
+        style={{
+          display: !filterPanel ? "block" : "none",
+        }}
+        title="Encounters Search Results"
+        columnNames={columns}
+        tabs = {tabs}
+        tableData={encounters}
+        totalItems={totalEncounters}
+        page={page}
+        perPage={perPage}
+        onPageChange={setPage}
+        onPerPageChange={setPerPage}
+        loading={false}
+        onSelectedRowsChange={(selectedRows) => {
+          console.log("Selected Rows: ", selectedRows);
+        }}
+      />
       <SideBar
         formFilters={formFilters}
         setFilterPanel={setFilterPanel}

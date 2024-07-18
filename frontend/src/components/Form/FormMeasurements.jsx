@@ -52,7 +52,7 @@
 //         //     });
 //         // })
 
-        
+
 //             const must = inputs.filter(input => input.value !== '').map(input => ([
 //               {
 //                 "term": {
@@ -67,7 +67,7 @@
 //                 }
 //               }
 //             ])).flat(); 
-          
+
 //             if (must.length > 0) {
 //               onChange({
 //                 filterId,
@@ -80,7 +80,7 @@
 //               });
 //             }
 //           };
-          
+
 //     };
 
 //     return (
@@ -117,16 +117,23 @@
 
 // export default ObservationInputs;
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Col, Row, Container } from 'react-bootstrap';
+import { FormattedMessage } from 'react-intl';
 
-function ObservationInputs({
+function FormMeasurements({
     data,
     onChange,
     field,
     filterId
-}) {
-    const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
+}) {    
+    const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
+    useEffect(() => {
+        if (data) {
+            const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
+            setInputs(newInputs);
+        }
+    }, [data]); 
 
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
@@ -136,38 +143,32 @@ function ObservationInputs({
             return input;
         });
         setInputs(updatedInputs);
-        if (field === 'value' && value !== '') { // Ensure the value is not empty
+        if (field === 'value' && value !== '') {
             updateQuery(updatedInputs);
         }
     };
 
     const updateQuery = (inputs) => {
         const must = inputs.filter(input => input.value !== '').map(input => {
-            // Adjust the query based on the operator
-            if (input.operator === "equals") {
-                return {
-                    "term": {
-                        [`measurements.${input.type}`]: input.value
-                    }
-                };
-            } else {
-                return {
-                    "range": {
-                        [`measurements.${input.type}`]: {
-                            [input.operator]: input.value
-                        }
-                    }
-                };
-            }
+            return {
+                "match": {
+                    [`${field}.type`]: input.type
+                },
+
+                "range": {
+                    [`${field}.value`]: { [input.operator]: [input.value] }
+                }
+            };
         });
 
         if (must.length > 0) {
             onChange({
                 filterId,
-                clause: "filter",
+                clause: "nested",
+                path: field,
                 query: {
                     "bool": {
-                        "must": must
+                        "filter": must
                     }
                 }
             });
@@ -176,6 +177,7 @@ function ObservationInputs({
 
     return (
         <Container className="mt-3">
+            <h5><FormattedMessage id={field} /></h5>
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
                     <Col md={2} className='d-flex align-items-center'>
@@ -189,7 +191,7 @@ function ObservationInputs({
                         >
                             <option value="gte">&ge;</option>
                             <option value="lte">&le;</option>
-                            <option value="equals">=</option>
+                            <option value="term">=</option>
                         </Form.Select>
                     </Col>
                     <Col md={6}>
@@ -206,4 +208,4 @@ function ObservationInputs({
     );
 }
 
-export default ObservationInputs;
+export default FormMeasurements;

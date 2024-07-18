@@ -38,7 +38,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
 
       <div
         id="main-content"
-        className="flex-grow-1 d-flex justify-content-center mt-4 pt-5"
+        className="flex-grow-1 d-flex justify-content-center pt-5"
         style={{
           boxSizing: "border-box",
           maxWidth: "1440px",

@@ -3,12 +3,15 @@ import { Button, Offcanvas } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FormattedMessage } from 'react-intl';
 import Chip from '../Chip';
+import BrutalismButton from '../BrutalismButton';
+import ThemeContext from '../../ThemeColorProvider'; 
 
 function Sidebar({
   formFilters,
   setFilterPanel,
   setFormFilters,
 }) {
+  const theme = React.useContext(ThemeContext);
   const [show, setShow] = useState(false);
   const sidebarWidth = 400;
 
@@ -76,25 +79,28 @@ function Sidebar({
             style={{
               padding: '10px 0',
             }}>
-            <button className="btn btn-primary" type="button"
+            <BrutalismButton
               onClick={() => {
                 setFilterPanel(true);
                 handleClose();
               }}
+              backgroundColor= {theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}
+              color='white'
             >
-              Edit Filters
-            </button>
-            <button
-              className="btn btn-secondary"
-              type="button"
+              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Edit Filters"}/>
+            </BrutalismButton>
+            <BrutalismButton
+              borderColor={theme.primaryColors.primary700}
+              color={theme.primaryColors.primary700}
               onClick={() => {
                 setFormFilters([]);
                 handleClose();
                 setFilterPanel(false);
               }}
             >
-              Reset Filters
-            </button>
+              <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset Filters"}/>
+            </BrutalismButton>
           </div>
         </Offcanvas.Body>
 

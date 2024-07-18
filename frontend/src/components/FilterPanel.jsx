@@ -3,7 +3,7 @@ import React, { Fragment, useEffect, useState, useRef } from 'react';
 
 import Text from './Text';
 import { Container } from 'react-bootstrap';
-import { set } from 'lodash-es';
+import { filter, set } from 'lodash-es';
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
 import useGetSiteSettings from '../models/useGetSiteSettings';
@@ -26,6 +26,7 @@ export default function FilterPanel({
   formFilters = [],
   setFormFilters = () => { },
   setFilterPanel,
+  style={},
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState(formFilters);
@@ -33,6 +34,7 @@ export default function FilterPanel({
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = filter => {
+    console.log("Filter:", filter);
     if (filter.selectedChoice) {
       setSelectedChoices({
         ...selectedChoices,
@@ -93,8 +95,11 @@ export default function FilterPanel({
   //   };
   // }, [clicked, safeSchemas.length]);
 
+
   return (
-    <Container>
+    <Container style={{
+      ...style,
+    }}>
       <Text
         variant="h1"
         style={{ margin: '16px 0 16px 16px', fontWeight: '500', color: '#fff' }}
@@ -215,6 +220,7 @@ export default function FilterPanel({
                   }}
                 >
                   <schema.FilterComponent
+                    key={schema.id}
                     labelId={schema.labelId}
                     onChange={handleFilterChange}
                     onClearFilter={clearFilter}
