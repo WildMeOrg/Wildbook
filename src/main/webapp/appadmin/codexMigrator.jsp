@@ -14,6 +14,7 @@ java.util.HashSet,
 java.util.Properties,
 javax.jdo.Query,
 org.json.JSONObject,
+org.json.JSONArray,
 org.ecocean.media.*
     "
 %>
@@ -151,6 +152,7 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
                 break;
             }
             ma.setUUID(guid);
+            // TODO revision from codex?
             ma.setAcmId(res.getString("content_guid"));
             ma.updateMetadata();
             ma.addLabel("_original");
@@ -164,6 +166,64 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
         out.println("</li>");
     }
     //MediaAsset.updateStandardChildrenBackground(context, maIds);
+    out.println("</ol>");
+}
+
+
+private static void migrateAnnotations(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>Annotations</h2><ol>");
+    Statement st = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM annotation ORDER BY guid");
+    FeatureType.initAll(myShepherd);
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        if (ct > 5) break;
+        String guid = res.getString("guid");
+        Annotation ann = myShepherd.getAnnotation(guid);
+        if (ann != null) {
+            out.println("<li>" + guid + ": <i>annotation exists; skipping</i>");
+        } else {
+            String maId = res.getString("asset_guid");
+            MediaAsset ma = MediaAssetFactory.loadByUuid(maId, myShepherd);
+            if (ma == null) {
+                //out.println("<b>" + guid + ": failed due to missing MediaAsset id=" + maId + "</b>");
+                //System.out.println(guid + " failed due to missing MediaAsset id=" + maId);
+                ct--;
+                continue;
+            }
+            out.println("<li>" + guid + ": ");
+            String bstr = res.getString("bounds");
+            if (bstr.substring(0,1).equals("\"")) bstr = bstr.substring(1, bstr.length() - 1);
+            bstr = bstr.replaceAll("\\\\", "");
+System.out.println("bstr=>" + bstr);
+            JSONObject bounds = new JSONObject(bstr);
+            JSONArray rect = bounds.getJSONArray("rect");
+            JSONObject params = new JSONObject();
+            params.put("theta", bounds.optDouble("theta"));
+            params.put("x", rect.optInt(0, 0));
+            params.put("y", rect.optInt(1, 0));
+            params.put("width", rect.optInt(2, 0));
+            params.put("height", rect.optInt(3, 0));
+            Feature feat = new Feature("org.ecocean.boundingBox", params);
+            ma.addFeature(feat);
+            // 99.9% sure species doesnt matter any more, so setting as null
+            ann = new Annotation(null, feat, res.getString("ia_class"));
+            ann.setId(guid);
+            // TODO id status?
+            ann.setAcmId(res.getString("content_guid"));
+            ann.setViewpoint(res.getString("viewpoint"));
+            ann.setMatchAgainst(true);
+            myShepherd.getPM().makePersistent(ann);
+
+            String msg = "created annot [" + ct + "] " + ann;
+            out.println("<b>" + msg + "</b>");
+            System.out.println(msg);
+        }
+        out.println("</li>");
+    }
+    out.println("</ol>");
 }
 
 %>
@@ -191,6 +251,8 @@ Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
 migrateUsers(out, myShepherd, conn);
 
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
+
+migrateAnnotations(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
