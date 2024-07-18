@@ -4,6 +4,8 @@ import ReactPaginate from "react-paginate";
 import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
+import { FormattedMessage } from "react-intl";
+import ThemeColorContext from "../ThemeColorProvider";
 
 const customStyles = {
   rows: {
@@ -38,7 +40,9 @@ const MyDataTable = ({
   perPage,
   onPageChange,
   onPerPageChange,
-  onSelectedRowsChange = () => {},
+  style = {},
+  tabs = [],
+  onSelectedRowsChange = () => { },
 }) => {
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -48,11 +52,12 @@ const MyDataTable = ({
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => {
-        return ({        
-        name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-        selector: (row) => row[col.selector], // Accessor function for the column data
-        sortable: true, // Make the column sortable
-      })}),
+        return ({
+          name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+          selector: (row) => row[col.selector], // Accessor function for the column data
+          sortable: true, // Make the column sortable
+        })
+      }),
     [columnNames],
   );
 
@@ -102,21 +107,63 @@ const MyDataTable = ({
     ),
   );
 
+  const theme = React.useContext(ThemeColorContext);
+
   return (
-    <div className="w-100">
-      <h2 className="mt-3">{title}</h2>
-      <InputGroup className="mb-3" style={{ width: "300px" }}>
-        <Form.Control
-          type="text"
-          placeholder="Filter by Text"
-          value={filterText}
-          onChange={handleFilterChange}
-        />
-        <Button className="go-button">Filter</Button>
-        <Button variant="outline-secondary" onClick={clearFilterResult}>
-          Clear
-        </Button>
-      </InputGroup>
+    <div className="w-100" style={{
+      ...style,
+    }}>
+      <h2 className="mt-3" style={{color: "white"}}>{title}</h2>
+      <div className="d-flex flex-row justify-content-between">
+        <div>
+        <Button 
+                key={"result"}
+                variant="outline-tertiary"
+                className="me-1"
+                style={{ 
+                  backgroundColor: "rgba(255,255,255,0.8)",
+                  color: theme.primaryColors.primary700,
+                  fontWeight: "bold",
+                  fontSize: "1em",
+                }}
+
+              >    <FormattedMessage id="Results Table" defaultMessage={"Results Table"}/>   
+              </Button>
+          {Object(tabs).map((tab, index) => {
+            return (
+              <Button 
+                key={index}
+                variant="outline-tertiary"
+                className="me-1"
+                style={{ backgroundColor: "rgba(255,255,255,0.3)" }}
+              >
+                <a
+                  key={index}
+                  href={Object(tab).split(" : ")[1]}
+                  style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {Object(tab).split(" : ")[0]}
+                </a>
+              </Button>
+            );
+          })}
+        </div>
+        <InputGroup className="mb-3" style={{ width: "300px" }}>
+          <Form.Control
+            type="text"
+            placeholder="Filter by Text"
+            value={filterText}
+            onChange={handleFilterChange}
+          />
+          <Button className="go-button">
+            <FormattedMessage id="FILTER" defaultMessage={"Filter"} />
+          </Button>
+          <Button variant="outline-secondary" color={theme.primaryColors.primary700} onClick={clearFilterResult}>
+            <FormattedMessage id="CLEAR" defaultMessage={"CLEAR"} />
+          </Button>
+        </InputGroup>
+      </div>
+
       <DataTable
         // title={title}
         columns={wrappedColumns}
@@ -132,7 +179,7 @@ const MyDataTable = ({
           xs={12}
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
-          <div className="me-3" style={{color:"white"}}>
+          <div className="me-3" style={{ color: "white" }}>
             <span>Total Items: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>

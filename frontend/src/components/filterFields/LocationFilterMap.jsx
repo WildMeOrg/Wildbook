@@ -1,7 +1,7 @@
 import { FormattedMessage } from 'react-intl';
 import Map from "../Map";
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Description from '../Form/Description';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import _ from 'lodash';
@@ -11,7 +11,32 @@ export default function LocationFilterMap({
     data,
 }) {
     const [bounds, setBounds] = useState();
-    console.log("location map bounds", bounds);
+
+    useEffect(() => {
+        if (bounds) {
+            onChange({
+                filterId: "locationId",
+                clause: "filter",
+                query: {
+                    // terms: {
+                    //     locationId: data.locationData.locationID.map(location => location.id)
+                    // },
+                    "geo_bounding_box": {
+                        "pin.location": {
+                            "top_left": {
+                                "lat": bounds.north,
+                                "lon": bounds.west
+                            },
+                            "bottom_right": {
+                                "lat": bounds.south,
+                                "lon": bounds.east
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }, [bounds]);
 
     function flattenLocationData(data) {
         if (!data) {
@@ -89,9 +114,11 @@ export default function LocationFilterMap({
 
             </div>
             <Map
+                bounds={bounds}
                 setBounds={setBounds}
                 center={{ lat: 39.9042, lng: 116.4074 }} 
                 zoom={12}
+                onChange={onChange}
             />
             <FormattedMessage id="FILTER_GPS_COORDINATES" />
 

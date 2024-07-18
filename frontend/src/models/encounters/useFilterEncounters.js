@@ -1,41 +1,122 @@
-import { get, partition } from "lodash-es";
+// import { get, partition } from "lodash-es";
+// import useFetch from "../../hooks/useFetch";
+// import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
+// export default function useFilterEncounters({ queries, params = {} }) {
+//   console.log("Queries:", queries);
+//   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
+//   const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+
+//   const nestedQuery = nestedQueries.map(n => ({
+//     nested: {
+//       path: n.path,
+//       query: {
+//         bool: {
+//           filter: n.query.bool.filter.map(f => ({ match: f }))
+//         }
+//       }
+//     }
+//   }));
+
+//   console.log("Nested Query:", nestedQuery);
+
+//   const boolQuery = {
+//     filter: filterQueries.map(f => ({ match: f.query })),
+//     must_not: mustNotQueries.map(f => f.query)
+//   };
+
+//   console.log
+
+//   if (nestedQuery.length > 0) {
+//     boolQuery.filter.push(...nestedQuery);
+//   }
+
+//   const compositeQuery = {
+//     query: {
+//       bool: boolQuery
+//     }
+//   };
+
+//   return useFetch({
+//     method: "post",
+//     queryKey: getEncounterFilterQueryKey(queries, params),
+//     url: "/search/encounter",
+//     data: compositeQuery,
+//     params: {
+//       sort: "date",
+//       size: 1,
+//       from: 3,
+//       ...params,
+//     },
+//     dataAccessor: (result) => {
+//       const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"], "0");
+//       return {
+//         resultCount: parseInt(resultCountString, 10),
+//         results: get(result, ["data", "data", "hits"], []),
+//       };
+//     },
+//     queryOptions: {
+//       retry: 2,
+//     },
+//   });
+// }
+
+import { get, partition } from "lodash-es";
 import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 export default function useFilterEncounters({ queries, params = {} }) {
-  const [filters, mustNots] = partition(queries, (q) => q.clause === "filter");
-  const filterQueries = filters.map((f) => f.query);
-  const mustNotQueries = mustNots.map((f) => f.query);
+  console.log("Queries:", queries);
+  const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
+  const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+
+  const nestedQuery = nestedQueries.map(n => ({
+    nested: {
+      path: n.path,
+      query: {
+        bool: {
+          filter: n.query.bool.filter.map(f => ({ match: f }))
+        }
+      }
+    }
+  }));
+
+  console.log("Nested Query:", nestedQuery);
+
+  const boolQuery = {
+    filter: filterQueries.map(f => ({ match: f.query })),
+    must_not: mustNotQueries.map(f => f.query),
+    must: nestedQuery  
+  };
+
+  console.log("Bool Query:", boolQuery);
 
   const compositeQuery = {
-    "query": {bool: { filter: filterQueries, must_not: mustNotQueries || [] }},
+    query: {
+      bool: boolQuery
+    }
   };
 
   return useFetch({
-        method: "post",
-        queryKey: getEncounterFilterQueryKey(queries, params),
-        url: "/search/encounter",
-        data: compositeQuery,
-        params: {
-          sort: "date",
-          //reverse: false,
-          size:1,
-          from: 3,       
-          ...params,
-        },
-        dataAccessor: (result) => {
-            // console.log("result", result);
-            const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"]);
-            return {
-                resultCount: parseInt(resultCountString, 10) || 0,
-                results: get(result, ["data", "data","hits"], []),
-            };
-            },
-            queryOptions: {
-            retry: 2,
-            },
-      })
-  
-  
+    method: "post",
+    queryKey: getEncounterFilterQueryKey(queries, params),
+    url: "/search/encounter",
+    data: compositeQuery,
+    params: {
+      sort: "date",
+      size: 1,
+      from: 3,
+      ...params,
+    },
+    dataAccessor: (result) => {
+      const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"], "0");
+      return {
+        resultCount: parseInt(resultCountString, 10),
+        results: get(result, ["data", "data", "hits"], []),
+      };
+    },
+    queryOptions: {
+      retry: 2,
+    },
+  });
 }

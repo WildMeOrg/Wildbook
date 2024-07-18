@@ -1,9 +1,7 @@
 import React from 'react';
-import { Badge } from 'react-bootstrap';
 
 function Chip({ text, children }) {
     function renderFilter(filter) {
-        console.log('filter', filter);
         const entries = [];
         const { filterId, query } = filter;
 
@@ -35,7 +33,7 @@ function Chip({ text, children }) {
             });
         }
 
-        if(query.bool) {
+        if(query?.bool) {
             if(query.bool.must) {
                 query.bool.must.forEach((item) => {
                     Object.entries(item).forEach(([key, value]) => {

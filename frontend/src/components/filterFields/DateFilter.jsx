@@ -2,15 +2,23 @@ import React, { useState } from "react";
 import { FormattedMessage } from "react-intl";
 import Description from "../Form/Description";
 import { FormGroup, FormLabel, FormControl, Button } from "react-bootstrap";
+import FormGroupText from "../Form/FormGroupText";
+import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 
 export default function DateFilter({
     onChange,
+    data,
 }) {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [submissionStartDate, setSubmissionStartDate] = useState('');
     const [submissionEndDate, setSubmissionEndDate] = useState('');
-    const [verbatimDate, setVerbatimDate] = useState('');
+    const verbatimeventdateOptions = data?.verbatimeventdate?.map(data => {
+        return {
+            value: data,
+            label: data
+        }   
+    }) || [];
 
     const updateQuery1 = () => {
 
@@ -89,6 +97,16 @@ export default function DateFilter({
             <Button onClick={updateQuery1} variant="primary">
                 <FormattedMessage id="CONFIRM" />
             </Button>
+
+            <FormGroupMultiSelect
+                isMulti={true}
+                label="FILTER_VERBATIM_EVENT_DATE"
+                options={verbatimeventdateOptions}
+                onChange={onChange}
+                term="terms"
+                field="verbatimEventDate"
+            />
+
             <><p><FormLabel class="mt-3"><FormattedMessage id="ENCOUNTER_SUBMISSION_DATES" /></FormLabel></p>
                 
                 <div className="d-flex flex-row w-100 mb-2">
