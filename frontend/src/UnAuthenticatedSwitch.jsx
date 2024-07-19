@@ -13,9 +13,11 @@ import ServerError from "./pages/errorPages/ServerError";
 import BadRequest from "./pages/errorPages/BadRequest";
 import About from "./About";
 import EncounterSearch from "./pages/EncounterSearch";
+import { set } from "date-fns";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   console.log("UnAuthenticatedSwitch", showAlert);
+  const [header, setHeader] = React.useState(true);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -37,20 +39,21 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
 
       <div
         id="main-content"
-        className="flex-grow-1 d-flex justify-content-center pt-5"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
           maxWidth: "1440px",
           overflow: "hidden",
+          paddingTop: header? "48px" : "0",
         }}
       >
         <Routes>
           <Route path="/about" element={<About />} />
-          <Route path="/home" element={<Unauthorized />} />
+          <Route path="/home" element={<Unauthorized setHeader={setHeader}/>} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound setHeader={setHeader}/>} />
         </Routes>
       </div>
       <Footer />

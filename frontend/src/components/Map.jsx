@@ -144,7 +144,6 @@ const MapComponent = ({
     zoom = 10,
     bounds,
     setBounds,
-    onChange
 }) => {
     const theme = useContext(ThemeContext);
     

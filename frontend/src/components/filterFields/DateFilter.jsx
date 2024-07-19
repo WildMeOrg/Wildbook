@@ -13,7 +13,7 @@ export default function DateFilter({
     const [endDate, setEndDate] = useState("");
     const [submissionStartDate, setSubmissionStartDate] = useState('');
     const [submissionEndDate, setSubmissionEndDate] = useState('');
-    const verbatimeventdateOptions = data?.verbatimeventdate?.map(data => {
+    const verbatimeventdateOptions = data?.verbatimEventDate?.map(data => {
         return {
             value: data,
             label: data
@@ -39,16 +39,16 @@ export default function DateFilter({
         if (startDate || endDate) {
             const query = {
                 range: {
-                    sightingDate: {}
+                    date: {}
                 }
             };
 
             if (startDate) {
-                query.range.sightingDate.gte = startDate + "T00:00:00Z";
+                query.range.date.gte = startDate + "T00:00:00Z";
             }
 
             if (endDate) {
-                query.range.sightingDate.lte = endDate + "T23:59:59Z";
+                query.range.date.lte = endDate + "T23:59:59Z";
             }
             onChange({
                 filterId: "date",
@@ -64,16 +64,16 @@ export default function DateFilter({
         if (submissionStartDate || submissionEndDate) {
             const query = {
                 range: {
-                    submissionDate: {}
+                    dateSubmitted: {}
                 }
             };
 
             if (submissionStartDate) {
-                query.range.submissionDate.gte = submissionStartDate + "T00:00:00Z";
+                query.range.dateSubmitted.gte = submissionStartDate + "T00:00:00Z";
             }
 
             if (submissionEndDate) {
-                query.range.submissionDate.lte = submissionEndDate + "T23:59:59Z";
+                query.range.dateSubmitted.lte = submissionEndDate + "T23:59:59Z";
             }
             onChange({
                 filterId: "dateSubmitted",
@@ -85,7 +85,7 @@ export default function DateFilter({
     }
 
     return (
-        <div>
+        <div >
             <h3><FormattedMessage id="DATE" /></h3>
             <Description>
                 <FormattedMessage id="DATE_DESC" />

@@ -1,9 +1,18 @@
 import React from 'react';
 
 function Chip({ text, children }) {
+    console.log('children', children);
     function renderFilter(filter) {
         const entries = [];
-        const { filterId, query } = filter;
+        const { clause, filterId, query } = filter;
+        if(clause === "nested") {
+            entries.push(`Nested filter: ${filterId}`);
+        }
+        if (query?.geo_bounding_box) {
+            const { top_left, bottom_right } = query.geo_bounding_box['pin.location'];
+            entries.push(`Location within bounding box: top_left: ${top_left.lat}, ${top_left.lon}, bottom_right: ${bottom_right.lat}, ${bottom_right.lon}`);
+        }        
+
 
         if (query?.range) {
             Object.entries(query.range).forEach(([key, range]) => {
@@ -16,6 +25,11 @@ function Chip({ text, children }) {
         if (query?.match) {
             Object.entries(query.match).forEach(([key, value]) => {
                 entries.push(`"${key}" matches "${value}"`);
+            });
+        }
+        if (query?.exists) {
+            Object.entries(query.exists).forEach(([key, value]) => {
+                entries.push(`"${value}" exists`);
             });
         }
         if (query?.term) {

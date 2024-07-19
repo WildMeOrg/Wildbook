@@ -8,6 +8,7 @@ import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
 import useGetSiteSettings from '../models/useGetSiteSettings';
 import FilterContext from '../FilterContextProvider';
+import { Col, Row } from 'react-bootstrap';
 
 function setFilter(newFilter, formFilters, setFormFilters) {
   const matchingFilterIndex = formFilters.findIndex(
@@ -27,15 +28,15 @@ export default function FilterPanel({
   formFilters = [],
   setFormFilters = () => { },
   setFilterPanel,
-  style={},
-  setRefresh,
+  style = {},
+
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState(formFilters);
-  const { filters, updateFilter, resetFilters } = useContext(FilterContext);
+  // const { filters, updateFilter, resetFilters } = useContext(FilterContext);
 
   const { data } = useGetSiteSettings();
-
+  
   const handleFilterChange = filter => {
     console.log("Filter:", filter);
     // if (filter.selectedChoice) {
@@ -100,146 +101,134 @@ export default function FilterPanel({
 
 
   return (
-    <Container style={{
-      ...style,
-    }}>
+    <Container
+      style={{
+        ...style,
+      }}>
       <Text
+        className="mb-3 ms-3 fw-bold text-white"
         variant="h1"
-        style={{ margin: '16px 0 16px 16px', fontWeight: '500', color: '#fff' }}
         id="ENCOUNTER_SEARCH_FILTERS"
       />
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          padding: '8px 16px 16px',
-        }}
-      >
+      <Row className="p-3">   
 
-        <div ref={containerRef}
-          style={{
-            width: '300px',
-            height: '700px',
-            overflow: 'auto',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(2px)',
-            borderRadius: '10px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            padding: '20px',
-            color: 'white',
-            marginRight: '20px',
-            fontSize: '20px',
-          }}>
+        <Col md={3} sm={12} className='d-flex align-items-center'>
+          <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-3 text-white "
+            style={{
+              height: '700px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              fontSize: '20px',
+            }}>
 
-          {safeSchemas.map(schema => {
-            return <div
-              className='d-flex justify-content-between align-items-center'
-              style={{
-                width: "100%",
-                height: "50px",
-                borderRadius: '10px',
-                padding: '10px',
-                marginTop: '10px',
-                backgroundColor: clicked === schema.id ? 'white' : 'transparent',
-                color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                setClicked(schema.id);
-              }}
-            >
-              <Text
-                id={schema.labelId}
+            {safeSchemas.map(schema => {
+              return <div
+                className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? 'bg-white' : 'text-white'} cursor-pointer`}
                 style={{
-                  margin: '16px 0 16px 0',
-                  fontWeight: '500',
-
+                  color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
+                  height: "50px",
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  setClicked(schema.id);
                 }}
               >
-              </Text>
-              <span>  {" > "}   </span>
-            </div>
-          })}
-          <div className="d-flex flex-row mt-5">
-            <BrutalismButton
-              color="white"
-              backgroundColor={theme.primaryColors.primary700}
-              borderColor={theme.primaryColors.primary700}
-              onClick={() => {
-                setFormFilters(tempFormFilters);
-                setFilterPanel(false);
-              }}
-            >
-              APPLY
-            </BrutalismButton>
-            <BrutalismButton style={{
-              color: theme.primaryColors.primary700,
-
-            }}
-              borderColor={theme.primaryColors.primary700}
-              onClick={() => {
-                setFormFilters([]);
-                setTempFormFilters([]);
-                // setFilterPanel(false);
-                // localStorage.removeItem("formData");
-                window.location.reload();
-              }}>
-
-              RESET
-            </BrutalismButton>
-          </div>
-
-        </div>
-        <div style={{
-          width: '900px',
-          maxHeight: '700px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(3px)',
-          WebkitBackdropFilter: 'blur(2px)',
-          borderRadius: '10px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '20px',
-          color: 'white',
-          overflow: 'auto',
-        }}>
-          {
-            safeSchemas.map(schema => {
-              return (
-
-                // schema.id === clicked && <schema.FilterComponent
-                //   key={schema.id}
-                //   labelId={schema.labelId}
-                //   onChange={handleFilterChange}
-                //   onClearFilter={clearFilter}
-                //   {...schema.filterComponentProps}
-                //   data={data}
-                //   filters={filters}
-                // />
-                <div
-                  key={schema.id}
+                <Text
+                  id={schema.labelId}
+                  className="m-3"
                   style={{
-                    display: schema.id === clicked ? 'block' : 'none',
-                    width: '100%',
-
+                    fontWeight: '500',
                   }}
                 >
-                  <schema.FilterComponent
-                    key={schema.id}
-                    labelId={schema.labelId}
-                    onChange={handleFilterChange}
-                    onClearFilter={clearFilter}
-                    {...schema.filterComponentProps}
-                    data={data}
-                    tempFormFilters={tempFormFilters}
-                  />
-                </div>
-              );
-            }
-            )}
+                </Text>
+                <span>  {" > "}   </span>
+              </div>
+            })}
+            <div className="d-flex flex-row mt-5">
+              <BrutalismButton
+                color="white"
+                backgroundColor={theme.primaryColors.primary700}
+                borderColor={theme.primaryColors.primary700}
+                onClick={() => {
+                  setFormFilters(tempFormFilters);
+                  setFilterPanel(false);
+                }}
+              >
+                APPLY
+              </BrutalismButton>
+              <BrutalismButton style={{
+                color: theme.primaryColors.primary700,
 
-        </div>
-      </div>
+              }}
+                borderColor={theme.primaryColors.primary700}
+                onClick={() => {
+                  setFormFilters([]);
+                  setTempFormFilters([]);
+                  // setFilterPanel(false);
+                  // localStorage.removeItem("formData");
+                  window.location.reload();
+                }}>
+
+                RESET
+              </BrutalismButton>
+            </div>
+
+          </div>
+        </Col>
+        <Col md={9} sm={12} className='d-flex align-items-center'>
+          <div className="w-100 d-flex flex-column rounded-3 p-3 text-white overflow-auto"
+            style={{
+              // width: '900px',
+              height: '700px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              borderRadius: '10px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '20px',
+              color: 'white',
+              overflow: 'auto',
+            }}>
+            {
+              safeSchemas.map(schema => {
+                return (
+
+                  // schema.id === clicked && <schema.FilterComponent
+                  //   key={schema.id}
+                  //   labelId={schema.labelId}
+                  //   onChange={handleFilterChange}
+                  //   onClearFilter={clearFilter}
+                  //   {...schema.filterComponentProps}
+                  //   data={data}
+                  //   filters={filters}
+                  // />
+                  <div
+                    key={schema.id}
+                    style={{
+                      display: schema.id === clicked ? 'block' : 'none',
+                      width: '100%',
+
+                    }}
+                  >
+                    <schema.FilterComponent
+                      key={schema.id}
+                      labelId={schema.labelId}
+                      onChange={handleFilterChange}
+                      onClearFilter={clearFilter}
+                      {...schema.filterComponentProps}
+                      data={data}
+                      tempFormFilters={tempFormFilters}
+                    />
+                  </div>
+                );
+              }
+              )}
+
+          </div>
+        </Col>
+      {/* </div> */}
+      </Row>
     </Container>
   );
 }

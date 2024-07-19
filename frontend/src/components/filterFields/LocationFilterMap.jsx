@@ -9,37 +9,31 @@ import _ from 'lodash';
 export default function LocationFilterMap({
     onChange,
     data,
-}) {
-    const initialBounds = {};
-    //     north: -1.276389, // Slightly north of Nairobi center
-    //     south: -1.296389, // Slightly south of Nairobi center
-    //     east: 36.827223,  // Slightly east of Nairobi center
-    //     west: 36.807223   // Slightly west of Nairobi center
-    // };
-    const [bounds, setBounds] = useState(initialBounds);
+}) {    
+    const [bounds, setBounds] = useState(null);
 
-    // useEffect(() => {
-    //     if (bounds) {
-    //         onChange({
-    //             filterId: "locationId",
-    //             clause: "filter",
-    //             query: {
-    //                 "geo_bounding_box": {
-    //                     "pin.location": {
-    //                         "top_left": {
-    //                             "lat": bounds.north,
-    //                             "lon": bounds.west
-    //                         },
-    //                         "bottom_right": {
-    //                             "lat": bounds.south,
-    //                             "lon": bounds.east
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     }
-    // }, [bounds]);
+    useEffect(() => {
+        if (bounds) {
+            onChange({
+                filterId: "locationId",
+                clause: "filter",
+                query: {
+                    "geo_bounding_box": {
+                        "pin.location": {
+                            "top_left": {
+                                "lat": bounds.north,
+                                "lon": bounds.west
+                            },
+                            "bottom_right": {
+                                "lat": bounds.south,
+                                "lon": bounds.east
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }, [bounds]);
 
     function flattenLocationData(data) {
         if (!data) {
@@ -86,7 +80,7 @@ export default function LocationFilterMap({
                 display: 'flex',
                 flexDirection: 'row',
             }}>
-                {bounds ? [{ "Northeast_Latitude": "north" },
+                {[{ "Northeast_Latitude": "north" },
                 { "Northeast_Longitude": "east" },
                 { "Southwest_Latitude": "south" },
                 { "Southwest_Longitude": "west" }].map((item, index) => {
@@ -98,12 +92,12 @@ export default function LocationFilterMap({
                             <FormLabel><FormattedMessage id={Object.keys(item)[0].replace(/_/g, " ")} /></FormLabel>
                             <FormControl
                                 type="text"
-                                placeholder={bounds ? bounds[Object.values(item)[0]] : "123"}
+                                placeholder={bounds ? bounds[Object.values(item)[0]] : ""}
                                 value={bounds ? bounds[Object.values(item)[0]] : ""}
                             />
                         </FormGroup>
                     );
-                }) : null
+                }) 
                 }
 
             </div>

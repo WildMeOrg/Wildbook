@@ -18,6 +18,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
     const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
         item => item[0]
     ) || [];
+
     const microSatelliteMarkerLoci = data?.loci || [];
     const [checkedState, setCheckedState] = useState({});
     const [alleleLength, setAlleleLength] = React.useState(false);
@@ -54,7 +55,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     onChange={() => {
                         setIsChecked(!isChecked);
                         onChange({
-                            filterId: "biologicalSampleId",
+                            filterId: `biologicalSampleId`,
                             clause: "must_not",
                             query: {
                                 "exists": {
@@ -113,17 +114,8 @@ export default function BiologicalSamplesAndAnalysesFilter({
                         }
                         }
                     />
-                    <Form.Control
-                        style={{
-                            width: "60px"
-                        }}
-                        type="number"
-                        onChange={(e) => {
-                            setLength(e.target.value);
-                        }}
-                        value={length}
-
-                    /></div>
+                    
+                </div>
 
             </div>
 
