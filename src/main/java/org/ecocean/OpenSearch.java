@@ -62,6 +62,7 @@ public class OpenSearch {
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
     public static int BACKGROUND_DELAY_MINUTES = 20;
     public static int BACKGROUND_SLICE_SIZE = 1000;
+    public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;
 
@@ -525,6 +526,19 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
+    public static JSONObject querySanitize(JSONObject query, User user) {
+        if ((query == null) || (user == null)) return query;
+        JSONObject newQuery = new JSONObject(query.toString());
+        try {
+            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                "filter");
+            filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.querySanitize() failed to find filter element: " + ex);
+        }
+        return newQuery;
+    }
+
     // TODO right now this respects index timestamp and only indexes objects with versions > timestamp.
     // probably want to make an option to index everything and ignore version/timestamp.
     public void indexAll(Shepherd myShepherd, Base obj)
@@ -571,5 +585,32 @@ public class OpenSearch {
         query.closeAll();
         System.out.println("OpenSearch.indexAll() [" + (System.currentTimeMillis() - initTime) +
             "] completed indexing " + indexName);
+    }
+
+    public static String queryStoragePath(String id) {
+        return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
+    }
+
+    public static String queryStore(JSONObject query) {
+        if (query == null) return null;
+        String id = Util.generateUUID();
+        try {
+            Util.writeToFile(query.toString(), queryStoragePath(id));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return id;
+    }
+
+    public static JSONObject queryLoad(String id) {
+        if (id == null) return null;
+        try {
+            String jsonData = Util.readFromFile(queryStoragePath(id));
+            return new JSONObject(jsonData);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 }

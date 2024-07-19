@@ -50,15 +50,10 @@ public class SearchApi extends ApiBase {
                     try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
                     try { pageSize = Integer.parseInt(sizeStr); } catch (Exception ex) {}
                     JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
-                    try {
-                        JSONArray filter = query.getJSONObject("query").getJSONObject(
-                            "bool").getJSONArray("filter");
-                        filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" +
-                            currentUser.getId() + "\"}}"));
-                    } catch (Exception ex) {
-                        System.out.println("SearchApi failed to find filter element: " + ex);
-                    }
-                    System.out.println("SearchApi query=" + query);
+                    // we store this *before* we sanitize
+                    String searchQueryId = OpenSearch.queryStore(query);
+                    query = OpenSearch.querySanitize(query, currentUser);
+                    System.out.println("SearchApi (sanitized) query=" + query);
 
                     OpenSearch os = new OpenSearch();
                     try {
@@ -86,9 +81,11 @@ public class SearchApi extends ApiBase {
                             hitsArr.put(doc);
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
+                        response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);
                         // response.setHeader("X-Wildbook-Scroll-Id", scrollId);
                         response.setStatus(200);
                         res.put("success", true);
+                        res.put("searchQueryId", searchQueryId);
                         res.put("hits", hitsArr);
                     } catch (IOException ex) {
                         response.setStatus(500);
