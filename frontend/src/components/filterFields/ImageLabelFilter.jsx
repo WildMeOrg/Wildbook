@@ -12,11 +12,11 @@ import Select from 'react-select';
 const colourStyles = {
     option: (styles) => ({
         ...styles,
-        color: 'black', 
+        color: 'black',
     }),
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-    singleValue: (styles) => ({ ...styles, color: 'black' }), 
-  };
+    singleValue: (styles) => ({ ...styles, color: 'black' }),
+};
 
 export default function ImageLabelFilter({
     data,
@@ -76,7 +76,7 @@ export default function ImageLabelFilter({
     const [isChecked_photo, setIsChecked_photo] = React.useState(false);
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-    const term = isChecked_keyword? "terms" : "match";
+    const term = isChecked_keyword ? "terms" : "match";
     const field = "keywords";
     const filterId = "keywords";
 
@@ -98,7 +98,7 @@ export default function ImageLabelFilter({
                             query: {
                                 "range": {
                                     "numberMediaAssets": {
-                                        "gte": 1                                    
+                                        "gte": 1
                                     }
                                 }
                             },
@@ -150,6 +150,7 @@ export default function ImageLabelFilter({
                     <div className="w-50">
                         <Form.Label><FormattedMessage id="LABEL" /></Form.Label>
                         <Select
+                            styles={colourStyles}
                             onChange={(e) => {
                                 setLabelledKeyword(e.value)
 
@@ -161,6 +162,7 @@ export default function ImageLabelFilter({
                         <Form.Label><FormattedMessage id="VALUE" /></Form.Label>
                         <Select
                             options={labelledKeywordsValueOptions}
+                            styles={colourStyles}
                             onChange={(e) => {
                                 onChange({
                                     filterId: "labelledKeywords",
