@@ -12,6 +12,7 @@ import { BrowserRouter, useLocation, useRoutes } from "react-router-dom";
 import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
+import FilterContext from "./FilterContextProvider";
 
 function App() {
   const messageMap = {
@@ -37,6 +38,20 @@ function App() {
     Cookies.set("wildbookLangCode", newLocale);
   };
 
+  const [filters, setFilters] = useState({});
+  const updateFilter = (filterName, value) => {
+    console.log("1111111111111111FilterName:", filterName);
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: value,
+    }));
+
+  }
+
+  const resetFilters = () => {
+    setFilters({}); 
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <LocaleContext.Provider
@@ -53,7 +68,9 @@ function App() {
               messages={messageMap[locale]}
             >
               <FooterVisibilityContext.Provider value={{ visible, setVisible }}>
+              <FilterContext.Provider value={{ filters, updateFilter, resetFilters }}>
                 <FrontDesk adminUserInitialized={true} setLocale={setLocale} />
+              </FilterContext.Provider>
               </FooterVisibilityContext.Provider>
             </IntlProvider>
           </BrowserRouter>

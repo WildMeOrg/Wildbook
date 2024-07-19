@@ -96,7 +96,9 @@ function Sidebar({
               onClick={() => {
                 setFormFilters([]);
                 handleClose();
-                setFilterPanel(false);
+                // setFilterPanel(false);
+                // localStorage.removeItem("formData");
+                window.location.reload();
               }}
             >
               <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset Filters"}/>

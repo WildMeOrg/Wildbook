@@ -8,6 +8,8 @@ import Description from '../Form/Description';
 import { filter } from 'lodash-es';
 import FormGroupText from '../Form/FormGroupText';
 import Select from 'react-select';
+import { useContext } from 'react';
+import FilterContext from '../../FilterContextProvider';
 
 const colourStyles = {
     option: (styles) => ({
@@ -22,6 +24,12 @@ export default function ImageLabelFilter({
     data,
     onChange,
 }) {
+
+    const { filters, updateFilter } = useContext(FilterContext);
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        updateFilter(name, value);
+      };
     const keywordsOptions = data?.keyword?.map(item => {
         return {
             value: item,
@@ -167,6 +175,8 @@ export default function ImageLabelFilter({
                                 onChange({
                                     filterId: "labelledKeywords",
                                     clause: "filter",
+                                    name: e.name,
+                                    value: e.value,
                                     query: {
                                         "match": {
                                             [labelledKeyword]: e.value

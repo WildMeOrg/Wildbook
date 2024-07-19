@@ -9,6 +9,7 @@ export default function EncounterSearch() {
 
   const [formFilters, setFormFilters] = useState([]);
   const [filterPanel, setFilterPanel] = useState(true);
+  const [refresh, setRefresh] = useState(false);
 
   const columns = [
     { name: "Encounter ID", selector: "id" },
@@ -69,6 +70,7 @@ export default function EncounterSearch() {
         setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
         schemas={schemas}
+        setRefresh={setRefresh}
       />
       <DataTable
         style={{
@@ -92,6 +94,7 @@ export default function EncounterSearch() {
         formFilters={formFilters}
         setFilterPanel={setFilterPanel}
         setFormFilters={setFormFilters}
+        setRefresh={setRefresh}
       />
     </div>
   );

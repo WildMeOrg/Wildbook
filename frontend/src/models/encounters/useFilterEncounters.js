@@ -81,7 +81,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
   }));
 
   const boolQuery = {
-    filter: filterQueries.map(f => ({ match: f.query })),
+    filter: filterQueries.map(f => f.query),
     must_not: mustNotQueries.map(f => f.query),
     must: nestedQuery  
   };

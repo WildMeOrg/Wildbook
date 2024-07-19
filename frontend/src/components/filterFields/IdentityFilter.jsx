@@ -5,6 +5,8 @@ import Form from "react-bootstrap/Form";
 import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import FormControl from "react-bootstrap/FormControl";
+import { useContext } from "react";
+import FilterContext from "../../FilterContextProvider";
 
 export default function IdentityFilter({
   onChange,
@@ -13,6 +15,8 @@ export default function IdentityFilter({
   const includeEncounters = <FormattedMessage id="INCLUDE_ENCOUNTERS" />
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
+  const { filters, updateFilter } = useContext(FilterContext);
+  
   return (
     <div>
       <h3><FormattedMessage id="FILTER_IDENTIFY" /></h3>
@@ -28,8 +32,9 @@ export default function IdentityFilter({
           type="checkbox"
           id="custom-checkbox"
           checked={isChecked1}
-          onChange={() => {
+          onChange={(e) => {
             setIsChecked1(!isChecked1);
+            
             // onChange({
             //   filterId: "individualNumberEncounters",
             //   clause: "filter",
@@ -49,9 +54,13 @@ export default function IdentityFilter({
             marginLeft: "10px",
             marginRight: "10px"
           }}
+          checked={filters.individualNumberEncounters}
           placeholder="Type Here"
           onChange={(e) => {
-            if(isChecked1){
+            setIsChecked1(!isChecked1);
+            console.log("e.target.value", e.target.value);
+            // updateFilter("individualNumberEncounters", isChecked1);
+            if(isChecked1){              
               onChange({
                   filterId: "individualNumberEncounters",
                   clause: "filter",
@@ -75,9 +84,10 @@ export default function IdentityFilter({
           label={includeEncounters}
           type="checkbox"
           id="custom-checkbox"
-          checked={isChecked2}
-          onChange={() => {
+          checked={filters.hello}
+          onChange={(e) => {
             setIsChecked2(!isChecked2);
+            // updateFilter("hello", isChecked2);
             if(isChecked2){
               onChange({
                 filterId: "individualId",

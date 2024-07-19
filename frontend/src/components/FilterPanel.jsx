@@ -1,5 +1,5 @@
 
-import React, { Fragment, useEffect, useState, useRef } from 'react';
+import React, { Fragment, useEffect, useState, useRef, useContext } from 'react';
 
 import Text from './Text';
 import { Container } from 'react-bootstrap';
@@ -7,6 +7,7 @@ import { filter, set } from 'lodash-es';
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
 import useGetSiteSettings from '../models/useGetSiteSettings';
+import FilterContext from '../FilterContextProvider';
 
 function setFilter(newFilter, formFilters, setFormFilters) {
   const matchingFilterIndex = formFilters.findIndex(
@@ -27,20 +28,22 @@ export default function FilterPanel({
   setFormFilters = () => { },
   setFilterPanel,
   style={},
+  setRefresh,
 }) {
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState(formFilters);
+  const { filters, updateFilter, resetFilters } = useContext(FilterContext);
 
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = filter => {
     console.log("Filter:", filter);
-    if (filter.selectedChoice) {
-      setSelectedChoices({
-        ...selectedChoices,
-        [filter.filterId]: filter.selectedChoice,
-      });
-    }
+    // if (filter.selectedChoice) {
+    //   setSelectedChoices({
+    //     ...selectedChoices,
+    //     [filter.filterId]: filter.selectedChoice,
+    //   });
+    // }
     setFilter(filter, tempFormFilters, setTempFormFilters);
   };
   const clearFilter = filterId => {
@@ -178,7 +181,9 @@ export default function FilterPanel({
               onClick={() => {
                 setFormFilters([]);
                 setTempFormFilters([]);
-                setFilterPanel(false);
+                // setFilterPanel(false);
+                // localStorage.removeItem("formData");
+                window.location.reload();
               }}>
 
               RESET
@@ -209,7 +214,7 @@ export default function FilterPanel({
                 //   onClearFilter={clearFilter}
                 //   {...schema.filterComponentProps}
                 //   data={data}
-                //   tempFormFilters={tempFormFilters}
+                //   filters={filters}
                 // />
                 <div
                   key={schema.id}
