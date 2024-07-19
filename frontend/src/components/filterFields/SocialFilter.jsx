@@ -36,8 +36,10 @@ export default function SocialFilter({
   }) || [];
 
   const term = isChecked ? "terms" : "match";
-  const filterId = "socialUnitRole";
-  const field = "socialUnitRole";
+  const filterId = "individualSocialUnits";
+  const field = "individualSocialUnits";
+
+  const [ socialUnitName, setSocialUnitName ] = React.useState(null);
 
   return (
     <div>
@@ -49,7 +51,7 @@ export default function SocialFilter({
       <FormGroupMultiSelect
         isMulti={true}
         label="FILTER_SOCIAL_UNIT"
-        onChange={onChange}
+        onChange={setSocialUnitName}
         options = {socialUnitOptions}
         field="socialUnitName"
         term="terms"
