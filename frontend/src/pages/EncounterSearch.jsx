@@ -12,16 +12,17 @@ export default function EncounterSearch() {
   const [refresh, setRefresh] = useState(false);
 
   const columns = [
-    { name: "Encounter ID", selector: "id" },
+    { name: "Individual ID", selector: "individualId" },
+    // { name: "Encounter ID", selector: "id" },
     { name: "Sighting ID", selector: "occurrenceId" },
-    { name: "Alternative ID", selector: "otherCatalogNumbers" },    
+    { name: "Alternative ID", selector: "otherCatalogNumbers" },
     { name: "Created Date", selector: "date" },
     { name: "Location ID", selector: "locationId" },
     { name: "Species", selector: "taxonomy" },
     { name: "Submitter", selector: "submitters" },
-    { name: "Date Submitted", selector: "dateSubmitted" },    
-    { name: "Individual ID", selector: "individualId" },    
-    { name: "Number Annotations", selector: "numberAnnotations" },    
+    { name: "Date Submitted", selector: "dateSubmitted" },
+
+    { name: "Number Annotations", selector: "numberAnnotations" },
   ];
 
   const schemas = useEncounterSearchSchemas();
@@ -41,7 +42,7 @@ export default function EncounterSearch() {
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
   const tabs = [
-    "Project Management : /encounters/projectManagement.jsp", 
+    "Project Management : /encounters/projectManagement.jsp",
     "Matching Images/Videos : /encounters/thumbnailSearchResults.jsp",
     "Mapped Results : /encounters/mappedSearchResults.jsp",
     "Results Calendar : /xcalendar/calendar.jsp",
@@ -78,7 +79,7 @@ export default function EncounterSearch() {
         }}
         title="Encounters Search Results"
         columnNames={columns}
-        tabs = {tabs}
+        tabs={tabs}
         tableData={encounters}
         totalItems={totalEncounters}
         page={page}
@@ -86,8 +87,14 @@ export default function EncounterSearch() {
         onPageChange={setPage}
         onPerPageChange={setPerPage}
         loading={false}
+        onRowClicked={(row) => {
+          console.log("Row Clicked: ", row);
+          const url = `/encounters/encounter.jsp?number=${row.id}`;
+          window.location.href = url;
+        }}
         onSelectedRowsChange={(selectedRows) => {
           console.log("Selected Rows: ", selectedRows);
+        
         }}
       />
       <SideBar

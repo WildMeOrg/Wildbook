@@ -15,6 +15,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { isFetched, data, error } = useGetMe();
   const username = data?.username;
   const avatar = data?.imageURL || "/react/images/Avatar.png";
+  const [header, setHeader] = React.useState(true);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -38,11 +39,12 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
 
       <div
         id="main-content"
-        className="flex-grow-1 d-flex justify-content-center pt-5"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
           maxWidth: "1440px",
           overflow: "hidden",
+          paddingTop: header? "48px" : "0",
         }}
       >
         <Routes>
@@ -51,7 +53,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound setHeader={setHeader}/>} />
         </Routes>
       </div>
 

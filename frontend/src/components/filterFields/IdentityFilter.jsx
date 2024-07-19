@@ -16,16 +16,12 @@ export default function IdentityFilter({
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
   const { filters, updateFilter } = useContext(FilterContext);
-  
+
   return (
     <div>
       <h3><FormattedMessage id="FILTER_IDENTIFY" /></h3>
       <Description>
         <FormattedMessage id="FILTER_IDENTIFY_DESC" />
-      </Description>
-      <h5><FormattedMessage id="FILTER_MINIMUM_TIMES_SIGHTED" /></h5>
-      <Description>
-        <FormattedMessage id="FILTER_MINIMUM_TIMES_SIGHTED_DESC" />
       </Description>
       <Form className="d-flex flex-row aligh-items-center ">
         <Form.Check
@@ -34,7 +30,7 @@ export default function IdentityFilter({
           checked={isChecked1}
           onChange={(e) => {
             setIsChecked1(!isChecked1);
-            
+
             // onChange({
             //   filterId: "individualNumberEncounters",
             //   clause: "filter",
@@ -47,60 +43,88 @@ export default function IdentityFilter({
           }}
         />
         <FormattedMessage id="SIGHTED_AT_LEAST" />
-        <FormControl 
+        <FormControl
           type="text"
           style={{
             width: "100px",
             marginLeft: "10px",
             marginRight: "10px"
           }}
-          checked={filters.individualNumberEncounters}
+          // checked={filters.individualNumberEncounters}
           placeholder="Type Here"
           onChange={(e) => {
-            setIsChecked1(!isChecked1);
-            console.log("e.target.value", e.target.value);
-            // updateFilter("individualNumberEncounters", isChecked1);
-            if(isChecked1){              
+            if (isChecked1 && e.target.value) {
+              console.log("checked and ", e.target.value);
               onChange({
-                  filterId: "individualNumberEncounters",
-                  clause: "filter",
-                  query: {
-                    "range": {
-                      "individualNumberEncounters": {"gte" :e.target.value}
-                    }
-                  },
-                });
+                filterId: "individualNumberEncounters",
+                clause: "filter",
+                query: {
+                  "range": {
+                    "individualNumberEncounters": { "gte": e.target.value }
+                  }
+                },
+              });
             }
           }}
           disabled={!isChecked1}
         />
         <FormattedMessage id="TIMES" />
       </Form>
-      
-        
-      
+
+
+
       <Form>
+
         <Form.Check
           label={includeEncounters}
           type="checkbox"
           id="custom-checkbox"
-          checked={filters.hello}
+          checked={isChecked2}
           onChange={(e) => {
             setIsChecked2(!isChecked2);
-            // updateFilter("hello", isChecked2);
-            if(isChecked2){
+            if (e.target.checked) {
+              console.log("checked and ", e.target.value);
               onChange({
                 filterId: "individualId",
                 clause: "filter",
                 query: {
-                  "match": {
-                    "individualId": null
+                  "exists": {
+                    "field": "individualId"
                   }
                 },
               })
-            
-          }}}
+
+            }
+          }}
         />
+
+        {/* <FormControl
+  type="checkbox"
+  id="custom-checkbox"
+  checked={isChecked2}
+  label={includeEncounters}
+  onChange={(e) => {
+    const newChecked = e.target.checked;
+    if(newChecked){
+      onChange({
+        filterId: "individualId",
+        clause: "filter",
+        query: {
+          "match": {
+            "individualId": null  
+          }
+        }
+      });
+    } else {      
+      onChange({
+        filterId: "individualId",
+        clause: "filter",
+        query: {}
+      });
+    }
+  }}
+/> */}
+
       </Form>
       <FormGroupText
         label="FILTER_ALTERNATIVE_ID_CONTAINS"

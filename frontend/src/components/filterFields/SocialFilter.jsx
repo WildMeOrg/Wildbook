@@ -28,10 +28,10 @@ export default function SocialFilter({
     };
   }) || [];
 
-  const socialUnitOptions = Object.entries(data?.socialUnitName || {}).map((item) => {
+  const socialUnitOptions = data?.socialUnitName.map((item) => {
     return {
-      value: item[0],
-      label: item[1]
+      value: item,
+      label: item
     };
   }) || [];
 
@@ -51,7 +51,7 @@ export default function SocialFilter({
       <FormGroupMultiSelect
         isMulti={true}
         label="FILTER_SOCIAL_UNIT"
-        onChange={setSocialUnitName}
+        onChange={onChange}
         options = {socialUnitOptions}
         field="socialUnitName"
         term="terms"
@@ -74,8 +74,17 @@ export default function SocialFilter({
         />
       </div>
           
+      <FormGroupMultiSelect
+        isMulti={isChecked}
+        label="FILTER_SOCIAL_ROLE"
+        options={socialRoleOptions}
+        onChange={onChange}
+        field="socialRole"
+        term={ isChecked? "terms" : "match"}
+        filterId={"socialRole"}
+      />
 
-      <Select
+      {/* <Select
           isMulti={isChecked}
           options={socialRoleOptions}
           styles={colourStyles}
@@ -90,7 +99,7 @@ export default function SocialFilter({
                 }                    
             })
         }
-      />
+      /> */}
     </div>
   );
 }

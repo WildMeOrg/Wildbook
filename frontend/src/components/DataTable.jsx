@@ -43,6 +43,7 @@ const MyDataTable = ({
   style = {},
   tabs = [],
   onSelectedRowsChange = () => { },
+  onRowClicked = () => { },
 }) => {
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -52,11 +53,28 @@ const MyDataTable = ({
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => {
+        if (col.selector === 'occurrenceId') {
+          return {
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            cell: (row) => <a 
+            style={{ color: 'inherit', textDecoration: 'none' }}
+            href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
+            sortable: true,
+          };
+        } else if (col.selector === 'individualId') {
+          return {
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            cell: (row) => <a 
+            style={{ color: 'inherit', textDecoration: 'none' }}  
+            href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
+            sortable: true,
+          };
+        } else {
         return ({
           name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
           selector: (row) => row[col.selector], // Accessor function for the column data
           sortable: true, // Make the column sortable
-        })
+        })}
       }),
     [columnNames],
   );
@@ -172,6 +190,8 @@ const MyDataTable = ({
         conditionalRowStyles={conditionalRowStyles}
         selectableRows
         onSelectedRowsChange={onSelectedRowsChange}
+        pointerOnHover
+        onRowClicked={onRowClicked}
         selectableRowsHighlight
       />
       <Row className="mt-3 d-flex justify-content-center align-items-center">

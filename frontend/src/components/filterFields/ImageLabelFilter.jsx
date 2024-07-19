@@ -88,6 +88,29 @@ export default function ImageLabelFilter({
     const field = "keywords";
     const filterId = "keywords";
 
+    useEffect(() => {
+        console.log("isChecked_photo", isChecked_photo);
+        if(isChecked_photo){
+        onChange({
+            filterId: "numberMediaAssets",
+            clause: "filter",
+            query: {
+                "range": {
+                    "numberMediaAssets": {
+                        "gte": 1
+                    }
+                }
+            },
+        })  }
+        // else {
+        //     onChange({
+        //         filterId: "numberMediaAssets",
+        //         clause: "filter",
+        //         query: {}
+        //     });
+        // }
+    }, [isChecked_photo]);
+
     return (
 
         <div>
@@ -100,17 +123,7 @@ export default function ImageLabelFilter({
                     checked={isChecked_photo}
                     onChange={() => {
                         setIsChecked_photo(!isChecked_photo);
-                        onChange({
-                            filterId: "numberMediaAssets",
-                            clause: "filter",
-                            query: {
-                                "range": {
-                                    "numberMediaAssets": {
-                                        "gte": 1
-                                    }
-                                }
-                            },
-                        })
+                        
                     }}
                 />
             </Form>
@@ -132,9 +145,17 @@ export default function ImageLabelFilter({
                 />
             </div>
 
+            <FormGroupMultiSelect
+                isMulti={isChecked_keyword}
+                label="FILTER_KEYWORDS"
+                options={keywordsOptions}
+                onChange={onChange}
+                field="keywords"
+                term="terms"
+            />
 
-            <Select
-                isMulti={setIsChecked_photo}
+            {/* <Select
+                isMulti={isChecked_keyword}
                 options={keywordsOptions}
                 styles={colourStyles}
                 onChange={(e) =>
@@ -143,12 +164,12 @@ export default function ImageLabelFilter({
                         clause: "filter",
                         query: {
                             [term]: {
-                                [field]: setIsChecked_photo ? e.map(item => item.value) : e.value
+                                [field]: isChecked_keyword ? e.map(item => item.value) : e.value
                             }
                         }
                     })
                 }
-            />
+            /> */}
             <FormGroup>
                 <Form.Label><FormattedMessage id="FILTER_LABELLED_KEYWORDS" /></Form.Label>
                 <Description>
@@ -201,9 +222,11 @@ export default function ImageLabelFilter({
             />
 
             <FormGroupMultiSelect
-                label="FILTER_CLASS"
+                isMulti={true}
+                label="FILTER_IACLASS"
                 options={iaClassOptions}
                 filterId="iaClass"
+                field={"iaClass"}
                 term="terms"
                 onChange={onChange}
             />
