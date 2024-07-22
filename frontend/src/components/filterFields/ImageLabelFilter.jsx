@@ -56,14 +56,6 @@ export default function ImageLabelFilter({
                 }
             }
         ))
-        const testOptions = (data?.labeledKeyword[labelledKeyword] || []).map(
-            item => {
-                return {
-                    value: item,
-                    label: item
-                }
-            }
-        )
     }, [labelledKeyword])
 
     const viewPointOptions = data?.annotationViewpoint?.map(item => {
@@ -91,7 +83,7 @@ export default function ImageLabelFilter({
     useEffect(() => {
         console.log("isChecked_photo", isChecked_photo);
         if(isChecked_photo){
-        onChange({
+        onChange({            
             filterId: "numberMediaAssets",
             clause: "filter",
             query: {
@@ -102,6 +94,9 @@ export default function ImageLabelFilter({
                 }
             },
         })  }
+        else {
+            onChange(null, "numberMediaAssets");
+        }
         // else {
         //     onChange({
         //         filterId: "numberMediaAssets",
