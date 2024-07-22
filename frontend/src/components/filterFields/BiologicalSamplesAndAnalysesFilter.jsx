@@ -54,9 +54,11 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     checked={isChecked}
                     onChange={() => {
                         setIsChecked(!isChecked);
+
+
                         onChange({
                             filterId: `biologicalSampleId`,
-                            clause: "must_not",
+                            clause: "must",
                             query: {
                                 "exists": {
                                     "field": "tissueSampleIds"
