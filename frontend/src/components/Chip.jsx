@@ -9,7 +9,7 @@ function Chip({ text, children }) {
             entries.push(`Nested filter: ${filterId}`);
         }
         if (query?.geo_bounding_box) {
-            const { top_left, bottom_right } = query.geo_bounding_box['pin.location'];
+            const { top_left, bottom_right } = query.geo_bounding_box['locationGeoPoint'];
             entries.push(`Location within bounding box: top_left: ${top_left.lat}, ${top_left.lon}, bottom_right: ${bottom_right.lat}, ${bottom_right.lon}`);
         }        
 

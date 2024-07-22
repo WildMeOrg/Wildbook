@@ -19,7 +19,7 @@ export default function LocationFilterMap({
                 clause: "filter",
                 query: {
                     "geo_bounding_box": {
-                        "pin.location": {
+                        "locationGeoPoint": {
                             "top_left": {
                                 "lat": bounds.north,
                                 "lon": bounds.west
