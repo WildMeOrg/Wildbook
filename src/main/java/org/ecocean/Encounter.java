@@ -4518,6 +4518,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;
     }
