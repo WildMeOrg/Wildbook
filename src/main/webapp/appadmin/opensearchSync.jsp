@@ -7,6 +7,7 @@ org.ecocean.*
 
 
 <%
+System.out.println("opensearchSync.jsp begun...");
 
 boolean resetIndex = Util.requestParameterSet("resetIndex");
 
@@ -46,7 +47,7 @@ if (forceNum > 0) {
             if (!Util.stringExists(enc.getId())) continue;
             //System.out.println(enc.getId() + ": " + enc.getVersion());
             enc.opensearchIndex();
-            if (ct % 100 == 0) System.out.println("count " + ct);
+            if (ct % 100 == 0) System.out.println("opensearchSync.jsp: count " + ct);
             ct++;
             if (ct > forceNum) break;
     }
