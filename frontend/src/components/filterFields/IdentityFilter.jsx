@@ -15,7 +15,7 @@ export default function IdentityFilter({
   const includeEncounters = <FormattedMessage id="INCLUDE_ENCOUNTERS" />
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
-  const { filters, updateFilter } = useContext(FilterContext);
+  const [times, setTimes] = React.useState(0);
 
   return (
     <div>
@@ -30,16 +30,19 @@ export default function IdentityFilter({
           checked={isChecked1}
           onChange={(e) => {
             setIsChecked1(!isChecked1);
-
-            // onChange({
-            //   filterId: "individualNumberEncounters",
-            //   clause: "filter",
-            //   query: {
-            //     "match": {
-            //       "individualID": null
-            //     }
-            //   },
-            // })
+            if (e.target.checked && times) {
+              onChange({
+                filterId: "individualNumberEncounters",
+                clause: "filter",
+                query: {
+                  "range": {
+                    "individualNumberEncounters": { "gte": times }
+                  }
+                },
+              });
+            }else {             
+                onChange(null, "individualNumberEncounters");            
+            }
           }}
         />
         <FormattedMessage id="SIGHTED_AT_LEAST" />
@@ -50,11 +53,10 @@ export default function IdentityFilter({
             marginLeft: "10px",
             marginRight: "10px"
           }}
-          // checked={filters.individualNumberEncounters}
           placeholder="Type Here"
           onChange={(e) => {
+            setTimes(e.target.value);
             if (isChecked1 && e.target.value) {
-              console.log("checked and ", e.target.value);
               onChange({
                 filterId: "individualNumberEncounters",
                 clause: "filter",
@@ -65,6 +67,7 @@ export default function IdentityFilter({
                 },
               });
             }
+            
           }}
           disabled={!isChecked1}
         />
@@ -93,7 +96,8 @@ export default function IdentityFilter({
                   }
                 },
               })
-
+            }else {
+              onChange(null, "individualId");
             }
           }}
         />

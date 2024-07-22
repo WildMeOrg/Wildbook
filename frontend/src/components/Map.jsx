@@ -137,16 +137,16 @@ import React, { useState, useRef, useContext, useEffect } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Button } from 'react-bootstrap';
 import BrutalismButton from './BrutalismButton';
-import ThemeContext from '../ThemeColorProvider'; 
+import ThemeContext from '../ThemeColorProvider';
 
-const MapComponent = ({ 
-    center, 
+const MapComponent = ({
+    center,
     zoom = 10,
     bounds,
     setBounds,
 }) => {
     const theme = useContext(ThemeContext);
-    
+
     const [rectangle, setRectangle] = useState(null);
     const drawingRef = useRef(false);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -159,9 +159,9 @@ const MapComponent = ({
             fillColor: '#FF0000',
             fillOpacity: 0.35,
         });
-    
+
         setRectangle(rect);
-    
+
         maps.event.addListener(map, 'mousedown', (e) => {
             if (drawingRef.current) {
                 const initialBounds = {
@@ -173,7 +173,7 @@ const MapComponent = ({
                 rect.setMap(map);
                 rect.setBounds(initialBounds);
                 map.setOptions({ draggable: false });
-    
+
                 const mouseMoveHandler = (ev) => {
                     const updatedBounds = {
                         north: Math.max(initialBounds.north, ev.latLng.lat()),
@@ -184,7 +184,7 @@ const MapComponent = ({
                     rect.setBounds(updatedBounds);
                 };
                 const moveListener = maps.event.addListener(map, 'mousemove', mouseMoveHandler);
-    
+
                 const mouseUpHandler = () => {
                     drawingRef.current = false;
                     setIsDrawing(false);
@@ -192,23 +192,26 @@ const MapComponent = ({
                     maps.event.removeListener(moveListener);
                     setBounds(rect.getBounds().toJSON());
                     map.fitBounds(rect.getBounds(), {
-                        left: 50, 
-                        right: 50, 
-                        top: 50, 
-                        bottom: 50 
+                        left: 50,
+                        right: 50,
+                        top: 50,
+                        bottom: 50
                     });
                 };
                 document.addEventListener('mouseup', mouseUpHandler, { once: true });
             }
         });
     };
-    
+
     const toggleDrawing = () => {
         if (rectangle) {
-            rectangle.setMap(null);  
+            rectangle.setMap(null);
         }
         drawingRef.current = !drawingRef.current;
-    };    
+    };
+
+    const key = window?.wildbookGlobals?.gtmKey || "";
+    console.log("Key:", key);
 
     return (
         <div style={{ height: '400px', width: '100%' }}>
@@ -217,7 +220,7 @@ const MapComponent = ({
                     toggleDrawing();
                     setIsDrawing(!isDrawing);
                 }}
-                backgroundColor= {theme.primaryColors.primary700}
+                backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 color='white'
                 style={{ position: 'absolute', zIndex: 2, width: "100px" }}
@@ -226,7 +229,7 @@ const MapComponent = ({
                 {drawingRef.current ? 'Drawing' : 'Draw'}
             </BrutalismButton>
             <GoogleMapReact
-                bootstrapURLKeys={{ key: 'AIzaSyCJ9DkZBMfMVJFsGxHN9ntIqXfD6GZd1tk' }}
+                bootstrapURLKeys={{ key: key }}
                 defaultCenter={center}
                 defaultZoom={zoom}
                 yesIWantToUseGoogleMapApiInternals

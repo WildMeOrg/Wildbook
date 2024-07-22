@@ -36,16 +36,22 @@ export default function FilterPanel({
   // const { filters, updateFilter, resetFilters } = useContext(FilterContext);
 
   const { data } = useGetSiteSettings();
-  
-  const handleFilterChange = filter => {
+
+  const handleFilterChange = (filter = null, remove) => {
     console.log("Filter:", filter);
+
+    if (remove) {
+      console.log("Remove:", remove);
+      const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
+      console.log("Updated Filters:", updatedFilters);
+      setTempFormFilters(updatedFilters);
+    } else setFilter(filter, tempFormFilters, setTempFormFilters);
     // if (filter.selectedChoice) {
     //   setSelectedChoices({
     //     ...selectedChoices,
     //     [filter.filterId]: filter.selectedChoice,
     //   });
     // }
-    setFilter(filter, tempFormFilters, setTempFormFilters);
   };
   const clearFilter = filterId => {
     const newFormFilters = formFilters.filter(
@@ -110,7 +116,7 @@ export default function FilterPanel({
         variant="h1"
         id="ENCOUNTER_SEARCH_FILTERS"
       />
-      <Row className="p-3">   
+      <Row className="p-3">
 
         <Col md={3} sm={12} className='d-flex align-items-center'>
           <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-3 text-white "
@@ -227,7 +233,7 @@ export default function FilterPanel({
 
           </div>
         </Col>
-      {/* </div> */}
+        {/* </div> */}
       </Row>
     </Container>
   );
