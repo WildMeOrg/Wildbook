@@ -5,6 +5,7 @@ java.io.IOException,
 javax.servlet.jsp.JspWriter,
 javax.servlet.http.HttpServletRequest,
 java.nio.file.Files,
+java.sql.Timestamp,
 java.sql.*,
 java.io.File,
 java.util.ArrayList,
@@ -226,6 +227,81 @@ System.out.println("bstr=>" + bstr);
     out.println("</ol>");
 }
 
+private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>Encounters</h2><ol>");
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT encounter.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM encounter JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        if (ct > 5) break;
+        String guid = res.getString("guid");
+        out.println("<li>" + guid + ": ");
+        Encounter enc = myShepherd.getEncounter(guid);
+        if (enc != null) {
+            out.println("<i>encounter exists; skipping</i>");
+        } else {
+            enc = new Encounter();
+            enc.setId(guid);
+            Timestamp ts = res.getTimestamp("created");
+            if (ts != null) enc.setDWCDateAdded(ts.toString());
+            ts = res.getTimestamp("updated");
+            if (ts != null) enc.setDWCDateLastModified(ts.toString());
+            User owner = myShepherd.getUser(res.getString("owner_guid"));
+            if (owner != null) {
+                enc.addSubmitter(owner);
+                enc.setSubmitterID(owner.getUsername());
+            }
+            Double d = res.getDouble("decimal_latitude");
+            if (res.wasNull()) d = null;
+            enc.setDecimalLatitude(d);
+            d = res.getDouble("decimal_longitude");
+            if (res.wasNull()) d = null;
+            enc.setDecimalLongitude(d);
+
+            // date/time madness
+            ts = res.getTimestamp("datetime");
+            String tz = res.getString("timezone");
+            String spec = res.getString("specificity");
+            Timestamp adjusted = ts; // FIXME adjust for tz
+            enc.setYear(adjusted.getYear() + 1900);
+            if (!"year".equals(spec)) {
+                enc.setMonth(adjusted.getMonth());
+                if (!"month".equals(spec)) {
+                    enc.setDay(adjusted.getDay());
+                    if (!"day".equals(spec)) {
+                        enc.setHour(adjusted.getHours());
+                        enc.setMinutes(Integer.toString(adjusted.getMinutes())); // ygbkm
+                    }
+                }
+            }
+
+            // loop thru annotations
+            ResultSet subRes = st2.executeQuery("SELECT guid FROM annotation WHERE encounter_guid='" + guid + "'");
+            while (subRes.next()) {
+                String annId = subRes.getString("guid");
+                Annotation ann = myShepherd.getAnnotation(annId);
+                if (ann == null) {
+                    System.out.println("could not load ann " + annId + " for enc " + guid);
+                } else {
+                    enc.addAnnotation(ann);
+                }
+            }
+
+            myShepherd.storeNewEncounter(enc, guid);
+
+            String msg = "created encounter [" + ct + "] " + enc;
+            out.println("<b>" + msg + "</b>");
+            System.out.println(msg);
+        }
+        out.println("</li>");
+    }
+    out.println("</ol>");
+}
+
+
 %>
 
 
@@ -252,7 +328,9 @@ migrateUsers(out, myShepherd, conn);
 
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
 
-migrateAnnotations(out, myShepherd, conn);
+//migrateAnnotations(out, myShepherd, conn);
+
+migrateEncounters(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
