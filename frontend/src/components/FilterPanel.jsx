@@ -116,9 +116,9 @@ export default function FilterPanel({
         variant="h1"
         id="ENCOUNTER_SEARCH_FILTERS"
       />
-      <Row className="p-3">
+      <Row className="p-3" style={{ alignItems: 'flex-start' }}>
 
-        <Col md={3} sm={12} className='d-flex align-items-center'>
+        <Col md={3} sm={12} className='d-flex align-items-center mb-3'>
           <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-3 text-white "
             style={{
               height: '700px',
@@ -186,7 +186,7 @@ export default function FilterPanel({
           <div className="w-100 d-flex flex-column rounded-3 p-3 text-white overflow-auto"
             style={{
               // width: '900px',
-              height: '700px',
+              minHeight: '700px',
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(3px)',
               WebkitBackdropFilter: 'blur(2px)',
@@ -194,7 +194,7 @@ export default function FilterPanel({
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
               padding: '20px',
               color: 'white',
-              overflow: 'auto',
+              // overflow: 'auto',
             }}>
             {
               safeSchemas.map(schema => {

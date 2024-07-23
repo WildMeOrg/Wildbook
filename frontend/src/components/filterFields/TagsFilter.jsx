@@ -2,8 +2,6 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
-import { Form, Row, Col } from "react-bootstrap";
-import FormDualInputs from "../Form/FormDualInputs";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";  
 
 
@@ -36,18 +34,26 @@ export default function TagsFilter({
               placeholder="Type Here"
               onChange={(e) => {
                 onChange({
-                  filterId: "metalTag",
-                  clause: "filter",
+                  filterId: `metalTag.${location.label}`,
+                  clause: "nested",
+                  path: "metalTags",
                   query: {
-                    "bool" : {
-                      "must": [
-                      {[field1]: location.label},
-                      {[field2]: e.target.value,}
-                    ]
-                    }                    
+                      "bool": {
+                          "filter": [  
+                              {
+                                  "match": {
+                                      "metalTags.location": location.label
+                                  },
+                              },  
+                              {
+                                  "match": {
+                                      "metalTags.number": e.target.value
+                                  }
+                              }
+                          ]
+                      }
                   }
-
-                });
+              })
               }}
             />
           </FormGroup>

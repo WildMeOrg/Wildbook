@@ -65,6 +65,7 @@ function DynamicInputs({
         }}
         borderColor="#fff"
         color="white"
+        noArrow
         backgroundColor="transparent"
         onClick={addInput}
       >

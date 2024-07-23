@@ -56,10 +56,10 @@ export default function EncounterSearch() {
       style={{
         backgroundImage: "url('/react/images/encounter_search_background.png')",
         backgroundSize: "cover",
-        height: "800px",
+        minHeight: "800px",
         width: "100%",
-        overflow: "auto",
         padding: "20px",
+        backgroundAttachment: "fixed",
       }}
     >
       <FilterPanel
