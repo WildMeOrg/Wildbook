@@ -15,17 +15,9 @@ export default function BiologicalSamplesAndAnalysesFilter({
 }) {
     const label = <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" />
     const [isChecked, setIsChecked] = React.useState(false);
-    const bioMeasurementOptions = Object.entries( {
-        "weight": "Weight",
-        "length": "Length",
-        "height": "Height",
-        "width": "Width",
-        "age": "Age",
-    }|| {}).map(
+    const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
         item => item[0]
-    ) || [];
-
-    // data?.bioMeasurement
+    ) || [];    
 
     const microSatelliteMarkerLoci = data?.loci || [];
     const [checkedState, setCheckedState] = useState({});
