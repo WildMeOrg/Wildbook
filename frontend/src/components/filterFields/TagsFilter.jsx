@@ -23,8 +23,7 @@ export default function TagsFilter({
       </Description>
       <h5><FormattedMessage id="FILTER_METAL_TAGS" /></h5>
       {metalTagLocations.map((location) => {
-        const field1 = `metalTag.Location`;
-        const field2 = "metalTag.Number";
+
         return (
           <FormGroup>
             <FormLabel><FormattedMessage id={location.label} defaultMessage="" /></FormLabel>
@@ -33,6 +32,10 @@ export default function TagsFilter({
               type="text"
               placeholder="Type Here"
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `metalTag.${location.label}`);
+                  return;
+                }
                 onChange({
                   filterId: `metalTag.${location.label}`,
                   clause: "nested",
@@ -74,6 +77,10 @@ export default function TagsFilter({
               type="text"
               placeholder="Type Here"
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `acousticTag.serialNumber`);
+                  return;
+                }
                 onChange({
                   filterId: "acousticTag.serialNumber",
                   clause: "filter",
@@ -94,6 +101,10 @@ export default function TagsFilter({
               type="text"
               placeholder="Type Here"
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `acousticTag.idNumber`);
+                  return;
+                }
                 onChange({
                   filterId: "acousticTag.idNumber",
                   clause: "filter",
@@ -115,7 +126,7 @@ export default function TagsFilter({
         onChange={onChange}
         field={"satelliteTags.name"}
         term={"match"}
-        filterId={"satellite Tags Name"}
+        filterId={"satelliteTags.name"}
       />
       <FormGroupText
         noDesc={true}
@@ -123,7 +134,7 @@ export default function TagsFilter({
         onChange={onChange}
         field={"satelliteTags.serialNumber"}
         term={"match"}
-        filterId={"satellite Tags Serial Number"}
+        filterId={"satelliteTags.serialNumber"}
       />
       <FormGroupText
         noDesc={true}
@@ -131,7 +142,7 @@ export default function TagsFilter({
         onChange={onChange}
         field={"satelliteTags.argosPttNumber"}
         term={"match"}
-        filterId={"satellite Tags Argos Ptt Number"}
+        filterId={"satelliteTags.argosPttNumber"}
       />
     </div>
   );

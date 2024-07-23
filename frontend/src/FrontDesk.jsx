@@ -21,7 +21,6 @@ export default function FrontDesk() {
   const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = () => {
-    console.log("Polling API...");
     axios
       .head("/api/v3/user")
       .then((response) => {

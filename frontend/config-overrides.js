@@ -3,7 +3,6 @@ const webpack = require('webpack');
 module.exports = function override(config, env) { 
   if(env === 'production'){
     config.devtool = 'source-map';
-    console.log('source-map');
     // config.devtool = 'cheap-module-source-map';
   }
     config.plugins.push(

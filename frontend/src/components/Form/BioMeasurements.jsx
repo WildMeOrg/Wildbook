@@ -43,40 +43,16 @@ function FormMeasurements({
             if (input.value) {
                 onChange({
                     filterId: id,
-                    clause: "nested",
-                    path: field,
+                    clause: "filter",
                     query: {
-                        "bool": {
-                            "filter": [
-
-                                {
-                                    "match": {
-                                        [`${filterId}.type`]: input.type
-                                    },
-                                },
-
-                                {
-                                    "range": {
-                                        [`${filterId}.value`]: { [input.operator]: input.value }
-                                    }
-                                }
-                            ]
-                        }
+                        "biologicalMeasurements": {
+                            [input.type]: input.value
+                        },
                     }
-                })
-            }
-
-            return {
-                "match": {
-                    [`${field}.type`]: input.type
-                },
-
-                "range": {
-                    [`${field}.value`]: { [input.operator]: [input.value] }
                 }
-            };
+                )
+            }
         });
-
     };
 
     return (

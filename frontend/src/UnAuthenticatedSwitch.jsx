@@ -1,22 +1,15 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import ErrorPage from "./pages/errorPages/ErrorPage";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
 import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import NotFound from "./pages/errorPages/NotFound";
-import Forbidden from "./pages/errorPages/Forbidden";
 import Unauthorized from "./pages/errorPages/Unauthorized";
-import ServerError from "./pages/errorPages/ServerError";
-import BadRequest from "./pages/errorPages/BadRequest";
 import About from "./About";
 import EncounterSearch from "./pages/EncounterSearch";
-import { set } from "date-fns";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
-  console.log("UnAuthenticatedSwitch", showAlert);
   const [header, setHeader] = React.useState(true);
 
   return (

@@ -7,7 +7,7 @@ import { FormattedMessage } from 'react-intl';
 function DynamicInputs({
   onChange,
 }) {
-  const [inputs, setInputs] = useState([{name: '', value: ''}]);
+  const [inputs, setInputs] = useState([{ name: '', value: '' }]);
 
   const addInput = () => {
     setInputs([...inputs, { name: '', value: '' }]);
@@ -16,7 +16,14 @@ function DynamicInputs({
   const handleInputChange = (index, event) => {
     const newInputs = inputs.map((input, i) => {
       if (i === index) {
-        const updatedInput = { ...input, [event.target.name]: event.target.value };
+        // const updatedInput = { ...input, [event.target.name]: event.target.value };
+        const nameField = event.target.name === 'name' ? event.target.value : input.name;
+        const valueField = event.target.name === 'value' ? event.target.value : input.value;
+        const originalName = (event.target.name === 'name' && event.target.value !== '') ? event.target.value : input.originalName || input.name;
+
+        const updatedInput = { ...input, name: nameField, value: valueField, originalName };
+
+        console.log("updatedInput", updatedInput);
         if (updatedInput.name && updatedInput.value) {
           onChange({
             filterId: `dynamicProperties.${updatedInput.name}`,
@@ -29,6 +36,11 @@ function DynamicInputs({
             term: "match",
 
           });
+        } else {
+          if (updatedInput.originalName) {
+            onChange(null, `dynamicProperties.${updatedInput.originalName}`);
+          }
+          // onChange(null, `dynamicProperties.${updatedInput.name}`);
         }
         return updatedInput;
       }

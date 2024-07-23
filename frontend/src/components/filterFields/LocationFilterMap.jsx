@@ -15,7 +15,7 @@ export default function LocationFilterMap({
     useEffect(() => {
         if (bounds) {
             onChange({
-                filterId: "locationId",
+                filterId: "locationMap",
                 clause: "filter",
                 query: {
                     "geo_bounding_box": {
@@ -33,7 +33,7 @@ export default function LocationFilterMap({
                 }
             });
         }else {
-            onChange(null, "locationId");
+            onChange(null, "locationMap");
         }
     }, [bounds]);
 
@@ -69,6 +69,7 @@ export default function LocationFilterMap({
             label: _.repeat("-", location.depth) + " " + location.name
         }
     }) || [];
+    const [tempBounds, setTempBounds] = useState(bounds);
 
     return (
         <div>
@@ -95,12 +96,19 @@ export default function LocationFilterMap({
                             <FormControl
                                 type="text"
                                 placeholder={bounds ? bounds[Object.values(item)[0]] : "type here"}
-                                value={bounds ? bounds[Object.values(item)[0]] : ""}
+                                value={bounds ? bounds[Object.values(item)[0]] : tempBounds? tempBounds[Object.values(item)[0]] : ""}
                                 onChange={(e) => {
-                                    setBounds({
-                                        ...bounds,
+                                    const newTempBounds = {
+                                        ...tempBounds,
                                         [Object.values(item)[0]]: e.target.value
-                                    });
+                                    };
+                                    setTempBounds(newTempBounds);
+                                    
+                                    // Check if all fields have values
+                                    const allFieldsFilled = Object.values(newTempBounds).length === 4 && Object.values(newTempBounds).every(value => value !== undefined && value !== "");
+                                    if (allFieldsFilled) {
+                                        setBounds(newTempBounds);  // Update the main state if all fields are filled
+                                    }                                    
                                 }}
                             />
                         </FormGroup>
@@ -112,6 +120,7 @@ export default function LocationFilterMap({
             <Map
                 bounds={bounds}
                 setBounds={setBounds}
+                setTempBounds={setTempBounds}
                 center={{ lat: -1.286389, lng: 36.817223 }} 
                 zoom={5}
                 onChange={onChange}

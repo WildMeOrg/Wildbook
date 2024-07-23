@@ -56,6 +56,8 @@ export default function DateFilter({
                 query: query
             }
             )
+        }else {
+            onChange(null, "date");
         }
 
     }
@@ -81,6 +83,9 @@ export default function DateFilter({
                 query: query
             }
             )
+        }
+        else {
+            onChange(null, "dateSubmitted");
         }
     }
 

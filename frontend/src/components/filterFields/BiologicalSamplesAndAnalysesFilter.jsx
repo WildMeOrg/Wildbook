@@ -7,7 +7,7 @@ import FormGroupText from '../Form/FormGroupText';
 import FormMeasurements from '../Form/FormMeasurements';
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
-
+import BioMeasurements from '../Form/BioMeasurements';
 
 export default function BiologicalSamplesAndAnalysesFilter({
     onChange,
@@ -15,9 +15,17 @@ export default function BiologicalSamplesAndAnalysesFilter({
 }) {
     const label = <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" />
     const [isChecked, setIsChecked] = React.useState(false);
-    const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
+    const bioMeasurementOptions = Object.entries( {
+        "weight": "Weight",
+        "length": "Length",
+        "height": "Height",
+        "width": "Width",
+        "age": "Age",
+    }|| {}).map(
         item => item[0]
     ) || [];
+
+    // data?.bioMeasurement
 
     const microSatelliteMarkerLoci = data?.loci || [];
     const [checkedState, setCheckedState] = useState({});
@@ -52,20 +60,24 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     id="custom-checkbox"
                     label={label}
                     checked={isChecked}
-                    onChange={() => {
+                    onChange={(e) => {
                         setIsChecked(!isChecked);
-
-
+                        if(!e.target.checked) {
+                            console.log(1);
+                            onChange(null, `biologicalSampleId`);
+                            return;
+                        } else {
+                            console.log(2);
                         onChange({
                             filterId: `biologicalSampleId`,
-                            clause: "must",
+                            clause: "filter",
                             query: {
                                 "exists": {
                                     "field": "tissueSampleIds"
                                 }
                             }
                         })
-                    }
+                    }}
                     }
                 />
             </Form>
@@ -97,12 +109,20 @@ export default function BiologicalSamplesAndAnalysesFilter({
                 filterId={"geneticSex"}
             />
 
-            <FormMeasurements
+            {/* <FormMeasurements
+                data={bioMeasurementOptions}
+                onChange={onChange}
+                filterId={"biologicalMeasurements"}
+                field={"biologicalMeasurements"}
+            /> */}
+
+            <BioMeasurements
                 data={bioMeasurementOptions}
                 onChange={onChange}
                 filterId={"biologicalMeasurements"}
                 field={"biologicalMeasurements"}
             />
+
             <div className='d-flex flex-row justify-content-between'>
                 <h5><FormattedMessage id="FILTER_MARKER_LOCI" /></h5>
                 <div className="d-flex flex-row">

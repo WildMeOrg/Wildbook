@@ -10,6 +10,7 @@ const MapComponent = ({
     zoom = 10,
     bounds,
     setBounds,
+    setTempBounds,
 }) => {
     const theme = useContext(ThemeContext);
 
@@ -85,6 +86,7 @@ const MapComponent = ({
                     toggleDrawing();
                     setIsDrawing(!isDrawing);
                     setBounds(null);
+                    setTempBounds(null);
                 }}
                 noArrow
                 backgroundColor={theme.primaryColors.primary700}

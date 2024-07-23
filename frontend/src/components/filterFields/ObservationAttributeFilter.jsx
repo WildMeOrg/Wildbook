@@ -43,11 +43,7 @@ export default function ObservationAttributeFilter(
             label: item
         };
     }) || [];
-    const measurementsOptions = [
-        "WaterTemperature",
-        "Salinity"
-      ]
-    // data?.measurement || [];    
+    const measurementsOptions = data?.measurement || [];    
 
     return (
         <div>
@@ -100,7 +96,7 @@ export default function ObservationAttributeFilter(
                 onChange={onChange}
                 term="match"
                 field="occurrenceRemarks"
-                filterId={"Observation Comments Include"}
+                filterId={"occurrenceRemarks"}
             />
 
             <FormGroupMultiSelect

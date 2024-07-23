@@ -86,7 +86,6 @@ export default function IdentityFilter({
           onChange={(e) => {
             setIsChecked2(!isChecked2);
             if (e.target.checked) {
-              console.log("checked and ", e.target.value);
               onChange({
                 filterId: "individualId",
                 clause: "filter",

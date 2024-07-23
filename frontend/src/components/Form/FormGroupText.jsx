@@ -20,6 +20,10 @@ export default function FormGroupText({
             type="text" 
             placeholder="Type Here"
             onChange={(e) => {
+                if (e.target.value === "") {
+                    onChange(null, field);
+                    return;
+                }
                 onChange({
                     filterId: filterId,
                     clause: "filter",

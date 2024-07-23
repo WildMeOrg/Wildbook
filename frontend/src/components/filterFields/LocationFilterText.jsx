@@ -12,19 +12,12 @@ export default function LocationFilterText({
 }
 ) {
     const { data } = useGetSiteSettings();
-    const countries = ["china", "canada"].map((item) => {
+    const countries = data?.country.map(data => {
         return {
-            value: item,
-            label: item
-        };
-    }   
-    ) || [];
-    // data?.country.map(data => {
-    //     return {
-    //         value: data,
-    //         label: data
-    //     }
-    // }) || [];
+            value: data,
+            label: data
+        }
+    }) || [];
 
     return (
         <div className="mt-3">
@@ -37,7 +30,7 @@ export default function LocationFilterText({
                 onChange={onChange}
                 term="match"
                 field="verbatimLocality"
-                filterId={"Verbatim Location"}
+                filterId={"verbatimLocality"}
             />
 
             <FormGroupMultiSelect

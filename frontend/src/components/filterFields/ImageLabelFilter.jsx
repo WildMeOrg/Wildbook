@@ -77,7 +77,6 @@ export default function ImageLabelFilter({
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
     useEffect(() => {
-        console.log("isChecked_photo", isChecked_photo);
         if(isChecked_photo){
         onChange({            
             filterId: "numberMediaAssets",
