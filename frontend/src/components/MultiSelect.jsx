@@ -17,16 +17,21 @@ export default function MultiSelect({ isMulti, options, onChange, field, term })
             className="basic-multi-select"
             classNamePrefix="select"
             styles={colourStyles}
-            onChange={(e) =>
-                onChange({
-                    filterId: field,
-                    clause: "filter",
-                    query:{
-                        [term]: {
-                            [field]: isMulti? e.map(item=> item.value) : e.value
-                        }
-                    }                    
-                })
+            onChange={(e) =>{
+                if(e?.target?.value || e.length > 0){
+                    onChange({
+                        filterId: field,
+                        clause: "filter",
+                        query:{
+                            [term]: {
+                                [field]: isMulti? e.map(item=> item.value) : e.value
+                            }
+                        }                    
+                    })
+                }else {
+                    onChange(null, field);
+                }
+                }
             }
         />
     );

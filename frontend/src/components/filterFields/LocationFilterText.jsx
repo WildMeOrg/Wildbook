@@ -12,12 +12,19 @@ export default function LocationFilterText({
 }
 ) {
     const { data } = useGetSiteSettings();
-    const countries = data?.country.map(data => {
+    const countries = ["china", "canada"].map((item) => {
         return {
-            value: data,
-            label: data
-        }
-    }) || [];
+            value: item,
+            label: item
+        };
+    }   
+    ) || [];
+    // data?.country.map(data => {
+    //     return {
+    //         value: data,
+    //         label: data
+    //     }
+    // }) || [];
 
     return (
         <div className="mt-3">

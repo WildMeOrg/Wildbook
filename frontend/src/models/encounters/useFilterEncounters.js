@@ -61,36 +61,94 @@
 //   });
 // }
 
+// import { get, partition } from "lodash-es";
+// import useFetch from "../../hooks/useFetch";
+// import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
+
+// export default function useFilterEncounters({ queries, params = {} }) {
+//   console.log("Queries:", queries);
+//   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
+//   const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+
+//   const nestedQuery = nestedQueries.map(n => ({
+//     nested: {
+//       path: n.path,
+//       query: {
+//         bool: {
+//           filter: n.query.bool.filter.map(f => ({ match: f }))
+//         }
+//       }
+//     }
+//   }));
+
+//   const mustQueries = nonNestedQueries.filter(q => q.clause === "must");
+
+//   const boolQuery = {
+//     filter: filterQueries.map(f => f.query),
+//     must_not: mustNotQueries.map(f => f.query),
+//     must: mustQueries.map(f => f.query)  ,
+//   };
+
+//   const compositeQuery = {
+//     query: {
+//       bool: boolQuery,
+//       nested: nestedQuery
+//     }
+//   };
+
+//   return useFetch({
+//     method: "post",
+//     queryKey: getEncounterFilterQueryKey(queries, params),
+//     url: "/search/encounter",
+//     data: compositeQuery,
+//     params: {
+//       sort: "date",
+//       size: 1,
+//       from: 3,
+//       ...params,
+//     },
+//     dataAccessor: (result) => {
+//       const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"], "0");
+//       return {
+//         resultCount: parseInt(resultCountString, 10),
+//         results: get(result, ["data", "data", "hits"], []),
+//       };
+//     },
+//     queryOptions: {
+//       retry: 2,
+//     },
+//   });
+// }
+
+
 import { get, partition } from "lodash-es";
 import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
-export default function useFilterEncounters({ queries, params = {} }) {
+function buildQuery(queries) {
   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
   const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+  const mustQueries = nonNestedQueries.filter(q => q.clause === "must");
 
   const nestedQuery = nestedQueries.map(n => ({
     nested: {
       path: n.path,
-      query: {
-        bool: {
-          filter: n.query.bool.filter.map(f => ({ match: f }))
-        }
-      }
+      query: n.query,
     }
-  }));
+  }));  
 
-  const boolQuery = {
+  return {
     filter: filterQueries.map(f => f.query),
     must_not: mustNotQueries.map(f => f.query),
-    must: nestedQuery  
+    must: [ ...nestedQuery]
   };
+}
 
-  const compositeQuery = {
-    query: {
-      bool: boolQuery
-    }
-  };
+export default function useFilterEncounters({ queries, params = {} }) {
+  // console.log("Queries:", queries);
+
+  const boolQuery = buildQuery(queries);
+  const compositeQuery = { query: { bool: boolQuery } };
 
   return useFetch({
     method: "post",
@@ -99,14 +157,14 @@ export default function useFilterEncounters({ queries, params = {} }) {
     data: compositeQuery,
     params: {
       sort: "date",
-      size: 1,
-      from: 3,
+      // size: 1,
+      // from: 3,
       ...params,
     },
     dataAccessor: (result) => {
-      const resultCountString = get(result, ["data", "headers", "x-wildbook-total-hits"], "0");
+      const resultCount = parseInt(get(result, ["data", "headers", "x-wildbook-total-hits"], "0"), 10);
       return {
-        resultCount: parseInt(resultCountString, 10),
+        resultCount,
         results: get(result, ["data", "data", "hits"], []),
       };
     },

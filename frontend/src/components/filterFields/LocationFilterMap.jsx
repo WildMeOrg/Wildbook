@@ -32,6 +32,8 @@ export default function LocationFilterMap({
                     }
                 }
             });
+        }else {
+            onChange(null, "locationId");
         }
     }, [bounds]);
 
@@ -92,8 +94,14 @@ export default function LocationFilterMap({
                             <FormLabel><FormattedMessage id={Object.keys(item)[0].replace(/_/g, " ")} /></FormLabel>
                             <FormControl
                                 type="text"
-                                placeholder={bounds ? bounds[Object.values(item)[0]] : ""}
+                                placeholder={bounds ? bounds[Object.values(item)[0]] : "type here"}
                                 value={bounds ? bounds[Object.values(item)[0]] : ""}
+                                onChange={(e) => {
+                                    setBounds({
+                                        ...bounds,
+                                        [Object.values(item)[0]]: e.target.value
+                                    });
+                                }}
                             />
                         </FormGroup>
                     );

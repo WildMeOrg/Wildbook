@@ -1,121 +1,3 @@
-// import React, { useState } from 'react';
-// import { Form, Col, Row, Container } from 'react-bootstrap';
-
-// function ObservationInputs({
-//     data,
-//     onChange,
-//     field,
-//     filterId
-// }) {
-//     const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
-
-//     const handleInputChange = (index, field, value) => {
-//         const updatedInputs = inputs.map((input, i) => {
-//             if (i === index) {
-//                 return { ...input, [field]: value };
-//             }
-//             return input;
-//         });
-//         setInputs(updatedInputs);
-//         if (field === 'value' && value) {
-//             updateQuery(updatedInputs);
-//         }
-//     };
-
-//     const updateQuery = (inputs) => {
-//         console.log("Query Updated:", inputs.filter(input => input.value));
-//         // const must = inputs.filter(input => input.value).map(input => ({
-//         //     range: {
-//         //       [`${field}.${input.type}`]: {
-//         //         [input.operator]: input.value
-//         //       }
-//         //     }
-//         //   }));
-//         //   console.log("Must:", must);
-//         // inputs.forEach(input => {
-//         //     if (!input.value) {
-//         //         return;
-//         //     }
-//         //     onChange({
-//         //         filterId: `${filterId}.${input.type}`,
-//         //         clause: "filter",
-//         //         query: {
-//         //             // "range": {
-//         //             //     [`${field}.${input.type}`]: {
-//         //             //         [input.operator]: input.value
-//         //             //     }
-//         //             // }
-//         //             "bool": {
-//         //                 "must": must
-//         //             }   
-//         //         }
-//         //     });
-//         // })
-
-
-//             const must = inputs.filter(input => input.value !== '').map(input => ([
-//               {
-//                 "term": {
-//                   [`measurements.type`]: input.type
-//                 }
-//               },
-//               {
-//                 "range": {
-//                   "measurements.value": {
-//                     [input.operator]: input.value
-//                   }
-//                 }
-//               }
-//             ])).flat(); 
-
-//             if (must.length > 0) {
-//               onChange({
-//                 filterId,
-//                 clause: "filter",
-//                 query: {
-//                   "bool": {
-//                     "must": must
-//                   }
-//                 }
-//               });
-//             }
-//           };
-
-//     };
-
-//     return (
-//         <Container className="mt-3">
-//             {inputs.map((input, index) => (
-//                 <Row key={index} className="mb-3">
-//                     <Col md={2} className='d-flex align-items-center '>
-//                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
-//                     </Col>
-//                     <Col md={4}>
-//                         <Form.Select
-//                             aria-label="Select operator"
-//                             value={input.operator}
-//                             onChange={e => handleInputChange(index, 'operator', e.target.value)}
-//                         >
-//                             <option value="gte">&ge;</option>
-//                             <option value="lte">&le;</option>
-//                             <option value="equals">=</option>
-//                         </Form.Select>
-//                     </Col>
-//                     <Col md={6}>
-//                         <Form.Control
-//                             type="number"
-//                             placeholder={`${input.type} value`}
-//                             value={input.value}
-//                             onChange={e => handleInputChange(index, 'value', e.target.value)}
-//                         />
-//                     </Col>
-//                 </Row>
-//             ))}
-//         </Container>
-//     );
-// }
-
-// export default ObservationInputs;
 
 import React, { useState, useEffect } from 'react';
 import { Form, Col, Row, Container } from 'react-bootstrap';
@@ -150,22 +32,30 @@ function FormMeasurements({
     };
 
     const updateQuery = (inputs) => {
-        const must = inputs.filter(input => input.value !== '').map(input => {
+        const must = inputs.filter(input => input.value !== '');
+        must.map(input => {
+            console.log("Input:", input);
+            const type_field = `${filterId}.type`;
+            const value_field = `${filterId}.value`;
             const id = `${filterId}.${input.type}`;
+            console.log(type_field, value_field, id);
             onChange({
-                filterId : id,
+                filterId: id,
                 clause: "nested",
                 path: field,
                 query: {
                     "bool": {
                         "filter": [
+
                             {
                                 "match": {
-                                    [`${field}.type`]: input.type
+                                    [`${filterId}.type`]: input.type
                                 },
-                
+                            },
+
+                            {
                                 "range": {
-                                    [`${field}.value`]: { [input.operator]: [input.value] }
+                                    [`${filterId}.value`]: { [input.operator]: input.value }
                                 }
                             }
                         ]

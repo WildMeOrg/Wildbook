@@ -76,10 +76,6 @@ export default function ImageLabelFilter({
     const [isChecked_photo, setIsChecked_photo] = React.useState(false);
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-    const term = isChecked_keyword ? "terms" : "match";
-    const field = "keywords";
-    const filterId = "keywords";
-
     useEffect(() => {
         console.log("isChecked_photo", isChecked_photo);
         if(isChecked_photo){
