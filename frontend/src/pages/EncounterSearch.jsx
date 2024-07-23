@@ -88,7 +88,6 @@ export default function EncounterSearch() {
         onPerPageChange={setPerPage}
         loading={false}
         onRowClicked={(row) => {
-          console.log("Row Clicked: ", row);
           const url = `/encounters/encounter.jsp?number=${row.id}`;
           window.location.href = url;
         }}

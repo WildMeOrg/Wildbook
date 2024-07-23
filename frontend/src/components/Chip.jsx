@@ -1,6 +1,7 @@
 import React from 'react';
 
 function Chip({ text, children }) {
+    console.log("Chip children", children);
     function renderFilter(filter) {
         const entries = [];
         const { clause, filterId, query } = filter;
@@ -20,29 +21,29 @@ function Chip({ text, children }) {
                 if (range.lte) parts.push(`to "${range.lte}"`);
                 entries.push(`${key} ${parts.join(' ')}`);
             });
-        }
-        if (query?.match) {
+        }else if (query?.match) {
             Object.entries(query.match).forEach(([key, value]) => {
                 entries.push(`"${key}" matches "${value}"`);
             });
-        }
-        if (query?.exists) {
+        }else if(query?.exists) {
             Object.entries(query.exists).forEach(([key, value]) => {
                 entries.push(`"${value}" exists`);
             });
-        }
-        if (query?.term) {
+        }else if (query?.term) {
             Object.entries(query.term).forEach(([key, value]) => {
                 entries.push(`${key} is "${value}"`);
             });
-        }
-        if (query?.terms) {
+        }else if (query?.terms) {
             Object.entries(query.terms).forEach(([key, values]) => {
                 if (Array.isArray(values)) {
                     entries.push(`${key} is any of [${values.join(', ')}]`);
                 } else {
                     entries.push(`${key} is "${values}"`);
                 }
+            });
+        }else {
+            Object.entries(query).forEach(([key, value]) => {
+                entries.push(`${key} filter"`);
             });
         }
 

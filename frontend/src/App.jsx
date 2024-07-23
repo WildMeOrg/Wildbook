@@ -40,7 +40,6 @@ function App() {
 
   const [filters, setFilters] = useState({});
   const updateFilter = (filterName, value) => {
-    console.log("1111111111111111FilterName:", filterName);
     setFilters((prevFilters) => ({
       ...prevFilters,
       [filterName]: value,

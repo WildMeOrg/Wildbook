@@ -43,7 +43,6 @@ export default function FilterPanel({
     if (remove) {
       console.log("Remove:", remove);
       const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
-      console.log("Updated Filters:", updatedFilters);
       setTempFormFilters(updatedFilters);
     } else setFilter(filter, tempFormFilters, setTempFormFilters);
     // if (filter.selectedChoice) {

@@ -19,8 +19,7 @@ function Sidebar({
   const handleShow = () => setShow(true);
 
   const num = formFilters.length;
-
-
+  
   return (
     <>
       <Button
