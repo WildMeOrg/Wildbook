@@ -872,7 +872,7 @@
         </field>
 
             	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
-                	<collection element-type="org.ecocean.Organization" />
+                	<collection element-type="org.ecocean.Organization" dependent-element="false"  />
 			<order>
 				<extension vendor-name="datanucleus" key="list-ordering" value="id ASC" />
 			</order>
@@ -1031,7 +1031,7 @@
                 	<join />
             	</field>
 
-		<field name="members" persistent-modifier="persistent" mapped-by="organizations" >
+		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
 			<collection element-type="org.ecocean.User"/>
 			<order>
 				<extension vendor-name="datanucleus" key="list-ordering" value="uuid ASC" />
