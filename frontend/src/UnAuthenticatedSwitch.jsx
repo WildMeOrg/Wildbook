@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
@@ -11,6 +11,17 @@ import EncounterSearch from "./pages/EncounterSearch";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
+  const [headerTop, setHeaderTop] = React.useState("60px");
+  const alertBannerRef = React.useRef(null);
+
+  // useEffect(() => {
+  //   if (showAlert && alertBannerRef.current) {
+  //     setHeaderTop(alertBannerRef.current.offsetHeight + "px");
+  //   } else {
+  //     setHeaderTop("60px");
+  //   }
+  // }, [showAlert, alertBannerRef?.current?.offsetHeight]);
+
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -23,10 +34,13 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           maxWidth: "1440px",
         }}
       >
-        {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
+        {showAlert && <AlertBanner
+          ref={alertBannerRef}
+          setShowAlert={setShowAlert} />}
         <UnAuthenticatedAppHeader
           showAlert={showAlert}
           setShowAlert={setShowAlert}
+          headerTop={headerTop}
         />
       </div>
 
@@ -37,16 +51,16 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           boxSizing: "border-box",
           maxWidth: "1440px",
           overflow: "hidden",
-          paddingTop: header? "48px" : "0",
+          paddingTop: header ? "48px" : "0",
         }}
       >
         <Routes>
           <Route path="/about" element={<About />} />
-          <Route path="/home" element={<Unauthorized setHeader={setHeader}/>} />
+          <Route path="/home" element={<Unauthorized setHeader={setHeader} />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<NotFound setHeader={setHeader}/>} />
+          <Route path="*" element={<NotFound setHeader={setHeader} />} />
         </Routes>
       </div>
       <Footer />
