@@ -77,6 +77,17 @@
 			  "locationID": []
 		  },
 		  {
+			"name": "Nerenbos",
+			"id": "Nerenbos",
+			"locationID": [
+				{
+					"name": "Makegemse Bossen",
+					"id": "Makegemse Bossen",
+					"locationID": []
+				}
+			]
+		  },
+		  {
 			"name": "Nüßleshof",
 			"id": "NUES",
 			"locationID": []
@@ -572,4 +583,4 @@
 		}
 		  
 	]
-  }  
+  }
