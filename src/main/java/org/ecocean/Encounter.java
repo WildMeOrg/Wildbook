@@ -3359,7 +3359,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
         Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
 
-        for (MeasurementDesc mdesc : Util.findMeasurementDescs("en", "context0")) {
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs("en", "context0")) {
             BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
             if (bm != null) meas.put(mdesc.getType(), bm);
         }
