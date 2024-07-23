@@ -40,14 +40,20 @@ function FormMeasurements({
 
         inputs.map(input => {
             const id = `${filterId}.${input.type}`;
+            const operator = input.operator;
+            const value = input.value;
+            const field = `biologicalMeasurements.${input.type}`;
+            console.log(id, operator, value);
             if (input.value) {
                 onChange({
                     filterId: id,
                     clause: "filter",
                     query: {
-                        "biologicalMeasurements": {
-                            [input.type]: input.value
-                        },
+                        range: {
+                            [field]: {
+                                [operator]: value
+                            },
+                        }
                     }
                 }
                 )
