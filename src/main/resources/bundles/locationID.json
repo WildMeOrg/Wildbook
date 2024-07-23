@@ -619,7 +619,11 @@
                 "name": "Norwegian Sea", "id": "Norwegian Sea" },
 
                 {
-                "name": "SW Portugal", "id": "SW Portugal" },
+                "name": "SW Portugal", "id": "SW Portugal", "locationID":[
+				
+					{"name": "Sagres", "id": "Sagres" }
+				
+				] },
 
                 {
                 "name": "Scotian Shelf", "id": "Scotian Shelf" },
