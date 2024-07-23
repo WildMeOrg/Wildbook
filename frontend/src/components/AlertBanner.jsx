@@ -7,9 +7,10 @@ export default function AlertBanner({ setShowAlert }) {
   const theme = React.useContext(ThemeColorContext);
   return (
     <div
-      className="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-center"
+      className="fade show d-flex justify-content-between align-items-center"
       role="alert"
       style={{
+        margin: "0 !important",
         padding: 10,
         boxSizing: "border-box",
         minHeight: 60,
@@ -17,6 +18,15 @@ export default function AlertBanner({ setShowAlert }) {
         border: "none",
         borderRadius: 0,
         zIndex: 1000,
+        '@media (max-width: 600px)': {
+          height: 80,
+        },
+        '@media (min-width: 601px) and (max-width: 1024px)': {
+          height: 70,
+        },
+        '@media (min-width: 1025px)': {
+          height: 60,
+        }
       }}
     >
       <FormattedMessage id="BANNER_ALERT" />
