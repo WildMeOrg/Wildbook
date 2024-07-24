@@ -856,7 +856,22 @@
 					"description": "UmPhafa Private Nature Reserve"
 				}
 			 ]
-			},
+		},
+		{
+			"name": "South Sudan",
+			"id": "South Sudan",
+			"locationID": [
+				{
+					"name": "Boma Badingilo Jonglei Landscape",
+					"id": "Boma Badingilo Jonglei Landscape",
+					"geospatialInfo":{
+						"lat": 5.644,
+						"long": 32.257
+					},
+					"locationID": []
+				}
+			]
+		},
 		{
 			"name": "Tanzania",
 			"id": "Tanzania",
