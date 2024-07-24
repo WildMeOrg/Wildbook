@@ -414,6 +414,24 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
             //if (ts != null) occ.setDWCDateLastModified(ts.toString());
             String txguid = res.getString("taxonomy_guid");
             if (txguid != null) indiv.setTaxonomyString(txmap.get(txguid));
+            ts = res.getTimestamp("time_of_birth");
+            if (ts != null) indiv.setTimeOfBirth(ts.getTime());
+            ts = res.getTimestamp("time_of_death");
+            if (ts != null) indiv.setTimeOfDeath(ts.getTime());
+            indiv.setSex(res.getString("sex"));
+            indiv.setComments(res.getString("comments"));
+
+            ResultSet res2 = st2.executeQuery("SELECT * FROM name WHERE individual_guid='" + guid + "'");
+            while (res2.next()) {
+                String nameContext = res2.getString("context");
+                String nameValue = res2.getString("value");
+                if ("FirstName".equals(nameContext)) {
+                    indiv.addName(nameValue);
+                } else {
+                    indiv.addName(nameContext, nameValue);
+                }
+            }
+
             myShepherd.storeNewMarkedIndividual(indiv);
 
             String msg = "created indiv [" + ct + "] " + indiv;
