@@ -8,6 +8,7 @@ import getCollaborationNotifications from "./models/notifications/getCollaborati
 import LoadingScreen from "./components/LoadingScreen";
 import GoogleTagManager from "./GoogleTagManager";
 import Cookies from "js-cookie";
+import "./css/scrollBar.css";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
