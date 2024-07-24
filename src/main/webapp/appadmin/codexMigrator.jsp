@@ -22,6 +22,9 @@ org.ecocean.media.*
 
 <%!
 
+private static int batchMax() {
+    return 100;
+}
 
 private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
     out.println("<h2>Users</h2><ol>");
@@ -52,33 +55,6 @@ private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection 
             out.println("<i>user exists; skipping</i>");
         } else {
             user = new User(guid);
-/*
- created                          | timestamp without time zone |           | not null | 
- updated                          | timestamp without time zone |           | not null | 
- viewed                           | timestamp without time zone |           | not null | 
- guid                             | uuid                        |           | not null | 
- version                          | bigint                      |           |          | 
- email                            | character varying(120)      |           | not null | 
- password                         | bytea                       |           | not null | 
- full_name                        | character varying(120)      |           | not null | 
- website                          | character varying(120)      |           |          | 
- location                         | character varying(120)      |           |          | 
- affiliation                      | character varying(120)      |           |          | 
- forum_id                         | character varying(120)      |           |          | 
- locale                           | character varying(20)       |           |          | 
- accepted_user_agreement          | boolean                     |           | not null | 
- use_usa_date_format              | boolean                     |           | not null | 
- show_email_in_profile            | boolean                     |           | not null | 
- receive_notification_emails      | boolean                     |           | not null | 
- receive_newsletter_emails        | boolean                     |           | not null | 
- shares_data                      | boolean                     |           | not null | 
- default_identification_catalogue | uuid                        |           |          | 
- profile_fileupload_guid          | uuid                        |           |          | 
- static_roles                     | integer                     |           | not null | 
- indexed                          | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
- linked_accounts                  | json                        |           |          | 
- twitter_username                 | character varying           |           |          | 
-*/
             String username = res.getString("email");
             user.setUsername(username);
             user.setAffiliation(res.getString("affiliation"));
@@ -119,11 +95,12 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
 
     while (res.next()) {
         ct++;
-        if (ct > 5) break;
+        if (ct > batchMax()) break;
         String guid = res.getString("guid");
         out.println("<li>" + guid + ": ");
         MediaAsset ma = MediaAssetFactory.loadByUuid(guid, myShepherd);
         if (ma != null) {
+            ct--;
             out.println("<i>asset exists; skipping</i>");
         } else {
             String ext = "unknown";
@@ -182,10 +159,11 @@ private static void migrateAnnotations(JspWriter out, Shepherd myShepherd, Conne
 
     while (res.next()) {
         ct++;
-        if (ct > 5) break;
+        if (ct > batchMax()) break;
         String guid = res.getString("guid");
         Annotation ann = myShepherd.getAnnotation(guid);
         if (ann != null) {
+            ct--;
             out.println("<li>" + guid + ": <i>annotation exists; skipping</i>");
         } else {
             String maId = res.getString("asset_guid");
@@ -238,11 +216,12 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
 
     while (res.next()) {
         ct++;
-        if (ct > 5) break;
+        if (ct > batchMax()) break;
         String guid = res.getString("guid");
         out.println("<li>" + guid + ": ");
         Encounter enc = myShepherd.getEncounter(guid);
         if (enc != null) {
+            ct--;
             out.println("<i>encounter exists; skipping</i>");
         } else {
             enc = new Encounter();
@@ -280,6 +259,7 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
                 }
             }
 
+/*
             // loop thru annotations
             ResultSet subRes = st2.executeQuery("SELECT guid FROM annotation WHERE encounter_guid='" + guid + "'");
             while (subRes.next()) {
@@ -291,6 +271,7 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
                     enc.addAnnotation(ann);
                 }
             }
+*/
 
             myShepherd.storeNewEncounter(enc, guid);
 
@@ -301,14 +282,81 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
         out.println("</li>");
     }
     out.println("</ol>");
+
+    // annotation joins after
+    ct = 0;
+    res = st.executeQuery("SELECT guid, encounter_guid FROM annotation ORDER BY encounter_guid, guid");
+    while (res.next()) {
+        String annGuid = res.getString("guid");
+        String encGuid = res.getString("encounter_guid");
+        Encounter enc = myShepherd.getEncounter(encGuid);
+        Annotation ann = myShepherd.getAnnotation(annGuid);
+        if ((enc == null) || (ann == null)) {
+            System.out.println("migrateEncounterss: cannot join due to null; enc=" + enc + "; ann=" + ann);
+            continue;
+        }
+        ct++;
+        enc.addAnnotation(ann);
+    }
+    out.println("<p>joined " + ct + " enc/ann pairs</p>");
 }
 
+
+private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>Occurrences</h2><ol>");
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT sighting.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM sighting JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        if (ct > batchMax()) break;
+        String guid = res.getString("guid");
+        out.println("<li>" + guid + ": ");
+        Occurrence occ = myShepherd.getOccurrence(guid);
+        if (occ != null) {
+            ct--;
+            out.println("<i>occurrence exists; skipping</i>");
+        } else {
+            occ = new Occurrence();
+            occ.setId(guid);
+            Timestamp ts = res.getTimestamp("created");
+            if (ts != null) occ.setDateTimeCreated(ts.toString());
+            ts = res.getTimestamp("updated");
+            if (ts != null) occ.setDWCDateLastModified(ts.toString());
+            myShepherd.storeNewOccurrence(occ);
+
+            String msg = "created occurrence [" + ct + "] " + occ;
+            out.println("<b>" + msg + "</b>");
+            System.out.println(msg);
+        }
+        out.println("</li>");
+    }
+    out.println("</ol>");
+
+    ct = 0;
+    res = st.executeQuery("SELECT guid, sighting_guid FROM encounter ORDER BY sighting_guid");
+    while (res.next()) {
+        String encGuid = res.getString("guid");
+        String occGuid = res.getString("sighting_guid");
+        Encounter enc = myShepherd.getEncounter(encGuid);
+        Occurrence occ = myShepherd.getOccurrence(occGuid);
+        if ((enc == null) || (occ == null)) {
+            System.out.println("migrateOccurrences: cannot join due to null; enc=" + enc + "; occ=" + occ);
+            continue;
+        }
+        occ.addEncounter(enc);
+        enc.setOccurrenceID(occ.getId());
+    }
+    out.println("<p>joined " + ct + " occ/enc pairs</p>");
+
+}
 
 %>
 
 
 <%
-
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
@@ -333,6 +381,8 @@ migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupD
 //migrateAnnotations(out, myShepherd, conn);
 
 migrateEncounters(out, myShepherd, conn);
+
+migrateOccurrences(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
