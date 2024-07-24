@@ -72,7 +72,11 @@
 				#/xxxapi/** = authcBasicWildbook,roles[rest-readonly]
                 /LightRest/** = authcBasicWildbook,roles[researcher]
 
-
+			  /appadmin/dataIntegrity.jsp = authc
+			  /appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
+			  /appadmin/sharedAnnotations.jsp = authc
+			  /appadmin/duplicateAnnotations.jsp = authc
+			  /appadmin/dataValuesCheck.jsp = authc
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/users.jsp = authc, roles[admin]
@@ -492,11 +496,7 @@
 		  /surveys/surveyMapEmbed.jsp = authc
 		  /obrowse.jsp = authc
 
-          /appadmin/dataIntegrity.jsp = authc
-		  /appadmin/iaBreakdownBySpecies.jsp = authc, roles[researcher]
-		  /appadmin/sharedAnnotations.jsp = authc
-		  /appadmin/duplicateAnnotations.jsp = authc
-		  /appadmin/dataValuesCheck.jsp = authc
+
 			</param-value>
         </init-param>
     </filter>
