@@ -66,10 +66,14 @@ function FormMeasurements({
             <h5><FormattedMessage id={field} /></h5>
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
-                    <Col md={2} className='d-flex align-items-center'>
+                    <Col md={4} className='d-flex align-items-center'>
                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
                     </Col>
-                    <Col md={5}>
+                    <Col md={2}
+                        style={{
+                            marginBotton: "10px",
+                        }}
+                    >
                         <Form.Select
                             aria-label="Select operator"
                             value={input.operator}
@@ -80,13 +84,12 @@ function FormMeasurements({
                             <option value="term">=</option>
                         </Form.Select>
                     </Col>
-                    <Col md={5}>
+                    <Col md={6}>
                         <FormControl
                             className="w-100"
                             type="number"
-                            style={{
-                                width: "100px",
-                                marginLeft: "10px",
+                            style={{             
+                                                  
                                 marginRight: "10px"
                             }}
                             placeholder="Type Here"
