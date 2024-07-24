@@ -125,6 +125,7 @@ export default function FilterPanel({
               backdropFilter: 'blur(3px)',
               WebkitBackdropFilter: 'blur(2px)',
               fontSize: '20px',
+              // flexWrap: "wrap",
             }}>
 
             {safeSchemas.map(schema => {
@@ -132,7 +133,7 @@ export default function FilterPanel({
                 className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? 'bg-white' : 'text-white'} cursor-pointer`}
                 style={{
                   color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
-                  height: "50px",
+                  minHeight: "50px",
                   cursor: 'pointer',
                 }}
                 onClick={() => {
@@ -144,13 +145,15 @@ export default function FilterPanel({
                   className="m-3"
                   style={{
                     fontWeight: '500',
+                    marginRight: '20px'
                   }}
                 >
                 </Text>
                 <span>  {" > "}   </span>
               </div>
             })}
-            <div className="d-flex flex-row mt-5">
+            <div
+              className="mt-5 d-flex flex-wrap justify-content-center align-items-center" >              
               <BrutalismButton
                 color="white"
                 backgroundColor={theme.primaryColors.primary700}
@@ -194,6 +197,7 @@ export default function FilterPanel({
               padding: '20px',
               color: 'white',
               // overflow: 'auto',
+              overflow: "visible",
             }}>
             {
               safeSchemas.map(schema => {
