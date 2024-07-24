@@ -2989,13 +2989,13 @@ public class Encounter extends Base implements java.io.Serializable {
     public void addAnnotations(List<Annotation> anns) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
         for (Annotation ann : anns) {
-            annotations.add(ann);
+            if (!annotations.contains(ann)) annotations.add(ann);
         }
     }
 
     public void addAnnotation(Annotation ann) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
-        annotations.add(ann);
+        if (!annotations.contains(ann)) annotations.add(ann);
     }
 
     public void useAnnotationsForMatching(boolean use) {
