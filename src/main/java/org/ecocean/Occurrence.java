@@ -156,21 +156,10 @@ public class Occurrence extends Base implements java.io.Serializable {
     }
 
     public boolean addEncounter(Encounter enc) {
-        if (encounters == null) { encounters = new ArrayList<Encounter>(); }
-        // prevent duplicate addition
-        boolean isNew = true;
-        for (int i = 0; i < encounters.size(); i++) {
-            Encounter tempEnc = (Encounter)encounters.get(i);
-            if (tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
-                return false;
-            }
-        }
-        if (isNew) {
-            encounters.add(enc);
-            // updateNumberOfEncounters();
-        }
-        // if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
-        return isNew;
+        if (encounters == null) encounters = new ArrayList<Encounter>();
+        if (encounters.contains(enc)) return false;
+        encounters.add(enc);
+        return true;
     }
 
     // private void updateNumberOfEncounters() {
