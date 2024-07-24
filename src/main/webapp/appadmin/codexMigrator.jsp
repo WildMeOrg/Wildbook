@@ -166,7 +166,9 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
         }
         out.println("</li>");
     }
-    //MediaAsset.updateStandardChildrenBackground(context, maIds);
+    myShepherd.commitDBTransaction(); // necessary for backgrounding
+    myShepherd.beginDBTransaction();
+    MediaAsset.updateStandardChildrenBackground(ServletUtilities.getContext(request), maIds);
     out.println("</ol>");
 }
 
