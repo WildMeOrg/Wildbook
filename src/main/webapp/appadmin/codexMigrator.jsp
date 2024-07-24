@@ -23,7 +23,7 @@ org.ecocean.media.*
 <%!
 
 private static int batchMax() {
-    return 100;
+    return 20;
 }
 
 private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
@@ -353,6 +353,56 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
 
 }
 
+private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>MarkedIndividuals</h2><ol>");
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM individual ORDER BY guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        if (ct > batchMax()) break;
+        String guid = res.getString("guid");
+        out.println("<li>" + guid + ": ");
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(guid);
+        if (indiv != null) {
+            ct--;
+            out.println("<i>indiv exists; skipping</i>");
+        } else {
+            indiv = new MarkedIndividual();
+            indiv.setId(guid);
+            Timestamp ts = res.getTimestamp("created");
+            if (ts != null) indiv.setDateTimeCreated(ts.toString());
+            //ts = res.getTimestamp("updated");
+            //if (ts != null) occ.setDWCDateLastModified(ts.toString());
+            myShepherd.storeNewMarkedIndividual(indiv);
+
+            String msg = "created indiv [" + ct + "] " + indiv;
+            out.println("<b>" + msg + "</b>");
+            System.out.println(msg);
+        }
+        out.println("</li>");
+    }
+    out.println("</ol>");
+
+    ct = 0;
+    res = st.executeQuery("SELECT guid, individual_guid FROM encounter WHERE individual_guid IS NOT NULL ORDER BY individual_guid");
+    while (res.next()) {
+        String encGuid = res.getString("guid");
+        String indivGuid = res.getString("individual_guid");
+        Encounter enc = myShepherd.getEncounter(encGuid);
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(indivGuid);
+        if ((enc == null) || (indiv == null)) {
+            System.out.println("migrateMarkedIndividuals: cannot join due to null; enc=" + enc + "; indiv=" + indiv);
+            continue;
+        }
+        enc.setIndividual(indiv);
+    }
+    out.println("<p>joined " + ct + " enc/indiv pairs</p>");
+
+}
+
 %>
 
 
@@ -378,11 +428,13 @@ migrateUsers(out, myShepherd, conn);
 
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
 
-//migrateAnnotations(out, myShepherd, conn);
+migrateAnnotations(out, myShepherd, conn);
 
 migrateEncounters(out, myShepherd, conn);
 
 migrateOccurrences(out, myShepherd, conn);
+
+migrateMarkedIndividuals(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
