@@ -10,6 +10,8 @@ java.sql.*,
 java.io.File,
 java.util.ArrayList,
 java.util.List,
+java.util.Map,
+java.util.HashMap,
 java.util.Set,
 java.util.HashSet,
 java.util.Properties,
@@ -21,6 +23,36 @@ org.ecocean.media.*
 %>
 
 <%!
+
+private static Object siteSetting(String key, Connection conn) throws SQLException, IOException {
+    Statement st = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM site_setting WHERE key='" + key + "'");
+    if (!res.next()) return null;
+    String data = res.getString("data");
+    if (data == null) return null;
+    data = data.replaceAll("\\\\", "");
+    data = data.substring(1, data.length() - 1);
+    try {
+        return new JSONObject(data);
+    } catch (Exception ex) {}
+    try {
+        return new JSONArray(data);
+    } catch (Exception ex) {}
+    return data;
+}
+
+
+private static Map<String,String> taxonomyMap(Connection conn) throws SQLException, IOException {
+    Object ss = siteSetting("site.species", conn);
+    Map<String,String> rtn = new HashMap<String,String>();
+    if (ss == null) return rtn;
+    JSONArray arr = (JSONArray)ss;
+    for (int i = 0 ; i < arr.length() ; i++) {
+        JSONObject tx = arr.getJSONObject(i);
+        rtn.put(tx.optString("id", "_FAIL"), tx.optString("scientificName", "_FAIL"));
+    }
+    return rtn;
+}
 
 private static int batchMax() {
     return 20;
@@ -209,6 +241,7 @@ System.out.println("bstr=>" + bstr);
 
 private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
     out.println("<h2>Encounters</h2><ol>");
+    Map<String,String> txmap = taxonomyMap(conn);
     Statement st = conn.createStatement();
     Statement st2 = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT encounter.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM encounter JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
@@ -230,6 +263,8 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
             if (ts != null) enc.setDWCDateAdded(ts.toString());
             ts = res.getTimestamp("updated");
             if (ts != null) enc.setDWCDateLastModified(ts.toString());
+            String txguid = res.getString("taxonomy_guid");
+            if (txguid != null) enc.setTaxonomyFromString(txmap.get(txguid));
             User owner = myShepherd.getUser(res.getString("owner_guid"));
             if (owner != null) {
                 enc.addSubmitter(owner);
@@ -355,6 +390,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
 
 private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
     out.println("<h2>MarkedIndividuals</h2><ol>");
+    Map<String,String> txmap = taxonomyMap(conn);
     Statement st = conn.createStatement();
     Statement st2 = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT * FROM individual ORDER BY guid");
@@ -376,6 +412,8 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
             if (ts != null) indiv.setDateTimeCreated(ts.toString());
             //ts = res.getTimestamp("updated");
             //if (ts != null) occ.setDWCDateLastModified(ts.toString());
+            String txguid = res.getString("taxonomy_guid");
+            if (txguid != null) indiv.setTaxonomyString(txmap.get(txguid));
             myShepherd.storeNewMarkedIndividual(indiv);
 
             String msg = "created indiv [" + ct + "] " + indiv;
@@ -423,6 +461,7 @@ File dataDir = CommonConfiguration.getDataDirectory(getServletContext(), context
 
 
 Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
 
 migrateUsers(out, myShepherd, conn);
 
