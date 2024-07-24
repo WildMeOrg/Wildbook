@@ -5,10 +5,9 @@ import axios from "axios";
 import AuthContext from "./AuthProvider";
 import getMergeNotifications from "./models/notifications/getMergeNotifications";
 import getCollaborationNotifications from "./models/notifications/getCollaborationNotifications";
-import NotFound from "./pages/errorPages/NotFound";
-import ServerError from "./pages/errorPages/ServerError";
 import LoadingScreen from "./components/LoadingScreen";
 import GoogleTagManager from "./GoogleTagManager";
+import Cookies from "js-cookie";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,7 +16,7 @@ export default function FrontDesk() {
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-  const [showAlert, setShowAlert] = useState(true);
+  const [showAlert, setShowAlert] = useState(() => Cookies.get("showAlert") === "false" ? false : true);
   const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = () => {

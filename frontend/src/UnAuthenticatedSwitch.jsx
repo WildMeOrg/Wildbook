@@ -35,12 +35,12 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         }}
       >
         {showAlert && <AlertBanner
-          ref={alertBannerRef}
+          // ref={alertBannerRef}
           setShowAlert={setShowAlert} />}
         <UnAuthenticatedAppHeader
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-          headerTop={headerTop}
+          // showAlert={showAlert}
+          // setShowAlert={setShowAlert}
+          // headerTop={headerTop}
         />
       </div>
 
