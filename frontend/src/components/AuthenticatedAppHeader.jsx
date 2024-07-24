@@ -35,13 +35,22 @@ export default function AuthenticatedAppHeader({
         padding: 0,
         fontSize: "1rem",
         position: "fixed",
-        top: showAlert ? 60 : 0,
+        // top: showAlert ? 60 : 0,
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
         zIndex: "200",
         width: "100%",
         // paddingRight: "20px",
+        // '@media (max-width: 600px)': {
+        //   top: "80px" 
+        // },
+        // '@media (min-width: 601px) and (max-width: 1024px)': {
+        //   top: "70px" 
+        // },
+        // '@media (min-width: 1025px)': {
+        //   top: "60px" 
+        // }
       }}
     >
       <Navbar.Brand

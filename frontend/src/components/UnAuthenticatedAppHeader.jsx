@@ -10,7 +10,8 @@ import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ showAlert }) {
+export default function AuthenticatedAppHeader({ headerTop }) {
+  console.log("headerTop", headerTop);
   const { visible } = useContext(FooterVisibilityContext);
 
   const [dropdownShows, setDropdownShows] = useState({
@@ -40,12 +41,21 @@ export default function AuthenticatedAppHeader({ showAlert }) {
         padding: 0,
         fontSize: "1rem",
         position: "fixed",
-        top: showAlert ? 60 : 0,
+        // top: headerTop,
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
         zIndex: "200",
         width: "100%",
+        // '@media (max-width: 600px)': {
+        //   top: "80px" 
+        // },
+        // '@media (min-width: 601px) and (max-width: 1024px)': {
+        //   top: "70px" 
+        // },
+        // '@media (min-width: 1025px)': {
+        //   top: "60px" 
+        // }
       }}
     >
       <Navbar.Brand
@@ -59,7 +69,7 @@ export default function AuthenticatedAppHeader({ showAlert }) {
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse
         id="basic-navbar-nav"
-        // style={{ marginLeft: "40%" }}
+      // style={{ marginLeft: "40%" }}
       >
         <Nav
           className="mr-auto"
