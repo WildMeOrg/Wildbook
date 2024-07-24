@@ -54,6 +54,35 @@ private static Map<String,String> taxonomyMap(Connection conn) throws SQLExcepti
     return rtn;
 }
 
+private static JSONObject locationJson(Connection conn) throws SQLException, IOException {
+    Object ss = siteSetting("site.custom.regions", conn);
+    if (ss == null) return null;
+    try {
+        return (JSONObject)ss;
+    } catch (Exception ex) {}
+    return null;
+}
+
+private static Map<String,String> locationMap(Connection conn) throws SQLException, IOException {
+    Map<String,String> map = new HashMap<String,String>();
+    return locationMap(locationJson(conn), map);
+}
+
+private static Map<String,String> locationMap(JSONObject data, Map<String,String> map) {
+    if (data == null) return map;
+    String id = data.optString("id", null);
+    String name = data.optString("name", id);
+    if (id != null) map.put(id, name);
+    JSONArray sub = data.optJSONArray("locationID");
+    if (sub != null) for (int i = 0 ; i < sub.length() ; i++) {
+        JSONObject subObj = sub.optJSONObject(i);
+        if (subObj == null) continue;
+        locationMap(subObj, map);
+    }
+    return map;
+}
+
+
 private static int batchMax() {
     return 20;
 }
@@ -276,6 +305,9 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
             d = res.getDouble("decimal_longitude");
             if (res.wasNull()) d = null;
             enc.setDecimalLongitude(d);
+            enc.setSex(res.getString("sex"));
+            enc.setVerbatimLocality(res.getString("verbatim_locality"));
+            enc.setLocationID(res.getString("location_guid"));
 
             // date/time madness
             ts = res.getTimestamp("datetime");
@@ -360,6 +392,16 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             if (ts != null) occ.setDateTimeCreated(ts.toString());
             ts = res.getTimestamp("updated");
             if (ts != null) occ.setDWCDateLastModified(ts.toString());
+
+            Double d = res.getDouble("decimal_latitude");
+            if (res.wasNull()) d = null;
+            occ.setDecimalLatitude(d);
+            d = res.getDouble("decimal_longitude");
+            if (res.wasNull()) d = null;
+            occ.setDecimalLongitude(d);
+            occ.setComments(res.getString("comments"));
+            //occ.setVerbatimLocality(res.getString("verbatim_locality"));
+            //occ.setLocationID(res.getString("location_guid"));
             myShepherd.storeNewOccurrence(occ);
 
             String msg = "created occurrence [" + ct + "] " + occ;
@@ -479,6 +521,10 @@ File dataDir = CommonConfiguration.getDataDirectory(getServletContext(), context
 
 
 Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+
+JSONObject locJson = locationJson(conn);
+// hard-coded file path, but life is rough
+if (locJson != null) Util.writeToFile(locJson.toString(4), "/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/locationID.json");
 
 
 migrateUsers(out, myShepherd, conn);
