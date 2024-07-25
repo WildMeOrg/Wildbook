@@ -24,14 +24,46 @@ org.ecocean.media.*
 
 <%!
 
+private static void cfOccurrence(Shepherd myShepherd, Occurrence occ, Map<String,String> cfMap) {
+    for (String key : cfMap.keySet()) {
+        String value = cfMap.get(key);
+        if (!Util.stringExists(value)) continue;
+        String label = key.replaceAll(" ", "_");
+System.out.println(">>>>>> " + label + " => " + value + " on " + occ);
+        occ.addComments("<p><b>" + key + ":</b> " + value + "</p>");
+        if (occ.getNumberEncounters() < 1) continue;
+        LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, value, false);
+        for (Encounter enc : occ.getEncounters()) {
+            for (MediaAsset ma : enc.getMedia()) {
+                ma.addKeyword(kw);
+System.out.println(">>>>>> ++++++ " + kw + " on " + ma);
+            }
+        }
+    }
+}
+
+private static String cleanJsonString(String json) {
+    if (json == null) return null;
+    json = json.replaceAll("\\\\", "");
+    json = json.substring(1, json.length() - 1);
+    return json;
+}
+
+private static JSONObject cleanJSONObject(String data) {
+    String clean = cleanJsonString(data);
+    if (clean == null) return null;
+    try {
+        return new JSONObject(clean);
+    } catch (Exception ex) {}
+    return null;
+}
+
 private static Object siteSetting(String key, Connection conn) throws SQLException, IOException {
     Statement st = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT * FROM site_setting WHERE key='" + key + "'");
     if (!res.next()) return null;
-    String data = res.getString("data");
+    String data = cleanJsonString(res.getString("data"));
     if (data == null) return null;
-    data = data.replaceAll("\\\\", "");
-    data = data.substring(1, data.length() - 1);
     try {
         return new JSONObject(data);
     } catch (Exception ex) {}
@@ -41,6 +73,41 @@ private static Object siteSetting(String key, Connection conn) throws SQLExcepti
     return data;
 }
 
+private static JSONObject cfDefinitions(String cls, Connection conn) throws SQLException, IOException {
+    Statement st = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT data FROM site_setting WHERE key='site.custom.customFields." + cls + "'");
+    if (!res.next()) return null;
+    JSONObject j = cleanJSONObject(res.getString("data"));
+    if (j == null) return null;
+    JSONArray darr = j.optJSONArray("definitions");
+    if (darr == null) return null;
+    JSONObject rtn = new JSONObject();
+    for (int i = 0 ; i < darr.length() ; i++) {
+        JSONObject defn = darr.optJSONObject(i);
+        if (defn == null) continue;
+        String id = defn.optString("id", null);
+        if (id == null) continue;
+        rtn.put(id, defn);
+    }
+    return rtn;
+}
+
+private static String cfString(JSONObject cfData, String key) {
+    if (cfData == null) return null;
+    String value = cfData.optString(key, null);
+    if ("".equals(value)) return null;
+    return value;
+}
+
+private static Integer cfInteger(JSONObject cfData, String key) {
+    if (cfData == null) return null;
+    if (!cfData.has(key)) return null;
+    if (cfData.isNull(key)) return null;
+    try {
+        return cfData.getInt(key);
+    } catch (Exception ex) {}
+    return null;
+}
 
 private static Map<String,String> taxonomyMap(Connection conn) throws SQLException, IOException {
     Object ss = siteSetting("site.species", conn);
@@ -326,19 +393,19 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
                 }
             }
 
-/*
-            // loop thru annotations
-            ResultSet subRes = st2.executeQuery("SELECT guid FROM annotation WHERE encounter_guid='" + guid + "'");
-            while (subRes.next()) {
-                String annId = subRes.getString("guid");
-                Annotation ann = myShepherd.getAnnotation(annId);
-                if (ann == null) {
-                    System.out.println("could not load ann " + annId + " for enc " + guid);
-                } else {
-                    enc.addAnnotation(ann);
-                }
-            }
-*/
+            // custom fields, oof
+            //  these need to be hard-coded per migration
+            JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+            String lifeStage = cfString(cfData, "344792fc-7910-45cd-867b-cb9c927677e1");
+            String livingStatus = cfString(cfData, "b9eb55f4-ebc6-47b7-9991-9339084c8639");
+            String occRemarks = cfString(cfData, "0d9a3764-f872-4320-ba03-bde268ce1513");
+            String researcherComments = cfString(cfData, "b230a670-ee2e-44c4-89a1-6b1dffe2cda3");
+            String unidentIndiv = cfString(cfData, "0f48fdc5-6a5e-4a01-aeff-2f1bebf4864d");
+            enc.setLifeStage(lifeStage);
+            enc.setLivingStatus(livingStatus);
+            enc.setOccurrenceRemarks(occRemarks);
+            enc.addComments(researcherComments);
+            if (unidentIndiv != null) enc.setDynamicProperty("unidentified_individual", unidentIndiv);
 
             myShepherd.storeNewEncounter(enc, guid);
 
@@ -359,7 +426,7 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
         Encounter enc = myShepherd.getEncounter(encGuid);
         Annotation ann = myShepherd.getAnnotation(annGuid);
         if ((enc == null) || (ann == null)) {
-            System.out.println("migrateEncounterss: cannot join due to null; enc=" + enc + "; ann=" + ann);
+            System.out.println("migrateEncounters: cannot join due to null; enc=" + enc + "; ann=" + ann);
             continue;
         }
         ct++;
@@ -402,6 +469,35 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             occ.setComments(res.getString("comments"));
             //occ.setVerbatimLocality(res.getString("verbatim_locality"));
             //occ.setLocationID(res.getString("location_guid"));
+
+            // custom fields, oof
+            //  these need to be hard-coded per migration
+            JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+            Map<String,String> cfMap = new HashMap<String,String>();
+            cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
+            cfMap.put("Observation Type", cfString(cfData, "736d8b8f-7abb-404f-9da8-0c1507185baa"));
+            cfMap.put("Seen with Unknown Seal", cfString(cfData, "e9a00eab-7ea6-4777-afb3-79d95ebfbf4f"));
+            cfMap.put("Photography Type", cfString(cfData, "cf7ed66f-e6c1-4cb1-aadf-0f141ca22316"));
+            cfMap.put("Sighting Origin", cfString(cfData, "457cdd28-482d-4f84-afee-6114a7e72f5e"));
+            cfMap.put("Seen with Unknown Pup", cfString(cfData, "d0f2cc9e-0845-4608-8754-3d1f70eec699"));
+            String photogName = cfString(cfData, "305b50df-7f21-4d8d-aeb6-45ab1869f5ba");
+            String photogEmail = cfString(cfData, "ecc6f017-057c-4821-b07a-f82cd60aa31d");
+
+            // we have to link encounters here due to customField needs :(
+            //  this makes the joining code below kinda redundant but leaving it to catch stuff that missed
+            ResultSet res2 = st2.executeQuery("SELECT guid FROM encounter WHERE sighting_guid='" + guid + "' ORDER BY guid");
+            while (res2.next()) {
+                Encounter enc = myShepherd.getEncounter(res2.getString("guid"));
+                if (enc == null) continue;
+                occ.addEncounter(enc);
+                enc.setOccurrenceID(occ.getId());
+                if (Util.stringExists(photogName)) enc.setPhotographerName(photogName);
+                if (Util.stringExists(photogEmail)) enc.setPhotographerEmail(photogEmail);
+            }
+
+            // now we can do this, since it needs encs
+            cfOccurrence(myShepherd, occ, cfMap);
+
             myShepherd.storeNewOccurrence(occ);
 
             String msg = "created occurrence [" + ct + "] " + occ;
@@ -423,8 +519,10 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             System.out.println("migrateOccurrences: cannot join due to null; enc=" + enc + "; occ=" + occ);
             continue;
         }
-        occ.addEncounter(enc);
-        enc.setOccurrenceID(occ.getId());
+        if (occ.addEncounter(enc)) {
+            enc.setOccurrenceID(occ.getId());
+            ct++;
+        }
     }
     out.println("<p>joined " + ct + " occ/enc pairs</p>");
 
