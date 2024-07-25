@@ -16,6 +16,7 @@ java.util.HashMap,
 java.util.Set,
 java.util.HashSet,
 java.util.Properties,
+java.util.TimeZone,
 javax.jdo.Query,
 org.json.JSONObject,
 org.json.JSONArray,
@@ -24,6 +25,8 @@ org.ecocean.media.*
 %>
 
 <%!
+
+private static String TMP_DIR = "/tmp/migrate";
 
 private static boolean stringEmpty(String str) {
     return ((str == null) || str.equals(""));
@@ -249,7 +252,7 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
                 out.println("<b>" + sourceFile + " does not exist</b>");
                 break;
             }
-            File tmpFile = new File("/tmp", guid + "." + ext);
+            File tmpFile = new File(TMP_DIR, guid + "." + ext);
             Files.copy(sourceFile.toPath(), tmpFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             String grouping = Util.hashDirectories(assetGroupGuid, File.separator);
             JSONObject params = targetStore.createParameters(tmpFile, grouping);
@@ -308,19 +311,22 @@ private static void migrateAnnotations(JspWriter out, Shepherd myShepherd, Conne
                 continue;
             }
             out.println("<li>" + guid + ": ");
-            String bstr = res.getString("bounds");
-            if (bstr.substring(0,1).equals("\"")) bstr = bstr.substring(1, bstr.length() - 1);
-            bstr = bstr.replaceAll("\\\\", "");
-System.out.println("bstr=>" + bstr);
-            JSONObject bounds = new JSONObject(bstr);
-            JSONArray rect = bounds.getJSONArray("rect");
-            JSONObject params = new JSONObject();
-            params.put("theta", bounds.optDouble("theta"));
-            params.put("x", rect.optInt(0, 0));
-            params.put("y", rect.optInt(1, 0));
-            params.put("width", rect.optInt(2, 0));
-            params.put("height", rect.optInt(3, 0));
-            Feature feat = new Feature("org.ecocean.boundingBox", params);
+            JSONObject bounds = cleanJSONObject(res.getString("bounds"));
+            if (bounds == null) bounds = new JSONObject();
+            Feature feat = null;
+            JSONArray rect = bounds.optJSONArray("rect");
+            if (rect != null) {
+                JSONObject params = new JSONObject();
+                params.put("theta", bounds.optDouble("theta", 0d));
+                params.put("x", rect.optInt(0, 0));
+                params.put("y", rect.optInt(1, 0));
+                params.put("width", rect.optInt(2, 0));
+                params.put("height", rect.optInt(3, 0));
+                feat = new Feature("org.ecocean.boundingBox", params);
+            } else {
+                System.out.println("%%% failed on bbox for bounds=" + bounds);
+                feat = new Feature();
+            }
             ma.addFeature(feat);
             // 99.9% sure species doesnt matter any more, so setting as null
             ann = new Annotation(null, feat, res.getString("ia_class"));
@@ -383,14 +389,16 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
 
             // date/time madness
             ts = res.getTimestamp("datetime");
+System.out.println("TIME: ts=" + ts);
             String tz = res.getString("timezone");
+            if (tz != null) TimeZone.setDefault(TimeZone.getTimeZone(tz));
             String spec = res.getString("specificity");
-            Timestamp adjusted = ts; // FIXME adjust for tz
+            Timestamp adjusted = ts;
             enc.setYear(adjusted.getYear() + 1900);
             if (!"year".equals(spec)) {
-                enc.setMonth(adjusted.getMonth());
+                enc.setMonth(adjusted.getMonth() + 1);
                 if (!"month".equals(spec)) {
-                    enc.setDay(adjusted.getDay());
+                    enc.setDay(adjusted.getDate());
                     if (!"day".equals(spec)) {
                         enc.setHour(adjusted.getHours());
                         enc.setMinutes(Integer.toString(adjusted.getMinutes())); // ygbkm
@@ -475,6 +483,14 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             //occ.setVerbatimLocality(res.getString("verbatim_locality"));
             //occ.setLocationID(res.getString("location_guid"));
 
+            // date/time madness
+            ts = res.getTimestamp("datetime");
+            String tz = res.getString("timezone");
+            if (tz != null) TimeZone.setDefault(TimeZone.getTimeZone(tz));
+            //String spec = res.getString("specificity");
+            // we only store a long for this on occurrences
+            if (ts != null) occ.setDateTimeLong(ts.getTime());
+
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
@@ -483,7 +499,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             cfMap.put("Observation Type", cfString(cfData, "736d8b8f-7abb-404f-9da8-0c1507185baa"));
             cfMap.put("Seen with Unknown Seal", cfString(cfData, "e9a00eab-7ea6-4777-afb3-79d95ebfbf4f"));
             cfMap.put("Photography Type", cfString(cfData, "cf7ed66f-e6c1-4cb1-aadf-0f141ca22316"));
-            cfMap.put("Sighting Origin", cfString(cfData, "457cdd28-482d-4f84-afee-6114a7e72f5e"));
+            cfMap.put("Sighting Origin", cfString(cfData, "15b4525a-47e9-4673-ae42-f99ea55f810c"));
             cfMap.put("Seen with Unknown Pup", cfString(cfData, "d0f2cc9e-0845-4608-8754-3d1f70eec699"));
             String photogName = cfString(cfData, "305b50df-7f21-4d8d-aeb6-45ab1869f5ba");
             String photogEmail = cfString(cfData, "ecc6f017-057c-4821-b07a-f82cd60aa31d");
@@ -661,6 +677,7 @@ System.out.println(">>>>> ??? " + kw + " on " + enc);
             System.out.println("migrateMarkedIndividuals: cannot join due to null; enc=" + enc + "; indiv=" + indiv);
             continue;
         }
+        ct++;
         enc.setIndividual(indiv);
     }
     out.println("<p>joined " + ct + " enc/indiv pairs</p>");
@@ -671,6 +688,9 @@ System.out.println(">>>>> ??? " + kw + " on " + enc);
 
 
 <%
+
+File tmp = new File(TMP_DIR);
+if (!tmp.exists()) tmp.mkdir();
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
