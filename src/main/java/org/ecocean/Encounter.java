@@ -4444,12 +4444,12 @@ public class Encounter extends Base implements java.io.Serializable {
             if (msm.getLoci() != null)
                 for (Locus locus : msm.getLoci()) {
                     if (locus.getName() == null) continue; // snh
-                    jgen.writeArrayFieldStart(locus.getName());
+                    jgen.writeObjectFieldStart(locus.getName());
                     for (int i = 0; i < 4; i++) {
                         Integer allele = locus.getAllele(i);
-                        if (allele != null) jgen.writeNumber(allele);
+                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
                     }
-                    jgen.writeEndArray();
+                    jgen.writeEndObject();
                 }
             jgen.writeEndObject();
             jgen.writeEndObject();
