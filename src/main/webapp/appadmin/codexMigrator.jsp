@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
 import="org.ecocean.*,
+org.ecocean.tag.MetalTag,
 org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
 javax.servlet.jsp.JspWriter,
@@ -24,10 +25,14 @@ org.ecocean.media.*
 
 <%!
 
+private static boolean stringEmpty(String str) {
+    return ((str == null) || str.equals(""));
+}
+
 private static void cfOccurrence(Shepherd myShepherd, Occurrence occ, Map<String,String> cfMap) {
     for (String key : cfMap.keySet()) {
         String value = cfMap.get(key);
-        if (!Util.stringExists(value)) continue;
+        if (stringEmpty(value)) continue;
         String label = key.replaceAll(" ", "_");
 System.out.println(">>>>>> " + label + " => " + value + " on " + occ);
         occ.addComments("<p><b>" + key + ":</b> " + value + "</p>");
@@ -238,7 +243,7 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
             String assetGroupGuid = res.getString("git_store_guid");
             File sourceFile = new File(assetGroupDir, assetGroupGuid + "/_assets/" + guid + "." + ext);
             String userFilename = res.getString("path");
-            if (!Util.stringExists(userFilename)) userFilename = guid + "." + ext;
+            if (stringEmpty(userFilename)) userFilename = guid + "." + ext;
             //out.println(sourceFile.toString());
             if (!sourceFile.exists()) {
                 out.println("<b>" + sourceFile + " does not exist</b>");
@@ -491,8 +496,8 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
                 if (enc == null) continue;
                 occ.addEncounter(enc);
                 enc.setOccurrenceID(occ.getId());
-                if (Util.stringExists(photogName)) enc.setPhotographerName(photogName);
-                if (Util.stringExists(photogEmail)) enc.setPhotographerEmail(photogEmail);
+                if (!stringEmpty(photogName)) enc.setPhotographerName(photogName);
+                if (!stringEmpty(photogEmail)) enc.setPhotographerEmail(photogEmail);
             }
 
             // now we can do this, since it needs encs
@@ -569,6 +574,69 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
                     indiv.addName(nameValue);
                 } else {
                     indiv.addName(nameContext, nameValue);
+                }
+            }
+
+            // same note as occurrences on needing encs attached first :(
+            res2 = st2.executeQuery("SELECT guid FROM encounter WHERE individual_guid='" + guid + "' ORDER BY guid");
+            while (res2.next()) {
+                Encounter enc = myShepherd.getEncounter(res2.getString("guid"));
+                if (enc == null) continue;
+                if (!enc.hasMarkedIndividual(indiv)) {
+                    enc.setIndividual(indiv);
+                }
+            }
+
+            // custom fields, oof
+            //  these need to be hard-coded per migration
+            JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+
+            String dateOfBirth = cfString(cfData, "87d08929-2133-4053-911a-8740f7fa8dd5");
+            if (!stringEmpty(dateOfBirth)) try {
+                indiv.setTimeOfBirth(Util.getVersionFromModified(dateOfBirth));
+            } catch (Exception ex) {}
+            String dateOfDeath = cfString(cfData, "ed537aa9-5d68-45e5-9236-f701d95a8bdd");
+            if (!stringEmpty(dateOfDeath)) try {
+                indiv.setTimeOfDeath(Util.getVersionFromModified(dateOfDeath));
+            } catch (Exception ex) {}
+            String notes = cfString(cfData, "8ac7286d-3290-41d3-8497-17b3f7aa5184");
+            if (!stringEmpty(notes)) indiv.addComments(notes);
+
+            // these require more complex stuff
+            String withPup = cfString(cfData, "6428357e-8965-45f6-8f53-d17df08c4316");
+            String lifeStatus = cfString(cfData, "854a9755-1909-464b-b024-7608045309a7");
+            String flipperTag = cfString(cfData, "7bb54bb8-f148-47b5-91b3-286b8851e461");
+            String entanglement = cfString(cfData, "e9ecaaac-54c9-4c94-bf2e-0989f467c1d1");
+
+            if (!stringEmpty(withPup)) {
+                indiv.addComments("<p><b>With Pup:</b> " + withPup + "</p>");
+                for (Encounter enc : indiv.getEncounters()) {
+System.out.println(">>>>> ??? " + withPup + " on " + enc);
+                    enc.setDynamicProperty("with_pup", withPup);
+                }
+            }
+            if (!stringEmpty(flipperTag)) {
+                indiv.addComments("<p><b>Flipper Tag:</b> " + flipperTag + "</p>");
+                MetalTag tag = new MetalTag(flipperTag, "flipper");
+                for (Encounter enc : indiv.getEncounters()) {
+System.out.println(">>>>> ??? " + tag + " on " + enc);
+                    enc.addMetalTag(tag);
+                }
+            }
+            if (!stringEmpty(lifeStatus)) {
+                indiv.addComments("<p><b>Life Status:</b> " + lifeStatus + "</p>");
+                Encounter[] recent = indiv.getDateSortedEncounters(true, 1);
+                if ((recent != null) && (recent.length > 0)) recent[0].setLifeStage(lifeStatus);
+System.out.println(">>>>> ??? " + lifeStatus + " on " + indiv);
+            }
+            if (!stringEmpty(entanglement)) {
+                indiv.addComments("<p><b>Entanglement:</b> " + entanglement + "</p>");
+                LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Entanglement", entanglement, false);
+                for (Encounter enc : indiv.getEncounters()) {
+                    for (MediaAsset ma : enc.getMedia()) {
+System.out.println(">>>>> ??? " + kw + " on " + enc);
+                        ma.addKeyword(kw);
+                    }
                 }
             }
 

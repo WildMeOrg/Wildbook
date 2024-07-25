@@ -1427,6 +1427,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return (individual != null);
     }
 
+    public boolean hasMarkedIndividual(MarkedIndividual match) {
+        if (match == null) return false;
+        if (individual == null) return false;
+        return (match.getId().equals(individual.getId()));
+    }
+
     public void assignToMarkedIndividual(MarkedIndividual indiv) {
         setIndividual(indiv);
     }
