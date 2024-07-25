@@ -1,0 +1,17 @@
+.sidebar {
+    position: absolute; /* Positioned relative to the parent (EncounterSearch) */
+    top: 0;
+    right: 0;
+    height: 100%;
+    
+    border-radius: 10px 0 0 10px;
+    
+    /* box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5); */
+     /* Hide by default (off-screen) */
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0); /* Slide in */
+  }
+  

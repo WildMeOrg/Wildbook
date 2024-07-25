@@ -83,15 +83,29 @@ function Sidebar({
                 setFilterPanel(true);
                 handleClose();
               }}
+              noArrow={true}
               backgroundColor= {theme.primaryColors.primary700}
               borderColor={theme.primaryColors.primary700}
               color='white'
             >
-              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Edit Filters"}/>
+              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Copy"}/>
+            </BrutalismButton>
+            <BrutalismButton
+              onClick={() => {
+                setFilterPanel(true);
+                handleClose();
+              }}
+              backgroundColor= {theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}
+              color='white'
+              noArrow={true}
+            >
+              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Edit"}/>
             </BrutalismButton>
             <BrutalismButton
               borderColor={theme.primaryColors.primary700}
               color={theme.primaryColors.primary700}
+              noArrow
               onClick={() => {
                 setFormFilters([]);
                 handleClose();
@@ -100,7 +114,7 @@ function Sidebar({
                 window.location.reload();
               }}
             >
-              <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset Filters"}/>
+              <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset"}/>
             </BrutalismButton>
           </div>
         </Offcanvas.Body>

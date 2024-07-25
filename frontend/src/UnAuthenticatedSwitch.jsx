@@ -8,40 +8,27 @@ import NotFound from "./pages/errorPages/NotFound";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import About from "./About";
 import EncounterSearch from "./pages/EncounterSearch";
+import Home from "./pages/Home";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
   const [headerTop, setHeaderTop] = React.useState("60px");
   const alertBannerRef = React.useRef(null);
 
-  // useEffect(() => {
-  //   if (showAlert && alertBannerRef.current) {
-  //     setHeaderTop(alertBannerRef.current.offsetHeight + "px");
-  //   } else {
-  //     setHeaderTop("60px");
-  //   }
-  // }, [showAlert, alertBannerRef?.current?.offsetHeight]);
-
-
   return (
     <div className="d-flex flex-column min-vh-100">
       <div
         id="header"
-        className="position-fixed top-0 mx-auto w-100"
+        className="position-fixed top-0 w-100"
         style={{
           zIndex: "100",
           height: "60px",
-          maxWidth: "1440px",
         }}
+
       >
         {showAlert && <AlertBanner
-          // ref={alertBannerRef}
           setShowAlert={setShowAlert} />}
-        <UnAuthenticatedAppHeader
-          // showAlert={showAlert}
-          // setShowAlert={setShowAlert}
-          // headerTop={headerTop}
-        />
+        <UnAuthenticatedAppHeader/>
       </div>
 
       <div
@@ -49,7 +36,6 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
-          maxWidth: "1440px",
           overflow: "hidden",
           paddingTop: header ? "48px" : "0",
         }}

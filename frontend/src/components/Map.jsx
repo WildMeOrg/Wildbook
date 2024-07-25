@@ -59,10 +59,10 @@ const MapComponent = ({
                     maps.event.removeListener(moveListener);
                     setBounds(rect.getBounds().toJSON());
                     map.fitBounds(rect.getBounds(), {
-                        left: 50,
-                        right: 50,
-                        top: 50,
-                        bottom: 50
+                        left: 30,
+                        right: 30,
+                        top: 30,
+                        bottom: 30
                     });
                 };
                 document.addEventListener('mouseup', mouseUpHandler, { once: true });
