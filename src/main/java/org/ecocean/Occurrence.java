@@ -155,6 +155,10 @@ public class Occurrence extends Base implements java.io.Serializable {
         System.out.println("Created new occurrence with only ID" + this.occurrenceID);
     }
 
+    public boolean hasEncounter(Encounter enc) {
+        return ((encounters != null) && encounters.contains(enc));
+    }
+
     public boolean addEncounter(Encounter enc) {
         if (encounters == null) encounters = new ArrayList<Encounter>();
         if (encounters.contains(enc)) return false;
