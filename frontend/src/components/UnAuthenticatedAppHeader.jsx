@@ -10,10 +10,8 @@ import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ headerTop }) {
-  console.log("headerTop", headerTop);
+export default function AuthenticatedAppHeader() {
   const { visible } = useContext(FooterVisibilityContext);
-
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
     dropdown2: false,
@@ -37,43 +35,43 @@ export default function AuthenticatedAppHeader({ headerTop }) {
       expand="lg"
       style={{
         backgroundColor: "#303336",
-        maxHeight: "60px",
+        height: "60px",
         padding: 0,
         fontSize: "1rem",
         position: "fixed",
-        // top: headerTop,
-        maxWidth: "1440px",
-        marginLeft: "auto",
-        marginRight: "auto",
         zIndex: "200",
         width: "100%",
-        // '@media (max-width: 600px)': {
-        //   top: "80px" 
-        // },
-        // '@media (min-width: 601px) and (max-width: 1024px)': {
-        //   top: "70px" 
-        // },
-        // '@media (min-width: 1025px)': {
-        //   top: "60px" 
-        // }
+
       }}
     >
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "1rem" }}
+        style={{
+          marginLeft: "10%"
+
+        }}
       >
         <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
-      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Toggle aria-controls="basic-navbar-nav"
+        style={{
+          marginRight: "10%"
+        }}
+      />
       <Navbar.Collapse
         id="basic-navbar-nav"
-      // style={{ marginLeft: "40%" }}
+      // style={{ marginRight: "40%" }}
       >
         <Nav
           className="mr-auto"
-          style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            width: "100%",
+            marginRight: "10%"
+          }}
         >
           {unAuthenticatedMenu.map((item, idx) => (
             <Nav className="me-auto">
@@ -121,6 +119,7 @@ export default function AuthenticatedAppHeader({ headerTop }) {
           width: "100px",
           whiteSpace: "nowrap",
           padding: 5,
+          marginRight: "10%",
         }}
         href={"/react/login"}
       >

@@ -19,15 +19,6 @@ export default function AlertBanner({ showAlert, setShowAlert }) {
         border: "none",
         borderRadius: 0,
         zIndex: 1000,
-        // '@media (max-width: 600px)': {
-        //   height: 80,
-        // },
-        // '@media (min-width: 601px) and (max-width: 1024px)': {
-        //   height: 70,
-        // },
-        // '@media (min-width: 1025px)': {
-        //   height: 60,
-        // }
       }}
     >
       <FormattedMessage id="BANNER_ALERT" />

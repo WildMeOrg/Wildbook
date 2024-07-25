@@ -25,7 +25,6 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
         style={{
           zIndex: "100",
           height: "60px",
-          maxWidth: "1440px",
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
@@ -42,7 +41,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
         className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
-          maxWidth: "1440px",
+          // maxWidth: "1440px",
           overflow: "hidden",
           paddingTop: header? "48px" : "0",
         }}

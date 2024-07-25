@@ -31,37 +31,31 @@ export default function AuthenticatedAppHeader({
       expand="lg"
       style={{
         backgroundColor: "#303336",
-        maxHeight: "60px",
+        height: "60px",
         padding: 0,
         fontSize: "1rem",
         position: "fixed",
         // top: showAlert ? 60 : 0,
-        maxWidth: "1440px",
+        // maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
         zIndex: "200",
         width: "100%",
-        // paddingRight: "20px",
-        // '@media (max-width: 600px)': {
-        //   top: "80px" 
-        // },
-        // '@media (min-width: 601px) and (max-width: 1024px)': {
-        //   top: "70px" 
-        // },
-        // '@media (min-width: 1025px)': {
-        //   top: "60px" 
-        // }
       }}
     >
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "1rem", padding: 0 }}
+        style={{ marginLeft: "10%", padding: 0 }}
       >
         <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
-      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Toggle aria-controls="basic-navbar-nav"
+        style={{
+          marginRight: "10%"
+        }}
+      />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto w-100 d-flex justify-content-end" id="nav">
           <Menu username={username} />
@@ -78,7 +72,7 @@ export default function AuthenticatedAppHeader({
       </Navbar.Collapse>
       <div
         className="avatar-container d-flex align-items-center"
-        style={{ marginRight: "1rem" }}
+        style={{ marginRight: "10%" }}
       >
         <AvatarAndUserProfile username={username} avatar={avatar} />
       </div>

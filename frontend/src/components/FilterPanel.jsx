@@ -2,7 +2,7 @@
 import React, { Fragment, useEffect, useState, useRef, useContext } from 'react';
 
 import Text from './Text';
-import { Container } from 'react-bootstrap';
+import { Container, FormControl } from 'react-bootstrap';
 import { filter, set } from 'lodash-es';
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
@@ -118,7 +118,7 @@ export default function FilterPanel({
       <Row className="p-3" style={{ alignItems: 'flex-start' }}>
 
         <Col md={3} sm={12} className='d-flex align-items-center mb-3'>
-          <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-3 text-white "
+          <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-2 text-white "
             style={{
               height: '700px',
               background: 'rgba(255, 255, 255, 0.1)',
@@ -154,6 +154,16 @@ export default function FilterPanel({
             })}
             <div
               className="mt-5 d-flex flex-wrap justify-content-center align-items-center" >              
+              <FormControl
+                type="text"
+                placeholder="Search ID"
+                // className="rounded-3"
+                style={{
+                  width: "80px",
+                  marginRight: "10px",
+                  marginTop: "10px",
+                }}
+              />
               <BrutalismButton
                 color="white"
                 backgroundColor={theme.primaryColors.primary700}
@@ -162,11 +172,18 @@ export default function FilterPanel({
                   setFormFilters(tempFormFilters);
                   setFilterPanel(false);
                 }}
+                noArrow={true}
+                style={{
+                  paddingLeft: 5,
+                  paddingRight: 5,
+                }}
               >
                 APPLY
               </BrutalismButton>
               <BrutalismButton style={{
                 color: theme.primaryColors.primary700,
+                paddingLeft: 5,
+                  paddingRight: 5,
 
               }}
                 borderColor={theme.primaryColors.primary700}
@@ -176,7 +193,10 @@ export default function FilterPanel({
                   // setFilterPanel(false);
                   // localStorage.removeItem("formData");
                   window.location.reload();
-                }}>
+                }}
+                noArrow={true}
+                
+                >
 
                 RESET
               </BrutalismButton>

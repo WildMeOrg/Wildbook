@@ -46,7 +46,9 @@ export default function ObservationAttributeFilter(
     const measurementsOptions = data?.measurement || [];    
 
     return (
-        <div>
+        <div style={{
+            overflow: "visible",
+        }}>
             <h3><FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE" /></h3>
             <Description>
                 <FormattedMessage id="FILTER_OBSERVATION_ATTRIBUTE_DESC" />
