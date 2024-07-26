@@ -35,12 +35,6 @@ export default function SocialFilter({
     };
   }) || [];
 
-  const term = isChecked ? "terms" : "match";
-  const filterId = "individualSocialUnits";
-  const field = "individualSocialUnits";
-
-  const [ socialUnitName, setSocialUnitName ] = React.useState(null);
-
   return (
     <div>
       <h3><FormattedMessage id="FILTER_SOCIAL" /></h3>
@@ -50,6 +44,7 @@ export default function SocialFilter({
 
       <FormGroupMultiSelect
         isMulti={true}
+        noDesc={true}
         label="FILTER_SOCIAL_UNIT"
         onChange={onChange}
         options = {socialUnitOptions}
@@ -57,9 +52,9 @@ export default function SocialFilter({
         term="terms"
         filterId={"socialUnitName"}
       />
-      <div className="d-flex flex-row justify-content-between">
+      <div className="d-flex flex-row justify-content-between mt-2">
         <Form.Label>
-          <FormattedMessage id="FILTER_SOCIAL_ROLE" />
+          <FormattedMessage id="FILTER_RELATIONSHIP_ROLE" />
         </Form.Label>
 
         <Form.Check
@@ -76,30 +71,15 @@ export default function SocialFilter({
           
       <FormGroupMultiSelect
         isMulti={isChecked}
-        label="FILTER_SOCIAL_ROLE"
+        noDesc={true}
+        noLabel={true}
+        label="FILTER_RELATIONSHIP_ROLE"
         options={socialRoleOptions}
         onChange={onChange}
         field="socialRole"
         term={ isChecked? "terms" : "match"}
         filterId={"socialRole"}
       />
-
-      {/* <Select
-          isMulti={isChecked}
-          options={socialRoleOptions}
-          styles={colourStyles}
-          onChange={(e) =>
-            onChange({
-                filterId: {filterId},
-                clause: "filter",
-                query:{
-                    [term]: {
-                        [field]: isChecked? e.map(item=> item.value) : e.value
-                    }
-                }                    
-            })
-        }
-      /> */}
     </div>
   );
 }

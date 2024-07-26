@@ -12,22 +12,36 @@ function FormMeasurements({
 }) {
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
     useEffect(() => {
+        // if (data) {
+        //     const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
+        //     setInputs(newInputs);
+        // }
+
         if (data) {
             const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
-            setInputs(newInputs);
+            setInputs(prevInputs => {
+                // Only update if data has changed
+                if (JSON.stringify(prevInputs.map(input => input.type)) !== JSON.stringify(data)) {
+                    return newInputs;
+                }
+                return prevInputs;
+            });
         }
     }, [data]);
 
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
             if (i === index) {
+                console.log({ ...input, [field]: value })
                 return { ...input, [field]: value };
             }
+            
             return input;
         });
         setInputs(updatedInputs);
         const id = `${filterId}.${updatedInputs[index].type}`;
-        if (field === 'value') {
+        if (field === 'value' || field === 'operator') {
+            console.log(field);
             if (value !== '') {
                 updateQuery(updatedInputs);
             } else {
@@ -36,10 +50,14 @@ function FormMeasurements({
         }
     };
 
+    console.log(JSON.stringify(inputs));
+
     const updateQuery = (inputs) => {
 
         inputs.map(input => {
             const id = `${filterId}.${input.type}`;
+            const query = input.operator === 'term' ? { term: { [`${field}.value`]: input.value } } : { range: { [`${field}.value`]: { [input.operator]: input.value } } };
+            console.log(query);
             if (input.value) {
                 onChange({
                     filterId: id,
@@ -55,11 +73,7 @@ function FormMeasurements({
                                     },
                                 },
 
-                                {
-                                    "range": {
-                                        [`${filterId}.value`]: { [input.operator]: input.value }
-                                    }
-                                }
+                                query
                             ]
                         }
                     }
@@ -81,7 +95,6 @@ function FormMeasurements({
 
     return (
         <Container className="mt-3">
-            <h5><FormattedMessage id={field} /></h5>
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
                     <Col md={4} className='d-flex align-items-center'>

@@ -9,7 +9,7 @@ export default function TagsFilter({
   data,
   onChange
 }) {
-  const metalTagLocations = ["left", "right"].map((item) => {
+  const metalTagLocations = data?.metalTagLocation.map((item) => {
     return {
       value: item,
       label: item
@@ -17,9 +17,9 @@ export default function TagsFilter({
   }) || [];
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
+      <h3><FormattedMessage id="FILTER_TAGS" /></h3>
       <Description>
-        <FormattedMessage id="FILTER_IDENTITY_DESC" />
+        <FormattedMessage id="FILTER_TAGS_DESC" />
       </Description>
       <h5><FormattedMessage id="FILTER_METAL_TAGS" /></h5>
       {metalTagLocations.map((location) => {
@@ -63,12 +63,7 @@ export default function TagsFilter({
         );
       })}
       <h5><FormattedMessage id="FILTER_ACOUSTIC_TAGS" /></h5>
-      {/* <FormDualInputs
-        label="acousticTags"
-        label1="SERIAL_NUMBER"
-        label2="ID"
-        onChange={onChange}
-      /> */}
+
       <div className="w-100 d-flex flex-row gap-2" >
       <FormGroup className="w-50">
             <FormLabel><FormattedMessage id={"FILTER_ACOUSTIC_TAG_SERIAL_NUMBER"} defaultMessage="" /></FormLabel>
@@ -119,10 +114,10 @@ export default function TagsFilter({
             />
           </FormGroup>
       </div>
-      <h5><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
+      <h5 className="mt-2"><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
       <FormGroupText
         noDesc={true}
-        label="NAME"
+        label="FILTER_NAME"
         onChange={onChange}
         field={"satelliteTags.name"}
         term={"match"}
@@ -130,7 +125,7 @@ export default function TagsFilter({
       />
       <FormGroupText
         noDesc={true}
-        label="SERIAL_NUMBER"
+        label="FILTER_SERIAL_NUMBER"
         onChange={onChange}
         field={"satelliteTags.serialNumber"}
         term={"match"}
@@ -138,7 +133,7 @@ export default function TagsFilter({
       />
       <FormGroupText
         noDesc={true}
-        label="ARGOS_PPT_NUMBER"
+        label="FILTER_ARGOS_PPT_NUMBER"
         onChange={onChange}
         field={"satelliteTags.argosPttNumber"}
         term={"match"}

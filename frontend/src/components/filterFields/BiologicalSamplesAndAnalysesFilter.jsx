@@ -13,7 +13,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
     onChange,
     data
 }) {
-    const label = <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" />
+    const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />
     const [isChecked, setIsChecked] = React.useState(false);
     const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
         item => item[0]
@@ -117,9 +117,9 @@ export default function BiologicalSamplesAndAnalysesFilter({
     const [bioChemicalValue, setBioChemicalValue] = React.useState(null);
     return (
         <div>
-            <h3><FormattedMessage id="FILTER_BIOLOGICAL" /></h3>
+            <h3><FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" /></h3>
             <Description>
-                <FormattedMessage id="FILTER_BIOLOGICAL_DESC" />
+                <FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE_DESC" />
             </Description>
             <Form>
                 <Form.Check
@@ -148,7 +148,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                 />
             </Form>
             <FormGroupText
-                label="FILTER_BIOLOGICAL_SAMPLE_ID_CONTAINS"
+                label="FILTER_BIOLOGICAL_SAMPLE_ID"
                 noDesc
                 onChange={onChange}
                 field="tissueSampleIds"
@@ -167,6 +167,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
 
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_GENETIC_SEX"
                 onChange={onChange}
                 options={geneticSexOptions || []}
@@ -251,7 +252,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                         />
                         <div className="d-flex flex-row gap-3 ms-5">
                             <div className="d-flex flex-column w-50">
-                                <FormLabel ><FormattedMessage id={"ALLELE1"} defaultMessage={"ALLELE1"} /></FormLabel>
+                                <FormLabel ><FormattedMessage id={"FILTER_ALLELE1"} defaultMessage={"Allele1"} /></FormLabel>
                                 <FormControl className="mr-2"
                                     type="text"
                                     placeholder="Type Here"
@@ -259,7 +260,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                                 />
                             </div>
                             <div className="d-flex flex-column w-50">
-                                <FormLabel><FormattedMessage id={"ALLELE1"} defaultMessage={"ALLELE2"} /></FormLabel>
+                                <FormLabel><FormattedMessage id={"FILTER_ALLELE2"} defaultMessage={"Allele2"} /></FormLabel>
                                 <FormControl
                                     type="text"
                                     placeholder="Type Here"

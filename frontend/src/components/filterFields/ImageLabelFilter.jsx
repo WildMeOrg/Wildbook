@@ -72,7 +72,7 @@ export default function ImageLabelFilter({
         }
     }) || [];
 
-    const label = <FormattedMessage id="HAS_AT_LEAST_ONE_ASSOCIATED_PHOTO_OR_VIDEO" />
+    const label = <FormattedMessage id="FILTER_HAS_AT_LEAST_ONE_ASSOCIATED_PHOTO_OR_VIDEO" />
     const [isChecked_photo, setIsChecked_photo] = React.useState(false);
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
@@ -105,6 +105,9 @@ export default function ImageLabelFilter({
 
         <div>
             <h3><FormattedMessage id="FILTER_IMAGE_LABEL" /></h3>
+            <Description>
+                <FormattedMessage id="FILTER_IMAGE_LABEL_DESC" />
+            </Description>
             <Form>
                 <Form.Check
                     type="checkbox"
@@ -137,6 +140,7 @@ export default function ImageLabelFilter({
 
             <FormGroupMultiSelect
                 isMulti={isChecked_keyword}
+                noLabel={true}
                 label="FILTER_KEYWORDS"
                 options={keywordsOptions}
                 onChange={onChange}
@@ -144,22 +148,6 @@ export default function ImageLabelFilter({
                 term="terms"
             />
 
-            {/* <Select
-                isMulti={isChecked_keyword}
-                options={keywordsOptions}
-                styles={colourStyles}
-                onChange={(e) =>
-                    onChange({
-                        filterId: { filterId },
-                        clause: "filter",
-                        query: {
-                            [term]: {
-                                [field]: isChecked_keyword ? e.map(item => item.value) : e.value
-                            }
-                        }
-                    })
-                }
-            /> */}
             <FormGroup>
                 <Form.Label><FormattedMessage id="FILTER_LABELLED_KEYWORDS" /></Form.Label>
                 <Description>
@@ -167,7 +155,7 @@ export default function ImageLabelFilter({
                 </Description>
                 <div className="d-flex flex-row gap-3">
                     <div className="w-50">
-                        <Form.Label><FormattedMessage id="LABEL" /></Form.Label>
+                        <Form.Label><FormattedMessage id="FILTER_LABEL" /></Form.Label>
                         <Select
                             styles={colourStyles}
                             onChange={(e) => {
@@ -178,7 +166,7 @@ export default function ImageLabelFilter({
                         />
                     </div>
                     <div className="w-50">
-                        <Form.Label><FormattedMessage id="VALUE" /></Form.Label>
+                        <Form.Label><FormattedMessage id="FILTER_VALUE" /></Form.Label>
                         <Select
                             options={labelledKeywordsValueOptions}
                             styles={colourStyles}
@@ -213,7 +201,7 @@ export default function ImageLabelFilter({
 
             <FormGroupMultiSelect
                 isMulti={true}
-                label="FILTER_IACLASS"
+                label="FILTER_IA_CLASS"
                 options={iaClassOptions}
                 filterId="iaClass"
                 field={"iaClass"}

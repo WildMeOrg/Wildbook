@@ -40,148 +40,49 @@ export default function useEncounterSearchSchemas() {
     
     {
       id: 'location',
-      labelId: 'Location',
+      labelId: 'FILTER_LOCATION',
       FilterComponent: LocationFilter,
     },
     {
       id: 'date',
-      labelId: 'Date',
+      labelId: 'FILTER_DATE',
       FilterComponent: DateFilter,
     },
     {
       id: 'observation',
-      labelId: 'Observation Attribute',
+      labelId: 'FILTER_OBSERVATION_ATTRIBUTE',
       FilterComponent: ObservationAttributeFilter,
     },
     {
       id: 'imageLabel',
-      labelId: 'Image Label',
+      labelId: 'FILTER_IMAGE_LABEL',
       FilterComponent: ImageLabelFilter,
     },
     {
       id: 'identity',
-      labelId: 'Identity',
+      labelId: 'FILTER_IDENTITY',
       FilterComponent: IdentityFilter,
     },
     {
       id: 'tags',
-      labelId: 'Tags Filter',
+      labelId: 'FILTER_TAGS',
       FilterComponent: TagsFilter,
     },
     {
       id: 'biologicalSample',
-      labelId: 'Biological Sample',
+      labelId: 'FILTER_BIOLOGICAL_SAMPLE',
       FilterComponent: BiologicalSamplesAndAnalysesFilter,
     },
     {
       id: 'social',
-      labelId: 'Social',
+      labelId: 'FILTER_SOCIAL',
       FilterComponent: SocialFilter,
     },
     {
       id: 'metadata',
-      labelId: 'Meta Data',
+      labelId: 'FILTER_METADATA',
       FilterComponent: MetadataFilter,
     },
-    // {
-    //   id: 'verbatimLocality',
-    //   labelId: 'FREEFORM_LOCATION',
-    //   FilterComponent: SubstringFilter,
-    //   filterComponentProps: {
-    //     filterId: 'verbatimLocality',
-    //     queryTerms: ['verbatimLocality', 'locationId_value'],
-    //   },
-    // },
-    // {
-    //   id: 'comments',
-    //   labelId: 'NOTES',
-    //   FilterComponent: SubstringFilter,
-    //   filterComponentProps: {
-    //     filterId: 'comments',
-    //     queryTerms: ['comments'],
-    //   },
-    // },
-    // {
-    //   id: 'time',
-    //   labelId: 'SIGHTING_DATE_RANGE',
-    //   FilterComponent: DateRangeFilter,
-    //   filterComponentProps: { queryTerm: 'time', filterId: 'time' },
-    // },
-    // {
-    //   id: 'species',
-    //   labelId: 'SPECIES',
-    //   FilterComponent: OptionTermFilter,
-    //   filterComponentProps: {
-    //     filterId: 'species',
-    //     queryTerm: 'taxonomy_guids',
-    //     choices: speciesOptions,
-    //   },
-    // },
-    // {
-    //   id: 'pipelineState',
-    //   labelId: 'PIPELINE_STATE',
-    //   FilterComponent: OptionTermFilter,
-    //   filterComponentProps: {
-    //     filterId: 'pipelineState',
-    //     queryTerm: 'pipelineState',
-    //     choices: pipelineStateOptions,
-    //   },
-    // },
-    // {
-    //   id: 'numberEncounters',
-    //   labelId: 'NUMBER_ENCOUNTERS',
-    //   FilterComponent: IntegerFilter,
-    //   filterComponentProps: {
-    //     filterId: 'numberEncounters',
-    //     queryTerm: 'numberEncounters',
-    //   },
-    // },
-    // {
-    //   id: 'numberImages',
-    //   labelId: 'NUMBER_IMAGES',
-    //   FilterComponent: IntegerFilter,
-    //   filterComponentProps: {
-    //     filterId: 'numberImages',
-    //     queryTerm: 'numberImages',
-    //   },
-    // },
-    // {
-    //   id: 'numberAnnotations',
-    //   labelId: 'NUMBER_ANNOTATIONS',
-    //   FilterComponent: IntegerFilter,
-    //   filterComponentProps: {
-    //     filterId: 'numberAnnotations',
-    //     queryTerm: 'numberAnnotations',
-    //   },
-    // },
-    // {
-    //   id: 'numberIndividuals',
-    //   labelId: 'NUMBER_OF_INDIVIDUALS',
-    //   FilterComponent: IntegerFilter,
-    //   filterComponentProps: {
-    //     filterId: 'numberIndividuals',
-    //     queryTerm: 'numberIndividuals',
-    //   },
-    // },
-    // {
-    //   id: 'stage',
-    //   labelId: 'SIGHTING_STATE',
-    //   FilterComponent: OptionTermFilter,
-    //   filterComponentProps: {
-    //     filterId: 'Stage',
-    //     queryTerm: 'stage',
-    //     choices: stageOptions,
-    //   },
-    // },
-    // {
-    //   id: 'latlong',
-    //   labelId: 'EXACT_LOCATION',
-    //   FilterComponent: PointDistanceFilter,
-    //   filterComponentProps: {
-    //     filterId: 'latlong',
-    //     queryTerm: 'location_geo_point',
-    //   },
-    // },
     
   ];
 }

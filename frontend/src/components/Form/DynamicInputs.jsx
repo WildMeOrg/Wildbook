@@ -3,10 +3,13 @@ import { Form } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import BrutalismButton from '../BrutalismButton';
 import { FormattedMessage } from 'react-intl';
+import FilterPanel from '../FilterPanel';
+import { useIntl } from 'react-intl';
 
 function DynamicInputs({
   onChange,
 }) {
+  const intl = useIntl();
   const [inputs, setInputs] = useState([{ name: '', value: '' }]);
 
   const addInput = () => {
@@ -56,14 +59,14 @@ function DynamicInputs({
           <Form.Control
             type="text"
             name="name"
-            placeholder="FILTER_OBSERVATION_NAME"
+            placeholder={intl.formatMessage({ id: "FILTER_OBSERVATION_NAME" })}
             value={input.name}
             onChange={handleInputChange.bind(null, index)}
           />
           <Form.Control
             type="text"
             name="value"
-            placeholder="FILTER_OBSERVATION_VALUE"
+            placeholder={intl.formatMessage({ id: 'FILTER_OBSERVATION_VALUE' })}
             value={input.value}
             onChange={handleInputChange.bind(null, index)}
             disabled={!input.name}

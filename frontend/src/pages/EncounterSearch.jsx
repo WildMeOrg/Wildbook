@@ -4,6 +4,7 @@ import useFilterEncounters from "../models/encounters/useFilterEncounters";
 import FilterPanel from "../components/FilterPanel";
 import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../components/filterFields/SideBar";
+import { FormattedMessage } from "react-intl";
 
 export default function EncounterSearch() {
 
@@ -21,7 +22,6 @@ export default function EncounterSearch() {
     { name: "Species", selector: "taxonomy" },
     { name: "Submitter", selector: "submitters" },
     { name: "Date Submitted", selector: "dateSubmitted" },
-
     { name: "Number Annotations", selector: "numberAnnotations" },
   ];
 
@@ -77,7 +77,7 @@ export default function EncounterSearch() {
         style={{
           display: !filterPanel ? "block" : "none",
         }}
-        title="Encounters Search Results"
+        title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"}/>}
         columnNames={columns}
         tabs={tabs}
         tableData={encounters}

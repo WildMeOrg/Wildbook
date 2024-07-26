@@ -5,8 +5,9 @@ import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 function buildQuery(queries) {
+  const [mustNotQueries, nonMustNotQueries] = partition(queries, q => q.clause === "must_not");
   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
-  const [filterQueries, mustNotQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+  const [filterQueries, otherQueries] = partition(nonNestedQueries, q => q.clause === "filter");
   const mustQueries = nonNestedQueries.filter(q => q.clause === "must");
 
   const nestedQuery = nestedQueries.map(n => ({
@@ -18,16 +19,16 @@ function buildQuery(queries) {
 
   return {
     filter: filterQueries.map(f => f.query),
-    // must_not: mustNotQueries.map(f => f.query),
+    must_not: mustNotQueries.map(f => f.query),
     must: [ ...nestedQuery]
   };
 }
 
 export default function useFilterEncounters({ queries, params = {} }) {
-  // console.log("Queries:", queries);
 
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
+  const {sort, size, from, ...restParams} = params;
 
   return useFetch({
     method: "post",
@@ -36,8 +37,8 @@ export default function useFilterEncounters({ queries, params = {} }) {
     data: compositeQuery,
     params: {
       sort: "date",
-      // size: 1,
-      // from: 3,
+      size: size || 20,
+      from: from || 0,
       ...params,
     },
     dataAccessor: (result) => {

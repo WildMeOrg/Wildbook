@@ -45,9 +45,9 @@ export default function MetadataFilter({
 
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_SOCIAL" /></h3>
+      <h3><FormattedMessage id="FILTER_METADATA" /></h3>
       <Description>
-        <FormattedMessage id="FILTER_SOCIAL_DESC" />
+        <FormattedMessage id="FILTER_METADATA_DESC" />
       </Description>
 
       <FormGroupMultiSelect

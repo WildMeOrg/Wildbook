@@ -88,7 +88,7 @@ function Sidebar({
               borderColor={theme.primaryColors.primary700}
               color='white'
             >
-              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Copy"}/>
+              <FormattedMessage id="FILTER_COPY" defaultMessage={"Copy"}/>
             </BrutalismButton>
             <BrutalismButton
               onClick={() => {

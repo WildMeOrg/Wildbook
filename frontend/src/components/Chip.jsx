@@ -27,7 +27,7 @@ function Chip({ text, children }) {
             });
         } else if (query?.exists) {
             Object.entries(query.exists).forEach(([key, value]) => {
-                entries.push(`"${value}" exists`);
+                entries.push(`"${value}" filter is set`);
             });
         } else if (query?.term) {
             Object.entries(query.term).forEach(([key, value]) => {
