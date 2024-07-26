@@ -791,7 +791,13 @@ private static void migrateRelationships(JspWriter out, Shepherd myShepherd, Con
             out.println("<i>invalid indivs.size=" + indivs.size() + "</i></li>");
             continue;
         }
-        Relationship rel = new Relationship(typeLabel, indivs.get(0), indivs.get(1));
+
+        Relationship rel = myShepherd.getRelationship(typeLabel, indivs.get(0).getId(), indivs.get(1).getId(), roles.get(0), roles.get(1));
+        if (rel != null) {
+            out.println("<i>rel already exists: <b>" + rel + "</b></i></li>");
+            continue;
+        }
+        rel = new Relationship(typeLabel, indivs.get(0), indivs.get(1));
         myShepherd.getPM().makePersistent(rel);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
