@@ -1,7 +1,7 @@
 import React from 'react';
 
 function Chip({ text, children }) {
-    console.log("Chip children", children);
+    // console.log("Chip children", children);
     function renderFilter(filter) {
         const entries = [];
         const { clause, filterId, query } = filter;
@@ -17,8 +17,8 @@ function Chip({ text, children }) {
         if (query?.range) {
             Object.entries(query.range).forEach(([key, range]) => {
                 const parts = [];
-                if (range.gte) parts.push(`from "${range.gte}"`);
-                if (range.lte) parts.push(`to "${range.lte}"`);
+                if (range.gte || range.gte === 0) parts.push(`from "${range.gte}"`);
+                if (range.lte || range.lte === 0) parts.push(`to "${range.lte}"`);
                 entries.push(`${key} ${parts.join(' ')}`);
             });
         } else if (query?.match) {
