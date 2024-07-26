@@ -8,7 +8,6 @@ import FormMeasurements from '../Form/FormMeasurements';
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import BioMeasurements from '../Form/BioMeasurements';
-import { all } from 'axios';
 
 export default function BiologicalSamplesAndAnalysesFilter({
     onChange,
@@ -20,9 +19,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
         item => item[0]
     ) || [];
 
-    const microSatelliteMarkerLoci = ["X1", "Y2"];
-    // data?.loci || [];
-    // 
+    const microSatelliteMarkerLoci = data?.loci || [];
 
     const [checkedState, setCheckedState] = useState({});
     const [alleleLength, setAlleleLength] = React.useState(false);
@@ -133,11 +130,9 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     onChange={(e) => {
                         setIsChecked(!isChecked);
                         if (!e.target.checked) {
-                            console.log(1);
                             onChange(null, `biologicalSampleId`);
                             return;
                         } else {
-                            console.log(2);
                             onChange({
                                 filterId: `biologicalSampleId`,
                                 clause: "filter",
@@ -237,20 +232,16 @@ export default function BiologicalSamplesAndAnalysesFilter({
                                 } else {
                                     if (currentValues[data]?.allele0) {
                                         if(alleleLength && length){
-                                            console.log(1);
                                             buildQuery_range(data, 0, currentValues[data]?.allele0);
                                         }
                                         else{
-                                            console.log(2);
                                             buildQuery_match(data, 0, currentValues[data]?.allele0);
                                         }
                                     }
                                     if (currentValues[data]?.allele1) {
                                         if(alleleLength && length){
-                                            console.log(3);
                                             buildQuery_range(data, 1, currentValues[data]?.allele1);
                                         }else {
-                                            console.log(4);
                                         buildQuery_match(data, 1, currentValues[data]?.allele1);
                                         }
                                     }
