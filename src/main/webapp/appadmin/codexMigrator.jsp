@@ -2,6 +2,7 @@
 import="org.ecocean.*,
 org.ecocean.tag.MetalTag,
 org.ecocean.servlet.ServletUtilities,
+org.ecocean.social.Relationship,
 java.io.IOException,
 javax.servlet.jsp.JspWriter,
 javax.servlet.http.HttpServletRequest,
@@ -115,6 +116,29 @@ private static Integer cfInteger(JSONObject cfData, String key) {
         return cfData.getInt(key);
     } catch (Exception ex) {}
     return null;
+}
+
+private static Map<String,String> relationshipMeta(Connection conn) throws SQLException, IOException {
+    Object ss = siteSetting("relationship_type_roles", conn);
+    Map<String,String> rtn = new HashMap<String,String>();
+    if (ss == null) return rtn;
+    JSONObject rel = (JSONObject)ss;
+    for (String key : (Set<String>)rel.keySet()) {
+        JSONObject data = rel.optJSONObject(key);
+        if (data == null) continue;
+        String label = data.optString("label", null);
+        if (label != null) rtn.put(key, label);
+        JSONArray roles = data.optJSONArray("roles");
+        if (roles == null) continue;
+        for (int i = 0 ; i < roles.length() ; i++) {
+            JSONObject role = roles.optJSONObject(i);
+            if (role == null) continue;
+            String rid = role.optString("guid", null);
+            String rlabel = role.optString("label", null);
+            if ((rid != null) && (rlabel != null)) rtn.put(rid, rlabel);
+        }
+    }
+    return rtn;
 }
 
 private static Map<String,String> taxonomyMap(Connection conn) throws SQLException, IOException {
@@ -688,9 +712,7 @@ System.out.println(">>>>> ??? " + kw + " on " + enc);
 
 private static void migrateKeywords(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
     out.println("<h2>Keywords</h2><ol>");
-    Map<String,String> txmap = taxonomyMap(conn);
     Statement st = conn.createStatement();
-    Statement st2 = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT keyword.guid, value, STRING_AGG(annotation_guid::text, ',') AS annot_guids FROM keyword JOIN annotation_keywords ON (keyword.guid = keyword_guid) GROUP BY keyword.guid");
     int ct = 0;
 
@@ -728,6 +750,59 @@ private static void migrateKeywords(JspWriter out, Shepherd myShepherd, Connecti
     out.println("</ol>");
 }
 
+private static void migrateRelationships(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>Relationships</h2><ol>");
+    Map<String,String> relMeta = relationshipMeta(conn);
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM relationship");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        String guid = res.getString("guid");
+        String typeGuid = res.getString("type_guid");
+        out.println("<li>" + guid + " [" + typeGuid + "]: ");
+        String typeLabel = relMeta.get(typeGuid);
+        if (typeLabel == null) {
+            out.println("<i>unknown label</i></li>");
+            continue;
+        }
+        out.println(" typeLabel=" + typeLabel);
+        ResultSet res2 = st2.executeQuery("SELECT * FROM relationship_individual_member WHERE relationship_guid='" + guid + "'");
+        List<MarkedIndividual> indivs = new ArrayList<MarkedIndividual>();
+        List<String> roles = new ArrayList<String>();
+        out.println("<ul>");
+        while (res2.next()) {
+            String indivGuid = res2.getString("individual_guid");
+            String roleGuid = res2.getString("individual_role_guid");
+            MarkedIndividual indiv = myShepherd.getMarkedIndividual(indivGuid);
+            String roleLabel = relMeta.get(roleGuid);
+            if ((indiv == null) || (roleLabel == null)) {
+                out.println("<li><i>failed on indivGuid=" + indivGuid + ", roleGuid=" + roleGuid + "[" + roleLabel + "]</i></li>");
+            } else {
+                out.println("<li><b>" + roleGuid + "[" + roleLabel + "]</b> on " + indiv + "</li>");
+                indivs.add(indiv);
+                roles.add(roleLabel);
+            }
+        }
+        out.println("</ul>");
+        if (indivs.size() != 2) {
+            out.println("<i>invalid indivs.size=" + indivs.size() + "</i></li>");
+            continue;
+        }
+        Relationship rel = new Relationship(typeLabel, indivs.get(0), indivs.get(1));
+        myShepherd.getPM().makePersistent(rel);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+        rel.setMarkedIndividualRole1(roles.get(0));
+        rel.setMarkedIndividualRole2(roles.get(1));
+        out.println("<b>created " + rel + " on " + indivs.get(0) + " and " + indivs.get(1) + "</b>");
+        out.println("</li>");
+    }
+    out.println("</ol>");
+}
+
 %>
 
 
@@ -757,6 +832,7 @@ JSONObject locJson = locationJson(conn);
 if (locJson != null) Util.writeToFile(locJson.toString(4), "/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/locationID.json");
 
 
+/*
 migrateUsers(out, myShepherd, conn);
 
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
@@ -770,6 +846,9 @@ migrateOccurrences(out, myShepherd, conn);
 migrateMarkedIndividuals(out, myShepherd, conn);
 
 migrateKeywords(out, myShepherd, conn);
+*/
+
+migrateRelationships(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
