@@ -47,6 +47,14 @@
 		 			 	"lat":1.270203,
 		 			 	"long":37.382723
 		 			 }
+				},
+				{
+					"name": "Faro National Park",
+					"id": "Faro National Park",
+					"geospatialInfo": {
+						"lat": 8.193,
+						"long": 12.714
+					}
 				}
 			]
 		},
