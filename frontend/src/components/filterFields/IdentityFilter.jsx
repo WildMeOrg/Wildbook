@@ -12,19 +12,19 @@ export default function IdentityFilter({
   onChange,
 
 }) {
-  const includeEncounters = <FormattedMessage id="INCLUDE_ENCOUNTERS" />
+  const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
   const [times, setTimes] = React.useState(0);
 
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_IDENTIFY" /></h3>
+      <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
       <Description>
-        <FormattedMessage id="FILTER_IDENTIFY_DESC" />
+        <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
-      <Form className="d-flex flex-row aligh-items-center ">
-        <Form.Check
+      <Form className="d-flex flex-row aligh-items-center">
+        <Form.Check className="me-2"
           type="checkbox"
           id="custom-checkbox"
           checked={isChecked1}
@@ -45,11 +45,11 @@ export default function IdentityFilter({
             }
           }}
         />
-        <FormattedMessage id="SIGHTED_AT_LEAST" />
+        <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
         <FormControl
           type="text"
           style={{
-            width: "100px",
+            width: "50px",
             marginLeft: "10px",
             marginRight: "10px"
           }}
@@ -71,13 +71,10 @@ export default function IdentityFilter({
           }}
           disabled={!isChecked1}
         />
-        <FormattedMessage id="TIMES" />
+        <FormattedMessage id="FILTER_TIMES" />
       </Form>
 
-
-
       <Form>
-
         <Form.Check
           label={includeEncounters}
           type="checkbox"
@@ -88,7 +85,7 @@ export default function IdentityFilter({
             if (e.target.checked) {
               onChange({
                 filterId: "individualId",
-                clause: "filter",
+                clause: "must_not",
                 query: {
                   "exists": {
                     "field": "individualId"
@@ -100,37 +97,12 @@ export default function IdentityFilter({
             }
           }}
         />
-
-        {/* <FormControl
-  type="checkbox"
-  id="custom-checkbox"
-  checked={isChecked2}
-  label={includeEncounters}
-  onChange={(e) => {
-    const newChecked = e.target.checked;
-    if(newChecked){
-      onChange({
-        filterId: "individualId",
-        clause: "filter",
-        query: {
-          "match": {
-            "individualId": null  
-          }
-        }
-      });
-    } else {      
-      onChange({
-        filterId: "individualId",
-        clause: "filter",
-        query: {}
-      });
-    }
-  }}
-/> */}
+        
 
       </Form>
       <FormGroupText
-        label="FILTER_ALTERNATIVE_ID_CONTAINS"
+        label="FILTER_ALTERNATIVE_ID"
+        noDesc={true}
         field={"otherCatalogNumbers"}
         term={"match"}
         filterId={"otherCatalogNumbers"}
@@ -138,12 +110,11 @@ export default function IdentityFilter({
 
       />
       <FormGroupText
-        label="FILTER_INDIVIDUAL_NAME_CONTAINS"
+        label="FILTER_INDIVIDUAL_NAME"
         field={"individualName"}
         term={"match"}
         filterId={"individualName"}
         onChange={onChange}
-        noDesc={true}
       />
     </div>
   );

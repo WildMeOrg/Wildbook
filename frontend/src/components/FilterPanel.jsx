@@ -9,6 +9,7 @@ import BrutalismButton from './BrutalismButton';
 import useGetSiteSettings from '../models/useGetSiteSettings';
 import FilterContext from '../FilterContextProvider';
 import { Col, Row } from 'react-bootstrap';
+import { FormattedMessage } from 'react-intl';
 
 function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
   const matchingFilterIndex = tempFormFilters.findIndex(
@@ -24,7 +25,7 @@ function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
     //a workaround to update the microsatelliteMarkers.loci filters, since it's updating 
     //multiple filters at once, we need to update the filter in place, instead of calling setTempFormFilters
     //which is async and will cause issue
-    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
+    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") || newFilter?.filterId?.startsWith("measurements")) {
       tempFormFilters[matchingFilterIndex] = newFilter;
     } else {
       const newFormFilters = [...tempFormFilters];
@@ -50,7 +51,7 @@ export default function FilterPanel({
 
   const handleFilterChange = (filter = null, remove) => {
     if (remove) {
-      if (remove?.startsWith("microsatelliteMarkers.loci")) {
+      if (remove?.startsWith("microsatelliteMarkers.loci") || remove?.startsWith("measurements")) {
         tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
       } else {
         const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
@@ -191,7 +192,7 @@ export default function FilterPanel({
                   paddingRight: 5,
                 }}
               >
-                APPLY
+                <FormattedMessage id="APPLY" defaultMessage="Apply" />
               </BrutalismButton>
               <BrutalismButton style={{
                 color: theme.primaryColors.primary700,
@@ -211,7 +212,7 @@ export default function FilterPanel({
 
               >
 
-                RESET
+                <FormattedMessage id="RESET" defaultMessage="Reset" />
               </BrutalismButton>
             </div>
 

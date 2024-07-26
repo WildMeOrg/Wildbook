@@ -49,6 +49,7 @@ const MyDataTable = ({
   const [filterText, setFilterText] = useState("");
   const [goToPage, setGoToPage] = useState("");
   const perPageOptions = [10, 20, 30, 40, 45];
+  const filterPlaceholder = <FormattedMessage id="FILTER" defaultMessage="filter"/>
 
   const wrappedColumns = useMemo(
     () =>
@@ -145,9 +146,9 @@ const MyDataTable = ({
                   fontSize: "1em",
                 }}
 
-              >    <FormattedMessage id="Results Table" defaultMessage={"Results Table"}/>   
+              >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"}/>   
               </Button>
-          {Object(tabs).map((tab, index) => {
+          {tabs.map((tab, index) => {
             return (
               <Button 
                 key={index}
@@ -157,10 +158,10 @@ const MyDataTable = ({
               >
                 <a
                   key={index}
-                  href={Object(tab).split(" : ")[1]}
+                  href={tab.split(" : ")[1]}
                   style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
                 >
-                  {Object(tab).split(" : ")[0]}
+                  {<FormattedMessage id={tab.split(" : ")[0]} defaultMessage={tab.split(" : ")[0]}/>}
                 </a>
               </Button>
             );
@@ -169,7 +170,7 @@ const MyDataTable = ({
         <InputGroup className="mb-3" style={{ width: "300px" }}>
           <Form.Control
             type="text"
-            placeholder="Filter by Text"
+            placeholder={"Type here to filter"}
             value={filterText}
             onChange={handleFilterChange}
           />
@@ -200,10 +201,10 @@ const MyDataTable = ({
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
           <div className="me-3" style={{ color: "white" }}>
-            <span>Total Items: {totalItems}</span>
+            <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"}/>: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>
-            <InputGroup.Text>Per page</InputGroup.Text>
+            <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"}/></InputGroup.Text>
             <Form.Control
               as="select"
               value={perPage}
@@ -237,14 +238,14 @@ const MyDataTable = ({
             forcePage={page}
           />
           <InputGroup className="ms-3" style={{ width: "150px" }}>
-            <InputGroup.Text>Go to</InputGroup.Text>
+            <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"}/></InputGroup.Text>
             <Form.Control
               type="text"
               value={goToPage}
               onChange={handleGoToPageChange}
             />
             <Button className="go-button" onClick={handleGoToPageSubmit}>
-              Go
+              <FormattedMessage id="GO" defaultMessage={"Go"}/>
             </Button>
           </InputGroup>
         </Col>

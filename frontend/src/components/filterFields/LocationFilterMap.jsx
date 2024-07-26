@@ -73,9 +73,9 @@ export default function LocationFilterMap({
 
     return (
         <div>
-            <h3><FormattedMessage id="FILTER_LOCATION_MAP" /></h3>
+            <h3><FormattedMessage id="FILTER_LOCATION" /></h3>
             <Description>
-                <FormattedMessage id="FILTER_LOCATION_MAP_DESC" />
+                <FormattedMessage id="FILTER_LOCATION_DESC" />
             </Description>
             <FormLabel><FormattedMessage id="FILTER_GPS_COORDINATES" /></FormLabel>
             <div style={{
@@ -92,7 +92,7 @@ export default function LocationFilterMap({
                         <FormGroup key={index} style={{
                             marginRight: '10px',
                         }}>
-                            <FormLabel><FormattedMessage id={Object.keys(item)[0].replace(/_/g, " ")} /></FormLabel>
+                            <FormLabel><FormattedMessage id={Object.keys(item)[0]} /></FormLabel>
                             <FormControl
                                 type="text"
                                 placeholder={bounds ? bounds[Object.values(item)[0]] : "type here"}

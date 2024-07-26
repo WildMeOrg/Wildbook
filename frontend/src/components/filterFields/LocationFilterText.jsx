@@ -21,10 +21,6 @@ export default function LocationFilterText({
 
     return (
         <div className="mt-3">
-            <h3><FormattedMessage id="FILTER_LOCATION" /></h3>
-            <Description>
-                <FormattedMessage id="FILTER_LOCATION_DESC" />
-            </Description>
             <FormGroupText
                 label="FILTER_VERBATIM_LOCATION"
                 onChange={onChange}

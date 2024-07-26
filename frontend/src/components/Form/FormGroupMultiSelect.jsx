@@ -6,6 +6,8 @@ import { FormGroup, FormLabel } from 'react-bootstrap';
 
 export default function FormGroupMultiSelect({ 
     isMulti = false, 
+    noLabel,
+    noDesc,
     label = "", 
     options, 
     onChange, 
@@ -13,11 +15,12 @@ export default function FormGroupMultiSelect({
     field,
     }) {
     return (
-        <FormGroup>
-            <FormLabel>{label}</FormLabel>
-            <Description>
+        <FormGroup className="mt-2">
+            {noLabel ? null : <FormLabel><FormattedMessage id={label} defaultMessage={label}/></FormLabel>}
+            {noDesc ? null : <Description>
                 <FormattedMessage id={`${label}_DESC`} />
-            </Description>
+            </Description>}
+            
             <MultiSelect
                 options={options}
                 onChange={onChange}

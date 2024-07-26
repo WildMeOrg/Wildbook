@@ -91,16 +91,16 @@ export default function DateFilter({
 
     return (
         <div >
-            <h3><FormattedMessage id="DATE" /></h3>
+            <h3><FormattedMessage id="FILTER_DATE" /></h3>
             <Description>
-                <FormattedMessage id="DATE_DESC" />
+                <FormattedMessage id="FILTER_DATE_DESC" />
             </Description>
             <>
-                <FormLabel><FormattedMessage id="SIGHTING_DATES" /></FormLabel>
+                <FormLabel><FormattedMessage id="FILTER_SIGHTING_DATE" /></FormLabel>
                 <div className="d-flex flex-row w-100 mb-2">
                     <FormGroup className="w-50" style={{ marginRight: '10px' }}>
                         <p>
-                            <FormattedMessage id="FROM" defaultMessage="From" />
+                            <FormattedMessage id="FILTER_FROM" defaultMessage="From" />
                         </p>
                         <FormControl type="date" value={startDate} onChange={(e) => {
                             setStartDate(e.target.value);
@@ -109,7 +109,7 @@ export default function DateFilter({
                     </FormGroup>
                     <FormGroup className="w-50">
                         <p>
-                            <FormattedMessage id="TO" defaultMessage="To" />
+                            <FormattedMessage id="FILTER_TO" defaultMessage="To" />
                         </p>
                         <FormControl type="date" value={endDate} onChange={(e) => {
                             setEndDate(e.target.value);
@@ -121,6 +121,7 @@ export default function DateFilter({
 
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc
                 label="FILTER_VERBATIM_EVENT_DATE"
                 options={verbatimeventdateOptions}
                 onChange={onChange}
@@ -128,13 +129,13 @@ export default function DateFilter({
                 field="verbatimEventDate"
             />
 
-            <><p><FormLabel class="mt-3"><FormattedMessage id="ENCOUNTER_SUBMISSION_DATES" /></FormLabel></p>
+            <><p><FormLabel class="mt-3"><FormattedMessage id="FILTER_ENCOUNTER_SUBMISSION_DATE" /></FormLabel></p>
                 
                 <div className="d-flex flex-row w-100 mb-2">
                 
                     <FormGroup className="w-50" style={{ marginRight: '10px' }}>
                         <p>
-                            <FormattedMessage id="FROM" defaultMessage="From" />
+                            <FormattedMessage id="FILTER_FROM" defaultMessage="From" />
                         </p>
                         <FormControl type="date" value={submissionStartDate} onChange={(e) => {
                             setSubmissionStartDate(e.target.value);
@@ -142,7 +143,7 @@ export default function DateFilter({
                     </FormGroup>
                     <FormGroup className="w-50">
                         <p>
-                            <FormattedMessage id="TO" defaultMessage="To" />
+                            <FormattedMessage id="FILTER_TO" defaultMessage="To" />
                         </p>
                         <FormControl type="date" value={submissionEndDate} onChange={(e) => {
                             setSubmissionEndDate(e.target.value);

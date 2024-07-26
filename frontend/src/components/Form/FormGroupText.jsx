@@ -13,7 +13,7 @@ export default function FormGroupText({
     term
 }) {
     return (
-        <FormGroup>
+        <FormGroup className="mt-2">
             {!noLabel && <FormLabel><FormattedMessage id={label} defaultMessage="" /></FormLabel>}
             {!noDesc && <Description><FormattedMessage id={`${label}_DESC`} /></Description>}
             <FormControl 

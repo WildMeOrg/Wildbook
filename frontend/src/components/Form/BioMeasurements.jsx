@@ -63,7 +63,7 @@ function FormMeasurements({
 
     return (
         <Container className="mt-3">
-            <h5><FormattedMessage id={field} /></h5>
+            <h5><FormattedMessage id={"FILTER_BIOLOGICAL_MEASUREMENTS"} /></h5>
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
                     <Col md={4} className='d-flex align-items-center'>
