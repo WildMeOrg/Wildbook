@@ -10,16 +10,27 @@ import useGetSiteSettings from '../models/useGetSiteSettings';
 import FilterContext from '../FilterContextProvider';
 import { Col, Row } from 'react-bootstrap';
 
-function setFilter(newFilter, formFilters, setFormFilters) {
-  const matchingFilterIndex = formFilters.findIndex(
+function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
+  const matchingFilterIndex = tempFormFilters.findIndex(
     f => f.filterId === newFilter.filterId,
   );
   if (matchingFilterIndex === -1) {
-    setFormFilters([...formFilters, newFilter]);
+    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
+      tempFormFilters.splice(0, tempFormFilters.length, newFilter, ...tempFormFilters);
+    } else {
+      setTempFormFilters([...tempFormFilters, newFilter]);
+    }
   } else {
-    const newFormFilters = [...formFilters];
-    newFormFilters[matchingFilterIndex] = newFilter;
-    setFormFilters(newFormFilters);
+    //a workaround to update the microsatelliteMarkers.loci filters, since it's updating 
+    //multiple filters at once, we need to update the filter in place, instead of calling setTempFormFilters
+    //which is async and will cause issue
+    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
+      tempFormFilters[matchingFilterIndex] = newFilter;
+    } else {
+      const newFormFilters = [...tempFormFilters];
+      newFormFilters[matchingFilterIndex] = newFilter;
+      setTempFormFilters(newFormFilters);
+    }
   }
 }
 
@@ -38,12 +49,14 @@ export default function FilterPanel({
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = (filter = null, remove) => {
-    console.log("Filter:", filter);
-
     if (remove) {
-      console.log("Remove:", remove);
-      const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
-      setTempFormFilters(updatedFilters);
+      if (remove?.startsWith("microsatelliteMarkers.loci")) {
+        tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
+      } else {
+        const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
+        setTempFormFilters(updatedFilters);
+      }
+
     } else setFilter(filter, tempFormFilters, setTempFormFilters);
     // if (filter.selectedChoice) {
     //   setSelectedChoices({
@@ -153,7 +166,7 @@ export default function FilterPanel({
               </div>
             })}
             <div
-              className="mt-5 d-flex flex-wrap justify-content-center align-items-center" >              
+              className="mt-5 d-flex flex-wrap justify-content-center align-items-center" >
               <FormControl
                 type="text"
                 placeholder="Search ID"
@@ -183,7 +196,7 @@ export default function FilterPanel({
               <BrutalismButton style={{
                 color: theme.primaryColors.primary700,
                 paddingLeft: 5,
-                  paddingRight: 5,
+                paddingRight: 5,
 
               }}
                 borderColor={theme.primaryColors.primary700}
@@ -195,8 +208,8 @@ export default function FilterPanel({
                   window.location.reload();
                 }}
                 noArrow={true}
-                
-                >
+
+              >
 
                 RESET
               </BrutalismButton>
