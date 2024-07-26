@@ -250,6 +250,7 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
             //out.println(sourceFile.toString());
             if (!sourceFile.exists()) {
                 out.println("<b>" + sourceFile + " does not exist</b>");
+                if (ext.equals("unknown")) continue;
                 break;
             }
             File tmpFile = new File(TMP_DIR, guid + "." + ext);
@@ -684,6 +685,49 @@ System.out.println(">>>>> ??? " + kw + " on " + enc);
 
 }
 
+
+private static void migrateKeywords(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>Keywords</h2><ol>");
+    Map<String,String> txmap = taxonomyMap(conn);
+    Statement st = conn.createStatement();
+    Statement st2 = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT keyword.guid, value, STRING_AGG(annotation_guid::text, ',') AS annot_guids FROM keyword JOIN annotation_keywords ON (keyword.guid = keyword_guid) GROUP BY keyword.guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        String guid = res.getString("guid");
+        String value = res.getString("value");
+        if (stringEmpty(value)) continue;
+        String annIdList = res.getString("annot_guids");
+        if (stringEmpty(annIdList)) continue;
+        String[] annIds = annIdList.split(",");
+        if (annIds.length < 1) continue;
+        Keyword kw = myShepherd.getOrCreateKeyword(value);
+        out.println("<li>" + guid + " " + kw + ": <ul>");
+        for (String annId : annIds) {
+            Annotation ann = myShepherd.getAnnotation(annId);
+            if (ann == null) {
+                out.println("<li><i>cannot load Annot " + annId + "</i></li>");
+                continue;
+            }
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) {
+                out.println("<li><i>cannot load MediaAsset on " + ann + "</i></li>");
+                continue;
+            }
+            if (ma.hasKeyword(kw)) {
+                out.println("<li><i>" + ma + " already has " + kw + "</i></li>");
+                continue;
+            }
+            ma.addKeyword(kw);
+            out.println("<li><b>Added " + kw + " to " + ma + "</b></li>");
+        }
+        out.println("</ul></li>");
+    }
+    out.println("</ol>");
+}
+
 %>
 
 
@@ -724,6 +768,8 @@ migrateEncounters(out, myShepherd, conn);
 migrateOccurrences(out, myShepherd, conn);
 
 migrateMarkedIndividuals(out, myShepherd, conn);
+
+migrateKeywords(out, myShepherd, conn);
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
