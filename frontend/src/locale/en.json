@@ -208,6 +208,9 @@
     "FILTER_SUBMITTER" : "Submitter, Photographer, or Email Address. This field is NOT case-sensitive",
     "FILTER_ORGANIZATION_ID" : "Organization ID",
     "FILTER_PROJECT_NAME" : "Project Name",
-    "FILTER_ASSIGNED_USER" : "Assigned User"
+    "FILTER_ASSIGNED_USER" : "Assigned User",
+    "ENCOUNTER_SEARCH_FILTERS" : "Encounter Search Filters",
+    "DRAW": "Draw",
+    "CANCEL" : "Cancel"
 
 }
