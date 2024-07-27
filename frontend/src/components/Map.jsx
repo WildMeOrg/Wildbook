@@ -4,6 +4,7 @@ import GoogleMapReact from 'google-map-react';
 import BrutalismButton from './BrutalismButton';
 import ThemeContext from '../ThemeColorProvider';
 import { set } from 'lodash-es';
+import { FormattedMessage } from 'react-intl';
 
 const MapComponent = ({
     center,
@@ -94,7 +95,7 @@ const MapComponent = ({
                 color='white'
                 style={{ position: 'absolute', zIndex: 2, width: "100px", marginLeft: "10px" }}
             >
-                {drawingRef.current ? 'Cancel' : 'Draw'}
+                {drawingRef.current ? <FormattedMessage id="CANCEL"/> : <FormattedMessage id="DRAW"/>}
             </BrutalismButton>
             <GoogleMapReact
                 bootstrapURLKeys={{ key: key }}

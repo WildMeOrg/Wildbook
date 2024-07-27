@@ -126,7 +126,7 @@ export default function FilterPanel({
       }}>
       <Text
         className="mb-3 ms-3 fw-bold text-white"
-        variant="h1"
+        style={{fontSize: "30px"}}
         id="ENCOUNTER_SEARCH_FILTERS"
       />
       <Row className="p-3" style={{ alignItems: 'flex-start' }}>
