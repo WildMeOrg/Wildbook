@@ -3,6 +3,7 @@ import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";  
+import { useIntl } from "react-intl";
 
 
 export default function TagsFilter({
@@ -15,6 +16,7 @@ export default function TagsFilter({
       label: item
     };
   }) || [];
+  const intl = useIntl();
   return (
     <div>
       <h3><FormattedMessage id="FILTER_TAGS" /></h3>
@@ -30,7 +32,7 @@ export default function TagsFilter({
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 if(e.target.value === "") {
                   onChange(null, `metalTag.${location.label}`);
@@ -70,7 +72,7 @@ export default function TagsFilter({
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 if(e.target.value === "") {
                   onChange(null, `acousticTag.serialNumber`);
@@ -94,7 +96,7 @@ export default function TagsFilter({
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
                 if(e.target.value === "") {
                   onChange(null, `acousticTag.idNumber`);

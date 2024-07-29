@@ -5,12 +5,14 @@ import { useEffect, useState } from 'react';
 import Description from '../Form/Description';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import _ from 'lodash';
+import { useIntl } from 'react-intl';
 
 export default function LocationFilterMap({
     onChange,
     data,
 }) {    
     const [bounds, setBounds] = useState(null);
+    const intl = useIntl();
 
     useEffect(() => {
         if (bounds) {
@@ -95,7 +97,8 @@ export default function LocationFilterMap({
                             <FormLabel><FormattedMessage id={Object.keys(item)[0]} /></FormLabel>
                             <FormControl
                                 type="text"
-                                placeholder={bounds ? bounds[Object.values(item)[0]] : "type here"}
+                                placeholder={bounds ? bounds[Object.values(item)[0]] : intl.formatMessage({ id: "TYPE_HERE" })
+                            }
                                 value={bounds ? bounds[Object.values(item)[0]] : tempBounds? tempBounds[Object.values(item)[0]] : ""}
                                 onChange={(e) => {
                                     const newTempBounds = {

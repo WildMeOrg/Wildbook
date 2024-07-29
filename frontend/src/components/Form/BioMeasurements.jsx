@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Col, Row, Container } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
 import { FormControl } from 'react-bootstrap';
+import { useIntl } from 'react-intl';
 
 function FormMeasurements({
     data,
@@ -11,6 +12,7 @@ function FormMeasurements({
     filterId
 }) {
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
+    const intl = useIntl();
     useEffect(() => {
         if (data) {
             const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
@@ -92,7 +94,7 @@ function FormMeasurements({
                                                   
                                 marginRight: "10px"
                             }}
-                            placeholder="Type Here"
+                            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                             onChange={(e) => {
                                 handleInputChange(index, 'value', e.target.value);
                             }

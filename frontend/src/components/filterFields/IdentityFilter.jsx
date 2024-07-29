@@ -7,6 +7,7 @@ import FormGroupText from "../Form/FormGroupText";
 import FormControl from "react-bootstrap/FormControl";
 import { useContext } from "react";
 import FilterContext from "../../FilterContextProvider";
+import { useIntl } from "react-intl";
 
 export default function IdentityFilter({
   onChange,
@@ -16,6 +17,7 @@ export default function IdentityFilter({
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
   const [times, setTimes] = React.useState(0);
+  const intl = useIntl();
 
   return (
     <div>
@@ -53,7 +55,7 @@ export default function IdentityFilter({
             marginLeft: "10px",
             marginRight: "10px"
           }}
-          placeholder="Type Here"
+          placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
           onChange={(e) => {
             setTimes(e.target.value);
             if (isChecked1 && e.target.value) {

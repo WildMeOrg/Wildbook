@@ -6,6 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
 import { FormattedMessage } from "react-intl";
 import ThemeColorContext from "../ThemeColorProvider";
+import { useIntl } from "react-intl";
 
 const customStyles = {
   rows: {
@@ -50,6 +51,7 @@ const MyDataTable = ({
   const [goToPage, setGoToPage] = useState("");
   const perPageOptions = [10, 20, 30, 40, 45];
   const filterPlaceholder = <FormattedMessage id="FILTER" defaultMessage="filter"/>
+  const intl = useIntl();
 
   const wrappedColumns = useMemo(
     () =>
@@ -158,10 +160,10 @@ const MyDataTable = ({
               >
                 <a
                   key={index}
-                  href={tab.split(" : ")[1]}
+                  href={tab.split(":")[1]}
                   style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
                 >
-                  {<FormattedMessage id={tab.split(" : ")[0]} defaultMessage={tab.split(" : ")[0]}/>}
+                  {<FormattedMessage id={tab.split(":")[0]} defaultMessage={tab.split(":")[0]}/>}
                 </a>
               </Button>
             );
@@ -170,7 +172,7 @@ const MyDataTable = ({
         <InputGroup className="mb-3" style={{ width: "300px" }}>
           <Form.Control
             type="text"
-            placeholder={"Type here to filter"}
+            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
             value={filterText}
             onChange={handleFilterChange}
           />
@@ -237,7 +239,7 @@ const MyDataTable = ({
             activeClassName={"active-page"}
             forcePage={page}
           />
-          <InputGroup className="ms-3" style={{ width: "150px" }}>
+          <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
             <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"}/></InputGroup.Text>
             <Form.Control
               type="text"
