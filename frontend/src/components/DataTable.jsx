@@ -43,6 +43,7 @@ const MyDataTable = ({
   onPerPageChange,
   style = {},
   tabs = [],
+  isLoading = false,
   onSelectedRowsChange = () => { },
   onRowClicked = () => { },
 }) => {
@@ -50,7 +51,6 @@ const MyDataTable = ({
   const [filterText, setFilterText] = useState("");
   const [goToPage, setGoToPage] = useState("");
   const perPageOptions = [10, 20, 30, 40, 45];
-  const filterPlaceholder = <FormattedMessage id="FILTER" defaultMessage="filter"/>
   const intl = useIntl();
 
   const wrappedColumns = useMemo(
@@ -62,6 +62,7 @@ const MyDataTable = ({
             cell: (row) => <a 
             style={{ color: 'inherit', textDecoration: 'none' }}
             href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
+            selector: (row) => row[col.selector],
             sortable: true,
           };
         } else if (col.selector === 'individualId') {
@@ -70,6 +71,7 @@ const MyDataTable = ({
             cell: (row) => <a 
             style={{ color: 'inherit', textDecoration: 'none' }}  
             href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
+            selector: (row) => row[col.selector],
             sortable: true,
           };
         } else {
@@ -77,7 +79,9 @@ const MyDataTable = ({
           name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
           selector: (row) => row[col.selector], // Accessor function for the column data
           sortable: true, // Make the column sortable
-        })}
+        }
+      )
+    }
       }),
     [columnNames],
   );
@@ -196,6 +200,7 @@ const MyDataTable = ({
         pointerOnHover
         onRowClicked={onRowClicked}
         selectableRowsHighlight
+        progressPending={isLoading}
       />
       <Row className="mt-3 d-flex justify-content-center align-items-center">
         <Col

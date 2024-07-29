@@ -18,6 +18,9 @@ const colourStyles = {
     }),
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
     singleValue: (styles) => ({ ...styles, color: 'black' }),
+    menuPortal: base => ({ ...base, zIndex: 1050 }),
+    // menu: base => ({ ...base, maxHeight: '200px' }),
+    control: base => ({ ...base, zIndex: 1 }),
 };
 
 export default function ImageLabelFilter({
@@ -26,10 +29,6 @@ export default function ImageLabelFilter({
 }) {
 
     const { filters, updateFilter } = useContext(FilterContext);
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        updateFilter(name, value);
-      };
     const keywordsOptions = data?.keyword?.map(item => {
         return {
             value: item,
@@ -37,7 +36,7 @@ export default function ImageLabelFilter({
         }
     }) || [];
 
-    const labelledKeywordsOptions = Object.entries(data?.labeledKeyword || []).map(([key, value]) => {
+    const labelledKeywordsOptions = Object.entries(data?.labeledKeyword || {}).map(([key, value]) => {
         return {
             value: key,
             label: key
@@ -77,28 +76,23 @@ export default function ImageLabelFilter({
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
     useEffect(() => {
-        if(isChecked_photo){
-        onChange({            
-            filterId: "numberMediaAssets",
-            clause: "filter",
-            query: {
-                "range": {
-                    "numberMediaAssets": {
-                        "gte": 1
+        if (isChecked_photo) {
+            onChange({
+                filterId: "numberMediaAssets",
+                clause: "filter",
+                query: {
+                    "range": {
+                        "numberMediaAssets": {
+                            "gte": 1
+                        }
                     }
-                }
-            },
-        })  }
+                },
+            })
+        }
         else {
             onChange(null, "numberMediaAssets");
         }
-        // else {
-        //     onChange({
-        //         filterId: "numberMediaAssets",
-        //         clause: "filter",
-        //         query: {}
-        //     });
-        // }
+
     }, [isChecked_photo]);
 
     return (
@@ -116,7 +110,7 @@ export default function ImageLabelFilter({
                     checked={isChecked_photo}
                     onChange={() => {
                         setIsChecked_photo(!isChecked_photo);
-                        
+
                     }}
                 />
             </Form>
@@ -148,7 +142,7 @@ export default function ImageLabelFilter({
                 term="terms"
             />
 
-            <FormGroup>
+            <FormGroup className = "mt-3">
                 <Form.Label><FormattedMessage id="FILTER_LABELLED_KEYWORDS" /></Form.Label>
                 <Description>
                     <FormattedMessage id={`FILTER_LABELLED_KEYWORDS_DESC`} />
@@ -158,18 +152,23 @@ export default function ImageLabelFilter({
                         <Form.Label><FormattedMessage id="FILTER_LABEL" /></Form.Label>
                         <Select
                             styles={colourStyles}
+                            menuPlacement="auto"
+                            menuPortalTarget={document.body}
                             onChange={(e) => {
                                 setLabelledKeyword(e.value)
 
                             }}
                             options={labelledKeywordsOptions}
                         />
+
                     </div>
                     <div className="w-50">
                         <Form.Label><FormattedMessage id="FILTER_VALUE" /></Form.Label>
                         <Select
                             options={labelledKeywordsValueOptions}
                             styles={colourStyles}
+                            menuPlacement="auto"
+                            menuPortalTarget={document.body}
                             onChange={(e) => {
                                 onChange({
                                     filterId: "labelledKeywords",

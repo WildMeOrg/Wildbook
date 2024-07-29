@@ -74,6 +74,7 @@ export default function EncounterSearch() {
         setRefresh={setRefresh}
       />
       <DataTable
+        isLoading = {loading}
         style={{
           display: !filterPanel ? "block" : "none",
         }}

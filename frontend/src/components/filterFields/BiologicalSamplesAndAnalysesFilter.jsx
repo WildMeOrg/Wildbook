@@ -116,8 +116,6 @@ export default function BiologicalSamplesAndAnalysesFilter({
         }
     }
 
-
-    const [bioChemicalValue, setBioChemicalValue] = React.useState(null);
     return (
         <div>
             <h3><FormattedMessage id="FILTER_BIOLOGICAL_SAMPLE" /></h3>
