@@ -10,6 +10,7 @@ function Sidebar({
   formFilters,
   setFilterPanel,
   setFormFilters,
+  searchQueryId
 }) {
   const theme = React.useContext(ThemeContext);
   const [show, setShow] = useState(false);
@@ -19,6 +20,21 @@ function Sidebar({
   const handleShow = () => setShow(true);
 
   const num = formFilters.length;
+
+    const handleCopy = () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(searchQueryId)
+          .then(() => {
+            alert(`Query ID: ${searchQueryId} copied to clipboard!`);
+          })
+          .catch(err => {
+            console.error('Failed to copy text: ', err);
+          });
+      } else {
+        console.error('Clipboard API not supported or permissions denied.');
+        alert('Clipboard API not supported or permissions denied.');
+      }
+    }
   
   return (
     <>
@@ -82,6 +98,8 @@ function Sidebar({
               onClick={() => {
                 setFilterPanel(true);
                 handleClose();
+                // navigator.clipboard.writeText(searchQueryId);
+                handleCopy();
               }}
               noArrow={true}
               backgroundColor= {theme.primaryColors.primary700}

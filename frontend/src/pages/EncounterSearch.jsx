@@ -30,7 +30,7 @@ export default function EncounterSearch() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
 
-  const { data: encounterData, loading } = useFilterEncounters({
+  const { data: encounterData, loading,  } = useFilterEncounters({
     queries: formFilters,
     params: {
       sort: "date",
@@ -41,6 +41,7 @@ export default function EncounterSearch() {
 
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
+  const searchQueryId = encounterData?.searchQueryId || "";
   const tabs = [
     "ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp",
     "ENCOUNTER_MATCHING_IMAGES_VIDEOS:/encounters/thumbnailSearchResults.jsp",
@@ -102,6 +103,7 @@ export default function EncounterSearch() {
         setFilterPanel={setFilterPanel}
         setFormFilters={setFormFilters}
         setRefresh={setRefresh}
+        searchQueryId = {searchQueryId}
       />
     </div>
   );
