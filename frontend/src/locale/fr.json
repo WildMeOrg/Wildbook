@@ -208,7 +208,15 @@
     "FILTER_ORGANIZATION_ID": "ID de l'Organisation",
     "FILTER_PROJECT_NAME": "Nom du Projet",
     "FILTER_ASSIGNED_USER": "Utilisateur Assigné",
-    "ENCOUNTER_SEARCH_FILTERS" : "Filtres de Recherche de Rencontres",
+    "ENCOUNTER_SEARCH_FILTERS": "Filtres de Recherche de Rencontres",
     "DRAW": "Dessiner",
-    "CANCEL" : "Annuler"
+    "CANCEL": "Annuler",
+    "FILTERS": "Filtres",
+    "TYPE_HERE": "Tapez ici",
+    "ENCOUNTER_PROJECT_MANAGEMENT": "Gestion de Projet",
+    "ENCOUNTER_MATCHING_IMAGES_VIDEOS": "Images/Vidéos Correspondantes",
+    "ENCOUNTER_MAPPED_RESULTS": "Résultats Cartographiés",
+    "ENCOUNTER_RESULTS_CALENDAR": "Calendrier des Résultats",
+    "ENCOUNTER_ANALYSIS": "Analyse",
+    "ENCOUNTER_EXPORT": "Exporter"
 }

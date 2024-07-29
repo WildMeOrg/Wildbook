@@ -208,7 +208,15 @@
     "FILTER_ORGANIZATION_ID": "ID de la Organización",
     "FILTER_PROJECT_NAME": "Nombre del Proyecto",
     "FILTER_ASSIGNED_USER": "Usuario Asignado",
-    "ENCOUNTER_SEARCH_FILTERS" : "Filtros de Búsqueda de Encuentros",
+    "ENCOUNTER_SEARCH_FILTERS": "Filtros de Búsqueda de Encuentros",
     "DRAW": "Dibujar",
-    "CANCEL" : "Cancelar"
+    "CANCEL": "Cancelar",
+    "FILTERS": "Filtros",
+    "TYPE_HERE": "Escriba aquí",
+    "ENCOUNTER_PROJECT_MANAGEMENT": "Gestión de Proyectos",
+    "ENCOUNTER_MATCHING_IMAGES_VIDEOS": "Imágenes/Vídeos Coincidentes",
+    "ENCOUNTER_MAPPED_RESULTS": "Resultados Mapeados",
+    "ENCOUNTER_RESULTS_CALENDAR": "Calendario de Resultados",
+    "ENCOUNTER_ANALYSIS": "Análisis",
+    "ENCOUNTER_EXPORT": "Exportar"
 }

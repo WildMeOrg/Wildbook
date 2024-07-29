@@ -211,6 +211,14 @@
     "FILTER_ASSIGNED_USER" : "Assigned User",
     "ENCOUNTER_SEARCH_FILTERS" : "Encounter Search Filters",
     "DRAW": "Draw",
-    "CANCEL" : "Cancel"
+    "CANCEL" : "Cancel",
+    "FILTERS" : "Filters",
+    "TYPE_HERE" : "Type here",
+    "ENCOUNTER_PROJECT_MANAGEMENT" : "Project Management",
+    "ENCOUNTER_MATCHING_IMAGES_VIDEOS" : "Matching Images/Videos",
+    "ENCOUNTER_MAPPED_RESULTS" : "Mapped Results",
+    "ENCOUNTER_RESULTS_CALENDAR" : "Results Calendar",
+    "ENCOUNTER_ANALYSIS" : "Analysis",
+    "ENCOUNTER_EXPORT" : "Export"
 
 }

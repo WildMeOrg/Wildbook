@@ -60,7 +60,7 @@ function Sidebar({
 
       <Offcanvas show={show} onHide={handleClose} placement="end" style={{ width: `${sidebarWidth}px`, borderRadius: '10px 0 0 10px' }}>
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Applied Filters</Offcanvas.Title>
+          <Offcanvas.Title><FormattedMessage id="APPLIED_FILTERS"/></Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body style={{
           display: 'flex',

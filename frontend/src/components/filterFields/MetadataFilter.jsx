@@ -52,6 +52,7 @@ export default function MetadataFilter({
 
       <FormGroupMultiSelect
         isMulti={true}
+        noDesc={true}
         label="FILTER_ENCOUNTERS_STATUS"
         options={encounterStatusOptions}
         onChange={onChange}
@@ -60,6 +61,7 @@ export default function MetadataFilter({
       />
       <FormGroupText
         label="FILTER_SUBMITTER"
+        noDesc={true}
         onChange={onChange}
         field="submitters"
         term="match"
@@ -68,6 +70,7 @@ export default function MetadataFilter({
       
       <FormGroupMultiSelect
         isMulti={true}
+        noDesc={true}
         label="FILTER_ORGANIZATION_ID"
         options={organizationOptions}
         onChange={onChange}
@@ -77,6 +80,7 @@ export default function MetadataFilter({
       />
       <FormGroupMultiSelect
         isMulti={true}
+        noDesc={true}
         label="FILTER_PROJECT_NAME"
         options={projectOptions}
         onChange={onChange}
@@ -86,6 +90,7 @@ export default function MetadataFilter({
       />
       <FormGroupMultiSelect
         isMulti={true}
+        noDesc={true}
         label="FILTER_ASSIGNED_USER"
         options={assignedUserOptions}
         onChange={onChange}

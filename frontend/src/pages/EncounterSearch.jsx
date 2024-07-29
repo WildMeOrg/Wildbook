@@ -42,12 +42,12 @@ export default function EncounterSearch() {
   const encounters = encounterData?.results || [];
   const totalEncounters = encounterData?.resultCount || 0;
   const tabs = [
-    "Project Management : /encounters/projectManagement.jsp",
-    "Matching Images/Videos : /encounters/thumbnailSearchResults.jsp",
-    "Mapped Results : /encounters/mappedSearchResults.jsp",
-    "Results Calendar : /xcalendar/calendar.jsp",
-    "Analysis : /encounters/searchResultsAnalysis.jsp",
-    "Export : /encounters/exportSearchResults.jsp",
+    "ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp",
+    "ENCOUNTER_MATCHING_IMAGES_VIDEOS:/encounters/thumbnailSearchResults.jsp",
+    "ENCOUNTER_MAPPED_RESULTS:/encounters/mappedSearchResults.jsp",
+    "ENCOUNTER_RESULTS_CALENDAR:/xcalendar/calendar.jsp",
+    "ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp",
+    "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
   ];
 
   return (

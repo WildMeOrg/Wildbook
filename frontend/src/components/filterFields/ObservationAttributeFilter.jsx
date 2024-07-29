@@ -43,8 +43,7 @@ export default function ObservationAttributeFilter(
             label: item
         };
     }) || [];
-    const measurementsOptions = ["water", "salt"];
-    // data?.measurement || [];
+    const measurementsOptions = data?.measurement || [];
 
     return (
         <div style={{

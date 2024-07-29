@@ -8,11 +8,14 @@ import FormMeasurements from '../Form/FormMeasurements';
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import BioMeasurements from '../Form/BioMeasurements';
+import { useIntl } from 'react-intl';
 
 export default function BiologicalSamplesAndAnalysesFilter({
     onChange,
     data
 }) {
+
+    const intl = useIntl();
     const label = <FormattedMessage id="FILTER_HAS_BIOLOGICAL_SAMPLE" />
     const [isChecked, setIsChecked] = React.useState(false);
     const bioMeasurementOptions = Object.entries(data?.bioMeasurement || {}).map(
@@ -157,6 +160,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
             />
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_HAPLO_TYPE"
                 onChange={onChange}
                 options={haploTypeOptions || []}
@@ -199,7 +203,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                     <FormControl
                         type="number"
                         disabled={!alleleLength}
-                        placeholder="Type Here"
+                        placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                         style={{
                             width: "70px",
                             marginLeft: "10px",
@@ -255,7 +259,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                                 <FormLabel ><FormattedMessage id={"FILTER_ALLELE1"} defaultMessage={"Allele1"} /></FormLabel>
                                 <FormControl className="mr-2"
                                     type="text"
-                                    placeholder="Type Here"
+                                    placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                                     onChange={(e) => handleInputChange(data, 0, e.target.value)}
                                 />
                             </div>
@@ -263,7 +267,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                                 <FormLabel><FormattedMessage id={"FILTER_ALLELE2"} defaultMessage={"Allele2"} /></FormLabel>
                                 <FormControl
                                     type="text"
-                                    placeholder="Type Here"
+                                    placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
                                     onChange={(e) => handleInputChange(data, 1, e.target.value)}
                                 />
                             </div>
