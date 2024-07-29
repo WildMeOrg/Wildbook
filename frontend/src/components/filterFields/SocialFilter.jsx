@@ -28,7 +28,7 @@ export default function SocialFilter({
     };
   }) || [];
 
-  const socialUnitOptions = data?.socialUnitName.map((item) => {
+  const socialUnitOptions = data?.socialUnitName?.map((item) => {
     return {
       value: item,
       label: item

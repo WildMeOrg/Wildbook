@@ -52,8 +52,6 @@ function FormMeasurements({
         }
     };
 
-    console.log(JSON.stringify(inputs));
-
     const updateQuery = (inputs) => {
 
         inputs.map(input => {

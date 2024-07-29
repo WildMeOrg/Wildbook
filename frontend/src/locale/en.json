@@ -175,7 +175,7 @@
     "FILTER_TIMES": "times",
     "FILTER_NO_INDIVIDUAL_ID": "Include only encounters with no assigned Individual ID",
     "FILTER_ALTERNATIVE_ID": "Alternative ID",
-    "FILTER_INDIVIDUAL_NAME": "INdividual Name",
+    "FILTER_INDIVIDUAL_NAME": "Individual Name",
     "FILTER_INDIVIDUAL_NAME_DESC": "Individuals name include all contexts.",
     "FILTER_TAGS": "Tags",
     "FILTER_TAGS_DESC": "Use the fields below to limit your search to specific tags.",

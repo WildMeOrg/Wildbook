@@ -10,7 +10,7 @@ export default function TagsFilter({
   data,
   onChange
 }) {
-  const metalTagLocations = data?.metalTagLocation.map((item) => {
+  const metalTagLocations = data?.metalTagLocation?.map((item) => {
     return {
       value: item,
       label: item

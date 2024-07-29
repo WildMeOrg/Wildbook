@@ -7,7 +7,7 @@ const colourStyles = {
     }),
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
     singleValue: (styles) => ({ ...styles, color: 'black' }),
-    menuPortal: base => ({ ...base, zIndex: 1050 }),
+    menuPortal: base => ({ ...base, zIndex: 9999 }),
     // menu: base => ({ ...base, maxHeight: '200px' }),
     control: base => ({ ...base, zIndex: 1 }),
 };

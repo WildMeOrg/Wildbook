@@ -12,7 +12,7 @@ export default function LocationFilterText({
 }
 ) {
     const { data } = useGetSiteSettings();
-    const countries = data?.country.map(data => {
+    const countries = data?.country?.map(data => {
         return {
             value: data,
             label: data
