@@ -142,8 +142,9 @@ export default function FilterPanel({
               // flexWrap: "wrap",
             }}>
 
-            {safeSchemas.map(schema => {
+            {safeSchemas.map((schema, index) => {
               return <div
+              key={index}
                 className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? 'bg-white' : 'text-white'} cursor-pointer`}
                 style={{
                   color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',

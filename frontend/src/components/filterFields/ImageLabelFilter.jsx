@@ -155,8 +155,7 @@ export default function ImageLabelFilter({
                             menuPlacement="auto"
                             menuPortalTarget={document.body}
                             onChange={(e) => {
-                                setLabelledKeyword(e.value)
-
+                                setLabelledKeyword(e.value);
                             }}
                             options={labelledKeywordsOptions}
                         />
