@@ -176,7 +176,7 @@ public class ServletUtilities {
                 CommonConfiguration.getURLToMastheadGraphic(templateContext));
 
             templateFile = templateFile.replaceAll("SITE_NAME", siteName);
-            templateFile = templateFile.replaceAll("USER_NAME", username);
+            templateFile = templateFile.replaceAll("USER_NAME", ((username == null) ? "" : username));
             templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
             templateFile = templateFile.replaceAll("LANGUAGE_SELECTOR", languageString);
             templateFile = templateFile.replaceAll("SELECTED_IMAGE_URL", selectedImgURL);
