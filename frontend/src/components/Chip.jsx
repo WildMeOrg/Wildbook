@@ -1,8 +1,46 @@
 import React from 'react';
+import useGetSiteSettings from '../models/useGetSiteSettings';
 
-function Chip({ text, children }) {
-    console.log("Chip children", children);
-    function renderFilter(filter) {
+function Chip({ children }) {
+
+    const {data} = useGetSiteSettings();
+
+    function renderFilter(filter) {     
+        
+        function getLabelById(options, id) {
+            const option = options.find(opt => opt.value === id);
+            let label = "";
+            if(!option.label || option.label.startsWith("Anonymous")) {
+                label = "Anonymous User";
+            }else {
+                label = option.label;
+            }
+            return label;
+        }
+
+        const organizationOptions =  Object.entries(data?.organizations||{})?.map((item) => {
+            return {
+              value: item[0],
+              label: item[1]
+            };
+          }
+          ) || [];
+        
+          const projectOptions = data?.project?.map((item) => {
+            return {
+              value: item,
+              label: item
+            };
+          }
+          ) || [];
+        
+          const assignedUserOptions = data?.users?.map((item) => {
+            return {
+              value: item.id,
+              label: item.username
+            };
+          }
+          ) || [];  
         const entries = [];
         const { clause, filterId, query } = filter;
         if (clause === "nested") {
@@ -12,7 +50,6 @@ function Chip({ text, children }) {
             const { top_left, bottom_right } = query.geo_bounding_box['locationGeoPoint'];
             entries.push(`Location within bounding box: top_left: ${top_left.lat}, ${top_left.lon}, bottom_right: ${bottom_right.lat}, ${bottom_right.lon}`);
         }
-
 
         if (query?.range) {
             Object.entries(query.range).forEach(([key, range]) => {
@@ -34,13 +71,19 @@ function Chip({ text, children }) {
                 entries.push(`${key} is "${value}"`);
             });
         } else if (query?.terms) {
-            Object.entries(query.terms).forEach(([key, values]) => {
-                if (Array.isArray(values)) {
-                    entries.push(`${key} is any of [${values.join(', ')}]`);
+            const labels = Object.values(query.terms[filterId]).map(val => {
+                if (filterId === "organizations") {
+                    return getLabelById(organizationOptions, val);
+                } else if (filterId === "project") {
+                    return getLabelById(projectOptions, val);
+                } else if (filterId === "assignedUsername") {
+                    return getLabelById(assignedUserOptions, val);
                 } else {
-                    entries.push(`${key} is "${values}"`);
+                    return val;
                 }
             });
+            const uniqueLabels = [...new Set(labels)];
+            entries.push(`${filterId} is any of [${uniqueLabels.join(', ')}]`)
         } else if (query?.biologicalMeasurements) {
             Object.entries(query).forEach(([key, value]) => {
                 entries.push(`${key} filter is set`);
