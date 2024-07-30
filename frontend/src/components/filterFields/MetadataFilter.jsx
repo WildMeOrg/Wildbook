@@ -27,10 +27,10 @@ export default function MetadataFilter({
   }
   ) || [];
 
-  const projectOptions = data?.project?.map((item) => {
+  const projectOptions = Object.entries(data?.projectsForUser||{})?.map((item) => {
     return {
-      value: item,
-      label: item
+      value: item[0],
+      label: item[1]
     };
   }
   ) || [];
@@ -85,8 +85,8 @@ export default function MetadataFilter({
         options={projectOptions}
         onChange={onChange}
         term="terms"
-        field="projects"
-        filterId = "projects"
+        field="projectsForUser"
+        filterId = "projectsForUser"
       />
       <FormGroupMultiSelect
         isMulti={true}

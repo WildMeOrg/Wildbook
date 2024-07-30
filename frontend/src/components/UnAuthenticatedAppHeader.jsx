@@ -10,7 +10,7 @@ import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function unAuthenticatedAppHeader() {
+export default function AuthenticatedAppHeader() {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,

@@ -26,10 +26,10 @@ function Chip({ children }) {
           }
           ) || [];
         
-          const projectOptions = data?.project?.map((item) => {
+          const projectOptions = Object.entries(data?.projectsForUser||{})?.map((item) => {
             return {
-              value: item,
-              label: item
+              value: item[0],
+              label: item[1]
             };
           }
           ) || [];
@@ -74,7 +74,7 @@ function Chip({ children }) {
             const labels = Object.values(query.terms[filterId]).map(val => {
                 if (filterId === "organizations") {
                     return getLabelById(organizationOptions, val);
-                } else if (filterId === "project") {
+                } else if (filterId === "projectsForUser") {
                     return getLabelById(projectOptions, val);
                 } else if (filterId === "assignedUsername") {
                     return getLabelById(assignedUserOptions, val);

@@ -9,10 +9,10 @@ export default function FormGroupMultiSelect({
     noLabel,
     noDesc,
     label = "", 
-    options, 
+    options = [], 
     onChange, 
-    term, 
-    field,
+    term = "terms", 
+    field = "field",
     }) {
     return (
         <FormGroup className="mt-2">
