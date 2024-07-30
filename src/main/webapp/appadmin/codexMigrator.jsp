@@ -68,6 +68,15 @@ private static JSONObject cleanJSONObject(String data) {
     return null;
 }
 
+private static JSONArray cleanJSONArray(String data) {
+    String clean = cleanJsonString(data);
+    if (clean == null) return null;
+    try {
+        return new JSONArray(clean);
+    } catch (Exception ex) {}
+    return null;
+}
+
 private static Object siteSetting(String key, Connection conn) throws SQLException, IOException {
     Statement st = conn.createStatement();
     ResultSet res = st.executeQuery("SELECT * FROM site_setting WHERE key='" + key + "'");
@@ -138,6 +147,22 @@ private static Map<String,String> relationshipMeta(Connection conn) throws SQLEx
             String rlabel = role.optString("label", null);
             if ((rid != null) && (rlabel != null)) rtn.put(rid, rlabel);
         }
+    }
+    return rtn;
+}
+
+private static Map<String,String> socialGroupMeta(Connection conn) throws SQLException, IOException {
+    Object ss = siteSetting("social_group_roles", conn);
+    Map<String,String> rtn = new HashMap<String,String>();
+    if (ss == null) return rtn;
+    JSONArray sgArr = (JSONArray)ss;
+    for (int i = 0 ; i < sgArr.length() ; i++) {
+        JSONObject sg = sgArr.optJSONObject(i);
+        if (sg == null) continue;
+        String guid = sg.optString("guid", null);
+        String label = sg.optString("label", null);
+        if ((guid == null) || (label == null)) continue;
+        rtn.put(guid, label);
     }
     return rtn;
 }
@@ -398,7 +423,7 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
             if (ts != null) enc.setDWCDateLastModified(ts.toString());
             String txguid = res.getString("taxonomy_guid");
             if (txguid != null) enc.setTaxonomyFromString(txmap.get(txguid));
-            User owner = myShepherd.getUser(res.getString("owner_guid"));
+            User owner = myShepherd.getUserByUUID(res.getString("owner_guid"));
             if (owner != null) {
                 enc.addSubmitter(owner);
                 enc.setSubmitterID(owner.getUsername());
@@ -809,6 +834,58 @@ private static void migrateRelationships(JspWriter out, Shepherd myShepherd, Con
     }
     out.println("</ol>");
 }
+
+private static void migrateSocialGroups(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
+    out.println("<h2>SocialGroups</h2><ol>");
+    Map<String,String> sgMeta = socialGroupMeta(conn);
+    Statement st = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT group_guid, name, individual_guid, roles FROM social_group_individual_membership JOIN social_group ON (group_guid=social_group.guid);")
+    int ct = 0;
+
+    Map<String,SocialUnit> units = new HashMap<String,SocialUnit>();
+    while (res.next()) {
+        ct++;
+        String suName = res.getString("name");
+        SocialUnit su = units.get(suName);
+        if (su == null) su = myShepherd.getSocialUnit(suName);
+        if (su == null) su = new SocialUnit(suName);
+        units.put(suName, su);
+        out.println("<li><b>" + su + "</b>: ");
+
+        String indivID = res.getString("individual_guid");
+        MarkedIndividual indiv = myShepherd.getMarkedIndividual(indivID);
+        if (indiv == null) {
+            out.println("<i>failed to load indivID=" + indivID + "</i></li>");
+            continue;
+        }
+        out.println("[" + indiv + "]; ");
+        myShepherd.getPM().makePersistent(su);
+
+        JSONArray rolesArr = cleanJSONArray(res.getString("roles"));
+        if ((rolesArr == null) || (rolesArr.length() == 0)) {
+            // guess we make it a null role and add it???
+            Membership membership = new Membership(indiv);
+            membership.setRole(null);
+            myShepherd.getPM().makePersistent(membership);
+            su.addMember(membership);
+            out.println("[null role]");
+        } else {
+            for (int i = 0 ; i < rolesArr.length() ; i++) {
+                String role = rolesArr.optString(i, null);
+                if (role == null) continue;
+                Membership membership = new Membership(indiv);
+                membership.setRole(role);
+                myShepherd.getPM().makePersistent(membership);
+                su.addMember(membership);
+                out.println("[role=" + role + "]");
+            }
+        }
+
+        out.println("</li>");
+    }
+    out.println("</ol>");
+}
+
 
 
 private static void fixAutogenNames(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
