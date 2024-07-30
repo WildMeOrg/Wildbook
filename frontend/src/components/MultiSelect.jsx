@@ -13,6 +13,7 @@ const colourStyles = {
 };
 
 export default function MultiSelect({ isMulti, options, onChange, field, term }) {
+    // console.log(options);
     return (
         <Select
             isMulti={isMulti}
@@ -25,6 +26,7 @@ export default function MultiSelect({ isMulti, options, onChange, field, term })
 
             onChange={(e) => {
                 if (e?.target?.value || e.length > 0) {
+                    console.log(isMulti, options, onChange, field, term);
                     onChange({
                         filterId: field,
                         clause: "filter",

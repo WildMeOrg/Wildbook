@@ -77,8 +77,9 @@ export default function SocialFilter({
         options={socialRoleOptions}
         onChange={onChange}
         field="socialRole"
-        term={ isChecked? "terms" : "match"}
+        term={ isChecked? "terms" : "term"}
         filterId={"socialRole"}
+
       />
     </div>
   );

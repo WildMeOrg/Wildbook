@@ -46,7 +46,7 @@ export default function AuthenticatedAppHeader({
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "10%", padding: 0 }}
+        style={{ marginLeft: "20%", padding: 0 }}
       >
         <Logo />
         {process.env.SITE_NAME}
