@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
 import="org.ecocean.*,
 org.ecocean.tag.MetalTag,
+org.ecocean.social.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.social.Relationship,
 java.io.IOException,
@@ -209,7 +210,7 @@ private static Map<String,String> locationMap(JSONObject data, Map<String,String
 
 
 private static int batchMax() {
-    return 20;
+    return 00;
 }
 
 private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
@@ -839,7 +840,7 @@ private static void migrateSocialGroups(JspWriter out, Shepherd myShepherd, Conn
     out.println("<h2>SocialGroups</h2><ol>");
     Map<String,String> sgMeta = socialGroupMeta(conn);
     Statement st = conn.createStatement();
-    ResultSet res = st.executeQuery("SELECT group_guid, name, individual_guid, roles FROM social_group_individual_membership JOIN social_group ON (group_guid=social_group.guid);")
+    ResultSet res = st.executeQuery("SELECT group_guid, name, individual_guid, roles FROM social_group_individual_membership JOIN social_group ON (group_guid=social_group.guid);");
     int ct = 0;
 
     Map<String,SocialUnit> units = new HashMap<String,SocialUnit>();
@@ -859,6 +860,14 @@ private static void migrateSocialGroups(JspWriter out, Shepherd myShepherd, Conn
             continue;
         }
         out.println("[" + indiv + "]; ");
+        // even tho the code before will import multiple roles per individual, we are
+        //  going to bail on there already *existing* one meaning this has been done
+        //  ymmv ???
+        Membership exists = su.getMembershipForMarkedIndividual(indiv);
+        if (exists != null) {
+            out.println("<i>a membership exists for " + indiv + "; skipping</i></li>");
+            continue;
+        }
         myShepherd.getPM().makePersistent(su);
 
         JSONArray rolesArr = cleanJSONArray(res.getString("roles"));
@@ -873,11 +882,16 @@ private static void migrateSocialGroups(JspWriter out, Shepherd myShepherd, Conn
             for (int i = 0 ; i < rolesArr.length() ; i++) {
                 String role = rolesArr.optString(i, null);
                 if (role == null) continue;
+                String roleName = sgMeta.get(role);
+                if (roleName == null) {
+                    out.println("<i>[failed to find roleName for role=" + role + "; skipping]</i>");
+                    continue;
+                }
                 Membership membership = new Membership(indiv);
-                membership.setRole(role);
+                membership.setRole(roleName);
                 myShepherd.getPM().makePersistent(membership);
                 su.addMember(membership);
-                out.println("[role=" + role + "]");
+                out.println("[role=" + role + "; roleName=" + roleName + "]");
             }
         }
 
@@ -974,9 +988,12 @@ migrateMarkedIndividuals(out, myShepherd, conn);
 migrateKeywords(out, myShepherd, conn);
 
 migrateRelationships(out, myShepherd, conn);
-*/
 
 fixAutogenNames(out, myShepherd, conn);
+*/
+
+migrateSocialGroups(out, myShepherd, conn);
+
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
