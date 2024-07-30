@@ -10,7 +10,7 @@ import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader() {
+export default function unAuthenticatedAppHeader() {
   const { visible } = useContext(FooterVisibilityContext);
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
@@ -48,7 +48,7 @@ export default function AuthenticatedAppHeader() {
         className="d-flex flex-row align-items-center"
         href="/"
         style={{
-          marginLeft: "10%"
+          marginLeft: "15%"
 
         }}
       >
@@ -119,7 +119,7 @@ export default function AuthenticatedAppHeader() {
           width: "100px",
           whiteSpace: "nowrap",
           padding: 5,
-          marginRight: "10%",
+          marginRight: "15%",
         }}
         href={"/react/login"}
       >

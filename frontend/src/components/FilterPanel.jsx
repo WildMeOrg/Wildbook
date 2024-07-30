@@ -10,6 +10,7 @@ import useGetSiteSettings from '../models/useGetSiteSettings';
 import FilterContext from '../FilterContextProvider';
 import { Col, Row } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 
 function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
   const matchingFilterIndex = tempFormFilters.findIndex(
@@ -46,7 +47,8 @@ export default function FilterPanel({
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState(formFilters);
   // const { filters, updateFilter, resetFilters } = useContext(FilterContext);
-
+  const navigate = useNavigate();
+  
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = (filter = null, remove) => {
@@ -177,6 +179,13 @@ export default function FilterPanel({
                   width: "80px",
                   marginRight: "10px",
                   marginTop: "10px",
+                }}
+                onKeyDown={(e) => {
+                  console.log(e.target.value);
+                  if(e.key === 'Enter') {
+                    console.log('Enter key pressed');
+                    navigate(`/encounter-search${e.target.value}`);                    
+                  }
                 }}
               />
               <BrutalismButton

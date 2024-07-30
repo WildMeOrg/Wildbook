@@ -1,7 +1,7 @@
 import React from 'react';
 
 function Chip({ text, children }) {
-    // console.log("Chip children", children);
+    console.log("Chip children", children);
     function renderFilter(filter) {
         const entries = [];
         const { clause, filterId, query } = filter;
