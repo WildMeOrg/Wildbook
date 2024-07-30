@@ -21,19 +21,6 @@ import useGetSiteSettings from '../../models/useGetSiteSettings';
 import BiologicalSamplesAndAnalysesFilter from '../../components/filterFields/BiologicalSamplesAndAnalysesFilter';
 
 export default function useEncounterSearchSchemas() {
-  // const {
-  //   regionOptions,
-  //   speciesOptions,
-  //   pipelineStateOptions,
-  //   stageOptions,
-  // } = useOptions();
-
-  // const labeledSexOptions = sexOptions.map(o => ({
-  //   labelId: o?.filterLabelId || o.labelId,
-  //   value: o.value,
-  // }));
-
-  // const { data: siteSettings } = useGetSiteSettings();
 
 
   return [
