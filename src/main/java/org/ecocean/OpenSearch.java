@@ -121,6 +121,10 @@ public class OpenSearch {
         return Arrays.asList(VALID_INDICES).contains(indexName);
     }
 
+    public static boolean skipAutoIndexing() {
+        return new java.io.File("/tmp/skipAutoIndexing").exists();
+    }
+
 // http://localhost:9200/encounter/_search?pretty=true&q=*:*
 // http://localhost:9200/_cat/indices?v
 
