@@ -4,6 +4,7 @@ org.ecocean.tag.MetalTag,
 org.ecocean.social.*,
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.social.Relationship,
+org.joda.time.DateTime,
 java.io.IOException,
 javax.servlet.jsp.JspWriter,
 javax.servlet.http.HttpServletRequest,
@@ -30,6 +31,11 @@ org.ecocean.media.*
 <%!
 
 private static String TMP_DIR = "/tmp/migrate";
+
+private static Encounter encounterFromPending(JSONObject edata) {
+    Encounter enc = null;
+    return enc;
+}
 
 private static boolean stringEmpty(String str) {
     return ((str == null) || str.equals(""));
@@ -900,6 +906,119 @@ private static void migrateSocialGroups(JspWriter out, Shepherd myShepherd, Conn
     out.println("</ol>");
 }
 
+private static void migratePendingSightings(JspWriter out, Shepherd myShepherd, Connection conn, HttpServletRequest request) throws SQLException, IOException {
+    out.println("<h2>PendingSightings</h2><ol>");
+    Statement st = conn.createStatement();
+    ResultSet res = st.executeQuery("SELECT * FROM asset_group_sighting WHERE stage != 'processed' ORDER BY guid");
+    int ct = 0;
+
+    while (res.next()) {
+        ct++;
+        String guid = res.getString("guid");
+        out.println("<li>" + guid + ": ");
+        Occurrence occ = myShepherd.getOccurrence(guid);
+        if (occ != null) {
+            ct--;
+            out.println("<i>occurrence exists; skipping</i>");
+        } else {
+            JSONObject config = cleanJSONObject(res.getString("config"));
+            if (config == null) {
+                out.println("<i>null config; failing</i></li>");
+                continue;
+            }
+            out.println("<xmp>" + config.toString(4) + "</xmp>");
+
+            JSONObject sdata = config.optJSONObject("sighting");
+            if (sdata == null) {
+                out.println("<i>null sighitng data in config; failing</i></li>");
+                continue;
+            }
+            JSONArray earr = sdata.optJSONArray("encounters");
+            if ((earr == null) || (earr.length() < 1)) {
+                out.println("<i>null or empty encounters array in config; failing</i></li>");
+                continue;
+            }
+
+            occ = new Occurrence();
+            occ.setId(guid);
+            // TODO something with asset_group_guid ?
+
+            occ.setEncounters(new ArrayList<Encounter>()); //grrr
+            for (int i = 0 ; i < earr.length() ; i++) {
+                Encounter enc = encounterFromPending(earr.optJSONObject(i));
+                if (enc == null) {
+                    out.println("<i>failed to create enc " + i + "</i></li>");
+                    continue;
+                }
+                occ.addEncounter(enc);
+                enc.setOccurrenceID(occ.getId());
+            }
+
+            Timestamp ts = res.getTimestamp("created");
+            if (ts != null) occ.setDateTimeCreated(ts.toString());
+            ts = res.getTimestamp("updated");
+            if (ts != null) occ.setDWCDateLastModified(ts.toString());
+
+            Double d = null;
+            if (sdata.has("decimal_latitude") && !sdata.isNull("decimal_latitude")) d = sdata.getDouble("decimal_latitude");
+            occ.setDecimalLatitude(d);
+            d = null;
+            if (sdata.has("decimal_longitude") && !sdata.isNull("decimal_longitude")) d = sdata.getDouble("decimal_longitude");
+            occ.setDecimalLongitude(d);
+            occ.setComments(sdata.optString("comments", null));
+            //occ.setVerbatimLocality(res.getString("verbatim_locality"));
+            //occ.setLocationID(res.getString("location_guid"));
+
+            // date/time madness
+            String time = sdata.optString("time", null);
+            if (time == null) {
+                out.println("<i>null time config; failing</i></li>");
+                continue;
+            }
+            //String spec = res.getString("specificity"); n/a
+            // we only store a long for this on occurrences
+            occ.setDateTimeLong(new DateTime(time).getMillis());
+
+            // custom fields, oof
+            //  these need to be hard-coded per migration
+            JSONObject cfData = sdata.optJSONObject("customFields");
+            Map<String,String> cfMap = new HashMap<String,String>();
+            cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
+            cfMap.put("Observation Type", cfString(cfData, "736d8b8f-7abb-404f-9da8-0c1507185baa"));
+            cfMap.put("Seen with Unknown Seal", cfString(cfData, "e9a00eab-7ea6-4777-afb3-79d95ebfbf4f"));
+            cfMap.put("Photography Type", cfString(cfData, "cf7ed66f-e6c1-4cb1-aadf-0f141ca22316"));
+            cfMap.put("Sighting Origin", cfString(cfData, "15b4525a-47e9-4673-ae42-f99ea55f810c"));
+            cfMap.put("Seen with Unknown Pup", cfString(cfData, "d0f2cc9e-0845-4608-8754-3d1f70eec699"));
+            String photogName = cfString(cfData, "305b50df-7f21-4d8d-aeb6-45ab1869f5ba");
+            String photogEmail = cfString(cfData, "ecc6f017-057c-4821-b07a-f82cd60aa31d");
+
+            if (occ.getNumberEncounters() > 0) for (Encounter enc : occ.getEncounters()) {
+                if (!stringEmpty(photogName)) enc.setPhotographerName(photogName);
+                if (!stringEmpty(photogEmail)) enc.setPhotographerEmail(photogEmail);
+                try {
+                    out.println("<xmp style=\"font-size: 0.8em\">" + enc.uiJson(request).toString(4) + "</xmp><hr />");
+                } catch (Exception ex) {}
+            }
+
+            // now we can do this, since it needs encs
+            cfOccurrence(myShepherd, occ, cfMap);
+
+/*
+            myShepherd.storeNewOccurrence(occ);
+
+            String msg = "created occurrence [" + ct + "] " + occ;
+            out.println("<b>" + msg + "</b>");
+            System.out.println(msg);
+*/
+
+
+            out.println("<xmp>" + occ.getJSONSummary().toString(4) + "</xmp>");
+        }
+
+        out.println("</li>");
+    }
+    out.println("</ol>");
+}
 
 
 private static void fixAutogenNames(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
@@ -990,9 +1109,11 @@ migrateKeywords(out, myShepherd, conn);
 migrateRelationships(out, myShepherd, conn);
 
 fixAutogenNames(out, myShepherd, conn);
-*/
 
 migrateSocialGroups(out, myShepherd, conn);
+*/
+
+migratePendingSightings(out, myShepherd, conn, request);
 
 
 myShepherd.commitDBTransaction();
