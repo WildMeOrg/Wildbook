@@ -57,7 +57,7 @@ export default function AuthenticatedAppHeader() {
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav"
         style={{
-          marginRight: "10%"
+          marginRight: "15%"
         }}
       />
       <Navbar.Collapse

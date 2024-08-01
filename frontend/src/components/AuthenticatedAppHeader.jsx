@@ -46,7 +46,7 @@ export default function AuthenticatedAppHeader({
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "20%", padding: 0 }}
+        style={{ marginLeft: "15%", marginRight: "10%", padding: 0 }}
       >
         <Logo />
         {process.env.SITE_NAME}
@@ -72,7 +72,7 @@ export default function AuthenticatedAppHeader({
       </Navbar.Collapse>
       <div
         className="avatar-container d-flex align-items-center"
-        style={{ marginRight: "10%" }}
+        style={{ marginRight: "15%" }}
       >
         <AvatarAndUserProfile username={username} avatar={avatar} />
       </div>

@@ -9,8 +9,9 @@ import FormGroupText from "../Form/FormGroupText";
 export default function MetadataFilter({
   data,
   onChange,
+  setFormFilters,
+  formFilters
 }) {
-
   const encounterStatusOptions = data?.encounterState?.map((item) => {
     return {
       value: item,
@@ -58,6 +59,8 @@ export default function MetadataFilter({
         onChange={onChange}
         term="terms"
         field="state"
+        setFormFilters={setFormFilters}
+        formFilters = {formFilters}
       />
       <FormGroupText
         label="FILTER_SUBMITTER"
@@ -97,6 +100,8 @@ export default function MetadataFilter({
         term="terms"
         field="assignedUsername"
         filterId="assignedUsername"
+        setFormFilters={setFormFilters}
+        formFilters = {formFilters}
       />
     </div>
 

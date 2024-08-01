@@ -41,9 +41,10 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         }}
       >
         <Routes>
-          <Route path="/about" element={<About />} />
+          {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Unauthorized setHeader={setHeader} />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
+          {/* <Route path="/encounter-search" element={<Login />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route path="*" element={<NotFound setHeader={setHeader} />} />
