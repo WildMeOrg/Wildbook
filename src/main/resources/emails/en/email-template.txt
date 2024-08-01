@@ -1,16 +1,16 @@
-SUBJECT: Email from Flukebook 
+SUBJECT: Email from Seal Wildbook 
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The Flukebook  Team
+The Wild Me Team
 
 
 LEGAL STATEMENT
 
-Flukebook  is copyrighted 2024 by Conservation X Labs.
-Individual contributors to Flukebook  retain copyrights for submitted images.
+Wildbook is copyrighted 2024 by Conservation X Labs.
+Individual contributors to Wildbook retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 
