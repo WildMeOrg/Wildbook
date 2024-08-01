@@ -31,7 +31,7 @@ import org.scribe.oauth.*;
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /secure/index.jsp
  *
- * If user cannot be authenticated then forwards user to the /login.jsp which will display an error message
+ * If user cannot be authenticated then forwards user to the /react/login which will display an error message
  *
  */
 public class LoginUserSocial extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet
@@ -59,7 +59,7 @@ public class LoginUserSocial extends javax.servlet.http.HttpServlet implements j
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         HttpSession session = request.getSession(true);
-        String url = "/login.jsp";
+        String url = "/react/login";
 
         System.out.println("Starting LoginUserSocial servlet...");
 
@@ -110,8 +110,8 @@ public class LoginUserSocial extends javax.servlet.http.HttpServlet implements j
                     if (fbuser == null) {
                         session.setAttribute("error",
                             "don't have a user associated with this Facebook account");
-                        // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
-                        response.sendRedirect("login.jsp");
+                        // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/react/login");
+                        response.sendRedirect("/react/login");
 
                         return;
                     } else { // we found a matching user!
@@ -189,7 +189,7 @@ public class LoginUserSocial extends javax.servlet.http.HttpServlet implements j
                 if (fuser == null) {
                     session.setAttribute("error",
                         "don't have a user associated with this Flickr account");
-                    response.sendRedirect("login.jsp");
+                    response.sendRedirect("/react/login");
                     myShepherd.rollbackDBTransaction();
                     myShepherd.closeDBTransaction();
                     return;
@@ -203,8 +203,8 @@ public class LoginUserSocial extends javax.servlet.http.HttpServlet implements j
             }
         } else {
             session.setAttribute("error", "invalid type");
-            // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
-            response.sendRedirect("login.jsp");
+            // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/react/login");
+            response.sendRedirect("/react/login");
             // myShepherd.rollbackDBTransaction();
             // myShepherd.closeDBTransaction();
             return;

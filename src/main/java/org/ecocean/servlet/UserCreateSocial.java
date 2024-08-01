@@ -29,7 +29,7 @@ import org.scribe.oauth.*;
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /secure/index.jsp
  *
- * If user cannot be authenticated then forwards user to the /login.jsp which will display an error message
+ * If user cannot be authenticated then forwards user to the /react/login which will display an error message
  *
  */
 public class UserCreateSocial extends javax.servlet.http.HttpServlet implements javax.servlet.
@@ -105,7 +105,7 @@ public class UserCreateSocial extends javax.servlet.http.HttpServlet implements 
                 if (fbuser != null) {
                     session.setAttribute("error",
                         "There is already a user associated with this Facebook account.");
-                    WebUtils.redirectToSavedRequest(request, response, "login.jsp");
+                    WebUtils.redirectToSavedRequest(request, response, "/react/login");
                 } else {
                     String username = facebookProfile.getDisplayName().replaceAll(" ",
                         "").toLowerCase();                                                                                     // TODO handle this
@@ -204,7 +204,7 @@ public class UserCreateSocial extends javax.servlet.http.HttpServlet implements 
                 if (fuser != null) {
                     session.setAttribute("error",
                         "There is already a user associated with this Flickr account.");
-                    WebUtils.redirectToSavedRequest(request, response, "login.jsp");
+                    WebUtils.redirectToSavedRequest(request, response, "/react/login");
                 } else {
                     // TODO handle creating new username better?
                     fuser = createUser(fusername.toLowerCase(), "", "", context);
