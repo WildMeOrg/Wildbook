@@ -28,7 +28,7 @@ import java.net.URL;
 /**
  * Uses JSecurity to authenticate a user If user can be authenticated successfully forwards user to /secure/index.jsp
  *
- * If user cannot be authenticated then forwards user to the /login.jsp which will display an error message
+ * If user cannot be authenticated then forwards user to the /react/login which will display an error message
  *
  */
 public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements javax.servlet.Servlet
@@ -94,7 +94,7 @@ public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements j
         if (username == null) username = "";
         User user = myShepherd.getUser(username);
         if (user == null) {
-            response.sendRedirect("login.jsp");
+            response.sendRedirect("/react/login");
             return;
         }
  */
@@ -245,8 +245,8 @@ public class SocialGrabFiles extends javax.servlet.http.HttpServlet implements j
  */
         } else {
             session.setAttribute("error", "invalid type");
-            // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
-            response.sendRedirect("login.jsp");
+            // response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/react/login");
+            response.sendRedirect("/react/login");
             return;
         }
         // out.println("ok????");

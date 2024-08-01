@@ -52,13 +52,13 @@
 				        authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
 
-                authc.loginUrl = /react
+                authc.loginUrl = /react/login
 
                 #this application will use all the default
                 #filters (see link above)
-                #for example the default login page is /login.jsp
+                #for example the default login page is /react/login
                 #users who try to access a page protected by Shiro
-                #will be sent to /login.jsp
+                #will be sent to /react/login
                 [filters]
 
 
