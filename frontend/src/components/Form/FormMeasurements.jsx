@@ -14,10 +14,6 @@ function FormMeasurements({
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
     const intl = useIntl();
     useEffect(() => {
-        // if (data) {
-        //     const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
-        //     setInputs(newInputs);
-        // }
 
         if (data) {
             const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
@@ -34,7 +30,6 @@ function FormMeasurements({
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
             if (i === index) {
-                console.log({ ...input, [field]: value })
                 return { ...input, [field]: value };
             }
             
@@ -43,7 +38,6 @@ function FormMeasurements({
         setInputs(updatedInputs);
         const id = `${filterId}.${updatedInputs[index].type}`;
         if (field === 'value' || field === 'operator') {
-            console.log(field);
             if (value !== '') {
                 updateQuery(updatedInputs);
             } else {
@@ -57,7 +51,6 @@ function FormMeasurements({
         inputs.map(input => {
             const id = `${filterId}.${input.type}`;
             const query = input.operator === 'term' ? { term: { [`${field}.value`]: input.value } } : { range: { [`${field}.value`]: { [input.operator]: input.value } } };
-            console.log(query);
             if (input.value) {
                 onChange({
                     filterId: id,

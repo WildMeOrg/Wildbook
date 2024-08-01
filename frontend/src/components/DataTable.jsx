@@ -64,6 +64,11 @@ const MyDataTable = ({
             href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
             selector: (row) => row[col.selector],
             sortable: true,
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector] || '';
+              const b = rowB[col.selector] || '';
+              return a.localeCompare(b);
+            },
           };
         } else if (col.selector === 'individualId') {
           return {
@@ -73,14 +78,37 @@ const MyDataTable = ({
             href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
             selector: (row) => row[col.selector],
             sortable: true,
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector] || '';
+              const b = rowB[col.selector] || '';
+              return a.localeCompare(b);
+            },
           };
         } else {
-        return ({
-          name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-          selector: (row) => row[col.selector], // Accessor function for the column data
-          sortable: true, // Make the column sortable
-        }
-      )
+          return ({
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            selector: (row) => row[col.selector], // Accessor function for the column data
+            sortable: true, // Make the column sortable
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector];
+              const b = rowB[col.selector];
+          
+              const valA = Array.isArray(a) ? (a[0] || '') : a;
+              const valB = Array.isArray(b) ? (b[0] || '') : b;
+          
+              return String(valA).localeCompare(String(valB));
+            },
+            conditionalCellStyles: [
+              {
+                when: () => true,
+                style: {
+                  whiteSpace: 'normal',
+                  wordWrap: 'break-word',
+                },
+              },
+            ],
+          });
+          
     }
       }),
     [columnNames],
