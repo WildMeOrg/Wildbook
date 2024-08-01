@@ -2534,6 +2534,21 @@ function checkIdDisplay() {
 
 
 
+	      <p class="para"><h4><%=encprops.getProperty("other_photographers") %></h4>
+	      <%
+	       if((isOwner || encounterIsPublic) && Util.stringExists(enc.getPhotographerName())){
+	    	   %>
+
+	    	   <table id="other_photographers" width="100%">
+	    	   <tbody>
+<tr><td>
+				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" >
+				    	   <span><%=enc.getPhotographerName()%></span>
+</td></tr>
+
+                    </tbody>
+                    </table></p>
+<% } %>
 
 
 
