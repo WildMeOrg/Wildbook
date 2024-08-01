@@ -26,7 +26,6 @@ function DynamicInputs({
 
         const updatedInput = { ...input, name: nameField, value: valueField, originalName };
 
-        console.log("updatedInput", updatedInput);
         if (updatedInput.name && updatedInput.value) {
           onChange({
             filterId: `dynamicProperties.${updatedInput.name}`,

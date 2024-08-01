@@ -45,7 +45,6 @@ function FormMeasurements({
             const operator = input.operator;
             const value = input.value;
             const field = `biologicalMeasurements.${input.type}`;
-            console.log(id, operator, value);
             if (input.value) {
                 onChange({
                     filterId: id,
