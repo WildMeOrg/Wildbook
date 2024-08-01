@@ -43,12 +43,15 @@ export default function FilterPanel({
   setFilterPanel,
   style = {},
 
-}) {
+}) {  
+
   const [selectedChoices, setSelectedChoices] = useState({});
-  const [tempFormFilters, setTempFormFilters] = useState(formFilters);
+  const [tempFormFilters, setTempFormFilters] = useState([]);
+  useEffect(() => {
+    setTempFormFilters(formFilters);
+  }, [formFilters]);
   // const { filters, updateFilter, resetFilters } = useContext(FilterContext);
   const navigate = useNavigate();
-  
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = (filter = null, remove) => {
@@ -181,9 +184,9 @@ export default function FilterPanel({
                   marginTop: "10px",
                 }}
                 onKeyDown={(e) => {
-                  console.log(e.target.value);
+                  // console.log(e.target.value);
                   if(e.key === 'Enter') {
-                    console.log('Enter key pressed');
+                    // console.log('Enter key pressed');
                     navigate(`/encounter-search${e.target.value}`);                    
                   }
                 }}
@@ -193,7 +196,10 @@ export default function FilterPanel({
                 backgroundColor={theme.primaryColors.primary700}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
-                  setFormFilters(tempFormFilters);
+                  const uniqueFilters = Array.from(
+                    new Map(tempFormFilters.map(filter => [filter.filterId, filter])).values()
+                )
+                  setFormFilters(uniqueFilters);
                   setFilterPanel(false);
                 }}
                 noArrow={true}
@@ -208,7 +214,6 @@ export default function FilterPanel({
                 color: theme.primaryColors.primary700,
                 paddingLeft: 5,
                 paddingRight: 5,
-
               }}
                 borderColor={theme.primaryColors.primary700}
                 onClick={() => {
@@ -272,6 +277,8 @@ export default function FilterPanel({
                       {...schema.filterComponentProps}
                       data={data}
                       tempFormFilters={tempFormFilters}
+                      setFormFilters={setFormFilters}
+                      formFilters={formFilters}
                     />
                   </div>
                 );

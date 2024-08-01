@@ -5,6 +5,7 @@ import FilterPanel from "../components/FilterPanel";
 import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
+import { useSearchParams } from "react-router-dom"
 
 export default function EncounterSearch() {
 
@@ -30,7 +31,52 @@ export default function EncounterSearch() {
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
 
-  const { data: encounterData, loading,  } = useFilterEncounters({
+  const [searchParams] = useSearchParams();
+  const [ paramsFormFilters, setParamsFormFilters ] = useState([]);
+
+  const paramsObject = Object.fromEntries(searchParams.entries()) || {};
+
+  if (paramsObject.username && paramsFormFilters.find(opt => opt.filterId === "assignedUsername") === undefined) {
+    setFilterPanel(false);
+    setParamsFormFilters((prevFilters) => {
+      return [
+        ...prevFilters,
+        {
+          clause: "filter",
+          filterId: "assignedUsername",
+          query: {           
+                  "term": {
+                    "assignedUsername": paramsObject.username
+                  }                
+          }
+        }
+      ];});
+  }    
+        
+  if (paramsObject.state && paramsFormFilters.find(opt => opt.filterId === "state") === undefined) {
+    setParamsFormFilters((prevFilters) => {
+      return [
+        ...prevFilters,
+        {
+          clause: "filter",
+          filterId: "state",
+          query: {           
+                  "term": {
+                    "state": paramsObject.state
+                  }                
+          }
+        }
+      ];
+    });
+  };
+
+  useEffect(() => {
+    setFormFilters(Array.from(
+          new Map([...paramsFormFilters, ...formFilters].map(filter => [filter.filterId, filter])).values()
+      ));      
+  }, [paramsFormFilters]);
+  
+  const { data: encounterData, loading, } = useFilterEncounters({
     queries: formFilters,
     params: {
       sort: "date",
@@ -49,7 +95,7 @@ export default function EncounterSearch() {
     "ENCOUNTER_RESULTS_CALENDAR:/xcalendar/calendar.jsp",
     "ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp",
     "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
-  ];
+  ];  
 
   return (
 
@@ -68,18 +114,20 @@ export default function EncounterSearch() {
           display: filterPanel ? "block" : "none",
         }}
         formFilters={formFilters}
-        setFormFilters={setFormFilters}
+        setFormFilters={(input) => {
+          setFormFilters(input)
+        }}
         setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
         schemas={schemas}
         setRefresh={setRefresh}
       />
       <DataTable
-        isLoading = {loading}
+        isLoading={loading}
         style={{
           display: !filterPanel ? "block" : "none",
         }}
-        title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"}/>}
+        title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"} />}
         columnNames={columns}
         tabs={tabs}
         tableData={encounters}
@@ -95,7 +143,7 @@ export default function EncounterSearch() {
         }}
         onSelectedRowsChange={(selectedRows) => {
           console.log("Selected Rows: ", selectedRows);
-        
+
         }}
       />
       <SideBar
@@ -103,8 +151,9 @@ export default function EncounterSearch() {
         setFilterPanel={setFilterPanel}
         setFormFilters={setFormFilters}
         setRefresh={setRefresh}
-        searchQueryId = {searchQueryId}
+        searchQueryId={searchQueryId}
       />
+     
     </div>
   );
 }

@@ -76,7 +76,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="My Encounters"
           />
         ),
-        href: `/encounters/searchResults.jsp?username=${username}`,
+        href: `/react/encounter-search?username=${username}`,
         sub: [
           {
             name: (
@@ -85,7 +85,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Approved Animals"
               />
             ),
-            href: `/encounters/searchResults.jsp?username=${username}&state=approved`,
+            href: `/react/encounter-search?username=${username}&state=approved`,
           },
           {
             name: (
@@ -94,7 +94,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Unapproved Animals"
               />
             ),
-            href: `/encounters/searchResults.jsp?username=${username}&state=unapproved`,
+            href: `/react/encounter-search?username=${username}&state=unapproved`,
           },
           {
             name: (
@@ -103,7 +103,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Unidentifiable Animals"
               />
             ),
-            href: `/encounters/searchResults.jsp?username=${username}&state=unidentifiable`,
+            href: `/react/encounter-search?username=${username}&state=unidentifiable`,
           },
         ],
       },
@@ -154,7 +154,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Encounters"
           />
         ),
-        href: "/encounters/encounterSearch.jsp",
+        href: "/react/encounter-search",
       },
       {
         name: (

@@ -13,7 +13,10 @@ export default function FormGroupMultiSelect({
     onChange, 
     term = "terms", 
     field = "field",
+    setFormFilters,
+    formFilters
     }) {
+
     return (
         <FormGroup className="mt-2">
             {noLabel ? null : <FormLabel><FormattedMessage id={label} defaultMessage={label}/></FormLabel>}
@@ -27,6 +30,8 @@ export default function FormGroupMultiSelect({
                 isMulti={isMulti}
                 term={term}
                 field={field}
+                setFormFilters={setFormFilters}
+                formFilters={formFilters}
             ></MultiSelect>
         </FormGroup>
     );
