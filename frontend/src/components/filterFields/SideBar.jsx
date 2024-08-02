@@ -3,12 +3,16 @@ import { Button, Offcanvas } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FormattedMessage } from 'react-intl';
 import Chip from '../Chip';
+import BrutalismButton from '../BrutalismButton';
+import ThemeContext from '../../ThemeColorProvider'; 
 
 function Sidebar({
   formFilters,
   setFilterPanel,
   setFormFilters,
+  searchQueryId
 }) {
+  const theme = React.useContext(ThemeContext);
   const [show, setShow] = useState(false);
   const sidebarWidth = 400;
 
@@ -17,7 +21,21 @@ function Sidebar({
 
   const num = formFilters.length;
 
-
+    const handleCopy = () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(searchQueryId)
+          .then(() => {
+            alert(`Query ID: ${searchQueryId} copied to clipboard!`);
+          })
+          .catch(err => {
+            console.error('Failed to copy text: ', err);
+          });
+      } else {
+        console.error('Clipboard API not supported or permissions denied.');
+        alert('Clipboard API not supported or permissions denied.');
+      }
+    }
+  
   return (
     <>
       <Button
@@ -58,7 +76,7 @@ function Sidebar({
 
       <Offcanvas show={show} onHide={handleClose} placement="end" style={{ width: `${sidebarWidth}px`, borderRadius: '10px 0 0 10px' }}>
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Applied Filters</Offcanvas.Title>
+          <Offcanvas.Title><FormattedMessage id="APPLIED_FILTERS"/></Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body style={{
           display: 'flex',
@@ -76,25 +94,46 @@ function Sidebar({
             style={{
               padding: '10px 0',
             }}>
-            <button className="btn btn-primary" type="button"
+            <BrutalismButton
+              onClick={() => {
+                setFilterPanel(true);
+                handleClose();
+                // navigator.clipboard.writeText(searchQueryId);
+                handleCopy();
+              }}
+              noArrow={true}
+              backgroundColor= {theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}
+              color='white'
+            >
+              <FormattedMessage id="FILTER_COPY" defaultMessage={"Copy"}/>
+            </BrutalismButton>
+            <BrutalismButton
               onClick={() => {
                 setFilterPanel(true);
                 handleClose();
               }}
+              backgroundColor= {theme.primaryColors.primary700}
+              borderColor={theme.primaryColors.primary700}
+              color='white'
+              noArrow={true}
             >
-              Edit Filters
-            </button>
-            <button
-              className="btn btn-secondary"
-              type="button"
+              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Edit"}/>
+            </BrutalismButton>
+            <BrutalismButton
+              borderColor={theme.primaryColors.primary700}
+              color={theme.primaryColors.primary700}
+              noArrow
               onClick={() => {
                 setFormFilters([]);
                 handleClose();
-                setFilterPanel(false);
+                // setFilterPanel(false);
+                // localStorage.removeItem("formData");
+                window.location.reload();
               }}
             >
-              Reset Filters
-            </button>
+              <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset"}/>
+            </BrutalismButton>
           </div>
         </Offcanvas.Body>
 

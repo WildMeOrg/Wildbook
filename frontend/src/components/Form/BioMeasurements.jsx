@@ -14,16 +14,9 @@ function FormMeasurements({
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
     const intl = useIntl();
     useEffect(() => {
-
         if (data) {
             const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
-            setInputs(prevInputs => {
-                // Only update if data has changed
-                if (JSON.stringify(prevInputs.map(input => input.type)) !== JSON.stringify(data)) {
-                    return newInputs;
-                }
-                return prevInputs;
-            });
+            setInputs(newInputs);
         }
     }, [data]);
 
@@ -32,12 +25,11 @@ function FormMeasurements({
             if (i === index) {
                 return { ...input, [field]: value };
             }
-            
             return input;
         });
         setInputs(updatedInputs);
         const id = `${filterId}.${updatedInputs[index].type}`;
-        if (field === 'value' || field === 'operator') {
+        if (field === 'value') {
             if (value !== '') {
                 updateQuery(updatedInputs);
             } else {
@@ -50,50 +42,38 @@ function FormMeasurements({
 
         inputs.map(input => {
             const id = `${filterId}.${input.type}`;
-            const query = input.operator === 'term' ? { term: { [`${field}.value`]: input.value } } : { range: { [`${field}.value`]: { [input.operator]: input.value } } };
+            const operator = input.operator;
+            const value = input.value;
+            const field = `biologicalMeasurements.${input.type}`;
             if (input.value) {
                 onChange({
                     filterId: id,
-                    clause: "nested",
-                    path: field,
+                    clause: "filter",
                     query: {
-                        "bool": {
-                            "filter": [
-
-                                {
-                                    "match": {
-                                        [`${filterId}.type`]: input.type
-                                    },
-                                },
-
-                                query
-                            ]
+                        range: {
+                            [field]: {
+                                [operator]: value
+                            },
                         }
                     }
-                })
-            }
-
-            return {
-                "match": {
-                    [`${field}.type`]: input.type
-                },
-
-                "range": {
-                    [`${field}.value`]: { [input.operator]: [input.value] }
                 }
-            };
+                )
+            }
         });
-
     };
 
     return (
         <Container className="mt-3">
+            <h5><FormattedMessage id={"FILTER_BIOLOGICAL_MEASUREMENTS"} /></h5>
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
                     <Col md={4} className='d-flex align-items-center'>
                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
                     </Col>
                     <Col md={2}
+                        style={{
+                            marginBotton: "10px",
+                        }}
                     >
                         <Form.Select
                             aria-label="Select operator"
@@ -109,8 +89,8 @@ function FormMeasurements({
                         <FormControl
                             className="w-100"
                             type="number"
-                            style={{
-                      
+                            style={{             
+                                                  
                                 marginRight: "10px"
                             }}
                             placeholder={intl.formatMessage({ id: "TYPE_HERE" })}

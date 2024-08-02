@@ -2,14 +2,16 @@ import React from "react";
 import ThemeColorContext from "../ThemeColorProvider";
 import { FormattedMessage } from "react-intl";
 import BrutalismButton from "./BrutalismButton";
+import Cookies from "js-cookie";
 
-export default function AlertBanner({ setShowAlert }) {
+export default function AlertBanner({ showAlert, setShowAlert }) {
   const theme = React.useContext(ThemeColorContext);
   return (
     <div
-      className="alert alert-warning alert-dismissible fade show d-flex justify-content-between align-items-center"
+      className="fade show d-flex justify-content-between align-items-center"
       role="alert"
       style={{
+        margin: "0 !important",
         padding: 10,
         boxSizing: "border-box",
         minHeight: 60,
@@ -24,7 +26,11 @@ export default function AlertBanner({ setShowAlert }) {
         color={theme.primaryColors.primary500}
         borderColor={theme.primaryColors.primary500}
         style={{ padding: 10, margin: 0 }}
-        onClick={() => setShowAlert(false)}
+        onClick={() => {
+          setShowAlert(false);
+          Cookies.set("showAlert", false, { expires: 7 });
+        }
+        }
       >
         <FormattedMessage id="OK" />
       </BrutalismButton>

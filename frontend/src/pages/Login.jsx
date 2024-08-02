@@ -29,7 +29,6 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Form submitted");
     setError(null);
     setShow(false);
     authenticate(username, password);

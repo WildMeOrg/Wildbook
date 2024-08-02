@@ -10,9 +10,8 @@ import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ showAlert }) {
+export default function AuthenticatedAppHeader() {
   const { visible } = useContext(FooterVisibilityContext);
-
   const [dropdownShows, setDropdownShows] = useState({
     dropdown1: false,
     dropdown2: false,
@@ -36,34 +35,43 @@ export default function AuthenticatedAppHeader({ showAlert }) {
       expand="lg"
       style={{
         backgroundColor: "#303336",
-        maxHeight: "60px",
+        height: "60px",
         padding: 0,
         fontSize: "1rem",
         position: "fixed",
-        top: showAlert ? 60 : 0,
-        maxWidth: "1440px",
-        marginLeft: "auto",
-        marginRight: "auto",
         zIndex: "200",
         width: "100%",
+
       }}
     >
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "1rem" }}
+        style={{
+          marginLeft: "15%"
+
+        }}
       >
         <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
-      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Toggle aria-controls="basic-navbar-nav"
+        style={{
+          marginRight: "15%"
+        }}
+      />
       <Navbar.Collapse
         id="basic-navbar-nav"
-        // style={{ marginLeft: "40%" }}
+      // style={{ marginRight: "40%" }}
       >
         <Nav
           className="mr-auto"
-          style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            width: "100%",
+            marginRight: "10%"
+          }}
         >
           {unAuthenticatedMenu.map((item, idx) => (
             <Nav className="me-auto">
@@ -111,6 +119,7 @@ export default function AuthenticatedAppHeader({ showAlert }) {
           width: "100px",
           whiteSpace: "nowrap",
           padding: 5,
+          marginRight: "15%",
         }}
         href={"/react/login"}
       >

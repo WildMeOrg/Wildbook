@@ -2974,7 +2974,10 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
-        classes.remove("____"); // blech
+        // TODO we should find out how/where bunk iaClass values are getting set
+        // and stop the via isValidIAClass() or similar
+        // also should be considered for any data integrity/repair tools
+        classes.remove("____");
         return classes;
     }
 
@@ -3362,7 +3365,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
         Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
 
-        for (MeasurementDesc mdesc : Util.findMeasurementDescs("en", "context0")) {
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs("en", "context0")) {
             BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
             if (bm != null) meas.put(mdesc.getType(), bm);
         }
@@ -4447,12 +4450,12 @@ public class Encounter extends Base implements java.io.Serializable {
             if (msm.getLoci() != null)
                 for (Locus locus : msm.getLoci()) {
                     if (locus.getName() == null) continue; // snh
-                    jgen.writeArrayFieldStart(locus.getName());
+                    jgen.writeObjectFieldStart(locus.getName());
                     for (int i = 0; i < 4; i++) {
                         Integer allele = locus.getAllele(i);
-                        if (allele != null) jgen.writeNumber(allele);
+                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
                     }
-                    jgen.writeEndArray();
+                    jgen.writeEndObject();
                 }
             jgen.writeEndObject();
             jgen.writeEndObject();
@@ -4521,6 +4524,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;
     }

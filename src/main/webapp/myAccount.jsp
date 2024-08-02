@@ -575,7 +575,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
     <p><strong><%=props.getProperty("links2mydata") %></strong></p>
         <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
 
-    <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+    <p class="caption"><a href="/react/encounter-search?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
 
 
 <%

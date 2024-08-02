@@ -9,8 +9,6 @@ export default function MergeMessages({
     getAllNotifications,
     setModalOpen, }) {
 
-    console.log('CollaborationMessages mergeData:', mergeData);
-
     const handleClick = (action, taskId) => {
         const result = changeIndividualMergeState(action, taskId);
         // setError('Error: ' + result);
@@ -28,7 +26,6 @@ export default function MergeMessages({
         const mergeDenied = data.notificationType === 'mergeDenied';
         const ownedByMe = data.ownedByMe === 'true';
 
-        console.log('each data:', data.ownedByMe);
         return <div style={{
             borderBottom: '1px solid #ccc',
             padding: '10px 0 0 10px',

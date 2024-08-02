@@ -4,6 +4,9 @@ import ReactPaginate from "react-paginate";
 import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
+import { FormattedMessage } from "react-intl";
+import ThemeColorContext from "../ThemeColorProvider";
+import { useIntl } from "react-intl";
 
 const customStyles = {
   rows: {
@@ -38,21 +41,76 @@ const MyDataTable = ({
   perPage,
   onPageChange,
   onPerPageChange,
-  onSelectedRowsChange = () => {},
+  style = {},
+  tabs = [],
+  isLoading = false,
+  onSelectedRowsChange = () => { },
+  onRowClicked = () => { },
 }) => {
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
   const [goToPage, setGoToPage] = useState("");
   const perPageOptions = [10, 20, 30, 40, 45];
+  const intl = useIntl();
 
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => {
-        return ({        
-        name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-        selector: (row) => row[col.selector], // Accessor function for the column data
-        sortable: true, // Make the column sortable
-      })}),
+        if (col.selector === 'occurrenceId') {
+          return {
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            cell: (row) => <a 
+            style={{ color: 'inherit', textDecoration: 'none' }}
+            href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
+            selector: (row) => row[col.selector],
+            sortable: true,
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector] || '';
+              const b = rowB[col.selector] || '';
+              return a.localeCompare(b);
+            },
+          };
+        } else if (col.selector === 'individualId') {
+          return {
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            cell: (row) => <a 
+            style={{ color: 'inherit', textDecoration: 'none' }}  
+            href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
+            selector: (row) => row[col.selector],
+            sortable: true,
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector] || '';
+              const b = rowB[col.selector] || '';
+              return a.localeCompare(b);
+            },
+          };
+        } else {
+          return ({
+            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            selector: (row) => row[col.selector], // Accessor function for the column data
+            sortable: true, // Make the column sortable
+            sortFunction: (rowA, rowB) => {
+              const a = rowA[col.selector];
+              const b = rowB[col.selector];
+          
+              const valA = Array.isArray(a) ? (a[0] || '') : a;
+              const valB = Array.isArray(b) ? (b[0] || '') : b;
+          
+              return String(valA).localeCompare(String(valB));
+            },
+            conditionalCellStyles: [
+              {
+                when: () => true,
+                style: {
+                  whiteSpace: 'normal',
+                  wordWrap: 'break-word',
+                },
+              },
+            ],
+          });
+          
+    }
+      }),
     [columnNames],
   );
 
@@ -102,21 +160,63 @@ const MyDataTable = ({
     ),
   );
 
+  const theme = React.useContext(ThemeColorContext);
+
   return (
-    <div className="w-100">
-      <h2 className="mt-3">{title}</h2>
-      <InputGroup className="mb-3" style={{ width: "300px" }}>
-        <Form.Control
-          type="text"
-          placeholder="Filter by Text"
-          value={filterText}
-          onChange={handleFilterChange}
-        />
-        <Button className="go-button">Filter</Button>
-        <Button variant="outline-secondary" onClick={clearFilterResult}>
-          Clear
-        </Button>
-      </InputGroup>
+    <div className="w-100" style={{
+      ...style,
+    }}>
+      <h2 className="mt-3" style={{color: "white"}}>{title}</h2>
+      <div className="d-flex flex-row justify-content-between">
+        <div>
+        <Button 
+                key={"result"}
+                variant="outline-tertiary"
+                className="me-1"
+                style={{ 
+                  backgroundColor: "rgba(255,255,255,0.8)",
+                  color: theme.primaryColors.primary700,
+                  fontWeight: "bold",
+                  fontSize: "1em",
+                }}
+
+              >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"}/>   
+              </Button>
+          {tabs.map((tab, index) => {
+            return (
+              <Button 
+                key={index}
+                variant="outline-tertiary"
+                className="me-1"
+                style={{ backgroundColor: "rgba(255,255,255,0.3)" }}
+              >
+                <a
+                  key={index}
+                  href={tab.split(":")[1]}
+                  style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {<FormattedMessage id={tab.split(":")[0]} defaultMessage={tab.split(":")[0]}/>}
+                </a>
+              </Button>
+            );
+          })}
+        </div>
+        <InputGroup className="mb-3" style={{ width: "300px" }}>
+          <Form.Control
+            type="text"
+            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            value={filterText}
+            onChange={handleFilterChange}
+          />
+          <Button className="go-button">
+            <FormattedMessage id="FILTER" defaultMessage={"Filter"} />
+          </Button>
+          <Button variant="outline-secondary" color={theme.primaryColors.primary700} onClick={clearFilterResult}>
+            <FormattedMessage id="CLEAR" defaultMessage={"CLEAR"} />
+          </Button>
+        </InputGroup>
+      </div>
+
       <DataTable
         // title={title}
         columns={wrappedColumns}
@@ -125,18 +225,21 @@ const MyDataTable = ({
         conditionalRowStyles={conditionalRowStyles}
         selectableRows
         onSelectedRowsChange={onSelectedRowsChange}
+        pointerOnHover
+        onRowClicked={onRowClicked}
         selectableRowsHighlight
+        progressPending={isLoading}
       />
       <Row className="mt-3 d-flex justify-content-center align-items-center">
         <Col
           xs={12}
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
-          <div className="me-3" style={{color:"white"}}>
-            <span>Total Items: {totalItems}</span>
+          <div className="me-3" style={{ color: "white" }}>
+            <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"}/>: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>
-            <InputGroup.Text>Per page</InputGroup.Text>
+            <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"}/></InputGroup.Text>
             <Form.Control
               as="select"
               value={perPage}
@@ -169,15 +272,15 @@ const MyDataTable = ({
             activeClassName={"active-page"}
             forcePage={page}
           />
-          <InputGroup className="ms-3" style={{ width: "150px" }}>
-            <InputGroup.Text>Go to</InputGroup.Text>
+          <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
+            <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"}/></InputGroup.Text>
             <Form.Control
               type="text"
               value={goToPage}
               onChange={handleGoToPageChange}
             />
             <Button className="go-button" onClick={handleGoToPageSubmit}>
-              Go
+              <FormattedMessage id="GO" defaultMessage={"Go"}/>
             </Button>
           </InputGroup>
         </Col>

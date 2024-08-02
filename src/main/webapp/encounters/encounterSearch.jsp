@@ -225,7 +225,7 @@ $(".search-collapse-header a").click(function(){
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounterSearch.jsp");
+  myShepherd.setAction("/react/encounter-search");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 
