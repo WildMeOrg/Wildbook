@@ -12,12 +12,15 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
     public void preDelete(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
 
+/*
         System.out.println("WildbookLifecycleListener preDelete() event type=" +
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
+*/
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
+            System.out.println("WildbookLifecycleListener preDelete() event on " + base);
             try {
                 base.opensearchUnindexDeep();
             } catch (IOException ex) {
@@ -30,9 +33,11 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
         Persistable obj = (Persistable)event.getSource();
 
         // cannot actually use obj, as it will throw: javax.jdo.JDOUserException: Cannot read fields from a deleted object
+/*
         System.out.println("WildbookLifecycleListener postDelete() event type=" +
             event.getEventType() + "; source id=" + obj.dnGetObjectId());
         // System.out.println("WildbookLifecycleListener postDelete() event type=" + event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() + "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" + event.getPersistentInstance());
+*/
     }
 
     public void preStore(InstanceLifecycleEvent event) {}
@@ -40,12 +45,15 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
     public void postStore(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
 
+/*
         System.out.println("WildbookLifecycleListener postStore() event type=" +
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
+*/
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
+            System.out.println("WildbookLifecycleListener postStore() event on " + base);
             try {
                 base.opensearchIndexDeep();
             } catch (IOException ex) {
