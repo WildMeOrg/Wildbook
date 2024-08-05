@@ -47,7 +47,31 @@
 		{"name": "French Guiana", "id": "French Guiana", "locationID":[] },
 		{"name": "Guyana", "id": "Guyana", "locationID":[] },
 		{"name": "Paraguay", "id": "Paraguay", "locationID":[] },
-		{"name": "Peru", "id": "Peru", "locationID":[] },
+		{"name": "Peru", "id": "Peru", "locationID":[
+			{
+				"name": "Los Amigos Biological Station",
+				"id": "Los Amigos Biological Station",
+				"geospatialInfo": {
+					"lat": -12.571125,
+					"long": -70.089180
+				},
+				"locationID": []
+			},
+			{
+				"name": "Los Amigos Conservation Concession",
+				"id": "Los Amigos Conservation Concession",
+				"geospatialInfo": {
+					"lat": -12.448667,
+					"long": -70.112140
+				},
+				"locationID": []
+			},
+			{
+				"name": "Tambopata River",
+				"id": "Tambopata River",
+				"locationID": []
+			}
+		] },
 		{"name": "Suriname", "id": "Suriname", "locationID":[] },
 		{"name": "Uruguay", "id": "Uruguay", "locationID":[] },
 		{"name": "Venezuela", "id": "Venezuela", "locationID":[] }
@@ -81,4 +105,3 @@
 		{"name": "Uzbekistan", "id": "Uzbekistan", "locationID":[] }
  		]
 }
-
