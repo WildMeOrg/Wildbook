@@ -178,7 +178,7 @@ h2.vidcap {
        
    <div id="fullScreenDiv">
         <div id="videoDiv">           
-            <source src="images/sealhero.jpeg" ></source>
+            <img src="images/sealhero.jpeg" />
         </div>
         <div id="messageBox"> 
             <div>
