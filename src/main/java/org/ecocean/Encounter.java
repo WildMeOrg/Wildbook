@@ -4406,7 +4406,7 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("individualSex", indiv.getSex());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
             jgen.writeArrayFieldStart("individualNames");
-            List<String> names = indiv.getNamesList();
+            Set<String> names = indiv.getAllNamesList();
             if (names != null)
                 for (String name : names) {
                     jgen.writeString(name);
