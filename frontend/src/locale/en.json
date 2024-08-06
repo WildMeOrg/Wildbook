@@ -219,6 +219,7 @@
     "ENCOUNTER_MAPPED_RESULTS" : "Mapped Results",
     "ENCOUNTER_RESULTS_CALENDAR" : "Results Calendar",
     "ENCOUNTER_ANALYSIS" : "Analysis",
-    "ENCOUNTER_EXPORT" : "Export"
+    "ENCOUNTER_EXPORT" : "Export",
+    "SEARCH_ENCOUNTERS" : "Search Encounters"
 
 }

@@ -43,6 +43,7 @@ const MyDataTable = ({
   columnNames = [],
   totalItems = 0,
   tableData = [],
+  searchText = "",
   page,
   perPage,
   onPageChange,
@@ -68,7 +69,7 @@ const MyDataTable = ({
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
               href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
-            selector: (row) => row[col.selector],
+            selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: (rowA, rowB) => {
               const a = rowA[col.selector] || '';
@@ -82,7 +83,7 @@ const MyDataTable = ({
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
               href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
-            selector: (row) => row[col.selector],
+            selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: (rowA, rowB) => {
               const a = rowA[col.selector] || '';
@@ -207,7 +208,7 @@ const MyDataTable = ({
             );
           })}
         </div>
-        <InputGroup className="mb-3" style={{ width: "150px", height: "30px" }}>
+        <InputGroup className="mb-3" style={{ width: "180px", height: "30px" }}>
           <Form.Control
             type="text"
             className="custom-placeholder"
@@ -218,7 +219,7 @@ const MyDataTable = ({
               borderRight: 'none',
               borderRadius: "50px 0 0 50px",
             }}
-            placeholder={intl.formatMessage({ id: "SEARCH" })}
+            placeholder={searchText || intl.formatMessage({ id: "SEARCH" })}
             value={filterText}
             onChange={handleFilterChange}
           />
@@ -268,6 +269,7 @@ const MyDataTable = ({
         onRowClicked={onRowClicked}
         selectableRowsHighlight
         progressPending={isLoading}
+        
       />
       </div>
       {

@@ -201,7 +201,7 @@ public class EncounterDelete extends HttpServlet {
                     if (allStatesSize > 0) {
                         for (int i = 0; i < allStatesSize; i++) {
                             String stateName = allStates.get(i);
-                            out.println("<p><a href=\"encounters/searchResults.jsp?state=" +
+                            out.println("<p><a href=\"/react/encounter-search?state=" +
                                 stateName + "\">View all " + stateName +
                                 " encounters</a></font></p>");
                         }
@@ -238,7 +238,7 @@ public class EncounterDelete extends HttpServlet {
                    if(allStatesSize>0){
                     for(int i=0;i<allStatesSize;i++){
                       String stateName=allStates.get(i);
-                      out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
+                      out.println("<p><a href=\"/react/encounter-search?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");
                     }
                    }
                    out.println(ServletUtilities.getFooter(context));
