@@ -387,6 +387,7 @@ public class IAGateway extends HttpServlet {
                 System.out.println(">>>>>>> parentTask: " + parentTask);
                 JSONObject jobj = new JSONObject();
                 jobj.put("identify", new JSONObject());
+                jobj.put("opt", opt);
                 jobj.getJSONObject("identify").put("annotationIds", new JSONArray());
                 jobj.getJSONObject("identify").getJSONArray("annotationIds").put(ann.getId());
                 jobj.put("taskId", subTask.getId());
@@ -395,6 +396,8 @@ public class IAGateway extends HttpServlet {
                 jobj.put("__queueActualRetries", jin.optInt("__queueActualRetries", 0));
                 jobj.put("__queueRetries", jin.optInt("__queueRetries", 0));
                 jobj.put("__queueStart", jin.optLong("__queueStart", System.currentTimeMillis()));
+                System.out.println("_doIdentify() requeueing from jin=" + jin);
+                System.out.println("_doIdentify() requeueing as jobj=" + jobj);
                 requeueJob(jobj, true);
             }
             taskRes.put("subTaskId", subTask.getId());
