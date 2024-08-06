@@ -42,6 +42,7 @@ export default function FilterPanel({
   setFormFilters = () => { },
   setFilterPanel,
   style = {},
+  handleSearch = () => { },
 
 }) {  
 
@@ -201,12 +202,14 @@ export default function FilterPanel({
                 )
                   setFormFilters(uniqueFilters);
                   setFilterPanel(false);
+                  handleSearch();
                 }}
                 noArrow={true}
                 style={{
                   paddingLeft: 5,
                   paddingRight: 5,
                 }}
+
               >
                 <FormattedMessage id="APPLY" defaultMessage="Apply" />
               </BrutalismButton>
