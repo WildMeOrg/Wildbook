@@ -13,3 +13,7 @@
 .pagination {
     margin-bottom: 0;
 }
+
+.custom-placeholder::placeholder {
+    color: white;
+  }

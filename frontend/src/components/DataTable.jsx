@@ -15,6 +15,12 @@ const customStyles = {
       borderRadius: "5px",
     },
   },
+  // tableWrapper: {
+  //   style: {
+  //     borderRadius: '5px', 
+  //     overflow: 'hidden', 
+  //   },
+  // },
 };
 
 const conditionalRowStyles = [
@@ -59,9 +65,9 @@ const MyDataTable = ({
         if (col.selector === 'occurrenceId') {
           return {
             name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-            cell: (row) => <a 
-            style={{ color: 'inherit', textDecoration: 'none' }}
-            href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
+            cell: (row) => <a
+              style={{ color: 'inherit', textDecoration: 'none' }}
+              href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
             selector: (row) => row[col.selector],
             sortable: true,
             sortFunction: (rowA, rowB) => {
@@ -73,9 +79,9 @@ const MyDataTable = ({
         } else if (col.selector === 'individualId') {
           return {
             name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-            cell: (row) => <a 
-            style={{ color: 'inherit', textDecoration: 'none' }}  
-            href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
+            cell: (row) => <a
+              style={{ color: 'inherit', textDecoration: 'none' }}
+              href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
             selector: (row) => row[col.selector],
             sortable: true,
             sortFunction: (rowA, rowB) => {
@@ -87,15 +93,15 @@ const MyDataTable = ({
         } else {
           return ({
             name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
-            selector: (row) => row[col.selector], // Accessor function for the column data
+            selector: (row) => row[col.selector] || "-", // Accessor function for the column data
             sortable: true, // Make the column sortable
             sortFunction: (rowA, rowB) => {
               const a = rowA[col.selector];
               const b = rowB[col.selector];
-          
+
               const valA = Array.isArray(a) ? (a[0] || '') : a;
               const valB = Array.isArray(b) ? (b[0] || '') : b;
-          
+
               return String(valA).localeCompare(String(valB));
             },
             conditionalCellStyles: [
@@ -108,8 +114,8 @@ const MyDataTable = ({
               },
             ],
           });
-          
-    }
+
+        }
       }),
     [columnNames],
   );
@@ -163,28 +169,28 @@ const MyDataTable = ({
   const theme = React.useContext(ThemeColorContext);
 
   return (
-    <div className="w-100" style={{
+    <div className="container" style={{
       ...style,
     }}>
-      <h2 className="mt-3" style={{color: "white"}}>{title}</h2>
+      <h2 className="mt-3" style={{ color: "white" }}>{title}</h2>
       <div className="d-flex flex-row justify-content-between">
         <div>
-        <Button 
-                key={"result"}
-                variant="outline-tertiary"
-                className="me-1"
-                style={{ 
-                  backgroundColor: "rgba(255,255,255,0.8)",
-                  color: theme.primaryColors.primary700,
-                  fontWeight: "bold",
-                  fontSize: "1em",
-                }}
+          <Button
+            key={"result"}
+            variant="outline-tertiary"
+            className="me-1"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.8)",
+              color: theme.primaryColors.primary700,
+              fontWeight: "bold",
+              fontSize: "1em",
+            }}
 
-              >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"}/>   
-              </Button>
+          >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"} />
+          </Button>
           {tabs.map((tab, index) => {
             return (
-              <Button 
+              <Button
                 key={index}
                 variant="outline-tertiary"
                 className="me-1"
@@ -195,51 +201,88 @@ const MyDataTable = ({
                   href={tab.split(":")[1]}
                   style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
                 >
-                  {<FormattedMessage id={tab.split(":")[0]} defaultMessage={tab.split(":")[0]}/>}
+                  {<FormattedMessage id={tab.split(":")[0]} defaultMessage={tab.split(":")[0]} />}
                 </a>
               </Button>
             );
           })}
         </div>
-        <InputGroup className="mb-3" style={{ width: "300px" }}>
+        <InputGroup className="mb-3" style={{ width: "150px", height: "30px" }}>
           <Form.Control
             type="text"
-            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            className="custom-placeholder"
+            style={{
+              backgroundColor: "transparent",
+              color: "white",
+              border: '1px solid white',
+              borderRight: 'none',
+              borderRadius: "50px 0 0 50px",
+            }}
+            placeholder={intl.formatMessage({ id: "SEARCH" })}
             value={filterText}
             onChange={handleFilterChange}
           />
-          <Button className="go-button">
-            <FormattedMessage id="FILTER" defaultMessage={"Filter"} />
+          {
+            filterText.length == 0 ? <Button
+            style={{
+              backgroundColor: "transparent",
+              color: 'white',
+              border: '1px solid white',
+              // borderLeft: '2px solid transparent',
+              borderLeft: 'none',
+              borderRadius: "0 50px 50px 0",
+            }}
+          >
+            <i class="bi bi-search"></i>
+          </Button> : <Button
+            style={{
+              backgroundColor: "transparent",
+              color: 'white',
+              border: '1px solid white',
+              // borderLeft: '2px solid transparent',
+              borderLeft: 'none',
+              borderRadius: "0 50px 50px 0",
+            }}
+            onClick={clearFilterResult}
+          >
+            <i class="bi bi-x-lg"></i>
           </Button>
-          <Button variant="outline-secondary" color={theme.primaryColors.primary700} onClick={clearFilterResult}>
-            <FormattedMessage id="CLEAR" defaultMessage={"CLEAR"} />
-          </Button>
+          }
         </InputGroup>
       </div>
-
+<div
+  style={{
+    borderRadius: '5px', 
+      overflow: 'hidden', 
+  }}
+>
       <DataTable
         // title={title}
         columns={wrappedColumns}
         data={filteredData}
         customStyles={customStyles}
         conditionalRowStyles={conditionalRowStyles}
-        selectableRows
+        // selectableRows
         onSelectedRowsChange={onSelectedRowsChange}
         pointerOnHover
         onRowClicked={onRowClicked}
         selectableRowsHighlight
         progressPending={isLoading}
       />
-      <Row className="mt-3 d-flex justify-content-center align-items-center">
+      </div>
+      {
+        filteredData.length == 0 && !isLoading ? <div className="d-flex justify-content-center align-items-center" style={{ color: "white" }}>
+          <FormattedMessage id="NO_RESULTS_FOUND" defaultMessage={"No results found"} />
+        </div> : <Row className="mt-3 d-flex justify-content-center align-items-center">
         <Col
           xs={12}
           className="d-flex justify-content-center align-items-center flex-nowrap"
         >
           <div className="me-3" style={{ color: "white" }}>
-            <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"}/>: {totalItems}</span>
+            <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"} />: {totalItems}</span>
           </div>
           <InputGroup className="me-3" style={{ width: "150px" }}>
-            <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"}/></InputGroup.Text>
+            <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} /></InputGroup.Text>
             <Form.Control
               as="select"
               value={perPage}
@@ -273,18 +316,20 @@ const MyDataTable = ({
             forcePage={page}
           />
           <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
-            <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"}/></InputGroup.Text>
+            <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"} /></InputGroup.Text>
             <Form.Control
               type="text"
               value={goToPage}
               onChange={handleGoToPageChange}
             />
             <Button className="go-button" onClick={handleGoToPageSubmit}>
-              <FormattedMessage id="GO" defaultMessage={"Go"}/>
+              <FormattedMessage id="GO" defaultMessage={"Go"} />
             </Button>
           </InputGroup>
         </Col>
       </Row>
+      }
+      
     </div>
   );
 };
