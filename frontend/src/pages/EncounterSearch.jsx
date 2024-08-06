@@ -32,11 +32,21 @@ export default function EncounterSearch() {
 
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchParams] = useSearchParams();
+  // const [searchParams] = useSearchParams();
   const [ paramsFormFilters, setParamsFormFilters ] = useState([]);
 
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
+
+
+  useEffect(() => {
+    if (searchParams.get("results")) {
+      setFilterPanel(false);
+    } else {
+      setFilterPanel(true);
+    }
+  }, [searchParams]);
 
   if (paramsObject.username && paramsFormFilters.find(opt => opt.filterId === "assignedUsername") === undefined) {
     setFilterPanel(false);
@@ -99,6 +109,11 @@ export default function EncounterSearch() {
     "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
   ];  
 
+  const handleSearch = () => {
+    setSearchParams({ results: "true" });
+    setFilterPanel(false);
+  };
+
   return (
 
     <div className="encounter-search container-fluid"
@@ -123,6 +138,7 @@ export default function EncounterSearch() {
         updateFilters={Function.prototype}
         schemas={schemas}
         setRefresh={setRefresh}
+        handleSearch={handleSearch} 
       />
       <DataTable
         isLoading={loading}
