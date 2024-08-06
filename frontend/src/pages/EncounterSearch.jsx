@@ -5,13 +5,15 @@ import FilterPanel from "../components/FilterPanel";
 import useEncounterSearchSchemas from "../models/encounters/useEncounterSearchSchemas";
 import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom";
+import { useIntl } from "react-intl";
 
 export default function EncounterSearch() {
 
   const [formFilters, setFormFilters] = useState([]);
   const [filterPanel, setFilterPanel] = useState(true);
   const [refresh, setRefresh] = useState(false);
+  const intl = useIntl();
 
   const columns = [
     { name: "Individual ID", selector: "individualId" },
@@ -130,6 +132,7 @@ export default function EncounterSearch() {
         title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"} />}
         columnNames={columns}
         tabs={tabs}
+        searchText={intl.formatMessage({id:"SEARCH_ENCOUNTERS"})}
         tableData={encounters}
         totalItems={totalEncounters}
         page={page}

@@ -218,5 +218,6 @@
     "ENCOUNTER_MAPPED_RESULTS": "Resultados Mapeados",
     "ENCOUNTER_RESULTS_CALENDAR": "Calendario de Resultados",
     "ENCOUNTER_ANALYSIS": "Análisis",
-    "ENCOUNTER_EXPORT": "Exportar"
+    "ENCOUNTER_EXPORT": "Exportar",
+    "SEARCH_ENCOUNTERS" : "Buscar Encuentros"
 }
