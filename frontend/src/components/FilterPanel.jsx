@@ -111,17 +111,17 @@ export default function FilterPanel({
 
   const debouncedHandleWheel = debounce(handleWheel, 100);
 
-  // useEffect(() => {
-  //   const div = containerRef.current;
-  //   if (div) {
-  //     div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
-  //   }
-  //   return () => {
-  //     if (div) {
-  //       div.removeEventListener('wheel', debouncedHandleWheel);
-  //     }
-  //   };
-  // }, [clicked, safeSchemas.length]);
+  useEffect(() => {
+    const div = containerRef.current;
+    if (div) {
+      div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
+    }
+    return () => {
+      if (div) {
+        div.removeEventListener('wheel', debouncedHandleWheel);
+      }
+    };
+  }, [clicked, safeSchemas.length]);
 
 
   return (
@@ -169,7 +169,7 @@ export default function FilterPanel({
                   }}
                 >
                 </Text>
-                <span>  {" > "}   </span>
+                <span>  <i class="bi bi-chevron-right" style={{ fontSize: '14px' }}></i>   </span>
               </div>
             })}
             <div

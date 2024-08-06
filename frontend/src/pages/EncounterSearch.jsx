@@ -108,7 +108,7 @@ export default function EncounterSearch() {
         padding: "20px",
         backgroundAttachment: "fixed",
       }}
-    >
+    >     
       <FilterPanel
         style={{
           display: filterPanel ? "block" : "none",
