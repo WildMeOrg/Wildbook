@@ -4512,17 +4512,28 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("state", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
-        map.put("locationId",
-            new org.json.JSONObject(
-            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}"));
+
+        map.put("locationId", keywordNormalType);
+        map.put("country", keywordNormalType);
+        map.put("behavior", keywordNormalType);
+        map.put("patterningCode", keywordNormalType);
+        map.put("annotationViewpoints", keywordNormalType);
+        map.put("mediaAssetKeywords", keywordNormalType);
+        map.put("mediaAssetLabeledKeywords", keywordNormalType);
+        map.put("annotationIAClasses", keywordNormalType);
+        map.put("haplotype", keywordNormalType);
+        map.put("individualSocialUnits", keywordNormalType);
+
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
         map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
-        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         return map;
     }
 
