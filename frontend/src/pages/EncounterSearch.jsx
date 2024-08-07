@@ -7,6 +7,7 @@ import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
+import { filter } from "lodash-es";
 
 export default function EncounterSearch() {
 
@@ -40,24 +41,34 @@ export default function EncounterSearch() {
 
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
 
-  useEffect(() => {
-    if (searchParams.get("results") && resultPage) {
-      setFilterPanel(true);
-    } 
+  // useEffect(() => {
+  //   console.log("searchParams: ", searchParams);
+  //   if (searchParams.get("results")) {
+  //     console.log("closing")
+  //     setFilterPanel(false);
+  //   } 
     
-  }, [searchParams, resultPage]);
+  // }, [searchParams]);  
 
   useEffect(() => {
     const handlePopState = () => {
-      setResultPage(false);
+      setFilterPanel(prev => !prev);
     };
 
     window.addEventListener('popstate', handlePopState);
-
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
+
+  const handleSearch = () => {
+    setSearchParams(PrevSearchParams => { 
+      const newSearchParams = new URLSearchParams(PrevSearchParams);
+      newSearchParams.set("results", "true");
+      return newSearchParams;
+    }
+    );
+  };
 
   if (paramsObject.username && paramsFormFilters.find(opt => opt.filterId === "assignedUsername") === undefined) {
     setFilterPanel(false);
@@ -120,15 +131,7 @@ export default function EncounterSearch() {
     "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
   ];  
 
-  const handleSearch = () => {
-    setSearchParams(PrevSearchParams => { 
-      const newSearchParams = new URLSearchParams(PrevSearchParams);
-      newSearchParams.set("results", "true");
-      return newSearchParams;
-    }
-    );
-    setResultPage(true);
-  };
+  
 
   return (
 
