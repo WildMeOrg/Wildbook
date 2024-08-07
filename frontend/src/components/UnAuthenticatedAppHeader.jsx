@@ -29,7 +29,7 @@ export default function AuthenticatedAppHeader() {
     setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid transparent" }));
   };
 
-  return <div className="container" style={{ height: "60px" }}>
+  return <div className="container" style={{ height: "50px" }}>
     {
       visible ? (
         <Navbar
