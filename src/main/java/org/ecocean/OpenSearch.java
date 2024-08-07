@@ -162,7 +162,13 @@ public class OpenSearch {
             indexName).build();
 
         client.indices().create(createIndexRequest);
+        // ideally we would pass these as settings() in CreateIndexRequest but that is kind of a mess
+        indexClose(indexName);
+        JSONObject analysis = new JSONObject(
+            "{\"analysis\": {\"normalizer\": {\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], \"filter\": [\"lowercase\", \"asciifolding\"]} } } }");
+        putSettings(indexName, analysis);
         createMapping(indexName, mapping);
+        indexOpen(indexName);
         INDEX_EXISTS_CACHE.put(indexName, true);
         System.out.println(indexName + " OpenSearch index created");
     }
@@ -420,6 +426,22 @@ public class OpenSearch {
         String rtn = getRestResponse(searchRequest);
         System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
             rtn);
+    }
+
+    public void indexOpen(final String indexName)
+    throws IOException {
+        Request searchRequest = new Request("POST", indexName + "/_open");
+        String rtn = getRestResponse(searchRequest);
+
+        System.out.println("OpenSearch.indexOpen() on " + indexName + ": " + rtn);
+    }
+
+    public void indexClose(final String indexName)
+    throws IOException {
+        Request searchRequest = new Request("POST", indexName + "/_close");
+        String rtn = getRestResponse(searchRequest);
+
+        System.out.println("OpenSearch.indexClose() on " + indexName + ": " + rtn);
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
