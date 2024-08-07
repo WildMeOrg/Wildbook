@@ -25,39 +25,48 @@ export default function AuthenticatedAppHeader({
     getAllNotifications,
   } = useContext(AuthContext);
 
-  return visible ? (
+  return <div className="container" style={{ height: "60px" }}>
+  {visible ? (
     <Navbar
       variant="dark"
       expand="lg"
       style={{
         backgroundColor: "#303336",
-        height: "60px",
+        height: "50px",
         padding: 0,
         fontSize: "1rem",
-        position: "fixed",
+        // position: "fixed",
         // top: showAlert ? 60 : 0,
         // maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
         zIndex: "200",
-        width: "100%",
+        // width: "100%",
       }}
     >
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        style={{ marginLeft: "15%", marginRight: "10%", padding: 0 }}
+        // style={{ marginLeft: "10%", marginRight: "10%", padding: 0 }}
       >
         <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav"
-        style={{
-          marginRight: "10%"
-        }}
+        // style={{
+        //   marginRight: "10%"
+        // }}
       />
       <Navbar.Collapse id="basic-navbar-nav">
-        <Nav className="mr-auto w-100 d-flex justify-content-end" id="nav">
+        <Nav id="nav"
+        className="mr-auto"
+              style={{
+                display: "flex",
+                // justifyContent: "flex-end",
+                marginLeft: "auto",
+                // width: "100%",
+                // marginRight: "10%"
+              }}>
           <Menu username={username} />
         </Nav>
         <NotificationButton
@@ -72,10 +81,11 @@ export default function AuthenticatedAppHeader({
       </Navbar.Collapse>
       <div
         className="avatar-container d-flex align-items-center"
-        style={{ marginRight: "15%" }}
+        // style={{ marginRight: "10%" }}
       >
         <AvatarAndUserProfile username={username} avatar={avatar} />
       </div>
     </Navbar>
-  ) : null;
+  ) : null}
+  </div>
 }

@@ -29,102 +29,109 @@ export default function AuthenticatedAppHeader() {
     setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid transparent" }));
   };
 
-  return visible ? (
-    <Navbar
-      variant="dark"
-      expand="lg"
-      style={{
-        backgroundColor: "#303336",
-        height: "60px",
-        padding: 0,
-        fontSize: "1rem",
-        position: "fixed",
-        zIndex: "200",
-        width: "100%",
-
-      }}
-    >
-      <Navbar.Brand
-        className="d-flex flex-row align-items-center"
-        href="/"
-        style={{
-          marginLeft: "15%"
-
-        }}
-      >
-        <Logo />
-        {process.env.SITE_NAME}
-      </Navbar.Brand>
-      <Navbar.Toggle aria-controls="basic-navbar-nav"
-        style={{
-          marginRight: "15%"
-        }}
-      />
-      <Navbar.Collapse
-        id="basic-navbar-nav"
-      // style={{ marginRight: "40%" }}
-      >
-        <Nav
-          className="mr-auto"
+  return <div className="container" style={{ height: "60px" }}>
+    {
+      visible ? (
+        <Navbar
+          variant="dark"
+          expand="lg"
           style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            width: "100%",
-            marginRight: "10%"
+            backgroundColor: "#303336",
+            height: "50px",
+            padding: 0,
+            fontSize: "1rem",
+            // position: "fixed",
+            zIndex: "200",
+            // width: "100%",
+    
           }}
         >
-          {unAuthenticatedMenu.map((item, idx) => (
-            <Nav className="me-auto">
-              <NavDropdown
-                title={
-                  <span style={{ color: "white" }}>
-                    <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}
-                    <DownIcon />
-                  </span>
-                }
-                id={`basic-nav-dropdown${item}`}
-                style={{
-                  color: "white",
-                  boxSizing: "border-box",
-                  borderBottom:
-                    dropdownBorder[`dropdown${idx + 1}`] ||
-                    "2px solid transparent",
-                }}
-                onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
-                onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
-                show={dropdownShows[`dropdown${idx + 1}`]}
-              >
-                {Object.values(item)[0].map((subItem, idx) => {
-                  return (
-                    <NavDropdown.Item
-                      href={subItem.href}
-                      style={{ color: "black", fontSize: "0.9rem" }}
-                    >
-                      {subItem.name}
-                    </NavDropdown.Item>
-                  );
-                })}
-              </NavDropdown>
+          <Navbar.Brand
+            className="d-flex flex-row align-items-center"
+            href="/"
+            style={{
+              // marginLeft: "10%",
+              // marginRight: 0,
+            }}
+          >
+            <Logo />
+            {process.env.SITE_NAME}
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav"
+            style={{
+              // marginRight: "15%"
+            }}
+          />
+          <Navbar.Collapse
+            id="basic-navbar-nav"
+          // style={{ marginRight: "40%" }}
+          >
+            <Nav
+              className="mr-auto"
+              style={{
+                display: "flex",
+                // justifyContent: "flex-end",
+                marginLeft: "auto",
+                // width: "100%",
+                // marginRight: "10%"
+              }}
+            >
+              {unAuthenticatedMenu.map((item, idx) => (
+                <Nav className="me-auto">
+                  <NavDropdown
+                    title={
+                      <span style={{ color: "white" }}>
+                        <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}
+                        <DownIcon />
+                      </span>
+                    }
+                    id={`basic-nav-dropdown${item}`}
+                    style={{
+                      color: "white",
+                      boxSizing: "border-box",
+                      borderBottom:
+                        dropdownBorder[`dropdown${idx + 1}`] ||
+                        "2px solid transparent",
+                      paddingLeft: 5,
+                      paddingRight: 5,
+                    }}
+                    onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
+                    onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
+                    show={dropdownShows[`dropdown${idx + 1}`]}
+                  >
+                    {Object.values(item)[0].map((subItem, idx) => {
+                      return (
+                        <NavDropdown.Item
+                          href={subItem.href}
+                          style={{ color: "black", fontSize: "0.9rem" }}
+                        >
+                          {subItem.name}
+                        </NavDropdown.Item>
+                      );
+                    })}
+                  </NavDropdown>
+                </Nav>
+              ))}
             </Nav>
-          ))}
-        </Nav>
-        <MultiLanguageDropdown />
-      </Navbar.Collapse>
-      <Button
-        variant="basic"
-        style={{
-          backgroundColor: "transparent",
-          color: "white",
-          border: "none",
-          width: "100px",
-          whiteSpace: "nowrap",
-          padding: 5,
-          marginRight: "15%",
-        }}
-        href={"/react/login"}
-      >
-        {<FormattedMessage id="LOGIN_LOGIN" />}
-      </Button>
-    </Navbar>
-  ) : null;
+            <MultiLanguageDropdown />
+          </Navbar.Collapse>
+          <Button
+            variant="basic"
+            style={{
+              backgroundColor: "transparent",
+              color: "white",
+              border: "none",
+              width: "100px",
+              whiteSpace: "nowrap",
+              padding: 5,
+              // marginRight: "10%",
+            }}
+            href={"/react/login"}
+          >
+            {<FormattedMessage id="LOGIN_LOGIN" />}
+          </Button>
+        </Navbar>
+      ) : null
+    }
+  </div> 
 }

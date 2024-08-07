@@ -24,7 +24,8 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
         className="position-fixed top-0 mx-auto w-100"
         style={{
           zIndex: "100",
-          height: "60px",
+          height: "50px",
+          backgroundColor: "#303336",
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
