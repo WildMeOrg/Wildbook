@@ -25,7 +25,7 @@ export default function AuthenticatedAppHeader({
     getAllNotifications,
   } = useContext(AuthContext);
 
-  return <div className="container" style={{ height: "60px" }}>
+  return <div className="container" style={{ height: "50px" }}>
   {visible ? (
     <Navbar
       variant="dark"

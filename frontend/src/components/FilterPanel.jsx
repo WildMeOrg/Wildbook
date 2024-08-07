@@ -114,7 +114,7 @@ export default function FilterPanel({
 
   useEffect(() => {
     const div = containerRef.current;
-    if (div) {
+    if (div) {      
       div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
     }
     return () => {
@@ -123,6 +123,27 @@ export default function FilterPanel({
       }
     };
   }, [clicked, safeSchemas.length]);
+
+  useEffect(() => {
+    const preventDefault = (e) => e.preventDefault();
+
+    const handleMouseEnter = () => {
+      window.addEventListener('wheel', preventDefault, { passive: false });
+    };
+
+    const handleMouseLeave = () => {
+      window.removeEventListener('wheel', preventDefault);
+    };
+
+    const container = containerRef.current;
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
 
 
   return (
