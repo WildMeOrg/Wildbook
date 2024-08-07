@@ -49,6 +49,17 @@ out.println(res.toString(4));
 </textarea>
 <%
 
+req = new Request("GET", "encounter/_settings");
+res = new JSONObject(os.getRestResponse(req));
+%>
+<h3>Encounter settings</h3>
+<textarea style="height: 30em; width: 100em;">
+<%
+out.println(res.toString(4));
+%>
+</textarea>
+<%
+
 
 req = new Request("GET", "encounter/_search?pretty=true&q=*:*&size=1");
 res = new JSONObject(os.getRestResponse(req));
