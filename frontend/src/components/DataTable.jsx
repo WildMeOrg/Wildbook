@@ -68,7 +68,7 @@ const MyDataTable = ({
             name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
-              href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector]}</a>,
+              href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: (rowA, rowB) => {
@@ -82,7 +82,7 @@ const MyDataTable = ({
             name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
-              href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector]}</a>,
+              href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: (rowA, rowB) => {
