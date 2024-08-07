@@ -12,6 +12,7 @@ export default function EncounterSearch() {
 
   const [formFilters, setFormFilters] = useState([]);
   const [filterPanel, setFilterPanel] = useState(true);
+  const [resultPage, setResultPage] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const intl = useIntl();
 
@@ -39,14 +40,24 @@ export default function EncounterSearch() {
 
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
 
+  useEffect(() => {
+    if (searchParams.get("results") && resultPage) {
+      setFilterPanel(true);
+    } 
+    
+  }, [searchParams, resultPage]);
 
   useEffect(() => {
-    if (searchParams.get("results")) {
-      setFilterPanel(false);
-    } else {
-      setFilterPanel(true);
-    }
-  }, [searchParams]);
+    const handlePopState = () => {
+      setResultPage(false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   if (paramsObject.username && paramsFormFilters.find(opt => opt.filterId === "assignedUsername") === undefined) {
     setFilterPanel(false);
@@ -110,8 +121,13 @@ export default function EncounterSearch() {
   ];  
 
   const handleSearch = () => {
-    setSearchParams({ results: "true" });
-    setFilterPanel(false);
+    setSearchParams(PrevSearchParams => { 
+      const newSearchParams = new URLSearchParams(PrevSearchParams);
+      newSearchParams.set("results", "true");
+      return newSearchParams;
+    }
+    );
+    setResultPage(true);
   };
 
   return (
