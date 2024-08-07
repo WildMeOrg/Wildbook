@@ -22,7 +22,8 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         className="position-fixed top-0 w-100"
         style={{
           zIndex: "100",
-          height: "60px",
+          height: "50px",
+          backgroundColor: "#303336",
         }}
 
       >
