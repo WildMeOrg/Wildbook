@@ -42,7 +42,7 @@ function Chip({ children }) {
           }
           ) || [];  
         const entries = [];
-        const { clause, filterId, query } = filter;
+        const { clause, filterId, query, filterKey } = filter;
         if (clause === "nested") {
             entries.push(`Nested filter: ${filterId}`);
         }
@@ -56,19 +56,19 @@ function Chip({ children }) {
                 const parts = [];
                 if (range.gte || range.gte === 0) parts.push(`from "${range.gte}"`);
                 if (range.lte || range.lte === 0) parts.push(`to "${range.lte}"`);
-                entries.push(`${key} ${parts.join(' ')}`);
+                entries.push(`${filterKey || key} ${parts.join(' ')}`);
             });
         } else if (query?.match) {
             Object.entries(query.match).forEach(([key, value]) => {
-                entries.push(`"${key}" matches "${value}"`);
+                entries.push(`${filterKey || key} contains "${value}"`);
             });
         } else if (query?.exists) {
             Object.entries(query.exists).forEach(([key, value]) => {
-                entries.push(`"${value}" filter is set`);
+                entries.push(`${filterKey || value} filter is set`);
             });
         } else if (query?.term) {
             Object.entries(query.term).forEach(([key, value]) => {
-                entries.push(`${key} is "${value}"`);
+                entries.push(`${filterKey || key} is "${value}"`);
             });
         } else if (query?.terms) {
             const labels = Object.values(query.terms[filterId]).map(val => {
@@ -83,10 +83,10 @@ function Chip({ children }) {
                 }
             });
             const uniqueLabels = [...new Set(labels)];
-            entries.push(`${filterId} is any of [${uniqueLabels.join(', ')}]`)
+            entries.push(`${filterKey || filterId} is any of [${uniqueLabels.join(', ')}]`)
         } else if (query?.biologicalMeasurements) {
             Object.entries(query).forEach(([key, value]) => {
-                entries.push(`${key} filter is set`);
+                entries.push(`${filterKey || key} filter is set`);
             });
         }
 
@@ -94,7 +94,7 @@ function Chip({ children }) {
             if (query.bool.must) {
                 query.bool.must.forEach((item) => {
                     Object.entries(item).forEach(([key, value]) => {
-                        entries.push(`${key} is "${value}"`);
+                        entries.push(`${filterKey || key} is "${value}"`);
                     });
                 });
             }

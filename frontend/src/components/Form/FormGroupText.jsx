@@ -11,7 +11,8 @@ export default function FormGroupText({
     onChange,
     filterId,
     field,
-    term
+    term,
+    filterKey,
 }) {
     const intl = useIntl();
     return (
@@ -29,6 +30,7 @@ export default function FormGroupText({
                 onChange({
                     filterId: filterId,
                     clause: "filter",
+                    filterKey: filterKey,
                     query: {
                         [term]: {
                             [field]: e.target.value

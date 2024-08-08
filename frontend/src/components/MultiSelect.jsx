@@ -15,7 +15,7 @@ const colourStyles = {
     control: base => ({ ...base, zIndex: 1 }),
 };
 
-export default function MultiSelect({ isMulti, options, onChange, field, term, setFormFilters, formFilters }) {
+export default function MultiSelect({ isMulti, options, onChange, field, filterKey, term, setFormFilters, formFilters }) {
    
     const location = useLocation();
     const [selectedOptions, setSelectedOptions] = useState([]);
@@ -70,6 +70,7 @@ export default function MultiSelect({ isMulti, options, onChange, field, term, s
                     onChange({
                         filterId: field,
                         clause: "filter",
+                        filterKey: filterKey,
                         query: {
                             [term]: {
                                 [field]: isMulti ? e.map(item => item.value) : e.value

@@ -4,6 +4,7 @@ import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import FormGroupMultiSelect from "../Form/FormGroupMultiSelect";
 import { FormLabel, FormGroup, FormControl } from "react-bootstrap";
+import { filter } from "lodash-es";
 
 export default function DateFilter({
     onChange,
@@ -52,6 +53,7 @@ export default function DateFilter({
             }
             onChange({
                 filterId: "date",
+                filterKey: "Sighting Date",
                 clause: "filter",
                 query: query
             }
@@ -79,6 +81,7 @@ export default function DateFilter({
             }
             onChange({
                 filterId: "dateSubmitted",
+                filterKey: "Date Submitted",
                 clause: "filter",
                 query: query
             }
@@ -127,6 +130,7 @@ export default function DateFilter({
                 onChange={onChange}
                 term="terms"
                 field="verbatimEventDate"
+                filterKey="Verbatim Event Date"
             />
 
             <><p><FormLabel class="mt-3"><FormattedMessage id="FILTER_ENCOUNTER_SUBMISSION_DATE" /></FormLabel></p>

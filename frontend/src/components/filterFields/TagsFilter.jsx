@@ -4,6 +4,7 @@ import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";  
 import { useIntl } from "react-intl";
+import { filter } from "lodash-es";
 
 
 export default function TagsFilter({
@@ -40,6 +41,7 @@ export default function TagsFilter({
                 }
                 onChange({
                   filterId: `metalTag.${location.label}`,
+                  filterKey: "Metal Tags",
                   clause: "nested",
                   path: "metalTags",
                   query: {
@@ -80,6 +82,7 @@ export default function TagsFilter({
                 }
                 onChange({
                   filterId: "acousticTag.serialNumber",
+                  filterKey: "Acoustic Tag Serial Number",
                   clause: "filter",
                   query: {
                     "match" : {
@@ -104,6 +107,7 @@ export default function TagsFilter({
                 }
                 onChange({
                   filterId: "acousticTag.idNumber",
+                  filterKey: "Acoustic Tag ID",
                   clause: "filter",
                   query: {
                     "match" : {
@@ -124,6 +128,7 @@ export default function TagsFilter({
         field={"satelliteTags.name"}
         term={"match"}
         filterId={"satelliteTags.name"}
+        filterKey={"Satellite Tag Name"}
       />
       <FormGroupText
         noDesc={true}
@@ -132,6 +137,7 @@ export default function TagsFilter({
         field={"satelliteTags.serialNumber"}
         term={"match"}
         filterId={"satelliteTags.serialNumber"}
+        filterKey={"Satellite Tag Serial Number"}
       />
       <FormGroupText
         noDesc={true}
@@ -140,6 +146,7 @@ export default function TagsFilter({
         field={"satelliteTags.argosPttNumber"}
         term={"match"}
         filterId={"satelliteTags.argosPttNumber"}
+        filterKey={"Satellite Tag Argos PTT Number"}
       />
     </div>
   );
