@@ -4417,19 +4417,29 @@ public class Encounter extends Base implements java.io.Serializable {
                     indiv.getTimeOfBirth()).toString());
                 jgen.writeStringField("individualTimeOfBirth", birthTime);
             }
-            jgen.writeObjectFieldStart("individualSocialUnits");
+/*
+    this currently is not needed as-is. we instead use just the social unit name as its own property (below)
+
+            jgen.writeObjectFieldStart("individualSocialUnitMap");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
                 if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
             }
             jgen.writeEndObject();
-/*
+ */
+
+            jgen.writeArrayFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeString(su.getSocialUnitName());
+            }
+            jgen.writeEndArray();
+
             jgen.writeArrayFieldStart("individualRelationshipRoles");
             for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
                 jgen.writeString(relRole);
             }
             jgen.writeEndArray();
- */
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
@@ -4514,22 +4524,32 @@ public class Encounter extends Base implements java.io.Serializable {
         org.json.JSONObject map = super.opensearchMapping();
         org.json.JSONObject keywordNormalType = new org.json.JSONObject(
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+/*
+        org.json.JSONObject fieldKeywordNormalType = new org.json.JSONObject(
+            "{\"fields\": {\"keyword\": {\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}}, \"type\": \"object\"}");
+ */
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
         map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("state", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
 
+        // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
         map.put("country", keywordNormalType);
         map.put("behavior", keywordNormalType);
         map.put("patterningCode", keywordNormalType);
         map.put("annotationViewpoints", keywordNormalType);
         map.put("mediaAssetKeywords", keywordNormalType);
-        map.put("mediaAssetLabeledKeywords", keywordNormalType);
         map.put("annotationIAClasses", keywordNormalType);
         map.put("haplotype", keywordNormalType);
         map.put("individualSocialUnits", keywordNormalType);
+        map.put("individualRelationshipRoles", keywordNormalType);
+
+/*
+        map.put("mediaAssetLabeledKeywords", fieldKeywordNormalType);
+        map.put("individualSocialUnits", fieldKeywordNormalType);
+ */
 
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
