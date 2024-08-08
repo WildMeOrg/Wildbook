@@ -864,7 +864,7 @@
 
 			  
 			  {
-			  "name": "Pacific Ocean", "id": "7", "locationID":[
+			  "name": "Pacific Ocean", "id": "Pacific Ocean", "locationID":[
 			  
 				  {
 				  "name": "California", "id": "California", "locationID":[
@@ -897,11 +897,13 @@
 				  
 				  ]},
 				  
-				  {
-				  "name": "Cocos Islands", "id": "7b", "prefix": "CR-", "prefixDigitPadding": 3 },
+				  
 
-				  {
-					"name": "Ecuador", "id": "Ecuador" },
+				  {"name": "Ecuador", "id": "Ecuador","prefix": "CR-", "prefixDigitPadding": 3,  "locationID": [ 
+						{"name": "Cocos Island", "id": "Cocos Island", "prefix": "CR-", "prefixDigitPadding": 3 }
+				     ]
+					
+				  },
 				  
 			
 				  {
@@ -961,3 +963,4 @@
 
   ]
 }
+
