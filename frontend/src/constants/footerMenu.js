@@ -1,7 +1,7 @@
 const footerLinks1 = [
-  { href: "https://www.wildme.org/donate.html", id: "FOOTER_DONATE" },
+  { href: "https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me", id: "FOOTER_DONATE" },
   {
-    href: "https://docs.wildme.org/product-docs/en/wildbook/getting-started-with-wildbook",
+    href: "https://wildbook.docs.wildme.org/getting-started-with-wildbook.html",
     id: "FOOTER_DOCUMENTATION",
   },
 ];
