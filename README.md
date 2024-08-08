@@ -89,7 +89,7 @@ Wild Me (wildme.org) engineering staff provide support for Wildbook. You can con
 We provide support during regular office hours on Mondays and Tuesdays.
 
 ## Support resources
-* User documentation is available at [Wild Me Documentation](http://docs.wildme.org)
+* User documentation is available at [Wild Me Documentation](http://wildbook.docs.wildme.org)
 * For user support, visit the [Wild Me Community Forum](https://community.wildme.org)
 * For developer support, visit the [Wild Me Development Discord](https://discord.gg/zw4tr3RE4R)
 * Email the team at opensource@wildme.org
