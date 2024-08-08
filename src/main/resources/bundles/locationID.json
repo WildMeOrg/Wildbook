@@ -899,7 +899,9 @@
 				  
 				  
 
-				  {"name": "Ecuador", "id": "Ecuador","prefix": "CR-", "prefixDigitPadding": 3,  "locationID": [ 
+				  {"name": "Ecuador", "id": "Ecuador",  "locationID": []},
+				  
+				  {"name": "Costa Rica", "id": "Costa Rica","prefix": "CR-", "prefixDigitPadding": 3,  "locationID": [ 
 						{"name": "Cocos Island", "id": "Cocos Island", "prefix": "CR-", "prefixDigitPadding": 3 }
 				     ]
 					
