@@ -169,8 +169,15 @@
                   ] },
                   { "name":"Central Oregon", "id":"Central Oregon", "locationID":[] },
   
-                  { "name":"Canada", "id":"Canada", "locationID":[] },
-                  { "name":"British Columbia", "id":"British Columbia", "locationID":[] },
+                  { "name":"Canada", "id":"Canada", "locationID":[
+                    
+                    { "name":"British Columbia", "id":"British Columbia", "locationID":[
+                      
+                      { "name": "Knight Inlet", "id": "Knight Inlet", "locationID":[] }
+
+                    ] }
+
+                  ] },
   
                   {"name":"Mexico","id":"Mexico","locationID":[
   
