@@ -135,6 +135,7 @@ export default function LocationFilterMap({
                 onChange={onChange}
                 term="terms"
                 field="locationId"
+                filterKey="Location ID"
             />
 
         </div>

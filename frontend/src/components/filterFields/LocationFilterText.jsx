@@ -27,6 +27,7 @@ export default function LocationFilterText({
                 term="match"
                 field="verbatimLocality"
                 filterId={"verbatimLocality"}
+                filterKey = "Verbatim Location"
             />
 
             <FormGroupMultiSelect
@@ -36,6 +37,7 @@ export default function LocationFilterText({
                 onChange={onChange}
                 term="terms"
                 field="country"
+                filterKey="Country"
             />
 
         </div>

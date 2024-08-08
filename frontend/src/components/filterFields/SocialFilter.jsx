@@ -51,6 +51,7 @@ export default function SocialFilter({
         field="socialUnitName"
         term="terms"
         filterId={"socialUnitName"}
+        filterKey={"Social Group Unit"}
       />
       <div className="d-flex flex-row justify-content-between mt-2">
         <Form.Label>
@@ -79,7 +80,7 @@ export default function SocialFilter({
         field="socialRole"
         term={ isChecked? "terms" : "term"}
         filterId={"socialRole"}
-
+        filterKey={"Relationship Role"}
       />
     </div>
   );

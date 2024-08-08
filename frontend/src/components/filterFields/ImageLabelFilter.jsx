@@ -80,6 +80,7 @@ export default function ImageLabelFilter({
             onChange({
                 filterId: "numberMediaAssets",
                 clause: "filter",
+                filterKey: "Number Media Assets",
                 query: {
                     "range": {
                         "numberMediaAssets": {
@@ -140,6 +141,7 @@ export default function ImageLabelFilter({
                 onChange={onChange}
                 field="keywords"
                 term="terms"
+                filterKey="Keywords"
             />
 
             <FormGroup className = "mt-3">
@@ -171,6 +173,7 @@ export default function ImageLabelFilter({
                             onChange={(e) => {
                                 onChange({
                                     filterId: "labelledKeywords",
+                                    filterKey: "Labelled Keywords",
                                     clause: "filter",
                                     name: e.name,
                                     value: e.value,
@@ -195,6 +198,7 @@ export default function ImageLabelFilter({
                 term="terms"
                 field={"viewpoint"}
                 onChange={onChange}
+                filterKey={"Viewpoint"}
             />
 
             <FormGroupMultiSelect
@@ -205,6 +209,7 @@ export default function ImageLabelFilter({
                 field={"iaClass"}
                 term="terms"
                 onChange={onChange}
+                filterKey={"IA Class"}
             />
         </div>
     );

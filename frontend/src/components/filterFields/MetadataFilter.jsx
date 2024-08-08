@@ -61,6 +61,7 @@ export default function MetadataFilter({
         field="state"
         setFormFilters={setFormFilters}
         formFilters = {formFilters}
+        filterKey={"Encounter Status"}
       />
       <FormGroupText
         label="FILTER_SUBMITTER"
@@ -69,6 +70,7 @@ export default function MetadataFilter({
         field="submitters"
         term="match"
         filterId="submitters"
+        filterKey={"Submitter, Photographer, or Email Address"}
       />
       
       <FormGroupMultiSelect
@@ -80,6 +82,7 @@ export default function MetadataFilter({
         term="terms"
         field="organizations"
         filterId="organizations"
+        filterKey={"Organization"}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -90,6 +93,7 @@ export default function MetadataFilter({
         term="terms"
         field="projectsForUser"
         filterId = "projectsForUser"
+        filterKey={"Project Name"}
       />
       <FormGroupMultiSelect
         isMulti={true}
@@ -102,6 +106,7 @@ export default function MetadataFilter({
         filterId="assignedUsername"
         setFormFilters={setFormFilters}
         formFilters = {formFilters}
+        filterKey={"Assigned User"}
       />
     </div>
 

@@ -8,6 +8,7 @@ import FormControl from "react-bootstrap/FormControl";
 import { useContext } from "react";
 import FilterContext from "../../FilterContextProvider";
 import { useIntl } from "react-intl";
+import { fill, filter } from "lodash-es";
 
 export default function IdentityFilter({
   onChange,
@@ -36,6 +37,7 @@ export default function IdentityFilter({
               onChange({
                 filterId: "individualNumberEncounters",
                 clause: "filter",
+                filterKey: "Number of Encounters",
                 query: {
                   "range": {
                     "individualNumberEncounters": { "gte": times }
@@ -61,6 +63,7 @@ export default function IdentityFilter({
             if (isChecked1 && e.target.value) {
               onChange({
                 filterId: "individualNumberEncounters",
+                filterKey: "Number of Encounters",
                 clause: "filter",
                 query: {
                   "range": {
@@ -87,6 +90,7 @@ export default function IdentityFilter({
             if (e.target.checked) {
               onChange({
                 filterId: "individualId",
+                filterKey: "Include only encounters with no assigned Individual ID",
                 clause: "must_not",
                 query: {
                   "exists": {
@@ -109,6 +113,7 @@ export default function IdentityFilter({
         term={"match"}
         filterId={"otherCatalogNumbers"}
         onChange={onChange}
+        filterKey={"Alternative ID"}
 
       />
       <FormGroupText
@@ -117,6 +122,7 @@ export default function IdentityFilter({
         term={"match"}
         filterId={"individualName"}
         onChange={onChange}
+        filterKey={"Individual Name"}
       />
     </div>
   );

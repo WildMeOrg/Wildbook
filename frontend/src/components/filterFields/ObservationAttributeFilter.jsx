@@ -61,6 +61,7 @@ export default function ObservationAttributeFilter(
                 onChange={onChange}
                 field="sex"
                 term="terms"
+                filterKey="Sex"
             />
             <FormGroupMultiSelect
                 isMulti={true}
@@ -69,6 +70,7 @@ export default function ObservationAttributeFilter(
                 onChange={onChange}
                 field="livingStatus"
                 term="terms"
+                filterKey="Life Status"
             />
 
             <FormGroupMultiSelect
@@ -79,6 +81,7 @@ export default function ObservationAttributeFilter(
                 field="taxonomy"
                 term="terms"
                 filterId={"Taxonomy"}
+                filterKey={"Genus and Species"}
             />
 
             <FormGroupText
@@ -88,6 +91,7 @@ export default function ObservationAttributeFilter(
                 term="match"
                 field="occurrenceId"
                 filterId={"occurrenceId"}
+                filterKey={"Sighting ID"}
             />
 
             <FormGroup className="mt-2">
@@ -103,6 +107,7 @@ export default function ObservationAttributeFilter(
                 term="match"
                 field="occurrenceRemarks"
                 filterId={"occurrenceRemarks"}
+                filterKey={"Observation Comments"}
             />
 
             <FormGroupMultiSelect
@@ -113,6 +118,7 @@ export default function ObservationAttributeFilter(
                 options={behaviourOptions}
                 field="behaviour"
                 term="terms"
+                filterKey="Behaviour"
             />
 
             <FormGroupMultiSelect
@@ -123,6 +129,7 @@ export default function ObservationAttributeFilter(
                 options={patternCodeOptions}
                 field={"patternCode"}
                 term={"terms"}
+                filterKey={"Patterning Code"}
             />
 
             <FormGroup className="mt-2">

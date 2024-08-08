@@ -14,7 +14,8 @@ export default function FormGroupMultiSelect({
     term = "terms", 
     field = "field",
     setFormFilters,
-    formFilters
+    formFilters, 
+    filterKey
     }) {
 
     return (
@@ -32,6 +33,7 @@ export default function FormGroupMultiSelect({
                 field={field}
                 setFormFilters={setFormFilters}
                 formFilters={formFilters}
+                filterKey= {filterKey}
             ></MultiSelect>
         </FormGroup>
     );

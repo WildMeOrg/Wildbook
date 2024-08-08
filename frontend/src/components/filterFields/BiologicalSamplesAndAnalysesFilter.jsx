@@ -9,6 +9,7 @@ import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import BioMeasurements from '../Form/BioMeasurements';
 import { useIntl } from 'react-intl';
+import { filter } from 'lodash-es';
 
 export default function BiologicalSamplesAndAnalysesFilter({
     onChange,
@@ -137,6 +138,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                             onChange({
                                 filterId: `biologicalSampleId`,
                                 clause: "filter",
+                                filterKey: "Has Biological Sample",
                                 query: {
                                     "exists": {
                                         "field": "tissueSampleIds"
@@ -155,6 +157,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                 field="tissueSampleIds"
                 term="match"
                 filterId={"tissueSampleIds"}
+                filterKey={"Biological Sample ID"}
             />
             <FormGroupMultiSelect
                 isMulti={true}
@@ -165,6 +168,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                 field={"haplotype"}
                 filterId={"haplotype"}
                 term={"terms"}
+                filterKey={"Haplotype"}
             />
 
             <FormGroupMultiSelect
@@ -176,6 +180,7 @@ export default function BiologicalSamplesAndAnalysesFilter({
                 field={"geneticSex"}
                 term={"terms"}
                 filterId={"geneticSex"}
+                filterKey={"Genetic Sex"}
             />
 
             <BioMeasurements
