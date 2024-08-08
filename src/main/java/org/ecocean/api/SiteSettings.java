@@ -47,7 +47,7 @@ public class SiteSettings extends ApiBase {
         JSONArray txArr = new JSONArray();
         for (String sciName : myShepherd.getAllTaxonomyNames()) {
             JSONObject txj = new JSONObject();
-            txj.put("scientificName", sciName);
+            txj.put("scientificName", sciName.replaceAll("_", " "));
             txArr.put(txj);
         }
         settings.put("siteTaxonomies", txArr);
