@@ -11,6 +11,9 @@ import java.util.List;
 import javax.servlet.ServletContextEvent;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.acm.AcmUtil;
+import org.ecocean.cache.CachedQuery;
+import org.ecocean.cache.QueryCache;
+import org.ecocean.cache.QueryCacheFactory;
 import org.ecocean.Annotation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
@@ -339,10 +342,33 @@ public class WildbookIAM extends IAPlugin {
     public static List<String> iaAnnotationIds(String context) {
         List<String> ids = new ArrayList<String>();
         JSONArray jids = null;
-
+        String cacheName="iaAnnotationIds";
         try {
-            jids = apiGetJSONArray("/api/annot/json/", context);
-        } catch (Exception ex) {
+        	
+        	
+        	QueryCache qc = QueryCacheFactory.getQueryCache(context);
+            if (qc.getQueryByName(cacheName) != null &&
+                System.currentTimeMillis() <
+                qc.getQueryByName(cacheName).getNextExpirationTimeout()) {
+            	
+            	     org.datanucleus.api.rest.orgjson.JSONObject jobj = Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
+            	     jids=Util.toggleJSONArray(jobj.getJSONArray("iaAnnotationIds"));
+            }
+            else {
+            	jids = apiGetJSONArray("/api/annot/json/", context);
+            	if(jids!=null) {
+	            	org.datanucleus.api.rest.orgjson.JSONObject jobj =new org.datanucleus.api.rest.orgjson.JSONObject();
+	            	jobj.put("iaAnnotationIds",Util.toggleJSONArray(jids));
+	            	CachedQuery cq = new CachedQuery(cacheName, Util.toggleJSONObject(jobj));
+	                cq.nextExpirationTimeout = System.currentTimeMillis() + (15*60*1000);
+	                qc.addCachedQuery(cq);
+            	}
+            	
+            }
+            
+            
+        } 
+        catch (Exception ex) {
             ex.printStackTrace();
             IA.log("ERROR: WildbookIAM.iaAnnotationIds() returning empty; failed due to " +
                 ex.toString());
