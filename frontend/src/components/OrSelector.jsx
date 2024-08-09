@@ -15,15 +15,16 @@ const colourStyles = {
     control: base => ({ ...base, zIndex: 1 }),
 };
 
-export default function MultiSelect({ isMulti, options, onChange, field, filterKey, term }) {
+export default function OrSelecter({ isMulti, options, onChange, field, filterKey, term }) {
    
     const [selectedOptions, setSelectedOptions] = useState([]);
 
     useEffect(() => {       
+        onChange(null, field);
         return () => {
             options.forEach(option => {
                 console.log(option);
-                onChange(null, field);
+                onChange(null, `${field}.${option.value}`);
             });
         };
     }, []);

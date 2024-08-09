@@ -13,7 +13,7 @@ const colourStyles = {
     control: base => ({ ...base, zIndex: 1 }),
 };
 
-export default function MultiSelect({ isMulti, options, onChange, field, filterKey, term, }) {
+export default function AndSelector({ isMulti, options, onChange, field, filterKey, term, }) {
 
     const [selectedOptions, setSelectedOptions] = useState([]);
     const selectedOptionsRef = useRef(selectedOptions);

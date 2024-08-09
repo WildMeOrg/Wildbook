@@ -6,16 +6,7 @@ import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import Select from "react-select";
 import AndSelector from "../AndSelector";
-
-const colourStyles = {
-  option: (styles) => ({
-    ...styles,
-    color: 'black',
-  }),
-  control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-  singleValue: (styles) => ({ ...styles, color: 'black' }),
-};
-
+import OrSelector from "../OrSelector";
 
 export default function SocialFilter({
   data,
@@ -23,31 +14,19 @@ export default function SocialFilter({
 }) {
   const [isUnitChecked, setIsUnitChecked] = React.useState(false);
   const [isRoleChecked, setIsRoleChecked] = React.useState(false);
-  const socialRoleOptions = ["123", "456"]?.map((item) => {
+  const socialRoleOptions = data?.socialUnitRole?.map((item) => {
     return {
       value: item,
       label: item
     };
   }) || [];
-  // data?.socialUnitRole?.map((item) => {
-  //   return {
-  //     value: item,
-  //     label: item
-  //   };
-  // }) || [];
 
-  const socialUnitOptions = ["123", "456"]?.map((item) => {
+  const socialUnitOptions = data?.socialUnitName?.map((item) => {
     return {
       value: item,
       label: item
     };
   }) || [];
-  // data?.socialUnitName?.map((item) => {
-  //   return {
-  //     value: item,
-  //     label: item
-  //   };
-  // }) || [];
 
   return (
     <div>
@@ -116,32 +95,32 @@ export default function SocialFilter({
           }
         />
       </div>
-        
-        {
-          isRoleChecked ? <AndSelector
-            isMulti={true}
-            noDesc={true}
-            noLabel={true}
-            label="FILTER_RELATIONSHIP_ROLE"
-            options={socialRoleOptions}
-            onChange={onChange}
-            field="individualRelationshipRoles"
-            term={"terms"}
-            filterId={"individualRelationshipRoles"}
-            filterKey={"Relationship Role"}
-          /> : <FormGroupMultiSelect
-            isMulti={true}
-            noDesc={true}
-            noLabel={true}
-            label="FILTER_RELATIONSHIP_ROLE"
-            options={socialRoleOptions}
-            onChange={onChange}
-            field="individualRelationshipRoles"
-            term={"terms"}
-            filterId={"individualRelationshipRoles"}
-            filterKey={"Relationship Role"}
-          />
-        }
+
+      {
+        isRoleChecked ? <AndSelector
+          isMulti={true}
+          noDesc={true}
+          noLabel={true}
+          label="FILTER_RELATIONSHIP_ROLE"
+          options={socialRoleOptions}
+          onChange={onChange}
+          field="individualRelationshipRoles"
+          term={"terms"}
+          filterId={"individualRelationshipRoles"}
+          filterKey={"Relationship Role"}
+        /> : <FormGroupMultiSelect
+          isMulti={true}
+          noDesc={true}
+          noLabel={true}
+          label="FILTER_RELATIONSHIP_ROLE"
+          options={socialRoleOptions}
+          onChange={onChange}
+          field="individualRelationshipRoles"
+          term={"terms"}
+          filterId={"individualRelationshipRoles"}
+          filterKey={"Relationship Role"}
+        />
+      }
 
       {/* <FormGroupMultiSelect
         isMulti={true}
