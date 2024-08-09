@@ -26,9 +26,20 @@
         }
       ],
       "atlantica": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
         "_common_name": "Atlantic gray seal",
         "_default": "@Halichoerus.grypus.grey_seal_unknown",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
         "grey_seal_femaleyoung": "@Halichoerus.grypus.grey_seal_unknown",
         "grey_seal_male": "@Halichoerus.grypus.grey_seal_unknown",
         "grey_seal_pup": "@Halichoerus.grypus.grey_seal_unknown",
@@ -65,9 +76,20 @@
       "seal_ringed": "@Halichoerus.grypus.grey_seal_unknown"
     },
     "grypus atlantica": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Atlantic gray seal",
       "_default": "@Halichoerus.grypus.grey_seal_unknown",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "grey_seal_femaleyoung": "@Halichoerus.grypus.grey_seal_unknown",
       "grey_seal_male": "@Halichoerus.grypus.grey_seal_unknown",
       "grey_seal_pup": "@Halichoerus.grypus.grey_seal_unknown",
@@ -83,9 +105,20 @@
   },
   "Monachus": {
     "monachus": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Mediterranean monk seal",
       "_default": "@Monachus.monachus.mediterranean_monk_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 180659,
       "grey_seal_femaleyoung": "@Monachus.monachus.mediterranean_monk_seal",
       "grey_seal_male": "@Monachus.monachus.mediterranean_monk_seal",
@@ -102,9 +135,20 @@
   },
   "Neomonachus": {
     "schauinslandi": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Hawaiian monk seal",
       "_default": "@Neomonachus.schauinslandi.hawaiian_monk_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 1133135,
       "grey_seal_femaleyoung": "@Neomonachus.schauinslandi.hawaiian_monk_seal",
       "grey_seal_male": "@Neomonachus.schauinslandi.hawaiian_monk_seal",
@@ -121,9 +165,20 @@
   },
   "Phoca": {
     "largha": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "spotted seal",
       "_default": "@Phoca.vitulina.harbour_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 180649,
       "grey_seal_femaleyoung": "@Phoca.vitulina.harbour_seal",
       "grey_seal_male": "@Phoca.vitulina.harbour_seal",
@@ -138,14 +193,48 @@
       "seal_ringed": "@Phoca.vitulina.harbour_seal"
     },
     "vitulina": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "harbor seal",
       "_default": "@Phoca.vitulina.harbour_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 180649,
+      "grey_seal_femaleyoung": "@Phoca.vitulina.harbour_seal",
+      "grey_seal_male": "@Phoca.vitulina.harbour_seal",
+      "grey_seal_pup": "@Phoca.vitulina.harbour_seal",
+      "grey_seal_unknown": "@Phoca.vitulina.harbour_seal",
+      "harbour_seal": {
+        "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+      },
+      "hawaiian_monk_seal": "@Phoca.vitulina.harbour_seal",
+      "mediterranean_monk_seal": "@Phoca.vitulina.harbour_seal",
+      "seal": "@Phoca.vitulina.harbour_seal",
+      "seal_ringed": "@Phoca.vitulina.harbour_seal",
       "vitulina": {
-        "_common_name": "high arctic harbor seal",
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
+        "_common_name": "harbor seal",
         "_default": "@Phoca.vitulina.harbour_seal",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
+        "_itis_id": 180649,
         "grey_seal_femaleyoung": "@Phoca.vitulina.harbour_seal",
         "grey_seal_male": "@Phoca.vitulina.harbour_seal",
         "grey_seal_pup": "@Phoca.vitulina.harbour_seal",
@@ -157,23 +246,23 @@
         "mediterranean_monk_seal": "@Phoca.vitulina.harbour_seal",
         "seal": "@Phoca.vitulina.harbour_seal",
         "seal_ringed": "@Phoca.vitulina.harbour_seal"
-      },
-      "grey_seal_femaleyoung": "@Phoca.vitulina.harbour_seal",
-      "grey_seal_male": "@Phoca.vitulina.harbour_seal",
-      "grey_seal_pup": "@Phoca.vitulina.harbour_seal",
-      "grey_seal_unknown": "@Phoca.vitulina.harbour_seal",
-      "harbour_seal": {
-        "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
-      },
-      "hawaiian_monk_seal": "@Phoca.vitulina.harbour_seal",
-      "mediterranean_monk_seal": "@Phoca.vitulina.harbour_seal",
-      "seal": "@Phoca.vitulina.harbour_seal",
-      "seal_ringed": "@Phoca.vitulina.harbour_seal"
+      }
     },
     "vitulina vitulina": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "high arctic harbor seal",
       "_default": "@Phoca.vitulina.harbour_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "grey_seal_femaleyoung": "@Phoca.vitulina.harbour_seal",
       "grey_seal_male": "@Phoca.vitulina.harbour_seal",
       "grey_seal_pup": "@Phoca.vitulina.harbour_seal",
@@ -189,25 +278,21 @@
   },
   "Pusa": {
     "hispida": {
-      "_common_name": "ringed seal",
-      "_default": "@Pusa.hispida.seal_ringed",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
-      "_itis_id": 622018,
-      "grey_seal_femaleyoung": "@Pusa.hispida.seal_ringed",
-      "grey_seal_male": "@Pusa.hispida.seal_ringed",
-      "grey_seal_pup": "@Pusa.hispida.seal_ringed",
-      "grey_seal_unknown": "@Pusa.hispida.seal_ringed",
-      "harbour_seal": "@Pusa.hispida.seal_ringed",
-      "hawaiian_monk_seal": "@Pusa.hispida.seal_ringed",
-      "mediterranean_monk_seal": "@Pusa.hispida.seal_ringed",
-      "seal": "@Pusa.hispida.seal_ringed",
-      "seal_ringed": {
-        "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
-      },
       "hispida": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
         "_common_name": "Arctic ringed seal",
         "_default": "@Pusa.hispida.hispida.seal_ringed",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
         "_itis_id": 622061,
         "grey_seal_femaleyoung": "@Pusa.hispida.hispida.seal_ringed",
         "grey_seal_male": "@Pusa.hispida.hispida.seal_ringed",
@@ -221,44 +306,21 @@
           "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
         }
       },
-      "ochontensis": {
-        "_common_name": "Okhotsk ringed seal",
-        "_default": "@Pusa.hispida.ochontensis.seal_ringed",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
-        "_itis_id": 622065,
-        "grey_seal_femaleyoung": "@Pusa.hispida.ochontensis.seal_ringed",
-        "grey_seal_male": "@Pusa.hispida.ochontensis.seal_ringed",
-        "grey_seal_pup": "@Pusa.hispida.ochontensis.seal_ringed",
-        "grey_seal_unknown": "@Pusa.hispida.ochontensis.seal_ringed",
-        "harbour_seal": "@Pusa.hispida.ochontensis.seal_ringed",
-        "hawaiian_monk_seal": "@Pusa.hispida.ochontensis.seal_ringed",
-        "mediterranean_monk_seal": "@Pusa.hispida.ochontensis.seal_ringed",
-        "seal": "@Pusa.hispida.ochontensis.seal_ringed",
-        "seal_ringed": {
-          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
-        }
-      },
-      "saimensis": {
-        "_common_name": "Saimaa seal",
-        "_default": "@Pusa.hispida.saimensis.seal_ringed",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
-        "_itis_id": 622064,
-        "grey_seal_femaleyoung": "@Pusa.hispida.saimensis.seal_ringed",
-        "grey_seal_male": "@Pusa.hispida.saimensis.seal_ringed",
-        "grey_seal_pup": "@Pusa.hispida.saimensis.seal_ringed",
-        "grey_seal_unknown": "@Pusa.hispida.saimensis.seal_ringed",
-        "harbour_seal": "@Pusa.hispida.saimensis.seal_ringed",
-        "hawaiian_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
-        "mediterranean_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
-        "seal": "@Pusa.hispida.saimensis.seal_ringed",
-        "seal_ringed": {
-          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
-        }
-      },
       "botnica": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
         "_common_name": "Baltic ringed seal",
         "_default": "@Pusa.hispida.botnica.seal_ringed",
-        "_detect_conf": "@Halichoerus.grypus._detect_conf",
         "_itis_id": 622062,
         "grey_seal_femaleyoung": "@Pusa.hispida.botnica.seal_ringed",
         "grey_seal_male": "@Pusa.hispida.botnica.seal_ringed",
@@ -271,12 +333,217 @@
         "seal_ringed": {
           "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
         }
+      },
+      "saimensis": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
+        "_common_name": "Saimaa seal",
+        "_default": "@Pusa.hispida.saimensis.seal_ringed",
+        "_itis_id": 622062,
+        "grey_seal_femaleyoung": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_male": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_pup": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_unknown": "@Pusa.hispida.saimensis.seal_ringed",
+        "harbour_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "hawaiian_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "mediterranean_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "seal_ringed": {
+          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+        }
+      },
+      "ochontensis": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
+        "_common_name": "Okhotsk ringed seal",
+        "_default": "@Pusa.hispida.ochontensis.seal_ringed",
+        "_itis_id": 622065,
+        "grey_seal_femaleyoung": "@Pusa.hispida.ochontensis.seal_ringed",
+        "grey_seal_male": "@Pusa.hispida.ochontensis.seal_ringed",
+        "grey_seal_pup": "@Pusa.hispida.ochontensis.seal_ringed",
+        "grey_seal_unknown": "@Pusa.hispida.ochontensis.seal_ringed",
+        "harbour_seal": "@Pusa.hispida.ochontensis.seal_ringed",
+        "hawaiian_monk_seal": "@Pusa.hispida.ochontensis.seal_ringed",
+        "mediterranean_monk_seal": "@Pusa.hispida.ochontensis.seal_ringed",
+        "seal": "@Pusa.hispida.ochontensis.seal_ringed",
+        "seal_ringed": {
+          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+        }
+      }
+    },
+    "Leptonychotes": {
+      "botnica": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
+        "_common_name": "Baltic ringed seal",
+        "_default": "@Pusa.hispida.botnica.seal_ringed",
+        "_itis_id": 622062,
+        "grey_seal_femaleyoung": "@Pusa.hispida.botnica.seal_ringed",
+        "grey_seal_male": "@Pusa.hispida.botnica.seal_ringed",
+        "grey_seal_pup": "@Pusa.hispida.botnica.seal_ringed",
+        "grey_seal_unknown": "@Pusa.hispida.botnica.seal_ringed",
+        "harbour_seal": "@Pusa.hispida.botnica.seal_ringed",
+        "hawaiian_monk_seal": "@Pusa.hispida.botnica.seal_ringed",
+        "mediterranean_monk_seal": "@Pusa.hispida.botnica.seal_ringed",
+        "seal": "@Pusa.hispida.botnica.seal_ringed",
+        "seal_ringed": {
+          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+        }
+      },
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
+      "_common_name": "ringed seal",
+      "_default": "@Pusa.hispida.seal_ringed",
+      "_itis_id": 622018,
+      "grey_seal_femaleyoung": "@Pusa.hispida.seal_ringed",
+      "grey_seal_male": "@Pusa.hispida.seal_ringed",
+      "grey_seal_pup": "@Pusa.hispida.seal_ringed",
+      "grey_seal_unknown": "@Pusa.hispida.seal_ringed",
+      "harbour_seal": "@Pusa.hispida.seal_ringed",
+      "hawaiian_monk_seal": "@Pusa.hispida.seal_ringed",
+      "mediterranean_monk_seal": "@Pusa.hispida.seal_ringed",
+      "seal": "@Pusa.hispida.seal_ringed",
+      "seal_ringed": "@Halichoerus.grypus.grey_seal_unknown._id_conf",
+      "saimensis": {
+        "_detect_conf": [
+          {
+            "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+            "labeler_algo": "densenet",
+            "labeler_model_tag": "seals_v1",
+            "model_tag": "seals_v1",
+            "nms_aware": "ispart",
+            "nms_thresh": 0.4,
+            "sensitivity": 0.63,
+            "use_labeler_species": true
+          }
+        ],
+        "_common_name": "Saimaa seal",
+        "_default": "@Pusa.hispida.saimensis.seal_ringed",
+        "_itis_id": 622064,
+        "grey_seal_femaleyoung": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_male": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_pup": "@Pusa.hispida.saimensis.seal_ringed",
+        "grey_seal_unknown": "@Pusa.hispida.saimensis.seal_ringed",
+        "harbour_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "hawaiian_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "mediterranean_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "seal": "@Pusa.hispida.saimensis.seal_ringed",
+        "seal_ringed": {
+          "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+        }
+      }
+    },
+    "saimensis": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
+      "_common_name": "Saimaa seal",
+      "_default": "@Pusa.hispida.saimensis.seal_ringed",
+      "_itis_id": 622064,
+      "grey_seal_femaleyoung": "@Pusa.hispida.saimensis.seal_ringed",
+      "grey_seal_male": "@Pusa.hispida.saimensis.seal_ringed",
+      "grey_seal_pup": "@Pusa.hispida.saimensis.seal_ringed",
+      "grey_seal_unknown": "@Pusa.hispida.saimensis.seal_ringed",
+      "harbour_seal": "@Pusa.hispida.saimensis.seal_ringed",
+      "hawaiian_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+      "mediterranean_monk_seal": "@Pusa.hispida.saimensis.seal_ringed",
+      "seal": "@Pusa.hispida.saimensis.seal_ringed",
+      "seal_ringed": {
+        "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
+      }
+    },
+    "botnica": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
+      "_common_name": "Baltic ringed seal",
+      "_default": "@Pusa.hispida.botnica.seal_ringed",
+      "_itis_id": 622062,
+      "grey_seal_femaleyoung": "@Pusa.hispida.botnica.seal_ringed",
+      "grey_seal_male": "@Pusa.hispida.botnica.seal_ringed",
+      "grey_seal_pup": "@Pusa.hispida.botnica.seal_ringed",
+      "grey_seal_unknown": "@Pusa.hispida.botnica.seal_ringed",
+      "harbour_seal": "@Pusa.hispida.botnica.seal_ringed",
+      "hawaiian_monk_seal": "@Pusa.hispida.botnica.seal_ringed",
+      "mediterranean_monk_seal": "@Pusa.hispida.botnica.seal_ringed",
+      "seal": "@Pusa.hispida.botnica.seal_ringed",
+      "seal_ringed": {
+        "_id_conf": "@Halichoerus.grypus.grey_seal_unknown._id_conf"
       }
     },
     "hispida botnica": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Baltic ringed seal",
       "_default": "@Pusa.hispida botnica.seal_ringed",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 622062,
       "grey_seal_femaleyoung": "@Pusa.hispida botnica.seal_ringed",
       "grey_seal_male": "@Pusa.hispida botnica.seal_ringed",
@@ -291,9 +558,20 @@
       }
     },
     "hispida hispida": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Arctic ringed seal",
       "_default": "@Pusa.hispida hispida.seal_ringed",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 622061,
       "grey_seal_femaleyoung": "@Pusa.hispida hispida.seal_ringed",
       "grey_seal_male": "@Pusa.hispida hispida.seal_ringed",
@@ -308,9 +586,20 @@
       }
     },
     "hispida ochontensis": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Okhotsk ringed seal",
       "_default": "@Pusa.hispida ochontensis.seal_ringed",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "_itis_id": 622065,
       "grey_seal_femaleyoung": "@Pusa.hispida ochontensis.seal_ringed",
       "grey_seal_male": "@Pusa.hispida ochontensis.seal_ringed",
@@ -327,9 +616,20 @@
   },
   "Leptonychotes": {
     "weddellii": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "Weddell seal",
       "_default": "@Leptonychotes.weddellii.mediterranean_monk_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "grey_seal_femaleyoung": "@Leptonychotes.weddellii.mediterranean_monk_seal",
       "grey_seal_male": "@Leptonychotes.weddellii.mediterranean_monk_seal",
       "grey_seal_pup": "@Leptonychotes.weddellii.mediterranean_monk_seal",
@@ -345,9 +645,20 @@
   },
   "Hydrurga": {
     "leptonyx": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "leopard seal",
       "_default": "@Hydrurga.leptonyx.mediterranean_monk_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "grey_seal_femaleyoung": "@Hydrurga.leptonyx.mediterranean_monk_seal",
       "grey_seal_male": "@Hydrurga.leptonyx.mediterranean_monk_seal",
       "grey_seal_pup": "@Hydrurga.leptonyx.mediterranean_monk_seal",
@@ -363,9 +674,20 @@
   },
   "Lobodon": {
     "carcinophaga": {
+      "_detect_conf": [
+        {
+          "start_detect": "https://seals.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "densenet",
+          "labeler_model_tag": "seals_v1",
+          "model_tag": "seals_v1",
+          "nms_aware": "ispart",
+          "nms_thresh": 0.4,
+          "sensitivity": 0.63,
+          "use_labeler_species": true
+        }
+      ],
       "_common_name": "crab-eater seal",
       "_default": "@Lobodon.carcinophaga.mediterranean_monk_seal",
-      "_detect_conf": "@Halichoerus.grypus._detect_conf",
       "grey_seal_femaleyoung": "@Lobodon.carcinophaga.mediterranean_monk_seal",
       "grey_seal_male": "@Lobodon.carcinophaga.mediterranean_monk_seal",
       "grey_seal_pup": "@Lobodon.carcinophaga.mediterranean_monk_seal",
