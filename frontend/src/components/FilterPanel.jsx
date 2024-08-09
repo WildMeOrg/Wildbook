@@ -61,20 +61,14 @@ export default function FilterPanel({
       if (remove?.startsWith("microsatelliteMarkers.loci") ||
         remove?.startsWith("measurements")) {
         tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
-      } 
-      // else if (remove?.startsWith("individualSocialUnits.") ||
-      //   remove?.startsWith("individualRelationshipRoles.")) {
-      //   tempFormFilters.splice(0, tempFormFilters.length,
-      //     ...tempFormFilters.filter(filter => !filter.filterId.includes(remove))
-      //   );
-      // } 
-      else {
+      } else {
         console.log("remove", remove);
         const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
         setTempFormFilters(updatedFilters);
       }
-
-    } else setFilter(filter, tempFormFilters, setTempFormFilters);
+    } else {
+      setFilter(filter, tempFormFilters, setTempFormFilters);
+    }
     // if (filter.selectedChoice) {
     //   setSelectedChoices({
     //     ...selectedChoices,
