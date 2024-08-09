@@ -169,8 +169,15 @@
                   ] },
                   { "name":"Central Oregon", "id":"Central Oregon", "locationID":[] },
   
-                  { "name":"Canada", "id":"Canada", "locationID":[] },
-                  { "name":"British Columbia", "id":"British Columbia", "locationID":[] },
+                  { "name":"Canada", "id":"Canada", "locationID":[
+                    
+                    { "name":"British Columbia", "id":"British Columbia", "locationID":[
+                      
+                      { "name": "Knight Inlet", "id": "Knight Inlet", "locationID":[] }
+
+                    ] }
+
+                  ] },
   
                   {"name":"Mexico","id":"Mexico","locationID":[
   
@@ -608,7 +615,11 @@
                 
                 ] },
                {
-                "name": "Labrador Sea", "id": "Labrador Sea" },
+                "name": "Labrador Sea", "id": "Labrador Sea", "locationID":[
+				
+					{ "name": "Cumberland Sound", "id": "Cumberland Sound" }
+				
+				] },
                {
                 "name": "Marmara Sea", "id": "Marmara Sea" },
                {
@@ -1318,6 +1329,8 @@
                 "name": "East Siberian Sea", "id": "East Siberian Sea" },
                {
                 "name": "Greenland Sea", "id": "Greenland Sea" },
+				{
+                "name": "Foxe Basin", "id": "Foxe Basin" },
                {
                 "name": "Hudson Bay", "id": "Hudson Bay" },
                {
