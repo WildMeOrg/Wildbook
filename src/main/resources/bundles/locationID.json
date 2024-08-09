@@ -11,7 +11,9 @@
 			{"name": "KAZA TFCA", "id": "KAZA TFCA", "locationID":[]},
 
 			{"name": "Angola", "id":"Angola", "locationID":[]},
-			{"name": "Botswana", "id":"Botswana", "locationID":[]},
+			{"name": "Botswana", "id":"Botswana", "locationID":[
+				{"name": "Kgalagadi", "id": "Kgalagadi", "locationID":[]}
+			]},
 			{"name": "Eswatini", "id": "Eswatini", "locationID":[]},
 			{"name": "Lesotho", "id":"Lesotho", "locationID":[]},
 			{"name": "Malawi", "id":"Malawi", "locationID":[]},
