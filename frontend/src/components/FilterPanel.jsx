@@ -44,7 +44,7 @@ export default function FilterPanel({
   style = {},
   handleSearch = () => { },
 
-}) {  
+}) {
 
   const [selectedChoices, setSelectedChoices] = useState({});
   const [tempFormFilters, setTempFormFilters] = useState([]);
@@ -56,10 +56,20 @@ export default function FilterPanel({
   const { data } = useGetSiteSettings();
 
   const handleFilterChange = (filter = null, remove) => {
+
     if (remove) {
-      if (remove?.startsWith("microsatelliteMarkers.loci") || remove?.startsWith("measurements")) {
+      if (remove?.startsWith("microsatelliteMarkers.loci") ||
+        remove?.startsWith("measurements")) {
         tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
-      } else {
+      } 
+      // else if (remove?.startsWith("individualSocialUnits.") ||
+      //   remove?.startsWith("individualRelationshipRoles.")) {
+      //   tempFormFilters.splice(0, tempFormFilters.length,
+      //     ...tempFormFilters.filter(filter => !filter.filterId.includes(remove))
+      //   );
+      // } 
+      else {
+        console.log("remove", remove);
         const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
         setTempFormFilters(updatedFilters);
       }
@@ -114,7 +124,7 @@ export default function FilterPanel({
 
   useEffect(() => {
     const div = containerRef.current;
-    if (div) {      
+    if (div) {
       div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
     }
     return () => {
@@ -153,7 +163,7 @@ export default function FilterPanel({
       }}>
       <Text
         className="mb-3 ms-3 fw-bold text-white"
-        style={{fontSize: "30px"}}
+        style={{ fontSize: "30px" }}
         id="ENCOUNTER_SEARCH_FILTERS"
       />
       <Row className="p-3" style={{ alignItems: 'flex-start' }}>
@@ -171,7 +181,7 @@ export default function FilterPanel({
 
             {safeSchemas.map((schema, index) => {
               return <div
-              key={index}
+                key={index}
                 className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? 'bg-white' : 'text-white'} cursor-pointer`}
                 style={{
                   color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
@@ -207,9 +217,9 @@ export default function FilterPanel({
                 }}
                 onKeyDown={(e) => {
                   // console.log(e.target.value);
-                  if(e.key === 'Enter') {
+                  if (e.key === 'Enter') {
                     // console.log('Enter key pressed');
-                    navigate(`/encounter-search${e.target.value}`);                    
+                    navigate(`/encounter-search${e.target.value}`);
                   }
                 }}
               />
@@ -220,7 +230,7 @@ export default function FilterPanel({
                 onClick={() => {
                   const uniqueFilters = Array.from(
                     new Map(tempFormFilters.map(filter => [filter.filterId, filter])).values()
-                )
+                  )
                   setFormFilters(uniqueFilters);
                   setFilterPanel(false);
                   handleSearch();
