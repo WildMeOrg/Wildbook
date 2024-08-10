@@ -110,7 +110,7 @@ export default function LocationFilterMap({
                                     // Check if all fields have values
                                     const allFieldsFilled = Object.values(newTempBounds).length === 4 && Object.values(newTempBounds).every(value => value !== undefined && value !== "");
                                     if (allFieldsFilled) {
-                                        setBounds(newTempBounds);  // Update the main state if all fields are filled
+                                        setBounds(newTempBounds);  
                                     }                                    
                                 }}
                             />
