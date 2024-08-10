@@ -250,7 +250,7 @@ $(".search-collapse-header a").click(function(){
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
+<form action="/react/login" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){

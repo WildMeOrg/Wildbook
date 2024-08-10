@@ -1,13 +1,15 @@
 
 
-import { get, partition } from "lodash-es";
+import { filter, get, partition } from "lodash-es";
 import useFetch from "../../hooks/useFetch";
 import { getEncounterFilterQueryKey } from "../../constants/queryKeys";
 
 function buildQuery(queries) {
+
   const [mustNotQueries, nonMustNotQueries] = partition(queries, q => q.clause === "must_not");
   const [nestedQueries, nonNestedQueries] = partition(queries, q => q.clause === "nested");
   const [filterQueries, otherQueries] = partition(nonNestedQueries, q => q.clause === "filter");
+  const [arrayQueries, nonArrayQueries] = partition(otherQueries, q => q.clause === "array");
   const mustQueries = nonNestedQueries.filter(q => q.clause === "must");
 
   const nestedQuery = nestedQueries.map(n => ({
@@ -17,8 +19,13 @@ function buildQuery(queries) {
     }
   }));  
 
+  const combinedFilterQueries = [
+    ...filterQueries.map(f => f.query),
+    ...arrayQueries.flatMap(a => a.query) 
+  ];
+
   return {
-    filter: filterQueries.map(f => f.query),
+    filter: combinedFilterQueries,
     must_not: mustNotQueries.map(f => f.query),
     must: [ ...nestedQuery]
   };
