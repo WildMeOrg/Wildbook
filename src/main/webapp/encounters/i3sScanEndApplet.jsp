@@ -478,11 +478,14 @@ $(document).ready(function() {
               nameShepherd.setAction("i3ScanEndApplet.jsp displayName render 2");
               nameShepherd.beginDBTransaction();
               try{
-                localIndividualName = nameShepherd.getMarkedIndividual(enc1IndId).getDisplayName();
-              }catch(Exception e){
+            	MarkedIndividual localIndy=nameShepherd.getMarkedIndividual(enc1IndId); 
+                if(localIndy!=null)localIndividualName = localIndy.getDisplayName();  
+              }
+              catch(Exception e){
                 System.out.println("Error retrieving local display name in the case where xml is OK");
                 e.printStackTrace();
-              }finally{
+              }
+              finally{
                 nameShepherd.rollbackDBTransaction();
                 nameShepherd.closeDBTransaction();
                 nameShepherd=null;
