@@ -13,6 +13,9 @@ import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 
 function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
+  // console.log("setting filter");
+  // console.log("newFilter", newFilter);
+  // console.log("tempFormFilters", JSON.stringify(tempFormFilters));
   const matchingFilterIndex = tempFormFilters.findIndex(
     f => f.filterId === newFilter.filterId,
   );
@@ -55,27 +58,59 @@ export default function FilterPanel({
   const navigate = useNavigate();
   const { data } = useGetSiteSettings();
 
-  const handleFilterChange = (filter = null, remove) => {
+  // const handleFilterChange = (filter = null, remove) => {
 
+  //   if (remove) {
+  //     if (remove?.startsWith("microsatelliteMarkers.loci") ||
+  //       remove?.startsWith("measurements")) {
+  //       tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
+  //     } 
+
+  //     // else if (remove?.startsWith("individualSocialUnits.") ||
+  //     // remove?.startsWith("individualRelationshipRoles.") ||
+  //     // remove?.startsWith("keywords.")) {
+  //     //   console.log(333);
+  //     //   tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => !filter.filterId.includes(remove)));
+  //     //   console.log('tempFormFilters', JSON.stringify(tempFormFilters));
+  //     //   console.log('formFilters', JSON.stringify(formFilters));
+
+
+  //     // }
+
+  //     else {
+  //       console.log("remove", remove);
+  //       const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
+  //       setTempFormFilters(updatedFilters);
+  //     }
+  //   } else {
+  //     setFilter(filter, tempFormFilters, setTempFormFilters);
+  //   }
+  //   // if (filter.selectedChoice) {
+  //   //   setSelectedChoices({
+  //   //     ...selectedChoices,
+  //   //     [filter.filterId]: filter.selectedChoice,
+  //   //   });
+  //   // }
+  // };
+
+  useEffect(() => {
+    // console.log('tempFormFilters updated', JSON.stringify(tempFormFilters));
+  }, [tempFormFilters]);
+
+
+  const handleFilterChange = (filter = null, remove) => {
     if (remove) {
-      if (remove?.startsWith("microsatelliteMarkers.loci") ||
-        remove?.startsWith("measurements")) {
-        tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
-      } else {
-        console.log("remove", remove);
-        const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
-        setTempFormFilters(updatedFilters);
-      }
+      setTempFormFilters(prevFilters => {
+        const newFilters = prevFilters.filter(f => f.filterId !== remove);
+        // console.log('newFilters', JSON.stringify(newFilters));
+        // console.log("new", newFilters);
+        return newFilters;
+      });
     } else {
       setFilter(filter, tempFormFilters, setTempFormFilters);
     }
-    // if (filter.selectedChoice) {
-    //   setSelectedChoices({
-    //     ...selectedChoices,
-    //     [filter.filterId]: filter.selectedChoice,
-    //   });
-    // }
   };
+
   const clearFilter = filterId => {
     const newFormFilters = formFilters.filter(
       f => f.filterId !== filterId,

@@ -1,6 +1,9 @@
 import Select from 'react-select';
 import { useEffect, useState } from 'react';
 import { useRef } from 'react';
+import { FormattedMessage } from 'react-intl';
+import { FormGroup, FormLabel } from 'react-bootstrap';
+import Description from './Form/Description'
 
 const colourStyles = {
     option: (styles) => ({
@@ -13,16 +16,25 @@ const colourStyles = {
     control: base => ({ ...base, zIndex: 1 }),
 };
 
-export default function AndSelector({ isMulti, options, onChange, field, filterKey, term, }) {
+export default function AndSelector({ 
+    noLabel,
+    noDesc,
+    label,
+    isMulti, 
+    options, 
+    onChange, 
+    field, 
+    filterKey, 
+    term, }) {
 
     const [selectedOptions, setSelectedOptions] = useState([]);
     const selectedOptionsRef = useRef(selectedOptions);
 
-    useEffect(() => {       
+    useEffect(() => {
+        
         onChange(null, field);
         return () => {
             options.forEach(option => {
-                console.log(option);
                 onChange(null, `${field}.${option.value}`);
             });
         };
@@ -59,16 +71,23 @@ export default function AndSelector({ isMulti, options, onChange, field, filterK
     }
 
     return (
-        <Select
-            isMulti={isMulti}
-            options={options}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            styles={colourStyles}
-            menuPlacement="auto"
-            menuPortalTarget={document.body}
-            value={selectedOptions}
-            onChange={handleChange}
-        />
+        <FormGroup className="mt-2">
+            {noLabel ? null : <FormLabel><FormattedMessage id={label} defaultMessage={label} /></FormLabel>}
+            {noDesc ? null : <Description>
+                <FormattedMessage id={`${label}_DESC`} />
+            </Description>}
+
+            <Select
+                isMulti={isMulti}
+                options={options}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                styles={colourStyles}
+                menuPlacement="auto"
+                menuPortalTarget={document.body}
+                value={selectedOptions}
+                onChange={handleChange}
+            />
+        </FormGroup>
     );
 }
