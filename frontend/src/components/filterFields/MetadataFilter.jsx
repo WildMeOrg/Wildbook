@@ -104,8 +104,8 @@ export default function MetadataFilter({
         term="terms"
         field="assignedUsername"
         filterId="assignedUsername"
-        setFormFilters={setFormFilters}
-        formFilters = {formFilters}
+        // setFormFilters={setFormFilters}
+        // formFilters = {formFilters}
         filterKey={"Assigned User"}
       />
     </div>

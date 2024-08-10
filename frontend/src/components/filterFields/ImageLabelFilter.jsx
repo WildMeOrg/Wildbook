@@ -10,6 +10,8 @@ import FormGroupText from '../Form/FormGroupText';
 import Select from 'react-select';
 import { useContext } from 'react';
 import FilterContext from '../../FilterContextProvider';
+import AndSelector from '../AndSelector';
+import LabelledKeywordFilter from '../Form/LabelledKeywordFilter';
 
 const colourStyles = {
     option: (styles) => ({
@@ -27,35 +29,12 @@ export default function ImageLabelFilter({
     data,
     onChange,
 }) {
-
-    const { filters, updateFilter } = useContext(FilterContext);
     const keywordsOptions = data?.keyword?.map(item => {
         return {
             value: item,
             label: item
         }
     }) || [];
-
-    const labelledKeywordsOptions = Object.entries(data?.labeledKeyword || {}).map(([key, value]) => {
-        return {
-            value: key,
-            label: key
-        }
-    }) || [];
-
-    const [labelledKeyword, setLabelledKeyword] = React.useState(null)
-
-    const [labelledKeywordsValueOptions, setLabelledKeywordsValueOptions] = React.useState([]);
-    useEffect(() => {
-        setLabelledKeywordsValueOptions((data?.labeledKeyword[labelledKeyword] || []).map(
-            item => {
-                return {
-                    value: item,
-                    label: item
-                }
-            }
-        ))
-    }, [labelledKeyword])
 
     const viewPointOptions = data?.annotationViewpoint?.map(item => {
         return {
@@ -116,14 +95,14 @@ export default function ImageLabelFilter({
                 />
             </Form>
 
-            <div className="d-flex flex-row justify-content-between">
+            <div className="d-flex flex-row justify-content-between mt-3">
                 <Form.Label>
                     <FormattedMessage id="FILTER_KEYWORDS" />
                 </Form.Label>
 
                 <Form.Check
                     type="checkbox"
-                    id="custom-checkbox"
+                    id="custom-checkbox_keyword"
                     label={<FormattedMessage id="USE_AND_OPERATOR" />}
                     checked={isChecked_keyword}
                     onChange={() => {
@@ -133,62 +112,33 @@ export default function ImageLabelFilter({
                 />
             </div>
 
-            <FormGroupMultiSelect
-                isMulti={isChecked_keyword}
-                noLabel={true}
-                label="FILTER_KEYWORDS"
-                options={keywordsOptions}
+            {
+                isChecked_keyword ? <AndSelector
+                    isMulti={true}
+                    noLabel={true}
+                    label="FILTER_KEYWORDS"
+                    onChange={onChange}
+                    options={keywordsOptions}
+                    field="mediaAssetKeywords"
+                    term="terms"
+                    filterId={"mediaAssetKeywords"}
+                    filterKey={"Media Asset Keywords"}
+                /> : <FormGroupMultiSelect
+                    isMulti={true}
+                    noLabel={true}
+                    label="FILTER_KEYWORDS"
+                    options={keywordsOptions}
+                    onChange={onChange}
+                    field="mediaAssetKeywords"
+                    term="terms"
+                    filterKey="Media Asset Keywords"
+                />
+            }
+
+            <LabelledKeywordFilter
+                data={data}
                 onChange={onChange}
-                field="keywords"
-                term="terms"
-                filterKey="Keywords"
-            />
-
-            <FormGroup className = "mt-3">
-                <Form.Label><FormattedMessage id="FILTER_LABELLED_KEYWORDS" /></Form.Label>
-                <Description>
-                    <FormattedMessage id={`FILTER_LABELLED_KEYWORDS_DESC`} />
-                </Description>
-                <div className="d-flex flex-row gap-3">
-                    <div className="w-50">
-                        <Form.Label><FormattedMessage id="FILTER_LABEL" /></Form.Label>
-                        <Select
-                            styles={colourStyles}
-                            menuPlacement="auto"
-                            menuPortalTarget={document.body}
-                            onChange={(e) => {
-                                setLabelledKeyword(e.value);
-                            }}
-                            options={labelledKeywordsOptions}
-                        />
-
-                    </div>
-                    <div className="w-50">
-                        <Form.Label><FormattedMessage id="FILTER_VALUE" /></Form.Label>
-                        <Select
-                            options={labelledKeywordsValueOptions}
-                            styles={colourStyles}
-                            menuPlacement="auto"
-                            menuPortalTarget={document.body}
-                            onChange={(e) => {
-                                onChange({
-                                    filterId: "labelledKeywords",
-                                    filterKey: "Labelled Keywords",
-                                    clause: "filter",
-                                    name: e.name,
-                                    value: e.value,
-                                    query: {
-                                        "match": {
-                                            [labelledKeyword]: e.value
-                                        }
-                                    }
-                                })
-                            }}
-                        />
-                    </div>
-
-                </div>
-            </FormGroup>
+            />            
 
             <FormGroupMultiSelect
                 isMulti={true}

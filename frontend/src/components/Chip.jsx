@@ -46,6 +46,11 @@ function Chip({ children }) {
         if (clause === "nested") {
             entries.push(`Nested filter: ${filterId}`);
         }
+
+        if (Array.isArray(query)) { 
+            entries.push(`Dynamic filter: ${filterKey || filterId} is set : ${query?.map(q => Object.keys(Object.values(q)[0])[0])[0].split(".")[1]}`);
+        }
+        
         if (query?.geo_bounding_box) {
             const { top_left, bottom_right } = query.geo_bounding_box['locationGeoPoint'];
             entries.push(`Location within bounding box: top_left: ${top_left.lat}, ${top_left.lon}, bottom_right: ${bottom_right.lat}, ${bottom_right.lon}`);
@@ -68,7 +73,7 @@ function Chip({ children }) {
             });
         } else if (query?.term) {
             Object.entries(query.term).forEach(([key, value]) => {
-                entries.push(`${filterKey || key} is "${value}"`);
+                entries.push(`${filterKey || key} matches "${value}"`);
             });
         } else if (query?.terms) {
             const labels = Object.values(query.terms[filterId]).map(val => {
