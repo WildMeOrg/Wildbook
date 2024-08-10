@@ -464,11 +464,13 @@ public class IAGateway extends HttpServlet {
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict,
                 userConfidence, myShepherd, task, baseUrl, fastlane);
-            if (!sent.optBoolean("success", false)) {
+            if (!sent.optBoolean("success", false) && sent.toString().indexOf("emptyTargetAnnotations")==-1) {
+
                 String errorMsg = sent.optString("error", "(unknown error)");
                 System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
                     errorMsg + "; hopefully we requeue");
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
+ 
             }
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
