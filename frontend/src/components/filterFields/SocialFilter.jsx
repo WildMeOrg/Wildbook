@@ -37,12 +37,12 @@ export default function SocialFilter({
 
       <div className="d-flex flex-row justify-content-between mt-2">
         <Form.Label>
-          <FormattedMessage id="FILTER_RELATIONSHIP_ROLE" />
+          <FormattedMessage id="FILTER_SOCIAL_UNIT" />
         </Form.Label>
 
         <Form.Check
           type="checkbox"
-          id="custom-checkbox"
+          id="custom-checkbox_unit"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
           checked={isUnitChecked}
           onChange={() => {
@@ -55,6 +55,7 @@ export default function SocialFilter({
       {
         isUnitChecked ? <AndSelector
           isMulti={true}
+          noLabel={true}
           noDesc={true}
           label="FILTER_SOCIAL_UNIT"
           onChange={onChange}
@@ -86,7 +87,7 @@ export default function SocialFilter({
 
         <Form.Check
           type="checkbox"
-          id="custom-checkbox"
+          id="custom-checkbox_role"
           label={<FormattedMessage id="USE_AND_OPERATOR" />}
           checked={isRoleChecked}
           onChange={() => {
@@ -122,18 +123,6 @@ export default function SocialFilter({
         />
       }
 
-      {/* <FormGroupMultiSelect
-        isMulti={true}
-        noDesc={true}
-        noLabel={true}
-        label="FILTER_RELATIONSHIP_ROLE"
-        options={socialRoleOptions}
-        onChange={onChange}
-        field="socialRole"
-        term={"terms"}
-        filterId={"socialRole"}
-        filterKey={"Relationship Role"}
-      /> */}
     </div>
   );
 }

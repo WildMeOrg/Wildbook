@@ -78,6 +78,7 @@ export default function EncounterSearch() {
         {
           clause: "filter",
           filterId: "assignedUsername",
+          filterKey: "Assigned User",
           query: {           
                   "term": {
                     "assignedUsername": paramsObject.username
@@ -94,6 +95,7 @@ export default function EncounterSearch() {
         {
           clause: "filter",
           filterId: "state",
+          filterKey: "Encounter Status",
           query: {           
                   "term": {
                     "state": paramsObject.state
