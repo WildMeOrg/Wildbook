@@ -13,9 +13,6 @@ import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router-dom';
 
 function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
-  // console.log("setting filter");
-  // console.log("newFilter", newFilter);
-  // console.log("tempFormFilters", JSON.stringify(tempFormFilters));
   const matchingFilterIndex = tempFormFilters.findIndex(
     f => f.filterId === newFilter.filterId,
   );
@@ -26,9 +23,6 @@ function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
       setTempFormFilters([...tempFormFilters, newFilter]);
     }
   } else {
-    //a workaround to update the microsatelliteMarkers.loci filters, since it's updating 
-    //multiple filters at once, we need to update the filter in place, instead of calling setTempFormFilters
-    //which is async and will cause issue
     if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") || newFilter?.filterId?.startsWith("measurements")) {
       tempFormFilters[matchingFilterIndex] = newFilter;
     } else {
@@ -54,47 +48,10 @@ export default function FilterPanel({
   useEffect(() => {
     setTempFormFilters(formFilters);
   }, [formFilters]);
-  // const { filters, updateFilter, resetFilters } = useContext(FilterContext);
   const navigate = useNavigate();
   const { data } = useGetSiteSettings();
 
-  // const handleFilterChange = (filter = null, remove) => {
-
-  //   if (remove) {
-  //     if (remove?.startsWith("microsatelliteMarkers.loci") ||
-  //       remove?.startsWith("measurements")) {
-  //       tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => filter.filterId !== remove));
-  //     } 
-
-  //     // else if (remove?.startsWith("individualSocialUnits.") ||
-  //     // remove?.startsWith("individualRelationshipRoles.") ||
-  //     // remove?.startsWith("keywords.")) {
-  //     //   console.log(333);
-  //     //   tempFormFilters.splice(0, tempFormFilters.length, ...tempFormFilters.filter(filter => !filter.filterId.includes(remove)));
-  //     //   console.log('tempFormFilters', JSON.stringify(tempFormFilters));
-  //     //   console.log('formFilters', JSON.stringify(formFilters));
-
-
-  //     // }
-
-  //     else {
-  //       console.log("remove", remove);
-  //       const updatedFilters = tempFormFilters.filter(filter => filter.filterId !== remove);
-  //       setTempFormFilters(updatedFilters);
-  //     }
-  //   } else {
-  //     setFilter(filter, tempFormFilters, setTempFormFilters);
-  //   }
-  //   // if (filter.selectedChoice) {
-  //   //   setSelectedChoices({
-  //   //     ...selectedChoices,
-  //   //     [filter.filterId]: filter.selectedChoice,
-  //   //   });
-  //   // }
-  // };
-
   useEffect(() => {
-    // console.log('tempFormFilters updated', JSON.stringify(tempFormFilters));
   }, [tempFormFilters]);
 
 
@@ -102,8 +59,6 @@ export default function FilterPanel({
     if (remove) {
       setTempFormFilters(prevFilters => {
         const newFilters = prevFilters.filter(f => f.filterId !== remove);
-        // console.log('newFilters', JSON.stringify(newFilters));
-        // console.log("new", newFilters);
         return newFilters;
       });
     } else {
@@ -238,16 +193,13 @@ export default function FilterPanel({
               <FormControl
                 type="text"
                 placeholder="Search ID"
-                // className="rounded-3"
                 style={{
                   width: "80px",
                   marginRight: "10px",
                   marginTop: "10px",
                 }}
                 onKeyDown={(e) => {
-                  // console.log(e.target.value);
                   if (e.key === 'Enter') {
-                    // console.log('Enter key pressed');
                     navigate(`/encounter-search${e.target.value}`);
                   }
                 }}
@@ -282,8 +234,6 @@ export default function FilterPanel({
                 onClick={() => {
                   setFormFilters([]);
                   setTempFormFilters([]);
-                  // setFilterPanel(false);
-                  // localStorage.removeItem("formData");
                   window.location.reload();
                 }}
                 noArrow={true}
@@ -299,7 +249,6 @@ export default function FilterPanel({
         <Col md={9} sm={12} className='d-flex align-items-center'>
           <div className="w-100 d-flex flex-column rounded-3 p-3 text-white overflow-auto"
             style={{
-              // width: '900px',
               minHeight: '700px',
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(3px)',
@@ -308,7 +257,6 @@ export default function FilterPanel({
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
               padding: '20px',
               color: 'white',
-              // overflow: 'auto',
               overflow: "visible",
             }}>
             {
