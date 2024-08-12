@@ -151,7 +151,7 @@
     "FILTER_ADD_OBSERVATION_SEARCH": "Add Observation Search",
     "FILTER_OBSERVATION_COMMENTS": "Observation Comments",
     "FILTER_OBSERVATION_COMMENTS_DESC": "Enter an exact or partial search. Enter an exact or partial match. Results are not case-sensitive.",
-    "FILTER_BEHAVIOUR": "Behaviour",
+    "FILTER_BEHAVIOUR": "Behavior",
     "FILTER_PATTERNING_CODE": "Patterning Code",
     "FILTER_MEASUREMENTS": "Measurements",
     "FILTER_IMAGE_LABEL": "Image Label",
