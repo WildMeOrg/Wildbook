@@ -14,14 +14,14 @@ export default function SocialFilter({
 }) {
   const [isUnitChecked, setIsUnitChecked] = React.useState(false);
   const [isRoleChecked, setIsRoleChecked] = React.useState(false);
-  const socialRoleOptions = data?.socialUnitRole?.map((item) => {
+  const socialRoleOptions = data?.relationshipRole?.map((item) => {
     return {
       value: item,
       label: item
     };
   }) || [];
 
-  const socialUnitOptions = data?.socialUnitName?.map((item) => {
+  const socialUnitOptions = data?.socialUnitRole?.map((item) => {
     return {
       value: item,
       label: item

@@ -144,19 +144,19 @@ export default function ImageLabelFilter({
                 isMulti={true}
                 label="FILTER_VIEWPOINT"
                 options={viewPointOptions}
-                filterId="viewpoint"
+                filterId="annotationViewpoints"
                 term="terms"
-                field={"viewpoint"}
+                field={"annotationViewpoints"}
                 onChange={onChange}
-                filterKey={"Viewpoint"}
+                filterKey={"View Point"}
             />
 
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_IA_CLASS"
                 options={iaClassOptions}
-                filterId="iaClass"
-                field={"iaClass"}
+                filterId="annotationIAClasses"
+                field={"annotationIAClasses"}
                 term="terms"
                 onChange={onChange}
                 filterKey={"IA Class"}

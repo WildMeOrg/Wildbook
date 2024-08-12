@@ -118,11 +118,11 @@ export default function IdentityFilter({
       />
       <FormGroupText
         label="FILTER_INDIVIDUAL_NAME"
-        field={"individualName"}
+        field={"individualNames"}
         term={"match"}
-        filterId={"individualName"}
+        filterId={"individualNames"}
         onChange={onChange}
-        filterKey={"Individual Name"}
+        filterKey={"Individual Names"}
       />
     </div>
   );

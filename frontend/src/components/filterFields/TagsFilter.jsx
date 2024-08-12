@@ -125,27 +125,27 @@ export default function TagsFilter({
         noDesc={true}
         label="FILTER_NAME"
         onChange={onChange}
-        field={"satelliteTags.name"}
+        field={"satelliteTag.name"}
         term={"match"}
-        filterId={"satelliteTags.name"}
+        filterId={"satelliteTag.name"}
         filterKey={"Satellite Tag Name"}
       />
       <FormGroupText
         noDesc={true}
         label="FILTER_SERIAL_NUMBER"
         onChange={onChange}
-        field={"satelliteTags.serialNumber"}
+        field={"satelliteTag.serialNumber"}
         term={"match"}
-        filterId={"satelliteTags.serialNumber"}
+        filterId={"satelliteTag.serialNumber"}
         filterKey={"Satellite Tag Serial Number"}
       />
       <FormGroupText
         noDesc={true}
         label="FILTER_ARGOS_PPT_NUMBER"
         onChange={onChange}
-        field={"satelliteTags.argosPttNumber"}
+        field={"satelliteTag.argosPttNumber"}
         term={"match"}
-        filterId={"satelliteTags.argosPttNumber"}
+        filterId={"satelliteTag.argosPttNumber"}
         filterKey={"Satellite Tag Argos PTT Number"}
       />
     </div>
