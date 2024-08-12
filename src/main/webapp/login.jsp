@@ -82,50 +82,10 @@ if (session.getAttribute("error") != null) {
         </tr>
         <tr><td>&nbsp;</td></tr>
 
-<%
-if((CommonConfiguration.getProperty("allowSocialMediaLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", "context0").equals("true"))){
 
-%>
-	<tr><td colspan="2">
-	<strong><%=props.getProperty("socialMediaLogin") %></strong><br />
-	<%=props.getProperty("ifYouHaveSocialMedia") %><br /><br />
-	
-	<%
-	
-	
-	if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
-	%>
-	            <img alt="Facebook" title="Facebook" src="images/facebookLogin.png" onClick="window.location.href='LoginUserSocial?type=facebook';" width="50px" height="50px" style="cursor: pointer;" />
-	
-	<%
-	}
-	
-	if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
-	%>
-	            <img alt="Flickr" title="Flickr" src="images/flickrLogin.png" onClick="window.location.href='LoginUserSocial?type=flickr';" width="50px" height="50px" style="cursor: pointer;"/>
-	<%
-	}
-	%>
-	<br /><br />
-	</td></tr>
 
-<%
-}
 
-if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0")!=null)&&(CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0").equals("true"))){
 
-%>
-	<tr><td colspan="2">
-		<%=props.getProperty("createSocialMedia") %><br />
-	
-	
-	            <input type="button" value="<%=props.getProperty("createUserFacebook")%>" onClick="window.location.href='UserCreateSocial?type=facebook';" />
-	            <input type="button" value="<%=props.getProperty("createUserFlickr")%>" onClick="window.location.href='UserCreateSocial?type=flickr';" />
-	<br /><br />
-	</td></tr>
-<%
-}
-%>
 
         <tr><td colspan="2" align="left">
         

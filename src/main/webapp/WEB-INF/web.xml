@@ -471,9 +471,8 @@
            /import/upload = authc, roles[researcher]
 		   /ResumableUpload = authc, roles[researcher]
           /upload  = authc, roles[researcher]
-		  /UserCreateSocial = authc
-		 /SocialGrabFiles = authc, roles[admin]
-		 /SocialConnect = authc, roles[admin]
+
+
 		 #/ia = authc
 		 /MediaAssetContext = authc
 		  /GetCurrentIAInfo = authc
@@ -1029,10 +1028,7 @@
 		<servlet-name>UserCheck</servlet-name>
 		<servlet-class>org.ecocean.servlet.UserCheck</servlet-class>
 </servlet>
-    <servlet>
-      <servlet-name>UserCreateSocial</servlet-name>
-      <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
-  </servlet>
+
 
         <servlet>
       <servlet-name>UserResetPasswordSendEmail</servlet-name>
@@ -1130,15 +1126,7 @@
       	org.ecocean.servlet.LogoutUser</servlet-class>
   </servlet>
 
-    <servlet>
-      	<servlet-name>SocialGrabFiles</servlet-name>
-      	<servlet-class>org.ecocean.servlet.SocialGrabFiles</servlet-class>
-   </servlet>
 
-    <servlet>
-      	<servlet-name>SocialConnect</servlet-name>
-      	<servlet-class>org.ecocean.servlet.SocialConnect</servlet-class>
-   </servlet>
 
   <!-- end Shiro filters -->
 
@@ -2034,10 +2022,7 @@
 			<servlet-name>UserCheck</servlet-name>
 			<url-pattern>/UserCheck</url-pattern>
 </servlet-mapping>
-      <servlet-mapping>
-          <servlet-name>UserCreateSocial</servlet-name>
-          <url-pattern>/UserCreateSocial</url-pattern>
-  </servlet-mapping>
+
 
 
 
@@ -2543,15 +2528,7 @@
     	<servlet-name>LogoutUser</servlet-name>
     	<url-pattern>/LogoutUser</url-pattern>
   </servlet-mapping>
-    <servlet-mapping>
-    	<servlet-name>SocialConnect</servlet-name>
-    	<url-pattern>/SocialConnect</url-pattern>
-    </servlet-mapping>
 
-    <servlet-mapping>
-    	<servlet-name>SocialGrabFiles</servlet-name>
-    	<url-pattern>/SocialGrabFiles</url-pattern>
-    </servlet-mapping>
 
 
   <servlet-mapping>
@@ -2813,15 +2790,9 @@
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-      	<servlet-name>LoginUserSocial</servlet-name>
-      	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
-   </servlet>
 
- <servlet-mapping>
-    <servlet-name>LoginUserSocial</servlet-name>
-    <url-pattern>/LoginUserSocial</url-pattern>
-  </servlet-mapping>
+
+
 
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
