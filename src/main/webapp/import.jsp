@@ -280,6 +280,62 @@ a.button:hover {
     background-color: #DDA;
     text-decoration: none;
 }
+
+.ia-match-filter-dialog .option-cols {
+	-webkit-column-count: 1;
+	-moz-column-count: 1;
+	column-count: 1;
+}
+.ia-match-filter-dialog .option-cols input {
+	vertical-align: top;
+}
+.ia-match-filter-dialog .option-cols .item {
+	padding: 1px 4px;
+	border-radius: 5px;
+}
+.ia-match-filter-dialog .option-cols .item:hover {
+	background-color: #AAA;
+}
+.ia-match-filter-dialog .option-cols .item label {
+	font-size: 0.9em;
+	width: 90%;
+	margin-left: 5px;
+	line-height: 1.0em;
+}
+.ia-match-filter-dialog .option-cols .item-checked label {
+	font-weight: bold;
+}
+.ia-match-filter-dialog ul {
+	list-style-type: none;
+}
+.ia-match-filter-dialog .item-count {
+	font-size: 0.8em;
+	color: #777;
+	margin-left: 9px;
+}
+.ia-match-filter-section {
+	margin-top: 10px;
+	border-top: solid 3px #999;
+}
+.ia-match-filter-title {
+	margin: 20px 0 5px 0;
+	padding: 1px 0 1px 20px;
+	background-color: #b491c8;
+	color: #555;
+	font-weight: bold;
+}
+.ia-match-filter-dialog {
+	display: none;
+	z-index: 3000;
+	position: fixed;
+	top: 10%;
+	width: 80%;
+	padding: 15px;
+	border: solid 5px #888;
+	background-color: #fff;
+}
+
+
 </style>
 
 
@@ -302,6 +358,8 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("import.jsp");
 myShepherd.beginDBTransaction();
+String langCode = ServletUtilities.getLanguageCode(request);
+Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request, myShepherd);
 
 //should the user see the detect and/or detect+ID buttons?
 boolean allowIA=false;
@@ -437,8 +495,10 @@ try{
 	    int numMatchAgainst=0;
 	    boolean foundChildren = false;
 	    int numMatchTasks=0;
-	
-	    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
+
+
+
+	HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
 	    if (Util.collectionSize(itask.getEncounters()) > 0) {
 	    	for (Encounter enc : itask.getEncounters()) {
 	    		
@@ -600,7 +660,10 @@ try{
 	        jarrs.put(enc.getCatalogNumber(), jarr);
 	        
 	    	}
-	    int percent = -1;
+
+
+
+			int percent = -1;
 	    if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
 	%>
 	</tbody></table>
@@ -802,6 +865,11 @@ try{
 	    };
 	    for (let [encId, maIds] of js_jarrs) { data.bulkImport[encId] = maIds; }  // convert js_jarrs map into js object
 	    if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+
+		if ($('#match-filter-owner-me').is(':checked')){
+			if(!data.taskParameters.matchingSetFilter) data.taskParameters.matchingSetFilter = {};
+			data.taskParameters.matchingSetFilter["owner"] = ["me"]
+		}
 	
 	    console.log('sendToIA() SENDING: locationIds=%o data=%o', locationIds, data);
 	    $.ajax({
@@ -826,6 +894,7 @@ try{
 	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
 	    //var locationIds = $('#id-locationids').val();
 	    var locationIds = '';
+		var owner = '';
 	    $("#id-locationids option:selected").each(function(){
 	    	locationIds+='&locationID='+this.value;
 	    });
@@ -833,9 +902,13 @@ try{
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+
+		if ($('#match-filter-owner-me').is(':checked')){
+			owner = "&owner=" + encodeURIComponent(JSON.stringify(["me"]));
+		}
 	    
 	    $.ajax({
-	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
+	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds + owner,
 	        dataType: 'json',
 	        type: 'GET',
 	        contentType: 'application/javascript',
@@ -849,6 +922,33 @@ try{
 	        }
 	    });
 	    
+	}
+
+	function shouldselectAllOptions(shouldselect){
+		$("#id-locationids option").each(function(index,option){
+			if(option.value){
+				option.selected = shouldselect;
+			}
+
+		});
+	}
+
+	function selectLocationbyName(location){
+		if  (location){
+
+			$("#id-locationids option").each(function(index,option){
+				if(option.value === location){
+					option.selected = true;
+				}
+
+			});
+
+		}
+	}
+
+	function showModal(){
+
+		$('.ia-match-filter-dialog').show()
 	}
 	 
 	</script>
@@ -875,7 +975,7 @@ try{
 		    
 		    %>
 		    	
-		    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
+		    	<div style="margin-bottom: 30px;margin-top: 30px;"><a class="button" style="margin-left: 20px;" onClick="$('.ia-match-filter-dialog').show()">Send to detection (no identification)</a></div>
 		
 
 	 	<% 
@@ -889,9 +989,8 @@ try{
 
 	if (allowReID) { 
 		%>
-		 <div style="margin-bottom: 20px;">   	
-		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
-                        <%=LocationID.getHTMLSelector(true, locationIds, null, "id-locationids", "locationID", "") %>
+		 <div style="margin-bottom: 30px;margin-top: 30px;">
+		    	<a class="button" style="margin-left: 20px;" onClick="showModal()">Send to identification</a>
 		   </div>
 		    	
 		    <%
@@ -909,6 +1008,112 @@ try{
 		              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" style="background-color: yellow;" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
 		        	</form>
 		    	</div>
+
+		<div class="ia-match-filter-dialog">
+			<h2><%=encprops.getProperty("matchFilterHeader")%></h2>
+			<%
+
+				String queueStatementID2="";
+				int wbiaIDQueueSize2 = WbiaQueueUtil.getSizeDetectionJobQueue(false);
+				if(wbiaIDQueueSize2==0){
+					queueStatementID2 = "The machine learning queue is empty and ready for work.";
+				}
+				else if(Prometheus.getValue("wildbook_wbia_turnaroundtime_detection")!=null){
+					String val=Prometheus.getValue("wildbook_wbia_turnaroundtime_detection");
+					try{
+						Double d = Double.parseDouble(val);
+						d=d/60.0;
+						queueStatementID2 = "There are currently "+wbiaIDQueueSize2+" ID jobs in the small batch queue. Time to completion is averaging "+(int)Math.round(d)+" minutes based on recent matches. Your time may be faster or slower.";
+					}
+					catch(Exception de){de.printStackTrace();}
+				}
+				if(!queueStatementID2.equals("")){
+			%>
+			<p><em><%=queueStatementID2 %></em></p>
+			<%
+				}
+			%>
+			<div class="ia-match-filter-title search-collapse-header" style="padding-left:0; border:none;">
+				<span class="el el-lg el-chevron-right rotate-chevron down" style="margin-right: 8px;"></span><%=encprops.getProperty("locationID")%> &nbsp; <span class="item-count" id="total-location-count"></span>
+			</div>
+			<div class="ia-match-filter-container" style="display: block">
+				<div  style="width: 100%; max-height: 500px; overflow-y: scroll">
+					<div id="ia-match-filter-location" class="option-cols">
+
+						<div>
+							<input type="button" value="<%=encprops.getProperty("selectAll")%>"
+								   onClick="shouldselectAllOptions(true)" />
+							<input type="button" value="<%=encprops.getProperty("selectNone")%>"
+								   onClick="shouldselectAllOptions(false)" />
+						</div>
+						<br>
+
+						<%=LocationID.getHTMLSelector(true, locationIds, null, "id-locationids", "locationID", "") %>
+
+
+					</div>
+
+				</div>
+
+
+				<style type="text/css">
+					/* this .search-collapse-header .rotate-chevron logic doesn't work
+                     because animatedcollapse.js is eating the click event (I think.).
+                     It's unclear atm where/whether to modify animatedcollapse.js to
+                     rotate this chevron.
+                    */
+					.search-collapse-header .rotate-chevron {
+						-moz-transition: transform 0.5s;
+						-webkit-transition: transform 0.5s;
+						transition: transform 0.5s;
+					}
+					.search-collapse-header .rotate-chevron.down {
+						-ms-transform: rotate(90deg);
+						-moz-transform: rotate(90deg);
+						-webkit-transform: rotate(90deg);
+						transform: rotate(90deg);
+					}
+					.search-collapse-header:hover {
+						cursor: pointer;
+					}
+
+				</style>
+				<script>
+					$(".search-collapse-header").click(function(){
+						console.log("LOG!: collapse-header is clicked!");
+						$(this).children(".rotate-chevron").toggleClass("down");
+						$(this).next().slideToggle();
+					});
+				</script>
+
+			</div>
+
+
+			<div class="ia-match-filter-title"><%=encprops.getProperty("matchFilterOwnership")%></div>
+			<div class="item">
+				<input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
+				<label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
+			</div>
+
+			<div class="ia-match-filter-section">
+				<% if(allowIA) {%>
+				<input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="sendToIA(false)" />
+				<%}
+				if (allowReID){
+				%>
+				<input id="matchbutton" type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="resendToID()" />
+
+				<% }%>
+				<input style="background-color: #DDD;" type="button" value="<%=encprops.getProperty("cancel")%>"
+					   onClick="$('.ia-match-filter-dialog').hide()" />
+			</div>
+
+
+
+		</div>
+	</div>
+
+
 
 	<%
 	}
@@ -930,7 +1135,15 @@ finally{
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 }
+
+
+
 %>
+
+
+
+
+</div>
 
 </div>
 
