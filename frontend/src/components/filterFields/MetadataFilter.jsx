@@ -91,8 +91,8 @@ export default function MetadataFilter({
         options={projectOptions}
         onChange={onChange}
         term="terms"
-        field="projectsForUser"
-        filterId = "projectsForUser"
+        field="projects"
+        filterId = "projects"
         filterKey={"Project Name"}
       />
       <FormGroupMultiSelect
