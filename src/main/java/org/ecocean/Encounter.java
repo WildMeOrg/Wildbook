@@ -4537,6 +4537,8 @@ public class Encounter extends Base implements java.io.Serializable {
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
         map.put("country", keywordNormalType);
+        map.put("assignedUsername", keywordNormalType);
+        map.put("projects", keywordNormalType);
         map.put("behavior", keywordNormalType);
         map.put("patterningCode", keywordNormalType);
         map.put("annotationViewpoints", keywordNormalType);
