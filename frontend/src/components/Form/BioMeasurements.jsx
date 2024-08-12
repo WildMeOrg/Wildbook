@@ -12,12 +12,13 @@ function FormMeasurements({
 }) {
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
     const intl = useIntl();
+
     useEffect(() => {
         if (data) {
             const newInputs = data?.map(item => ({ type: item, operator: 'gte', value: '' }));
             setInputs(newInputs);
         }
-    }, []);
+    }, [JSON.stringify(data)]);
 
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
@@ -26,10 +27,10 @@ function FormMeasurements({
             }
             return input;
         });
-        
+
         setInputs(updatedInputs);
         const id = `${filterId}.${updatedInputs[index].type}`;
-        if (field === 'value') {
+        if (field === 'value' || field === 'operator') {
             if (value !== '') {
                 updateQuery(updatedInputs);
             } else {
@@ -37,7 +38,7 @@ function FormMeasurements({
             }
         }
     };
-
+    
     const updateQuery = (inputs) => {
 
         inputs.map(input => {
@@ -107,4 +108,4 @@ function FormMeasurements({
     );
 }
 
-export default FormMeasurements;
+export default React.memo(FormMeasurements);

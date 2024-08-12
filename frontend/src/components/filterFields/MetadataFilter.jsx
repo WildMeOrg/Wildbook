@@ -38,7 +38,7 @@ export default function MetadataFilter({
 
   const assignedUserOptions = data?.users?.map((item) => {
     return {
-      value: item.id,
+      value: item.username,
       label: item.username
     };
   }

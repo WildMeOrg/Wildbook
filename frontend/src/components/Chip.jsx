@@ -8,12 +8,12 @@ function Chip({ children }) {
     function renderFilter(filter) {     
         
         function getLabelById(options, id) {
-            const option = options.find(opt => opt.value === id);
+            const option = options?.find(opt => opt.value === id);
             let label = "";
-            if(!option.label || option.label.startsWith("Anonymous")) {
+            if(!option?.label || option?.label.startsWith("Anonymous")) {
                 label = "Anonymous User";
             }else {
-                label = option.label;
+                label = option?.label;
             }
             return label;
         }
@@ -33,10 +33,10 @@ function Chip({ children }) {
             };
           }
           ) || [];
-        
+
           const assignedUserOptions = data?.users?.map((item) => {
             return {
-              value: item.id,
+              value: item.username,
               label: item.username
             };
           }
@@ -79,7 +79,7 @@ function Chip({ children }) {
             const labels = Object.values(query.terms[filterId]).map(val => {
                 if (filterId === "organizations") {
                     return getLabelById(organizationOptions, val);
-                } else if (filterId === "projectsForUser") {
+                } else if (filterId === "projects") {
                     return getLabelById(projectOptions, val);
                 } else if (filterId === "assignedUsername") {
                     return getLabelById(assignedUserOptions, val);
