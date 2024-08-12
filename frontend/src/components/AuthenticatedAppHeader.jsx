@@ -25,7 +25,10 @@ export default function AuthenticatedAppHeader({
     getAllNotifications,
   } = useContext(AuthContext);
 
-  return <div className="container" style={{ height: "50px" }}>
+  return <div className="container" style={{ height: "50px",
+    paddingLeft: "5%",
+    paddingRight: "5%",
+   }}>
   {visible ? (
     <Navbar
       variant="dark"
@@ -35,37 +38,26 @@ export default function AuthenticatedAppHeader({
         height: "50px",
         padding: 0,
         fontSize: "1rem",
-        // position: "fixed",
-        // top: showAlert ? 60 : 0,
-        // maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
         zIndex: "200",
-        // width: "100%",
       }}
     >
       <Navbar.Brand
         className="d-flex flex-row align-items-center"
         href="/"
-        // style={{ marginLeft: "10%", marginRight: "10%", padding: 0 }}
       >
         <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav"
-        // style={{
-        //   marginRight: "10%"
-        // }}
       />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav id="nav"
         className="mr-auto"
               style={{
                 display: "flex",
-                // justifyContent: "flex-end",
                 marginLeft: "auto",
-                // width: "100%",
-                // marginRight: "10%"
               }}>
           <Menu username={username} />
         </Nav>
@@ -77,11 +69,9 @@ export default function AuthenticatedAppHeader({
           getAllNotifications={getAllNotifications}
         />
         <MultiLanguageDropdown />
-        {/* <AvatarAndUserProfile username={username} avatar={avatar} /> */}
       </Navbar.Collapse>
       <div
         className="avatar-container d-flex align-items-center"
-        // style={{ marginRight: "10%" }}
       >
         <AvatarAndUserProfile username={username} avatar={avatar} />
       </div>

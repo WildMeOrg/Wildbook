@@ -15,12 +15,6 @@ const customStyles = {
       borderRadius: "5px",
     },
   },
-  // tableWrapper: {
-  //   style: {
-  //     borderRadius: '5px', 
-  //     overflow: 'hidden', 
-  //   },
-  // },
 };
 
 const conditionalRowStyles = [
@@ -175,7 +169,7 @@ const MyDataTable = ({
     }}>
       <h2 className="mt-3" style={{ color: "white" }}>{title}</h2>
       <div className="d-flex flex-row justify-content-between">
-        <div>
+        <div className="tabs">
           <Button
             key={"result"}
             variant="outline-tertiary"
@@ -185,6 +179,7 @@ const MyDataTable = ({
               color: theme.primaryColors.primary700,
               fontWeight: "bold",
               fontSize: "1em",
+              paddingLeft: "5px", paddingRight: "5px"
             }}
 
           >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"} />
@@ -194,8 +189,9 @@ const MyDataTable = ({
               <Button
                 key={index}
                 variant="outline-tertiary"
-                className="me-1"
-                style={{ backgroundColor: "rgba(255,255,255,0.3)" }}
+                className="me-1 mt-1"
+                style={{ backgroundColor: "rgba(255,255,255,0.3)", paddingLeft: "5px", paddingRight: "5px" }}
+                
               >
                 <a
                   key={index}
@@ -208,7 +204,13 @@ const MyDataTable = ({
             );
           })}
         </div>
-        <InputGroup className="mb-3" style={{ width: "180px", height: "30px" }}>
+        <InputGroup className="mb-3 d-flex search-bar"
+          style={{
+            minWidth: "120px",
+            height: "30px",
+            whiteSpace: "nowrap",
+            maxWidth: "20%",
+          }}>
           <Form.Control
             type="text"
             className="custom-placeholder"
@@ -217,6 +219,7 @@ const MyDataTable = ({
               color: "white",
               border: '1px solid white',
               borderRight: 'none',
+              flex: "1 1 auto",
               borderRadius: "50px 0 0 50px",
             }}
             placeholder={searchText || intl.formatMessage({ id: "SEARCH" })}
@@ -225,113 +228,111 @@ const MyDataTable = ({
           />
           {
             filterText.length == 0 ? <Button
-            style={{
-              backgroundColor: "transparent",
-              color: 'white',
-              border: '1px solid white',
-              // borderLeft: '2px solid transparent',
-              borderLeft: 'none',
-              borderRadius: "0 50px 50px 0",
-            }}
-          >
-            <i class="bi bi-search"></i>
-          </Button> : <Button
-            style={{
-              backgroundColor: "transparent",
-              color: 'white',
-              border: '1px solid white',
-              // borderLeft: '2px solid transparent',
-              borderLeft: 'none',
-              borderRadius: "0 50px 50px 0",
-            }}
-            onClick={clearFilterResult}
-          >
-            <i class="bi bi-x-lg"></i>
-          </Button>
+              style={{
+                backgroundColor: "transparent",
+                color: 'white',
+                border: '1px solid white',
+                borderLeft: 'none',
+                borderRadius: "0 50px 50px 0",
+              }}
+            >
+              <i class="bi bi-search"></i>
+            </Button> : <Button
+              style={{
+                backgroundColor: "transparent",
+                color: 'white',
+                border: '1px solid white',
+                borderLeft: 'none',
+                borderRadius: "0 50px 50px 0",
+              }}
+              onClick={clearFilterResult}
+            >
+              <i class="bi bi-x-lg"></i>
+            </Button>
           }
         </InputGroup>
       </div>
-<div
-  style={{
-    borderRadius: '5px', 
-      overflow: 'hidden', 
-  }}
->
-      <DataTable
-        // title={title}
-        columns={wrappedColumns}
-        data={filteredData}
-        customStyles={customStyles}
-        conditionalRowStyles={conditionalRowStyles}
-        // selectableRows
-        onSelectedRowsChange={onSelectedRowsChange}
-        pointerOnHover
-        onRowClicked={onRowClicked}
-        selectableRowsHighlight
-        progressPending={isLoading}
-        
-      />
+      <div
+        style={{
+          borderRadius: '5px',
+          overflow: 'hidden',
+        }}
+      >
+        <DataTable
+          // title={title}
+          columns={wrappedColumns}
+          data={filteredData}
+          customStyles={customStyles}
+          conditionalRowStyles={conditionalRowStyles}
+          // selectableRows
+          onSelectedRowsChange={onSelectedRowsChange}
+          pointerOnHover
+          onRowClicked={onRowClicked}
+          selectableRowsHighlight
+          progressPending={isLoading}
+
+        />
       </div>
       {
         filteredData.length == 0 && !isLoading ? <div className="d-flex justify-content-center align-items-center" style={{ color: "white" }}>
           <FormattedMessage id="NO_RESULTS_FOUND" defaultMessage={"No results found"} />
         </div> : <Row className="mt-3 d-flex justify-content-center align-items-center">
-        <Col
-          xs={12}
-          className="d-flex justify-content-center align-items-center flex-nowrap"
-        >
-          <div className="me-3" style={{ color: "white" }}>
-            <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"} />: {totalItems}</span>
-          </div>
-          <InputGroup className="me-3" style={{ width: "150px" }}>
-            <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} /></InputGroup.Text>
-            <Form.Control
-              as="select"
-              value={perPage}
-              onChange={handlePerPageChange}
-            >
-              {perPageOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </Form.Control>
-          </InputGroup>
-          <ReactPaginate
-            previousLabel={"<"}
-            nextLabel={">"}
-            breakLabel={"..."}
-            breakClassName={"page-item"}
-            breakLinkClassName={"page-link"}
-            pageCount={Math.ceil(totalItems / perPage)}
-            marginPagesDisplayed={2}
-            pageRangeDisplayed={2}
-            onPageChange={handlePageChange}
-            containerClassName={"pagination"}
-            pageClassName={"page-item"}
-            pageLinkClassName={"page-link"}
-            previousClassName={"page-item"}
-            previousLinkClassName={"page-link"}
-            nextClassName={"page-item"}
-            nextLinkClassName={"page-link"}
-            activeClassName={"active-page"}
-            forcePage={page}
-          />
-          <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
-            <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"} /></InputGroup.Text>
-            <Form.Control
-              type="text"
-              value={goToPage}
-              onChange={handleGoToPageChange}
+          <Col
+            xs={12}
+            className="d-flex justify-content-center align-items-center flex-nowrap"
+          >
+            <div className="me-3" style={{ color: "white" }}>
+              <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"} />: {totalItems}</span>
+            </div>
+            <InputGroup className="me-3" style={{ width: "150px" }}>
+              <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} /></InputGroup.Text>
+              <Form.Control
+                as="select"
+                value={perPage}
+                onChange={handlePerPageChange}
+              >
+                {perPageOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Form.Control>
+            </InputGroup>
+            <ReactPaginate
+              previousLabel={"<"}
+              nextLabel={">"}
+              breakLabel={"..."}
+              breakClassName={"page-item"}
+              breakLinkClassName={"page-link"}
+              pageCount={Math.ceil(totalItems / perPage)}
+              marginPagesDisplayed={2}
+              pageRangeDisplayed={2}
+              onPageChange={handlePageChange}
+              containerClassName={"pagination"}
+              pageClassName={"page-item"}
+              pageLinkClassName={"page-link"}
+              previousClassName={"page-item"}
+              previousLinkClassName={"page-link"}
+              nextClassName={"page-item"}
+              nextLinkClassName={"page-link"}
+              activeClassName={"active-page"}
+              forcePage={page}
             />
-            <Button className="go-button" onClick={handleGoToPageSubmit}>
-              <FormattedMessage id="GO" defaultMessage={"Go"} />
-            </Button>
-          </InputGroup>
-        </Col>
-      </Row>
+            <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
+              <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"} /></InputGroup.Text>
+              <Form.Control
+                type="text"
+                value={goToPage}
+                onChange={handleGoToPageChange}
+              />
+              <Button className="go-button" onClick={handleGoToPageSubmit}>
+                <FormattedMessage id="GO" defaultMessage={"Go"} />
+              </Button>
+            </InputGroup>
+          </Col>
+        </Row>
       }
-      
+
     </div>
   );
 };
