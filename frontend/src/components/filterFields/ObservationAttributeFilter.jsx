@@ -116,9 +116,9 @@ export default function ObservationAttributeFilter(
                 label="FILTER_BEHAVIOUR"
                 onChange={onChange}
                 options={behaviourOptions}
-                field="behaviour"
+                field="behavior"
                 term="terms"
-                filterKey="Behaviour"
+                filterKey="Behavior"
             />
 
             <FormGroupMultiSelect
@@ -127,7 +127,7 @@ export default function ObservationAttributeFilter(
                 label="FILTER_PATTERNING_CODE"
                 onChange={onChange}
                 options={patternCodeOptions}
-                field={"patternCode"}
+                field={"patterningCode"}
                 term={"terms"}
                 filterKey={"Patterning Code"}
             />
