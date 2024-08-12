@@ -8,17 +8,16 @@ import { useIntl } from 'react-intl';
 function FormMeasurements({
     data,
     onChange,
-    field,
     filterId
 }) {
     const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
     const intl = useIntl();
     useEffect(() => {
         if (data) {
-            const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
+            const newInputs = data?.map(item => ({ type: item, operator: 'gte', value: '' }));
             setInputs(newInputs);
         }
-    }, [data]);
+    }, []);
 
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
@@ -27,6 +26,7 @@ function FormMeasurements({
             }
             return input;
         });
+        
         setInputs(updatedInputs);
         const id = `${filterId}.${updatedInputs[index].type}`;
         if (field === 'value') {

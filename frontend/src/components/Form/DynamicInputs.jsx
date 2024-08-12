@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
-import { Button } from 'react-bootstrap';
 import BrutalismButton from '../BrutalismButton';
 import { FormattedMessage } from 'react-intl';
-import FilterPanel from '../FilterPanel';
 import { useIntl } from 'react-intl';
 
 function DynamicInputs({
@@ -19,7 +17,6 @@ function DynamicInputs({
   const handleInputChange = (index, event) => {
     const newInputs = inputs.map((input, i) => {
       if (i === index) {
-        // const updatedInput = { ...input, [event.target.name]: event.target.value };
         const nameField = event.target.name === 'name' ? event.target.value : input.name;
         const valueField = event.target.name === 'value' ? event.target.value : input.value;
         const originalName = (event.target.name === 'name' && event.target.value !== '') ? event.target.value : input.originalName || input.name;
@@ -42,7 +39,6 @@ function DynamicInputs({
           if (updatedInput.originalName) {
             onChange(null, `dynamicProperties.${updatedInput.originalName}`);
           }
-          // onChange(null, `dynamicProperties.${updatedInput.name}`);
         }
         return updatedInput;
       }
