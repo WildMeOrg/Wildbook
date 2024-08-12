@@ -496,9 +496,7 @@ try{
 	    boolean foundChildren = false;
 	    int numMatchTasks=0;
 
-
-
-	HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
+	    HashMap<String,JSONArray> jarrs = new HashMap<String,JSONArray>();
 	    if (Util.collectionSize(itask.getEncounters()) > 0) {
 	    	for (Encounter enc : itask.getEncounters()) {
 	    		
@@ -660,10 +658,7 @@ try{
 	        jarrs.put(enc.getCatalogNumber(), jarr);
 	        
 	    	}
-
-
-
-			int percent = -1;
+	    int percent = -1;
 	    if (allAssets.size() > 1) percent = Math.round(numIA / allAssets.size() * 100);
 	%>
 	</tbody></table>
@@ -902,7 +897,6 @@ try{
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
-
 		if ($('#match-filter-owner-me').is(':checked')){
 			owner = "&owner=" + encodeURIComponent(JSON.stringify(["me"]));
 		}
@@ -931,19 +925,6 @@ try{
 			}
 
 		});
-	}
-
-	function selectLocationbyName(location){
-		if  (location){
-
-			$("#id-locationids option").each(function(index,option){
-				if(option.value === location){
-					option.selected = true;
-				}
-
-			});
-
-		}
 	}
 
 	function showModal(){
@@ -1135,16 +1116,9 @@ finally{
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 }
-
-
-
 %>
 
-
-
-
 </div>
-
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>

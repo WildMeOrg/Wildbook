@@ -6,10 +6,12 @@ org.ecocean.grid.*,
 org.ecocean.cache.*,org.ecocean.ia.*,
 org.json.*,org.ecocean.servlet.importer.ImportTask,org.ecocean.identity.IBEISIA,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+
 <%
 response.setContentType("application/json");
 response.setCharacterEncoding("UTF-8");
 response.setHeader("Access-Control-Allow-Origin", "*");
+
 
 System.out.println("==> In ImporIA Servlet ");
 
@@ -58,12 +60,9 @@ try {
             //matchingSetFilter = { locationIds: locationIds }
             if(locationIDs!=null && locationIDs.size()>0)mf.put("locationIds",locationIDs);
             //mf.put("projectId", project.getId());
-
             if (!ownerFilter.isEmpty()) {
                 mf.put("owner", ownerFilter);
             }
-
-
             taskParameters.put("matchingSetFilter", mf);
 
       	  	
