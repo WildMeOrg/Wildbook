@@ -613,13 +613,15 @@ public class OpenSearch {
         return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
     }
 
-    public static String queryStore(final JSONObject query, final String indexName) {
+    public static String queryStore(final JSONObject query, final String indexName,
+        final User user) {
         if (query == null) return null;
         JSONObject stored = new JSONObject(query.toString());
         String id = Util.generateUUID();
         stored.put("id", id);
         stored.put("indexName", indexName);
         stored.put("created", System.currentTimeMillis());
+        stored.put("creator", user.getUUID());
         try {
             Util.writeToFile(stored.toString(), queryStoragePath(id));
         } catch (Exception ex) {

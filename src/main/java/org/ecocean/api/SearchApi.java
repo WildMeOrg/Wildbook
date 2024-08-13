@@ -69,7 +69,7 @@ public class SearchApi extends ApiBase {
                     if (query == null) { // must be body (new query, needs storing)
                         query = ServletUtilities.jsonFromHttpServletRequest(request);
                         // we store this *before* we sanitize
-                        searchQueryId = OpenSearch.queryStore(query, indexName);
+                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
                     } else { // stored query, so:
                         indexName = query.optString("indexName", null);
                         query = OpenSearch.queryScrubStored(query);
