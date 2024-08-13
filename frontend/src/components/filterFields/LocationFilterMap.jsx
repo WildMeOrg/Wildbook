@@ -96,7 +96,7 @@ export default function LocationFilterMap({
                         }}>
                             <FormLabel><FormattedMessage id={Object.keys(item)[0]} /></FormLabel>
                             <FormControl
-                                type="text"
+                                type="number"
                                 placeholder={bounds ? bounds[Object.values(item)[0]] : intl.formatMessage({ id: "TYPE_HERE" })
                             }
                                 value={bounds ? bounds[Object.values(item)[0]] : tempBounds? tempBounds[Object.values(item)[0]] : ""}
