@@ -46,9 +46,65 @@ public class EncounterQueryProcessor extends QueryProcessor {
         String context = "context0";
 
         context = ServletUtilities.getContext(request);
-
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("EncounterQueryProcessor.class");
+
+        String searchQueryId = request.getParameter("searchQueryId");
+        // hack to build a ridiculous query string from an OpenSearch query
+        if (searchQueryId != null) {
+            String failed = filter + " 1 == 0";
+            List<String> encIds = new ArrayList<String>();
+            User user = myShepherd.getUser(request);
+            if (user == null) return failed;
+            JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId);
+            if (searchQuery == null) return failed;
+            String indexName = searchQuery.optString("indexName", null);
+            if (indexName == null) return failed;
+            searchQuery = OpenSearch.queryScrubStored(searchQuery);
+            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
+            OpenSearch os = new OpenSearch();
+            int numFrom = 0;
+            int pageSize = 10000;
+            String sort = "_id"; // TODO make this respect param?
+            String sortOrder = "asc";
+            try {
+                os.deletePit(indexName);
+                JSONObject queryRes = os.queryPit(indexName, sanitized, numFrom, pageSize, sort,
+                    sortOrder);
+                JSONObject outerHits = queryRes.optJSONObject("hits");
+                if (outerHits == null) {
+                    System.out.println("could not find (outer) hits");
+                    return failed;
+                }
+                JSONArray hits = outerHits.optJSONArray("hits");
+                if (hits == null) {
+                    System.out.println("could not find hits");
+                    return failed;
+                }
+                for (int i = 0; i < hits.length(); i++) {
+                    JSONObject h = hits.optJSONObject(i);
+                    if (h == null) {
+                        System.out.println("failed to parse hits[" + i + "]");
+                        return failed;
+                    }
+                    String hId = h.optString("_id", null);
+                    if (hId == null) {
+                        System.out.println("failed to parse _id from hits[" + i + "]");
+                        return failed;
+                    }
+                    // Encounter enc = myShepherd.getEncounter(hId);
+                    encIds.add(hId);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return failed;
+            }
+            filter += " (catalogNumber == \"" + String.join("\") || (catalogNumber == \"",
+                encIds) + "\")";
+            System.out.println("queryStringBuilder: searchQueryId=" + searchQueryId + " yielded " +
+                filter);
+            return filter;
+        }
         // filter for location------------------------------------------
         if ((request.getParameter("locationField") != null) &&
             (!request.getParameter("locationField").equals(""))) {
