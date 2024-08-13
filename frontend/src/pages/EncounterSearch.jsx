@@ -7,6 +7,7 @@ import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
+import { set } from "lodash-es";
 
 export default function EncounterSearch() {
 
@@ -37,17 +38,7 @@ export default function EncounterSearch() {
 
   // const [searchParams] = useSearchParams();
   const [ paramsFormFilters, setParamsFormFilters ] = useState([]);
-
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
-
-  // useEffect(() => {
-  //   console.log("searchParams: ", searchParams);
-  //   if (searchParams.get("results")) {
-  //     console.log("closing")
-  //     setFilterPanel(false);
-  //   } 
-    
-  // }, [searchParams]);  
 
   useEffect(() => {
     const handlePopState = () => {
@@ -110,6 +101,12 @@ export default function EncounterSearch() {
           new Map([...paramsFormFilters, ...formFilters].map(filter => [filter.filterId, filter])).values()
       ));      
   }, [paramsFormFilters]);
+
+  const [ queryID, setQueryID ] = useState([searchParams.get("searchQueryId")]);
+
+  useEffect(() => {
+    setQueryID(searchParams.get("searchQueryId"));
+  }, [searchParams.get("searchQueryId")]);
   
   const { data: encounterData, loading, } = useFilterEncounters({
     queries: formFilters,
@@ -118,6 +115,7 @@ export default function EncounterSearch() {
       size: perPage,
       from: page * perPage,
     },
+    queryId: queryID,
   });
 
   const encounters = encounterData?.results || [];

@@ -1,13 +1,3 @@
-// import useOptions from '../../hooks/useOptions';
-// import OptionTermFilter from '../../components/filterFields/OptionTermFilter';
-import PointDistanceFilter from '../../components/filterFields/PointDistanceFilter';
-// import SubstringFilter from '../../components/filterFields/SubstringFilter';
-// import DateRangeFilter from '../../components/filterFields/DateRangeFilter';
-// import useSiteSettings from '../site/useSiteSettings';
-// import IntegerFilter from '../../components/filterFields/IntegerFilter';
-// import autogenNameFilter from '../../components/filterFields/autogenNameFilter';
-// import useBuildFilter from '../../components/filterFields/useBuildFilter';
-// import sexOptions from '../../constants/sexOptions';
 import LocationFilter from '../../components/filterFields/LocationFilter';
 import DateFilter from '../../components/filterFields/DateFilter';
 import ObservationAttributeFilter from '../../components/filterFields/ObservationAttributeFilter';
@@ -16,8 +6,8 @@ import IdentityFilter from '../../components/filterFields/IdentityFilter';
 import TagsFilter from '../../components/filterFields/TagsFilter';
 import SocialFilter from '../../components/filterFields/SocialFilter';
 import MetadataFilter from '../../components/filterFields/MetadataFilter';
+import ApplyQueryFilter from '../../components/filterFields/ApplyQueryFilter';
 
-import useGetSiteSettings from '../../models/useGetSiteSettings';
 import BiologicalSamplesAndAnalysesFilter from '../../components/filterFields/BiologicalSamplesAndAnalysesFilter';
 
 export default function useEncounterSearchSchemas() {
@@ -69,6 +59,11 @@ export default function useEncounterSearchSchemas() {
       id: 'metadata',
       labelId: 'FILTER_METADATA',
       FilterComponent: MetadataFilter,
+    },
+    {
+      id: 'applyQuery',
+      labelId: 'Apply Query ID',
+      FilterComponent: ApplyQueryFilter,
     },
     
   ];
