@@ -613,11 +613,15 @@ public class OpenSearch {
         return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
     }
 
-    public static String queryStore(JSONObject query) {
+    public static String queryStore(final JSONObject query, final String indexName) {
         if (query == null) return null;
+        JSONObject stored = new JSONObject(query.toString());
         String id = Util.generateUUID();
+        stored.put("id", id);
+        stored.put("indexName", indexName);
+        stored.put("created", System.currentTimeMillis());
         try {
-            Util.writeToFile(query.toString(), queryStoragePath(id));
+            Util.writeToFile(stored.toString(), queryStoragePath(id));
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -634,5 +638,12 @@ public class OpenSearch {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    public static JSONObject queryScrubStored(final JSONObject query) {
+        if (query == null) return null;
+        JSONObject scrubbed = new JSONObject();
+        scrubbed.put("query", query.optJSONObject("query"));
+        return scrubbed;
     }
 }
