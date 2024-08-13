@@ -35,12 +35,12 @@ function Chip({ children }) {
         ) || [];
 
         const assignedUserOptions = (data?.users?.filter(item => item.username).map((item) => {
-            return {
-              value: item.username,
-              label: item.username
-            };
-          })) || [];
-          
+  return {
+    value: item.username,
+    label: item.username
+  };
+})) || [];
+
         const entries = [];
         const { clause, filterId, query, filterKey } = filter;
         if (clause === "nested") {
@@ -53,7 +53,7 @@ function Chip({ children }) {
 
         if (query?.geo_bounding_box) {
             const { top_left, bottom_right } = query.geo_bounding_box['locationGeoPoint'];
-            entries.push(`Location within bounding box: Northeast latitude, longitude: ${top_left.lat}, ${top_left.lon}, southwest latitude, longitude: ${bottom_right.lat}, ${bottom_right.lon}`);
+            entries.push(`Location within bounding box: Northeast latitude: ${top_left.lat}, longitude: ${top_left.lon}, southwest latitude: ${bottom_right.lat}, longitude: ${bottom_right.lon}`);
         }
 
         if (query?.range) {
