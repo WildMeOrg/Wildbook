@@ -219,5 +219,15 @@
     "ENCOUNTER_RESULTS_CALENDAR": "Calendario dei Risultati",
     "ENCOUNTER_ANALYSIS": "Analisi",
     "ENCOUNTER_EXPORT": "Esporta",
-    "SEARCH_ENCOUNTERS" : "Cerca Incontri"
+    "SEARCH_ENCOUNTERS" : "Cerca Incontri",
+    "INDIVIDUAL_ID": "ID Individuale",
+    "SIGHTING_ID": "ID di Avvistamento",
+    "ALTERNATIVE_ID": "ID Alternativo",
+    "CREATED_DATE": "Data di Creazione",
+    "LOCATION_ID": "ID di Localizzazione",
+    "SPECIES": "Specie",
+    "SUBMITTER": "Mittente",
+    "DATE_SUBMITTED": "Data di Invio",
+    "NUMBER_ANNOTATIONS": "Numero di Annotazioni",
+    "ADD_LABELLED_KEYWORD_SEARCH" : "Aggiungi Ricerca di Parole Chiave Etichettate"
 }

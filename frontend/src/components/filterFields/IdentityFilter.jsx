@@ -51,9 +51,9 @@ export default function IdentityFilter({
         />
         <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
         <FormControl
-          type="text"
+          type="number"
           style={{
-            width: "50px",
+            width: "100px",
             marginLeft: "10px",
             marginRight: "10px"
           }}

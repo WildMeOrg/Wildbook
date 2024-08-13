@@ -220,6 +220,16 @@
     "ENCOUNTER_RESULTS_CALENDAR" : "Results Calendar",
     "ENCOUNTER_ANALYSIS" : "Analysis",
     "ENCOUNTER_EXPORT" : "Export",
-    "SEARCH_ENCOUNTERS" : "Search Encounters"
+    "SEARCH_ENCOUNTERS" : "Search Encounters",
+    "INDIVIDUAL_ID" : "Individual ID",
+    "SIGHTING_ID" : "Sighting ID",
+    "ALTERNATIVE_ID" : "Alternative ID",
+    "CREATED_DATE" : "Created Date",
+    "LOCATION_ID" :     "Location ID",
+    "SPECIES" : "Species",
+    "SUBMITTER" : "Submitter",
+    "DATE_SUBMITTED" : "Date Submitted",
+    "NUMBER_ANNOTATIONS" : "Number of Annotations",
+    "ADD_LABELLED_KEYWORD_SEARCH" : "Add Labelled Keyword Search" 
 
 }

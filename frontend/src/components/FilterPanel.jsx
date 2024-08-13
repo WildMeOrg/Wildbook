@@ -200,7 +200,7 @@ export default function FilterPanel({
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    navigate(`/encounter-search${e.target.value}`);
+                    navigate(`/encounter-search?searchQueryId=${e.target.value || ''}`);
                   }
                 }}
               />
@@ -234,6 +234,7 @@ export default function FilterPanel({
                 onClick={() => {
                   setFormFilters([]);
                   setTempFormFilters([]);
+                  setFilterPanel(false);
                   window.location.reload();
                 }}
                 noArrow={true}

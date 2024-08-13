@@ -17,7 +17,7 @@ const customStyles = {
   },
 };
 
-const conditionalRowStyles = [
+const conditionalRowStyles = (theme) => [
   {
     when: (row) => row.tableID % 2 === 0,
     style: {
@@ -30,6 +30,14 @@ const conditionalRowStyles = [
       backgroundColor: "#f2f2f2", // White color
     },
   },
+  {
+    when: () => true,
+    style: {
+      "&:hover": {
+        backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+      },
+    }
+  }
 ];
 
 const MyDataTable = ({
@@ -59,7 +67,7 @@ const MyDataTable = ({
       columnNames.map((col) => {
         if (col.selector === 'occurrenceId') {
           return {
-            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            name: <FormattedMessage id={col.name}/>,
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
               href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
@@ -73,7 +81,7 @@ const MyDataTable = ({
           };
         } else if (col.selector === 'individualId') {
           return {
-            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            name: <FormattedMessage id={col.name}/>,
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
               href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
@@ -87,7 +95,7 @@ const MyDataTable = ({
           };
         } else {
           return ({
-            name: col.name.charAt(0).toUpperCase() + col.name.slice(1),
+            name: <FormattedMessage id={col.name}/>,
             selector: (row) => row[col.selector] || "-", // Accessor function for the column data
             sortable: true, // Make the column sortable
             sortFunction: (rowA, rowB) => {
@@ -191,7 +199,7 @@ const MyDataTable = ({
                 variant="outline-tertiary"
                 className="me-1 mt-1"
                 style={{ backgroundColor: "rgba(255,255,255,0.3)", paddingLeft: "5px", paddingRight: "5px" }}
-                
+
               >
                 <a
                   key={index}
@@ -209,7 +217,7 @@ const MyDataTable = ({
             minWidth: "120px",
             height: "30px",
             whiteSpace: "nowrap",
-            maxWidth: "20%",
+            // maxWidth: "20%",
           }}>
           <Form.Control
             type="text"
@@ -263,10 +271,11 @@ const MyDataTable = ({
           columns={wrappedColumns}
           data={filteredData}
           customStyles={customStyles}
-          conditionalRowStyles={conditionalRowStyles}
+          conditionalRowStyles={conditionalRowStyles(theme)}
           // selectableRows
           onSelectedRowsChange={onSelectedRowsChange}
           pointerOnHover
+          highlightOnHover
           onRowClicked={onRowClicked}
           selectableRowsHighlight
           progressPending={isLoading}
