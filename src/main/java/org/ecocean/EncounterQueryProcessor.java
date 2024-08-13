@@ -1636,6 +1636,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             if (indexName == null)
                 return new EncounterQueryResult(rEncounters, "searchQuery has no indexName",
                         "OpenSearch id " + searchQueryId);
+            searchQuery = OpenSearch.queryScrubStored(searchQuery);
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
             int numFrom = 0;
