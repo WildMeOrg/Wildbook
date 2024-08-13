@@ -31,7 +31,7 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncounters({ queries, params = {} }) {
+export default function useFilterEncounters({ queries, params = {}, queryId }) {
 
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
@@ -48,6 +48,7 @@ export default function useFilterEncounters({ queries, params = {} }) {
       from: from || 0,
       ...params,
     },
+    queryId,
     dataAccessor: (result) => {
       const resultCount = parseInt(get(result, ["data", "headers", "x-wildbook-total-hits"], "0"), 10);
       return {

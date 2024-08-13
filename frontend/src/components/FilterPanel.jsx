@@ -189,21 +189,7 @@ export default function FilterPanel({
               </div>
             })}
             <div
-              className="mt-5 d-flex flex-wrap justify-content-center align-items-center" >
-              <FormControl
-                type="text"
-                placeholder="Search ID"
-                style={{
-                  width: "80px",
-                  marginRight: "10px",
-                  marginTop: "10px",
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    navigate(`/encounter-search?searchQueryId=${e.target.value || ''}`);
-                  }
-                }}
-              />
+              className="mt-5 d-flex flex-wrap justify-content-center align-items-center w-100 gap-3" >
               <BrutalismButton
                 color="white"
                 backgroundColor={theme.primaryColors.primary700}
