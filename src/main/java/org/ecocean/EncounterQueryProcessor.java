@@ -1632,9 +1632,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
             if (searchQuery == null)
                 return new EncounterQueryResult(rEncounters, "searchQuery not found",
                         "OpenSearch id " + searchQueryId);
+            String indexName = searchQuery.optString("indexName", null);
+            if (indexName == null)
+                return new EncounterQueryResult(rEncounters, "searchQuery has no indexName",
+                        "OpenSearch id " + searchQueryId);
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
-            String indexName = "encounter";
             int numFrom = 0;
             int pageSize = 1000;
             String sort = "_id"; // TODO make this respect param?
