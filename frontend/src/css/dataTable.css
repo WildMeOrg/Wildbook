@@ -20,11 +20,11 @@
 
 @media (min-width: 992px) {
     .search-bar {
-        width: 10%;
+        width: 15%;
     }
 
     .tabs {
-        width: 90%;
+        width: 85%;
     }
 }
 

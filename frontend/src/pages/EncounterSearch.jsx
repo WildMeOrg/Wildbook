@@ -7,7 +7,6 @@ import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
-import { filter } from "lodash-es";
 
 export default function EncounterSearch() {
 
@@ -18,16 +17,16 @@ export default function EncounterSearch() {
   const intl = useIntl();
 
   const columns = [
-    { name: "Individual ID", selector: "individualId" },
+    { name: "INDIVIDUAL_ID", selector: "individualId" },
     // { name: "Encounter ID", selector: "id" },
-    { name: "Sighting ID", selector: "occurrenceId" },
-    { name: "Alternative ID", selector: "otherCatalogNumbers" },
-    { name: "Created Date", selector: "date" },
-    { name: "Location ID", selector: "locationId" },
-    { name: "Species", selector: "taxonomy" },
-    { name: "Submitter", selector: "submitters" },
-    { name: "Date Submitted", selector: "dateSubmitted" },
-    { name: "Number Annotations", selector: "numberAnnotations" },
+    { name: "SIGHTING_ID", selector: "occurrenceId" },
+    { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
+    { name: "CREATED_DATE", selector: "date" },
+    { name: "LOCATION_ID", selector: "locationId" },
+    { name: "SPECIES", selector: "taxonomy" },
+    { name: "SUBMITTER", selector: "submitters" },
+    { name: "DATE_SUBMITTED", selector: "dateSubmitted" },
+    { name: "NUMBER_ANNOTATIONS", selector: "numberAnnotations" },
   ];
 
   const schemas = useEncounterSearchSchemas();
@@ -139,7 +138,7 @@ export default function EncounterSearch() {
 
     <div className="encounter-search container-fluid"
       style={{
-        backgroundImage: "url('/react/images/encounter_search_background.png')",
+        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/react/images/encounter_search_background.png')",
         backgroundSize: "cover",
         minHeight: "800px",
         width: "100%",
@@ -169,7 +168,7 @@ export default function EncounterSearch() {
         title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"} />}
         columnNames={columns}
         tabs={tabs}
-        searchText={intl.formatMessage({id:"SEARCH_ENCOUNTERS"})}
+        searchText={intl.formatMessage({id:"SEARCH"})}
         tableData={encounters}
         totalItems={totalEncounters}
         page={page}

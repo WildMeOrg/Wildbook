@@ -3,57 +3,57 @@ import useGetSiteSettings from '../models/useGetSiteSettings';
 
 function Chip({ children }) {
 
-    const {data} = useGetSiteSettings();
+    const { data } = useGetSiteSettings();
 
-    function renderFilter(filter) {     
-        
+    function renderFilter(filter) {
+
         function getLabelById(options, id) {
             const option = options?.find(opt => opt.value === id);
             let label = "";
-            if(!option?.label || option?.label.startsWith("Anonymous")) {
+            if (!option?.label || option?.label.startsWith("Anonymous")) {
                 label = "Anonymous User";
-            }else {
+            } else {
                 label = option?.label;
             }
             return label;
         }
 
-        const organizationOptions =  Object.entries(data?.organizations||{})?.map((item) => {
+        const organizationOptions = Object.entries(data?.organizations || {})?.map((item) => {
             return {
-              value: item[0],
-              label: item[1]
+                value: item[0],
+                label: item[1]
             };
-          }
-          ) || [];
-        
-          const projectOptions = Object.entries(data?.projectsForUser||{})?.map((item) => {
-            return {
-              value: item[0],
-              label: item[1]
-            };
-          }
-          ) || [];
+        }
+        ) || [];
 
-          const assignedUserOptions = data?.users?.map((item) => {
+        const projectOptions = Object.entries(data?.projectsForUser || {})?.map((item) => {
+            return {
+                value: item[0],
+                label: item[1]
+            };
+        }
+        ) || [];
+
+        const assignedUserOptions = (data?.users?.filter(item => item.username).map((item) => {
             return {
               value: item.username,
               label: item.username
             };
-          }
-          ) || [];  
+          })) || [];
+          
         const entries = [];
         const { clause, filterId, query, filterKey } = filter;
         if (clause === "nested") {
             entries.push(`Nested filter: ${filterId}`);
         }
 
-        if (Array.isArray(query)) { 
+        if (Array.isArray(query)) {
             entries.push(`Dynamic filter: ${filterKey || filterId} is set : ${query?.map(q => Object.keys(Object.values(q)[0])[0])[0].split(".")[1]}`);
         }
-        
+
         if (query?.geo_bounding_box) {
             const { top_left, bottom_right } = query.geo_bounding_box['locationGeoPoint'];
-            entries.push(`Location within bounding box: top_left: ${top_left.lat}, ${top_left.lon}, bottom_right: ${bottom_right.lat}, ${bottom_right.lon}`);
+            entries.push(`Location within bounding box: Northeast latitude, longitude: ${top_left.lat}, ${top_left.lon}, southwest latitude, longitude: ${bottom_right.lat}, ${bottom_right.lon}`);
         }
 
         if (query?.range) {

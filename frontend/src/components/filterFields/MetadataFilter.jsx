@@ -20,7 +20,7 @@ export default function MetadataFilter({
   }
   ) || [];
 
-  const organizationOptions = Object.entries(data?.organizations||{})?.map((item) => {
+  const organizationOptions = Object.entries(data?.organizations || {})?.map((item) => {
     return {
       value: item[0],
       label: item[1]
@@ -28,7 +28,7 @@ export default function MetadataFilter({
   }
   ) || [];
 
-  const projectOptions = Object.entries(data?.projectsForUser||{})?.map((item) => {
+  const projectOptions = Object.entries(data?.projectsForUser || {})?.map((item) => {
     return {
       value: item[0],
       label: item[1]
@@ -36,13 +36,13 @@ export default function MetadataFilter({
   }
   ) || [];
 
-  const assignedUserOptions = data?.users?.map((item) => {
+  const assignedUserOptions = (data?.users?.filter(item => item.username).map((item) => {
     return {
       value: item.username,
       label: item.username
     };
-  }
-  ) || [];  
+  })) || [];
+  
 
   return (
     <div>
@@ -60,7 +60,7 @@ export default function MetadataFilter({
         term="terms"
         field="state"
         setFormFilters={setFormFilters}
-        formFilters = {formFilters}
+        formFilters={formFilters}
         filterKey={"Encounter Status"}
       />
       <FormGroupText
@@ -72,7 +72,7 @@ export default function MetadataFilter({
         filterId="submitters"
         filterKey={"Submitter, Photographer, or Email Address"}
       />
-      
+
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
@@ -92,7 +92,7 @@ export default function MetadataFilter({
         onChange={onChange}
         term="terms"
         field="projects"
-        filterId = "projects"
+        filterId="projects"
         filterKey={"Project Name"}
       />
       <FormGroupMultiSelect
@@ -110,6 +110,6 @@ export default function MetadataFilter({
       />
     </div>
 
-    
+
   );
 }
