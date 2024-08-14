@@ -102,7 +102,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             filter += " (catalogNumber == \"" + String.join("\") || (catalogNumber == \"",
                 encIds) + "\")";
             System.out.println("queryStringBuilder: searchQueryId=" + searchQueryId + " yielded " +
-                filter);
+                encIds.size() + " matching encounters");
             return filter;
         }
         // filter for location------------------------------------------
