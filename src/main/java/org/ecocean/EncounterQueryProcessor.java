@@ -64,7 +64,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
             int numFrom = 0;
+            // for historical code reasons, this needs to be "all" encounters,
+            // so we hope this does the job if background indexing set correctly
             int pageSize = 10000;
+            try {
+                pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
             String sort = "_id"; // TODO make this respect param?
             String sortOrder = "asc";
             try {
@@ -1696,7 +1701,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
             int numFrom = 0;
-            int pageSize = 1000;
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
             String sort = "_id"; // TODO make this respect param?
             String sortOrder = "asc";
             try {
