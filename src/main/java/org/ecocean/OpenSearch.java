@@ -418,12 +418,30 @@ public class OpenSearch {
         return versions;
     }
 
+    public JSONObject getSettings(final String indexName)
+    throws IOException {
+        Request settingsRequest = new Request("GET", indexName + "/_settings");
+        String rtn = getRestResponse(settingsRequest);
+
+        try {
+            JSONObject jrtn = new JSONObject(rtn);
+            // since we are asking for a specific index's settings, let go ahead and dig down
+            return jrtn.getJSONObject(indexName).getJSONObject("settings").getJSONObject("index");
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.getSettings() failed with rtn=" + rtn);
+            ex.printStackTrace();
+        }
+        // lets just avoid null return for simplicity
+        return new JSONObject();
+    }
+
     public void putSettings(final String indexName, final JSONObject settings)
     throws IOException {
         if (settings == null) throw new IOException("null data passed");
-        Request searchRequest = new Request("PUT", indexName + "/_settings?preserve_existing=true");
-        searchRequest.setJsonEntity(settings.toString());
-        String rtn = getRestResponse(searchRequest);
+        Request settingsRequest = new Request("PUT",
+            indexName + "/_settings?preserve_existing=true");
+        settingsRequest.setJsonEntity(settings.toString());
+        String rtn = getRestResponse(settingsRequest);
         System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
             rtn);
     }
