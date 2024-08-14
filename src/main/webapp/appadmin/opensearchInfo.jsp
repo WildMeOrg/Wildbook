@@ -49,8 +49,7 @@ out.println(res.toString(4));
 </textarea>
 <%
 
-req = new Request("GET", "encounter/_settings");
-res = new JSONObject(os.getRestResponse(req));
+res = os.getSettings("encounter");
 %>
 <h3>Encounter settings</h3>
 <textarea style="height: 30em; width: 100em;">
