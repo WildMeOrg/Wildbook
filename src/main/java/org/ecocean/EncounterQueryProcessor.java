@@ -63,6 +63,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
+            String sort = request.getParameter("sort");
+            String sortOrder = request.getParameter("sortOrder");
             int numFrom = 0;
             // for historical code reasons, this needs to be "all" encounters,
             // so we hope this does the job if background indexing set correctly
@@ -70,8 +72,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
             try {
                 pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            String sort = "_id"; // TODO make this respect param?
-            String sortOrder = "asc";
             try {
                 os.deletePit(indexName);
                 JSONObject queryRes = os.queryPit(indexName, sanitized, numFrom, pageSize, sort,
@@ -1701,13 +1701,13 @@ public class EncounterQueryProcessor extends QueryProcessor {
             searchQuery = OpenSearch.queryScrubStored(searchQuery);
             JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
             OpenSearch os = new OpenSearch();
+            String sort = request.getParameter("sort");
+            String sortOrder = request.getParameter("sortOrder");
             int numFrom = 0;
             int pageSize = 10000;
             try {
                 pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
             } catch (Exception ex) {}
-            String sort = "_id"; // TODO make this respect param?
-            String sortOrder = "asc";
             try {
                 os.deletePit(indexName);
                 JSONObject queryRes = os.queryPit(indexName, sanitized, numFrom, pageSize, sort,
