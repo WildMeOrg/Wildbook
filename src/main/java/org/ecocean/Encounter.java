@@ -4523,6 +4523,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
         org.json.JSONObject keywordNormalType = new org.json.JSONObject(
             "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
 /*
@@ -4530,10 +4531,15 @@ public class Encounter extends Base implements java.io.Serializable {
             "{\"fields\": {\"keyword\": {\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}}, \"type\": \"object\"}");
  */
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
         map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
-        map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
-        map.put("state", new org.json.JSONObject("{\"type\": \"keyword\"}"));
-        map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+
+        // if we want to sort on it (and it is texty), it needs to be keyword
+        // (ints, dates, etc are all sortable)
+        // note: "id" is done in Base.java
+        map.put("taxonomy", keywordType);
+        map.put("occurrenceId", keywordType);
+        map.put("state", keywordType);
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
@@ -4548,6 +4554,8 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("haplotype", keywordNormalType);
         map.put("individualSocialUnits", keywordNormalType);
         map.put("individualRelationshipRoles", keywordNormalType);
+        map.put("organizations", keywordNormalType);
+        map.put("otherCatalogNumbers", keywordNormalType);
 
 /*
         map.put("mediaAssetLabeledKeywords", fieldKeywordNormalType);
