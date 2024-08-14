@@ -31,7 +31,10 @@ function buildQuery(queries) {
   };
 }
 
-export default function useFilterEncounters({ queries, params = {}, queryId }) {
+export default function useFilterEncounters({ queries, params = {}, }) {
+
+  console.log("calling useFilterEncounters");
+  console.log("queries", queries, "params", params);
 
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
@@ -39,16 +42,15 @@ export default function useFilterEncounters({ queries, params = {}, queryId }) {
 
   return useFetch({
     method: "post",
-    queryKey: getEncounterFilterQueryKey(queries, params),
+    queryKey: getEncounterFilterQueryKey(queries, size, from),
     url: "/search/encounter",
     data: compositeQuery,
     params: {
       sort: "date",
       size: size || 20,
-      from: from || 0,
+      from: from || 0,  
       ...params,
     },
-    queryId,
     dataAccessor: (result) => {
       const resultCount = parseInt(get(result, ["data", "headers", "x-wildbook-total-hits"], "0"), 10);
       return {

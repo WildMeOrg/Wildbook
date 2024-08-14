@@ -40,7 +40,8 @@ export default function FilterPanel({
   setFilterPanel,
   style = {},
   handleSearch = () => { },
-
+  setSearchParams = () => { },
+  setQueryID = "",
 }) {
 
   const [selectedChoices, setSelectedChoices] = useState({});
@@ -201,6 +202,13 @@ export default function FilterPanel({
                   setFormFilters(uniqueFilters);
                   setFilterPanel(false);
                   handleSearch();
+                  setQueryID("");
+                  setSearchParams( prevSearchParams => {
+                        const newSearchParams = new URLSearchParams(prevSearchParams);
+                        newSearchParams.delete("searchQueryId");
+                        return newSearchParams;
+                      }
+                      )
                 }}
                 noArrow={true}
                 style={{
@@ -220,7 +228,6 @@ export default function FilterPanel({
                 onClick={() => {
                   setFormFilters([]);
                   setTempFormFilters([]);
-                  setFilterPanel(false);
                   window.location.reload();
                 }}
                 noArrow={true}

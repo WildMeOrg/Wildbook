@@ -7,44 +7,101 @@ import SideBar from "../components/filterFields/SideBar";
 import { FormattedMessage } from "react-intl";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
-import { set } from "lodash-es";
+import axios from "axios";
+import { get } from "lodash";
+
+const columns = [
+  { name: "ID", selector: "individualDisplayName" },
+  // { name: "Encounter ID", selector: "id" },
+  { name: "SIGHTING_ID", selector: "occurrenceId" },
+  { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
+  { name: "CREATED_DATE", selector: "date" },
+  { name: "LOCATION_ID", selector: "locationId" },
+  { name: "SPECIES", selector: "taxonomy" },
+  { name: "SUBMITTER", selector: "assignedUsername" },
+  { name: "DATE_SUBMITTED", selector: "dateSubmitted" },
+  { name: "NUMBER_ANNOTATIONS", selector: "numberAnnotations" },
+];
+
+const tabs = [
+  "ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp",
+  "ENCOUNTER_MATCHING_IMAGES_VIDEOS:/encounters/thumbnailSearchResults.jsp",
+  "ENCOUNTER_MAPPED_RESULTS:/encounters/mappedSearchResults.jsp",
+  "ENCOUNTER_RESULTS_CALENDAR:/xcalendar/calendar.jsp",
+  "ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp",
+  "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
+];
 
 export default function EncounterSearch() {
 
-  const [formFilters, setFormFilters] = useState([]);
-  const [filterPanel, setFilterPanel] = useState(true);
-  const [resultPage, setResultPage] = useState(false);
-  const [refresh, setRefresh] = useState(false);
   const intl = useIntl();
-
-  const columns = [
-    { name: "INDIVIDUAL_ID", selector: "individualId" },
-    // { name: "Encounter ID", selector: "id" },
-    { name: "SIGHTING_ID", selector: "occurrenceId" },
-    { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
-    { name: "CREATED_DATE", selector: "date" },
-    { name: "LOCATION_ID", selector: "locationId" },
-    { name: "SPECIES", selector: "taxonomy" },
-    { name: "SUBMITTER", selector: "submitters" },
-    { name: "DATE_SUBMITTED", selector: "dateSubmitted" },
-    { name: "NUMBER_ANNOTATIONS", selector: "numberAnnotations" },
-  ];
-
   const schemas = useEncounterSearchSchemas();
-
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
   const [searchParams, setSearchParams] = useSearchParams();
-
-  // const [searchParams] = useSearchParams();
-  const [ paramsFormFilters, setParamsFormFilters ] = useState([]);
+  const [paramsFormFilters, setParamsFormFilters] = useState([]);
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
+  const [formFilters, setFormFilters] = useState([]);
+  // const [resultPage, setResultPage] = useState(false);
+  // const [refresh, setRefresh] = useState(false);  
+  const [queryID, setQueryID] = useState(searchParams.get("searchQueryId"));
+  const [searchData, setSearchData] = useState([]);
+  const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchIdResultPage, setSearchIdResultPage] = useState(0);
+  const [searchIdResultPerPage, setSearchIdResultPerPage1] = useState(10);
+  const [sort, setSort] = useState("date:desc");
+
+  console.log("sort", sort);
+
+  const {sortname, sortorder} = sort;
+
+  useEffect(() => {
+    setFormFilters(Array.from(
+      new Map([...paramsFormFilters, ...formFilters].map(filter => [filter.filterId, filter])).values()
+    ));
+  }, [paramsFormFilters]);
+
+  useEffect(() => {
+    setQueryID(searchParams.get("searchQueryId"));
+  }, [searchParams.get("searchQueryId")]);
+
+  const { data: encounterData, loading, } = useFilterEncounters({
+    queries: formFilters,
+    params: {
+      // sort: sort,
+      size: perPage,
+      from: page * perPage,
+    },
+  });
+
+  const encounters = queryID ? searchData || [] : encounterData?.results || [];
+  const totalEncounters = encounterData?.resultCount || 0;
+  const searchQueryId = encounterData?.searchQueryId || "";
+
+  console.log("encounterData?.searchQueryId", encounterData?.searchQueryId);
+  console.log("queryID", queryID);
+  useEffect(() => {
+    console.log("Query ID: ", queryID);
+    if (queryID) {
+      axios.get(`/api/v3/search/${queryID}?from=${searchIdResultPage * searchIdResultPerPage}&size=${searchIdResultPerPage}`)
+        .then(response => {
+          console.log("Search Data: ", response);
+          setSearchData(response?.data?.hits || []);
+          setTotalItems(parseInt(get(response, ["headers", "x-wildbook-total-hits"], "0"), 10));
+          setFilterPanel(false);
+          // setResultPage(true); 
+        })
+        .catch(error => {
+          console.error("Error fetching search data:", error);
+        });
+    }
+  }, [queryID, searchIdResultPage, searchIdResultPerPage]);
 
   useEffect(() => {
     const handlePopState = () => {
       setFilterPanel(prev => !prev);
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
@@ -52,7 +109,7 @@ export default function EncounterSearch() {
   }, []);
 
   const handleSearch = () => {
-    setSearchParams(PrevSearchParams => { 
+    setSearchParams(PrevSearchParams => {
       const newSearchParams = new URLSearchParams(PrevSearchParams);
       newSearchParams.set("results", "true");
       return newSearchParams;
@@ -69,15 +126,16 @@ export default function EncounterSearch() {
           clause: "filter",
           filterId: "assignedUsername",
           filterKey: "Assigned User",
-          query: {           
-                  "term": {
-                    "assignedUsername": paramsObject.username
-                  }                
+          query: {
+            "term": {
+              "assignedUsername": paramsObject.username
+            }
           }
         }
-      ];});
-  }    
-        
+      ];
+    });
+  }
+
   if (paramsObject.state && paramsFormFilters.find(opt => opt.filterId === "state") === undefined) {
     setParamsFormFilters((prevFilters) => {
       return [
@@ -86,51 +144,15 @@ export default function EncounterSearch() {
           clause: "filter",
           filterId: "state",
           filterKey: "Encounter Status",
-          query: {           
-                  "term": {
-                    "state": paramsObject.state
-                  }                
+          query: {
+            "term": {
+              "state": paramsObject.state
+            }
           }
         }
       ];
     });
   };
-
-  useEffect(() => {
-    setFormFilters(Array.from(
-          new Map([...paramsFormFilters, ...formFilters].map(filter => [filter.filterId, filter])).values()
-      ));      
-  }, [paramsFormFilters]);
-
-  const [ queryID, setQueryID ] = useState([searchParams.get("searchQueryId")]);
-
-  useEffect(() => {
-    setQueryID(searchParams.get("searchQueryId"));
-  }, [searchParams.get("searchQueryId")]);
-  
-  const { data: encounterData, loading, } = useFilterEncounters({
-    queries: formFilters,
-    params: {
-      sort: "date",
-      size: perPage,
-      from: page * perPage,
-    },
-    queryId: queryID,
-  });
-
-  const encounters = encounterData?.results || [];
-  const totalEncounters = encounterData?.resultCount || 0;
-  const searchQueryId = encounterData?.searchQueryId || "";
-  const tabs = [
-    "ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp",
-    "ENCOUNTER_MATCHING_IMAGES_VIDEOS:/encounters/thumbnailSearchResults.jsp",
-    "ENCOUNTER_MAPPED_RESULTS:/encounters/mappedSearchResults.jsp",
-    "ENCOUNTER_RESULTS_CALENDAR:/xcalendar/calendar.jsp",
-    "ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp",
-    "ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp",
-  ];  
-
-  
 
   return (
 
@@ -143,7 +165,7 @@ export default function EncounterSearch() {
         padding: "20px",
         backgroundAttachment: "fixed",
       }}
-    >     
+    >
       <FilterPanel
         style={{
           display: filterPanel ? "block" : "none",
@@ -155,8 +177,10 @@ export default function EncounterSearch() {
         setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
         schemas={schemas}
-        setRefresh={setRefresh}
-        handleSearch={handleSearch} 
+        // setRefresh={setRefresh}
+        handleSearch={handleSearch}
+        setQueryID={setQueryID}
+        setSearchParams={setSearchParams}
       />
       <DataTable
         isLoading={loading}
@@ -166,13 +190,15 @@ export default function EncounterSearch() {
         title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"} />}
         columnNames={columns}
         tabs={tabs}
-        searchText={intl.formatMessage({id:"SEARCH"})}
+        searchText={intl.formatMessage({ id: "SEARCH" })}
         tableData={encounters}
-        totalItems={totalEncounters}
-        page={page}
-        perPage={perPage}
-        onPageChange={setPage}
-        onPerPageChange={setPerPage}
+        totalItems={queryID ? totalItems : totalEncounters}
+        page={queryID ? searchIdResultPage : page}
+        perPage={queryID ? searchIdResultPerPage : perPage}
+        onPageChange={queryID ? setSearchIdResultPage : setPage}
+        onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
+        setSort={setSort}
+
         loading={false}
         onRowClicked={(row) => {
           const url = `/encounters/encounter.jsp?number=${row.id}`;
@@ -180,17 +206,15 @@ export default function EncounterSearch() {
         }}
         onSelectedRowsChange={(selectedRows) => {
           console.log("Selected Rows: ", selectedRows);
-
         }}
       />
       <SideBar
         formFilters={formFilters}
         setFilterPanel={setFilterPanel}
         setFormFilters={setFormFilters}
-        setRefresh={setRefresh}
+        // setRefresh={setRefresh}
         searchQueryId={searchQueryId}
       />
-     
     </div>
   );
 }
