@@ -7,11 +7,13 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import { useIntl } from 'react-intl';
 import ThemeColorContext from '../../ThemeColorProvider';
 import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function ApplyQueryFilter() {
     const intl = useIntl();
     const theme = useContext(ThemeColorContext);
     const [queryId, setQueryId] = React.useState('');
+    const navigate = useNavigate();
     return (
         <div>
             <h3><FormattedMessage id="Apply Query ID" /></h3>
@@ -39,7 +41,7 @@ export default function ApplyQueryFilter() {
                     }}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && queryId) {
-                            window.location.href = `/react/encounter-search?searchQueryId=${queryId}`;
+                            window.location.href = `/encounter-search?searchQueryId=${queryId}`;
                         }
 
                     }}
@@ -56,24 +58,14 @@ export default function ApplyQueryFilter() {
                         backgroundColor: theme.primaryColors.primary700,
                     }}
                     onClick={() => {
-
                         if (queryId) {
-                            // navigate(`/encounter-search?searchQueryId=${input.value || ''}`);
+                            // navigate(`/encounter-search?searchQueryId=${queryId}`);
                             window.location.href = `/react/encounter-search?searchQueryId=${queryId}`;
                         }
                     }
                     }
                 >Apply</Button>
             </Form>
-
-
-
-
-
-
-
-
-
         </div>
 
     );

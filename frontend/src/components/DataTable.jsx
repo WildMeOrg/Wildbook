@@ -17,28 +17,30 @@ const customStyles = {
   },
 };
 
+
+
 const conditionalRowStyles = (theme) => [
   {
     when: (row) => row.tableID % 2 === 0,
     style: {
       backgroundColor: "#ffffff", // Light gray color
+      "&:hover": {
+        backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
+      },
     },
   },
   {
     when: (row) => row.tableID % 2 !== 0,
     style: {
       backgroundColor: "#f2f2f2", // White color
-    },
-  },
-  {
-    when: () => true,
-    style: {
       "&:hover": {
         backgroundColor: theme?.primaryColors?.primary300 || "#e0f7fa",
       },
-    }
-  }
+    },
+  },
+  
 ];
+
 
 const MyDataTable = ({
   title = "",
@@ -50,6 +52,7 @@ const MyDataTable = ({
   perPage,
   onPageChange,
   onPerPageChange,
+  setSort,
   style = {},
   tabs = [],
   isLoading = false,
@@ -59,7 +62,7 @@ const MyDataTable = ({
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
   const [goToPage, setGoToPage] = useState("");
-  const perPageOptions = [10, 20, 30, 40, 45];
+  const perPageOptions = [10, 20, 30, 40, 50];
   const intl = useIntl();
 
   const wrappedColumns = useMemo(
@@ -67,6 +70,7 @@ const MyDataTable = ({
       columnNames.map((col) => {
         if (col.selector === 'occurrenceId') {
           return {
+            id: col.selector,
             name: <FormattedMessage id={col.name}/>,
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
@@ -79,8 +83,9 @@ const MyDataTable = ({
               return a.localeCompare(b);
             },
           };
-        } else if (col.selector === 'individualId') {
+        } else if (col.selector === 'individualNames') {
           return {
+            id: col.selector,
             name: <FormattedMessage id={col.name}/>,
             cell: (row) => <a
               style={{ color: 'inherit', textDecoration: 'none' }}
@@ -93,8 +98,23 @@ const MyDataTable = ({
               return a.localeCompare(b);
             },
           };
-        } else {
+        }else if (col.selector === 'numberAnnotations') {
+          return {
+            id: col.selector,
+            name: <FormattedMessage id={col.name}/>,
+            
+            selector: (row) => row[col.selector] || 0,
+            sortable: true,
+            sortFunction: (rowA, rowB) => {
+              const a = parseInt(rowA[col.selector], 10) || 0;
+              const b = parseInt(rowB[col.selector], 10) || 0;
+              return a-b;
+            },
+          };
+        }  
+        else {
           return ({
+            id: col.selector,
             name: <FormattedMessage id={col.name}/>,
             selector: (row) => row[col.selector] || "-", // Accessor function for the column data
             sortable: true, // Make the column sortable
@@ -159,6 +179,14 @@ const MyDataTable = ({
 
   const clearFilterResult = () => {
     setFilterText("");
+  };
+
+  const handleSort = (column, sortDirection, sortFunction) => {
+    console.log("column", column);
+    
+    const columnName = column?.id;  
+   
+    setSort(`${columnName}:${sortDirection}`);
   };
 
   const filteredData = data.filter((item) =>
@@ -279,7 +307,7 @@ const MyDataTable = ({
           onRowClicked={onRowClicked}
           selectableRowsHighlight
           progressPending={isLoading}
-
+          onSort = {handleSort}
         />
       </div>
       {
