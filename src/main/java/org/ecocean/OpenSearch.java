@@ -61,7 +61,7 @@ public class OpenSearch {
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
     public static int BACKGROUND_DELAY_MINUTES = 20;
-    public static int BACKGROUND_SLICE_SIZE = 1000;
+    public static int BACKGROUND_SLICE_SIZE = 2500;
     public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;

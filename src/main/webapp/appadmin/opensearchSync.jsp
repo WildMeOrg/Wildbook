@@ -9,7 +9,7 @@ org.ecocean.*
 <%
 System.out.println("opensearchSync.jsp begun...");
 
-boolean resetIndex = Util.requestParameterSet("resetIndex");
+boolean resetIndex = Util.requestParameterSet(request.getParameter("resetIndex"));
 
 String fstr = request.getParameter("forceNum");
 int forceNum = -1;
