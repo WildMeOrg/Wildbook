@@ -90,6 +90,8 @@ import org.json.JSONObject;
 
         // we *must have* version as we likely sort on this for sync(), so even an empty index will have it in mapping
         map.put("version", new org.json.JSONObject("{\"type\": \"long\"}"));
+        // id should be keyword for the sake of sorting
+        map.put("id", new org.json.JSONObject("{\"type\": \"keyword\"}"));
         return map;
     }
 
