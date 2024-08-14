@@ -1684,6 +1684,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
         // if(!order.equals("")){query.setOrdering(order);}
 
         String searchQueryId = request.getParameter("searchQueryId");
+        long startTime = System.currentTimeMillis();
         if (searchQueryId != null) {
             User user = myShepherd.getUser(currentUser);
             if (user == null)
@@ -1723,6 +1724,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
                     return new EncounterQueryResult(rEncounters, searchQuery.toString(),
                             "OpenSearch id " + searchQueryId);
                 }
+                System.out.println("processQuery(" + searchQueryId + ") [" +
+                    (System.currentTimeMillis() - startTime) + "ms] got " + hits.length() +
+                    " results");
                 for (int i = 0; i < hits.length(); i++) {
                     JSONObject h = hits.optJSONObject(i);
                     if (h == null) {
@@ -1744,8 +1748,11 @@ public class EncounterQueryProcessor extends QueryProcessor {
                 return new EncounterQueryResult(rEncounters, searchQuery.toString(),
                         "OpenSearch id " + searchQueryId);
             }
+            System.out.println("processQuery(" + searchQueryId + ") [" +
+                (System.currentTimeMillis() - startTime) + "ms] populated " + rEncounters.size() +
+                " rEncounters");
             return new EncounterQueryResult(rEncounters, searchQuery.toString(),
-                    "OpenSearch id " + searchQueryId);
+                    "OpenSearch id " + searchQueryId + " (" + rEncounters.size() + " matches)");
         }
         String filter = "";
         StringBuffer prettyPrint = new StringBuffer("");
