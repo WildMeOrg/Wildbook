@@ -91,7 +91,7 @@ const MyDataTable = ({
             cell: (row) => <a
               target="_blank"
               style={{ color: 'inherit'}}
-              href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
+              href={row[col.selector] ? `/occurrence.jsp?number=${row[col.selector]}` : null}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: sortFunction,
