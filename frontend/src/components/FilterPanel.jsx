@@ -202,7 +202,7 @@ export default function FilterPanel({
                   setFormFilters(uniqueFilters);
                   setFilterPanel(false);
                   handleSearch();
-                  setQueryID("");
+                  setQueryID("1");
                   setSearchParams( prevSearchParams => {
                         const newSearchParams = new URLSearchParams(prevSearchParams);
                         newSearchParams.delete("searchQueryId");
