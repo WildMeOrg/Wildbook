@@ -1,6 +1,7 @@
 import Select from 'react-select';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useIntl } from 'react-intl';
 
 const colourStyles = {
     option: (styles) => ({
@@ -19,6 +20,7 @@ export default function MultiSelect({ isMulti, options, onChange, field, filterK
     const location = useLocation();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const navigate = useNavigate();
+    const intl = useIntl();
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);

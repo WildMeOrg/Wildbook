@@ -32,6 +32,7 @@ export default function LocationFilterText({
 
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_COUNTRY"
                 options={countries}
                 onChange={onChange}

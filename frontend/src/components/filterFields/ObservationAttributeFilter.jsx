@@ -56,6 +56,7 @@ export default function ObservationAttributeFilter(
 
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_SEX"
                 options={sexOptions}
                 onChange={onChange}
@@ -66,6 +67,7 @@ export default function ObservationAttributeFilter(
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_LIFE_STATUS"
+                noDesc={true}
                 options={livingStatusOptions}
                 onChange={onChange}
                 field="livingStatus"
@@ -76,6 +78,7 @@ export default function ObservationAttributeFilter(
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_GENUS_AND_SPECIES"
+                noDesc={true}
                 options={genusAndSpeciesOptions}
                 onChange={onChange}
                 field="taxonomy"
