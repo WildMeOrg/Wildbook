@@ -2105,6 +2105,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return locationID;
     }
 
+    public String getLocationName() {
+        if (locationID == null) return null;
+        return LocationID.getNameForLocationID(locationID, null);
+    }
+
     public void setLocationID(String newLocationID) {
         if (newLocationID != null) {
             this.locationID = newLocationID.trim();
@@ -4241,6 +4246,7 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
 
         jgen.writeStringField("locationId", this.getLocationID());
+        jgen.writeStringField("locationName", this.getLocationName());
         Long dim = this.getDateInMillisecondsFallback();
         if (dim != null) jgen.writeNumberField("dateMillis", dim);
         String date = Util.getISO8601Date(this.getDate());
@@ -4543,6 +4549,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
         // all case-insensitive keyword-ish types
         map.put("locationId", keywordNormalType);
+        map.put("locationName", keywordNormalType);
         map.put("country", keywordNormalType);
         map.put("assignedUsername", keywordNormalType);
         map.put("projects", keywordNormalType);
@@ -4554,6 +4561,7 @@ public class Encounter extends Base implements java.io.Serializable {
         map.put("haplotype", keywordNormalType);
         map.put("individualSocialUnits", keywordNormalType);
         map.put("individualRelationshipRoles", keywordNormalType);
+        map.put("individualDisplayName", keywordNormalType);
         map.put("organizations", keywordNormalType);
         map.put("otherCatalogNumbers", keywordNormalType);
 
