@@ -276,10 +276,6 @@
   </tr>
 </table>
 
-<%
-System.out.println("queryString: "+queryString);
-%>
-
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
 					<jsp:param name="grid" value="true" />
         	<jsp:param name="queryString" value="<%=queryString %>" />
