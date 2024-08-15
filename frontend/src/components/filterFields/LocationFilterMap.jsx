@@ -130,6 +130,7 @@ export default function LocationFilterMap({
             />
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_LOCATION_ID"
                 options={locationIDOptions}
                 onChange={onChange}

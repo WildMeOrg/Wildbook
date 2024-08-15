@@ -143,6 +143,7 @@ export default function ImageLabelFilter({
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_VIEWPOINT"
+                noDesc={true}
                 options={viewPointOptions}
                 filterId="annotationViewpoints"
                 term="terms"
@@ -154,6 +155,7 @@ export default function ImageLabelFilter({
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_IA_CLASS"
+                noDesc={true}
                 options={iaClassOptions}
                 filterId="annotationIAClasses"
                 field={"annotationIAClasses"}
