@@ -38,21 +38,23 @@ export default function useFilterEncounters({ queries, params = {}, }) {
 
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
-  const {sort, size, from, ...restParams} = params;
+  const {sortname, sortOrder, sort, size, from, ...restParams} = params;
 
   return useFetch({
     method: "post",
-    queryKey: getEncounterFilterQueryKey(queries, size, from),
+    queryKey: getEncounterFilterQueryKey(queries, size, from, sort, sortOrder),
     url: "/search/encounter",
     data: compositeQuery,
     params: {
-      sort: "date",
+      sort: sort?.sortname,
+      sortOrder: sort?.sortorder,
       size: size || 20,
       from: from || 0,  
       ...params,
     },
     dataAccessor: (result) => {
       const resultCount = parseInt(get(result, ["data", "headers", "x-wildbook-total-hits"], "0"), 10);
+
       return {
         resultCount,
         results: get(result, ["data", "data", "hits"], []),

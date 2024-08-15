@@ -229,5 +229,7 @@
     "SUBMITTER": "Mittente",
     "DATE_SUBMITTED": "Data di Invio",
     "NUMBER_ANNOTATIONS": "Numero di Annotazioni",
-    "ADD_LABELLED_KEYWORD_SEARCH" : "Aggiungi Ricerca di Parole Chiave Etichettate"
+    "ADD_LABELLED_KEYWORD_SEARCH" : "Aggiungi Ricerca di Parole Chiave Etichettate",
+    "APPLY_SEARCH_ID_DESC": "Questa funzione consente agli utenti di condividere facilmente i propri criteri di ricerca con altri. Dopo aver eseguito una ricerca, un utente può copiare il proprio ID di ricerca univoco e condividerlo con un altro utente. Il destinatario può quindi incollare questo ID di ricerca nella sezione \"Applica ID di ricerca\" e fare clic su \"Applica\" per replicare gli stessi criteri di ricerca, ottenendo gli stessi risultati dell'utente originale."
+
 }

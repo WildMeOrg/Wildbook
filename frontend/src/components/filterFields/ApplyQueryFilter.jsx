@@ -1,9 +1,7 @@
 import React from 'react';
 import { Form, FormControl } from 'react-bootstrap';
 import { FormattedMessage } from 'react-intl';
-import Description from '../Form/Description';
 import Button from 'react-bootstrap/Button';
-import InputGroup from 'react-bootstrap/InputGroup';
 import { useIntl } from 'react-intl';
 import ThemeColorContext from '../../ThemeColorProvider';
 import { useContext } from 'react';
@@ -16,18 +14,12 @@ export default function ApplyQueryFilter() {
     const navigate = useNavigate();
     return (
         <div>
-            <h3><FormattedMessage id="Apply Query ID" /></h3>
+            <h3><FormattedMessage id="APPLY_SEARCH_ID" /></h3>
             {/* <Description>
                 <FormattedMessage id="FILTER_METADATA_DESC" />
             </Description> */}
 
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-                reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-                mollit anim id est laborum.  </p>
+            <p><FormattedMessage id="APPLY_SEARCH_ID_DESC"/></p>
 
             <Form className="d-flex flex-row w-100"
                 style={{

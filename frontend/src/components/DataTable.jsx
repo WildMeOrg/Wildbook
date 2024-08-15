@@ -182,11 +182,10 @@ const MyDataTable = ({
   };
 
   const handleSort = (column, sortDirection, sortFunction) => {
-    console.log("column", column);
     
-    const columnName = column?.id;  
+    const columnName = column?.id === "locationId" ? "locationName" : column?.id;      
    
-    setSort(`${columnName}:${sortDirection}`);
+    setSort({ sortname: columnName, sortorder: sortDirection });
   };
 
   const filteredData = data.filter((item) =>

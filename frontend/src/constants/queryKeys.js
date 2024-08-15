@@ -109,9 +109,11 @@ function sortIfArray(value) {
   export function getEncounterFilterQueryKey(
     filters,
     size,
-    from
+    from,
+    sortname,
+    sortorder
   ) {
-    return ['encounterFilterSearch', filters, size, from];
+    return ['encounterFilterSearch', filters, size, from, sortname, sortorder]; 
   }
   
   export function getAuditLogQueryKey(filters, page, rowsPerPage) {
