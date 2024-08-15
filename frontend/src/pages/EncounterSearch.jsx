@@ -36,7 +36,7 @@ export default function EncounterSearch() {
   const [formFilters, setFormFilters] = useState([]);
   // const [resultPage, setResultPage] = useState(false);
   // const [refresh, setRefresh] = useState(false);  
-  const [queryID, setQueryID] = useState(2);
+  const [queryID, setQueryID] = useState(searchParams.get("searchQueryId"));
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
@@ -45,6 +45,21 @@ export default function EncounterSearch() {
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
 
   const {sortname, sortorder} = sort;
+
+  const [encounterSortName, setEncounterSortName] = useState("date");
+  const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
+  const [searchIdSortName, setSearchIdSortName] = useState("date");
+  const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
+
+  useEffect(() => {
+    if(!queryID){
+      setEncounterSortName(sortname);
+      setEncounterSortOrder(sortorder);
+    }else {
+      setSearchIdSortName(sortname);
+      setSearchIdSortOrder(sortorder);
+    }
+  }, [queryID, sortname, sortorder]);
 
   const tabs = [
     `ENCOUNTER_PROJECT_MANAGEMENT:/encounters/projectManagement.jsp`,
@@ -74,8 +89,8 @@ export default function EncounterSearch() {
   const { data: encounterData, loading, } = useFilterEncounters({
     queries: formFilters,
     params: {
-      sort: sortname,
-      sortOrder: sortorder,
+      sort: encounterSortName,
+      sortOrder: encounterSortOrder,
       size: perPage,
       from: page * perPage,
     },
@@ -103,7 +118,7 @@ export default function EncounterSearch() {
 
   useEffect(() => {
     if (queryID) {
-      axios.get(`/api/v3/search/${queryID}?from=${searchIdResultPage * searchIdResultPerPage}&size=${searchIdResultPerPage}&sort=${sortname}&sortOrder=${sortorder}`)
+      axios.get(`/api/v3/search/${queryID}?from=${searchIdResultPage * searchIdResultPerPage}&size=${searchIdResultPerPage}&sort=${searchIdSortName}&sortOrder=${searchIdSortOrder}`)
         .then(response => {
           setSearchData(response?.data?.hits || []);
           setTotalItems(parseInt(get(response, ["headers", "x-wildbook-total-hits"], "0"), 10));
@@ -114,7 +129,7 @@ export default function EncounterSearch() {
           console.error("Error fetching search data:", error);
         });
     }
-  }, [queryID, searchIdResultPage, searchIdResultPerPage]);
+  }, [queryID, searchIdResultPage, searchIdResultPerPage, searchIdSortName, searchIdSortOrder]);
 
   useEffect(() => {
     const handlePopState = () => {

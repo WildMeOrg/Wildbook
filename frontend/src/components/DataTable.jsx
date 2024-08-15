@@ -17,8 +17,6 @@ const customStyles = {
   },
 };
 
-
-
 const conditionalRowStyles = (theme) => [
   {
     when: (row) => row.tableID % 2 === 0,
@@ -68,6 +66,23 @@ const MyDataTable = ({
   const wrappedColumns = useMemo(
     () =>
       columnNames.map((col) => {
+        const sortFunction = (rowA, rowB) => {
+          const a = rowA[col.selector] || '';
+          const b = rowB[col.selector] || '';
+      
+          const isANumber = !isNaN(a);
+          const isBNumber = !isNaN(b);
+      
+          if (isANumber && isBNumber) {
+              return Number(a) - Number(b);
+          } else if (!isANumber && !isBNumber) {
+              return a.localeCompare(b);
+          } else if (isANumber) {
+              return -1; 
+          } else {
+              return 1; 
+          }
+      };
         if (col.selector === 'occurrenceId') {
           return {
             id: col.selector,
@@ -77,11 +92,7 @@ const MyDataTable = ({
               href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
-            sortFunction: (rowA, rowB) => {
-              const a = rowA[col.selector] || '';
-              const b = rowB[col.selector] || '';
-              return a.localeCompare(b);
-            },
+            sortFunction: sortFunction,
           };
         } else if (col.selector === 'individualNames') {
           return {
@@ -92,11 +103,7 @@ const MyDataTable = ({
               href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
-            sortFunction: (rowA, rowB) => {
-              const a = rowA[col.selector] || '';
-              const b = rowB[col.selector] || '';
-              return a.localeCompare(b);
-            },
+            sortFunction: sortFunction,
           };
         }else if (col.selector === 'numberAnnotations') {
           return {
@@ -105,28 +112,16 @@ const MyDataTable = ({
             
             selector: (row) => row[col.selector] || 0,
             sortable: true,
-            sortFunction: (rowA, rowB) => {
-              const a = parseInt(rowA[col.selector], 10) || 0;
-              const b = parseInt(rowB[col.selector], 10) || 0;
-              return a-b;
-            },
+            sortFunction: sortFunction,
           };
-        }  
-        else {
+        } else        
+        {
           return ({
             id: col.selector,
             name: <FormattedMessage id={col.name}/>,
             selector: (row) => row[col.selector] || "-", // Accessor function for the column data
             sortable: true, // Make the column sortable
-            sortFunction: (rowA, rowB) => {
-              const a = rowA[col.selector];
-              const b = rowB[col.selector];
-
-              const valA = Array.isArray(a) ? (a[0] || '') : a;
-              const valB = Array.isArray(b) ? (b[0] || '') : b;
-
-              return String(valA).localeCompare(String(valB));
-            },
+            sortFunction: sortFunction,
             conditionalCellStyles: [
               {
                 when: () => true,
@@ -138,7 +133,8 @@ const MyDataTable = ({
             ],
           });
 
-        }
+        }         
+        
       }),
     [columnNames],
   );

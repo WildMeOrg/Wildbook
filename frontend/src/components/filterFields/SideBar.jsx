@@ -5,6 +5,7 @@ import { FormattedMessage } from 'react-intl';
 import Chip from '../Chip';
 import BrutalismButton from '../BrutalismButton';
 import ThemeContext from '../../ThemeColorProvider';
+import { useSearchParams } from 'react-router-dom';
 
 function Sidebar({
   formFilters,
@@ -19,6 +20,7 @@ function Sidebar({
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const num = queryID ? 1 : formFilters.length;
 
@@ -137,6 +139,7 @@ function Sidebar({
                 handleClose();
                 // setFilterPanel(false);
                 // localStorage.removeItem("formData");
+                setSearchParams(new URLSearchParams());
                 window.location.reload();
               }}
             >

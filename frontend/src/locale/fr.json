@@ -230,6 +230,7 @@
     "DATE_SUBMITTED": "Date de Soumission",
     "NUMBER_ANNOTATIONS": "Nombre d'Annotations",
     "ADD_LABELLED_KEYWORD_SEARCH" : "Ajouter une Recherche de Mot-Clé Étiqueté",
+    "APPLY_SEARCH_ID" : "Appliquer l'ID de Recherche",
     "APPLY_SEARCH_ID_DESC": "Cette fonctionnalité permet aux utilisateurs de partager facilement leurs critères de recherche avec d'autres. Après avoir effectué une recherche, un utilisateur peut copier son ID de recherche unique et la partager avec un autre utilisateur. Le destinataire peut ensuite coller cette ID de recherche dans la section \"Appliquer l'ID de recherche\" et cliquer sur \"Appliquer\" pour reproduire les mêmes critères de recherche, obtenant les mêmes résultats que l'utilisateur original."
 
 }
