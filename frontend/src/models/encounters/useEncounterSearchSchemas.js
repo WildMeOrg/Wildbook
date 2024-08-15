@@ -61,8 +61,8 @@ export default function useEncounterSearchSchemas() {
       FilterComponent: MetadataFilter,
     },
     {
-      id: 'applyQuery',
-      labelId: 'Apply Query ID',
+      id: 'applySearchId',
+      labelId: 'APPLY_SEARCH_ID',
       FilterComponent: ApplyQueryFilter,
     },
     

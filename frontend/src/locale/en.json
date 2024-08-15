@@ -230,6 +230,8 @@
     "SUBMITTER" : "Submitter",
     "DATE_SUBMITTED" : "Date Submitted",
     "NUMBER_ANNOTATIONS" : "Number of Annotations",
-    "ADD_LABELLED_KEYWORD_SEARCH" : "Add Labelled Keyword Search" 
+    "ADD_LABELLED_KEYWORD_SEARCH" : "Add Labelled Keyword Search" ,
+    "APPLY_SEARCH_ID":  "Apply Search ID",
+    "APPLY_SEARCH_ID_DESC": "This feature allows users to share their search criteria with others easily. After performing a search, a user can copy their unique Search ID and share it with another user. The recipient can then paste this Search ID into the \"Apply Search ID\" section and click \"Apply\" to replicate the exact search criteria, obtaining the same results as the original user."
 
 }
