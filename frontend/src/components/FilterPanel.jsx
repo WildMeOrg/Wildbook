@@ -202,7 +202,7 @@ export default function FilterPanel({
                   setFormFilters(uniqueFilters);
                   setFilterPanel(false);
                   handleSearch();
-                  setQueryID("1");
+                  setQueryID(null);
                   setSearchParams( prevSearchParams => {
                         const newSearchParams = new URLSearchParams(prevSearchParams);
                         newSearchParams.delete("searchQueryId");
@@ -228,6 +228,7 @@ export default function FilterPanel({
                 onClick={() => {
                   setFormFilters([]);
                   setTempFormFilters([]);
+                  setSearchParams(new URLSearchParams());
                   window.location.reload();
                 }}
                 noArrow={true}
