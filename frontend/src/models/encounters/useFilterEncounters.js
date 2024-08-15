@@ -32,10 +32,7 @@ function buildQuery(queries) {
 }
 
 export default function useFilterEncounters({ queries, params = {}, }) {
-
-  console.log("calling useFilterEncounters");
-  console.log("queries", queries, "params", params);
-
+  
   const boolQuery = buildQuery(queries);
   const compositeQuery = { query: { bool: boolQuery } };
   const {sortname, sortOrder, sort, size, from, ...restParams} = params;

@@ -23,8 +23,10 @@ function Sidebar({
   const num = queryID ? 1 : formFilters.length;
 
   const handleCopy = () => {
+    console.log('Copied to clipboard: ', searchQueryId);
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(searchQueryId)
+      
+      navigator.clipboard.writeText(searchQueryId)      
         .then(() => {
           alert(`Query ID: ${searchQueryId} copied to clipboard!`);
         })

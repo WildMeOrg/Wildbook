@@ -56,7 +56,9 @@ export default function ApplyQueryFilter() {
                         }
                     }
                     }
-                >Apply</Button>
+                >
+                    <FormattedMessage id="APPLY"/>
+                </Button>
             </Form>
         </div>
 

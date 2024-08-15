@@ -36,7 +36,7 @@ export default function EncounterSearch() {
   const [formFilters, setFormFilters] = useState([]);
   // const [resultPage, setResultPage] = useState(false);
   // const [refresh, setRefresh] = useState(false);  
-  const [queryID, setQueryID] = useState(searchParams.get("searchQueryId"));
+  const [queryID, setQueryID] = useState(2);
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
@@ -57,7 +57,7 @@ export default function EncounterSearch() {
   
   const updatedTabs = tabs.map(tab => {
     const [name, url] = tab.split(":");
-    const updatedUrl = queryID ? `${url}?searchQueryID=${queryID}` : url;
+    const updatedUrl = queryID ? `${url}?searchQueryId=${queryID}` : url;
     return `${name}:${updatedUrl}`;
   });
 
@@ -82,6 +82,22 @@ export default function EncounterSearch() {
   });
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
+
+  const sortedEncounters = encounters.sort((a, b) => {
+        if (!a[sortname] || !b[sortname]) return 0;
+
+        const valueA = a[sortname];
+        const valueB = b[sortname];
+
+        if (sortorder === 'asc') {
+            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else if (sortorder === 'desc') {
+            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        } else {
+            return 0; // Default to no sorting if sortorder is invalid
+        }
+    });
+
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
 
@@ -193,7 +209,7 @@ export default function EncounterSearch() {
         columnNames={columns}
         tabs={updatedTabs}
         searchText={intl.formatMessage({ id: "SEARCH" })}
-        tableData={encounters}
+        tableData={sortedEncounters}
         totalItems={queryID ? totalItems : totalEncounters}
         page={queryID ? searchIdResultPage : page}
         perPage={queryID ? searchIdResultPerPage : perPage}

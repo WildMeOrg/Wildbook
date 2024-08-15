@@ -1,7 +1,6 @@
 import Select from 'react-select';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { set } from 'lodash-es';
 
 const colourStyles = {
     option: (styles) => ({
