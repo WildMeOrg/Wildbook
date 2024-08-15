@@ -57,7 +57,7 @@ export default function IdentityFilter({
             marginLeft: "10px",
             marginRight: "10px"
           }}
-          placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+          placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
           onChange={(e) => {
             setTimes(e.target.value);
             if (e.target.value) {

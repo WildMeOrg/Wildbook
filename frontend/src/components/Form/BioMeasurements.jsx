@@ -94,7 +94,7 @@ function FormMeasurements({
                                                   
                                 marginRight: "10px"
                             }}
-                            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+                            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
                             onChange={(e) => {
                                 handleInputChange(index, 'value', e.target.value);
                             }
