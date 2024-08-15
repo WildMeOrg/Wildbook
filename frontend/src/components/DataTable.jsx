@@ -17,6 +17,7 @@ const customStyles = {
   },
 };
 
+
 const conditionalRowStyles = (theme) => [
   {
     when: (row) => row.tableID % 2 === 0,
@@ -36,7 +37,7 @@ const conditionalRowStyles = (theme) => [
       },
     },
   },
-  
+
 ];
 
 
@@ -69,56 +70,75 @@ const MyDataTable = ({
         const sortFunction = (rowA, rowB) => {
           const a = rowA[col.selector] || '';
           const b = rowB[col.selector] || '';
-      
+
           const isANumber = !isNaN(a);
           const isBNumber = !isNaN(b);
-      
+
           if (isANumber && isBNumber) {
-              return Number(a) - Number(b);
+            return Number(a) - Number(b);
           } else if (!isANumber && !isBNumber) {
-              return a.localeCompare(b);
+            return a.localeCompare(b);
           } else if (isANumber) {
-              return -1; 
+            return -1;
           } else {
-              return 1; 
+            return 1;
           }
-      };
+        };
         if (col.selector === 'occurrenceId') {
           return {
             id: col.selector,
-            name: <FormattedMessage id={col.name}/>,
+            name: <FormattedMessage id={col.name} />,
             cell: (row) => <a
-              style={{ color: 'inherit', textDecoration: 'none' }}
+              target="_blank"
+              style={{ color: 'inherit'}}
               href={`/occurrence.jsp?number=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: sortFunction,
           };
-        } else if (col.selector === 'individualNames') {
+        } else if (col.selector === 'individualDisplayName') {
           return {
             id: col.selector,
-            name: <FormattedMessage id={col.name}/>,
+            name: <FormattedMessage id={col.name} />,
             cell: (row) => <a
-              style={{ color: 'inherit', textDecoration: 'none' }}
-              href={`/individuals.jsp?id=${row[col.selector]}`}>{row[col.selector] || "-"}</a>,
+              target="_blank"
+              style={{ color: 'inherit'}}
+              href={row[col.selector] ? `/individuals.jsp?id=${row["individualId"]}` : null}>{row[col.selector] || "unassigned"}</a>,
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: sortFunction,
           };
-        }else if (col.selector === 'numberAnnotations') {
+        } else if (col.selector === 'numberAnnotations') {
           return {
             id: col.selector,
-            name: <FormattedMessage id={col.name}/>,
-            
+            name: <FormattedMessage id={col.name} />,
+
             selector: (row) => row[col.selector] || 0,
             sortable: true,
             sortFunction: sortFunction,
           };
-        } else        
-        {
+        } else if (col.selector === 'date' || col.selector === 'dateSubmitted') {
+          return {
+            id: col.selector,
+            name: <FormattedMessage id={col.name} />,
+            selector: (row) => {
+              const dateStr = row[col.selector];
+              if (dateStr) {
+                const date = new Date(dateStr);
+                console.log(date.toISOString().split('T')[0]);
+                return date.toISOString().split('T')[0];
+              }
+              return "-";
+            },
+            sortable: true,
+            sortFunction: sortFunction,
+          };
+        }
+
+        else {
           return ({
             id: col.selector,
-            name: <FormattedMessage id={col.name}/>,
+            name: <FormattedMessage id={col.name} />,
             selector: (row) => row[col.selector] || "-", // Accessor function for the column data
             sortable: true, // Make the column sortable
             sortFunction: sortFunction,
@@ -126,15 +146,16 @@ const MyDataTable = ({
               {
                 when: () => true,
                 style: {
-                  whiteSpace: 'normal',
+                  whiteSpace: 'wrap',
                   wordWrap: 'break-word',
+                  wordBreak: 'break-all',
                 },
               },
             ],
           });
 
-        }         
-        
+        }
+
       }),
     [columnNames],
   );
@@ -178,9 +199,9 @@ const MyDataTable = ({
   };
 
   const handleSort = (column, sortDirection, sortFunction) => {
-    
-    const columnName = column?.id === "locationId" ? "locationName" : column?.id;      
-   
+
+    const columnName = column?.id === "locationId" ? "locationName" : column?.id;
+
     setSort({ sortname: columnName, sortorder: sortDirection });
   };
 
@@ -302,7 +323,7 @@ const MyDataTable = ({
           onRowClicked={onRowClicked}
           selectableRowsHighlight
           progressPending={isLoading}
-          onSort = {handleSort}
+          onSort={handleSort}
         />
       </div>
       {
