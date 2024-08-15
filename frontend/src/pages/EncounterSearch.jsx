@@ -11,7 +11,7 @@ import axios from "axios";
 import { get } from "lodash";
 
 const columns = [
-  { name: "ID", selector: "individualDisplayName" },
+  { name: "INDIVIDUAL_ID", selector: "individualDisplayName" },
   // { name: "Encounter ID", selector: "id" },
   { name: "SIGHTING_ID", selector: "occurrenceId" },
   { name: "ALTERNATIVE_ID", selector: "otherCatalogNumbers" },
@@ -39,7 +39,6 @@ export default function EncounterSearch() {
   const regularQuery = searchParams.get("regularQuery");
 
   const [queryID, setQueryID] = useState(regularQuery ? null : searchParams.get("searchQueryId"));
-  console.log("queryID", queryID);
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
@@ -243,7 +242,8 @@ export default function EncounterSearch() {
         loading={false}
         onRowClicked={(row) => {
           const url = `/encounters/encounter.jsp?number=${row.id}`;
-          window.location.href = url;
+          window.open(url, '_blank');
+          // window.location.href = url;
         }}
         onSelectedRowsChange={(selectedRows) => {
           console.log("Selected Rows: ", selectedRows);
