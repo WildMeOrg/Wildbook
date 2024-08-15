@@ -36,7 +36,10 @@ export default function EncounterSearch() {
   const [formFilters, setFormFilters] = useState([]);
   // const [resultPage, setResultPage] = useState(false);
   // const [refresh, setRefresh] = useState(false);  
-  const [queryID, setQueryID] = useState(searchParams.get("searchQueryId"));
+  const regularQuery = searchParams.get("regularQuery");
+
+  const [queryID, setQueryID] = useState(regularQuery ? null : searchParams.get("searchQueryId"));
+  console.log("queryID", queryID);
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
@@ -44,7 +47,7 @@ export default function EncounterSearch() {
   const [searchIdResultPerPage, setSearchIdResultPerPage1] = useState(20);
   const [sort, setSort] = useState({ sortname: "date", sortorder: "desc" });
 
-  const {sortname, sortorder} = sort;
+  const { sortname, sortorder } = sort;
 
   const [encounterSortName, setEncounterSortName] = useState("date");
   const [encounterSortOrder, setEncounterSortOrder] = useState("desc");
@@ -52,10 +55,10 @@ export default function EncounterSearch() {
   const [searchIdSortOrder, setSearchIdSortOrder] = useState("desc");
 
   useEffect(() => {
-    if(!queryID){
+    if (!queryID) {
       setEncounterSortName(sortname);
       setEncounterSortOrder(sortorder);
-    }else {
+    } else {
       setSearchIdSortName(sortname);
       setSearchIdSortOrder(sortorder);
     }
@@ -69,12 +72,6 @@ export default function EncounterSearch() {
     `ENCOUNTER_ANALYSIS:/encounters/searchResultsAnalysis.jsp`,
     `ENCOUNTER_EXPORT:/encounters/exportSearchResults.jsp`,
   ];
-  
-  const updatedTabs = tabs.map(tab => {
-    const [name, url] = tab.split(":");
-    const updatedUrl = queryID ? `${url}?searchQueryId=${queryID}` : url;
-    return `${name}:${updatedUrl}`;
-  });
 
   useEffect(() => {
     setFormFilters(Array.from(
@@ -83,8 +80,12 @@ export default function EncounterSearch() {
   }, [paramsFormFilters]);
 
   useEffect(() => {
-    setQueryID(searchParams.get("searchQueryId"));
-  }, [searchParams.get("searchQueryId")]);
+    if (regularQuery) {
+      setQueryID("");
+    } else {
+      setQueryID(searchParams.get("searchQueryId"));
+    }
+  }, [searchParams]);
 
   const { data: encounterData, loading, } = useFilterEncounters({
     queries: formFilters,
@@ -99,22 +100,29 @@ export default function EncounterSearch() {
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
 
   const sortedEncounters = encounters.sort((a, b) => {
-        if (!a[sortname] || !b[sortname]) return 0;
+    if (!a[sortname] || !b[sortname]) return 0;
 
-        const valueA = a[sortname];
-        const valueB = b[sortname];
+    const valueA = a[sortname];
+    const valueB = b[sortname];
 
-        if (sortorder === 'asc') {
-            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-        } else if (sortorder === 'desc') {
-            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
-        } else {
-            return 0; // Default to no sorting if sortorder is invalid
-        }
-    });
+    if (sortorder === 'asc') {
+      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+    } else if (sortorder === 'desc') {
+      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+    } else {
+      return 0; // Default to no sorting if sortorder is invalid
+    }
+  });
 
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
+
+
+  const updatedTabs = tabs.map(tab => {
+    const [name, url] = tab.split(":");
+    const updatedUrl = queryID ? `${url}?searchQueryId=${queryID}` : searchQueryId ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true` : url;
+    return `${name}:${updatedUrl}`;
+  });
 
   useEffect(() => {
     if (queryID) {

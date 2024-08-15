@@ -29,105 +29,112 @@ export default function AuthenticatedAppHeader() {
     setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid transparent" }));
   };
 
-  return <div className="container"
-
+  return <div className="w-100"
     style={{
+      backgroundColor: "#303336",
       height: "50px",
-      paddingLeft: "5%",
-      paddingRight: "5%",
     }}>
-    {
-      visible ? (
-        <Navbar
-          variant="dark"
-          expand="lg"
-          style={{
-            backgroundColor: "#303336",
-            height: "50px",
-            padding: 0,
-            fontSize: "1rem",
-            zIndex: "200",
-          }}
-        >
-          <Navbar.Brand
-            className="d-flex flex-row align-items-center"
-            href="/"
+
+    <div className="container"
+
+      style={{
+        height: "50px",
+        paddingLeft: "5%",
+        paddingRight: "5%",
+      }}>
+      {
+        visible ? (
+          <Navbar
+            variant="dark"
+            expand="lg"
             style={{
+              backgroundColor: "#303336",
+              height: "50px",
+              padding: 0,
+              fontSize: "1rem",
+              zIndex: "200",
             }}
           >
-            <Logo />
-            {process.env.SITE_NAME}
-          </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav"
-            style={{
-            }}
-          />
-          <Navbar.Collapse
-            id="basic-navbar-nav"
-          >
-            <Nav
-              className="mr-auto"
+            <Navbar.Brand
+              className="d-flex flex-row align-items-center"
+              href="/"
               style={{
-                display: "flex",
-                marginLeft: "auto",
               }}
             >
-              {unAuthenticatedMenu.map((item, idx) => (
-                <Nav className="me-auto">
-                  <NavDropdown
-                    title={
-                      <span style={{ color: "white" }}>
-                        <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}
-                        <DownIcon />
-                      </span>
-                    }
-                    id={`basic-nav-dropdown${item}`}
-                    style={{
-                      color: "white",
-                      boxSizing: "border-box",
-                      borderBottom:
-                        dropdownBorder[`dropdown${idx + 1}`] ||
-                        "2px solid transparent",
-                      paddingLeft: 5,
-                      paddingRight: 5,
-                    }}
-                    onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
-                    onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
-                    show={dropdownShows[`dropdown${idx + 1}`]}
-                  >
-                    {Object.values(item)[0].map((subItem, idx) => {
-                      return (
-                        <NavDropdown.Item
-                          href={subItem.href}
-                          style={{ color: "black", fontSize: "0.9rem" }}
-                        >
-                          {subItem.name}
-                        </NavDropdown.Item>
-                      );
-                    })}
-                  </NavDropdown>
-                </Nav>
-              ))}
-            </Nav>
-            <MultiLanguageDropdown />
-          </Navbar.Collapse>
-          <Button
-            variant="basic"
-            style={{
-              backgroundColor: "transparent",
-              color: "white",
-              border: "none",
-              width: "100px",
-              whiteSpace: "nowrap",
-              padding: 5,
-              // marginRight: "10%",
-            }}
-            href={"/react/login"}
-          >
-            {<FormattedMessage id="LOGIN_LOGIN" />}
-          </Button>
-        </Navbar>
-      ) : null
-    }
+              <Logo />
+              {process.env.SITE_NAME}
+            </Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav"
+              style={{
+              }}
+            />
+            <Navbar.Collapse
+              id="basic-navbar-nav"
+            >
+              <Nav
+                className="mr-auto"
+                style={{
+                  display: "flex",
+                  marginLeft: "auto",
+                }}
+              >
+                {unAuthenticatedMenu.map((item, idx) => (
+                  <Nav className="me-auto">
+                    <NavDropdown
+                      title={
+                        <span style={{ color: "white" }}>
+                          <FormattedMessage id={Object.keys(item)[0].toUpperCase()} />{" "}
+                          <DownIcon />
+                        </span>
+                      }
+                      id={`basic-nav-dropdown${item}`}
+                      style={{
+                        color: "white",
+                        boxSizing: "border-box",
+                        borderBottom:
+                          dropdownBorder[`dropdown${idx + 1}`] ||
+                          "2px solid transparent",
+                        paddingLeft: 5,
+                        paddingRight: 5,
+                      }}
+                      onMouseEnter={() => handleMouseEnter(`dropdown${idx + 1}`)}
+                      onMouseLeave={() => handleMouseLeave(`dropdown${idx + 1}`)}
+                      show={dropdownShows[`dropdown${idx + 1}`]}
+                    >
+                      {Object.values(item)[0].map((subItem, idx) => {
+                        return (
+                          <NavDropdown.Item
+                            href={subItem.href}
+                            style={{ color: "black", fontSize: "0.9rem" }}
+                          >
+                            {subItem.name}
+                          </NavDropdown.Item>
+                        );
+                      })}
+                    </NavDropdown>
+                  </Nav>
+                ))}
+              </Nav>
+              <MultiLanguageDropdown />
+            </Navbar.Collapse>
+            <Button
+              variant="basic"
+              style={{
+                backgroundColor: "transparent",
+                color: "white",
+                border: "none",
+                width: "100px",
+                whiteSpace: "nowrap",
+                padding: 5,
+                // marginRight: "10%",
+              }}
+              href={"/react/login"}
+            >
+              {<FormattedMessage id="LOGIN_LOGIN" />}
+            </Button>
+          </Navbar>
+        ) : null
+      }
+    </div>
   </div>
 }

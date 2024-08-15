@@ -47,6 +47,7 @@ export default function MultiSelect({ isMulti, options, onChange, field, filterK
             styles={colourStyles}
             menuPlacement="auto"
             menuPortalTarget={document.body}
+            placeholder="Select one or more"
             value={selectedOptions}
             onChange={(e) => {
                 const params = new URLSearchParams(location.search);

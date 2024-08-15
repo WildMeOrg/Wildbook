@@ -27,7 +27,7 @@ export default function IdentityFilter({
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
       <Form className="d-flex flex-row aligh-items-center">
-        <Form.Check className="me-2"
+        {/* <Form.Check className="me-2"
           type="checkbox"
           id="custom-checkbox"
           checked={isChecked1}
@@ -48,7 +48,7 @@ export default function IdentityFilter({
                 onChange(null, "individualNumberEncounters");            
             }
           }}
-        />
+        /> */}
         <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
         <FormControl
           type="number"
@@ -60,7 +60,7 @@ export default function IdentityFilter({
           placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
           onChange={(e) => {
             setTimes(e.target.value);
-            if (isChecked1 && e.target.value) {
+            if (e.target.value) {
               onChange({
                 filterId: "individualNumberEncounters",
                 filterKey: "Number of Encounters",
@@ -71,10 +71,11 @@ export default function IdentityFilter({
                   }
                 },
               });
+            }else {
+              onChange(null, "individualNumberEncounters");
             }
             
           }}
-          disabled={!isChecked1}
         />
         <FormattedMessage id="FILTER_TIMES" />
       </Form>

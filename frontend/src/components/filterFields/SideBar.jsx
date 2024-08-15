@@ -90,9 +90,20 @@ function Sidebar({
           justifyContent: 'space-between'
         }}>
 
-          {queryID ? <p>
+          {queryID ? <div
+            style={{
+                backgroundColor: '#e5f6ff',
+                color: 'black',
+                borderRadius: '15px',
+                padding: '10px 20px',
+                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)',
+                marginTop: '10px',
+            }}
+        >
+            <p>
             {`Search Query ID ${queryID} applied.`}
           </p>
+        </div>
             : <div style={{ overflowY: 'auto' }}>
               {formFilters.map((filter, index) => (
                 <Chip key={index}>
