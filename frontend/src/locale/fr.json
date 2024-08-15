@@ -206,6 +206,7 @@
     "CANCEL": "Annuler",
     "FILTERS": "Filtres",
     "TYPE_HERE": "Tapez ici",
+    "SELECT_ONE_OR_MORE" : "Sélectionnez un ou plusieurs",
     "TYPE_NUMBER" : "###",
     "ENCOUNTER_PROJECT_MANAGEMENT": "Gestion de Projet",
     "ENCOUNTER_MATCHING_IMAGES_VIDEOS": "Images/Vidéos Correspondantes",
