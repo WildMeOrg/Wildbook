@@ -129,7 +129,7 @@ td.tdw:hover div {
 
  <ul id="tabmenu">
 
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
    </a></li>
    <li><a
      href="projectManagement.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("projectManagement")%>
