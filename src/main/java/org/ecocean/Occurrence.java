@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1447,6 +1448,18 @@ public class Occurrence extends Base implements java.io.Serializable {
         }
         // return sanitizeJson(request, decorateJson(request, json));
         return json;
+    }
+
+    // note this does not seem to cover *removing an encounter* as it seems the
+    // encounters cling to the occurrence after it was removed. so for now this
+    // has to be handled at the point of removal, e.g. OccurrenceRemoveEncounter servlet
+    public void opensearchIndexDeep()
+    throws IOException {
+        if (this.encounters != null)
+            for (Encounter enc : this.encounters) {
+                enc.opensearchIndex();
+            }
+        this.opensearchIndex();
     }
 
     @Override public long getVersion() {
