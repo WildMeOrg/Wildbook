@@ -1135,7 +1135,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
             setSpecificEpithet(tax);
         } else {
             setGenus(parts[0]);
-            setSpecificEpithet(parts[1]);
+            String ep = parts[1];
+            for (int i = 2 ; i < parts.length ; i++) {
+                ep += " " + parts[i];
+            }
+            setSpecificEpithet(ep);
         }
     }
 

@@ -66,6 +66,7 @@ public class JsonProperties extends Properties {
         } catch (Exception e) {
             System.out.println("JsonProperties.get hit an exception on key " + periodSeparatedKeys);
             System.out.println(" ... searching json " + fname);
+            e.printStackTrace();
             return null;
         }
     }

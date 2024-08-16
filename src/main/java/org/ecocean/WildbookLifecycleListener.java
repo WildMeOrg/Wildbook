@@ -4,6 +4,7 @@ import java.io.IOException;
 import javax.jdo.listener.*;
 import org.datanucleus.enhancement.Persistable;
 import org.ecocean.Base;
+import org.ecocean.OpenSearch;
 
 // https://www.datanucleus.org/products/accessplatform_4_1/jdo/lifecycle_callbacks.html#listeners
 
@@ -45,6 +46,10 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
     public void postStore(InstanceLifecycleEvent event) {
         Persistable obj = (Persistable)event.getSource();
 
+        if (OpenSearch.skipAutoIndexing()) {
+            System.out.println("WildbookLifecycleListener skipAutoIndexing set");
+            return;
+        }
 /*
         System.out.println("WildbookLifecycleListener postStore() event type=" +
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +

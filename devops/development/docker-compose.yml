@@ -95,6 +95,23 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
 
+  # https://hub.docker.com/r/boky/postfix/
+  #  TODO dkim and spf needs to be added/supported
+  smtp:
+    image: boky/postfix
+    networks:
+      - intranet
+    ports:
+      - $MAIL_PORT:587
+    volumes:
+      - .dockerfiles/smtp/dkim-keys:/etc/opendkim/keys
+    environment:
+      - "HOSTNAME=${MAIL_HOSTNAME}"
+      - "ALLOWED_SENDER_DOMAINS=${MAIL_ALLOWED_SENDER_DOMAINS}"
+      - "RELAYHOST=${MAIL_RELAYHOST}"
+      - "RELAYHOST_USERNAME=${MAIL_RELAYHOST_USERNAME}"
+      - "RELAYHOST_PASSWORD=${MAIL_RELAYHOST_PASSWORD}"
+
   autoheal:
     image: willfarrell/autoheal
     volumes:

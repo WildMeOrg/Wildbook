@@ -387,6 +387,7 @@ public class IAGateway extends HttpServlet {
                 System.out.println(">>>>>>> parentTask: " + parentTask);
                 JSONObject jobj = new JSONObject();
                 jobj.put("identify", new JSONObject());
+                jobj.put("opt", opt);
                 jobj.getJSONObject("identify").put("annotationIds", new JSONArray());
                 jobj.getJSONObject("identify").getJSONArray("annotationIds").put(ann.getId());
                 jobj.put("taskId", subTask.getId());
@@ -395,6 +396,8 @@ public class IAGateway extends HttpServlet {
                 jobj.put("__queueActualRetries", jin.optInt("__queueActualRetries", 0));
                 jobj.put("__queueRetries", jin.optInt("__queueRetries", 0));
                 jobj.put("__queueStart", jin.optLong("__queueStart", System.currentTimeMillis()));
+                System.out.println("_doIdentify() requeueing from jin=" + jin);
+                System.out.println("_doIdentify() requeueing as jobj=" + jobj);
                 requeueJob(jobj, true);
             }
             taskRes.put("subTaskId", subTask.getId());
@@ -461,11 +464,21 @@ public class IAGateway extends HttpServlet {
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict,
                 userConfidence, myShepherd, task, baseUrl, fastlane);
-            if (!sent.optBoolean("success", false)) {
+            if (!sent.optBoolean("success", false) && sent.toString().indexOf("emptyTargetAnnotations")==-1) {
+
                 String errorMsg = sent.optString("error", "(unknown error)");
-                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
-                    errorMsg + "; hopefully we requeue");
+                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " + errorMsg + "; hopefully we requeue");
+                
+                //set the status as complete as we faithfully completed the query but nothing to match against
+                if(task!=null) {
+                	task.setStatus("completed");
+                	task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                	myShepherd.updateDBTransaction();
+                }
+                
+                
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
+ 
             }
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);

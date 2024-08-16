@@ -162,6 +162,11 @@ public class Relationship implements java.io.Serializable {
         if (direction != null) { bidirectional = direction; } else { bidirectional = null; }
     }
 
+    public String toString() {
+        return this.type + ": " + this.individual1.getId() + "[" + this.getMarkedIndividualRole1() + "] + " +
+            this.individual2.getId() + "[" + this.getMarkedIndividualRole2() + "]";
+    }
+
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         if (individual1 != null) jobj.put("individual1", this.individual1.uiJson(request, false));
