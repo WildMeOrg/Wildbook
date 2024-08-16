@@ -18,7 +18,7 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
-*/
+ */
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener preDelete() event on " + base);
@@ -38,7 +38,7 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
         System.out.println("WildbookLifecycleListener postDelete() event type=" +
             event.getEventType() + "; source id=" + obj.dnGetObjectId());
         // System.out.println("WildbookLifecycleListener postDelete() event type=" + event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() + "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" + event.getPersistentInstance());
-*/
+ */
     }
 
     public void preStore(InstanceLifecycleEvent event) {}
@@ -55,7 +55,7 @@ public class WildbookLifecycleListener implements StoreLifecycleListener, Delete
             event.getEventType() + "; source=" + obj + "; target=" + event.getTarget() +
             "; detachedInstance=" + event.getDetachedInstance() + "; persistentInstance=" +
             event.getPersistentInstance());
-*/
+ */
         if (Base.class.isInstance(obj)) {
             Base base = (Base)obj;
             System.out.println("WildbookLifecycleListener postStore() event on " + base);
