@@ -6,6 +6,14 @@
 WILDBOOK_BASE_DIR=~/wildbook-dev
 
 
+# for smtp (postfix) usage:
+MAIL_HOSTNAME=example.com
+MAIL_ALLOWED_SENDER_DOMAINS=example.com
+MAIL_PORT=1587
+MAIL_RELAYHOST=example.com:587
+MAIL_RELAYHOST_USERNAME=changeme
+MAIL_RELAYHOST_PASSWORD=changeme
+
 
 
 # these rest of these settings are fine for a development environment, but can be changed if you desire

@@ -249,7 +249,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Software Documentation"
           />
         ),
-        href: "https://docs.wildme.org/product-docs/en/wildbook/introduction/",
+        href: "https://wildbook.docs.wildme.org/introduction/index.html",
       },
       {
         name: (

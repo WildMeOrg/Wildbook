@@ -153,8 +153,11 @@ public class SiteSettings extends ApiBase {
             settings.put("users", jarr);
 
             JSONObject jp = new JSONObject();
-            for (Project proj : myShepherd.getProjectsForUser(currentUser)) {
-                jp.put(proj.getId(), proj.getResearchProjectName());
+            ArrayList<Project> projs = myShepherd.getProjectsForUser(currentUser);
+            if (projs != null) {
+                for (Project proj : projs) {
+                    jp.put(proj.getId(), proj.getResearchProjectName());
+                }
             }
             settings.put("projectsForUser", jp);
         }
