@@ -130,7 +130,7 @@ if(request.getUserPrincipal()!=null){
 
       <script>
         function logoutAndRedirect() {
-            window.location.href = 'header.jsp?action=logout';
+            window.location.href = '/header.jsp?action=logout';
         }
       </script>
 
