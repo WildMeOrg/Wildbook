@@ -2952,6 +2952,15 @@ public class Encounter extends Base implements java.io.Serializable {
         return annotations.size();
     }
 
+    public int numNonTrivialAnnotations() {
+        if (annotations == null) return 0;
+        int ct = 0;
+        for (Annotation ann : annotations) {
+            if (!ann.isTrivial()) ct++;
+        }
+        return ct;
+    }
+
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
@@ -4268,7 +4277,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
-        jgen.writeNumberField("numberAnnotations", this.numAnnotations());
+        jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
         jgen.writeArrayFieldStart("mediaAssets");
         for (MediaAsset ma : mas) {
