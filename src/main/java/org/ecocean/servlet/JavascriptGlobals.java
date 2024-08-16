@@ -17,7 +17,7 @@ import java.util.*;
 import com.google.gson.Gson;
 
 import org.ecocean.identity.IBEISIA;
-import org.ecocean.security.SocialAuth;
+
 
 public class JavascriptGlobals extends HttpServlet {
     public void init(ServletConfig config)
@@ -101,12 +101,6 @@ public class JavascriptGlobals extends HttpServlet {
         rtn.put("classDefinitions", classDefn);
 
         // TODO we could do this for all sorts of property files too?
-        Properties authprops = SocialAuth.authProps(context);
-        if (authprops != null) {
-            for (String pn : authprops.stringPropertyNames()) {
-                propvalToHashMap(pn, authprops.getProperty(pn), rtn);
-            }
-        }
         HashMap uploader = new HashMap();
         String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
         if (s3key == null) {
