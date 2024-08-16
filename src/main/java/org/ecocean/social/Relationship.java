@@ -163,8 +163,8 @@ public class Relationship implements java.io.Serializable {
     }
 
     public String toString() {
-        return this.type + ": " + this.individual1.getId() + "[" + this.getMarkedIndividualRole1() + "] + " +
-            this.individual2.getId() + "[" + this.getMarkedIndividualRole2() + "]";
+        return this.type + ": " + this.individual1.getId() + "[" + this.getMarkedIndividualRole1() +
+                   "] + " + this.individual2.getId() + "[" + this.getMarkedIndividualRole2() + "]";
     }
 
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj)
