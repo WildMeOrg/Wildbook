@@ -60,7 +60,7 @@ int numUsers=0;
 myShepherd.beginDBTransaction();
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-//String url = "login.jsp";
+//String url = "/react/login";
 //response.sendRedirect(url);
 //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 //dispatcher.forward(request, response);
