@@ -610,8 +610,10 @@ public class OpenSearch {
         } catch (Exception ex) {
             System.out.println("OpenSearch.indexAll(" + obj.getClass() + ") failed: " + ex);
             ex.printStackTrace();
+            query.closeAll();
             return;
         }
+        query.closeAll();
         long initTime = System.currentTimeMillis();
         System.out.println("OpenSearch.indexAll() [" +
             java.time.Instant.ofEpochMilli(now).toString() + "] indexing " + indexName + ": size=" +
@@ -619,14 +621,12 @@ public class OpenSearch {
         int ct = 0;
         for (Base item : all) {
             ct++;
-            if (ct > 2100) break;
             index(indexName, item);
             if (ct % 500 == 0)
                 System.out.println("OpenSearch.indexAll() [" +
                     (System.currentTimeMillis() - initTime) + "] indexed " + indexName + ": " + ct +
                     " of " + all.size());
         }
-        query.closeAll();
         System.out.println("OpenSearch.indexAll() [" + (System.currentTimeMillis() - initTime) +
             "] completed indexing " + indexName);
     }
