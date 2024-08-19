@@ -41,7 +41,7 @@ You will want to work in a branch when doing any feature development you want to
 ` git pull upstream main`
 
 ### Set Up Development Environment with Docker
-For easiest development, you will need to set up your development environment to work with Docker. See `devops/development/README.md` for detailed instructions.
+For easiest development, you will need to set up your development environment to work with Docker. See [`devops/README.md`](devops/README.md) for detailed instructions.
 
 ### Deploy frontend
 To setup frontend, we need to deploy the React build to Wildbook, please follow the detailed instructions provided in the `frontend/README.md` file within the project directory.

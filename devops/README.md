@@ -1,45 +1,58 @@
 # Wildbook Installation
 
-We provide two different containerized Wildbooks using Docker. Unless you are setting up a production instance of Wildbook, use the `development` image. Wildbook can also be set up as a local tomcat application.
+We provide two different containerized Wildbooks using Docker. Unless you are setting up a production instance of Wildbook, use the **Development Docker** option.
+Wildbook can also be set up as a local tomcat application. <span style="background-color: yellow;">[do we want to mention/encourage this local tomcat? would need its own set of docs -- setting up psql and opensearch manually etc]</span>
 
-## Development Docker Image
+## Development Docker
 
-This image and all support materials are found in the `development/` subdirectory. Run docker images necessary to launch _wildbook.war_ file developed via java/maven
+All support materials are found in the `devops/development/` subdirectory. This will launch docker containers sufficient for you to deploy a `wildbook.war` file which you have developed
+via your own Java environment. 
 
-This will launch docker containers sufficient for you to deploy a `wildbook.war` file which you have developed
-via your own Java environment. <!-- TODO: link/explain java and maven instructions -->
+### Overview of docker containers deployed
 
-### WBIA / ML
-
-Presently, this deployment does not start a local WBIA (image analysis) docker container. This feature will be added in future development.
+- **db** - postgresql database for storing Wildbook data
+- **wildbook** -- the tomcat (java server) container which runs Wildbook
+- **opensearch** -- runs OpenSearch to support searching in Wildbook
+- **smtp** -- handles outgoing email (for password reset etc.) It is beyond the scope of this current document to address setting up email relays on the open internet.
+Environment variables for this are set in `.env` file - see below.
+- ~~**wbia**~~ - Presently, this deployment _does not_ start a local WBIA (image analysis) docker container. This feature will be added in future development.
 
 ### Setup and running
 
-1. `sudo sysctl -w vm.max_map_count=262144` (this only needs to be run once on your system)
-1. In this folder, create a `.env` file and copy the contents of `_env.template` to it. By default, no changes should be needed, but you can edit this new file.
-1. In your terminal, create your base directory (value of `WILDBOOK_BASE_DIR`) and the required subdirectories. The default is `~/wildbook-dev/`):
+1. Run `sudo sysctl -w vm.max_map_count=262144` (A requirement for OpenSearch, it only needs to be run once on your system.)
+1. In `devops/development/` folder, create a `.env` file with a copy the contents of `_env.template`. By default, no changes should be needed, but you can edit this new file if needed.
+1. In your terminal, create your base directory (value of `WILDBOOK_BASE_DIR` from `.env` file above) and the required subdirectories. The default is `~/wildbook-dev/`). For example:
 	```
 	mkdir -p ~/wildbook-dev/webapps/wildbook
 	mkdir ~/wildbook-dev/logs
 	```
-1. deploy your `.war` file in the `wildbook/` directory, using `jar`:
+1. Deploy your `.war` file (see section below) in the above `wildbook/` directory, using `jar`:
 	```
 	cd ~/wildbook-dev/webapps/wildbook
 	jar -xvf /path/to/wildbook-xxx.war
 	```
-1. return to the `devops/development/` directory in the wildbook repo
-1. run `docker-compose up [-d]`, which will launch latest postgresql and tomcat9 docker images
-1. To verify successful launch, open in browser http://localhost:81/ when tomcat has started
+1. Return to the `devops/development/` directory in the wildbook repo
+1. Run `docker-compose up [-d]`, which will launch all of the aforementioned docker images
+1. To verify successful launch, open in browser http://localhost:81/ when tomcat has started. Default login of username/password `tomcat`/`tomcat123` should work.
 
-### When developing
+### Development environment setup for compiling Wildbook
 
-As you compile new war files, they can be deployed into the `wildbook` dir (as in step 3 above) and then tomcat restarted with:
+To run Wildbook in the development docker environment, even to try out the software, you will need a "war file" which is made by compiling the Wildbook java project.
+This requires some software to be set up on your development machine:
 
-```
-docker-compose restart wildbook
-```
+- Java JDK (`openjdk`) and `build-essential` linux package, as well as `maven` <span style="background-color: yellow;">[probably a link to generic setup doc elsewhere?]</span>
+- node and npm for React build <span style="background-color: yellow;">[likewise, link to generic help?]</span>, more details in [frontend/README.md](../frontend/README.md).
 
-## Deploy Docker Image - DRAFT
+#### Compiling
+
+Once the above requirements are met, the war file can be created by running `mvn clean install`. This will create the war file to be used in `target/wildbook-X.Y.Z.war` (with current version number).
+
+If you make code changes and compile new war files, they can be deployed into the `wildbook` dir (as in step 3 above) and then tomcat restarted with
+`docker-compose restart wildbook`.
+
+---
+
+## Deploy (e.g. Production) Docker Image - DRAFT
 
 This image and all support materials are found in the `deploy/` subdirectory. Run Wildbook and required docker images for production installations only.
 
