@@ -412,8 +412,7 @@ if(request.getUserPrincipal()!=null){
           <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
               <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
-                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
-                  <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
+                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
@@ -462,16 +461,16 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-submenu">
-                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
+                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
                             </svg>
                             </a>
                             
                             <ul class="dropdown-menu">
-                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
-                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
-                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
+                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
+                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
+                                <li><a href="<%=urlLoc %>/react/encounter-search?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
                           
                             </ul>
                             </li>
@@ -486,7 +485,7 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounters")%></a></li>
+                          <li><a href="<%=urlLoc %>/react/encounter-search"><%=props.getProperty("encounters")%></a></li>
 
                           <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>

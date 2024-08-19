@@ -6,24 +6,34 @@ import { FormGroup, FormLabel } from 'react-bootstrap';
 
 export default function FormGroupMultiSelect({ 
     isMulti = false, 
+    noLabel,
+    noDesc,
     label = "", 
-    options, 
+    options = [], 
     onChange, 
-    term, 
-    field,
+    term = "terms", 
+    field = "field",
+    setFormFilters,
+    formFilters, 
+    filterKey
     }) {
+
     return (
-        <FormGroup>
-            <FormLabel>{label}</FormLabel>
-            <Description>
+        <FormGroup className="mt-2">
+            {noLabel ? null : <FormLabel><FormattedMessage id={label} defaultMessage={label}/></FormLabel>}
+            {noDesc ? null : <Description>
                 <FormattedMessage id={`${label}_DESC`} />
-            </Description>
+            </Description>}
+            
             <MultiSelect
                 options={options}
                 onChange={onChange}
                 isMulti={isMulti}
                 term={term}
                 field={field}
+                setFormFilters={setFormFilters}
+                formFilters={formFilters}
+                filterKey= {filterKey}
             ></MultiSelect>
         </FormGroup>
     );

@@ -30,6 +30,8 @@ export default function Menu({username}) {
             id={`basic-nav-dropdown${idx}`}
             style={{
               color: 'white', boxSizing: 'border-box',
+              paddingLeft: 5,
+              paddingRight: 5,
               borderBottom: dropdownBorder[`dropdown${idx + 1}`] || '2px solid transparent'
             }}
             onMouseEnter={() => handleMouseEnterLeave(`dropdown${idx + 1}`, true)}
