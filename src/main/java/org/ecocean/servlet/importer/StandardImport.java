@@ -503,7 +503,7 @@ public class StandardImport extends HttpServlet {
 
         String uName = request.getUserPrincipal().getName();
         if (committing && uName != null)
-            out.println("<p><a href=\"../encounters/searchResults.jsp?username=" + uName +
+            out.println("<p><a href=\"..//react/encounter-search?username=" + uName +
                 "\">Search encounters owned by current user \"" + uName + "\"</a></p>");
         out.println("</div>"); // close column
         if (!committing) {

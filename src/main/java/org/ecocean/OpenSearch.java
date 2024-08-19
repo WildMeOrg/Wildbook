@@ -61,7 +61,8 @@ public class OpenSearch {
     public static String INDEX_TIMESTAMP_PREFIX = "OpenSearch_index_timestamp_";
     public static String[] VALID_INDICES = { "encounter", "individual", "occurrence" };
     public static int BACKGROUND_DELAY_MINUTES = 20;
-    public static int BACKGROUND_SLICE_SIZE = 1000;
+    public static int BACKGROUND_SLICE_SIZE = 2500;
+    public static String QUERY_STORAGE_DIR = "/tmp"; // FIXME
 
     private int pitRetry = 0;
 
@@ -165,7 +166,13 @@ public class OpenSearch {
             indexName).build();
 
         client.indices().create(createIndexRequest);
+        // ideally we would pass these as settings() in CreateIndexRequest but that is kind of a mess
+        indexClose(indexName);
+        JSONObject analysis = new JSONObject(
+            "{\"analysis\": {\"normalizer\": {\"wildbook_keyword_normalizer\": {\"type\": \"custom\", \"char_filter\": [], \"filter\": [\"lowercase\", \"asciifolding\"]} } } }");
+        putSettings(indexName, analysis);
         createMapping(indexName, mapping);
+        indexOpen(indexName);
         INDEX_EXISTS_CACHE.put(indexName, true);
         System.out.println(indexName + " OpenSearch index created");
     }
@@ -415,14 +422,48 @@ public class OpenSearch {
         return versions;
     }
 
+    public JSONObject getSettings(final String indexName)
+    throws IOException {
+        Request settingsRequest = new Request("GET", indexName + "/_settings");
+        String rtn = getRestResponse(settingsRequest);
+
+        try {
+            JSONObject jrtn = new JSONObject(rtn);
+            // since we are asking for a specific index's settings, let go ahead and dig down
+            return jrtn.getJSONObject(indexName).getJSONObject("settings").getJSONObject("index");
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.getSettings() failed with rtn=" + rtn);
+            ex.printStackTrace();
+        }
+        // lets just avoid null return for simplicity
+        return new JSONObject();
+    }
+
     public void putSettings(final String indexName, final JSONObject settings)
     throws IOException {
         if (settings == null) throw new IOException("null data passed");
-        Request searchRequest = new Request("PUT", indexName + "/_settings?preserve_existing=true");
-        searchRequest.setJsonEntity(settings.toString());
-        String rtn = getRestResponse(searchRequest);
+        Request settingsRequest = new Request("PUT",
+            indexName + "/_settings?preserve_existing=true");
+        settingsRequest.setJsonEntity(settings.toString());
+        String rtn = getRestResponse(settingsRequest);
         System.out.println("OpenSearch.putSettings() on " + indexName + ": " + settings + " => " +
             rtn);
+    }
+
+    public void indexOpen(final String indexName)
+    throws IOException {
+        Request searchRequest = new Request("POST", indexName + "/_open");
+        String rtn = getRestResponse(searchRequest);
+
+        System.out.println("OpenSearch.indexOpen() on " + indexName + ": " + rtn);
+    }
+
+    public void indexClose(final String indexName)
+    throws IOException {
+        Request searchRequest = new Request("POST", indexName + "/_close");
+        String rtn = getRestResponse(searchRequest);
+
+        System.out.println("OpenSearch.indexClose() on " + indexName + ": " + rtn);
     }
 
     // returns 2 lists: (1) items needing (re-)indexing; (2) items needing removal
@@ -529,6 +570,19 @@ public class OpenSearch {
         return SystemValue.getLong(myShepherd, INDEX_TIMESTAMP_PREFIX + indexName);
     }
 
+    public static JSONObject querySanitize(JSONObject query, User user) {
+        if ((query == null) || (user == null)) return query;
+        JSONObject newQuery = new JSONObject(query.toString());
+        try {
+            JSONArray filter = newQuery.getJSONObject("query").getJSONObject("bool").getJSONArray(
+                "filter");
+            filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" + user.getId() + "\"}}"));
+        } catch (Exception ex) {
+            System.out.println("OpenSearch.querySanitize() failed to find filter element: " + ex);
+        }
+        return newQuery;
+    }
+
     // TODO right now this respects index timestamp and only indexes objects with versions > timestamp.
     // probably want to make an option to index everything and ignore version/timestamp.
     public void indexAll(Shepherd myShepherd, Base obj)
@@ -556,8 +610,10 @@ public class OpenSearch {
         } catch (Exception ex) {
             System.out.println("OpenSearch.indexAll(" + obj.getClass() + ") failed: " + ex);
             ex.printStackTrace();
+            query.closeAll();
             return;
         }
+        query.closeAll();
         long initTime = System.currentTimeMillis();
         System.out.println("OpenSearch.indexAll() [" +
             java.time.Instant.ofEpochMilli(now).toString() + "] indexing " + indexName + ": size=" +
@@ -565,15 +621,53 @@ public class OpenSearch {
         int ct = 0;
         for (Base item : all) {
             ct++;
-            if (ct > 2100) break;
             index(indexName, item);
             if (ct % 500 == 0)
                 System.out.println("OpenSearch.indexAll() [" +
                     (System.currentTimeMillis() - initTime) + "] indexed " + indexName + ": " + ct +
                     " of " + all.size());
         }
-        query.closeAll();
         System.out.println("OpenSearch.indexAll() [" + (System.currentTimeMillis() - initTime) +
             "] completed indexing " + indexName);
+    }
+
+    public static String queryStoragePath(String id) {
+        return QUERY_STORAGE_DIR + "/OpenSearch-query-" + id + ".json";
+    }
+
+    public static String queryStore(final JSONObject query, final String indexName,
+        final User user) {
+        if (query == null) return null;
+        JSONObject stored = new JSONObject(query.toString());
+        String id = Util.generateUUID();
+        stored.put("id", id);
+        stored.put("indexName", indexName);
+        stored.put("created", System.currentTimeMillis());
+        stored.put("creator", user.getUUID());
+        try {
+            Util.writeToFile(stored.toString(), queryStoragePath(id));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return id;
+    }
+
+    public static JSONObject queryLoad(String id) {
+        if (id == null) return null;
+        try {
+            String jsonData = Util.readFromFile(queryStoragePath(id));
+            return new JSONObject(jsonData);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public static JSONObject queryScrubStored(final JSONObject query) {
+        if (query == null) return null;
+        JSONObject scrubbed = new JSONObject();
+        scrubbed.put("query", query.optJSONObject("query"));
+        return scrubbed;
     }
 }

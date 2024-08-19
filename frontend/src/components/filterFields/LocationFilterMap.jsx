@@ -1,17 +1,43 @@
 import { FormattedMessage } from 'react-intl';
 import Map from "../Map";
 import { FormGroup, FormLabel, FormControl } from 'react-bootstrap';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Description from '../Form/Description';
 import FormGroupMultiSelect from '../Form/FormGroupMultiSelect';
 import _ from 'lodash';
+import { useIntl } from 'react-intl';
 
 export default function LocationFilterMap({
     onChange,
     data,
-}) {
-    const [bounds, setBounds] = useState();
-    console.log("location map bounds", bounds);
+}) {    
+    const [bounds, setBounds] = useState(null);
+    const intl = useIntl();
+
+    useEffect(() => {
+        if (bounds) {
+            onChange({
+                filterId: "locationMap",
+                clause: "filter",
+                query: {
+                    "geo_bounding_box": {
+                        "locationGeoPoint": {
+                            "top_left": {
+                                "lat": bounds.north,
+                                "lon": bounds.west
+                            },
+                            "bottom_right": {
+                                "lat": bounds.south,
+                                "lon": bounds.east
+                            }
+                        }
+                    }
+                }
+            });
+        }else {
+            onChange(null, "locationMap");
+        }
+    }, [bounds]);
 
     function flattenLocationData(data) {
         if (!data) {
@@ -45,55 +71,73 @@ export default function LocationFilterMap({
             label: _.repeat("-", location.depth) + " " + location.name
         }
     }) || [];
+    const [tempBounds, setTempBounds] = useState(bounds);
 
     return (
         <div>
-            <h3><FormattedMessage id="FILTER_LOCATION_MAP" /></h3>
+            <h3><FormattedMessage id="FILTER_LOCATION" /></h3>
             <Description>
-                <FormattedMessage id="FILTER_LOCATION_MAP_DESC" />
+                <FormattedMessage id="FILTER_LOCATION_DESC" />
             </Description>
-
-            <FormGroupMultiSelect
-                isMulti={true}
-                label="FILTER_LOCATION_ID"
-                options={locationIDOptions}
-                onChange={onChange}
-                term="terms"
-                field="locationId"
-            />
             <FormLabel><FormattedMessage id="FILTER_GPS_COORDINATES" /></FormLabel>
             <div style={{
                 margin: '12px',
                 display: 'flex',
                 flexDirection: 'row',
             }}>
-                {bounds ? [{"Northeast_Latitude" : "north"},
-                    {"Northeast_Longitude" : "east"},
-                    {"Southwest_Latitude" : "south"},
-                    {"Southwest_Longitude" : "west"}].map((item, index) => {
-                        
-                        return (
-                            <FormGroup key={index} style={{
-                                marginRight: '10px',
-                            }}>
-                                <FormLabel><FormattedMessage id={Object.keys(item)[0].replace(/_/g, " ")} /></FormLabel>
-                                <FormControl
-                                    type="text"
-                                    placeholder={bounds ? bounds[Object.values(item)[0]] : "123"}
-                                    value={bounds ? bounds[Object.values(item)[0]] : ""}
-                                />
-                            </FormGroup>
-                        );
-                    }) : null
+                {[{ "Northeast_Latitude": "north" },
+                { "Northeast_Longitude": "east" },
+                { "Southwest_Latitude": "south" },
+                { "Southwest_Longitude": "west" }].map((item, index) => {
+
+                    return (
+                        <FormGroup key={index} style={{
+                            marginRight: '10px',
+                        }}>
+                            <FormLabel><FormattedMessage id={Object.keys(item)[0]} /></FormLabel>
+                            <FormControl
+                                type="number"
+                                placeholder={bounds ? bounds[Object.values(item)[0]] : intl.formatMessage({ id: "TYPE_NUMBER" })
+                            }
+                                value={bounds ? bounds[Object.values(item)[0]] : tempBounds? tempBounds[Object.values(item)[0]] : ""}
+                                onChange={(e) => {
+                                    const newTempBounds = {
+                                        ...tempBounds,
+                                        [Object.values(item)[0]]: e.target.value
+                                    };
+                                    setTempBounds(newTempBounds);
+                                    
+                                    // Check if all fields have values
+                                    const allFieldsFilled = Object.values(newTempBounds).length === 4 && Object.values(newTempBounds).every(value => value !== undefined && value !== "");
+                                    if (allFieldsFilled) {
+                                        setBounds(newTempBounds);  
+                                    }                                    
+                                }}
+                            />
+                        </FormGroup>
+                    );
+                }) 
                 }
 
             </div>
             <Map
+                bounds={bounds}
                 setBounds={setBounds}
-                center={{ lat: 39.9042, lng: 116.4074 }} 
-                zoom={12}
+                setTempBounds={setTempBounds}
+                center={{ lat: -1.286389, lng: 36.817223 }} 
+                zoom={5}
+                onChange={onChange}
             />
-            <FormattedMessage id="FILTER_GPS_COORDINATES" />
+            <FormGroupMultiSelect
+                isMulti={true}
+                noDesc={true}
+                label="FILTER_LOCATION_ID"
+                options={locationIDOptions}
+                onChange={onChange}
+                term="terms"
+                field="locationId"
+                filterKey="Location ID"
+            />
 
         </div>
     );

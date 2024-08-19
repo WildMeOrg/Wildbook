@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
-import { Button } from 'react-bootstrap';
 import BrutalismButton from '../BrutalismButton';
 import { FormattedMessage } from 'react-intl';
+import { useIntl } from 'react-intl';
 
 function DynamicInputs({
   onChange,
 }) {
-  const [inputs, setInputs] = useState([{name: '', value: ''}]);
+  const intl = useIntl();
+  const [inputs, setInputs] = useState([{ name: '', value: '' }]);
 
   const addInput = () => {
     setInputs([...inputs, { name: '', value: '' }]);
@@ -16,7 +17,12 @@ function DynamicInputs({
   const handleInputChange = (index, event) => {
     const newInputs = inputs.map((input, i) => {
       if (i === index) {
-        const updatedInput = { ...input, [event.target.name]: event.target.value };
+        const nameField = event.target.name === 'name' ? event.target.value : input.name;
+        const valueField = event.target.name === 'value' ? event.target.value : input.value;
+        const originalName = (event.target.name === 'name' && event.target.value !== '') ? event.target.value : input.originalName || input.name;
+
+        const updatedInput = { ...input, name: nameField, value: valueField, originalName };
+
         if (updatedInput.name && updatedInput.value) {
           onChange({
             filterId: `dynamicProperties.${updatedInput.name}`,
@@ -29,6 +35,10 @@ function DynamicInputs({
             term: "match",
 
           });
+        } else {
+          if (updatedInput.originalName) {
+            onChange(null, `dynamicProperties.${updatedInput.originalName}`);
+          }
         }
         return updatedInput;
       }
@@ -44,14 +54,14 @@ function DynamicInputs({
           <Form.Control
             type="text"
             name="name"
-            placeholder="FILTER_OBSERVATION_NAME"
+            placeholder={intl.formatMessage({ id: "FILTER_OBSERVATION_NAME" })}
             value={input.name}
             onChange={handleInputChange.bind(null, index)}
           />
           <Form.Control
             type="text"
             name="value"
-            placeholder="FILTER_OBSERVATION_VALUE"
+            placeholder={intl.formatMessage({ id: 'FILTER_OBSERVATION_VALUE' })}
             value={input.value}
             onChange={handleInputChange.bind(null, index)}
             disabled={!input.name}
@@ -65,6 +75,7 @@ function DynamicInputs({
         }}
         borderColor="#fff"
         color="white"
+        noArrow
         backgroundColor="transparent"
         onClick={addInput}
       >

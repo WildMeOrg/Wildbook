@@ -8,15 +8,22 @@ import Description from '../Form/Description';
 import { filter } from 'lodash-es';
 import FormGroupText from '../Form/FormGroupText';
 import Select from 'react-select';
+import { useContext } from 'react';
+import FilterContext from '../../FilterContextProvider';
+import AndSelector from '../AndSelector';
+import LabelledKeywordFilter from '../Form/LabelledKeywordFilter';
 
 const colourStyles = {
     option: (styles) => ({
         ...styles,
-        color: 'black', 
+        color: 'black',
     }),
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-    singleValue: (styles) => ({ ...styles, color: 'black' }), 
-  };
+    singleValue: (styles) => ({ ...styles, color: 'black' }),
+    menuPortal: base => ({ ...base, zIndex: 1050 }),
+    // menu: base => ({ ...base, maxHeight: '200px' }),
+    control: base => ({ ...base, zIndex: 1 }),
+};
 
 export default function ImageLabelFilter({
     data,
@@ -28,35 +35,6 @@ export default function ImageLabelFilter({
             label: item
         }
     }) || [];
-
-    const labelledKeywordsOptions = Object.entries(data?.labeledKeyword || []).map(([key, value]) => {
-        return {
-            value: key,
-            label: key
-        }
-    }) || [];
-
-    const [labelledKeyword, setLabelledKeyword] = React.useState(null)
-
-    const [labelledKeywordsValueOptions, setLabelledKeywordsValueOptions] = React.useState([]);
-    useEffect(() => {
-        setLabelledKeywordsValueOptions((data?.labeledKeyword[labelledKeyword] || []).map(
-            item => {
-                return {
-                    value: item,
-                    label: item
-                }
-            }
-        ))
-        const testOptions = (data?.labeledKeyword[labelledKeyword] || []).map(
-            item => {
-                return {
-                    value: item,
-                    label: item
-                }
-            }
-        )
-    }, [labelledKeyword])
 
     const viewPointOptions = data?.annotationViewpoint?.map(item => {
         return {
@@ -72,18 +50,38 @@ export default function ImageLabelFilter({
         }
     }) || [];
 
-    const label = <FormattedMessage id="HAS_AT_LEAST_ONE_ASSOCIATED_PHOTO_OR_VIDEO" />
+    const label = <FormattedMessage id="FILTER_HAS_AT_LEAST_ONE_ASSOCIATED_PHOTO_OR_VIDEO" />
     const [isChecked_photo, setIsChecked_photo] = React.useState(false);
     const [isChecked_keyword, setIsChecked_keyword] = React.useState(false);
 
-    const term = isChecked_keyword? "terms" : "match";
-    const field = "keywords";
-    const filterId = "keywords";
+    useEffect(() => {
+        if (isChecked_photo) {
+            onChange({
+                filterId: "numberMediaAssets",
+                clause: "filter",
+                filterKey: "Number Media Assets",
+                query: {
+                    "range": {
+                        "numberMediaAssets": {
+                            "gte": 1
+                        }
+                    }
+                },
+            })
+        }
+        else {
+            onChange(null, "numberMediaAssets");
+        }
+
+    }, [isChecked_photo]);
 
     return (
 
         <div>
             <h3><FormattedMessage id="FILTER_IMAGE_LABEL" /></h3>
+            <Description>
+                <FormattedMessage id="FILTER_IMAGE_LABEL_DESC" />
+            </Description>
             <Form>
                 <Form.Check
                     type="checkbox"
@@ -92,29 +90,19 @@ export default function ImageLabelFilter({
                     checked={isChecked_photo}
                     onChange={() => {
                         setIsChecked_photo(!isChecked_photo);
-                        onChange({
-                            filterId: "numberMediaAssets",
-                            clause: "filter",
-                            query: {
-                                "range": {
-                                    "numberMediaAssets": {
-                                        "gte": 1                                    
-                                    }
-                                }
-                            },
-                        })
+
                     }}
                 />
             </Form>
 
-            <div className="d-flex flex-row justify-content-between">
+            <div className="d-flex flex-row justify-content-between mt-3">
                 <Form.Label>
                     <FormattedMessage id="FILTER_KEYWORDS" />
                 </Form.Label>
 
                 <Form.Check
                     type="checkbox"
-                    id="custom-checkbox"
+                    id="custom-checkbox_keyword"
                     label={<FormattedMessage id="USE_AND_OPERATOR" />}
                     checked={isChecked_keyword}
                     onChange={() => {
@@ -124,76 +112,56 @@ export default function ImageLabelFilter({
                 />
             </div>
 
+            {
+                isChecked_keyword ? <AndSelector
+                    isMulti={true}
+                    noLabel={true}
+                    label="FILTER_KEYWORDS"
+                    onChange={onChange}
+                    options={keywordsOptions}
+                    field="mediaAssetKeywords"
+                    term="terms"
+                    filterId={"mediaAssetKeywords"}
+                    filterKey={"Media Asset Keywords"}
+                /> : <FormGroupMultiSelect
+                    isMulti={true}
+                    noLabel={true}
+                    label="FILTER_KEYWORDS"
+                    options={keywordsOptions}
+                    onChange={onChange}
+                    field="mediaAssetKeywords"
+                    term="terms"
+                    filterKey="Media Asset Keywords"
+                />
+            }
 
-            <Select
-                isMulti={setIsChecked_photo}
-                options={keywordsOptions}
-                styles={colourStyles}
-                onChange={(e) =>
-                    onChange({
-                        filterId: { filterId },
-                        clause: "filter",
-                        query: {
-                            [term]: {
-                                [field]: setIsChecked_photo ? e.map(item => item.value) : e.value
-                            }
-                        }
-                    })
-                }
-            />
-            <FormGroup>
-                <Form.Label><FormattedMessage id="FILTER_LABELLED_KEYWORDS" /></Form.Label>
-                <Description>
-                    <FormattedMessage id={`FILTER_LABELLED_KEYWORDS_DESC`} />
-                </Description>
-                <div className="d-flex flex-row gap-3">
-                    <div className="w-50">
-                        <Form.Label><FormattedMessage id="LABEL" /></Form.Label>
-                        <Select
-                            onChange={(e) => {
-                                setLabelledKeyword(e.value)
-
-                            }}
-                            options={labelledKeywordsOptions}
-                        />
-                    </div>
-                    <div className="w-50">
-                        <Form.Label><FormattedMessage id="VALUE" /></Form.Label>
-                        <Select
-                            options={labelledKeywordsValueOptions}
-                            onChange={(e) => {
-                                onChange({
-                                    filterId: "labelledKeywords",
-                                    clause: "filter",
-                                    query: {
-                                        "match": {
-                                            [labelledKeyword]: e.value
-                                        }
-                                    }
-                                })
-                            }}
-                        />
-                    </div>
-
-                </div>
-            </FormGroup>
+            <LabelledKeywordFilter
+                data={data}
+                onChange={onChange}
+            />            
 
             <FormGroupMultiSelect
                 isMulti={true}
                 label="FILTER_VIEWPOINT"
+                noDesc={true}
                 options={viewPointOptions}
-                filterId="viewpoint"
+                filterId="annotationViewpoints"
                 term="terms"
-                field={"viewpoint"}
+                field={"annotationViewpoints"}
                 onChange={onChange}
+                filterKey={"View Point"}
             />
 
             <FormGroupMultiSelect
-                label="FILTER_CLASS"
+                isMulti={true}
+                label="FILTER_IA_CLASS"
+                noDesc={true}
                 options={iaClassOptions}
-                filterId="iaClass"
+                filterId="annotationIAClasses"
+                field={"annotationIAClasses"}
                 term="terms"
                 onChange={onChange}
+                filterKey={"IA Class"}
             />
         </div>
     );

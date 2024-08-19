@@ -24,7 +24,7 @@ export default function LatestData({ data, username, loading = true }) {
         })}
 
         <More
-          href={`/encounters/searchResults.jsp?username=${username}`}
+          href={`/react/encounter-search?username=${username}`}
           loading={loading}
         />
       </div>
