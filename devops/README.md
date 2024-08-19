@@ -4,7 +4,7 @@ We provide two different containerized Wildbooks using Docker. Unless you are se
 
 ## Development Docker
 
-All support materials are found in the `devops/development/` subdirectory. This will launch docker containers sufficient for you to deploy a `wildbook.war` file which you have developed
+All support materials are found in the `devops/development/` subdirectory. This launches docker containers sufficient for you to deploy a `wildbook.war` file which you have developed
 via your own Java environment. 
 
 ### Overview of docker containers deployed
