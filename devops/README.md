@@ -1,7 +1,6 @@
 # Wildbook Installation
 
 We provide two different containerized Wildbooks using Docker. Unless you are setting up a production instance of Wildbook, use the **Development Docker** option.
-Wildbook can also be set up as a local tomcat application. <span style="background-color: yellow;">[do we want to mention/encourage this local tomcat? would need its own set of docs -- setting up psql and opensearch manually etc]</span>
 
 ## Development Docker
 
@@ -15,7 +14,7 @@ via your own Java environment.
 - **opensearch** -- runs OpenSearch to support searching in Wildbook
 - **smtp** -- handles outgoing email (for password reset etc.) It is beyond the scope of this current document to address setting up email relays on the open internet.
 Environment variables for this are set in `.env` file - see below.
-- ~~**wbia**~~ - Presently, this deployment _does not_ start a local WBIA (image analysis) docker container. This feature will be added in future development.
+- ~~**wbia**~~ - Presently, this _does not_ start a local WBIA (image analysis) docker container. The current roadmap is focused on removing WBIA as a requirement as we modernize our machine learning tech.
 
 ### Setup and running
 
@@ -32,12 +31,12 @@ Environment variables for this are set in `.env` file - see below.
 	jar -xvf /path/to/wildbook-xxx.war
 	```
 1. Return to the `devops/development/` directory in the wildbook repo
-1. Run `docker-compose up [-d]`, which will launch all of the aforementioned docker images
+1. Run `docker-compose up [-d]`, which launches all of the aforementioned docker images
 1. To verify successful launch, open in browser http://localhost:81/ when tomcat has started. Default login of username/password `tomcat`/`tomcat123` should work.
 
 ### Development environment setup for compiling Wildbook
 
-To run Wildbook in the development docker environment, even to try out the software, you will need a "war file" which is made by compiling the Wildbook java project.
+To run Wildbook in the development docker environment, even to try out the software, you need a "war file" which is made by compiling the Wildbook java project.
 This requires some software to be set up on your development machine:
 
 - Java JDK (`openjdk`) and `build-essential` linux package, as well as `maven` <span style="background-color: yellow;">[probably a link to generic setup doc elsewhere?]</span>
@@ -45,7 +44,7 @@ This requires some software to be set up on your development machine:
 
 #### Compiling
 
-Once the above requirements are met, the war file can be created by running `mvn clean install`. This will create the war file to be used in `target/wildbook-X.Y.Z.war` (with current version number).
+Once the above requirements are met, the war file can be created by running `mvn clean install`. This creates the war file to be used in `target/wildbook-X.Y.Z.war` (with current version number).
 
 If you make code changes and compile new war files, they can be deployed into the `wildbook` dir (as in step 3 above) and then tomcat restarted with
 `docker-compose restart wildbook`.
@@ -58,13 +57,12 @@ This image and all support materials are found in the `deploy/` subdirectory. Ru
 
 **THIS IS CURRENTLY UNDER DEVELOPMENT - DRAFT ONLY**
 
-This will launch an instance of Wildbook for the sake of testing or using in production.
+This launches an instance of Wildbook for the sake of testing or using in production.
 It can be used to deploy on a VM/host on the internet or locally.
 
 ### Docker images used
 
-The following docker containers should launch if started with `docker-compose [-d] up`. Some of these
-are "optional" as noted below.
+The following docker containers should launch if started with `docker-compose [-d] up`. Some of these are "optional" as noted below.
 
 - latest postegresql
 - tomcat9 / latest wildbook
@@ -82,13 +80,5 @@ Currently, nginx is not configured to support ssl/https certs. There are some no
 - copy `_env.template` to `.env` and edit this new file with your own values
 - `docker-compose up ....`
 
-## Local Tomcat 
-**TODO #503: draft local tomcat instructions**
-
-If you are running tomcat locally (not using docker), in order to access it as `http://localhost:8080/` (rather than with `/wildbook` trailing directory),
-you should modify the `<Host>...</Host>` block of tomcat's `conf/server.xml` to contain the following:
-
-```
-	<Context docBase="wildbook" path="" />
-	<Context docBase="wildbook_data_dir" path="/wildbook_data_dir" />
-```
+## Local tomcat 
+If you want to run Wildbook on non-dockerized tomcat, the system will likely build, but functionality will be restricted (i.e., search will not work) and additional functionality will likely break as we continue modernizing the stack. That being said, good luck!
