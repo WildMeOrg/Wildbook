@@ -5,108 +5,125 @@ import Form from "react-bootstrap/Form";
 import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import FormControl from "react-bootstrap/FormControl";
+import { useContext } from "react";
+import FilterContext from "../../FilterContextProvider";
+import { useIntl } from "react-intl";
+import { fill, filter } from "lodash-es";
 
 export default function IdentityFilter({
   onChange,
 
 }) {
-  const includeEncounters = <FormattedMessage id="INCLUDE_ENCOUNTERS" />
+  const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />
   const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
+  const [times, setTimes] = React.useState(0);
+  const intl = useIntl();
+
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_IDENTIFY" /></h3>
+      <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
       <Description>
-        <FormattedMessage id="FILTER_IDENTIFY_DESC" />
+        <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
-      <h5><FormattedMessage id="FILTER_MINIMUM_TIMES_SIGHTED" /></h5>
-      <Description>
-        <FormattedMessage id="FILTER_MINIMUM_TIMES_SIGHTED_DESC" />
-      </Description>
-      <Form className="d-flex flex-row aligh-items-center ">
-        <Form.Check
+      <Form className="d-flex flex-row aligh-items-center">
+        {/* <Form.Check className="me-2"
           type="checkbox"
           id="custom-checkbox"
           checked={isChecked1}
-          onChange={() => {
+          onChange={(e) => {
             setIsChecked1(!isChecked1);
-            // onChange({
-            //   filterId: "individualNumberEncounters",
-            //   clause: "filter",
-            //   query: {
-            //     "match": {
-            //       "individualID": null
-            //     }
-            //   },
-            // })
+            if (e.target.checked && times) {
+              onChange({
+                filterId: "individualNumberEncounters",
+                clause: "filter",
+                filterKey: "Number of Encounters",
+                query: {
+                  "range": {
+                    "individualNumberEncounters": { "gte": times }
+                  }
+                },
+              });
+            }else {             
+                onChange(null, "individualNumberEncounters");            
+            }
           }}
-        />
-        <FormattedMessage id="SIGHTED_AT_LEAST" />
-        <FormControl 
-          type="text"
+        /> */}
+        <FormattedMessage id="FILTER_SIGHTED_AT_LEAST" />
+        <FormControl
+          type="number"
           style={{
             width: "100px",
             marginLeft: "10px",
             marginRight: "10px"
           }}
-          placeholder="Type Here"
+          placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
           onChange={(e) => {
-            if(isChecked1){
+            setTimes(e.target.value);
+            if (e.target.value) {
               onChange({
-                  filterId: "individualNumberEncounters",
-                  clause: "filter",
-                  query: {
-                    "range": {
-                      "individualNumberEncounters": {"gte" :e.target.value}
-                    }
-                  },
-                });
+                filterId: "individualNumberEncounters",
+                filterKey: "Number of Encounters",
+                clause: "filter",
+                query: {
+                  "range": {
+                    "individualNumberEncounters": { "gte": e.target.value }
+                  }
+                },
+              });
+            }else {
+              onChange(null, "individualNumberEncounters");
             }
+            
           }}
-          disabled={!isChecked1}
         />
-        <FormattedMessage id="TIMES" />
+        <FormattedMessage id="FILTER_TIMES" />
       </Form>
-      
-        
-      
+
       <Form>
         <Form.Check
           label={includeEncounters}
           type="checkbox"
           id="custom-checkbox"
           checked={isChecked2}
-          onChange={() => {
+          onChange={(e) => {
             setIsChecked2(!isChecked2);
-            if(isChecked2){
+            if (e.target.checked) {
               onChange({
                 filterId: "individualId",
-                clause: "filter",
+                filterKey: "Include only encounters with no assigned Individual ID",
+                clause: "must_not",
                 query: {
-                  "match": {
-                    "individualId": null
+                  "exists": {
+                    "field": "individualId"
                   }
                 },
               })
-            
-          }}}
+            }else {
+              onChange(null, "individualId");
+            }
+          }}
         />
+        
+
       </Form>
       <FormGroupText
-        label="FILTER_ALTERNATIVE_ID_CONTAINS"
+        label="FILTER_ALTERNATIVE_ID"
+        noDesc={true}
         field={"otherCatalogNumbers"}
         term={"match"}
         filterId={"otherCatalogNumbers"}
         onChange={onChange}
+        filterKey={"Alternative ID"}
 
       />
       <FormGroupText
-        label="FILTER_INDIVIDUAL_NAME_CONTAINS"
-        field={"individualName"}
+        label="FILTER_INDIVIDUAL_NAME"
+        field={"individualNames"}
         term={"match"}
-        filterId={"individualName"}
+        filterId={"individualNames"}
         onChange={onChange}
-        noDesc={true}
+        filterKey={"Individual Names"}
       />
     </div>
   );

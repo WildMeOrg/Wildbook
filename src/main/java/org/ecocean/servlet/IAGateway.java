@@ -464,21 +464,18 @@ public class IAGateway extends HttpServlet {
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict,
                 userConfidence, myShepherd, task, baseUrl, fastlane);
-            if (!sent.optBoolean("success", false) && sent.toString().indexOf("emptyTargetAnnotations")==-1) {
-
+            if (!sent.optBoolean("success",
+                false) && sent.toString().indexOf("emptyTargetAnnotations") == -1) {
                 String errorMsg = sent.optString("error", "(unknown error)");
-                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " + errorMsg + "; hopefully we requeue");
-                
-                //set the status as complete as we faithfully completed the query but nothing to match against
-                if(task!=null) {
-                	task.setStatus("completed");
-                	task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
-                	myShepherd.updateDBTransaction();
+                System.out.println("beginIdentifyAnnotations() was unsuccessful due to " +
+                    errorMsg + "; hopefully we requeue");
+                // set the status as complete as we faithfully completed the query but nothing to match against
+                if (task != null) {
+                    task.setStatus("completed");
+                    task.setCompletionDateInMilliseconds(Long.valueOf(System.currentTimeMillis()));
+                    myShepherd.updateDBTransaction();
                 }
-                
-                
                 throw new IOException("beginIdentifyAnnotations() failed due to " + errorMsg);
- 
             }
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);

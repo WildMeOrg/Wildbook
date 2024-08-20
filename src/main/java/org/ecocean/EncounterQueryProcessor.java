@@ -27,6 +27,8 @@ import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class EncounterQueryProcessor extends QueryProcessor {
     private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE =
@@ -44,9 +46,70 @@ public class EncounterQueryProcessor extends QueryProcessor {
         String context = "context0";
 
         context = ServletUtilities.getContext(request);
-
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("EncounterQueryProcessor.class");
+
+        String searchQueryId = request.getParameter("searchQueryId");
+        // hack to build a ridiculous query string from an OpenSearch query
+        if (searchQueryId != null) {
+            String failed = filter + " 1 == 0";
+            List<String> encIds = new ArrayList<String>();
+            User user = myShepherd.getUser(request);
+            if (user == null) return failed;
+            JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId);
+            if (searchQuery == null) return failed;
+            String indexName = searchQuery.optString("indexName", null);
+            if (indexName == null) return failed;
+            searchQuery = OpenSearch.queryScrubStored(searchQuery);
+            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
+            OpenSearch os = new OpenSearch();
+            String sort = request.getParameter("sort");
+            String sortOrder = request.getParameter("sortOrder");
+            int numFrom = 0;
+            // for historical code reasons, this needs to be "all" encounters,
+            // so we hope this does the job if background indexing set correctly
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            try {
+                os.deletePit(indexName);
+                JSONObject queryRes = os.queryPit(indexName, sanitized, numFrom, pageSize, sort,
+                    sortOrder);
+                JSONObject outerHits = queryRes.optJSONObject("hits");
+                if (outerHits == null) {
+                    System.out.println("could not find (outer) hits");
+                    return failed;
+                }
+                JSONArray hits = outerHits.optJSONArray("hits");
+                if (hits == null) {
+                    System.out.println("could not find hits");
+                    return failed;
+                }
+                for (int i = 0; i < hits.length(); i++) {
+                    JSONObject h = hits.optJSONObject(i);
+                    if (h == null) {
+                        System.out.println("failed to parse hits[" + i + "]");
+                        return failed;
+                    }
+                    String hId = h.optString("_id", null);
+                    if (hId == null) {
+                        System.out.println("failed to parse _id from hits[" + i + "]");
+                        return failed;
+                    }
+                    // Encounter enc = myShepherd.getEncounter(hId);
+                    encIds.add(hId);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return failed;
+            }
+            filter += " (catalogNumber == \"" + String.join("\") || (catalogNumber == \"",
+                encIds) + "\")";
+            System.out.println("queryStringBuilder: searchQueryId=" + searchQueryId + " yielded " +
+                encIds.size() + " matching encounters");
+            return filter;
+        }
         // filter for location------------------------------------------
         if ((request.getParameter("locationField") != null) &&
             (!request.getParameter("locationField").equals(""))) {
@@ -1620,6 +1683,77 @@ public class EncounterQueryProcessor extends QueryProcessor {
         // Query query=myShepherd.getPM().newQuery(encClass);
         // if(!order.equals("")){query.setOrdering(order);}
 
+        String searchQueryId = request.getParameter("searchQueryId");
+        long startTime = System.currentTimeMillis();
+        if (searchQueryId != null) {
+            User user = myShepherd.getUser(currentUser);
+            if (user == null)
+                return new EncounterQueryResult(rEncounters, "must be logged in",
+                        "OpenSearch id " + searchQueryId);
+            JSONObject searchQuery = OpenSearch.queryLoad(searchQueryId);
+            if (searchQuery == null)
+                return new EncounterQueryResult(rEncounters, "searchQuery not found",
+                        "OpenSearch id " + searchQueryId);
+            String indexName = searchQuery.optString("indexName", null);
+            if (indexName == null)
+                return new EncounterQueryResult(rEncounters, "searchQuery has no indexName",
+                        "OpenSearch id " + searchQueryId);
+            searchQuery = OpenSearch.queryScrubStored(searchQuery);
+            JSONObject sanitized = OpenSearch.querySanitize(searchQuery, user);
+            OpenSearch os = new OpenSearch();
+            String sort = request.getParameter("sort");
+            String sortOrder = request.getParameter("sortOrder");
+            int numFrom = 0;
+            int pageSize = 10000;
+            try {
+                pageSize = os.getSettings(indexName).optInt("max_result_window", 10000);
+            } catch (Exception ex) {}
+            try {
+                os.deletePit(indexName);
+                JSONObject queryRes = os.queryPit(indexName, sanitized, numFrom, pageSize, sort,
+                    sortOrder);
+                JSONObject outerHits = queryRes.optJSONObject("hits");
+                if (outerHits == null) {
+                    System.out.println("could not find (outer) hits");
+                    return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                            "OpenSearch id " + searchQueryId);
+                }
+                JSONArray hits = outerHits.optJSONArray("hits");
+                if (hits == null) {
+                    System.out.println("could not find hits");
+                    return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                            "OpenSearch id " + searchQueryId);
+                }
+                System.out.println("processQuery(" + searchQueryId + ") [" +
+                    (System.currentTimeMillis() - startTime) + "ms] got " + hits.length() +
+                    " results");
+                for (int i = 0; i < hits.length(); i++) {
+                    JSONObject h = hits.optJSONObject(i);
+                    if (h == null) {
+                        System.out.println("failed to parse hits[" + i + "]");
+                        return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                                "OpenSearch id " + searchQueryId);
+                    }
+                    String hId = h.optString("_id", null);
+                    if (hId == null) {
+                        System.out.println("failed to parse _id from hits[" + i + "]");
+                        return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                                "OpenSearch id " + searchQueryId);
+                    }
+                    Encounter enc = myShepherd.getEncounter(hId);
+                    if (enc != null) rEncounters.add(enc);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                        "OpenSearch id " + searchQueryId);
+            }
+            System.out.println("processQuery(" + searchQueryId + ") [" +
+                (System.currentTimeMillis() - startTime) + "ms] populated " + rEncounters.size() +
+                " rEncounters");
+            return new EncounterQueryResult(rEncounters, searchQuery.toString(),
+                    "OpenSearch id " + searchQueryId + " (" + rEncounters.size() + " matches)");
+        }
         String filter = "";
         StringBuffer prettyPrint = new StringBuffer("");
         Map<String, Object> paramMap = new HashMap<String, Object>();

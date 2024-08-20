@@ -15,6 +15,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class SearchApi extends ApiBase {
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        doPost(request, response);
+    }
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
@@ -36,29 +41,45 @@ public class SearchApi extends ApiBase {
                 res.put("error", "unsupported");
             } else {
                 String indexName = arg.substring(1);
-                if (!OpenSearch.isValidIndexName(indexName)) {
+                String searchQueryId = null;
+                JSONObject query = null;
+                if (Util.isUUID(indexName)) {
+                    searchQueryId = indexName;
+                    query = OpenSearch.queryLoad(searchQueryId);
+                }
+                if ((searchQueryId != null) && (query == null)) {
+                    response.setStatus(404);
+                    res.put("error", "invalid searchQueryId " + searchQueryId);
+                } else if ((searchQueryId == null) && !OpenSearch.isValidIndexName(indexName)) {
                     response.setStatus(404);
                     res.put("error", "unknown index");
+                } else if ((query == null) && !"POST".equals(request.getMethod())) {
+                    response.setStatus(405);
+                    res.put("error", "method not allowed");
                 } else {
                     String fromStr = request.getParameter("from");
                     String sizeStr = request.getParameter("size");
                     String sort = request.getParameter("sort");
                     String sortOrder = request.getParameter("sortOrder");
-                    boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
+                    // for now, we delete pit by default. we will need to let frontend decide when to keep it
+                    // by passing in the previous pit (e.g. for pagination)  TODO
+                    // boolean deletePit = Util.requestParameterSet(request.getParameter("deletePit"));
+                    boolean deletePit = true;
                     int numFrom = 0;
                     int pageSize = 10;
                     try { numFrom = Integer.parseInt(fromStr); } catch (Exception ex) {}
                     try { pageSize = Integer.parseInt(sizeStr); } catch (Exception ex) {}
-                    JSONObject query = ServletUtilities.jsonFromHttpServletRequest(request);
-                    try {
-                        JSONArray filter = query.getJSONObject("query").getJSONObject(
-                            "bool").getJSONArray("filter");
-                        filter.put(new JSONObject("{\"match\": {\"viewUsers\": \"" +
-                            currentUser.getId() + "\"}}"));
-                    } catch (Exception ex) {
-                        System.out.println("SearchApi failed to find filter element: " + ex);
+                    if (query == null) { // must be body (new query, needs storing)
+                        query = ServletUtilities.jsonFromHttpServletRequest(request);
+                        // we store this *before* we sanitize
+                        searchQueryId = OpenSearch.queryStore(query, indexName, currentUser);
+                    } else { // stored query, so:
+                        indexName = query.optString("indexName", null);
+                        query = OpenSearch.queryScrubStored(query);
                     }
-                    System.out.println("SearchApi query=" + query);
+                    query = OpenSearch.querySanitize(query, currentUser);
+                    System.out.println("SearchApi (sanitized) indexName=" + indexName + "; query=" +
+                        query);
 
                     OpenSearch os = new OpenSearch();
                     try {
@@ -86,10 +107,13 @@ public class SearchApi extends ApiBase {
                             hitsArr.put(doc);
                         }
                         response.setHeader("X-Wildbook-Total-Hits", Integer.toString(totalHits));
+                        response.setHeader("X-Wildbook-Search-Query-Id", searchQueryId);
                         // response.setHeader("X-Wildbook-Scroll-Id", scrollId);
                         response.setStatus(200);
                         res.put("success", true);
+                        res.put("searchQueryId", searchQueryId);
                         res.put("hits", hitsArr);
+                        res.put("query", query);
                     } catch (IOException ex) {
                         response.setStatus(500);
                         res.put("success", false);

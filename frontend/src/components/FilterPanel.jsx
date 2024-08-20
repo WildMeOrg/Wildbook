@@ -1,23 +1,35 @@
 
-import React, { Fragment, useEffect, useState, useRef } from 'react';
+import React, { Fragment, useEffect, useState, useRef, useContext } from 'react';
 
 import Text from './Text';
-import { Container } from 'react-bootstrap';
-import { set } from 'lodash-es';
+import { Container, FormControl } from 'react-bootstrap';
+import { filter, set } from 'lodash-es';
 import ThemeContext from "../ThemeColorProvider";
 import BrutalismButton from './BrutalismButton';
 import useGetSiteSettings from '../models/useGetSiteSettings';
+import FilterContext from '../FilterContextProvider';
+import { Col, Row } from 'react-bootstrap';
+import { FormattedMessage } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 
-function setFilter(newFilter, formFilters, setFormFilters) {
-  const matchingFilterIndex = formFilters.findIndex(
+function setFilter(newFilter, tempFormFilters, setTempFormFilters) {
+  const matchingFilterIndex = tempFormFilters.findIndex(
     f => f.filterId === newFilter.filterId,
   );
   if (matchingFilterIndex === -1) {
-    setFormFilters([...formFilters, newFilter]);
+    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci")) {
+      tempFormFilters.splice(0, tempFormFilters.length, newFilter, ...tempFormFilters);
+    } else {
+      setTempFormFilters([...tempFormFilters, newFilter]);
+    }
   } else {
-    const newFormFilters = [...formFilters];
-    newFormFilters[matchingFilterIndex] = newFilter;
-    setFormFilters(newFormFilters);
+    if (newFilter?.filterId?.startsWith("microsatelliteMarkers.loci") || newFilter?.filterId?.startsWith("measurements")) {
+      tempFormFilters[matchingFilterIndex] = newFilter;
+    } else {
+      const newFormFilters = [...tempFormFilters];
+      newFormFilters[matchingFilterIndex] = newFilter;
+      setTempFormFilters(newFormFilters);
+    }
   }
 }
 
@@ -26,21 +38,35 @@ export default function FilterPanel({
   formFilters = [],
   setFormFilters = () => { },
   setFilterPanel,
+  style = {},
+  handleSearch = () => { },
+  setSearchParams = () => { },
+  setQueryID = "",
 }) {
-  const [selectedChoices, setSelectedChoices] = useState({});
-  const [tempFormFilters, setTempFormFilters] = useState(formFilters);
 
+  const [selectedChoices, setSelectedChoices] = useState({});
+  const [tempFormFilters, setTempFormFilters] = useState([]);
+  useEffect(() => {
+    setTempFormFilters(formFilters);
+  }, [formFilters]);
+  const navigate = useNavigate();
   const { data } = useGetSiteSettings();
 
-  const handleFilterChange = filter => {
-    if (filter.selectedChoice) {
-      setSelectedChoices({
-        ...selectedChoices,
-        [filter.filterId]: filter.selectedChoice,
+  useEffect(() => {
+  }, [tempFormFilters]);
+
+
+  const handleFilterChange = (filter = null, remove) => {
+    if (remove) {
+      setTempFormFilters(prevFilters => {
+        const newFilters = prevFilters.filter(f => f.filterId !== remove);
+        return newFilters;
       });
+    } else {
+      setFilter(filter, tempFormFilters, setTempFormFilters);
     }
-    setFilter(filter, tempFormFilters, setTempFormFilters);
   };
+
   const clearFilter = filterId => {
     const newFormFilters = formFilters.filter(
       f => f.filterId !== filterId,
@@ -81,154 +107,194 @@ export default function FilterPanel({
 
   const debouncedHandleWheel = debounce(handleWheel, 100);
 
-  // useEffect(() => {
-  //   const div = containerRef.current;
-  //   if (div) {
-  //     div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
-  //   }
-  //   return () => {
-  //     if (div) {
-  //       div.removeEventListener('wheel', debouncedHandleWheel);
-  //     }
-  //   };
-  // }, [clicked, safeSchemas.length]);
+  useEffect(() => {
+    const div = containerRef.current;
+    if (div) {
+      div.addEventListener('wheel', debouncedHandleWheel, { passive: false });
+    }
+    return () => {
+      if (div) {
+        div.removeEventListener('wheel', debouncedHandleWheel);
+      }
+    };
+  }, [clicked, safeSchemas.length]);
+
+  useEffect(() => {
+    const preventDefault = (e) => e.preventDefault();
+
+    const handleMouseEnter = () => {
+      window.addEventListener('wheel', preventDefault, { passive: false });
+    };
+
+    const handleMouseLeave = () => {
+      window.removeEventListener('wheel', preventDefault);
+    };
+
+    const container = containerRef.current;
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
 
   return (
-    <Container>
+    <Container
+      style={{
+        ...style,
+      }}>
       <Text
-        variant="h1"
-        style={{ margin: '16px 0 16px 16px', fontWeight: '500', color: '#fff' }}
+        className="mb-3 ms-3 fw-bold text-white"
+        style={{ fontSize: "30px" }}
         id="ENCOUNTER_SEARCH_FILTERS"
       />
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          padding: '8px 16px 16px',
-        }}
-      >
+      <Row className="p-3" style={{ alignItems: 'flex-start' }}>
 
-        <div ref={containerRef}
-          style={{
-            width: '300px',
-            height: '700px',
-            overflow: 'auto',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(2px)',
-            borderRadius: '10px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            padding: '20px',
-            color: 'white',
-            marginRight: '20px',
-            fontSize: '20px',
-          }}>
+        <Col md={3} sm={12} className='d-flex align-items-center mb-3'>
+          <div ref={containerRef} className="w-100 d-flex flex-column overflow-auto rounded-3 shadow-sm p-2 text-white "
+            style={{
+              height: '700px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              fontSize: '20px',
+              // flexWrap: "wrap",
+            }}>
 
-          {safeSchemas.map(schema => {
-            return <div
-              className='d-flex justify-content-between align-items-center'
-              style={{
-                width: "100%",
-                height: "50px",
-                borderRadius: '10px',
-                padding: '10px',
-                marginTop: '10px',
-                backgroundColor: clicked === schema.id ? 'white' : 'transparent',
-                color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                setClicked(schema.id);
-              }}
-            >
-              <Text
-                id={schema.labelId}
+            {safeSchemas.map((schema, index) => {
+              return <div
+                key={index}
+                className={`d-flex justify-content-between align-items-center rounded-3 p-2 mt-2 ${clicked === schema.id ? 'bg-white' : 'text-white'} cursor-pointer`}
                 style={{
-                  margin: '16px 0 16px 0',
-                  fontWeight: '500',
-
+                  color: clicked === schema.id ? theme.primaryColors.primary700 : 'white',
+                  minHeight: "50px",
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  setClicked(schema.id);
                 }}
               >
-              </Text>
-              <span>  {" > "}   </span>
-            </div>
-          })}
-          <div className="d-flex flex-row mt-5">
-            <BrutalismButton
-              color="white"
-              backgroundColor={theme.primaryColors.primary700}
-              borderColor={theme.primaryColors.primary700}
-              onClick={() => {
-                setFormFilters(tempFormFilters);
-                setFilterPanel(false);
-              }}
-            >
-              APPLY
-            </BrutalismButton>
-            <BrutalismButton style={{
-              color: theme.primaryColors.primary700,
-
-            }}
-              borderColor={theme.primaryColors.primary700}
-              onClick={() => {
-                setFormFilters([]);
-                setTempFormFilters([]);
-                setFilterPanel(false);
-              }}>
-
-              RESET
-            </BrutalismButton>
-          </div>
-
-        </div>
-        <div style={{
-          width: '900px',
-          maxHeight: '700px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(3px)',
-          WebkitBackdropFilter: 'blur(2px)',
-          borderRadius: '10px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          padding: '20px',
-          color: 'white',
-          overflow: 'auto',
-        }}>
-          {
-            safeSchemas.map(schema => {
-              return (
-
-                // schema.id === clicked && <schema.FilterComponent
-                //   key={schema.id}
-                //   labelId={schema.labelId}
-                //   onChange={handleFilterChange}
-                //   onClearFilter={clearFilter}
-                //   {...schema.filterComponentProps}
-                //   data={data}
-                //   tempFormFilters={tempFormFilters}
-                // />
-                <div
-                  key={schema.id}
+                <Text
+                  id={schema.labelId}
+                  className="m-3"
                   style={{
-                    display: schema.id === clicked ? 'block' : 'none',
-                    width: '100%',
-
+                    fontWeight: '500',
+                    marginRight: '20px'
                   }}
                 >
-                  <schema.FilterComponent
-                    labelId={schema.labelId}
-                    onChange={handleFilterChange}
-                    onClearFilter={clearFilter}
-                    {...schema.filterComponentProps}
-                    data={data}
-                    tempFormFilters={tempFormFilters}
-                  />
-                </div>
-              );
-            }
-            )}
+                </Text>
+                <span>  <i class="bi bi-chevron-right" style={{ fontSize: '14px' }}></i>   </span>
+              </div>
+            })}
+            <div
+              className="mt-5 d-flex flex-wrap justify-content-center align-items-center w-100 gap-3" >
+              <BrutalismButton
+                color="white"
+                backgroundColor={theme.primaryColors.primary700}
+                borderColor={theme.primaryColors.primary700}
+                onClick={() => {
+                  const uniqueFilters = Array.from(
+                    new Map(tempFormFilters.map(filter => [filter.filterId, filter])).values()
+                  )
+                  setFormFilters(uniqueFilters);
+                  setFilterPanel(false);
+                  handleSearch();
+                  setQueryID(null);
+                  setSearchParams( prevSearchParams => {
+                        const newSearchParams = new URLSearchParams(prevSearchParams);
+                        newSearchParams.delete("searchQueryId");
+                        return newSearchParams;
+                      }
+                      )
+                }}
+                noArrow={true}
+                style={{
+                  paddingLeft: 5,
+                  paddingRight: 5,
+                }}
 
-        </div>
-      </div>
+              >
+                <FormattedMessage id="APPLY" defaultMessage="Apply" />
+              </BrutalismButton>
+              <BrutalismButton style={{
+                color: theme.primaryColors.primary700,
+                paddingLeft: 5,
+                paddingRight: 5,
+              }}
+                borderColor={theme.primaryColors.primary700}
+                onClick={() => {
+                  setFormFilters([]);
+                  setTempFormFilters([]);
+                  setSearchParams(new URLSearchParams());
+                  window.location.reload();
+                }}
+                noArrow={true}
+
+              >
+
+                <FormattedMessage id="RESET" defaultMessage="Reset" />
+              </BrutalismButton>
+            </div>
+
+          </div>
+        </Col>
+        <Col md={9} sm={12} className='d-flex align-items-center'>
+          <div className="w-100 d-flex flex-column rounded-3 p-3 text-white overflow-auto"
+            style={{
+              minHeight: '700px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              borderRadius: '10px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              padding: '20px',
+              color: 'white',
+              overflow: "visible",
+            }}>
+            {
+              safeSchemas.map(schema => {
+                return (
+
+                  // schema.id === clicked && <schema.FilterComponent
+                  //   key={schema.id}
+                  //   labelId={schema.labelId}
+                  //   onChange={handleFilterChange}
+                  //   onClearFilter={clearFilter}
+                  //   {...schema.filterComponentProps}
+                  //   data={data}
+                  //   filters={filters}
+                  // />
+                  <div
+                    key={schema.id}
+                    style={{
+                      display: schema.id === clicked ? 'block' : 'none',
+                      width: '100%',
+
+                    }}
+                  >
+                    <schema.FilterComponent
+                      key={schema.id}
+                      labelId={schema.labelId}
+                      onChange={handleFilterChange}
+                      onClearFilter={clearFilter}
+                      {...schema.filterComponentProps}
+                      data={data}
+                      tempFormFilters={tempFormFilters}
+                      setFormFilters={setFormFilters}
+                      formFilters={formFilters}
+                    />
+                  </div>
+                );
+              }
+              )}
+
+          </div>
+        </Col>
+        {/* </div> */}
+      </Row>
     </Container>
   );
 }

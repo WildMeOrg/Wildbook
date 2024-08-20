@@ -15,7 +15,7 @@ import java.io.*;
 import java.util.*;
 
 import com.google.gson.Gson;
-import org.ecocean.CommonConfiguration;
+
 import org.ecocean.identity.IBEISIA;
 
 
@@ -48,6 +48,7 @@ public class JavascriptGlobals extends HttpServlet {
         String langCode = ServletUtilities.getLanguageCode(request);
         String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
         String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
+        String gMapKey = CommonConfiguration.getGoogleMapsKey(context);
         // Properties props = new Properties();
         // props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
         HashMap rtn = new HashMap();
@@ -126,6 +127,7 @@ public class JavascriptGlobals extends HttpServlet {
         rtn.put("keywords", kw);
         rtn.put("gtmKey", gtmKey);
         rtn.put("gaId", gaId);
+        rtn.put("gMapKey", gMapKey);
 
         // this might throw an exception in various ways, so we swallow them here
         try {
