@@ -12,7 +12,7 @@ export default function LocationFilterText({
 }
 ) {
     const { data } = useGetSiteSettings();
-    const countries = data?.country.map(data => {
+    const countries = data?.country?.map(data => {
         return {
             value: data,
             label: data
@@ -21,25 +21,24 @@ export default function LocationFilterText({
 
     return (
         <div className="mt-3">
-            <h3><FormattedMessage id="FILTER_LOCATION" /></h3>
-            <Description>
-                <FormattedMessage id="FILTER_LOCATION_DESC" />
-            </Description>
             <FormGroupText
                 label="FILTER_VERBATIM_LOCATION"
                 onChange={onChange}
                 term="match"
                 field="verbatimLocality"
-                filterId={"Verbatim Location"}
+                filterId={"verbatimLocality"}
+                filterKey = "Verbatim Location"
             />
 
             <FormGroupMultiSelect
                 isMulti={true}
+                noDesc={true}
                 label="FILTER_COUNTRY"
                 options={countries}
                 onChange={onChange}
                 term="terms"
                 field="country"
+                filterKey="Country"
             />
 
         </div>

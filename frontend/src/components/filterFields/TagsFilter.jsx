@@ -2,74 +2,87 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
-import { Form, Row, Col } from "react-bootstrap";
-import FormDualInputs from "../Form/FormDualInputs";
 import { FormGroup, FormLabel, FormControl } from "react-bootstrap";  
+import { useIntl } from "react-intl";
+import { filter } from "lodash-es";
 
 
 export default function TagsFilter({
   data,
   onChange
 }) {
-  const metalTagLocations = ["left", "right"].map((item) => {
+  const metalTagLocations = data?.metalTagLocation?.map((item) => {
     return {
       value: item,
       label: item
     };
   }) || [];
+  const intl = useIntl();
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
+      <h3><FormattedMessage id="FILTER_TAGS" /></h3>
       <Description>
-        <FormattedMessage id="FILTER_IDENTITY_DESC" />
+        <FormattedMessage id="FILTER_TAGS_DESC" />
       </Description>
       <h5><FormattedMessage id="FILTER_METAL_TAGS" /></h5>
       {metalTagLocations.map((location) => {
-        const field1 = `metalTag.Location`;
-        const field2 = "metalTag.Number";
+
         return (
           <FormGroup>
             <FormLabel><FormattedMessage id={location.label} defaultMessage="" /></FormLabel>
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `metalTag.${location.label}`);
+                  return;
+                }
                 onChange({
-                  filterId: "metalTag",
-                  clause: "filter",
+                  filterId: `metalTag.${location.label}`,
+                  filterKey: "Metal Tags",
+                  clause: "nested",
+                  path: "metalTags",
                   query: {
-                    "bool" : {
-                      "must": [
-                      {[field1]: location.label},
-                      {[field2]: e.target.value,}
-                    ]
-                    }                    
+                      "bool": {
+                          "filter": [  
+                              {
+                                  "match": {
+                                      "metalTags.location": location.label
+                                  },
+                              },  
+                              {
+                                  "match": {
+                                      "metalTags.number": e.target.value
+                                  }
+                              }
+                          ]
+                      }
                   }
-
-                });
+              })
               }}
             />
           </FormGroup>
         );
       })}
       <h5><FormattedMessage id="FILTER_ACOUSTIC_TAGS" /></h5>
-      {/* <FormDualInputs
-        label="acousticTags"
-        label1="SERIAL_NUMBER"
-        label2="ID"
-        onChange={onChange}
-      /> */}
+
       <div className="w-100 d-flex flex-row gap-2" >
       <FormGroup className="w-50">
             <FormLabel><FormattedMessage id={"FILTER_ACOUSTIC_TAG_SERIAL_NUMBER"} defaultMessage="" /></FormLabel>
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `acousticTag.serialNumber`);
+                  return;
+                }
                 onChange({
                   filterId: "acousticTag.serialNumber",
+                  filterKey: "Acoustic Tag Serial Number",
                   clause: "filter",
                   query: {
                     "match" : {
@@ -86,10 +99,15 @@ export default function TagsFilter({
 
             <FormControl
               type="text"
-              placeholder="Type Here"
+              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
+                if(e.target.value === "") {
+                  onChange(null, `acousticTag.idNumber`);
+                  return;
+                }
                 onChange({
                   filterId: "acousticTag.idNumber",
+                  filterKey: "Acoustic Tag ID",
                   clause: "filter",
                   query: {
                     "match" : {
@@ -102,30 +120,33 @@ export default function TagsFilter({
             />
           </FormGroup>
       </div>
-      <h5><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
+      <h5 className="mt-2"><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
       <FormGroupText
         noDesc={true}
-        label="NAME"
+        label="FILTER_NAME"
         onChange={onChange}
-        field={"satelliteTags.name"}
+        field={"satelliteTag.name"}
         term={"match"}
-        filterId={"satellite Tags Name"}
+        filterId={"satelliteTag.name"}
+        filterKey={"Satellite Tag Name"}
       />
       <FormGroupText
         noDesc={true}
-        label="SERIAL_NUMBER"
+        label="FILTER_SERIAL_NUMBER"
         onChange={onChange}
-        field={"satelliteTags.serialNumber"}
+        field={"satelliteTag.serialNumber"}
         term={"match"}
-        filterId={"satellite Tags Serial Number"}
+        filterId={"satelliteTag.serialNumber"}
+        filterKey={"Satellite Tag Serial Number"}
       />
       <FormGroupText
         noDesc={true}
-        label="ARGOS_PPT_NUMBER"
+        label="FILTER_ARGOS_PPT_NUMBER"
         onChange={onChange}
-        field={"satelliteTags.argosPttNumber"}
+        field={"satelliteTag.argosPttNumber"}
         term={"match"}
-        filterId={"satellite Tags Argos Ptt Number"}
+        filterId={"satelliteTag.argosPttNumber"}
+        filterKey={"Satellite Tag Argos PTT Number"}
       />
     </div>
   );

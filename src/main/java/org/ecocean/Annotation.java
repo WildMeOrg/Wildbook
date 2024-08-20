@@ -945,34 +945,32 @@ public class Annotation implements java.io.Serializable {
         if (expandedLocationIds.size() > 0) {
             // locFilter += "enc.locationID == ''";
             // loc ID's were breaking for Hawaiian names with apostrophe(s) and stuff, so overkill now
-            
-        	//OLD WAY
-        	/*
-        	for (int i = 0; i < expandedLocationIds.size(); i++) {
-                String orString = " || ";
-                if (locFilter.equals("")) orString = "";
+
+            // OLD WAY
+            /*
+               for (int i = 0; i < expandedLocationIds.size(); i++) {
+               String orString = " || ";
+               if (locFilter.equals("")) orString = "";
+               String expandedLoc = expandedLocationIds.get(i);
+               expandedLoc = expandedLoc.replaceAll("'", "\\\\'");
+               locFilter += (orString + "enc.locationID == '" + expandedLoc + "'");
+               }
+             */
+
+            // NEW WAY
+            String literal = "{";
+            for (int i = 0; i < expandedLocationIds.size(); i++) {
+                if (i > 0) literal += ",";
                 String expandedLoc = expandedLocationIds.get(i);
                 expandedLoc = expandedLoc.replaceAll("'", "\\\\'");
-                locFilter += (orString + "enc.locationID == '" + expandedLoc + "'");
+                literal += "'" + expandedLoc + "'";
             }
-            */
-        	
-        	//NEW WAY
-        	String literal = "{";
-        	for (int i = 0; i < expandedLocationIds.size(); i++) {
-        		if(i>0)literal+=",";
-                String expandedLoc = expandedLocationIds.get(i);
-                expandedLoc = expandedLoc.replaceAll("'", "\\\\'");
-                literal+="'"+expandedLoc+"'";
-            }
-        	literal+="}";
-        	locFilter=literal+".contains(enc.locationID)";
-        	
-        	
+            literal += "}";
+            locFilter = literal + ".contains(enc.locationID)";
         }
         if (useNullLocation) {
             if (!locFilter.equals("")) locFilter += " || ";
-            locFilter ="("+locFilter+ " enc.locationID == null" +")";
+            locFilter = "(" + locFilter + " enc.locationID == null" + ")";
         }
         if (!locFilter.equals("")) f += " && " + locFilter + " ";
         // "owner" ... which requires we have userId in the taskParams

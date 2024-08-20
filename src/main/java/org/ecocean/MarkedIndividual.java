@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -282,6 +283,11 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     public List<String> getNamesList() {
         if (names == null) return null;
         return names.getValuesDefault();
+    }
+
+    public Set<String> getAllNamesList() {
+        if (names == null) return null;
+        return names.getAllValues();
     }
 
     public int numNames() {
@@ -1130,7 +1136,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         } else {
             setGenus(parts[0]);
             String ep = parts[1];
-            for (int i = 2 ; i < parts.length ; i++) {
+            for (int i = 2; i < parts.length; i++) {
                 ep += " " + parts[i];
             }
             setSpecificEpithet(ep);
@@ -2857,6 +2863,15 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         Shepherd myShepherd) {
         mergeIndividual(other, username, myShepherd);
         myShepherd.throwAwayMarkedIndividual(other);
+    }
+
+    public void opensearchIndexDeep()
+    throws IOException {
+        if (this.encounters != null)
+            for (Encounter enc : this.encounters) {
+                enc.opensearchIndex();
+            }
+        this.opensearchIndex();
     }
 
     public String toString() {
