@@ -26,7 +26,9 @@ jobs:
 
       # Log into container registries
       - name: Log into Docker Hub
-        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
+        run:  |
+               echo "::add-mask::${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" 
+               echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
       
       - name: Log into GitHub Packages
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
