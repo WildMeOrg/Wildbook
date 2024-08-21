@@ -181,6 +181,16 @@
 			"long": 151.271667
 		}
 	},
+	{
+		"name": "NSW-Sydney-The Gap",
+		"id": "NSW-Sydney-The Gap",
+		"locationID": [],
+		"prefix": "NSW-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo": {
+			"lat": -33.8423645400579,
+			"long": 151.28954216776768}
+	},
 	{ 
 		"name": "NSW-Sydney-Voodoo", 
 		"id": "NSW-Sydney-Voodoo", 
