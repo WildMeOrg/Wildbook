@@ -165,6 +165,7 @@ public class SiteSettings extends ApiBase {
         myShepherd.closeDBTransaction();
         response.setStatus(200);
         response.setHeader("Content-Type", "application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().write(settings.toString());
     }
 }
