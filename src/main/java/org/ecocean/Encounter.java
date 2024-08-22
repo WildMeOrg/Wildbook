@@ -4434,10 +4434,18 @@ public class Encounter extends Base implements java.io.Serializable {
                     jgen.writeString(name);
                 }
             jgen.writeEndArray();
+            jgen.writeStringField("individualNickName", indiv.getNickName());
             if (indiv.getTimeOfBirth() > 0) {
                 String birthTime = Util.getISO8601Date(new DateTime(
                     indiv.getTimeOfBirth()).toString());
                 jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
+            Encounter[] encs = indiv.getDateSortedEncounters(true);
+            if ((encs != null) && (encs.length > 0)) {
+                String encDate = Util.getISO8601Date(encs[0].getDate());
+                if (encDate != null) jgen.writeStringField("individualFirstEncounterDate", encDate);
+                encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
+                if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
             }
 /*
     this currently is not needed as-is. we instead use just the social unit name as its own property (below)
