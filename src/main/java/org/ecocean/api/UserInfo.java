@@ -76,6 +76,7 @@ public class UserInfo extends ApiBase {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         response.setStatus(200);
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(results.toString());
     }
