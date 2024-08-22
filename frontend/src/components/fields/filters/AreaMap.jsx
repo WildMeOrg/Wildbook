@@ -30,7 +30,6 @@ export default function LatLngMap({ onChange, rest }) {
           marker.setMap(mapObject);
 
           lastMarker = marker;
-          console.log("lat, lng: ", lat, lng)
         }}
         yesIWantToUseGoogleMapApiInternals
         onGoogleApiLoaded={({ map, maps }) => {

@@ -41,7 +41,7 @@ You will want to work in a branch when doing any feature development you want to
 ` git pull upstream main`
 
 ### Set Up Development Environment with Docker
-For easiest development, you will need to set up your development environment to work with Docker. See `devops/development/README.md` for detailed instructions.
+For easiest development, you will need to set up your development environment to work with Docker. See [`devops/README.md`](devops/README.md) for detailed instructions.
 
 ### Deploy frontend
 To setup frontend, we need to deploy the React build to Wildbook, please follow the detailed instructions provided in the `frontend/README.md` file within the project directory.
@@ -89,7 +89,7 @@ Wild Me (wildme.org) engineering staff provide support for Wildbook. You can con
 We provide support during regular office hours on Mondays and Tuesdays.
 
 ## Support resources
-* User documentation is available at [Wild Me Documentation](http://docs.wildme.org)
+* User documentation is available at [Wild Me Documentation](http://wildbook.docs.wildme.org)
 * For user support, visit the [Wild Me Community Forum](https://community.wildme.org)
 * For developer support, visit the [Wild Me Development Discord](https://discord.gg/zw4tr3RE4R)
 * Email the team at opensource@wildme.org

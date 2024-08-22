@@ -1879,16 +1879,24 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
+     var nextName = '<%=nextName%>';
+     if (nextName == 'null') nextName = false;
+     var nextNameInput = $('#negative-button-name').val();
+     console.log('negativeButtonClick(): encId=%o, oldDisplayName=%o, nextName=%o, nextNameInput=%o', encId, oldDisplayName, nextName, nextNameInput);
+     if (!nextName && !nextNameInput) return alert('You must provide a name for the new individual.');
+     if (!nextName && nextNameInput) nextName = nextNameInput;  // just for displaying below
 	if (oldDisplayName!=="undefined" && oldDisplayName && oldDisplayName !== "" && oldDisplayName.length) {
-		confirmMsg+= 'The name <%=nextName%> will be added to individual '+oldDisplayName + '.';
+	     confirmMsg+= 'The name ' + nextName + ' will be added to individual '+oldDisplayName + '.';
 	} else {
-		confirmMsg+= 'A new individual will be created with name <%=nextName%> and applied to encounter '+encDisplayString(encId) +'.';
+	     confirmMsg+= 'A new individual will be created with name ' + nextName + ' and applied to encounter '+encDisplayString(encId) +'.';
 	}
 	confirmMsg+= 'Click \'OK\' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
 	let projectId = '<%=projectIdPrefix%>';
-	if (projectId&&projectId.length) {
+     if (nextNameInput) {
+		paramStr += '&nextNameInput=' + encodeURIComponent(nextNameInput);
+	} else if (projectId&&projectId.length) {
 		paramStr += '&useNextProjectId=true&projectIdPrefix='+encodeURIComponent(projectId);
 	}
 
@@ -1929,10 +1937,13 @@ function addNegativeButton(encId, oldDisplayName) {
         */
 	//if (<%=usesAutoNames%>) {
         if (true) {
-		console.log("Adding auto name/confirm negative button!");
+			var nextName = '<%=nextName%>';
+		console.log("Adding auto name/confirm negative button! nextName = %o", nextName);
 		var negativeButton = '<input onclick=\'negativeButtonClick(\"'+encId+'\", \"'+oldDisplayName+'\");\' type="button" value="Confirm No Match" />';
-		console.log("negativeButton = "+negativeButton);
-		//var negativeButton = '<input onclick="negativeButtonClick();" type="button" value="Confirm No Match" />';
+		   if (!nextName || (nextName == 'null')) {
+			   negativeButton = '<input id="negative-button-name" placeholder="Enter name for new individual" /> ' + negativeButton;
+		   }
+
 		headerDefault = negativeButton;
 		//console.log("NEGATIVE BUTTON: About to attach "+negativeButton+" to "+JSON.stringify($('div#enc-action')));
 		$('div#enc-action').html(negativeButton);

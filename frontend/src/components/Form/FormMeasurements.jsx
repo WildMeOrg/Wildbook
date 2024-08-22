@@ -1,187 +1,100 @@
-// import React, { useState } from 'react';
-// import { Form, Col, Row, Container } from 'react-bootstrap';
 
-// function ObservationInputs({
-//     data,
-//     onChange,
-//     field,
-//     filterId
-// }) {
-//     const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
-
-//     const handleInputChange = (index, field, value) => {
-//         const updatedInputs = inputs.map((input, i) => {
-//             if (i === index) {
-//                 return { ...input, [field]: value };
-//             }
-//             return input;
-//         });
-//         setInputs(updatedInputs);
-//         if (field === 'value' && value) {
-//             updateQuery(updatedInputs);
-//         }
-//     };
-
-//     const updateQuery = (inputs) => {
-//         console.log("Query Updated:", inputs.filter(input => input.value));
-//         // const must = inputs.filter(input => input.value).map(input => ({
-//         //     range: {
-//         //       [`${field}.${input.type}`]: {
-//         //         [input.operator]: input.value
-//         //       }
-//         //     }
-//         //   }));
-//         //   console.log("Must:", must);
-//         // inputs.forEach(input => {
-//         //     if (!input.value) {
-//         //         return;
-//         //     }
-//         //     onChange({
-//         //         filterId: `${filterId}.${input.type}`,
-//         //         clause: "filter",
-//         //         query: {
-//         //             // "range": {
-//         //             //     [`${field}.${input.type}`]: {
-//         //             //         [input.operator]: input.value
-//         //             //     }
-//         //             // }
-//         //             "bool": {
-//         //                 "must": must
-//         //             }   
-//         //         }
-//         //     });
-//         // })
-
-        
-//             const must = inputs.filter(input => input.value !== '').map(input => ([
-//               {
-//                 "term": {
-//                   [`measurements.type`]: input.type
-//                 }
-//               },
-//               {
-//                 "range": {
-//                   "measurements.value": {
-//                     [input.operator]: input.value
-//                   }
-//                 }
-//               }
-//             ])).flat(); 
-          
-//             if (must.length > 0) {
-//               onChange({
-//                 filterId,
-//                 clause: "filter",
-//                 query: {
-//                   "bool": {
-//                     "must": must
-//                   }
-//                 }
-//               });
-//             }
-//           };
-          
-//     };
-
-//     return (
-//         <Container className="mt-3">
-//             {inputs.map((input, index) => (
-//                 <Row key={index} className="mb-3">
-//                     <Col md={2} className='d-flex align-items-center '>
-//                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
-//                     </Col>
-//                     <Col md={4}>
-//                         <Form.Select
-//                             aria-label="Select operator"
-//                             value={input.operator}
-//                             onChange={e => handleInputChange(index, 'operator', e.target.value)}
-//                         >
-//                             <option value="gte">&ge;</option>
-//                             <option value="lte">&le;</option>
-//                             <option value="equals">=</option>
-//                         </Form.Select>
-//                     </Col>
-//                     <Col md={6}>
-//                         <Form.Control
-//                             type="number"
-//                             placeholder={`${input.type} value`}
-//                             value={input.value}
-//                             onChange={e => handleInputChange(index, 'value', e.target.value)}
-//                         />
-//                     </Col>
-//                 </Row>
-//             ))}
-//         </Container>
-//     );
-// }
-
-// export default ObservationInputs;
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Col, Row, Container } from 'react-bootstrap';
+import { FormattedMessage } from 'react-intl';
+import { FormControl } from 'react-bootstrap';
+import { useIntl } from 'react-intl';
 
-function ObservationInputs({
+function FormMeasurements({
     data,
     onChange,
     field,
     filterId
 }) {
-    const [inputs, setInputs] = useState(data.map(item => ({ type: item, operator: 'gte', value: '' })));
+    const [inputs, setInputs] = useState(data?.map(item => ({ type: item, operator: 'gte', value: '' })));
+    const intl = useIntl();
+    useEffect(() => {
+
+        if (data) {
+            const newInputs = data.map(item => ({ type: item, operator: 'gte', value: '' }));
+            setInputs(prevInputs => {
+                // Only update if data has changed
+                if (JSON.stringify(prevInputs.map(input => input.type)) !== JSON.stringify(data)) {
+                    return newInputs;
+                }
+                return prevInputs;
+            });
+        }
+    }, [data]);
 
     const handleInputChange = (index, field, value) => {
         const updatedInputs = inputs.map((input, i) => {
             if (i === index) {
                 return { ...input, [field]: value };
             }
+            
             return input;
         });
         setInputs(updatedInputs);
-        if (field === 'value' && value !== '') { // Ensure the value is not empty
-            updateQuery(updatedInputs);
+        const id = `${filterId}.${updatedInputs[index].type}`;
+        if (field === 'value' || field === 'operator') {
+            if (value !== '') {
+                updateQuery(updatedInputs);
+            } else {
+                onChange(null, id);
+            }
         }
     };
 
     const updateQuery = (inputs) => {
-        const must = inputs.filter(input => input.value !== '').map(input => {
-            // Adjust the query based on the operator
-            if (input.operator === "equals") {
-                return {
-                    "term": {
-                        [`measurements.${input.type}`]: input.value
-                    }
-                };
-            } else {
-                return {
-                    "range": {
-                        [`measurements.${input.type}`]: {
-                            [input.operator]: input.value
+
+        inputs.map(input => {
+            const id = `${filterId}.${input.type}`;
+            const query = input.operator === 'term' ? { term: { [`${field}.value`]: input.value } } : { range: { [`${field}.value`]: { [input.operator]: input.value } } };
+            if (input.value) {
+                onChange({
+                    filterId: id,
+                    clause: "nested",
+                    path: field,
+                    query: {
+                        "bool": {
+                            "filter": [
+
+                                {
+                                    "match": {
+                                        [`${filterId}.type`]: input.type
+                                    },
+                                },
+
+                                query
+                            ]
                         }
                     }
-                };
+                })
             }
+
+            return {
+                "match": {
+                    [`${field}.type`]: input.type
+                },
+
+                "range": {
+                    [`${field}.value`]: { [input.operator]: [input.value] }
+                }
+            };
         });
 
-        if (must.length > 0) {
-            onChange({
-                filterId,
-                clause: "filter",
-                query: {
-                    "bool": {
-                        "must": must
-                    }
-                }
-            });
-        }
     };
 
     return (
         <Container className="mt-3">
             {inputs.map((input, index) => (
                 <Row key={index} className="mb-3">
-                    <Col md={2} className='d-flex align-items-center'>
+                    <Col md={4} className='d-flex align-items-center'>
                         {input.type.charAt(0).toUpperCase() + input.type.slice(1)}
                     </Col>
-                    <Col md={4}>
+                    <Col md={2}
+                    >
                         <Form.Select
                             aria-label="Select operator"
                             value={input.operator}
@@ -189,15 +102,23 @@ function ObservationInputs({
                         >
                             <option value="gte">&ge;</option>
                             <option value="lte">&le;</option>
-                            <option value="equals">=</option>
+                            <option value="term">=</option>
                         </Form.Select>
                     </Col>
                     <Col md={6}>
-                        <Form.Control
+                        <FormControl
+                            className="w-100"
                             type="number"
-                            placeholder={`${input.type} value`}
-                            value={input.value}
-                            onChange={e => handleInputChange(index, 'value', e.target.value)}
+                            style={{
+                      
+                                marginRight: "10px"
+                            }}
+                            placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
+                            onChange={(e) => {
+                                handleInputChange(index, 'value', e.target.value);
+                            }
+                            }
+
                         />
                     </Col>
                 </Row>
@@ -206,4 +127,4 @@ function ObservationInputs({
     );
 }
 
-export default ObservationInputs;
+export default FormMeasurements;

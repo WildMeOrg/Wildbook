@@ -2111,6 +2111,11 @@ public class Encounter extends Base implements java.io.Serializable {
         return locationID;
     }
 
+    public String getLocationName() {
+        if (locationID == null) return null;
+        return LocationID.getNameForLocationID(locationID, null);
+    }
+
     public void setLocationID(String newLocationID) {
         if (newLocationID != null) {
             this.locationID = newLocationID.trim();
@@ -2953,6 +2958,15 @@ public class Encounter extends Base implements java.io.Serializable {
         return annotations.size();
     }
 
+    public int numNonTrivialAnnotations() {
+        if (annotations == null) return 0;
+        int ct = 0;
+        for (Annotation ann : annotations) {
+            if (!ann.isTrivial()) ct++;
+        }
+        return ct;
+    }
+
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
@@ -2974,7 +2988,10 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
-        classes.remove("____"); // blech
+        // TODO we should find out how/where bunk iaClass values are getting set
+        // and stop the via isValidIAClass() or similar
+        // also should be considered for any data integrity/repair tools
+        classes.remove("____");
         return classes;
     }
 
@@ -3362,7 +3379,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
         Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
 
-        for (MeasurementDesc mdesc : Util.findMeasurementDescs("en", "context0")) {
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs("en", "context0")) {
             BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
             if (bm != null) meas.put(mdesc.getType(), bm);
         }
@@ -4244,6 +4261,7 @@ public class Encounter extends Base implements java.io.Serializable {
         myShepherd.beginDBTransaction();
 
         jgen.writeStringField("locationId", this.getLocationID());
+        jgen.writeStringField("locationName", this.getLocationName());
         Long dim = this.getDateInMillisecondsFallback();
         if (dim != null) jgen.writeNumberField("dateMillis", dim);
         String date = Util.getISO8601Date(this.getDate());
@@ -4265,7 +4283,7 @@ public class Encounter extends Base implements java.io.Serializable {
 
         String featuredAssetId = null;
         List<MediaAsset> mas = this.getMedia();
-        jgen.writeNumberField("numberAnnotations", this.numAnnotations());
+        jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
         jgen.writeNumberField("numberMediaAssets", mas.size());
         jgen.writeArrayFieldStart("mediaAssets");
         for (MediaAsset ma : mas) {
@@ -4408,8 +4426,9 @@ public class Encounter extends Base implements java.io.Serializable {
             jgen.writeStringField("individualId", indiv.getId());
             jgen.writeStringField("individualSex", indiv.getSex());
             jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+            jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
             jgen.writeArrayFieldStart("individualNames");
-            List<String> names = indiv.getNamesList();
+            Set<String> names = indiv.getAllNamesList();
             if (names != null)
                 for (String name : names) {
                     jgen.writeString(name);
@@ -4420,19 +4439,29 @@ public class Encounter extends Base implements java.io.Serializable {
                     indiv.getTimeOfBirth()).toString());
                 jgen.writeStringField("individualTimeOfBirth", birthTime);
             }
-            jgen.writeObjectFieldStart("individualSocialUnits");
+/*
+    this currently is not needed as-is. we instead use just the social unit name as its own property (below)
+
+            jgen.writeObjectFieldStart("individualSocialUnitMap");
             for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
                 Membership mem = su.getMembershipForMarkedIndividual(indiv);
                 if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
             }
             jgen.writeEndObject();
-/*
+ */
+
+            jgen.writeArrayFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeString(su.getSocialUnitName());
+            }
+            jgen.writeEndArray();
+
             jgen.writeArrayFieldStart("individualRelationshipRoles");
             for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
                 jgen.writeString(relRole);
             }
             jgen.writeEndArray();
- */
         }
         DateTime occdt = getOccurrenceDateTime(myShepherd);
         if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
@@ -4447,12 +4476,12 @@ public class Encounter extends Base implements java.io.Serializable {
             if (msm.getLoci() != null)
                 for (Locus locus : msm.getLoci()) {
                     if (locus.getName() == null) continue; // snh
-                    jgen.writeArrayFieldStart(locus.getName());
+                    jgen.writeObjectFieldStart(locus.getName());
                     for (int i = 0; i < 4; i++) {
                         Integer allele = locus.getAllele(i);
-                        if (allele != null) jgen.writeNumber(allele);
+                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
                     }
-                    jgen.writeEndArray();
+                    jgen.writeEndObject();
                 }
             jgen.writeEndObject();
             jgen.writeEndObject();
@@ -4515,13 +4544,50 @@ public class Encounter extends Base implements java.io.Serializable {
 
     public org.json.JSONObject opensearchMapping() {
         org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+/*
+        org.json.JSONObject fieldKeywordNormalType = new org.json.JSONObject(
+            "{\"fields\": {\"keyword\": {\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}}, \"type\": \"object\"}");
+ */
         map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
-        map.put("taxonomy", new org.json.JSONObject("{\"type\": \"keyword\"}"));
-        map.put("state", new org.json.JSONObject("{\"type\": \"keyword\"}"));
-        map.put("organizations", new org.json.JSONObject("{\"type\": \"keyword\"}"));
+        map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+
+        // if we want to sort on it (and it is texty), it needs to be keyword
+        // (ints, dates, etc are all sortable)
+        // note: "id" is done in Base.java
+        map.put("taxonomy", keywordType);
+        map.put("occurrenceId", keywordType);
+        map.put("state", keywordType);
+
+        // all case-insensitive keyword-ish types
+        map.put("locationId", keywordNormalType);
+        map.put("locationName", keywordNormalType);
+        map.put("country", keywordNormalType);
+        map.put("assignedUsername", keywordNormalType);
+        map.put("projects", keywordNormalType);
+        map.put("behavior", keywordNormalType);
+        map.put("patterningCode", keywordNormalType);
+        map.put("annotationViewpoints", keywordNormalType);
+        map.put("mediaAssetKeywords", keywordNormalType);
+        map.put("annotationIAClasses", keywordNormalType);
+        map.put("haplotype", keywordNormalType);
+        map.put("individualSocialUnits", keywordNormalType);
+        map.put("individualRelationshipRoles", keywordNormalType);
+        map.put("individualDisplayName", keywordNormalType);
+        map.put("organizations", keywordNormalType);
+        map.put("otherCatalogNumbers", keywordNormalType);
+
+/*
+        map.put("mediaAssetLabeledKeywords", fieldKeywordNormalType);
+        map.put("individualSocialUnits", fieldKeywordNormalType);
+ */
+
         // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
         map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
-        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
         return map;
     }
 
