@@ -1,5 +1,6 @@
-const locales = ["en", "es", "fr", "it"];
+const locales = ["de", "en", "es", "fr", "it"];
 const localeMap = {
+  de: "de",
   en: "en",
   es: "es",
   fr: "fr",
@@ -7,6 +8,7 @@ const localeMap = {
 };
 
 const languageMap = {
+  de: "Deutsch",
   en: "English",
   es: "Español",
   fr: "Français",
