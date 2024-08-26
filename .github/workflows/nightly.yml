@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - docker-login-secure
       - 'releases/**'
     tags:
       - 'v**'
