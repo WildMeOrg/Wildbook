@@ -9,7 +9,6 @@ on:
 
 jobs:
   devops:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     name: DevOps container image build
     runs-on: ubuntu-latest
 
