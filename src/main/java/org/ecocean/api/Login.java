@@ -65,7 +65,6 @@ public class Login extends ApiBase {
                     // get the user (aka subject) associated with this request.
                     Subject subject = SecurityUtils.getSubject();
                     Session session = subject.getSession();
-                    session.setTimeout(1000 * 60 * 60 * 24 * 30);
                     subject.login(token);
                     user.setLastLogin((new Date()).getTime());
                     myShepherd.commitDBTransaction();
