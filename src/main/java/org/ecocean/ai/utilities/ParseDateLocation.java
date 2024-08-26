@@ -183,17 +183,6 @@ public class ParseDateLocation {
         return null;
     }
 
-    /*
-        TODO FIXME this is made by jon as a desired set of arguments to call from IBEISIA.fromDetection()
-
-           note: rootDir is base path for context, i.e. request.getSession().getServletContext().getRealPath("/") suitable for, e.g. baseDir =
-              ServletUtilities.dataDir(context, rootDir);
-     */
-    /*
-       public static String parseDate(String textInput, String context, String rootDir){
-       return null;
-       }
-     */
 
     // NOTE: parseDate method WITHOUT tweet4j status object as a parameter. There is another parseDate method!
     public static String parseDate(String rootDir, String textInput, String context) {
@@ -226,36 +215,6 @@ public class ParseDateLocation {
         return myDate;
     }
 
-    /*
-       public static ArrayList<String> nlpLocationParse(String text) throws RuntimeException {
-       ArrayList<String> locations = new ArrayList<>();
-       Properties props = new Properties();
-       props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner"); //TODO adding truecase before ner doesn't seem to be making a difference
-          here. If this doesn't change with some tweaking, you may want to remove the stanford-corenlp class:model-english dependency. Update: the
-          stanford-corenlp class:model-english dependency seems essential even when truecase is excluded. Very weird. StanfordCoreNLP pipeline = new
-          StanfordCoreNLP(props);
-       edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
-       pipeline.annotate(document);
-       List<CoreMap> sentences = document.get(SentencesAnnotation.class);
-       for(CoreMap sentence: sentences) {
-        for (CoreLabel token: sentence.get(TokensAnnotation.class)) {
-          String ne = token.get(NamedEntityTagAnnotation.class);
-          if(ne.equals("LOCATION")){
-            String word = token.get(TextAnnotation.class);
-            System.out.println("Location captured: " + word);
-            locations.add(word);
-          }
-        }
-       }
-
-       if (locations.size() > 0){
-        return locations;
-       } else{
-        throw new RuntimeException("no locations found");
-       }
-
-       }
-     */
 
 /**
  * Pass in a MediaAsset that derives from a YouTube video, and this method will go check for any additional info, such as response comments, that
