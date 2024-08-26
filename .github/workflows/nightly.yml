@@ -25,11 +25,18 @@ jobs:
         run: bash devops/build.sh
 
       # Log into container registries
-      - name: Log into Docker Hub
-        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
+      #- name: Log into Docker Hub
+      #  run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
       
+      #- name: Log into GitHub Packages
+      #  run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Log into Docker Hub
+        run: |
+              docker login -u wildmebot --password-stdin <<< "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}"
       - name: Log into GitHub Packages
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        run: |
+              docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin <<< "${{ secrets.GITHUB_TOKEN }}"
 
       # Push containers out to container registries
       - name: Push to GitHub Packages
