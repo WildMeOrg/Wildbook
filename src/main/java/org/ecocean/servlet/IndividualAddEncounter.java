@@ -306,71 +306,7 @@ public class IndividualAddEncounter extends HttpServlet {
     }
 
     private void youTubePostback(Encounter enc2add, Shepherd myShepherd, String context) {
-        /*
-         * START YouTube PostBack check
-         *
-         */
-        try {
-            System.out.println("In IndividualAddEncounter trying to fire YouTube..");
-            if (enc2add.getOccurrenceID() != null) {
-                if (myShepherd.isOccurrence(enc2add.getOccurrenceID())) {
-                    System.out.println("...In IndividualAddEncounter found an occurrence..");
-                    Occurrence occur = myShepherd.getOccurrence(enc2add.getOccurrenceID());
-                    // TBD-support more than just en language
-
-                    // determine language for response
-                    String ytRemarks = enc2add.getOccurrenceRemarks().trim().toLowerCase();
-                    int commentEnd = ytRemarks.indexOf("from youtube video:");
-                    if (commentEnd > 0) {
-                        ytRemarks = ytRemarks.substring(commentEnd);
-                    }
-                    String detectedLanguage = "en";
-                    try {
-                        detectedLanguage = DetectTranslate.detectLanguage(ytRemarks);
-                        if (!detectedLanguage.toLowerCase().startsWith("en")) {
-                            ytRemarks = DetectTranslate.translateToEnglish(ytRemarks);
-                        }
-                        if (detectedLanguage.startsWith("es")) { detectedLanguage = "es"; } else {
-                            detectedLanguage = "en";
-                        }
-                    } catch (Exception e) {
-                        System.out.println("I hit an exception trying to detect language.");
-                        e.printStackTrace();
-                    }
-                    // end determine language for response
-
-                    Properties ytProps = null;
-                    try {
-                        ytProps = ShepherdProperties.getProperties("quest.properties",
-                            detectedLanguage);
-                    } catch (NullPointerException npe) {
-                        System.out.println(
-                            "Exception: Could not find quest.properties for langCode=" +
-                            detectedLanguage + ". Falling back to en.");
-                    }
-                    if (ytProps == null) {
-                        try {
-                            ytProps = ShepherdProperties.getProperties("quest.properties", "en");
-                        } catch (NullPointerException npe2) {
-                            System.out.println(
-                                "Exception: Could not find quest.properties for en.");
-                        }
-                    }
-                    if (ytProps != null) {
-                        String message = ytProps.getProperty("individualAddEncounter").replaceAll(
-                            "%INDIVIDUAL%", enc2add.getIndividualID());
-                        System.out.println(
-                            "Will post back to YouTube OP this message if appropriate: " + message);
-                        YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur,
-                            myShepherd, context);
-                    }
-                }
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        /*
-         * END YouTube PostBack check
-         *
-         */
+        System.out.println("youTubePostback(): YouTube agent support has been deprecated");
     }
 
     private void setDateLastModified(Encounter enc) {

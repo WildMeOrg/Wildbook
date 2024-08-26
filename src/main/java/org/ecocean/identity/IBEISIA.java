@@ -26,7 +26,6 @@ import org.ecocean.Taxonomy;
 import org.ecocean.TwitterBot;
 import org.ecocean.TwitterUtil;
 import org.ecocean.Util;
-import org.ecocean.YouTube;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -4076,7 +4075,8 @@ public class IBEISIA {
         String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         String tempRelativeDate = null;
         try {
-            tempRelativeDate = YouTube.getVideoPublishedAt(occ, context);
+            // tempRelativeDate = YouTube.getVideoPublishedAt(occ, context); deprecated, issue 622
+            tempRelativeDate = null;
         } catch (Exception e) {}
         if ((tempRelativeDate != null) && (tempRelativeDate.indexOf("T") != -1)) {
             tempRelativeDate = tempRelativeDate.substring(0, tempRelativeDate.indexOf("T"));
@@ -4096,11 +4096,10 @@ public class IBEISIA {
             List<Encounter> encounters = occ.getEncounters();
             int numEncounters = encounters.size();
             Encounter enc = encounters.get(0);
-            String ytRemarks = "";
+            String ytRemarks = null;
             // GET AND TRANSLATE VIDEO COMMENTS
-            if (YouTube.getVideoDescription(occ, myShepherd) != null) {
-                ytRemarks = YouTube.getVideoDescription(occ, myShepherd);
-            }
+            // deprecated, issue 622
+            // ytRemarks = YouTube.getVideoDescription(occ, myShepherd);
             String detectedLanguage = "en";
             try {
                 detectedLanguage = DetectTranslate.detectLanguage(ytRemarks);
@@ -4113,10 +4112,9 @@ public class IBEISIA {
                 e.printStackTrace();
             }
             // GET AND TRANSLATE VIDEO TITLE
-            String videoTitle = "";
-            if (YouTube.getVideoTitle(occ, myShepherd) != null) {
-                videoTitle = YouTube.getVideoTitle(occ, myShepherd);
-            }
+            String videoTitle = null;
+            // deprecated, issue 622
+            // videoTitle = YouTube.getVideoTitle(occ, myShepherd);
             try {
                 String titleLanguage = "en";
                 titleLanguage = DetectTranslate.detectLanguage(videoTitle);
@@ -4321,7 +4319,8 @@ public class IBEISIA {
                 if (questionToPost != null) {
                     String videoId = enc.getEventID().replaceAll("youtube:", "");
                     try {
-                        YouTube.postQuestion(questionToPost, videoId, occ, context);
+                        throw new Exception("YouTube agent has been deprecated");
+                        // YouTube.postQuestion(questionToPost, videoId, occ, context);
                     } catch (Exception e) { e.printStackTrace(); }
                 }
             } catch (Exception yet) {
