@@ -5,11 +5,7 @@ on:
     branches:
       - master
       - docker-login-secure
-      - 'releases/**'
-    tags:
-      - 'v**'
-  release:
-    types: [created]
+
 
 jobs:
   devops:
