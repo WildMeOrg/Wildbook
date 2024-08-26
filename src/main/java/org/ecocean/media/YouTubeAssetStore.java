@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-import org.ecocean.YouTube;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -124,13 +123,7 @@ public class YouTubeAssetStore extends AssetStore {
     // how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
     public static List<File> grab(MediaAsset ma)
     throws IOException {
-        if (ma == null) return null;
-        String id = idFromParameters(ma.getParameters());
-        if (id == null) return null;
-        // when fetched: (1) parse .json and set metadata.detailed; (2) create child assets (using default store!) for video & thumb
-        File dir = Files.createTempDirectory("youtube_get_" + id + "_" + ma.getId() + "_").toFile();
-        System.out.println("YouTubeAssetStore.grab(" + ma + ") tempdir = " + dir);
-        return YouTube.grab(id, dir);
+        throw new IOException("deprecated");
     }
 
     // returns success (stuff grabbed and parsed)
@@ -194,23 +187,7 @@ public class YouTubeAssetStore extends AssetStore {
     // here, ma must be a video file!
     public static List<File> extractFrames(MediaAsset ma)
     throws IOException {
-        if ((ma == null) || (ma.getStore() == null)) return null;
-        if (!ma.isMimeTypeMajor("video"))
-            throw new IOException(ma +
-                    " does not appear to be a video file, extractFrames() aborted");
-        Path locP = ma.localPath();
-        if (locP == null)
-            throw new IOException(ma + " failed to get .localPath(); extractFrames() aborted");
-        // we attempt to create the final resting place for these files (which only works for LocalAssetStore)
-        // but this will work for any (writable, duh) AssetStore (since this will get us a temp dir basically)
-        File fakeFile = new File(Util.hashDirectories(Util.generateUUID(), File.separator));
-        JSONObject params = ma.getStore().createParameters(fakeFile);
-        MediaAsset tmpMA = ma.getStore().create(params);
-        Path dirP = tmpMA.localPath();
-        if (dirP == null) dirP = Files.createTempDirectory("youtube_extract_" + ma.getId()); // fallback to tmp
-
-        System.out.println(ma + " --> " + locP + " extract to " + dirP);
-        return YouTube.extractFrames(locP.toFile(), dirP.toFile());
+        throw new IOException("deprecated");
     }
 
     // returns success (frames extracted) -- passed in parent/_original MA ... maybe later we would want to also allow _video child option?  TODO
@@ -335,7 +312,7 @@ public class YouTubeAssetStore extends AssetStore {
         }
         JSONObject sp = astore.createParameters(f);
         sp.put("key", parent.getUUID() + "/" + f.getName());
-        sp.put("extractFPS", YouTube.EXTRACT_FPS);
+        //sp.put("extractFPS", YouTube.EXTRACT_FPS);
         sp.put("extractOffset", offset);
         MediaAsset kid = new MediaAsset(astore, sp);
         kid.copyIn(f);
@@ -352,11 +329,13 @@ public class YouTubeAssetStore extends AssetStore {
         JSONObject data = new JSONObject();
 
         // we (attempt to) let the basic stuff finish synchronously, so we have a populated data chunk to save (hopefully)before the detailed one does
+/*  deprecated due to issue 622, retirement of YouTube agent
         try {
             data.put("basic", YouTube.simpleInfo(idFromParameters(ma.getParameters())));
         } catch (Exception ex) {
             System.out.println(ma + " failed simpleInfo(): " + ex.toString());
         }
+*/
         if (!minimal) {
             data.put("detailed",
                 new JSONObject("{\"_processing\": true, \"timestamp\": " +

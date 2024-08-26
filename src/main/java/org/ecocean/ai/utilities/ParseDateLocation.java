@@ -23,7 +23,6 @@ import org.ecocean.media.YouTubeAssetStore;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdProperties;
-import org.ecocean.YouTube;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -435,7 +434,8 @@ public class ParseDateLocation {
                         occur = myShepherd.getOccurrence(enc.getOccurrenceID());
 
                         // let's get all our YouTube video metadata and comments
-                        List<CommentThread> comments = YouTube.getVideoCommentsList(occur, context);
+                        // List<CommentThread> comments = YouTube.getVideoCommentsList(occur, context);  deprecated, issue 622
+                        List<CommentThread> comments = null;
                         if ((comments == null) || (comments.size() == 0)) {
                             videoComments = "";
                             videoCommentsClean = "";
@@ -500,7 +500,8 @@ public class ParseDateLocation {
                         // prep the YouTube video date for SUTimee analysis
                         String tempRelativeDate = null;
                         try {
-                            tempRelativeDate = YouTube.getVideoPublishedAt(occur, context);
+                            // tempRelativeDate = YouTube.getVideoPublishedAt(occur, context); deprecated, issue 622
+                            tempRelativeDate = null;
                         } catch (Exception e) {}
                         if ((tempRelativeDate != null) && (tempRelativeDate.indexOf("T") != -1)) {
                             tempRelativeDate = tempRelativeDate.substring(0,
