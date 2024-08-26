@@ -336,8 +336,6 @@
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
 
-				 /SUTimeServlet = authc, roles[admin]
-
 				 #lockdown Keyword handling
 				 /appadmin/kwAdmin.jsp = authc, roles[admin]
 				 /KeywordHandler = authc, roles[admin]
@@ -1863,18 +1861,6 @@
     <servlet-name>TranslationsGet</servlet-name>
     <url-pattern>/TranslationsGet</url-pattern>
   </servlet-mapping>
-
-  <!--SUTime testing-->
-        <servlet>
-        <servlet-name>SUTimeServlet</servlet-name>
-        <servlet-class>org.ecocean.servlet.SUTimeServlet</servlet-class>
-  </servlet>
-
-      <servlet-mapping>
-    <servlet-name>SUTimeServlet</servlet-name>
-    <url-pattern>/SUTimeServlet</url-pattern>
-  </servlet-mapping>
-
 
     <servlet-mapping>
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
