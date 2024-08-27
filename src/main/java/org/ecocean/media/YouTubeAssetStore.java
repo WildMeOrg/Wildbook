@@ -18,6 +18,9 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+// soon to be deprecated: https://github.com/WildMeOrg/Wildbook/issues/694
+
 /**
  * YouTubeAssetStore references MediaAssets that reside on YouTube.
  * currently this is read-only but later could be writable with an API key if needed?
