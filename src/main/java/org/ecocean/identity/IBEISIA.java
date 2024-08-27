@@ -1,8 +1,5 @@
 package org.ecocean.identity;
 
-import org.ecocean.ai.nlp.SUTime;
-import org.ecocean.ai.nmt.azure.DetectTranslate;
-import org.ecocean.ai.ocr.azure.AzureOcr;
 import org.ecocean.Annotation;
 import org.ecocean.AnnotationLite;
 import org.ecocean.CommonConfiguration;
