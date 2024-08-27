@@ -6,7 +6,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,10 +30,8 @@ public class UserHome extends ApiBase {
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-
         myShepherd.setAction("api.UserHome");
         myShepherd.beginDBTransaction();
-
         JSONObject home = new JSONObject();
         User currentUser = myShepherd.getUser(request);
         if (currentUser == null) {
@@ -41,9 +43,35 @@ public class UserHome extends ApiBase {
             return;
         }
         home.put("user", currentUser.infoJSONObject(context, true));
-
-        // TODO ES replace
-
+    
+        // User-specific projects
+        JSONArray userProjectsArr = new JSONArray();
+        for (Project proj : currentUser.getProjects(myShepherd)) {
+            System.out.println("we are inside getProject: "+ proj);
+            JSONObject pj = new JSONObject();
+            pj.put("id", proj.getId());
+            pj.put("name", proj.getResearchProjectName());
+            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
+            pj.put("numberEncounters", proj.getEncounters().size());
+            userProjectsArr.put(pj);
+        }
+        home.put("userProjects", userProjectsArr);
+    
+        // All projects in the system
+        JSONArray allProjectsArr = new JSONArray();
+        List<Project> allSystemProjects = myShepherd.getAllProjects();
+        for (Project proj : allSystemProjects) {
+            System.out.println("we are inside allSystemProject: " +proj);
+            JSONObject pj = new JSONObject();
+            pj.put("id", proj.getId());
+            pj.put("name", proj.getResearchProjectName());
+            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
+            pj.put("numberEncounters", proj.getEncounters().size());
+            allProjectsArr.put(pj);
+        }
+        home.put("allSystemProjects", allProjectsArr);
+    
+        // The rest of your existing logic...
         JSONArray encountersArr = new JSONArray();
         int count = 0;
         for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser)) {
@@ -57,7 +85,7 @@ public class UserHome extends ApiBase {
             if (count > 2) break;
         }
         home.put("latestEncounters", encountersArr);
-
+    
         JSONObject itaskJson = null;
         List<ImportTask> itasks = myShepherd.getImportTasksForUser(currentUser);
         if (itasks.size() > 0) {
@@ -68,7 +96,7 @@ public class UserHome extends ApiBase {
             itaskJson.put("numberMediaAssets", Util.collectionSize(itasks.get(0).getMediaAssets()));
         }
         home.put("latestBulkImportTask", Util.jsonNull(itaskJson));
-
+    
         JSONObject latestIndivJson = null;
         for (Encounter enc : myShepherd.getEncountersForSubmitter(currentUser, "modified DESC")) {
             if (enc.getIndividual() != null) {
@@ -79,8 +107,7 @@ public class UserHome extends ApiBase {
             }
         }
         home.put("latestIndividual", Util.jsonNull(latestIndivJson));
-
-        // match result: if within 2 weeks, match result page; if older, the encounter page
+    
         JSONObject matchJson = null;
         List<Task> tasks = myShepherd.getIdentificationTasksForUser(currentUser);
         if (!Util.collectionIsEmptyOrNull(tasks)) {
@@ -99,21 +126,7 @@ public class UserHome extends ApiBase {
                 }
         }
         home.put("latestMatchTask", Util.jsonNull(matchJson));
-
-        JSONArray projArr = new JSONArray();
-        count = 0;
-        for (Project proj : currentUser.getProjects(myShepherd)) {
-            JSONObject pj = new JSONObject();
-            pj.put("id", proj.getId());
-            pj.put("name", proj.getResearchProjectName());
-            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
-            pj.put("numberEncounters", proj.getEncounters().size());
-            projArr.put(pj);
-            count++;
-            if (count > 2) break;
-        }
-        home.put("projects", projArr);
-
+    
         response.setStatus(200);
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
