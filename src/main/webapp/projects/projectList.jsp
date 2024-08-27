@@ -41,15 +41,16 @@ User currentUser = AccessControl.getUser(request, myShepherd);
       </div>
 
           <%
-          try{
-
-        	if(currentUser != null){
-                List<Project> allProjects = new ArrayList<Project>();
+          try {
+            if (currentUser != null) {
                 List<Project> userProjects = new ArrayList<Project>();
-                if(request.isUserInRole("admin")){
-                	allProjects=myShepherd.getAllProjects();
-                }
-                else{
+        
+                if (request.isUserInRole("admin")) {
+                    // Admin users get all projects in the system
+                    userProjects = myShepherd.getAllProjects();
+
+              }else{
+                  List<Project> allProjects = new ArrayList<>();
 	                userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
 	                List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
 	                if(userProjects != null && userProjects.size()>0){
@@ -66,9 +67,10 @@ User currentUser = AccessControl.getUser(request, myShepherd);
 	                    }
 	                  }
 	                }
-                }
-                userProjects = allProjects;
+                  userProjects = allProjects;
 
+                }
+  
                 if(userProjects==null || userProjects.size()<1){
                   %>
                   <h4><%=props.getProperty("NoProjects") %></h4>
@@ -79,6 +81,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   	<thead>
                         <tr>
                           <th class="project-style"><%=props.getProperty("ProjectName") %></th>
+                          <th class="project-style"><%=props.getProperty("ProjectID") %></th>
                           <th class="project-style"><%=props.getProperty("PercentAnnotations") %></th>
                           <th class="project-style"><%=props.getProperty("NumEncounters") %></th>
                         </tr>
@@ -90,6 +93,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                       %>
                         <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="project-style">
                           <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
+                          <td class="clickable-row"><%=userProjects.get(j).getId()%></td>
                           <td class="clickable-row"><%=userProjects.get(j).getPercentWithIncrementalIds()%> %</td>
                           <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>

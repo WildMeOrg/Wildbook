@@ -8,6 +8,7 @@ if(userProjects==null || userProjects.size()<1){
     <thead>
         <tr>
           <th class="project-style"><%=props.getProperty("ProjectName") %></th>
+          <th class="project-style"><%=props.getProperty("ProjectID") %></th>
           <th class="project-style"><%=props.getProperty("PercentAnnotations") %></th>
           <th class="project-style"><%=props.getProperty("NumEncounters") %></th>
         </tr>
@@ -19,6 +20,7 @@ if(userProjects==null || userProjects.size()<1){
       %>
         <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="project-style">
           <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
+          <td class="clickable-row"><%=userProjects.get(j).getId()%></td>
           <td class="clickable-row"><%=userProjects.get(j).getPercentWithIncrementalIds()%> %</td>
           <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
         </tr>
