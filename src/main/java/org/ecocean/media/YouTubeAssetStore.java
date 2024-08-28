@@ -332,13 +332,6 @@ public class YouTubeAssetStore extends AssetStore {
         JSONObject data = new JSONObject();
 
         // we (attempt to) let the basic stuff finish synchronously, so we have a populated data chunk to save (hopefully)before the detailed one does
-/*  deprecated due to issue 622, retirement of YouTube agent
-        try {
-            data.put("basic", YouTube.simpleInfo(idFromParameters(ma.getParameters())));
-        } catch (Exception ex) {
-            System.out.println(ma + " failed simpleInfo(): " + ex.toString());
-        }
-*/
         if (!minimal) {
             data.put("detailed",
                 new JSONObject("{\"_processing\": true, \"timestamp\": " +
