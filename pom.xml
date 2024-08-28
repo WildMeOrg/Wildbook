@@ -373,13 +373,24 @@
 
     <!-- end local repo dependencies-->
 
-    <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-    <dependency>
+<dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.8.0-M1</version>
+      <version>5.11.0</version>
       <scope>test</scope>
-    </dependency>
+  </dependency>
+  <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.11.0</version>
+      <scope>test</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>1.11.0</version>
+      <scope>test</scope>
+  </dependency>
 
     <dependency>
       <groupId>org.geotools</groupId>
@@ -585,6 +596,18 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
       </plugin>
+
+<plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19</version>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-surefire-provider</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+        </dependencies>
+    </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
