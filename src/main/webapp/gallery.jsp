@@ -302,7 +302,7 @@ try{
 
 	<div class="container maincontent">
 	<h1><%=props.getProperty("gallery") %></h1>
-	<nav class="navbar navbar-default gallery-nav">
+	<nav class="navbar-default gallery-nav">
 	  <div class="container-fluid">
 	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
 

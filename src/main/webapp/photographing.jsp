@@ -1,65 +1,24 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-import="org.ecocean.*,
-         org.ecocean.servlet.ServletUtilities,
-         java.util.Properties
-         "
-%>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*" %>
 <%
-String context=ServletUtilities.getContext(request);
 
-Properties props = new Properties();
-//Find what language we are in.
-String langCode = ServletUtilities.getLanguageCode(request);
-//Grab the properties file with the correct language strings.
-props = ShepherdProperties.getProperties("photographing.properties", langCode, context);
+//setup our Properties object to hold all properties
+	
+	
+	String context="context0";
+	context=ServletUtilities.getContext(request);
+	
 %>
 
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-		  <h2><%=props.getProperty("mainHeader")%></h2>
-		  <h3><%=props.getProperty("subHeader")%></h3>
-		  <p><%=props.getProperty("welcomePhotos")%></p>
-			<br>
-			<h5><%=props.getProperty("list1Header")%></h5>
-			<ol>
-				<li><%=props.getProperty("list1Item1")%></li>
-				<li><%=props.getProperty("list1Item2")%></li>
-				<li><%=props.getProperty("list1Item3")%></li>
-				<li><%=props.getProperty("list1Item4")%></li>
-				<li><%=props.getProperty("list1Item5")%></li>
-				<li><%=props.getProperty("list1Item6")%></li>
-
-			</ol>
-
-			<div class="container">
-			  <div class="row">
-			    <div class="col-xs-3">
-			    </div>
-			    <div class="col-xs-6">
-				  <img class="bass_image" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_how_to.jpg" />
-				  <label class="image_label"><%=props.getProperty("exampleImageCaption") %></label>
-			    </div>
-			  </div>
-			</div>
-
-			<br>
-			<h5><%=props.getProperty("list2Header")%></h5>
-			<ol>
-				<li><%=props.getProperty("list2Item1")%></li>
-				<li><%=props.getProperty("list2Item2")%></li>
-				<li><%=props.getProperty("list2Item3")%></li>
-				<li><%=props.getProperty("list2Item4")%></li>
-			</ol>
-
-			<br>
-			<h3><%=props.getProperty("ownershipHeader")%></h3>
-			<p><%=props.getProperty("ownershipBody")%></p>
-	                <p><%=props.getProperty("photographerNote")%></p>
-			<p>&nbsp;</p>
+		  <h2>Photography Guidelines for Individual Identification with Computer Vision</h2>
+	<p>Best practices can vary by species and location. For general information, see the <a href="https://wildbook.docs.wildme.org/data/photography-guidelines.html">Photography Guidelines</a>.</p>
+			
+	
 	</div>
-
+	
 
 <jsp:include page="footer.jsp" flush="true" />
+

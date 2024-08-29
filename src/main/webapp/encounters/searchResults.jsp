@@ -35,7 +35,7 @@ context=ServletUtilities.getContext(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("searchResults.jsp");
+  myShepherd.setAction("/react/login");
   String[] projectIds = null;
   int projectIdCount = 0;
   if(Util.isUUID(request.getParameter("projectId"))){

@@ -44,9 +44,114 @@ import java.util.Properties;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.WordUtils;
+import org.ecocean.servlet.ServletUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServletUtilities {
     public static String getHeader(HttpServletRequest request) {
+        String context = "context0";
+
+        context = ServletUtilities.getContext(request);
+        String langCode = ServletUtilities.getLanguageCode(request);
+        String gtmKey = "changeme";
+        String gaId = "changeme";
+        if (CommonConfiguration.getGoogleTagManagerKey(context) != null) {
+            gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        }
+        if (CommonConfiguration.getGoogleAnalyticsId(context) != null) {
+            gaId = CommonConfiguration.getGoogleAnalyticsId(context);
+        }
+        Properties props = new Properties();
+        props = ShepherdProperties.getProperties("header.properties", langCode, context);
+        // System.out.println("props" + props);
+        String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+        String pageTitle = (String)request.getAttribute("pageTitle"); // allows custom override from calling jsp (must
+        String siteName = "wildbook";
+        try {
+            // System.out.println("getting site name ");
+            String name = props.getProperty("siteName");
+            // System.out.println("site name is " + name);
+            if (name != null) {
+                siteName = name;
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to get siteName property from props:");
+            e.printStackTrace();
+        }
+        // set BEFORE include:header)
+        if (pageTitle == null) {
+            pageTitle = CommonConfiguration.getHTMLTitle(context);
+        } else {
+            pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
+        }
+        String username = null;
+        User user = null;
+        String profilePhotoURL = urlLoc + "/images/empty_profile.jpg";
+        // we use this arg bc we can only log out *after* including the header on
+        // logout.jsp. this way we can still show the logged-out view in the header
+        boolean loggingOut = Util.requestHasVal(request, "loggedOut");
+        String notifications = "";
+        // check if user is logged in and has pending notifications
+        if (request.getUserPrincipal() != null) {
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("header.jsp");
+            myShepherd.beginDBTransaction();
+            try {
+                notifications = Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+                if (request.getUserPrincipal() != null && !loggingOut) {
+                    user = myShepherd.getUser(request);
+                    username = (user != null) ? user.getUsername() : null;
+                    if (user.getUserImage() != null) {
+                        profilePhotoURL = "/" + CommonConfiguration.getDataDirectoryName(context) +
+                            "/users/" + user.getUsername() + "/" +
+                            user.getUserImage().getFilename();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                myShepherd.closeDBTransaction();
+            } finally {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        }
+        List<String> supportedLanguages = CommonConfiguration.getIndexedPropertyValues("language",
+            context);
+        int numSupportedLanguages = supportedLanguages.size();
+        String selectedLangCode = "en";
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("wildbookLangCode".equals(cookie.getName())) {
+                    selectedLangCode = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        String selectedImgURL = "";
+        if (selectedLangCode != null) {
+            selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" +
+                selectedLangCode + ".gif";
+        }
+        StringBuilder htmlBuilder = new StringBuilder();
+        for (int h = 0; h < numSupportedLanguages; h++) {
+            String myLang = supportedLanguages.get(h);
+            String langName = CommonConfiguration.getProperty(myLang, context);
+            String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" +
+                myLang + ".gif";
+            htmlBuilder.append("<div class=\"lang_selector\" data-lang=")
+                .append(myLang)
+                .append(">")
+                .append("<img src=\"")
+                .append(imgURL)
+                .append("\" alt=\"Flag\" style=\"margin-right: 10px\">")
+                .append(langName)
+                .append("</div>");
+        }
+        String languageString = htmlBuilder.toString();
+
         try {
             FileReader fileReader = new FileReader(findResourceOnFileSystem(
                 "servletResponseTemplate.htm"));
@@ -60,15 +165,25 @@ public class ServletUtilities {
             buffread.close();
             templateFile = SBreader.toString();
 
-            String context = getContext(request);
+            String templateContext = getContext(request);
 
             // process the CSS string
             templateFile = templateFile.replaceAll("CSSURL",
-                CommonConfiguration.getCSSURLLocation(request, context));
+                CommonConfiguration.getCSSURLLocation(request, templateContext));
 
             // set the top header graphic
             templateFile = templateFile.replaceAll("TOPGRAPHIC",
-                CommonConfiguration.getURLToMastheadGraphic(context));
+                CommonConfiguration.getURLToMastheadGraphic(templateContext));
+
+            templateFile = templateFile.replaceAll("SITE_NAME", siteName);
+            templateFile = templateFile.replaceAll("USER_NAME",
+                ((username == null) ? "" : username));
+            templateFile = templateFile.replaceAll("NOTIFICATION_DETAILS", notifications);
+            templateFile = templateFile.replaceAll("LANGUAGE_SELECTOR", languageString);
+            templateFile = templateFile.replaceAll("SELECTED_IMAGE_URL", selectedImgURL);
+            templateFile = templateFile.replaceAll("PROFILE_PHOTO_URL", profilePhotoURL);
+            templateFile = templateFile.replaceAll("GTM_KEY", gtmKey);
+            templateFile = templateFile.replaceAll("GA_ID", gaId);
 
             int end_header = templateFile.indexOf("INSERT_HERE");
             return (templateFile.substring(0, end_header));
@@ -110,10 +225,11 @@ public class ServletUtilities {
 
     /**
      * Inform (via email) researchers who've logged an interest in encounter.
-     * @param request servlet request
+     *
+     * @param request         servlet request
      * @param encounterNumber ID of encounter to inform about
-     * @param message message to include in email notification
-     * @param context webapp context
+     * @param message         message to include in email notification
+     * @param context         webapp context
      */
     public static void informInterestedParties(HttpServletRequest request, String encounterNumber,
         String message, String context) {
@@ -150,10 +266,11 @@ public class ServletUtilities {
 
     /**
      * Inform (via email) researchers who've logged an interest in individual.
-     * @param request servlet request
+     *
+     * @param request      servlet request
      * @param individualID ID of individual to inform about
-     * @param message message to include in email notification
-     * @param context webapp context
+     * @param message      message to include in email notification
+     * @param context      webapp context
      */
     public static void informInterestedIndividualParties(HttpServletRequest request,
         String individualID, String message, String context) {
@@ -363,7 +480,9 @@ public class ServletUtilities {
         myShepherd.beginDBTransaction();
         try {
             isOwner = isUserAuthorizedForEncounter(enc, request, myShepherd);
-        } catch (Exception e) { e.printStackTrace(); } finally {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
         return isOwner;
@@ -382,10 +501,14 @@ public class ServletUtilities {
                 // user-specific checks
                 else if ((enc.getSubmitterID() != null) && (request.getRemoteUser() != null)) {
                     // allow access to public encounters
-                    if (enc.getSubmitterID().equals("public")) return true;
+                    if (enc.getSubmitterID().equals("public"))
+                        return true;
                     // if the current user owns the Encounter, they obviously have permission
-                    if (enc.getSubmitterID().equals(request.getRemoteUser())) { isOwner = true; }
-                    // if the current user is the orgAdmin for the other user, they can ave permission
+                    if (enc.getSubmitterID().equals(request.getRemoteUser())) {
+                        isOwner = true;
+                    }
+                    // if the current user is the orgAdmin for the other user, they can ave
+                    // permission
                     else if (request.isUserInRole("orgAdmin") &&
                         myShepherd.getUser(enc.getSubmitterID()) != null) {
                         User encounterOwner = myShepherd.getUser(enc.getSubmitterID());
@@ -395,22 +518,28 @@ public class ServletUtilities {
                         if (encounterOwnerOrgs != null && encounterOwnerOrgs.size() > 0 &&
                             requesterOrgs != null && requesterOrgs.size() > 0) {
                             for (Organization org : encounterOwnerOrgs) {
-                                if (requesterOrgs.contains(org)) { isOwner = true; }
+                                if (requesterOrgs.contains(org)) {
+                                    isOwner = true;
+                                }
                             }
                         }
                     }
                 }
                 // check other cases
                 // ----------------
-                // if the current user has a location ID-specific role matching the location ID of this Encounter, they are authorized
+                // if the current user has a location ID-specific role matching the location ID
+                // of this Encounter, they are authorized
                 if (!isOwner && enc.getLocationCode() != null &&
                     request.isUserInRole(enc.getLocationCode())) {
                     isOwner = true;
                 }
                 // if the current user is in a collaboration with the Encounter owner
-                if (!isOwner && Collaboration.canEditEncounter(enc, request)) { return true; }
+                if (!isOwner && Collaboration.canEditEncounter(enc, request)) {
+                    return true;
+                }
                 // allow WDP edit stenella frontalis cit sci encounters
-                // TODO make a mmore resonable way for researchers to ID and edit cit sci submissions
+                // TODO make a mmore resonable way for researchers to ID and edit cit sci
+                // submissions
                 if (!isOwner && "wdp".equals(request.getUserPrincipal().getName())) {
                     List<User> users = enc.getSubmitters();
                     boolean researcherSubmitted = false;
@@ -425,7 +554,9 @@ public class ServletUtilities {
                     }
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return isOwner;
     }
 
@@ -448,7 +579,9 @@ public class ServletUtilities {
         myShepherd.beginDBTransaction();
         try {
             isOwner = isUserAuthorizedForIndividual(indy, request, myShepherd);
-        } catch (Exception e) { e.printStackTrace(); } finally {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
         return isOwner;
@@ -483,7 +616,9 @@ public class ServletUtilities {
         myShepherd.beginDBTransaction();
         try {
             isOwner = isUserAuthorizedForOccurrence(occur, request, myShepherd);
-        } catch (Exception e) { e.printStackTrace(); } finally {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
             myShepherd.rollbackAndClose();
         }
         return isOwner;
@@ -501,7 +636,9 @@ public class ServletUtilities {
                 return true;
             }
             // quick collaboration check between current user and bulk import owner
-            // if(occ.getCreator() !=null && Collaboration.canCollaborate(request.getUserPrincipal().getName(), occ.getCreator().getUsername(),
+            // if(occ.getCreator() !=null &&
+            // Collaboration.canCollaborate(request.getUserPrincipal().getName(),
+            // occ.getCreator().getUsername(),
             // myShepherd.getContext()))return true;
             if (request.getUserPrincipal() != null &&
                 request.getUserPrincipal().getName() != null && occ.getCreator() != null &&
@@ -510,12 +647,16 @@ public class ServletUtilities {
                     request.getUserPrincipal().getName(), occ.getCreator().getUsername());
                 if (collab != null && collab.getState() != null &&
                     (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) ||
-                    collab.getState().equals(Collaboration.STATE_APPROVED))) return true;
+                    collab.getState().equals(Collaboration.STATE_APPROVED)))
+                    return true;
             }
             // quick orgAdminCheck
-            // if this user is the orgAdmin for the bulk import's uploading user, they can see it
+            // if this user is the orgAdmin for the bulk import's uploading user, they can
+            // see it
             if (ServletUtilities.isCurrentUserOrgAdminOfTargetUser(occ.getCreator(), request,
-                myShepherd)) { return true; }
+                myShepherd)) {
+                return true;
+            }
         }
         return false;
     }
@@ -523,7 +664,9 @@ public class ServletUtilities {
     public static boolean isUserAuthorizedForOccurrence(Occurrence occur,
         HttpServletRequest request, Shepherd myShepherd) {
         if (request.getUserPrincipal() != null) {
-            if (request.isUserInRole("admin")) { return true; }
+            if (request.isUserInRole("admin")) {
+                return true;
+            }
             ArrayList<Encounter> encounters = occur.getEncounters();
             int numEncs = encounters.size();
             for (int y = 0; y < numEncs; y++) {
@@ -560,36 +703,38 @@ public class ServletUtilities {
         return myString.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
     }
 
-    /*public static String cleanFileName(String aTagFragment) {
-       final StringBuffer result = new StringBuffer();
-
-       final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
-       char character = iterator.current();
-       while (character != CharacterIterator.DONE) {
-       if (character == '<') {
-       result.append("_");
-       } else if (character == '>') {
-       result.append("_");
-       } else if (character == '\"') {
-       result.append("_");
-       } else if (character == '\'') {
-       result.append("_");
-       } else if (character == '\\') {
-       result.append("_");
-       } else if (character == '&') {
-       result.append("_");
-       } else if (character == ' ') {
-       result.append("_");
-       } else if (character == '#') {
-       result.append("_");
-       } else {
-       //the char is not a special one
-       //add it to the result as is result.append(character);
-       }
-       character = iterator.next();
-       }
-       return result.toString();
-       }
+    /*
+     * public static String cleanFileName(String aTagFragment) {
+     * final StringBuffer result = new StringBuffer();
+     *
+     * final StringCharacterIterator iterator = new
+     * StringCharacterIterator(aTagFragment);
+     * char character = iterator.current();
+     * while (character != CharacterIterator.DONE) {
+     * if (character == '<') {
+     * result.append("_");
+     * } else if (character == '>') {
+     * result.append("_");
+     * } else if (character == '\"') {
+     * result.append("_");
+     * } else if (character == '\'') {
+     * result.append("_");
+     * } else if (character == '\\') {
+     * result.append("_");
+     * } else if (character == '&') {
+     * result.append("_");
+     * } else if (character == ' ') {
+     * result.append("_");
+     * } else if (character == '#') {
+     * result.append("_");
+     * } else {
+     * //the char is not a special one
+     * //add it to the result as is result.append(character);
+     * }
+     * character = iterator.next();
+     * }
+     * return result.toString();
+     * }
      */
     public static String getEncounterUrl(String encID, HttpServletRequest request) {
         return (CommonConfiguration.getServerURL(request) + "/encounters/encounter.jsp?number=" +
@@ -664,13 +809,16 @@ public class ServletUtilities {
         // this can be used for debugging and takes precedence
         if (request.getParameter("context") != null) {
             // get the available contexts
-            // System.out.println("Checking for a context: "+request.getParameter("context"));
+            // System.out.println("Checking for a context:
+            // "+request.getParameter("context"));
             if (contexts.containsKey((request.getParameter("context") + "DataDir"))) {
-                // System.out.println("Found a request context: "+request.getParameter("context"));
+                // System.out.println("Found a request context:
+                // "+request.getParameter("context"));
                 return request.getParameter("context");
             }
         }
-        // the request cookie is the next thing we check. this should be the primary means of figuring context out
+        // the request cookie is the next thing we check. this should be the primary
+        // means of figuring context out
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -679,14 +827,17 @@ public class ServletUtilities {
                 }
             }
         }
-        // finally, we will check the URL vs values defined in context.properties to see if we can set the right context
+        // finally, we will check the URL vs values defined in context.properties to see
+        // if we can set the right context
         String currentURL = request.getServerName();
         for (int q = 0; q < numContexts; q++) {
             String thisContext = "context" + q;
             List<String> domainNames = ContextConfiguration.getContextDomainNames(thisContext);
             int numDomainNames = domainNames.size();
             for (int p = 0; p < numDomainNames; p++) {
-                if (currentURL.indexOf(domainNames.get(p)) != -1) { return thisContext; }
+                if (currentURL.indexOf(domainNames.get(p)) != -1) {
+                    return thisContext;
+                }
             }
         }
         return context;
@@ -712,7 +863,8 @@ public class ServletUtilities {
                 return request.getParameter("langCode");
             }
         }
-        // the request cookie is the next thing we check. this should be the primary means of figuring langCode out
+        // the request cookie is the next thing we check. this should be the primary
+        // means of figuring langCode out
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -723,8 +875,10 @@ public class ServletUtilities {
                 }
             }
         }
-        // finally, we will check the URL vs values defined in context.properties to see if we can set the right context
-        // TBD - future - detect browser supported language codes and locale from the HTTPServletRequest object
+        // finally, we will check the URL vs values defined in context.properties to see
+        // if we can set the right context
+        // TBD - future - detect browser supported language codes and locale from the
+        // HTTPServletRequest object
 
         return langCode;
     }
@@ -734,26 +888,31 @@ public class ServletUtilities {
         File shepherdDataDir = new File(webappsDir,
             CommonConfiguration.getDataDirectoryName(context));
 
-        if (!shepherdDataDir.exists()) { shepherdDataDir.mkdirs(); }
+        if (!shepherdDataDir.exists()) {
+            shepherdDataDir.mkdirs();
+        }
         return shepherdDataDir.getAbsolutePath();
     }
 
-// like above, but can pass a subdir to append
+    // like above, but can pass a subdir to append
     public static String dataDir(String context, String rootWebappPath, String subdir) {
         return dataDir(context, rootWebappPath) + File.separator + subdir;
     }
 
-/*
-   //like above, but only need request passed public static String dataDir(HttpServletRequest request) {
-   String context = "context0";
-   context = ServletUtilities.getContext(request);
-   //String rootWebappPath = request.getServletContext().getRealPath("/");  // only in 3.0??
-   //String rootWebappPath = request.getSession(true).getServlet().getServletContext().getRealPath("/");
-   ServletContext s = request.getServletContext();
-   String rootWebappPath = "xxxxxx";
-   return dataDir(context, rootWebappPath);
-   }
- */
+    /*
+     * //like above, but only need request passed public static String
+     * dataDir(HttpServletRequest request) {
+     * String context = "context0";
+     * context = ServletUtilities.getContext(request);
+     * //String rootWebappPath = request.getServletContext().getRealPath("/"); //
+     * only in 3.0??
+     * //String rootWebappPath =
+     * request.getSession(true).getServlet().getServletContext().getRealPath("/");
+     * ServletContext s = request.getServletContext();
+     * String rootWebappPath = "xxxxxx";
+     * return dataDir(context, rootWebappPath);
+     * }
+     */
     private static String loadOverrideText(String shepherdDataDir, String fileName,
         String langCode) {
         // System.out.println("Starting loadOverrideProps");
@@ -774,10 +933,13 @@ public class ServletUtilities {
             // System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
         }
         // System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
-        if (!configDir.exists()) { configDir.mkdirs(); }
+        if (!configDir.exists()) {
+            configDir.mkdirs();
+        }
         File configFile = new File(configDir, fileName);
         if (configFile.exists()) {
-            // System.out.println("ShepherdProps: "+"Overriding default properties with " + configFile.getAbsolutePath());
+            // System.out.println("ShepherdProps: "+"Overriding default properties with " +
+            // configFile.getAbsolutePath());
             FileInputStream fileInputStream = null;
             try {
                 fileInputStream = new FileInputStream(configFile);
@@ -804,7 +966,9 @@ public class ServletUtilities {
     }
 
     public static String handleNullString(Object obj) {
-        if (obj == null) { return ""; }
+        if (obj == null) {
+            return "";
+        }
         return obj.toString();
     }
 
@@ -843,18 +1007,22 @@ public class ServletUtilities {
 
         for (int i = 0; i < 100000; i++) { // hundred thousand seems like a reasonable upper limit right?
             String val = request.getParameter(key + i);
-            if (Util.stringExists(val)) vals.add(val);
-            else return vals;
+            if (Util.stringExists(val))
+                vals.add(val);
+            else
+                return vals;
         }
         return vals;
     }
 
     public static String getParameterOrAttribute(String name, HttpServletRequest request) {
-        if (name == null) return null;
+        if (name == null)
+            return null;
         String result = request.getParameter(name);
         if (result == null) {
             Object attr = request.getAttribute(name);
-            if (attr != null) result = attr.toString();
+            if (attr != null)
+                result = attr.toString();
         }
         return result;
     }
@@ -865,9 +1033,11 @@ public class ServletUtilities {
 
         if (result == null) {
             Object attr = request.getAttribute(name);
-            if (attr != null) result = attr.toString();
+            if (attr != null)
+                result = attr.toString();
         }
-        if (result == null) result = getSessionAttribute(name, request);
+        if (result == null)
+            result = getSessionAttribute(name, request);
         return result;
     }
 
@@ -875,11 +1045,12 @@ public class ServletUtilities {
         String stringAns = null;
         Object attr = request.getSession().getAttribute(name);
 
-        if (attr != null) stringAns = attr.toString();
+        if (attr != null)
+            stringAns = attr.toString();
         return stringAns;
     }
 
-// handy "let anyone do anything (?) cors stuff
+    // handy "let anyone do anything (?) cors stuff
     public static void doOptions(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -889,9 +1060,10 @@ public class ServletUtilities {
                 request.getHeader("Access-Control-Request-Headers"));
     }
 
-/* see webapps/captchaExample.jsp for implementation */
+    /* see webapps/captchaExample.jsp for implementation */
 
-// note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
+    // note: this only handles single-widget (per page) ... if we need multiple,
+    // will have to extend things here
     public static String captchaWidget(HttpServletRequest request) {
         return captchaWidget(request, null);
     }
@@ -916,14 +1088,15 @@ public class ServletUtilities {
                 "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
     }
 
-// https://developers.google.com/recaptcha/docs/verify
+    // https://developers.google.com/recaptcha/docs/verify
     public static boolean captchaIsValid(HttpServletRequest request) {
         return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"),
                 request.getRemoteAddr());
     }
 
     public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
-        if (context == null) context = "context0";
+        if (context == null)
+            context = "context0";
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
             context);
         if (recaptchaProps == null) {
@@ -964,12 +1137,15 @@ public class ServletUtilities {
         return gresp.optBoolean("success", false);
     }
 
-// this takes into account that we might be going thru nginx (etc?) as well
+    // this takes into account that we might be going thru nginx (etc?) as well
     public static String getRemoteHost(HttpServletRequest request) {
-        if (request == null) return null;
-        // these all seem to be *possible* headers from nginx (or other proxies?) but we standardize on "x-real-ip"
+        if (request == null)
+            return null;
+        // these all seem to be *possible* headers from nginx (or other proxies?) but we
+        // standardize on "x-real-ip"
         // x-real-ip, x-forwarded-for, x-forwarded-host
-        if (request.getHeader("x-real-ip") != null) return request.getHeader("x-real-ip");
+        if (request.getHeader("x-real-ip") != null)
+            return request.getHeader("x-real-ip");
         return request.getRemoteHost();
     }
 
@@ -981,7 +1157,8 @@ public class ServletUtilities {
         request.getRequestDispatcher(filename).include(request, response);
     }
 
-// used to determine if we want to apply a custom UI style, e.g. for IndoCet or the New England Aquarium to a web page
+    // used to determine if we want to apply a custom UI style, e.g. for IndoCet or
+    // the New England Aquarium to a web page
     public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
         // check url for "organization=____" arg
         String organization = request.getParameter("organization");
@@ -993,19 +1170,25 @@ public class ServletUtilities {
         if (cookieOrg != null && orgName.toLowerCase().equals(cookieOrg.toLowerCase())) {
             return true;
         }
-        // The checks further below will also return true _right after logging out_ so we need this step
-        if (Util.requestHasVal(request, "logout")) return false;
-        // Shepherd handling w 'finally' to ensure we close the dbconnection after return.
+        // The checks further below will also return true _right after logging out_ so
+        // we need this step
+        if (Util.requestHasVal(request, "logout"))
+            return false;
+        // Shepherd handling w 'finally' to ensure we close the dbconnection after
+        // return.
         Shepherd myShepherd = Shepherd.newActiveShepherd(request,
             "ServletUtilities.useCustomStyle");
         try {
             // check user affiliation
             User user = myShepherd.getUser(request);
-            if (user == null) return false;
-            if (user.hasAffiliation(orgName)) return true;
+            if (user == null)
+                return false;
+            if (user.hasAffiliation(orgName))
+                return true;
             // check organization object
             Organization org = myShepherd.getOrganizationByName(orgName);
-            if (org == null) return false;
+            if (org == null)
+                return false;
             return org.hasMember(user);
         } finally {
             myShepherd.rollbackAndClose();

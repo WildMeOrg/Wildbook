@@ -9,19 +9,23 @@ import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
+import EncounterSearch from "./pages/EncounterSearch";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { isFetched, data, error } = useGetMe();
   const username = data?.username;
   const avatar = data?.imageURL || "/react/images/Avatar.png";
+  const [header, setHeader] = React.useState(true);
 
   return (
-    <main>
+    <div className="d-flex flex-column min-vh-100">
       <div
+        id="header"
         className="position-fixed top-0 mx-auto w-100"
         style={{
-          maxWidth: "1440px",
           zIndex: "100",
+          height: "50px",
+          backgroundColor: "#303336",
         }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
@@ -34,23 +38,26 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
       </div>
 
       <div
-        className="position-absolute top-0 start-0 justify-content-center align-items-center overflow-hidden w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 40px)", // Assuming the header height is 40px
+          // maxWidth: "1440px",
+          overflow: "hidden",
+          paddingTop: header? "48px" : "0",
         }}
       >
         <Routes>
           <Route path="/profile" element={<Profile />} />
-          {/* <Route path="/about" element={<About />} /> */}
           <Route path="/home" element={<Home />} />
+          <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound setHeader={setHeader}/>} />
         </Routes>
-
-        <Footer />
       </div>
-    </main>
+
+      <Footer />
+    </div>
   );
 }

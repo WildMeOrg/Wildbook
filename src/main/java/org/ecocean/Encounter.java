@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringTokenizer;
@@ -23,7 +24,10 @@ import java.util.Vector;
 import javax.jdo.Query;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.ecocean.genetics.*;
@@ -32,10 +36,13 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.DigitalArchiveTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util.MeasurementDesc;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -52,10 +59,13 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
  * @author Jason Holmberg
  * @version 2.0
  */
-public class Encounter implements java.io.Serializable {
+public class Encounter extends Base implements java.io.Serializable {
     static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
+
+    @Override public String opensearchIndexName() { return "encounter"; }
+
     // at least one frame/image (e.g. from YouTube detection) must have this confidence or encounter will be ignored
     public static final double ENCOUNTER_AUTO_SOURCE_CONFIDENCE_CUTOFF = 0.7;
     public static final String STATE_AUTO_SOURCED = "auto_sourced";
@@ -791,14 +801,21 @@ public class Encounter implements java.io.Serializable {
         mmaCompatible = b;
     }
 
-    public String getComments() {
+    /**
+     * Returns Occurrence Remarks.
+     *
+     * @return Occurrence Remarks String
+     */
+    @Override public String getComments() {
         return occurrenceRemarks;
     }
 
     /**
      * Sets the initially submitted comments about markings and additional details on the shark.
+     *
+     * @param newComments Occurrence remarks to set
      */
-    public void setComments(String newComments) {
+    @Override public void setComments(String newComments) {
         occurrenceRemarks = newComments;
     }
 
@@ -816,7 +833,7 @@ public class Encounter implements java.io.Serializable {
      *
      * @param newComments any additional comments to be added to the encounter
      */
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
             researcherComments += newComments;
         } else {
@@ -949,6 +966,64 @@ public class Encounter implements java.io.Serializable {
      */
     public String getPhotographerPhone() {
         return photographerPhone;
+    }
+
+    // this is a cruddy "solution" to .submitterName and .submitters existing simultaneously
+    public Set<String> getAllSubmitterIds(Shepherd myShepherd) {
+        Set<String> all = new HashSet<String>();
+        User owner = this.getSubmitterUser(myShepherd);
+
+        if (owner == null) {
+            all.add(this.submitterID);
+            all.add(this.submitterEmail);
+        } else {
+            all.add(owner.getUsername());
+            all.add(owner.getFullName());
+            all.add(owner.getId());
+            all.add(owner.getEmailAddress());
+        }
+        if (this.submitters != null)
+            for (User user : this.submitters) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    // similar to above
+    public Set<String> getAllPhotographerIds() {
+        Set<String> all = new HashSet<String>();
+
+        all.add(this.photographerName);
+        if (this.photographers != null)
+            for (User user : this.photographers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
+    }
+
+    public Set<String> getAllInformOtherIds() {
+        Set<String> all = new HashSet<String>();
+
+        if (this.informOthers != null)
+            for (User user : this.informOthers) {
+                all.add(user.getUsername());
+                all.add(user.getFullName());
+                all.add(user.getId());
+                all.add(user.getEmailAddress());
+            }
+        all.remove(null);
+        all.remove("");
+        return all;
     }
 
     public String getWebUrl(HttpServletRequest req) {
@@ -1197,7 +1272,7 @@ public class Encounter implements java.io.Serializable {
         } else {
             date = String.format("%04d %s", year, time);
         }
-        return date;
+        return date.trim();
     }
 
     public String getShortDate() {
@@ -1350,6 +1425,12 @@ public class Encounter implements java.io.Serializable {
 
     public boolean hasMarkedIndividual() {
         return (individual != null);
+    }
+
+    public boolean hasMarkedIndividual(MarkedIndividual match) {
+        if (match == null) return false;
+        if (individual == null) return false;
+        return (match.getId().equals(individual.getId()));
     }
 
     public void assignToMarkedIndividual(MarkedIndividual indiv) {
@@ -1597,6 +1678,10 @@ public class Encounter implements java.io.Serializable {
 
     public String getAssignedUsername() {
         return submitterID;
+    }
+
+    public User getSubmitterUser(Shepherd myShepherd) {
+        return myShepherd.getUser(submitterID);
     }
 
     public Vector getInterestedResearchers() {
@@ -2026,6 +2111,11 @@ public class Encounter implements java.io.Serializable {
         return locationID;
     }
 
+    public String getLocationName() {
+        if (locationID == null) return null;
+        return LocationID.getNameForLocationID(locationID, null);
+    }
+
     public void setLocationID(String newLocationID) {
         if (newLocationID != null) {
             this.locationID = newLocationID.trim();
@@ -2050,22 +2140,48 @@ public class Encounter implements java.io.Serializable {
         this.maximumElevationInMeters = newElev;
     }
 
-    public String getId() {
+    /**
+     * Retrieves the Catalog Number.
+     *
+     * @return Catalog Number String
+     */
+    @Override public String getId() {
         return catalogNumber;
     }
 
+    /**
+     * Sets the Catalog Number.
+     *
+     * @param newNumber The Catalog Number to set.
+     */
+    @Override public void setId(String newNumber) {
+        this.catalogNumber = newNumber;
+    }
+
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getCatalogNumber() {
         return catalogNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setCatalogNumber(String newNumber) {
         this.catalogNumber = newNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getID() {
         return catalogNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setID(String newNumber) {
         this.catalogNumber = newNumber;
     }
@@ -2182,6 +2298,19 @@ public class Encounter implements java.io.Serializable {
 
     public String getDynamicProperties() {
         return dynamicProperties;
+    }
+
+    public org.json.JSONObject getDynamicPropertiesJSONObject() {
+        org.json.JSONObject dp = new org.json.JSONObject();
+        if (dynamicProperties == null) return dp;
+        StringTokenizer st = new StringTokenizer(dynamicProperties, ";");
+        while (st.hasMoreTokens()) {
+            String token = st.nextToken();
+            int equalPlace = token.indexOf("=");
+            if (equalPlace > 0)
+                dp.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
+        }
+        return dp;
     }
 
     public void setDynamicProperties(String allDynamicProperties) {
@@ -2436,6 +2565,10 @@ public class Encounter implements java.io.Serializable {
     }
 
     public void resetDateInMilliseconds() {
+        dateInMilliseconds = computeDateInMilliseconds();
+    }
+
+    public Long computeDateInMilliseconds() {
         if (year > 0) {
             int localMonth = 0;
             if (month > 0) { localMonth = month - 1; }
@@ -2448,11 +2581,17 @@ public class Encounter implements java.io.Serializable {
             GregorianCalendar gc = new GregorianCalendar(year, localMonth, localDay, localHour,
                 myMinutes);
 
-            dateInMilliseconds = new Long(gc.getTimeInMillis());
-        } else { dateInMilliseconds = null; }
+            return new Long(gc.getTimeInMillis());
+        }
+        return null;
     }
 
     public java.lang.Long getDateInMilliseconds() { return dateInMilliseconds; }
+
+    public Long getDateInMillisecondsFallback() {
+        if (dateInMilliseconds != null) return dateInMilliseconds;
+        return computeDateInMilliseconds();
+    }
 
     // this will set all date stuff based on ms since epoch
     public void setDateInMilliseconds(long ms) {
@@ -2542,6 +2681,10 @@ public class Encounter implements java.io.Serializable {
 
     public void setSubmitterResearchers(Collection<String> researchers) {
         if (researchers != null) this.submitterResearchers = new ArrayList<String>(researchers);
+    }
+
+    public List<Project> getProjects(Shepherd myShepherd) {
+        return myShepherd.getProjectsForEncounter(this);
     }
 
     // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
@@ -2786,6 +2929,20 @@ public class Encounter implements java.io.Serializable {
         return null;
     }
 
+    public List<MicrosatelliteMarkersAnalysis> getMicrosatelliteMarkers() {
+        List<MicrosatelliteMarkersAnalysis> markers =
+            new ArrayList<MicrosatelliteMarkersAnalysis>();
+
+        if (tissueSamples == null) return markers;
+        for (TissueSample tsamp : tissueSamples) {
+            for (GeneticAnalysis gan : tsamp.getGeneticAnalyses()) {
+                if (!"MicrosatelliteMarkers".equals(gan.getAnalysisType())) continue;
+                markers.add((MicrosatelliteMarkersAnalysis)gan);
+            }
+        }
+        return markers;
+    }
+
     public List<SinglePhotoVideo> getImages() { return images; }
 
     public boolean hasAnnotation(Annotation ann) {
@@ -2801,8 +2958,41 @@ public class Encounter implements java.io.Serializable {
         return annotations.size();
     }
 
+    public int numNonTrivialAnnotations() {
+        if (annotations == null) return 0;
+        int ct = 0;
+        for (Annotation ann : annotations) {
+            if (!ann.isTrivial()) ct++;
+        }
+        return ct;
+    }
+
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
+    }
+
+    public Set<String> getAnnotationViewpoints() {
+        Set<String> vps = new HashSet<String>();
+
+        if (!hasAnnotations()) return vps;
+        for (Annotation ann : annotations) {
+            if (ann.getViewpoint() != null) vps.add(ann.getViewpoint());
+        }
+        return vps;
+    }
+
+    public Set<String> getAnnotationIAClasses() {
+        Set<String> classes = new HashSet<String>();
+
+        if (!hasAnnotations()) return classes;
+        for (Annotation ann : annotations) {
+            if (ann.getIAClass() != null) classes.add(ann.getIAClass());
+        }
+        // TODO we should find out how/where bunk iaClass values are getting set
+        // and stop the via isValidIAClass() or similar
+        // also should be considered for any data integrity/repair tools
+        classes.remove("____");
+        return classes;
     }
 
     // all an enc's annotations on a given asset (might be multiple if parts are involved)
@@ -2822,13 +3012,13 @@ public class Encounter implements java.io.Serializable {
     public void addAnnotations(List<Annotation> anns) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
         for (Annotation ann : anns) {
-            annotations.add(ann);
+            if (!annotations.contains(ann)) annotations.add(ann);
         }
     }
 
     public void addAnnotation(Annotation ann) {
         if (annotations == null) annotations = new ArrayList<Annotation>();
-        annotations.add(ann);
+        if (!annotations.contains(ann)) annotations.add(ann);
     }
 
     public void useAnnotationsForMatching(boolean use) {
@@ -3110,6 +3300,16 @@ public class Encounter implements java.io.Serializable {
         return false;
     }
 
+    public Set<Keyword> getMediaAssetKeywords() {
+        Set<Keyword> mak = new HashSet<Keyword>();
+
+        for (MediaAsset ma : this.getMedia()) {
+            ArrayList<Keyword> kws = ma.getKeywords();
+            if (kws != null) mak.addAll(kws);
+        }
+        return mak;
+    }
+
     public String getState() { return state; }
 
     public void setState(String newState) { this.state = newState; }
@@ -3176,6 +3376,16 @@ public class Encounter implements java.io.Serializable {
         return null;
     }
 
+    public Map<String, BiologicalMeasurement> getBiologicalMeasurementsByType() {
+        Map<String, BiologicalMeasurement> meas = new HashMap<String, BiologicalMeasurement>();
+
+        for (MeasurementDesc mdesc : Util.findBiologicalMeasurementDescs("en", "context0")) {
+            BiologicalMeasurement bm = getBiologicalMeasurement(mdesc.getType());
+            if (bm != null) meas.put(mdesc.getType(), bm);
+        }
+        return meas;
+    }
+
     public BiologicalMeasurement getBiologicalMeasurement(String type) {
         if (tissueSamples != null) {
             int numTissueSamples = tissueSamples.size();
@@ -3210,6 +3420,17 @@ public class Encounter implements java.io.Serializable {
 
     public String getOccurrenceID() { return occurrenceID; }
 
+    public Occurrence getOccurrence(Shepherd myShepherd) {
+        return myShepherd.getOccurrence(this);
+    }
+
+    public DateTime getOccurrenceDateTime(Shepherd myShepherd) {
+        Occurrence occ = this.getOccurrence(myShepherd);
+
+        if (occ == null) return null;
+        return occ.getDateTime();
+    }
+
     public boolean hasSinglePhotoVideoByFileName(String filename) {
         int numImages = images.size();
 
@@ -3227,13 +3448,50 @@ public class Encounter implements java.io.Serializable {
         return Collaboration.canUserAccessEncounter(this, request);
     }
 
+    public boolean canUserAccess(User user, String context) {
+        if (canUserEdit(user)) return true;
+        String username = user.getUsername();
+        if (username == null) return false;
+        return Collaboration.canUserAccessEncounter(this, context, username);
+    }
+
+    /*
+       this really is ugly cuz what is "view" vs "access", but i do NOT want to futz with canUserAccess() and
+       cause unintended consequences. so, for now, canUserView() is pretty much exclusively for search
+     */
+    public boolean canUserView(User user, Shepherd myShepherd) {
+        return (user != null) && (user.isAdmin(myShepherd) || this.canUserAccess(user,
+                myShepherd.getContext()));
+    }
+
     public boolean canUserEdit(User user) {
         return isUserOwner(user);
     }
 
     public boolean isUserOwner(User user) { // the definition of this might change?
-        if ((user == null) || (submitters == null)) return false;
-        return submitters.contains(user);
+        if (user == null) return false;
+        if ((submitters != null) && submitters.contains(user)) return true;
+        if ((submitterID != null) && submitterID.equals(user.getUsername())) return true;
+        return false;
+    }
+
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserView(user, myShepherd))
+                ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+        }
+        return ids;
     }
 
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
@@ -3987,5 +4245,403 @@ public class Encounter implements java.io.Serializable {
     public int hashCode() { // we need this along with equals() for collections methods (contains etc) to work!!
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
+    }
+
+    public static org.json.JSONObject opensearchQuery(final org.json.JSONObject query, int numFrom,
+        int pageSize, String sort, String sortOrder)
+    throws IOException {
+        return Base.opensearchQuery("encounter", query, numFrom, pageSize, sort, sortOrder);
+    }
+
+    public void opensearchDocumentSerializer(JsonGenerator jgen)
+    throws IOException, JsonProcessingException {
+        super.opensearchDocumentSerializer(jgen);
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.opensearchDocumentSerializer");
+        myShepherd.beginDBTransaction();
+
+        jgen.writeStringField("locationId", this.getLocationID());
+        jgen.writeStringField("locationName", this.getLocationName());
+        Long dim = this.getDateInMillisecondsFallback();
+        if (dim != null) jgen.writeNumberField("dateMillis", dim);
+        String date = Util.getISO8601Date(this.getDate());
+        if (date != null) jgen.writeStringField("date", date);
+        date = Util.getISO8601Date(this.getDWCDateAdded());
+        if (date != null) jgen.writeStringField("dateSubmitted", date);
+        jgen.writeStringField("verbatimEventDate", this.getVerbatimEventDate());
+        jgen.writeStringField("sex", this.getSex());
+        jgen.writeStringField("taxonomy", this.getTaxonomyString());
+        jgen.writeStringField("lifeStage", this.getLifeStage());
+        jgen.writeStringField("livingStatus", this.getLivingStatus());
+        jgen.writeStringField("verbatimLocality", this.getVerbatimLocality());
+        jgen.writeStringField("country", this.getCountry());
+        jgen.writeStringField("behavior", this.getBehavior());
+        jgen.writeStringField("patterningCode", this.getPatterningCode());
+        jgen.writeStringField("state", this.getState());
+        jgen.writeStringField("occurrenceRemarks", this.getOccurrenceRemarks());
+        jgen.writeStringField("otherCatalogNumbers", this.getOtherCatalogNumbers());
+
+        String featuredAssetId = null;
+        List<MediaAsset> mas = this.getMedia();
+        jgen.writeNumberField("numberAnnotations", this.numNonTrivialAnnotations());
+        jgen.writeNumberField("numberMediaAssets", mas.size());
+        jgen.writeArrayFieldStart("mediaAssets");
+        for (MediaAsset ma : mas) {
+            jgen.writeStartObject();
+            jgen.writeNumberField("id", ma.getId());
+            jgen.writeStringField("uuid", ma.getUUID());
+            java.net.URL url = ma.safeURL(myShepherd);
+            if (url != null) jgen.writeStringField("url", url.toString());
+            jgen.writeEndObject();
+            if (featuredAssetId == null) featuredAssetId = ma.getUUID();
+        }
+        jgen.writeEndArray();
+        if (featuredAssetId != null) jgen.writeStringField("featuredAssetUuid", featuredAssetId);
+        if (this.submitterID == null) {
+            jgen.writeNullField("assignedUsername");
+        } else {
+            jgen.writeStringField("assignedUsername", this.submitterID);
+        }
+        jgen.writeArrayFieldStart("submitters");
+        for (String id : this.getAllSubmitterIds(myShepherd)) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("photographers");
+        for (String id : this.getAllPhotographerIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+        jgen.writeArrayFieldStart("informOthers");
+        for (String id : this.getAllInformOtherIds()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        List<String> kws = new ArrayList();
+        Map<String, String> lkws = new HashMap<String, String>();
+        for (Keyword kw : this.getMediaAssetKeywords()) {
+            if (kw instanceof LabeledKeyword) {
+                LabeledKeyword lkw = (LabeledKeyword)kw;
+                lkws.put(lkw.getLabel(), lkw.getValue());
+            } else {
+                String name = kw.getDisplayName();
+                if (!kws.contains(name)) kws.add(name);
+            }
+        }
+        jgen.writeArrayFieldStart("mediaAssetKeywords");
+        for (String kw : kws) {
+            jgen.writeString(kw);
+        }
+        jgen.writeEndArray();
+        jgen.writeObjectFieldStart("mediaAssetLabeledKeywords");
+        for (String kwLabel : lkws.keySet()) {
+            jgen.writeStringField(kwLabel, lkws.get(kwLabel));
+        }
+        jgen.writeEndObject();
+
+        List<Project> projs = this.getProjects(myShepherd);
+        jgen.writeArrayFieldStart("projects");
+        if (projs != null)
+            for (Project proj : projs) {
+                jgen.writeString(proj.getId());
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationViewpoints");
+        for (String vp : this.getAnnotationViewpoints()) {
+            jgen.writeString(vp);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("annotationIAClasses");
+        for (String cls : this.getAnnotationIAClasses()) {
+            jgen.writeString(cls);
+        }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("measurements");
+        if (this.measurements != null)
+            for (Measurement meas : this.measurements) {
+                if (meas.getValue() == null) continue; // no value means we should skip
+                jgen.writeStartObject();
+                jgen.writeNumberField("value", meas.getValue());
+                if (meas.getType() != null) jgen.writeStringField("type", meas.getType());
+                if (meas.getUnits() != null) jgen.writeStringField("units", meas.getUnits());
+                if (meas.getSamplingProtocol() != null)
+                    jgen.writeStringField("samplingProtocol", meas.getSamplingProtocol());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("metalTags");
+        if (this.getMetalTags() != null)
+            for (MetalTag tag : this.getMetalTags()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("number", tag.getTagNumber());
+                jgen.writeStringField("location", tag.getLocation());
+                jgen.writeEndObject();
+            }
+        jgen.writeEndArray();
+        if (this.getAcousticTag() != null) {
+            jgen.writeObjectFieldStart("acousticTag");
+            jgen.writeStringField("idNumber", this.getAcousticTag().getIdNumber());
+            jgen.writeStringField("serialNumber", this.getAcousticTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getSatelliteTag() != null) {
+            jgen.writeObjectFieldStart("satelliteTag");
+            jgen.writeStringField("name", this.getSatelliteTag().getName());
+            jgen.writeStringField("serialNumber", this.getSatelliteTag().getSerialNumber());
+            jgen.writeStringField("argosPttNumber", this.getSatelliteTag().getArgosPttNumber());
+            jgen.writeEndObject();
+        }
+        if (this.getDTag() != null) {
+            jgen.writeObjectFieldStart("digitalArchiveTag");
+            jgen.writeStringField("dTagID", this.getDTag().getDTagID());
+            jgen.writeStringField("serialNumber", this.getDTag().getSerialNumber());
+            jgen.writeEndObject();
+        }
+        org.json.JSONObject dpj = this.getDynamicPropertiesJSONObject();
+        jgen.writeObjectFieldStart("dynamicProperties");
+        for (String key : (Set<String>)dpj.keySet()) {
+            jgen.writeStringField(key, dpj.optString(key, null));
+        }
+        jgen.writeEndObject();
+
+        Double dlat = this.getDecimalLatitudeAsDouble();
+        Double dlon = this.getDecimalLongitudeAsDouble();
+        if ((dlat == null) || (dlon == null)) {
+            jgen.writeNullField("locationGeoPoint");
+        } else {
+            jgen.writeObjectFieldStart("locationGeoPoint");
+            jgen.writeNumberField("lat", dlat);
+            jgen.writeNumberField("lon", dlon);
+            jgen.writeEndObject();
+        }
+        MarkedIndividual indiv = this.getIndividual();
+        if (indiv == null) {
+            jgen.writeNullField("individualId");
+        } else {
+            jgen.writeStringField("individualId", indiv.getId());
+            jgen.writeStringField("individualSex", indiv.getSex());
+            jgen.writeNumberField("individualNumberEncounters", indiv.getNumEncounters());
+            jgen.writeStringField("individualDisplayName", indiv.getDisplayName());
+            jgen.writeArrayFieldStart("individualNames");
+            Set<String> names = indiv.getAllNamesList();
+            if (names != null)
+                for (String name : names) {
+                    jgen.writeString(name);
+                }
+            jgen.writeEndArray();
+            jgen.writeStringField("individualNickName", indiv.getNickName());
+            if (indiv.getTimeOfBirth() > 0) {
+                String birthTime = Util.getISO8601Date(new DateTime(
+                    indiv.getTimeOfBirth()).toString());
+                jgen.writeStringField("individualTimeOfBirth", birthTime);
+            }
+            Encounter[] encs = indiv.getDateSortedEncounters(true);
+            if ((encs != null) && (encs.length > 0)) {
+                String encDate = Util.getISO8601Date(encs[0].getDate());
+                if (encDate != null) jgen.writeStringField("individualFirstEncounterDate", encDate);
+                encDate = Util.getISO8601Date(encs[encs.length - 1].getDate());
+                if (encDate != null) jgen.writeStringField("individualLastEncounterDate", encDate);
+            }
+/*
+    this currently is not needed as-is. we instead use just the social unit name as its own property (below)
+
+            jgen.writeObjectFieldStart("individualSocialUnitMap");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeStringField(su.getSocialUnitName(), mem.getRole());
+            }
+            jgen.writeEndObject();
+ */
+
+            jgen.writeArrayFieldStart("individualSocialUnits");
+            for (SocialUnit su : myShepherd.getAllSocialUnitsForMarkedIndividual(indiv)) {
+                Membership mem = su.getMembershipForMarkedIndividual(indiv);
+                if (mem != null) jgen.writeString(su.getSocialUnitName());
+            }
+            jgen.writeEndArray();
+
+            jgen.writeArrayFieldStart("individualRelationshipRoles");
+            for (String relRole : myShepherd.getAllRoleNamesForMarkedIndividual(indiv.getId())) {
+                jgen.writeString(relRole);
+            }
+            jgen.writeEndArray();
+        }
+        DateTime occdt = getOccurrenceDateTime(myShepherd);
+        if (occdt != null) jgen.writeStringField("occurrenceDate", occdt.toString());
+        jgen.writeStringField("geneticSex", this.getGeneticSex());
+        jgen.writeStringField("haplotype", this.getHaplotype());
+
+        jgen.writeArrayFieldStart("microsatelliteMarkers");
+        for (MicrosatelliteMarkersAnalysis msm : getMicrosatelliteMarkers()) {
+            jgen.writeStartObject();
+            jgen.writeStringField("analysisId", msm.getAnalysisID());
+            jgen.writeObjectFieldStart("loci");
+            if (msm.getLoci() != null)
+                for (Locus locus : msm.getLoci()) {
+                    if (locus.getName() == null) continue; // snh
+                    jgen.writeObjectFieldStart(locus.getName());
+                    for (int i = 0; i < 4; i++) {
+                        Integer allele = locus.getAllele(i);
+                        if (allele != null) jgen.writeNumberField("allele" + i, allele);
+                    }
+                    jgen.writeEndObject();
+                }
+            jgen.writeEndObject();
+            jgen.writeEndObject();
+        }
+        jgen.writeEndArray();
+
+        Occurrence occ = this.getOccurrence(myShepherd);
+        if (occ == null) {
+            jgen.writeNullField("occurrenceId");
+        } else {
+            jgen.writeStringField("occurrenceId", occ.getId());
+        }
+        jgen.writeArrayFieldStart("organizations");
+        User owner = this.getSubmitterUser(myShepherd);
+        if ((owner != null) && (owner.getOrganizations() != null))
+            for (Organization org : owner.getOrganizations()) {
+                jgen.writeString(org.getId());
+            }
+        jgen.writeEndArray();
+
+        jgen.writeArrayFieldStart("tissueSampleIds");
+        for (String id : this.getTissueSampleIDs()) {
+            jgen.writeString(id);
+        }
+        jgen.writeEndArray();
+
+        Map<String, BiologicalMeasurement> bmeas = this.getBiologicalMeasurementsByType();
+        jgen.writeObjectFieldStart("biologicalMeasurements");
+        for (String type : (Set<String>)bmeas.keySet()) {
+            jgen.writeNumberField(type, bmeas.get(type).getValue());
+        }
+        jgen.writeEndObject();
+
+/* not really sure if we need to search on TissueSamples but just putting this in for reference
+
+    this.getTissueSamples()
+
+    private String tissueType;
+    private String preservationMethod;
+    private String storageLabID;
+    private String sampleID;
+    private String alternateSampleID;
+    private List<GeneticAnalysis> analyses;
+    private String permit;
+    private String state;
+ */
+        myShepherd.rollbackAndClose();
+    }
+
+    @Override public long getVersion() {
+        return Util.getVersionFromModified(modified);
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        String sql =
+            "SELECT \"CATALOGNUMBER\", CAST(COALESCE(EXTRACT(EPOCH FROM CAST(\"MODIFIED\" AS TIMESTAMP))*1000,-1) AS BIGINT) AS version FROM \"ENCOUNTER\" ORDER BY version";
+
+        return getAllVersions(myShepherd, sql);
+    }
+
+    public org.json.JSONObject opensearchMapping() {
+        org.json.JSONObject map = super.opensearchMapping();
+        org.json.JSONObject keywordType = new org.json.JSONObject("{\"type\": \"keyword\"}");
+        org.json.JSONObject keywordNormalType = new org.json.JSONObject(
+            "{\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}");
+/*
+        org.json.JSONObject fieldKeywordNormalType = new org.json.JSONObject(
+            "{\"fields\": {\"keyword\": {\"type\": \"keyword\", \"normalizer\": \"wildbook_keyword_normalizer\"}}, \"type\": \"object\"}");
+ */
+        map.put("date", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("dateSubmitted", new org.json.JSONObject("{\"type\": \"date\"}"));
+        map.put("locationGeoPoint", new org.json.JSONObject("{\"type\": \"geo_point\"}"));
+
+        // if we want to sort on it (and it is texty), it needs to be keyword
+        // (ints, dates, etc are all sortable)
+        // note: "id" is done in Base.java
+        map.put("taxonomy", keywordType);
+        map.put("occurrenceId", keywordType);
+        map.put("state", keywordType);
+
+        // all case-insensitive keyword-ish types
+        map.put("locationId", keywordNormalType);
+        map.put("locationName", keywordNormalType);
+        map.put("country", keywordNormalType);
+        map.put("assignedUsername", keywordNormalType);
+        map.put("projects", keywordNormalType);
+        map.put("behavior", keywordNormalType);
+        map.put("patterningCode", keywordNormalType);
+        map.put("annotationViewpoints", keywordNormalType);
+        map.put("mediaAssetKeywords", keywordNormalType);
+        map.put("annotationIAClasses", keywordNormalType);
+        map.put("haplotype", keywordNormalType);
+        map.put("individualSocialUnits", keywordNormalType);
+        map.put("individualRelationshipRoles", keywordNormalType);
+        map.put("individualDisplayName", keywordNormalType);
+        map.put("organizations", keywordNormalType);
+        map.put("otherCatalogNumbers", keywordNormalType);
+
+/*
+        map.put("mediaAssetLabeledKeywords", fieldKeywordNormalType);
+        map.put("individualSocialUnits", fieldKeywordNormalType);
+ */
+
+        // https://stackoverflow.com/questions/68760699/matching-documents-where-multiple-fields-match-in-an-array-of-objects
+        map.put("measurements", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        map.put("metalTags", new org.json.JSONObject("{\"type\": \"nested\"}"));
+        return map;
+    }
+
+    public static int[] opensearchSyncIndex(Shepherd myShepherd)
+    throws IOException {
+        return opensearchSyncIndex(myShepherd, 0);
+    }
+
+    public static int[] opensearchSyncIndex(Shepherd myShepherd, int stopAfter)
+    throws IOException {
+        int[] rtn = new int[2];
+        String indexName = "encounter";
+        OpenSearch os = new OpenSearch();
+        List<List<String> > changes = os.resolveVersions(getAllVersions(myShepherd),
+            os.getAllVersions(indexName));
+
+        if (changes.size() != 2) throw new IOException("invalid resolveVersions results");
+        List<String> needIndexing = changes.get(0);
+        List<String> needRemoval = changes.get(1);
+        rtn[0] = needIndexing.size();
+        rtn[1] = needRemoval.size();
+        System.out.println("Encounter.opensearchSyncIndex(): stopAfter=" + stopAfter +
+            ", needIndexing=" + rtn[0] + ", needRemoval=" + rtn[1]);
+        int ct = 0;
+        for (String id : needIndexing) {
+            Encounter enc = myShepherd.getEncounter(id);
+            if (enc != null) os.index(indexName, enc);
+            if (ct % 500 == 0)
+                System.out.println("Encounter.opensearchSyncIndex needIndexing: " + ct + "/" +
+                    rtn[0]);
+            ct++;
+            if ((stopAfter > 0) && (ct > stopAfter)) {
+                System.out.println("Encounter.opensearchSyncIndex() breaking due to stopAfter");
+                break;
+            }
+        }
+        System.out.println("Encounter.opensearchSyncIndex() finished needIndexing");
+        ct = 0;
+        for (String id : needRemoval) {
+            os.delete(indexName, id);
+            if (ct % 500 == 0)
+                System.out.println("Encounter.opensearchSyncIndex needRemoval: " + ct + "/" +
+                    rtn[1]);
+            ct++;
+        }
+        System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
+        return rtn;
     }
 }

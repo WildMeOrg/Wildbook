@@ -28,62 +28,28 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         %>
 
         <!-- footer -->
-        <footer class="page-footer">
-
-            <div class="container-fluid">
-              <div class="container main-section">
-
-                 <div class="row">
-                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
-                      <a target="_blank" href="http://www.boi.ucsb.edu">
-	                      <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg"/>
-                      </a>
-                    </div>
-                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
-                      <a target="_blank" href="http://lovelab.msi.ucsb.edu/">
-                        <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/love_lab_logo-little.png"/>
-                      </a>
-                    </div>
-                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
-                  	  <a target="_blank" href="http://www.aquariumofpacific.org/">
-                        <img class="img-responsive" alt="aop logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/Aop_logo.svg"/>
-                      </a>
-                    </div>
-                  	<div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
-                  	  <a target="_blank" href="http://msi.ucsb.edu/">
-                        <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_centered.png"/>
-                      </a>
-                    </div>
-                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
-											<a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>" style="width: 77.333333%">
-	                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
-	                    </a>
-                    </div>
-                 </div>
-
-                 <div class="row">
-                    <p class="col-sm-12" style="margin-top:10px;">
-                      <small><%=props.getProperty("licenceInfo")%>
-                      <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                    </p>
-                 </div>
-
-
-              </div>
+        <div class="container d-flex flex-column align-items-center footer-font footer-container">
+            <div class="row w-100 text-center text-lg-left">
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me" class="footer-link text-reset px-2 footer-text">Donate</a>
+                    <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html" class="footer-link footer-text">Documentation</a>
+                </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
+                    <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
+                </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://www.instagram.com/conservationxlabs" class="footer-link text-reset px-2 footer-text">Instagram</a>
+                    <a href="https://www.facebook.com/ConservationXLabs" class="footer-link text-reset px-2 footer-text">Facebook</a>
+                    <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
+                    <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+                </div>
             </div>
+            <div class="footer-text w-100 py-3 text-center">2024 © Conservation X Labs | All Rights Reserved</div>
+        </div>
 
-            <script>
-				  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-				  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-				  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-				  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-				  ga('create', 'UA-84279600-2', 'auto');
-				  ga('send', 'pageview');
 
-			</script>
-
-        </footer>
         <!-- /footer -->
     </body>
 </html>

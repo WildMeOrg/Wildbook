@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -34,9 +35,10 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
  * @version 2.0
  * @see Encounter, Shepherd
  */
-public class MarkedIndividual implements java.io.Serializable {
+public class MarkedIndividual extends Base implements java.io.Serializable {
     private String individualID = "";
 
+    @Override public String opensearchIndexName() { return "individual"; }
     private MultiValue names;
     private static HashMap<Integer, String> NAMES_CACHE = new HashMap<Integer, String>(); // this is for searching
     private static HashMap<Integer, String> NAMES_KEY_CACHE = new HashMap<Integer, String>();
@@ -140,13 +142,22 @@ public class MarkedIndividual implements java.io.Serializable {
         refreshDependentProperties();
     }
 
-    /**Adds a new encounter to this MarkedIndividual.
-     *@param  newEncounter  the new <code>encounter</code> to add
-     *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
-     *@see  Shepherd#commitDBTransaction()
+    /**
+     * Retrieves the Individual Id.
+     *
+     * @return Individual Id String
      */
-    public String getId() {
+    @Override public String getId() {
         return individualID;
+    }
+
+    /**
+     * Sets the Individual Id.
+     *
+     * @param id The Individual Id to set
+     */
+    @Override public void setId(String id) {
+        individualID = id;
     }
 
     // this is "something to show" (by default)... it falls back to the id,
@@ -272,6 +283,11 @@ public class MarkedIndividual implements java.io.Serializable {
     public List<String> getNamesList() {
         if (names == null) return null;
         return names.getValuesDefault();
+    }
+
+    public Set<String> getAllNamesList() {
+        if (names == null) return null;
+        return names.getAllValues();
     }
 
     public int numNames() {
@@ -442,6 +458,11 @@ public class MarkedIndividual implements java.io.Serializable {
         }
     }
 
+    /**Adds a new encounter to this MarkedIndividual.
+     *@param  newEncounter  the new <code>encounter</code> to add
+     *@return true for successful addition, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
+     *@see  Shepherd#commitDBTransaction()
+     */
     public boolean addEncounter(Encounter newEncounter) {
         // get and therefore set the haplotype if necessary
         getHaplotype();
@@ -848,6 +869,9 @@ public class MarkedIndividual implements java.io.Serializable {
         return names.getValue(keyHint);
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getIndividualID() {
         return individualID;
     }
@@ -893,6 +917,9 @@ public class MarkedIndividual implements java.io.Serializable {
         return legacyIndividualID;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setIndividualID(String id) {
         individualID = id;
     }
@@ -1021,7 +1048,7 @@ public class MarkedIndividual implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    public String getComments() {
+    @Override public String getComments() {
         if (comments != null) {
             return comments;
         } else {
@@ -1034,7 +1061,7 @@ public class MarkedIndividual implements java.io.Serializable {
      *
      * @return a String of comments
      */
-    public void addComments(String newComments) {
+    @Override public void addComments(String newComments) {
         System.out.println("addComments called. oldComments=" + comments + " and new comments = " +
             newComments);
         if (Util.stringExists(comments)) {
@@ -1044,7 +1071,12 @@ public class MarkedIndividual implements java.io.Serializable {
         }
     }
 
-    public void setComments(String comments) {
+    /**
+     * Sets any additional, general comments recorded for this MarkedIndividual as a whole.
+     *
+     * @param comments to set
+     */
+    @Override public void setComments(String comments) {
         this.comments = comments;
     }
 
@@ -1103,7 +1135,11 @@ public class MarkedIndividual implements java.io.Serializable {
             setSpecificEpithet(tax);
         } else {
             setGenus(parts[0]);
-            setSpecificEpithet(parts[1]);
+            String ep = parts[1];
+            for (int i = 2; i < parts.length; i++) {
+                ep += " " + parts[i];
+            }
+            setSpecificEpithet(ep);
         }
     }
 
@@ -2239,6 +2275,30 @@ public class MarkedIndividual implements java.io.Serializable {
         return Collaboration.canUserAccessMarkedIndividual(this, request);
     }
 
+    @Override public List<String> userIdsWithViewAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have user-flavored Collaboration.canUserAccessMarkedIndividual yet
+            if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
+    @Override public List<String> userIdsWithEditAccess(Shepherd myShepherd) {
+        List<String> ids = new ArrayList<String>();
+
+        for (User user : myShepherd.getAllUsers()) {
+/* FIXME we do not have edit stuff for MarkedIndividual
+            if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
+ */
+            if (user.getId() != null) ids.add(user.getId());
+        }
+        return ids;
+    }
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj)
     throws JSONException {
         jobj.put("displayName", this.getDisplayName(request));
@@ -2805,6 +2865,15 @@ public class MarkedIndividual implements java.io.Serializable {
         myShepherd.throwAwayMarkedIndividual(other);
     }
 
+    public void opensearchIndexDeep()
+    throws IOException {
+        if (this.encounters != null)
+            for (Encounter enc : this.encounters) {
+                enc.opensearchIndex();
+            }
+        this.opensearchIndex();
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                    .append("individualID", individualID)
@@ -2814,5 +2883,17 @@ public class MarkedIndividual implements java.io.Serializable {
                    .append("numEncounters", numberEncounters)
                    .append("numLocations", numberLocations)
                    .toString();
+    }
+
+    @Override public long getVersion() {
+        // Returning 0 for now since the class does not have a 'modified' attribute to compute this value, to be fixed in future.
+        return 0;
+    }
+
+    public static Map<String, Long> getAllVersions(Shepherd myShepherd) {
+        // see above
+        String sql = "SELECT \"INDIVIDUALID\", CAST(0 AS BIGINT) FROM \"MARKEDINDIVIDUAL\"";
+
+        return getAllVersions(myShepherd, sql);
     }
 }

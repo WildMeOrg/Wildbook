@@ -12,31 +12,31 @@ h1 {
 
 label { font-weight: normal; }
 
-.container-fluid {
+.container-fluid { 
 	padding-left: 0;
 	padding-right: 0;
 	overflow: visible;
 	}
 
-.page-header { margin: 52px 0 26px; }
+.page-header { margin: 52px 0 0px; }
 
 @media (min-width: @screen-sm) {
-	.page-header { margin: 47px 0 20px; }
+	.page-header { margin: 47px 0 0; }
 }
 
 /* nav bar */
 .navbar-default { background: none; }
 
 .navbar-default .navbar-nav>.home.active>a,
- .navbar-default .navbar-nav>.home >a {
+ .navbar-default .navbar-nav>.home >a { 
     background: transparent;
     color: @brand-dark;
     }
 
 @media (min-width: @screen-sm) {
   .navbar-default .navbar-nav>.home.active>a,
-  .navbar-default .navbar-nav>.home >a {
-    background-image: url(../img/icon_home.png);
+  .navbar-default .navbar-nav>.home >a { 
+    background-image: url(../img/icon_home.png); 
     background-repeat: no-repeat;
     background-position: center;
     text-indent: -999em;
@@ -44,70 +44,27 @@ label { font-weight: normal; }
 }
 
 .navbar-brand {
-	height: 175px;
-  	margin-bottom: 5px;
+  	height: 60px;
+  	width: 243px;
+  	margin-bottom: 10px;
   	margin-left: auto;
   	margin-right: auto;
   	text-indent: -999em;
   	clear: both;
   	float: none;
-  	display: inline;
-  	background: url(../img/bass/bass_header.svg) no-repeat;
-  	max-height: 200px;
-	max-width: 50%;
-	width: 15% !important;
+  	display: block;
+  	 background: url(../img/flukebook_logo_white.svg) no-repeat center; 
 	}
 
-@media (min-width: @screen-xs) {
-
-	.navbar-brand {
-		height: 80px;
-		/*
-		max-width: 330px;
-		*/
-		clear: none;
-		}
-}
-@media (min-width: @screen-sm) {
-
-	.navbar-brand {
-		float: left;
-	}
-}
-@media (max-width: @screen-sm) {
-	.navbar-brand {
-		display: block;
-		margin-top: -5px;
-		height: 80px;
-		max-height: 100px;
-		background: url(../img/bass/bass_header_small.svg) no-repeat;
-		margin: auto;
-		float: none;
-		margin-bottom: 0;
-
-	}
-}
-
-@media (max-width: @screen-xs) {
-	.navbar-brand {
-		/*
-		width: auto;
-		padding-bottom: -5px;
-		*/
-		display: none;
-	}
-}
-
-@media (max-width: @screen-sm) {
-	.navbar-brand-container {
-		margin: auto;
-	}
-}
-
-#love_logo {
-	max-width: 175px;
-	max-height: auto
-}
+// @media (min-width: @screen-sm) {
+// 	.navbar-brand {
+// 		height: 60px;
+// 		width: 60px;
+// 		max-width: 60px;
+// 		clear: none;
+// 		float: left;
+// 		}
+// }
 
 /* removed */
 .navbar-default {
@@ -136,21 +93,21 @@ label { font-weight: normal; }
 	background-color: @brand-primary;
 	}
 
-.navbar-default .navbar-nav>.open>a,
-.navbar-default .navbar-nav>.open>a:hover,
+.navbar-default .navbar-nav>.open>a, 
+.navbar-default .navbar-nav>.open>a:hover, 
 .navbar-default .navbar-nav>.open>a:focus {
 	color: @brand-dark;
 	background: transparent;
 	}
 
-	.navbar-default .navbar-nav .open .dropdown-menu>li>a {
-		color: @brand-dark;
+	.navbar-default .navbar-nav .open .dropdown-menu>li>a { 
+		color: @brand-dark; 
 		font-weight: 300;
 		}
-
-	.navbar-default .navbar-nav .open .dropdown-menu>li>a:hover,
-	.navbar-default .navbar-nav .open .dropdown-menu>li>a:focus{
-		color: white;
+		
+	.navbar-default .navbar-nav .open .dropdown-menu>li>a:hover, 
+	.navbar-default .navbar-nav .open .dropdown-menu>li>a:focus{ 
+		color: white; 
 		font-weight: 300;
 		}
 
@@ -182,7 +139,7 @@ label { font-weight: normal; }
 	border-bottom: 4px solid @mainColor;
 	border-radius: 0;
 	font-weight: 300;
-	font-size: .8em;
+	font-size: .8em; 
 	}
 
 	@media (min-width: @screen-sm) {
@@ -203,7 +160,7 @@ label { font-weight: normal; }
 	border-color: @brand-primary;
 	}
 
-	.carousel-indicators .active .caret {
+	.carousel-indicators .active .caret { 
 		display: block;
 		border-color-left: @brand-primary;
 		border-color-right: @brand-primary;
@@ -212,11 +169,6 @@ label { font-weight: normal; }
 		left: 45%;
 		bottom: -15px;
 		}
-
-#howtocarousel {
-	margin-bottom: 25px;
-}
-
 /* /Reset */
 
 /* Form */
@@ -228,15 +180,5 @@ label { font-weight: normal; }
 	color: #005589;
 }
 
-.page-header {
-	padding-bottom: 5px;
-}
 
-#gpsInputs input[type=number]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: none,
-  margin: 0;
-}
+

@@ -38,12 +38,6 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("submit.jsp1");
-String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
-if(qualifier==null) {qualifier="default";}
-else{qualifier=qualifier.replaceAll(".properties","");}
-
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
@@ -52,13 +46,14 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
+
+
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
 
     Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
 
-    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
@@ -67,11 +62,16 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     String submitterEmail="";
     String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
     String project="";
+    Shepherd myShepherd=new Shepherd(context);
 		User user = null;
     myShepherd.setAction("submit.jsp1");
     myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
+
         if(myShepherd.getUser(submitterName)!=null){
             user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
@@ -84,7 +84,10 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
+
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 <script>
@@ -136,6 +139,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		}else{
 			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
+		projectNameHtml += '<option value=""></option>';
 		if(defaultSelectItem){
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 			options = options.remove(defaultSelectItem);
@@ -292,18 +296,6 @@ function doAjaxForProject(requestJSON,userId){
 
 <script type="text/javascript">
 
-/* As you may have surmised, this bit enables bootstrap tooltips.
- *
- */
-$(document).ready(function(){
-    if ($(window).width()>700) {
-    	$('[data-toggle="tooltip"]').tooltip();
-    }
-});
-
-
-
-
 function validate() {
     var requiredfields = "";
 
@@ -349,7 +341,8 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-	console.log('iframeUrl %o', iframeUrl);
+console.log('iframeUrl %o (setting action to EncounterForm)', iframeUrl);
+    	$("#encounterForm").attr("action", "EncounterForm");
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
@@ -388,7 +381,7 @@ $(function() {
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd',
-      maxDate: '+0d',
+      maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false,
       showSecond:false,
@@ -411,9 +404,8 @@ var center = null;
 centerMap();
 
 var map;
+
 var marker;
-var newCenter;
-var mapzoom;
 
 function centerMap(){
   let centerLat = '<%=CommonConfiguration.getCenterLat(context)%>';
@@ -463,7 +455,7 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    mapZoom = 6;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -489,27 +481,7 @@ function placeMarker(location) {
 
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
-      });
-
-
- 	 google.maps.event.addListener(map, 'dragend', function() {
- 		var idleListener = google.maps.event.addListener(map, 'idle', function() {
- 			google.maps.event.removeListener(idleListener);
- 			console.log("GetCenter : "+map.getCenter());
- 			mapZoom = map.getZoom();
- 			newCenter = map.getCenter();
- 			center = newCenter;
- 			map.setCenter(map.getCenter());
- 		});
-
-	 });
-
- 	 google.maps.event.addDomListener(window, "resize", function() {
-	    	console.log("Resize Center : "+center);
-	    	google.maps.event.trigger(map, "resize");
-	  	    console.log("Resize : "+newCenter);
-	  	    map.setCenter(center);
-	 });
+          });
 }
 
 function fullScreen() {
@@ -582,79 +554,35 @@ function addFullscreenButton(controlDiv, map) {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
-
-// Here's a wee function to update the gps coordinates when input is detected
-
-var liveLat;
-var liveLon;
-function gpsLiveUpdate() {
-
-	if ($("#lat").val().length > 3 && $("#lat").val().slice(-1) != ".") {
-		if	(!isNaN($("#lat").val())) {
-			liveLat = $("#lat").val();
-			gmapLat = liveLat;
-		}
-	}
-	if ($("#longitude").val().length > 3 && $("#longitude").val().slice(-1) != ".") {
-		if	(!isNaN($("#longitude").val())) {
-			liveLon = $("#longitude").val();
-			gmapLon = liveLon;
-		}
-	}
-	if (liveLat.length > 3 && liveLon.length > 3 && !isNaN(liveLat) && !isNaN(liveLon)) {
-		newCoords = new google.maps.LatLng(gmapLat,gmapLon);
-	    if(marker!=null){marker.setMap(null);}
-	    marker = new google.maps.Marker({
-	          position: newCoords,
-	          map: map
-	    });
-		initialize();
-	}
-}
-
 </script>
 
 <div class="container-fluid page-content" role="main">
 
 <div class="container maincontent">
 
-  <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
-      <div class="row">
+  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+      <h1 class="intro"><%=props.getProperty("submit_report") %></h1>
 
-        <div class="col-xs-12">
-          <h1 class="intro"><%=props.getProperty("submit_report") %></h1>
-          <p><%=props.getProperty("submit_overview") %></p>
-          <p class="bg-danger text-danger">
-            <%=props.getProperty("submit_note_red") %>
-          </p>
-        </div>
+      <p><%=props.getProperty("submit_overview") %></p>
 
-        <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
-          <img class="img-responsive" src="cust/mantamatcher/img/bass/katieDavisLeftFlank.jpg" />
-          <p><label class="image_label"><%=props.getProperty("leftFlank") %></label></p>
-        </div>
-
-        <div class="col-xs-6 col-sm-6 col-md-12 col-lg-12">
-          <img class="img-responsive" src="cust/mantamatcher/img/bass/MerryPassagePhilGarner_rightside.jpg" />
-          <p><label class="image_label"><%=props.getProperty("rightFlank") %></label></p>
-        </div>
-
-      </div>
+      <p class="bg-danger text-danger">
+        <%=props.getProperty("submit_note_red") %>
+      </p>
   </div>
 
 
-  <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
+  <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm"
 	  action="spambot.jsp"
 	  method="post"
 	  enctype="multipart/form-data"
-      name="encounter_submission"
-      target="_self" dir="ltr"
-      lang="en"
-      onsubmit="return false;"
-      class="form-horizontal"
-      accept-charset="UTF-8"
+    name="encounter_submission"
+    target="_self" dir="ltr"
+    lang="en"
+    onsubmit="return false;"
+    class="form-horizontal"
+    accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
@@ -668,6 +596,7 @@ function gpsLiveUpdate() {
 
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
+//console.warn('ok!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
 	console.warn('doc is %o', doc);
 	if (doc === null) return;
@@ -683,45 +612,35 @@ $('#social_files_iframe').on('load', function(ev) {
 	submitForm();
 });
 
+
 //this is a simple wrapper to this, as it is called from 2 places (so far)
 function submitForm() {
 	document.forms['encounterForm'].submit();
 }
 
-var toRemove = [];
-var fileListGlobal = [];
-var fileNameListGlobal = [];
+
+
+
+
+
+
 function updateList(inp) {
-    //All this is getting reset onChange because the fileItem is immutable.
-    fileListGlobal = [];
-    fileNameListGlobal = [];
-    toRemove = [];
-    //document.getElementById('input-file-list').innerHTML = "";
-    document.getElementById('uploadList').innerHTML = "";
-    var name = "";
-    var fileListHTML = '';
+    var f = '';
     if (inp.files && inp.files.length) {
-        //var all = [];
+        var all = [];
         for (var i = 0 ; i < inp.files.length ; i++) {
             if (inp.files[i].size > <%=maxSizeBytes%>) {
-                fileListGlobal.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
-                name = String(inp.files[i].name);
-                var eachFile = "<li class='fileLink' id=\"filenameListItem"+i+"\"><small>";
-                eachFile += '<div>'+inp.files[i].name+' ('+Math.round(inp.files[i].size / 1024)+'k) <a onclick="removeFile(this.id)" id="filenameLink'+i+'">Remove</a></div>';
-                eachFile += '<input type="hidden" id="filename'+i+'" value="'+name+'"></input>';
-                eachFile += "</small></li>";
-                fileListGlobal.push(eachFile);
-                fileNameListGlobal.push(name);
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
-        fileListHTML = '<b id="fileCounter">' + fileListGlobal.length + ' file' + ((fileListGlobal.length == 1) ? '' : 's:') + '</b> ' + fileListGlobal.join('');
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
     } else {
-        fileListHTML = inp.value;
+        f = inp.value;
     }
-    //document.getElementById('input-file-list').innerHTML = fileListHTML;
-    document.getElementById('uploadList').innerHTML = fileListHTML;
-    // For every file in the length of the final list, add an event listener based on it's index. This listener modifies the array of toRemove files on the backend.
+    document.getElementById('input-file-list').innerHTML = f;
 }
 
 
@@ -829,40 +748,23 @@ function exifLLSet(el) {
 }
 
 function showUploadBox() {
-  $("#submitsocialmedia").addClass("hidden");
-  $("#submitupload").removeClass("hidden");
-}
-
-function removeFile(id) {
-  var num = id.substring("fileNameLink".length);
-  var name = $("#filename"+num).val();
-  $("#filenameListItem"+num).addClass("hidden");
-  toRemove.push(name);
-  var numFiles = (fileListGlobal.length - toRemove.length);
-  var count = "";
-  if (numFiles > 1) {
-    count = String(numFiles) + " files:";
-  } else if (numFiles===1) {
-    count = String(numFiles) + " file:";
-  } else {
-    count = "";
-  }
-  $('#fileCounter').html(count);
-  $("#toRemove").val(toRemove.join(";"));
+    $("#submitsocialmedia").addClass("hidden");
+    $("#submitupload").removeClass("hidden");
 }
 
 </script>
 
-<fieldset class="field-indent">
-<h4><%=props.getProperty("submit_image")%></h4>
+
+<fieldset>
+<h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
-          <!--  This is the default active computer button for uploading images. If you want other uploads, this will need to have the hidden class removed. -->
-          <li class="active hidden">
-              <button class="zocial icon" data-toggle="tooltip" title="<%=props.getProperty("computerUploadTooltip")%>" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
+          <li class="active">
+              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
+
         </ul>
     </div>
 
@@ -870,18 +772,13 @@ function removeFile(id) {
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
-
-              <input class="ie fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-
+            <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
             <% } else { %>
-
-             <input class="nonIE fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-
-            <div><%=props.getProperty("dragInstructions")%></div>
+            <input class="nonIE" name="theFiles" id="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><span><%=props.getProperty("dragInstructions")%></span></div>
             <% } %>
-            <!-- <div style="display:none;" id="input-file-list"></div> -->
+            <div id="input-file-list"></div>
         </div>
-
         <div id="submitsocialmedia" class="container-fluid hidden" style="height:300px;">
             <div id="socialalbums" class="col-md-4" style="height:100%;overflow-y:auto;">
             </div>
@@ -890,13 +787,6 @@ function removeFile(id) {
         </div>
     </div>
 
-    <div>
-      <ul id="uploadList" style="list-style:none;">
-
-      </ul>
-      <label><%=props.getProperty("canAddOnce") %></label>
-      <input type="hidden" id="toRemove" name="toRemove" value=""></input>
-		</div>
 </fieldset>
 
 <hr />
@@ -911,7 +801,6 @@ function removeFile(id) {
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-				<p><label><small><%=props.getProperty("submit_date_guide")%></small></label></p>
 			</div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -942,56 +831,61 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
 
 </fieldset>
-<hr/>
 
-<fieldset class="field-indent">
+<hr />
 
-  <div class="form-group required">
-    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-      <h4><%=props.getProperty("submit_location")%></h4>
-      <p><label class="text-danger"><%=props.getProperty("where") %></label></p>
-      <input name="location" type="text" id="location" size="40" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("locationTooltip")%>">
+<fieldset>
+    <h3><%=props.getProperty("submit_location")%></h3>
+
+    <p class="help-block"><%=props.getProperty("locationIDMatchNote") %></p>
+
+    <div class="form-group required">
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+        <input name="location" type="text" id="location" size="40" class="form-control">
+      </div>
     </div>
-  </div>
+
 
     <%
 
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
+//add locationID to fields selectable
+
 %>
     <div class="form-group required">
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <p><label class=""><%=props.getProperty("studySites") %></label></p>
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
-      	</div>
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label"><%=props.getProperty("locationID") %></label>
+      </div>
+
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+          <%=LocationID.getHTMLSelector(false,(String)null,qualifier,"locationID","locationID","form-control") %>
 
       </div>
     </div>
 <%
-  }
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
           <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label><%=props.getProperty("country") %></label>
+        <label class="control-label"><%=props.getProperty("country") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-            <%
-            String[] locales = Locale.getISOCountries();
-			for (String countryCode : locales) {
-				Locale obj = new Locale("", countryCode);
-				String currentCountry = obj.getDisplayCountry();
-                %>
-			<option value="<%=currentCountry %>"><%=currentCountry%></option>
-            <%
-            }
-			      %>
-   		</select>
+        <select name="country" id="country" class="form-control">
+          <option value="" selected="selected"></option>
+          <%
+            List<String> countries = (useCustomProperties)
+            ? CommonConfiguration.getIndexedPropertyValues("country", request)
+            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+            for (String country: countries) {
+              %><option value="<%=country%>"><%=country%></option><%
+            }%>
+        </select>
       </div>
     </div>
 
@@ -999,7 +893,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 }  //end if showCountry
 
 %>
-
+<em><%=props.getProperty("gps_title") %></em>
 <div>
     <p id="map">
     <!--
@@ -1007,149 +901,128 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
     -->
-    <p class="help-block">
-        <%=props.getProperty("mapExplanation") %></p>
-
     <p id="map_canvas" style="width: 578px; height: 383px; "></p>
     <p id="map_overlay_buttons"></p>
 </div>
 
-    <div id="gpsInputs">
-      <div class="form-group form-inline">
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <p><label class=""><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label></p>
-          <input class="form-control" name="lat" type="number" value="90.00000" step="any" id="lat" oninput="gpsLiveUpdate()" max="90.00000" min="-90.00000" data-toggle="tooltip" title="<%=props.getProperty("latitudeTooltip")%>">
+    <div>
+      <div class=" form-group form-inline">
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-          <p><label class=""><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label></p>
-          <input class="form-control" name="longitude" type="number" value="180.00000" step="any" id="longitude" oninput="gpsLiveUpdate()" max="180.00000" min="-180.00000" data-toggle="tooltip" title="<%=props.getProperty("longitudeTooltip")%>">
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
-      <p class="help-block"><%=props.getProperty("gpsConverter") %></p>
+      <p class="help-block">
+        <%=props.getProperty("gpsConverter") %></p>
     </div>
+
 
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
-  <div class="form-group form-inline">
-    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-      <p><label class=""><%=props.getProperty("submit_depth")%></label></p>
-      <input id="submitDepth" class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" placeholder="Depth in feet" title="<%=props.getProperty("seaDepthTooltip")%>">
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
+      <input class="form-control" name="depth" type="text" id="depth">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
-  </div>
-  <br/>
 <%
 }
 
 if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
-  <div class="form-group form-inline">
-    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-      <p><label class=""><%=props.getProperty("submit_elevation")%></label></p>
-      <input id="submitElevation" class="form-control" name="elevation" type="text" placeholder="Distance in Feet" id="elevation">
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
+      <input class="form-control" name="elevation" type="text" id="elevation">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
-  </div>
-	<br/>
 <%
 }
 %>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-      <p class="help-block"><%=props.getProperty("ftConverter") %></p>
-    </div>
+
 </fieldset>
-<hr/>
+<hr />
 
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
-	      <h4><%=props.getProperty("aboutYou") %></h4>
+        <h3><%=props.getProperty("aboutYou") %></h3>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
         <div class="form-group form-inline" id="test2">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>" data-toggle="tooltip" title="<%=props.getProperty("nameTooltip")%>">
+            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
           </div>
         </div>
 
-        <div class="form-group form-inline">
-
-          <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_email") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>" data-toggle="tooltip" title="<%=props.getProperty("emailTooltip")%>">
-          </div>
+        <div class="form-group form-inline required" id="test1">
+	          <div class="col-xs-6 col-md-4">
+	            <label class="control-label"><%=props.getProperty("submit_email") %></label>
+	          </div>
+	          <div class="col-xs-6 col-lg-8">
+	            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>" onChange="$('.required-missing').removeClass('required-missing');">
+	          </div>
         </div>
       </div>
 
       <div class="col-xs-12 col-lg-6">
-        <h4><%=props.getProperty("aboutPhotographer") %></br></h4>
- 		    <p class="help-block"><%=props.getProperty("submit_ifyou")%></p>
-        <div class="form-group form-inline">
+        <h3><%=props.getProperty("aboutPhotographer") %></h3>
+
+        <div class="form-group form-inline" id="test3">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("photographer_name") %></label>
+            <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24" data-toggle="tooltip" title="<%=props.getProperty("photographerNameTooltip")%>">
+            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24">
           </div>
         </div>
 
         <div class="form-group form-inline" id="test4">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("photographer_email") %></label>
+            <label class="control-label"><%=props.getProperty("submit_email") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24" data-toggle="tooltip" title="<%=props.getProperty("photographerEmailTooltip")%>">
+            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
           </div>
         </div>
       </div>
+
     </div>
-
-    <hr>
-
-		<div class="form-group form-inline" id="proj-id-dropdown-container">
-		</div>
-    <div class="form-group">
-      <div class="col-xs-12 col-md-12 col-lg-12">
-	    <h4><%=props.getProperty("commentsHeader") %></h4>
-        <label class="control-label"><%=props.getProperty("submit_comments") %></label>
-        <br>
-      </div>
-      <br>
-      <div class="col-xs-12 col-lg-12 col-lg-12">
-        <textarea class="form-control" name="comments" id="comments" rows="5" data-toggle="tooltip" title="<%=props.getProperty("commentsTooltip")%>"></textarea>
-      </div>
-    </div>
-
-
-  </fieldset>
+  </fielset>
 
   <hr/>
 
+  <fieldset>
 
-  <h4 class="accordion center-labels">
-    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none" data-toggle="tooltip" title="<%=props.getProperty("advancedButtonTooltip")%>">
-      <%=props.getProperty("advancedInformation") %><br>
-      <span class="glyphicon glyphicon-menu-down glyphicon-white" aria-hidden="true" width="100%" height="10" border="0"></span>
-    </a>
-  </h4>
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		</div>
 
-    <div id="advancedInformation" fade="1" style="display: none;">
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label"><%=props.getProperty("submit_comments") %></label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+      </div>
+    </div>
+  </fieldset>
 
-      <h4><%=props.getProperty("aboutAnimal") %></h4>
-        <hr>
-        <fieldset class="field-indent">
+
+
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 
-      <div class="form-group hidden">
+      <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label text-danger"><%=props.getProperty("species") %></label>
           </div>
@@ -1244,72 +1117,54 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="livingStatus" id="livingStatus" data-toggle="tooltip" title="<%=props.getProperty("statusTooltip")%>">
+            <select class="form-control" name="livingStatus" id="livingStatus">
               <option value="alive" selected="selected"><%=props.getProperty("alive") %></option>
               <option value="dead"><%=props.getProperty("dead") %></option>
             </select>
           </div>
         </div>
-<!-- This is just here in case they want to bring back alt ID at some point.  -->
-<%
-	boolean alt = false;
-	if (alt == true) {
 
-%>
+        <!--
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("manual_id") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
+          </div>
+        </div>
+        -->
+
+<!--
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
-						<label class="control-label"><%= props.getProperty("alternate_id") %></label>
+						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
 					</div>
 
 					<div class="col-xs-6 col-lg-8">
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
+-->
 
-<%
-	}
-%>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
+          </div>
 
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
 
-        <%
-        List<String> behaviors=CommonConfiguration.getIndexedPropertyValues("behavior", context);
-        if (behaviors!=null&&!behaviors.isEmpty()) {
-        %>
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-            <p><small><%=props.getProperty("behaviorExplanation") %></small></p>
           </div>
 
           <div class="col-xs-6 col-lg-8">
-
-
-            <select multiple class="form-control" name="behavior" id="behavior" data-toggle="tooltip" title="<%=props.getProperty("behaviorTooltip")%>">
-              <%
-              for (String behavior : behaviors) {
-                if (behavior!=null&&!"".equals(behavior)) {
-              %>
-
-                <option value="<%=behavior%>" class="form-control behavior-option"><%=behavior%></option>
-
-        <%
-                }
-              }
-        }
-        %>
-            </select>
-
-            <script>
-              $('.behavior-option').mousedown(function(e) {
-                  e.preventDefault();
-                  $(this).prop('selected', !$(this).prop('selected'));
-                  return false;
-              });
-            </script>
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
 
@@ -1318,11 +1173,10 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
-            <p><small><%=props.getProperty("scarsExplanation") %></small></p>
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="scars" type="text" id="scars" size="75" data-toggle="tooltip" title="<%=props.getProperty("scarsTagsTooltip")%>">
+            <input class="form-control" name="scars" type="text" id="scars" size="75">
           </div>
         </div>
 
@@ -1336,7 +1190,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select name="lifeStage" id="lifeStage" data-toggle="tooltip" title="<%=props.getProperty("lifeStageTooltip")%>">
+  <select name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
                      boolean hasMoreStages=true;
@@ -1375,14 +1229,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <c:if test="${showMeasurements}">
 <hr>
- <fieldset class="field-indent">
+ <fieldset>
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
 
  <div class="form-group">
-           <h4><%=props.getProperty("measurements") %></h4>
+           <h3><%=props.getProperty("measurements") %></h3>
 
 
 <div class="col-xs-12 col-lg-8">
@@ -1392,12 +1246,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   </tr>
   <c:forEach items="${items}" var="item">
     <tr>
-    <td>${item.type}</td>
-    <td><input name="measurement(${item.type})" id="${item.type}" data-toggle="tooltip" title="<%=props.getProperty("lengthTooltip")%>"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
-    <td><c:out value="${item.units}"/></td>
+    <td>${item.label}</td>
+    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+    <td><c:out value="${item.unitsLabel}"/></td>
     <c:if test="${!empty samplingProtocols}">
       <td>
-        <select name="measurement(${item.type}samplingProtocol)" data-toggle="tooltip" title="<%=props.getProperty("samplingProtocolTooltip")%>">
+        <select name="measurement(${item.type}samplingProtocol)">
         <c:forEach items="${samplingProtocols}" var="optionDesc">
           <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
         </c:forEach>
@@ -1405,7 +1259,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </td>
     </c:if>
     </tr>
-    <br>
   </c:forEach>
   </table>
    </div>
@@ -1418,13 +1271,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       <hr/>
 
-<!--  turns on and off tag section of advanced info for submission -->
-<%
-boolean tagSwitch = false;
-if (tagSwitch == true) {
-%>
-       <fieldset class="field-indent">
-        <h4><%=props.getProperty("tags") %></h4>
+       <fieldset>
+        <h3><%=props.getProperty("tags") %></h3>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
@@ -1511,92 +1359,19 @@ if (tagSwitch == true) {
       </fieldset>
 
 <hr/>
-<!-- end tagSwitch -->
-<%}%>
- <fieldset class="field-indent">
+
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
-        <input class="form-control" name="informothers" type="text" id="informothers" size="75" data-toggle="tooltip" title="<%=props.getProperty("additionalEmailTooltip")%>">
+        <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
       </div>
-      </fieldset>
-      
-      <%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
- <fieldset class="field-indent">
-      <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label text-danger"><%=props.getProperty("species") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
-  <%
-
-  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-  					int numGenusSpeciesProps=species.size();
-  					String selected="";
-  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
-
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-
-
-                    	for(int q=0;q<numGenusSpeciesProps;q++){
-                           String currentGenuSpecies = "genusSpecies"+q;
-
-                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
-
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-
-                            String commonNameLabel = "";
-                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
-                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
-                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
-                                  commonNameLabel = " ("+commonNameVal+")";
-                                }
-                              }
-
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
-                               <%
-
-                        }
-
-
-                   }
-                   }
- %>
-  </select>
-    </div>
-        </div>
-</fieldset>
-        <%
-}
-
-%>
-
-      
-      
-      
-      
       </div>
 
-  <hr>
-  
-  <p class="text-center">
-          Please review our <a target="_blank" href="SpottingGiantSeaBassUserAgreementFeb2022.pdf">User Agreement</a> before submitting.
-        </p>
 
          <%
          if(request.getRemoteUser()==null){
          %>
-
-	<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
 		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
@@ -1610,7 +1385,13 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 				  			'theme' : 'light'
 						});
 		        }
+
+
+
+
+
            </script>
+
         <%
          }
         %>
@@ -1663,11 +1444,11 @@ function sendButtonClicked() {
 		return false;
 	}
 
-	// if (!$('#genusSpecies').val()) {
-	// 	$('#genusSpecies').closest('.form-group').addClass('required-missing');
-	// 	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-	// 	return false;
-	// }
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
@@ -1696,7 +1477,6 @@ function sendButtonClicked() {
 
    						submitForm();
    					}
-
 		}
 	//alert(recaptachaResponse);
 	<%

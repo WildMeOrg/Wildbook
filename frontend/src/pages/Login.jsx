@@ -5,7 +5,7 @@ import BrutalismButton from "../components/BrutalismButton";
 import { useIntl } from "react-intl";
 import useLogin from "../models/auth/useLogin";
 import useDocumentTitle from "../hooks/useDocumentTitle";
-import Logo from "../components/svg/Logo";
+import WildmeLogo from "../components/svg/WildmeLogo";
 import { Alert } from "react-bootstrap";
 import { useContext } from "react";
 import ThemeColorContext from "../ThemeColorProvider";
@@ -29,14 +29,13 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Form submitted");
     setError(null);
     setShow(false);
     authenticate(username, password);
   };
 
   return (
-    <Container fluid>
+    <Container fluid className="p-0">
       <Row className="vh-100">
         <Col
           md={6}
@@ -52,7 +51,7 @@ function LoginPage() {
               position: "absolute",
               top: 0,
               left: 0,
-              width: "600px",
+              width: "100%",
               height: "100%",
               objectFit: "cover",
             }}
@@ -61,9 +60,10 @@ function LoginPage() {
             style={{
               position: "absolute",
               width: "226px",
-              height: "80%",
-              top: 200,
-              left: 486,
+              height: "552px",
+              top: "50%",
+              right: "-112px",
+              transform: "translateY(-50%)",
             }}
           >
             <svg
@@ -100,7 +100,7 @@ function LoginPage() {
         <Col md={6} className="my-auto">
           <div
             style={{
-              with: "100%",
+              width: "100%",
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
@@ -109,10 +109,10 @@ function LoginPage() {
           >
             <Form
               className="login-form"
-              style={{ width: "400px" }}
+              style={{ width: "100%", maxWidth: "400px" }}
               onSubmit={handleSubmit}
             >
-              <Logo
+              <WildmeLogo
                 style={{
                   margin: "20px 0 20px 0",
                 }}

@@ -370,9 +370,9 @@ public class Collaboration implements java.io.Serializable {
             // e.printStackTrace();
         }
         if (n > 0)
-            notif = "<div onClick=\"return showNotifications(this);\">" +
-                collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" +
-                n + "</span></div>";
+            notif =
+                "<div class=\"notification-container\" onClick=\"return showNotifications(this);\">"
+                + " <span class=\"notification-pill\">" + n + "</span></div>";
         return notif;
     }
 

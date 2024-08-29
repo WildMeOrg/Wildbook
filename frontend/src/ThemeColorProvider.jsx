@@ -7,6 +7,7 @@ const ThemeColorContext = React.createContext({
       primary400: '#33D6FF',
       primary500: '#00ACCE',
       primary600: '#00A5CE',
+      primary700: '#007599',
       primary800: '#004B66',
     },
     secondaryColors: {

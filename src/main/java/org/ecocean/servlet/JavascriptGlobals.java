@@ -15,8 +15,9 @@ import java.io.*;
 import java.util.*;
 
 import com.google.gson.Gson;
+
 import org.ecocean.identity.IBEISIA;
-import org.ecocean.security.SocialAuth;
+
 
 public class JavascriptGlobals extends HttpServlet {
     public void init(ServletConfig config)
@@ -45,6 +46,9 @@ public class JavascriptGlobals extends HttpServlet {
         String username = ((request.getUserPrincipal() ==
             null) ? "" : request.getUserPrincipal().getName());
         String langCode = ServletUtilities.getLanguageCode(request);
+        String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+        String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
+        String gMapKey = CommonConfiguration.getGoogleMapsKey(context);
         // Properties props = new Properties();
         // props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
         HashMap rtn = new HashMap();
@@ -97,12 +101,6 @@ public class JavascriptGlobals extends HttpServlet {
         rtn.put("classDefinitions", classDefn);
 
         // TODO we could do this for all sorts of property files too?
-        Properties authprops = SocialAuth.authProps(context);
-        if (authprops != null) {
-            for (String pn : authprops.stringPropertyNames()) {
-                propvalToHashMap(pn, authprops.getProperty(pn), rtn);
-            }
-        }
         HashMap uploader = new HashMap();
         String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
         if (s3key == null) {
@@ -127,6 +125,9 @@ public class JavascriptGlobals extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         rtn.put("keywords", kw);
+        rtn.put("gtmKey", gtmKey);
+        rtn.put("gaId", gaId);
+        rtn.put("gMapKey", gMapKey);
 
         // this might throw an exception in various ways, so we swallow them here
         try {

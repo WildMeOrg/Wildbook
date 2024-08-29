@@ -777,7 +777,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 					       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 					       	  	%>
 
-					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
+					       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ") %></option>
 					       	  	<%
 					       		taxNum++;
 					          }
