@@ -4,6 +4,7 @@ import messagesEn from "./locale/en.json";
 import messagesEs from "./locale/es.json";
 import messagesFr from "./locale/fr.json";
 import messagesIt from "./locale/it.json";
+import messagesDe from "./locale/de.json";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -20,6 +21,7 @@ function App() {
     es: messagesEs,
     fr: messagesFr,
     it: messagesIt,
+    de: messagesDe,
   };
   const initialLocale = Cookies.get("wildbookLangCode") || "en";
   const [locale, setLocale] = useState(initialLocale);
