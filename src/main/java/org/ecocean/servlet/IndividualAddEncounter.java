@@ -130,9 +130,6 @@ public class IndividualAddEncounter extends HttpServlet {
                         // responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe,
                         // ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();
                         responseJSON = addToMe.uiJson(request, false).toString();
-
-                        // youTube postback check
-                        youTubePostback(enc2add, myShepherd, context);
                     } catch (RuntimeException e) {
                         e.printStackTrace();
                         myShepherd.rollbackDBTransaction();
@@ -303,10 +300,6 @@ public class IndividualAddEncounter extends HttpServlet {
         ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile, context);
         // myShepherd.rollbackDBTransaction();
         es.shutdown();
-    }
-
-    private void youTubePostback(Encounter enc2add, Shepherd myShepherd, String context) {
-        System.out.println("youTubePostback(): YouTube agent support has been deprecated");
     }
 
     private void setDateLastModified(Encounter enc) {
