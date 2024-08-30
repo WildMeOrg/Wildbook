@@ -4,7 +4,7 @@ import { FormattedMessage } from "react-intl";
 import BrutalismButton from "./BrutalismButton";
 import Cookies from "js-cookie";
 
-export default function AlertBanner({ showAlert, setShowAlert }) {
+export default function AlertBanner({ setShowAlert }) {
   const theme = React.useContext(ThemeColorContext);
   return (
     <div
@@ -29,8 +29,7 @@ export default function AlertBanner({ showAlert, setShowAlert }) {
         onClick={() => {
           setShowAlert(false);
           Cookies.set("showAlert", false, { expires: 7 });
-        }
-        }
+        }}
       >
         <FormattedMessage id="OK" />
       </BrutalismButton>

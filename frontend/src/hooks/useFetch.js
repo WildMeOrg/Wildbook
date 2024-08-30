@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useQuery } from 'react-query';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useQuery } from "react-query";
 
 function refreshNoop() {
   console.warning(
-    'refresh is not implemented for useGet - replace with react-query invalidation logic instead.',
+    "refresh is not implemented for useGet - replace with react-query invalidation logic instead.",
   );
 }
 
@@ -13,7 +13,7 @@ function formatError(response) {
   try {
     return response?.error ? response.error.toJSON().message : null;
   } catch (e) {
-    return 'Error could not be formatted as JSON';
+    return "Error could not be formatted as JSON";
   }
 }
 
@@ -22,19 +22,18 @@ export default function useFetch({
   url,
   data,
   params,
-  method = 'get',
-  dataAccessor = result => result?.data?.data,
+  method = "get",
+  dataAccessor = (result) => result?.data?.data,
   onSuccess = Function.prototype,
-  prependHoustonApiUrl = true,
   queryOptions = {},
-  responseType = 'json',
+  responseType = "json",
 }) {
   const [displayedError, setDisplayedError] = useState(null);
   const [displayedLoading, setDisplayedLoading] = useState(
     !queryOptions.disabled, // enabled? or disabled?
   );
 
-  const apiUrl = `/api/v3${url}`;   
+  const apiUrl = `/api/v3${url}`;
   const result = useQuery(
     queryKey,
     async () => {
@@ -52,7 +51,7 @@ export default function useFetch({
     {
       staleTime: Infinity,
       cacheTime: Infinity,
-      refetchOnMount: 'always',
+      refetchOnMount: "always",
       ...queryOptions,
     },
   );
@@ -60,7 +59,7 @@ export default function useFetch({
   const error = formatError(result);
   const statusCodeFromError = result?.error?.response?.status;
   useEffect(() => {
-    if (result?.status === 'loading') {
+    if (result?.status === "loading") {
       setDisplayedLoading(true);
     } else {
       if (displayedError !== error) setDisplayedError(error);
@@ -70,8 +69,7 @@ export default function useFetch({
 
   return {
     ...result,
-    statusCode:
-      result?.data?.status || result?.error?.response?.status,
+    statusCode: result?.data?.status || result?.error?.response?.status,
     data: dataAccessor(result),
     isLoading: displayedLoading,
     loading: displayedLoading,

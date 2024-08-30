@@ -2,40 +2,41 @@ import React from "react";
 import Description from "../Form/Description";
 import { FormattedMessage } from "react-intl";
 import FormGroupText from "../Form/FormGroupText";
-import { FormGroup, FormLabel, FormControl } from "react-bootstrap";  
+import { FormGroup, FormLabel, FormControl } from "react-bootstrap";
 import { useIntl } from "react-intl";
-import { filter } from "lodash-es";
 
-
-export default function TagsFilter({
-  data,
-  onChange
-}) {
-  const metalTagLocations = data?.metalTagLocation?.map((item) => {
-    return {
-      value: item,
-      label: item
-    };
-  }) || [];
+export default function TagsFilter({ data, onChange }) {
+  const metalTagLocations =
+    data?.metalTagLocation?.map((item) => {
+      return {
+        value: item,
+        label: item,
+      };
+    }) || [];
   const intl = useIntl();
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_TAGS" /></h3>
+      <h3>
+        <FormattedMessage id="FILTER_TAGS" />
+      </h3>
       <Description>
         <FormattedMessage id="FILTER_TAGS_DESC" />
       </Description>
-      <h5><FormattedMessage id="FILTER_METAL_TAGS" /></h5>
+      <h5>
+        <FormattedMessage id="FILTER_METAL_TAGS" />
+      </h5>
       {metalTagLocations.map((location) => {
-
         return (
-          <FormGroup>
-            <FormLabel><FormattedMessage id={location.label} defaultMessage="" /></FormLabel>
+          <FormGroup key={location?.label}>
+            <FormLabel>
+              <FormattedMessage id={location.label} defaultMessage="" />
+            </FormLabel>
 
             <FormControl
               type="text"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
-                if(e.target.value === "") {
+                if (e.target.value === "") {
                   onChange(null, `metalTag.${location.label}`);
                   return;
                 }
@@ -45,82 +46,91 @@ export default function TagsFilter({
                   clause: "nested",
                   path: "metalTags",
                   query: {
-                      "bool": {
-                          "filter": [  
-                              {
-                                  "match": {
-                                      "metalTags.location": location.label
-                                  },
-                              },  
-                              {
-                                  "match": {
-                                      "metalTags.number": e.target.value
-                                  }
-                              }
-                          ]
-                      }
-                  }
-              })
+                    bool: {
+                      filter: [
+                        {
+                          match: {
+                            "metalTags.location": location.label,
+                          },
+                        },
+                        {
+                          match: {
+                            "metalTags.number": e.target.value,
+                          },
+                        },
+                      ],
+                    },
+                  },
+                });
               }}
             />
           </FormGroup>
         );
       })}
-      <h5><FormattedMessage id="FILTER_ACOUSTIC_TAGS" /></h5>
+      <h5>
+        <FormattedMessage id="FILTER_ACOUSTIC_TAGS" />
+      </h5>
 
-      <div className="w-100 d-flex flex-row gap-2" >
-      <FormGroup className="w-50">
-            <FormLabel><FormattedMessage id={"FILTER_ACOUSTIC_TAG_SERIAL_NUMBER"} defaultMessage="" /></FormLabel>
-
-            <FormControl
-              type="text"
-              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
-              onChange={(e) => {
-                if(e.target.value === "") {
-                  onChange(null, `acousticTag.serialNumber`);
-                  return;
-                }
-                onChange({
-                  filterId: "acousticTag.serialNumber",
-                  filterKey: "Acoustic Tag Serial Number",
-                  clause: "filter",
-                  query: {
-                    "match" : {
-                      "acousticTag.serialNumber": e.target.value
-                    }                    
-                  }
-
-                });
-              }}
+      <div className="w-100 d-flex flex-row gap-2">
+        <FormGroup className="w-50">
+          <FormLabel>
+            <FormattedMessage
+              id={"FILTER_ACOUSTIC_TAG_SERIAL_NUMBER"}
+              defaultMessage=""
             />
-          </FormGroup>
-          <FormGroup className="w-50">
-            <FormLabel><FormattedMessage id={"FILTER_ACOUSTIC_TAG_ID"} defaultMessage="" /></FormLabel>
+          </FormLabel>
 
-            <FormControl
-              type="text"
-              placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
-              onChange={(e) => {
-                if(e.target.value === "") {
-                  onChange(null, `acousticTag.idNumber`);
-                  return;
-                }
-                onChange({
-                  filterId: "acousticTag.idNumber",
-                  filterKey: "Acoustic Tag ID",
-                  clause: "filter",
-                  query: {
-                    "match" : {
-                      "acousticTag.idNumber": e.target.value
-                    }                    
-                  }
+          <FormControl
+            type="text"
+            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            onChange={(e) => {
+              if (e.target.value === "") {
+                onChange(null, `acousticTag.serialNumber`);
+                return;
+              }
+              onChange({
+                filterId: "acousticTag.serialNumber",
+                filterKey: "Acoustic Tag Serial Number",
+                clause: "filter",
+                query: {
+                  match: {
+                    "acousticTag.serialNumber": e.target.value,
+                  },
+                },
+              });
+            }}
+          />
+        </FormGroup>
+        <FormGroup className="w-50">
+          <FormLabel>
+            <FormattedMessage id={"FILTER_ACOUSTIC_TAG_ID"} defaultMessage="" />
+          </FormLabel>
 
-                });
-              }}
-            />
-          </FormGroup>
+          <FormControl
+            type="text"
+            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            onChange={(e) => {
+              if (e.target.value === "") {
+                onChange(null, `acousticTag.idNumber`);
+                return;
+              }
+              onChange({
+                filterId: "acousticTag.idNumber",
+                filterKey: "Acoustic Tag ID",
+                clause: "filter",
+                query: {
+                  match: {
+                    "acousticTag.idNumber": e.target.value,
+                  },
+                },
+              });
+            }}
+          />
+        </FormGroup>
       </div>
-      <h5 className="mt-2"><FormattedMessage id="FILTER_SATELLITE_TAGS" /></h5>
+      <h5 className="mt-2">
+        <FormattedMessage id="FILTER_SATELLITE_TAGS" />
+      </h5>
       <FormGroupText
         noDesc={true}
         label="FILTER_NAME"
