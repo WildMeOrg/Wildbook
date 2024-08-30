@@ -22,7 +22,6 @@ const Footer = () => {
         bottom: 0,
         zIndex: 2,
         backgroundColor: theme.statusColors.blue100,
-        // maxWidth: "1440px",
       }}
     >
       <Container>
