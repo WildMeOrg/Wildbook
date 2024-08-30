@@ -865,8 +865,42 @@ h2.vidcap {
 	<p class="gMapNote"><small><%= props.getProperty("gMapNote") %></small></p>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
+      
+      </div>
+      
+      <div class="container main-section">
+      
+      
+      <div class="row">
+                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
+                      <a target="_blank" href="http://www.boi.ucsb.edu">
+	                      <img class="img-responsive" alt="boi logo" src="//spottinggiantseabass.msi.ucsb.edu/cust/mantamatcher/img/bass/boi_logo.svg">
+                      </a>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
+                      <a target="_blank" href="http://lovelab.msi.ucsb.edu/">
+                        <img class="img-responsive" alt="love lab logo" src="//spottinggiantseabass.msi.ucsb.edu/cust/mantamatcher/img/bass/love_lab_logo-little.png">
+                      </a>
+                    </div>
+                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	  <a target="_blank" href="http://www.aquariumofpacific.org/">
+                        <img class="img-responsive" alt="aop logo" src="//spottinggiantseabass.msi.ucsb.edu/cust/mantamatcher/img/bass/Aop_logo.svg">
+                      </a>
+                    </div>
+                  	<div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	  <a target="_blank" href="http://msi.ucsb.edu/">
+                        <img class="img-responsive" alt="msi logo" src="//spottinggiantseabass.msi.ucsb.edu/cust/mantamatcher/img/bass/msi_logo_centered.png">
+                      </a>
+                    </div>
+                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
+											<a href="https://www.wildme.org/" class="col-sm-4" title="This site is Powered by Wildbook" style="width: 77.333333%">
+	                      <img src="//spottinggiantseabass.msi.ucsb.edu/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px">
+	                    </a>
+                    </div>
+                 </div>
 
 </div>
+
 
 <%
 if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
