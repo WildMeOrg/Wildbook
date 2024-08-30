@@ -9,8 +9,6 @@ import Unauthorized from "./pages/errorPages/Unauthorized";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
-  // const [headerTop, setHeaderTop] = React.useState("60px");
-  // const alertBannerRef = React.useRef(null);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -37,12 +35,10 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
         }}
       >
         <Routes>
-          {/* <Route path="/about" element={<About />} /> */}
           <Route
             path="/home"
             element={<Unauthorized setHeader={setHeader} />}
           />
-          {/* <Route path="/encounter-search" element={<EncounterSearch />} /> */}
           <Route path="/encounter-search" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
