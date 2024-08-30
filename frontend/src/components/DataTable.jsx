@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import ReactPaginate from "react-paginate";
-import { InputGroup, Form, Button, Container, Row, Col } from "react-bootstrap";
+import { InputGroup, Form, Button, Row, Col } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../css/dataTable.css";
 import { FormattedMessage } from "react-intl";
@@ -16,7 +16,6 @@ const customStyles = {
     },
   },
 };
-
 
 const conditionalRowStyles = (theme) => [
   {
@@ -37,9 +36,7 @@ const conditionalRowStyles = (theme) => [
       },
     },
   },
-
 ];
-
 
 const MyDataTable = ({
   title = "",
@@ -55,8 +52,8 @@ const MyDataTable = ({
   style = {},
   tabs = [],
   isLoading = false,
-  onSelectedRowsChange = () => { },
-  onRowClicked = () => { },
+  onSelectedRowsChange = () => {},
+  onRowClicked = () => {},
 }) => {
   const [data, setData] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -68,8 +65,8 @@ const MyDataTable = ({
     () =>
       columnNames.map((col) => {
         const sortFunction = (rowA, rowB) => {
-          const a = rowA[col.selector] || '';
-          const b = rowB[col.selector] || '';
+          const a = rowA[col.selector] || "";
+          const b = rowB[col.selector] || "";
 
           const isANumber = !isNaN(a);
           const isBNumber = !isNaN(b);
@@ -84,31 +81,51 @@ const MyDataTable = ({
             return 1;
           }
         };
-        if (col.selector === 'occurrenceId') {
+        if (col.selector === "occurrenceId") {
           return {
             id: col.selector,
             name: <FormattedMessage id={col.name} />,
-            cell: (row) => <a
-              target="_blank"
-              style={{ color: 'inherit'}}
-              href={row[col.selector] ? `/occurrence.jsp?number=${row[col.selector]}` : null}>{row[col.selector] || "-"}</a>,
+            cell: (row) => (
+              <a
+                target="_blank"
+                style={{ color: "inherit" }}
+                href={
+                  row[col.selector]
+                    ? `/occurrence.jsp?number=${row[col.selector]}`
+                    : null
+                }
+                rel="noreferrer"
+              >
+                {row[col.selector] || "-"}
+              </a>
+            ),
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: sortFunction,
           };
-        } else if (col.selector === 'individualDisplayName') {
+        } else if (col.selector === "individualDisplayName") {
           return {
             id: col.selector,
             name: <FormattedMessage id={col.name} />,
-            cell: (row) => <a
-              target="_blank"
-              style={{ color: 'inherit'}}
-              href={row[col.selector] ? `/individuals.jsp?id=${row["individualId"]}` : null}>{row[col.selector] || "unassigned"}</a>,
+            cell: (row) => (
+              <a
+                target="_blank"
+                style={{ color: "inherit" }}
+                href={
+                  row[col.selector]
+                    ? `/individuals.jsp?id=${row["individualId"]}`
+                    : null
+                }
+                rel="noreferrer"
+              >
+                {row[col.selector] || "unassigned"}
+              </a>
+            ),
             selector: (row) => row[col.selector] || "-",
             sortable: true,
             sortFunction: sortFunction,
           };
-        } else if (col.selector === 'numberAnnotations') {
+        } else if (col.selector === "numberAnnotations") {
           return {
             id: col.selector,
             name: <FormattedMessage id={col.name} />,
@@ -117,7 +134,10 @@ const MyDataTable = ({
             sortable: true,
             sortFunction: sortFunction,
           };
-        } else if (col.selector === 'date' || col.selector === 'dateSubmitted') {
+        } else if (
+          col.selector === "date" ||
+          col.selector === "dateSubmitted"
+        ) {
           return {
             id: col.selector,
             name: <FormattedMessage id={col.name} />,
@@ -125,18 +145,16 @@ const MyDataTable = ({
               const dateStr = row[col.selector];
               if (dateStr) {
                 const date = new Date(dateStr);
-                console.log(date.toISOString().split('T')[0]);
-                return date.toISOString().split('T')[0];
+                console.log(date.toISOString().split("T")[0]);
+                return date.toISOString().split("T")[0];
               }
               return "-";
             },
             sortable: true,
             sortFunction: sortFunction,
           };
-        }
-
-        else {
-          return ({
+        } else {
+          return {
             id: col.selector,
             name: <FormattedMessage id={col.name} />,
             selector: (row) => row[col.selector] || "-", // Accessor function for the column data
@@ -146,16 +164,14 @@ const MyDataTable = ({
               {
                 when: () => true,
                 style: {
-                  whiteSpace: 'wrap',
-                  wordWrap: 'break-word',
-                  wordBreak: 'break-all',
+                  whiteSpace: "wrap",
+                  wordWrap: "break-word",
+                  wordBreak: "break-all",
                 },
               },
             ],
-          });
-
+          };
         }
-
       }),
     [columnNames],
   );
@@ -198,9 +214,9 @@ const MyDataTable = ({
     setFilterText("");
   };
 
-  const handleSort = (column, sortDirection, sortFunction) => {
-
-    const columnName = column?.id === "locationId" ? "locationName" : column?.id;
+  const handleSort = (column, sortDirection) => {
+    const columnName =
+      column?.id === "locationId" ? "locationName" : column?.id;
 
     setSort({ sortname: columnName, sortorder: sortDirection });
   };
@@ -216,10 +232,15 @@ const MyDataTable = ({
   const theme = React.useContext(ThemeColorContext);
 
   return (
-    <div className="container" style={{
-      ...style,
-    }}>
-      <h2 className="mt-3" style={{ color: "white" }}>{title}</h2>
+    <div
+      className="container"
+      style={{
+        ...style,
+      }}
+    >
+      <h2 className="mt-3" style={{ color: "white" }}>
+        {title}
+      </h2>
       <div className="d-flex flex-row justify-content-between">
         <div className="tabs">
           <Button
@@ -231,10 +252,15 @@ const MyDataTable = ({
               color: theme.primaryColors.primary700,
               fontWeight: "bold",
               fontSize: "1em",
-              paddingLeft: "5px", paddingRight: "5px"
+              paddingLeft: "5px",
+              paddingRight: "5px",
             }}
-
-          >    <FormattedMessage id="RESULTS_TABLE" defaultMessage={"Results Table"} />
+          >
+            {" "}
+            <FormattedMessage
+              id="RESULTS_TABLE"
+              defaultMessage={"Results Table"}
+            />
           </Button>
           {tabs.map((tab, index) => {
             return (
@@ -242,35 +268,49 @@ const MyDataTable = ({
                 key={index}
                 variant="outline-tertiary"
                 className="me-1 mt-1"
-                style={{ backgroundColor: "rgba(255,255,255,0.3)", paddingLeft: "5px", paddingRight: "5px" }}
-
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.3)",
+                  paddingLeft: "5px",
+                  paddingRight: "5px",
+                }}
               >
                 <a
                   key={index}
                   href={tab.split(":")[1]}
-                  style={{ color: "white", textDecoration: "none", fontWeight: "bold" }}
+                  style={{
+                    color: "white",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
                 >
-                  {<FormattedMessage id={tab.split(":")[0]} defaultMessage={tab.split(":")[0]} />}
+                  {
+                    <FormattedMessage
+                      id={tab.split(":")[0]}
+                      defaultMessage={tab.split(":")[0]}
+                    />
+                  }
                 </a>
               </Button>
             );
           })}
         </div>
-        <InputGroup className="mb-3 d-flex search-bar"
+        <InputGroup
+          className="mb-3 d-flex search-bar"
           style={{
             minWidth: "120px",
             height: "30px",
             whiteSpace: "nowrap",
             // maxWidth: "20%",
-          }}>
+          }}
+        >
           <Form.Control
             type="text"
             className="custom-placeholder"
             style={{
               backgroundColor: "transparent",
               color: "white",
-              border: '1px solid white',
-              borderRight: 'none',
+              border: "1px solid white",
+              borderRight: "none",
               flex: "1 1 auto",
               borderRadius: "50px 0 0 50px",
             }}
@@ -278,36 +318,38 @@ const MyDataTable = ({
             value={filterText}
             onChange={handleFilterChange}
           />
-          {
-            filterText.length == 0 ? <Button
+          {filterText.length == 0 ? (
+            <Button
               style={{
                 backgroundColor: "transparent",
-                color: 'white',
-                border: '1px solid white',
-                borderLeft: 'none',
+                color: "white",
+                border: "1px solid white",
+                borderLeft: "none",
                 borderRadius: "0 50px 50px 0",
               }}
             >
-              <i class="bi bi-search"></i>
-            </Button> : <Button
+              <i className="bi bi-search"></i>
+            </Button>
+          ) : (
+            <Button
               style={{
                 backgroundColor: "transparent",
-                color: 'white',
-                border: '1px solid white',
-                borderLeft: 'none',
+                color: "white",
+                border: "1px solid white",
+                borderLeft: "none",
                 borderRadius: "0 50px 50px 0",
               }}
               onClick={clearFilterResult}
             >
-              <i class="bi bi-x-lg"></i>
+              <i className="bi bi-x-lg"></i>
             </Button>
-          }
+          )}
         </InputGroup>
       </div>
       <div
         style={{
-          borderRadius: '5px',
-          overflow: 'hidden',
+          borderRadius: "5px",
+          overflow: "hidden",
         }}
       >
         <DataTable
@@ -326,19 +368,35 @@ const MyDataTable = ({
           onSort={handleSort}
         />
       </div>
-      {
-        filteredData.length == 0 && !isLoading ? <div className="d-flex justify-content-center align-items-center" style={{ color: "white" }}>
-          <FormattedMessage id="NO_RESULTS_FOUND" defaultMessage={"No results found"} />
-        </div> : <Row className="mt-3 d-flex justify-content-center align-items-center">
+      {filteredData.length == 0 && !isLoading ? (
+        <div
+          className="d-flex justify-content-center align-items-center"
+          style={{ color: "white" }}
+        >
+          <FormattedMessage
+            id="NO_RESULTS_FOUND"
+            defaultMessage={"No results found"}
+          />
+        </div>
+      ) : (
+        <Row className="mt-3 d-flex justify-content-center align-items-center">
           <Col
             xs={12}
             className="d-flex justify-content-center align-items-center flex-nowrap"
           >
             <div className="me-3" style={{ color: "white" }}>
-              <span><FormattedMessage id="TOTAL_ITEMS" defaultMessage={"Total Items"} />: {totalItems}</span>
+              <span>
+                <FormattedMessage
+                  id="TOTAL_ITEMS"
+                  defaultMessage={"Total Items"}
+                />
+                : {totalItems}
+              </span>
             </div>
             <InputGroup className="me-3" style={{ width: "150px" }}>
-              <InputGroup.Text><FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} /></InputGroup.Text>
+              <InputGroup.Text>
+                <FormattedMessage id="PER_PAGE" defaultMessage={"Per page"} />
+              </InputGroup.Text>
               <Form.Control
                 as="select"
                 value={perPage}
@@ -371,8 +429,13 @@ const MyDataTable = ({
               activeClassName={"active-page"}
               forcePage={page}
             />
-            <InputGroup className="ms-3" style={{ width: "180px", whiteSpace: "nowrap" }}>
-              <InputGroup.Text><FormattedMessage id="GO_TO" defaultMessage={"Go to"} /></InputGroup.Text>
+            <InputGroup
+              className="ms-3"
+              style={{ width: "180px", whiteSpace: "nowrap" }}
+            >
+              <InputGroup.Text>
+                <FormattedMessage id="GO_TO" defaultMessage={"Go to"} />
+              </InputGroup.Text>
               <Form.Control
                 type="text"
                 value={goToPage}
@@ -384,8 +447,7 @@ const MyDataTable = ({
             </InputGroup>
           </Col>
         </Row>
-      }
-
+      )}
     </div>
   );
 };

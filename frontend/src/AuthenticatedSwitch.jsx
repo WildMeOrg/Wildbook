@@ -6,13 +6,12 @@ import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 import Footer from "./components/Footer";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
-import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/EncounterSearch";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
-  const { isFetched, data, error } = useGetMe();
+  const { data } = useGetMe();
   const username = data?.username;
   const avatar = data?.imageURL || "/react/images/Avatar.png";
   const [header, setHeader] = React.useState(true);
@@ -44,7 +43,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           boxSizing: "border-box",
           // maxWidth: "1440px",
           overflow: "hidden",
-          paddingTop: header? "48px" : "0",
+          paddingTop: header ? "48px" : "0",
         }}
       >
         <Routes>
@@ -53,7 +52,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound setHeader={setHeader}/>} />
+          <Route path="*" element={<NotFound setHeader={setHeader} />} />
         </Routes>
       </div>
 

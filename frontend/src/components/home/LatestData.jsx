@@ -16,6 +16,7 @@ export default function LatestData({ data, username, loading = true }) {
             formatDate(sighting.date, true) || sighting.dateTime;
           return (
             <DiamondCard
+              key={sighting?.id}
               date={formattedDate}
               title={sighting.taxonomy}
               annotations={sighting.numberAnnotations}

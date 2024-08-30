@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Badge } from "react-bootstrap";
 import { Bell } from "react-bootstrap-icons";
 import Modal from "react-bootstrap/Modal";
