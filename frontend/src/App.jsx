@@ -27,7 +27,6 @@ function App() {
   const [locale, setLocale] = useState(initialLocale);
   const [visible, setVisible] = useState(true);
   const containerStyle = {
-    // maxWidth: "1440px",
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",

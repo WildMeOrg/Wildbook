@@ -6,7 +6,6 @@ import NotificationButton from "./navBar/NotificationButton";
 import MultiLanguageDropdown from "./navBar/MultiLanguageDropdown";
 import AuthContext from "../AuthProvider";
 import AvatarAndUserProfile from "./header/AvatarAndUserProfile";
-// import { debounce } from "lodash";
 import Menu from "./header/Menu";
 import FooterVisibilityContext from "../FooterVisibilityContext";
 import Logo from "./svg/Logo";
