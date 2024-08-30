@@ -145,7 +145,6 @@ const MyDataTable = ({
               const dateStr = row[col.selector];
               if (dateStr) {
                 const date = new Date(dateStr);
-                console.log(date.toISOString().split("T")[0]);
                 return date.toISOString().split("T")[0];
               }
               return "-";
