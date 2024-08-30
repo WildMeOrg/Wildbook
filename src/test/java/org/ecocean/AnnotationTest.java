@@ -1,6 +1,5 @@
 package org.ecocean;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.ecocean.Annotation;
 import org.ecocean.media.*;
 import org.json.JSONObject;
