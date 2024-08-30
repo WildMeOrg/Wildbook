@@ -78,7 +78,7 @@ export default function ErrorPage({
                 height="364"
                 rx="16"
                 fill="#445D10"
-                fill-opacity="0.02"
+                fillOpacity="0.02"
               />
               <foreignObject x="54%" y="20%" width="400" height="50">
                 <div
@@ -131,9 +131,9 @@ export default function ErrorPage({
                 width="1090"
                 height="380.5"
                 filterUnits="userSpaceOnUse"
-                color-interpolation-filters="sRGB"
+                colorInterpolationFilters="sRGB"
               >
-                <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
                 <feGaussianBlur in="BackgroundImageFix" stdDeviation="4" />
                 <feComposite
                   in2="SourceAlpha"
@@ -177,9 +177,9 @@ export default function ErrorPage({
                 width="133"
                 height="48"
                 filterUnits="userSpaceOnUse"
-                color-interpolation-filters="sRGB"
+                colorInterpolationFilters="sRGB"
               >
-                <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
                 <feColorMatrix
                   in="SourceAlpha"
                   type="matrix"
@@ -211,9 +211,9 @@ export default function ErrorPage({
                 width="476.975"
                 height="209.73"
                 filterUnits="userSpaceOnUse"
-                color-interpolation-filters="sRGB"
+                colorInterpolationFilters="sRGB"
               >
-                <feFlood flood-opacity="0" result="BackgroundImageFix" />
+                <feFlood floodOpacity="0" result="BackgroundImageFix" />
                 <feBlend
                   mode="normal"
                   in="SourceGraphic"
