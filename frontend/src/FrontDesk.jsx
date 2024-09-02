@@ -22,21 +22,6 @@ export default function FrontDesk() {
   );
   const [loading, setLoading] = useState(true);
 
-  const checkLoginStatus = () => {
-    axios
-      .head("/api/v3/user")
-      .then((response) => {
-        setIsLoggedIn(response.status === 200);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log("Error", error);
-        setLoading(false);
-        setIsLoggedIn(false);
-        setError(error.response.status);
-      });
-  };
-
   const getAllNotifications = async () => {
     const { collaborationTitle, collaborationData } =
       await getCollaborationNotifications();
@@ -49,6 +34,21 @@ export default function FrontDesk() {
   };
 
   useEffect(() => {
+    const checkLoginStatus = () => {
+      axios
+        .head("/api/v3/user")
+        .then((response) => {
+          setIsLoggedIn(response.status === 200);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.log("Error", error);
+          setLoading(false);
+          setIsLoggedIn(false);
+          setError(error.response.status);
+        });
+    };
+
     getAllNotifications();
     checkLoginStatus();
     const intervalId = setInterval(() => {
@@ -56,7 +56,7 @@ export default function FrontDesk() {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [setError]);
 
   if (loading) return <LoadingScreen />;
 
