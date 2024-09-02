@@ -317,7 +317,7 @@ const MyDataTable = ({
             value={filterText}
             onChange={handleFilterChange}
           />
-          {filterText.length == 0 ? (
+          {filterText.length === 0 ? (
             <Button
               style={{
                 backgroundColor: "transparent",
@@ -367,7 +367,7 @@ const MyDataTable = ({
           onSort={handleSort}
         />
       </div>
-      {filteredData.length == 0 && !isLoading ? (
+      {filteredData.length === 0 && !isLoading ? (
         <div
           className="d-flex justify-content-center align-items-center"
           style={{ color: "white" }}
