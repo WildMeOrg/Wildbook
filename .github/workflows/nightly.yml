@@ -27,7 +27,7 @@ jobs:
         mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
         mvn -B package --file pom.xml
 
-    - name: Publish to GitHub Packages
+    - name: Publish to GitHub Packages 
       if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }} 
       run: mvn -B deploy
       env:
