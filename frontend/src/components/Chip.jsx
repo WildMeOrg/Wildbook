@@ -1,67 +1,137 @@
-import React from 'react';
-import { Badge } from 'react-bootstrap';
+import React from "react";
+import useGetSiteSettings from "../models/useGetSiteSettings";
 
-function Chip({ text, children }) {
-    function renderFilter(filter) {
-        console.log('filter', filter);
-        const entries = [];
-        const { filterId, query } = filter;
+function Chip({ children }) {
+  const { data } = useGetSiteSettings();
 
-        if (query?.range) {
-            Object.entries(query.range).forEach(([key, range]) => {
-                const parts = [];
-                if (range.gte) parts.push(`from "${range.gte}"`);
-                if (range.lte) parts.push(`to "${range.lte}"`);
-                entries.push(`${key} ${parts.join(' ')}`);
-            });
-        }
-        if (query?.match) {
-            Object.entries(query.match).forEach(([key, value]) => {
-                entries.push(`"${key}" matches "${value}"`);
-            });
-        }
-        if (query?.term) {
-            Object.entries(query.term).forEach(([key, value]) => {
-                entries.push(`${key} is "${value}"`);
-            });
-        }
-        if (query?.terms) {
-            Object.entries(query.terms).forEach(([key, values]) => {
-                if (Array.isArray(values)) {
-                    entries.push(`${key} is any of [${values.join(', ')}]`);
-                } else {
-                    entries.push(`${key} is "${values}"`);
-                }
-            });
-        }
-
-        if(query.bool) {
-            if(query.bool.must) {
-                query.bool.must.forEach((item) => {
-                    Object.entries(item).forEach(([key, value]) => {
-                        entries.push(`${key} is "${value}"`);
-                    });
-                });
-            }
-        }
-
-        return entries.length > 0 ? `${entries.join(', ')}` : `No filters set`;
+  function renderFilter(filter) {
+    function getLabelById(options, id) {
+      const option = options?.find((opt) => opt.value === id);
+      let label = "";
+      if (!option?.label || option?.label.startsWith("Anonymous")) {
+        label = "Anonymous User";
+      } else {
+        label = option?.label;
+      }
+      return label;
     }
 
-    return (
-        <div
-            style={{
-                backgroundColor: '#e5f6ff',
-                color: 'black',
-                borderRadius: '15px',
-                padding: '10px 20px',
-                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)',
-                marginTop: '10px',
-            }}
-        >
-            {renderFilter(children)}
-        </div>
-    );
+    const organizationOptions =
+      Object.entries(data?.organizations || {})?.map((item) => {
+        return {
+          value: item[0],
+          label: item[1],
+        };
+      }) || [];
+
+    const projectOptions =
+      Object.entries(data?.projectsForUser || {})?.map((item) => {
+        return {
+          value: item[0],
+          label: item[1],
+        };
+      }) || [];
+
+    const assignedUserOptions =
+      data?.users
+        ?.filter((item) => item.username)
+        .map((item) => {
+          return {
+            value: item.username,
+            label: item.username,
+          };
+        }) || [];
+
+    const entries = [];
+    const { clause, filterId, query, filterKey } = filter;
+    if (clause === "nested") {
+      entries.push(`Nested filter: ${filterId}`);
+    }
+
+    if (Array.isArray(query)) {
+      entries.push(
+        `Dynamic filter: ${filterKey || filterId} is set : ${query?.map((q) => Object.keys(Object.values(q)[0])[0])[0].split(".")[1]}`,
+      );
+    }
+
+    if (query?.geo_bounding_box) {
+      const { top_left, bottom_right } =
+        query.geo_bounding_box["locationGeoPoint"];
+      entries.push(
+        `Location within bounding box: Northeast latitude: ${top_left.lat}, longitude: ${top_left.lon}, southwest latitude: ${bottom_right.lat}, longitude: ${bottom_right.lon}`,
+      );
+    }
+
+    if (query?.range) {
+      Object.entries(query.range).forEach(([key, range]) => {
+        const parts = [];
+        if (range.gte || range.gte === 0) parts.push(`from "${range.gte}"`);
+        if (range.lte || range.lte === 0) parts.push(`to "${range.lte}"`);
+        entries.push(`${filterKey || key} ${parts.join(" ")}`);
+      });
+    } else if (query?.match) {
+      Object.entries(query.match).forEach(([key, value]) => {
+        entries.push(`${filterKey || key} contains "${value}"`);
+      });
+    } else if (query?.exists) {
+      // eslint-disable-next-line no-unused-vars
+      Object.entries(query.exists).forEach(([key, value]) => {
+        entries.push(`${filterKey || value} filter is set`);
+      });
+    } else if (query?.term) {
+      Object.entries(query.term).forEach(([key, value]) => {
+        entries.push(`${filterKey || key} matches "${value}"`);
+      });
+    } else if (query?.terms) {
+      const labels = Object.values(query.terms[filterId]).map((val) => {
+        if (filterId === "organizations") {
+          return getLabelById(organizationOptions, val);
+        } else if (filterId === "projects") {
+          return getLabelById(projectOptions, val);
+        } else if (filterId === "assignedUsername") {
+          return getLabelById(assignedUserOptions, val);
+        } else {
+          return val;
+        }
+      });
+      const uniqueLabels = [...new Set(labels)];
+      entries.push(
+        `${filterKey || filterId} is any of [${uniqueLabels.join(", ")}]`,
+      );
+    } else if (query?.biologicalMeasurements) {
+      // eslint-disable-next-line no-unused-vars
+      Object.entries(query).forEach(([key, value]) => {
+        entries.push(`${filterKey || key} filter is set`);
+      });
+    }
+
+    if (query?.bool) {
+      if (query.bool.must) {
+        query.bool.must.forEach((item) => {
+          Object.entries(item).forEach(([key, value]) => {
+            entries.push(`${filterKey || key} is "${value}"`);
+          });
+        });
+      }
+    }
+
+    return entries.length > 0 ? `${entries.join(", ")}` : `No filters set`;
+  }
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#e5f6ff",
+        color: "black",
+        borderRadius: "15px",
+        padding: "10px 20px",
+        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+        marginTop: "10px",
+      }}
+    >
+      {renderFilter(children)}
+    </div>
+  );
 }
 
 export default Chip;

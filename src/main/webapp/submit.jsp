@@ -54,7 +54,6 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
 
-    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;

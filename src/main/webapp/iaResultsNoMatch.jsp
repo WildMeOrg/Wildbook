@@ -40,7 +40,9 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 		String projectIdPrefix = request.getParameter("projectIdPrefix");
 		String researchProjectName = null;
 		String researchProjectUUID = null;
-		String nextNameString = "";
+		String nextNameInput = request.getParameter("nextNameInput");
+
+		String nextNameString = "";  // this is set but never used wtf?  FIXME
 		// okay, are we going to use an incremental name from the project side?
 		if (Util.stringExists(projectIdPrefix)) {
 			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
@@ -87,6 +89,8 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			validToName = true;
 		}
 
+		if (Util.stringExists(nextNameInput)) validToName = true;
+
 		if (!validToName) {
 			rtn.put("error", "Was unable to set the next automatic name. Got key="+nextNameKey+" and val="+nextName);
 			out.println(rtn.toString());
@@ -103,10 +107,16 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 			IndividualAddEncounter.executeEmails(myShepherd, request,mark,true, enc, context, langCode);
 		}
 
+		// validToName should never be false here wtf FIXME
 		if (validToName&&"true".equals(useNextProjectId)) {
 			System.out.println("trying to set next PROJECT automatic name.......");
 			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 			mark.addIncrementalProjectId(projectForAutoNaming);
+
+		} else if (nextNameInput != null) {
+			System.out.println("setting manually named nextNameInput=" + nextNameInput + " onto " + mark);
+			mark.addName(nextNameInput);
+
 		} else {
 			System.out.println("trying to set USER BASED automatic name.......");
 			// old user based id

@@ -225,7 +225,7 @@ $(".search-collapse-header a").click(function(){
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounterSearch.jsp");
+  myShepherd.setAction("/react/encounter-search");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 
@@ -250,7 +250,7 @@ $(".search-collapse-header a").click(function(){
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
+<form action="/react/login" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
