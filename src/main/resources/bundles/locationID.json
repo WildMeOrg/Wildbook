@@ -506,6 +506,15 @@
 					}
 				]
 			},
+			{
+				"name": "Rheinland-Pfalz",
+				"id": "Rheinland-Pfalz",
+				"geospatialInfo": {
+					"lat": 50.137861,
+					"long": 7.167395
+				},
+				"locationID": []
+			},
 		  {
 			  "name": "Wasserburgertal",
 			  "id": "WBT",
@@ -566,7 +575,7 @@
 				},
 				{
 					"name": "Waldenburg",
-					"id": "WWaldenburg",
+					"id": "Waldenburg",
 					"locationID": []
 				},
 				{
@@ -583,4 +592,4 @@
 		}
 		  
 	]
-  }
+  }  
