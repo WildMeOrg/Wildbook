@@ -24,12 +24,14 @@ jobs:
     - name: Build with Maven
       run: |
         mvn dependency:resolve -B -U
-        mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
+        mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B  -e -X
         mvn -B package --file pom.xml
 
     - name: Publish to GitHub Packages 
       if: ${{ github.event_name == 'push' || github.event_name == 'schedule' }} 
-      run: mvn -B deploy
+      run: |
+            mvn -B deploy
+            
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
