@@ -112,7 +112,7 @@ context=ServletUtilities.getContext(request);
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
-z-index: 1 !imporant;
+z-index: 1 !important;
 width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
@@ -146,7 +146,7 @@ String formAction="surveySearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="../images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
+		<img src="../images/WildMe-Logo-04.png" width="50" align="absmiddle"/></span></strong>
   <%=titleString%>
 </h1>
 </p>
