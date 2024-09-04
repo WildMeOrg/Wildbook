@@ -1,153 +1,173 @@
-import React, { useState } from 'react';
-import BrutalismButton from '../BrutalismButton';
-import { FormattedMessage } from 'react-intl';
-import changeIndividualMergeState from '../../models/notifications/changeIndividualMergeState';
-import getMergeNotifications from '../../models/notifications/getMergeNotifications';
+import React, { useState } from "react";
+import BrutalismButton from "../BrutalismButton";
+import { FormattedMessage } from "react-intl";
 
 export default function MergeMessages({
-    mergeData,
-    getAllNotifications,
-    setModalOpen, }) {
+  mergeData,
+  getAllNotifications,
+  setModalOpen,
+}) {
+  const handleClick = () => {
+    // const result = changeIndividualMergeState(action, taskId);
+    // setError('Error: ' + result);
+    getAllNotifications();
+    setModalOpen(false);
+  };
 
-    const handleClick = (action, taskId) => {
-        const result = changeIndividualMergeState(action, taskId);
-        // setError('Error: ' + result);
-        getAllNotifications();
-        setModalOpen(false);
-    }
+  // eslint-disable-next-line no-unused-vars
+  const [showError, setShowError] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [error, setError] = useState("");
 
-    const [showError, setShowError] = useState(false);
-    const [error, setError] = useState('');
+  const content = mergeData?.map((data) => {
+    const mergePending = data.notificationType === "mergePending";
+    const mergeComplete = data.notificationType === "mergeComplete";
+    const mergeDenied = data.notificationType === "mergeDenied";
+    const ownedByMe = data.ownedByMe === "true";
 
-    const content = mergeData?.map(data => {
+    return (
+      <div
+        key={data?.taskId}
+        style={{
+          borderBottom: "1px solid #ccc",
+          padding: "10px 0 0 10px",
+        }}
+      >
+        {mergePending && (
+          <p>
+            <FormattedMessage
+              id="MERGE_PENDING_MESSAGE"
+              values={{
+                indv1: data.primaryIndividualName,
+                indv2: data.secondaryIndividualName,
+                initiator: data.initiator,
+                mergeDate: data.mergeExecutionDate,
+                bold: (chunks) => <strong>{chunks}</strong>,
+              }}
+            />
+          </p>
+        )}
 
-        const mergePending = data.notificationType === 'mergePending';
-        const mergeComplete = data.notificationType === 'mergeComplete';
-        const mergeDenied = data.notificationType === 'mergeDenied';
-        const ownedByMe = data.ownedByMe === 'true';
+        {mergeComplete && (
+          <p>
+            <FormattedMessage
+              id="MERGE_COMPLETE_MESSAGE"
+              values={{
+                indv1: data.primaryIndividualName,
+                indv2: data.secondaryIndividualName,
+                initiator: data.initiator,
+                mergeDate: data.mergeExecutionDate,
+                bold: (chunks) => <strong>{chunks}</strong>,
+              }}
+            />
+          </p>
+        )}
 
-        return <div style={{
-            borderBottom: '1px solid #ccc',
-            padding: '10px 0 0 10px',
-        }}>
+        {mergeDenied && (
+          <p>
+            <FormattedMessage
+              id="MERGE_DENIED_MESSAGE"
+              values={{
+                indv1: data.primaryIndividualName,
+                indv2: data.secondaryIndividualName,
+                initiator: data.initiator,
+                deniedBy: data.deniedBy,
+                mergeDate: data.mergeExecutionDate,
+                bold: (chunks) => <strong>{chunks}</strong>,
+              }}
+            />
+          </p>
+        )}
 
-            {
-                mergePending && <p>
-                    <FormattedMessage id="MERGE_PENDING_MESSAGE" values={{
-                        indv1: data.primaryIndividualName,
-                        indv2: data.secondaryIndividualName,
-                        initiator: data.initiator,
-                        mergeDate: data.mergeExecutionDate,
-                        bold: chunks => <strong>{chunks}</strong>,
-                    }} />
-                </p>
-            }
+        {!ownedByMe && mergePending && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              marginTop: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            <BrutalismButton onClick={() => handleClick("ignore", data.taskId)}>
+              <FormattedMessage id="IGNORE" />
+            </BrutalismButton>
+            <BrutalismButton onClick={() => handleClick("deny", data.taskId)}>
+              <FormattedMessage id="DENY" />
+            </BrutalismButton>
+          </div>
+        )}
 
-            {
-                mergeComplete && <p>
-                    <FormattedMessage id="MERGE_COMPLETE_MESSAGE" values={{
-                        indv1: data.primaryIndividualName,
-                        indv2: data.secondaryIndividualName,
-                        initiator: data.initiator,
-                        mergeDate: data.mergeExecutionDate,
-                        bold: chunks => <strong>{chunks}</strong>,
-                    }} />
-                </p>
-            }
+        {mergeComplete && (
+          <div
+            style={{
+              display: "flex",
+              marginTop: "10px",
+              marginBottom: "10px",
+              // width: 105
+            }}
+          >
+            <BrutalismButton onClick={() => handleClick("ignore", data.taskId)}>
+              <FormattedMessage id="DISMISS" />
+            </BrutalismButton>
+          </div>
+        )}
 
-            {
-                mergeDenied && <p>
-                    <FormattedMessage id="MERGE_DENIED_MESSAGE" values={{
-                        indv1: data.primaryIndividualName,
-                        indv2: data.secondaryIndividualName,
-                        initiator: data.initiator,
-                        deniedBy: data.deniedBy,
-                        mergeDate: data.mergeExecutionDate,
-                        bold: chunks => <strong>{chunks}</strong>,
-                    }} />
-                </p>
-            }
+        {mergeDenied && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              marginTop: "10px",
+              marginBottom: "10px",
+              width: "112px",
+            }}
+          >
+            <BrutalismButton onClick={() => handleClick("ignore", data.taskId)}>
+              <FormattedMessage id="DISMISS" />
+            </BrutalismButton>
+          </div>
+        )}
 
-            {
-                !ownedByMe && mergePending &&
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    marginTop: '10px',
-                    marginBottom: '10px',
-                }}>
-                    <BrutalismButton onClick={() => handleClick('ignore', data.taskId)} >
-                        <FormattedMessage id="IGNORE" />
-                    </BrutalismButton>
-                    <BrutalismButton onClick={() => handleClick('deny', data.taskId)}>
-                        <FormattedMessage id="DENY" />
-                    </BrutalismButton>
-                </div>
-            }
+        {ownedByMe ? (
+          <p>
+            <FormattedMessage
+              id="INITIATED_BY_USER"
+              values={{
+                user: "current user",
+                bold: (chunks) => <strong>{chunks}</strong>,
+              }}
+            />
+          </p>
+        ) : (
+          <p>
+            <FormattedMessage
+              id="INITIATED_BY_USER"
+              values={{
+                user: data.initiator,
+                bold: (chunks) => <strong>{chunks}</strong>,
+              }}
+            />
+          </p>
+        )}
+      </div>
+    );
+  });
 
-            {
-                mergeComplete &&
-                <div style={{
-                    display: 'flex',
-                    marginTop: '10px',
-                    marginBottom: '10px',
-                    // width: 105
-                }}>
-                    <BrutalismButton onClick={() => handleClick('ignore', data.taskId)} >
-                        <FormattedMessage id="DISMISS" />
-                    </BrutalismButton>
-                </div>
-            }
-
-            {
-                mergeDenied &&
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    marginTop: '10px',
-                    marginBottom: '10px',
-                    width: '112px'
-                }}>
-                    <BrutalismButton onClick={() => handleClick('ignore', data.taskId)}>
-                        <FormattedMessage id="DISMISS" />
-                    </BrutalismButton>
-                </div>
-            }
-
-            {
-                ownedByMe
-                    ? <p>
-                        <FormattedMessage
-                            id="INITIATED_BY_USER"
-                            values={{
-                                user: 'current user',
-                                bold: chunks => <strong>{chunks}</strong>,
-                            }}
-
-                        />
-                    </p>
-                    : <p>
-                        <FormattedMessage
-                            id="INITIATED_BY_USER"
-                            values={{
-                                user: data.initiator,
-                                bold: chunks => <strong>{chunks}</strong>,
-                            }} />
-                    </p>
-            }
-
-        </div>
-    })
-
-    return <div style={{
-        maxHeight: '500px',
-        overflow: 'auto',
-        marginTop: '20px',
-    }}>
-        {mergeData.length > 0 && <h4><FormattedMessage id="INDIVIDUAL_MERGE_NOTIFICATIONS" /></h4>}
-        {content}
-        {showError && <h6>{error}</h6>}
+  return (
+    <div
+      style={{
+        maxHeight: "500px",
+        overflow: "auto",
+        marginTop: "20px",
+      }}
+    >
+      {mergeData.length > 0 && (
+        <h4>
+          <FormattedMessage id="INDIVIDUAL_MERGE_NOTIFICATIONS" />
+        </h4>
+      )}
+      {content}
+      {showError && <h6>{error}</h6>}
     </div>
+  );
 }
-
-

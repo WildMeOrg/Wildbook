@@ -1,28 +1,23 @@
-
 import React from "react";
 import { FormattedMessage } from "react-intl";
 import Form from "react-bootstrap/Form";
 import Description from "../Form/Description";
 import FormGroupText from "../Form/FormGroupText";
 import FormControl from "react-bootstrap/FormControl";
-import { useContext } from "react";
-import FilterContext from "../../FilterContextProvider";
 import { useIntl } from "react-intl";
-import { fill, filter } from "lodash-es";
 
-export default function IdentityFilter({
-  onChange,
-
-}) {
-  const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />
-  const [isChecked1, setIsChecked1] = React.useState(false);
+export default function IdentityFilter({ onChange }) {
+  const includeEncounters = <FormattedMessage id="FILTER_NO_INDIVIDUAL_ID" />;
+  // const [isChecked1, setIsChecked1] = React.useState(false);
   const [isChecked2, setIsChecked2] = React.useState(false);
-  const [times, setTimes] = React.useState(0);
+  // const [times, setTimes] = React.useState(0);
   const intl = useIntl();
 
   return (
     <div>
-      <h3><FormattedMessage id="FILTER_IDENTITY" /></h3>
+      <h3>
+        <FormattedMessage id="FILTER_IDENTITY" />
+      </h3>
       <Description>
         <FormattedMessage id="FILTER_IDENTITY_DESC" />
       </Description>
@@ -55,26 +50,25 @@ export default function IdentityFilter({
           style={{
             width: "100px",
             marginLeft: "10px",
-            marginRight: "10px"
+            marginRight: "10px",
           }}
           placeholder={intl.formatMessage({ id: "TYPE_NUMBER" })}
           onChange={(e) => {
-            setTimes(e.target.value);
+            // setTimes(e.target.value);
             if (e.target.value) {
               onChange({
                 filterId: "individualNumberEncounters",
                 filterKey: "Number of Encounters",
                 clause: "filter",
                 query: {
-                  "range": {
-                    "individualNumberEncounters": { "gte": e.target.value }
-                  }
+                  range: {
+                    individualNumberEncounters: { gte: e.target.value },
+                  },
                 },
               });
-            }else {
+            } else {
               onChange(null, "individualNumberEncounters");
             }
-            
           }}
         />
         <FormattedMessage id="FILTER_TIMES" />
@@ -91,21 +85,20 @@ export default function IdentityFilter({
             if (e.target.checked) {
               onChange({
                 filterId: "individualId",
-                filterKey: "Include only encounters with no assigned Individual ID",
+                filterKey:
+                  "Include only encounters with no assigned Individual ID",
                 clause: "must_not",
                 query: {
-                  "exists": {
-                    "field": "individualId"
-                  }
+                  exists: {
+                    field: "individualId",
+                  },
                 },
-              })
-            }else {
+              });
+            } else {
               onChange(null, "individualId");
             }
           }}
         />
-        
-
       </Form>
       <FormGroupText
         label="FILTER_ALTERNATIVE_ID"
@@ -115,7 +108,6 @@ export default function IdentityFilter({
         filterId={"otherCatalogNumbers"}
         onChange={onChange}
         filterKey={"Alternative ID"}
-
       />
       <FormGroupText
         label="FILTER_INDIVIDUAL_NAME"

@@ -124,6 +124,7 @@ public class SearchApi extends ApiBase {
             }
         }
         response.setHeader("Content-Type", "application/json");
+        response.setCharacterEncoding("UTF-8");
         response.getWriter().write(res.toString());
         response.getWriter().close();
         myShepherd.rollbackAndClose();
