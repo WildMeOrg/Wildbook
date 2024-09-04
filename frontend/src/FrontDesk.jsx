@@ -12,7 +12,6 @@ import "./css/scrollBar.css";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // const [error, setError] = useState();
   const [collaborationTitle, setCollaborationTitle] = useState();
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
@@ -33,7 +32,6 @@ export default function FrontDesk() {
         console.log("Error", error);
         setLoading(false);
         setIsLoggedIn(false);
-        // setError(error.response.status);
       });
   };
 
