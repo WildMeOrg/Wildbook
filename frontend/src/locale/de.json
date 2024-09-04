@@ -227,5 +227,17 @@
     "NUMBER_ANNOTATIONS": "Anzahl der Anmerkungen",
     "ADD_LABELLED_KEYWORD_SEARCH": "Beschriftete Schlagwortsuche hinzufügen",
     "APPLY_SEARCH_ID": "Such-ID anwenden",
-    "APPLY_SEARCH_ID_DESC": "Diese Funktion ermöglicht es Benutzern, ihre Suchkriterien auf einfache Weise mit anderen zu teilen. Nachdem er eine Suche durchgeführt hat, kann ein Benutzer seine eindeutige Such-ID kopieren und sie mit einem anderen Benutzer teilen. Der Empfänger kann dann diese Such-ID in den Abschnitt „Such-ID anwenden“ einfügen und auf „Anwenden“ klicken, um die genauen Suchkriterien zu replizieren und die gleichen Ergebnisse wie der ursprüngliche Benutzer zu erhalten."
+    "APPLY_SEARCH_ID_DESC": "Diese Funktion ermöglicht es Benutzern, ihre Suchkriterien auf einfache Weise mit anderen zu teilen. Nachdem er eine Suche durchgeführt hat, kann ein Benutzer seine eindeutige Such-ID kopieren und sie mit einem anderen Benutzer teilen. Der Empfänger kann dann diese Such-ID in den Abschnitt „Such-ID anwenden“ einfügen und auf „Anwenden“ klicken, um die genauen Suchkriterien zu replizieren und die gleichen Ergebnisse wie der ursprüngliche Benutzer zu erhalten.",
+    "CITATION_TITLE": "Wie man Wildbook und kollaborative Daten zitiert",
+    "CITATION_INTRODUCTION": "Auch wenn eine kollaborative Verbindung zwischen den Benutzern hergestellt wurde, bittet Wildbook Sie, die Datenanbieter zu kontaktieren, bevor Sie die gemeinsam genutzten Daten in einer Publikation, einem Produkt oder einer kommerziellen Anwendung verwenden.",
+    "CITATION_AGREEMENT": "Durch die Nutzung eines Wildbooks erklärt sich der Benutzer mit Folgendem einverstanden:",
+    "CITATION_AGREEMENT_ITEM_1": "Die in Wildbook enthaltenen Daten nicht in einer Publikation, einem Produkt oder einer kommerziellen Anwendung ohne vorherige schriftliche Zustimmung des ursprünglichen Datenanbieters zu verwenden.",
+    "CITATION_AGREEMENT_ITEM_2": "Sowohl den/die Datenanbieter als auch Wildbook korrekt zu zitieren, nachdem die Genehmigung zur Nutzung erhalten wurde.",
+    "CITATION_AGREEMENT_ITEM_2_SUBITEM_1": "Kollaborative Datensätze sollten alle Datenbeitragenden in absteigender Reihenfolge der beigesteuerten Begegnungen auflisten. Das Jahr sollte das Jahr sein, in dem der Datensatz konsolidiert und heruntergeladen wurde.",
+    "CITATION_AGREEMENT_ITEM_2_SUBITEM_2": "Beispielzitat für einen Datensatz:",
+    "CITATION_AGREEMENT_ITEM_2_SUBITEM_3": "Beispielzitat für ein Wildbook:",
+    "CITATION_CITATION_DETAILS_1": "S. Gero, J. Levenson, J. Van Oast, J. Holmberg, A. Marine-Biologist, C. Researcher, O. Cean. (2016). Kollaborativer Datensatz von: Flukebook.org. Konsolidiert und heruntergeladen: 15. Juni 2016.",
+    "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast und J. Holmberg. 2015. Flukebook: cloudbasierte Foto-Identifikationsanalysetools für die Meeresforschung. Erreichbar unter: https://www.flukebook.org",
+    "CITATION_FORWARD": "Um die Zitierung jeder Publikation / jedes Berichts, der / das die von Wild Me bereitgestellten Daten / Werkzeuge verwendet hat, zur Aufnahme in unsere Referenzliste an info@wildme.org weiterzuleiten.",
+    "CITATION_DISCLAIMER": "Wild Me oder die ursprünglichen Datenanbieter nicht für Fehler in den Daten verantwortlich machen. Obwohl wir alle Anstrengungen unternommen haben, um die Qualität der Datenbank zu gewährleisten, können wir die Genauigkeit dieser Datensätze nicht garantieren."
 }

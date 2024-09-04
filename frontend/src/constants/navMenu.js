@@ -51,7 +51,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
+        href: "/react/citation",
       },
       {
         name: (
@@ -314,7 +314,7 @@ const unAuthenticatedMenu = [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/citing.jsp",
+        href: "/react/citation",
       },
       {
         name: (
