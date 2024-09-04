@@ -51,7 +51,7 @@
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>5.1.2</version>
+      <version>5.21.0</version>
     </dependency>
 
     <!--	 Dependencies related to prometheus.	 -->
@@ -146,7 +146,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.1.3</version>
+      <version>1.5.7</version>
     </dependency>
 
     <dependency>
@@ -269,7 +269,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20131018</version>
+      <version>20240303</version>
     </dependency>
 
     <!--Start
@@ -513,33 +513,6 @@
       <groupId>com.google.auth</groupId>
       <artifactId>google-auth-library-credentials</artifactId>
       <version>0.6.1</version>
-    </dependency>
-
-    <!-- dependencies for Stanford NLP -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>3.9.1</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.protobuf</groupId>
-          <artifactId>protobuf-java</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
-    <dependency>
-      <groupId>sutime-stanford-corenlp-models</groupId>
-      <artifactId>sutime-stanford-corenlp-models</artifactId>
-      <version>3.6.0</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-parser</artifactId>
-      <version>3.9.1</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
