@@ -69,7 +69,6 @@ const Footer = () => {
         <Row className="justify-content-md-center py-3">
           <Col md="auto">
             <p>
-              {" "}
               {version ? (
                 <a
                   href={`https://github.com/WildMeOrg/Wildbook/releases/tag/${version}`}
