@@ -1541,7 +1541,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
         <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
-	        <h2><img align="absmiddle" src="../images/WildMe-Logo-04.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+	        <h2><img align="absmiddle" src="../images/WildMe-Logo-100x100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
 	      </h2>
@@ -1591,7 +1591,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         }
         else {
 	         %>
-	         <h2><img align="absmiddle" src="../images/WildMe-Logo-04.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+	         <h2><img align="absmiddle" src="../images/WildMe-Logo-100x100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
 	         <%
 	     }
          %>

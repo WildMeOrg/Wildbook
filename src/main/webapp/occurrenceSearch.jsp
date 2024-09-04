@@ -119,7 +119,7 @@ context=ServletUtilities.getContext(request);
 
 
 	<h1 class="intro"><strong><span class="para">
-	    <img src="images/WildMe-Logo-04.png" width="50" align="absmiddle"/></span></strong>
+	    <img src="images/WildMe-Logo-100x100.png" width="50" align="absmiddle"/></span></strong>
 	  <%=titleString%>
 	</h1>
 	</p>

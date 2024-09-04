@@ -117,7 +117,7 @@ width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
-</style>
+}</style>
 
 <script>
   function resetMap() {
@@ -146,7 +146,7 @@ String formAction="surveySearchResults.jsp";
 
 
 <h1 class="intro"><strong><span class="para">
-		<img src="../images/WildMe-Logo-04.png" width="50" align="absmiddle"/></span></strong>
+		<img src="../images/WildMe-Logo-100x100.png" width="50" align="absmiddle"/></span></strong>
   <%=titleString%>
 </h1>
 </p>
