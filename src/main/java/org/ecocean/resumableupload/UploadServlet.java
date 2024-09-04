@@ -18,9 +18,9 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import ec.com.mapache.ngflow.upload.FlowInfo;
-import ec.com.mapache.ngflow.upload.FlowInfoStorage;
-import ec.com.mapache.ngflow.upload.HttpUtils;
+import org.ecocean.resumableupload.FlowInfo;
+import org.ecocean.resumableupload.FlowInfoStorage;
+import org.ecocean.resumableupload.HttpUtils;
 
 import org.ecocean.AccessControl;
 import org.ecocean.CommonConfiguration;
