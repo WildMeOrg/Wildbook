@@ -18,7 +18,7 @@ const Footer = () => {
   const { data } = useGetSiteSettings();
   useEffect(() => {
     if (data) {
-      setVersion(data.system.wildbookVersion);
+      setVersion(data.system?.wildbookVersion);
     }
   }, [data]);
   return visible ? (
