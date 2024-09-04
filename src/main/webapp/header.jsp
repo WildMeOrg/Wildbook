@@ -263,7 +263,7 @@ if(request.getUserPrincipal()!=null){
                 var action = $(element).data('action');
 
                 if (action === 'login'){
-                     window.open('<%=urlLoc %>/welcome.jsp', '_blank');
+                     window.open('<%=urlLoc %>/react/login/', '_blank');
                 }
                 else {
 

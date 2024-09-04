@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import GoogleMapReact from 'google-map-react';
+import React, { useState } from "react";
+import GoogleMapReact from "google-map-react";
 // import useGoogleMapsApiKey from '../../../../hooks/useGoogleMapsApiKey';
 
 let lastMarker = null;
 
-export default function LatLngMap({ onChange, rest }) {
+export default function LatLngMap({ rest }) {
   const [mapObject, setMapObject] = useState(null);
   const [mapsApi, setMapsApi] = useState(null);
-//   const googleMapsApiKey = useGoogleMapsApiKey();
+  //   const googleMapsApiKey = useGoogleMapsApiKey();
 
   return (
     <div className="w-100 h-100">
@@ -20,7 +20,7 @@ export default function LatLngMap({ onChange, rest }) {
         defaultZoom={1.3}
         options={{ minZoom: 1 }}
         onClick={({ lat, lng }) => {
-        //   onChange([lat, lng]);
+          //   onChange([lat, lng]);
           if (lastMarker) lastMarker.setMap(null); // remove old marker
 
           const markerPosition = new mapsApi.LatLng(lat, lng);
