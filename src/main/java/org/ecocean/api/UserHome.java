@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.Project;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
@@ -99,5 +100,25 @@ public class UserHome extends ApiBase {
         }
         home.put("latestMatchTask", Util.jsonNull(matchJson));
 
+        JSONArray projArr = new JSONArray();
+        count = 0;
+        for (Project proj : currentUser.getProjects(myShepherd)) {
+            JSONObject pj = new JSONObject();
+            pj.put("id", proj.getId());
+            pj.put("name", proj.getResearchProjectName());
+            pj.put("percentComplete", proj.getPercentWithIncrementalIds());
+            pj.put("numberEncounters", proj.getEncounters().size());
+            projArr.put(pj);
+            count++;
+            if (count > 2) break;
+        }
+        home.put("projects", projArr);
+
+        response.setStatus(200);
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Type", "application/json");
+        response.getWriter().write(home.toString());
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
     }
 }
