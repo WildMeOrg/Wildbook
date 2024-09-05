@@ -23,9 +23,7 @@ const columns = [
   { name: "NUMBER_ANNOTATIONS", selector: "numberAnnotations" },
 ];
 
-
 export default function EncounterSearch() {
-
   const intl = useIntl();
   const schemas = useEncounterSearchSchemas();
   const [page, setPage] = useState(0);
@@ -35,10 +33,12 @@ export default function EncounterSearch() {
   const paramsObject = Object.fromEntries(searchParams.entries()) || {};
   const [formFilters, setFormFilters] = useState([]);
   // const [resultPage, setResultPage] = useState(false);
-  // const [refresh, setRefresh] = useState(false);  
+  // const [refresh, setRefresh] = useState(false);
   const regularQuery = searchParams.get("regularQuery");
 
-  const [queryID, setQueryID] = useState(regularQuery ? null : searchParams.get("searchQueryId"));
+  const [queryID, setQueryID] = useState(
+    regularQuery ? null : searchParams.get("searchQueryId"),
+  );
   const [searchData, setSearchData] = useState([]);
   const [filterPanel, setFilterPanel] = useState(queryID ? false : true);
   const [totalItems, setTotalItems] = useState(0);
@@ -73,9 +73,16 @@ export default function EncounterSearch() {
   ];
 
   useEffect(() => {
-    setFormFilters(Array.from(
-      new Map([...paramsFormFilters, ...formFilters].map(filter => [filter.filterId, filter])).values()
-    ));
+    setFormFilters(
+      Array.from(
+        new Map(
+          [...paramsFormFilters, ...formFilters].map((filter) => [
+            filter.filterId,
+            filter,
+          ]),
+        ).values(),
+      ),
+    );
   }, [paramsFormFilters]);
 
   useEffect(() => {
@@ -86,7 +93,7 @@ export default function EncounterSearch() {
     }
   }, [searchParams]);
 
-  const { data: encounterData, loading, } = useFilterEncounters({
+  const { data: encounterData, loading } = useFilterEncounters({
     queries: formFilters,
     params: {
       sort: encounterSortName,
@@ -104,9 +111,9 @@ export default function EncounterSearch() {
     const valueA = a[sortname];
     const valueB = b[sortname];
 
-    if (sortorder === 'asc') {
+    if (sortorder === "asc") {
       return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-    } else if (sortorder === 'desc') {
+    } else if (sortorder === "desc") {
       return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
     } else {
       return 0; // Default to no sorting if sortorder is invalid
@@ -116,48 +123,68 @@ export default function EncounterSearch() {
   const totalEncounters = encounterData?.resultCount || 0;
   const searchQueryId = encounterData?.searchQueryId || "";
 
-
-  const updatedTabs = tabs.map(tab => {
+  const updatedTabs = tabs.map((tab) => {
     const [name, url] = tab.split(":");
-    const updatedUrl = queryID ? `${url}?searchQueryId=${queryID}` : searchQueryId ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true` : url;
+    const updatedUrl = queryID
+      ? `${url}?searchQueryId=${queryID}`
+      : searchQueryId
+        ? `${url}?searchQueryId=${searchQueryId}&regularQuery=true`
+        : url;
     return `${name}:${updatedUrl}`;
   });
 
   useEffect(() => {
     if (queryID) {
-      axios.get(`/api/v3/search/${queryID}?from=${searchIdResultPage * searchIdResultPerPage}&size=${searchIdResultPerPage}&sort=${searchIdSortName}&sortOrder=${searchIdSortOrder}`)
-        .then(response => {
+      axios
+        .get(
+          `/api/v3/search/${queryID}?from=${searchIdResultPage * searchIdResultPerPage}&size=${searchIdResultPerPage}&sort=${searchIdSortName}&sortOrder=${searchIdSortOrder}`,
+        )
+        .then((response) => {
           setSearchData(response?.data?.hits || []);
-          setTotalItems(parseInt(get(response, ["headers", "x-wildbook-total-hits"], "0"), 10));
+          setTotalItems(
+            parseInt(
+              get(response, ["headers", "x-wildbook-total-hits"], "0"),
+              10,
+            ),
+          );
           setFilterPanel(false);
-          // setResultPage(true); 
+          // setResultPage(true);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching search data:", error);
         });
     }
-  }, [queryID, searchIdResultPage, searchIdResultPerPage, searchIdSortName, searchIdSortOrder]);
+  }, [
+    queryID,
+    searchIdResultPage,
+    searchIdResultPerPage,
+    searchIdSortName,
+    searchIdSortOrder,
+  ]);
 
   useEffect(() => {
     const handlePopState = () => {
-      setFilterPanel(prev => !prev);
+      setFilterPanel((prev) => !prev);
     };
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
   const handleSearch = () => {
-    setSearchParams(PrevSearchParams => {
+    setSearchParams((PrevSearchParams) => {
       const newSearchParams = new URLSearchParams(PrevSearchParams);
       newSearchParams.set("results", "true");
       return newSearchParams;
-    }
-    );
+    });
   };
 
-  if (paramsObject.username && paramsFormFilters.find(opt => opt.filterId === "assignedUsername") === undefined) {
+  if (
+    paramsObject.username &&
+    paramsFormFilters.find((opt) => opt.filterId === "assignedUsername") ===
+      undefined
+  ) {
     setFilterPanel(false);
     setParamsFormFilters((prevFilters) => {
       return [
@@ -167,16 +194,19 @@ export default function EncounterSearch() {
           filterId: "assignedUsername",
           filterKey: "Assigned User",
           query: {
-            "term": {
-              "assignedUsername": paramsObject.username
-            }
-          }
-        }
+            term: {
+              assignedUsername: paramsObject.username,
+            },
+          },
+        },
       ];
     });
   }
 
-  if (paramsObject.state && paramsFormFilters.find(opt => opt.filterId === "state") === undefined) {
+  if (
+    paramsObject.state &&
+    paramsFormFilters.find((opt) => opt.filterId === "state") === undefined
+  ) {
     setParamsFormFilters((prevFilters) => {
       return [
         ...prevFilters,
@@ -185,20 +215,21 @@ export default function EncounterSearch() {
           filterId: "state",
           filterKey: "Encounter Status",
           query: {
-            "term": {
-              "state": paramsObject.state
-            }
-          }
-        }
+            term: {
+              state: paramsObject.state,
+            },
+          },
+        },
       ];
     });
-  };
+  }
 
   return (
-
-    <div className="encounter-search container-fluid"
+    <div
+      className="encounter-search container-fluid"
       style={{
-        backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/react/images/encounter_search_background.png')",
+        backgroundImage:
+          "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/react/images/encounter_search_background.png')",
         backgroundSize: "cover",
         minHeight: "800px",
         width: "100%",
@@ -212,7 +243,7 @@ export default function EncounterSearch() {
         }}
         formFilters={formFilters}
         setFormFilters={(input) => {
-          setFormFilters(input)
+          setFormFilters(input);
         }}
         setFilterPanel={setFilterPanel}
         updateFilters={Function.prototype}
@@ -227,7 +258,12 @@ export default function EncounterSearch() {
         style={{
           display: !filterPanel ? "block" : "none",
         }}
-        title={<FormattedMessage id="ENCOUNTER_SEARCH_RESULTS" defaultMessage={"Encounter Search Results"} />}
+        title={
+          <FormattedMessage
+            id="ENCOUNTER_SEARCH_RESULTS"
+            defaultMessage={"Encounter Search Results"}
+          />
+        }
         columnNames={columns}
         tabs={updatedTabs}
         searchText={intl.formatMessage({ id: "SEARCH" })}
@@ -238,11 +274,10 @@ export default function EncounterSearch() {
         onPageChange={queryID ? setSearchIdResultPage : setPage}
         onPerPageChange={queryID ? setSearchIdResultPerPage1 : setPerPage}
         setSort={setSort}
-
         loading={false}
         onRowClicked={(row) => {
           const url = `/encounters/encounter.jsp?number=${row.id}`;
-          window.open(url, '_blank');
+          window.open(url, "_blank");
           // window.location.href = url;
         }}
         onSelectedRowsChange={(selectedRows) => {
