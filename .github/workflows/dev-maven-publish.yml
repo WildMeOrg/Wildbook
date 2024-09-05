@@ -3,10 +3,8 @@ name: Development Build
 on:
   workflow_dispatch:
   push:
-    branches:
-         - tsubramanian-patch-1
     branches-ignore:
-         - master
+         - 'master'
 
 jobs:
   devops:
