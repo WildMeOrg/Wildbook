@@ -4,6 +4,12 @@ on:
     push:
        branches:
           - tsubramanian-patch-1
+          - master
+          - 'releases/**'
+       tags:
+          - 'v**'
+    release:
+          types: [created]
 jobs:
   build:
     name: Maven build and deploy
