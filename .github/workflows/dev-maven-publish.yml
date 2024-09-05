@@ -1,14 +1,13 @@
 name: Development Build
 
 on:
-  workflow_dispatch:
   push:
-    branches-ignore:
-         - 'master'
-
+      branches-ignore:
+          - master
+      tags-ignore:
+          - v*
 jobs:
   devops:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     name: DevOps container image build
     runs-on: ubuntu-latest
 
