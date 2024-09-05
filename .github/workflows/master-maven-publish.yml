@@ -3,7 +3,6 @@ name: Maven build and package for master
 on: 
     push:
        branches:
-          - tsubramanian-patch-1
           - master
           - 'releases/**'
        tags:
