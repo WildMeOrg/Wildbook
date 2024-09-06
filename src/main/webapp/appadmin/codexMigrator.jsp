@@ -468,16 +468,21 @@ System.out.println("TIME: ts=" + ts);
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
-            String lifeStage = cfString(cfData, "344792fc-7910-45cd-867b-cb9c927677e1");
-            String livingStatus = cfString(cfData, "b9eb55f4-ebc6-47b7-9991-9339084c8639");
-            String occRemarks = cfString(cfData, "0d9a3764-f872-4320-ba03-bde268ce1513");
-            String researcherComments = cfString(cfData, "b230a670-ee2e-44c4-89a1-6b1dffe2cda3");
-            String unidentIndiv = cfString(cfData, "0f48fdc5-6a5e-4a01-aeff-2f1bebf4864d");
-            enc.setLifeStage(lifeStage);
-            enc.setLivingStatus(livingStatus);
-            enc.setOccurrenceRemarks(occRemarks);
-            enc.addComments(researcherComments);
-            if (unidentIndiv != null) enc.setDynamicProperty("unidentified_individual", unidentIndiv);
+            String hostPlant = cfString(cfData, "29f0722f-5e56-4b80-b621-8b2bac1f407d");
+            String sizeClass = cfString(cfData, "cc8d56d2-0a61-4c86-83d3-3d3a17d0ea4f");
+            String chirality = cfString(cfData, "10eb6ed6-c350-4699-816f-eff0e61ab8bb");
+            if (!stringEmpty(hostPlant)) {
+                enc.setDynamicProperty("Host plant", hostPlant);
+                enc.addComments("<p><b>Host plant:</b> " + hostPlant + "</p>");
+            }
+            LabeledKeyword kwSizeClass = null;
+            if (!stringEmpty(sizeClass)) {
+                kwSizeClass = myShepherd.getOrCreateLabeledKeyword("Size class", sizeClass, false);
+            }
+            LabeledKeyword kwChirality = null;
+            if (!stringEmpty(chirality)) {
+                kwChirality = myShepherd.getOrCreateLabeledKeyword("Chirality", chirality, false);
+            }
 
             myShepherd.storeNewEncounter(enc, guid);
 
@@ -503,6 +508,9 @@ System.out.println("TIME: ts=" + ts);
         }
         ct++;
         enc.addAnnotation(ann);
+        MediaAsset ma = ann.getMediaAsset();
+        if (kwSizeClass != null) ma.addKeyword(kwSizeClass);
+        if (kwChirality != null) ma.addKeyword(kwChirality);
     }
     out.println("<p>joined " + ct + " enc/ann pairs</p>");
 }
@@ -553,15 +561,18 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             // custom fields, oof
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
+            String forestLayer = cfString(cfData, "8678a29c-408e-4485-aa4b-63e6f18c88da");
+            String elevation = cfString(cfData, "09991baf-fb19-4e5e-8608-0626fdb20615");
+            String popCode = cfString(cfData "ab45bf39-7e01-4f87-8176-6c090349d5d5");
+            String surveyor = cfString(cfData "353f7017-9562-44ad-85d0-2d535ea36a2b");
+
+            LabeledKeyword kwForestLayer = null;
+            if (!stringEmpty(forestLayer)) kwForestLayer = myShepherd.getOrCreateLabeledKeyword("Forest layer", forestLayer, false);
+            Measurement elevMeas = null;  //FIXME
+/*
             Map<String,String> cfMap = new HashMap<String,String>();
             cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
-            cfMap.put("Observation Type", cfString(cfData, "736d8b8f-7abb-404f-9da8-0c1507185baa"));
-            cfMap.put("Seen with Unknown Seal", cfString(cfData, "e9a00eab-7ea6-4777-afb3-79d95ebfbf4f"));
-            cfMap.put("Photography Type", cfString(cfData, "cf7ed66f-e6c1-4cb1-aadf-0f141ca22316"));
-            cfMap.put("Sighting Origin", cfString(cfData, "15b4525a-47e9-4673-ae42-f99ea55f810c"));
-            cfMap.put("Seen with Unknown Pup", cfString(cfData, "d0f2cc9e-0845-4608-8754-3d1f70eec699"));
-            String photogName = cfString(cfData, "305b50df-7f21-4d8d-aeb6-45ab1869f5ba");
-            String photogEmail = cfString(cfData, "ecc6f017-057c-4821-b07a-f82cd60aa31d");
+*/
 
             // we have to link encounters here due to customField needs :(
             //  this makes the joining code below kinda redundant but leaving it to catch stuff that missed
@@ -571,12 +582,18 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
                 if (enc == null) continue;
                 occ.addEncounter(enc);
                 enc.setOccurrenceID(occ.getId());
-                if (!stringEmpty(photogName)) enc.setPhotographerName(photogName);
-                if (!stringEmpty(photogEmail)) enc.setPhotographerEmail(photogEmail);
+                if (kwForestLayer != null) {
+                    for (MediaAsset ma : enc.getMedia()) {
+                        ma.addKeyword(kwForestLayer);
+                    }
+                }
+                if (elevMeas != null) enc.addMeasurement(elevMeas);
+                if (!stringEmpty(popCode)) enc.addComments("<p><b>Popluation code:</b> " + popCode + "</p>");
+                if (!stringEmpty(surveyor)) enc.setPhotographerName(surveyor);
             }
 
             // now we can do this, since it needs encs
-            cfOccurrence(myShepherd, occ, cfMap);
+            //cfOccurrence(myShepherd, occ, cfMap);
 
             myShepherd.storeNewOccurrence(occ);
 
@@ -588,6 +605,8 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
     }
     out.println("</ol>");
 
+
+/*
     ct = 0;
     res = st.executeQuery("SELECT guid, sighting_guid FROM encounter ORDER BY sighting_guid");
     while (res.next()) {
@@ -605,6 +624,7 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
         }
     }
     out.println("<p>joined " + ct + " occ/enc pairs</p>");
+*/
 
 }
 
@@ -666,54 +686,8 @@ private static void migrateMarkedIndividuals(JspWriter out, Shepherd myShepherd,
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
 
-            String dateOfBirth = cfString(cfData, "87d08929-2133-4053-911a-8740f7fa8dd5");
-            if (!stringEmpty(dateOfBirth)) try {
-                indiv.setTimeOfBirth(Util.getVersionFromModified(dateOfBirth));
-            } catch (Exception ex) {}
-            String dateOfDeath = cfString(cfData, "ed537aa9-5d68-45e5-9236-f701d95a8bdd");
-            if (!stringEmpty(dateOfDeath)) try {
-                indiv.setTimeOfDeath(Util.getVersionFromModified(dateOfDeath));
-            } catch (Exception ex) {}
-            String notes = cfString(cfData, "8ac7286d-3290-41d3-8497-17b3f7aa5184");
-            if (!stringEmpty(notes)) indiv.addComments(notes);
-
-            // these require more complex stuff
-            String withPup = cfString(cfData, "6428357e-8965-45f6-8f53-d17df08c4316");
-            String lifeStatus = cfString(cfData, "854a9755-1909-464b-b024-7608045309a7");
-            String flipperTag = cfString(cfData, "7bb54bb8-f148-47b5-91b3-286b8851e461");
-            String entanglement = cfString(cfData, "e9ecaaac-54c9-4c94-bf2e-0989f467c1d1");
-
-            if (!stringEmpty(withPup)) {
-                indiv.addComments("<p><b>With Pup:</b> " + withPup + "</p>");
-                for (Encounter enc : indiv.getEncounters()) {
-System.out.println(">>>>> ??? " + withPup + " on " + enc);
-                    enc.setDynamicProperty("with_pup", withPup);
-                }
-            }
-            if (!stringEmpty(flipperTag)) {
-                indiv.addComments("<p><b>Flipper Tag:</b> " + flipperTag + "</p>");
-                MetalTag tag = new MetalTag(flipperTag, "flipper");
-                for (Encounter enc : indiv.getEncounters()) {
-System.out.println(">>>>> ??? " + tag + " on " + enc);
-                    enc.addMetalTag(tag);
-                }
-            }
-            if (!stringEmpty(lifeStatus)) {
-                indiv.addComments("<p><b>Life Status:</b> " + lifeStatus + "</p>");
-                Encounter[] recent = indiv.getDateSortedEncounters(true, 1);
-                if ((recent != null) && (recent.length > 0)) recent[0].setLifeStage(lifeStatus);
-System.out.println(">>>>> ??? " + lifeStatus + " on " + indiv);
-            }
-            if (!stringEmpty(entanglement)) {
-                indiv.addComments("<p><b>Entanglement:</b> " + entanglement + "</p>");
-                LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Entanglement", entanglement, false);
-                for (Encounter enc : indiv.getEncounters()) {
-                    for (MediaAsset ma : enc.getMedia()) {
-System.out.println(">>>>> ??? " + kw + " on " + enc);
-                        ma.addKeyword(kw);
-                    }
-                }
-            }
+            String notes = cfString(cfData, "fd214713-6a55-4115-b253-5f5fadeebc7e");
+            if (!stringEmpty(notes)) indiv.addComments("<p>" + notes + "</p>");
 
             myShepherd.storeNewMarkedIndividual(indiv);
 
