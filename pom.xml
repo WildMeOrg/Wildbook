@@ -526,33 +526,6 @@
       <version>0.6.1</version>
     </dependency>
 
-    <!-- dependencies for Stanford NLP -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>3.9.1</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.protobuf</groupId>
-          <artifactId>protobuf-java</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
-    <dependency>
-      <groupId>sutime-stanford-corenlp-models</groupId>
-      <artifactId>sutime-stanford-corenlp-models</artifactId>
-      <version>3.6.0</version>
-    </dependency>
-
-    <!-- https://mvnrepository.com/artifact/edu.stanford.nlp/stanford-parser -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-parser</artifactId>
-      <version>3.9.1</version>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
     <dependency>
       <groupId>nz.ac.waikato.cms.weka</groupId>

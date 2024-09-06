@@ -1,14 +1,15 @@
-import React, { useState, createContext } from "react";
+import React, { useState } from "react";
 import { IntlProvider } from "react-intl";
 import messagesEn from "./locale/en.json";
 import messagesEs from "./locale/es.json";
 import messagesFr from "./locale/fr.json";
 import messagesIt from "./locale/it.json";
+import messagesDe from "./locale/de.json";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { QueryClient, QueryClientProvider } from "react-query";
 import FrontDesk from "./FrontDesk";
-import { BrowserRouter, useLocation, useRoutes } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import LocaleContext from "./IntlProvider";
 import FooterVisibilityContext from "./FooterVisibilityContext";
 import Cookies from "js-cookie";
@@ -20,15 +21,15 @@ function App() {
     es: messagesEs,
     fr: messagesFr,
     it: messagesIt,
+    de: messagesDe,
   };
   const initialLocale = Cookies.get("wildbookLangCode") || "en";
   const [locale, setLocale] = useState(initialLocale);
   const [visible, setVisible] = useState(true);
   const containerStyle = {
-    // maxWidth: "1440px",
     display: "flex",
     flexDirection: "column",
-    minHeight: "100vh", 
+    minHeight: "100vh",
   };
 
   const queryClient = new QueryClient();
@@ -44,11 +45,10 @@ function App() {
       ...prevFilters,
       [filterName]: value,
     }));
-
-  }
+  };
 
   const resetFilters = () => {
-    setFilters({}); 
+    setFilters({});
   };
 
   return (
@@ -67,9 +67,14 @@ function App() {
               messages={messageMap[locale]}
             >
               <FooterVisibilityContext.Provider value={{ visible, setVisible }}>
-              <FilterContext.Provider value={{ filters, updateFilter, resetFilters }}>
-                <FrontDesk adminUserInitialized={true} setLocale={setLocale} />
-              </FilterContext.Provider>
+                <FilterContext.Provider
+                  value={{ filters, updateFilter, resetFilters }}
+                >
+                  <FrontDesk
+                    adminUserInitialized={true}
+                    setLocale={setLocale}
+                  />
+                </FilterContext.Provider>
               </FooterVisibilityContext.Provider>
             </IntlProvider>
           </BrowserRouter>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import UnauthenticatedSwitch from "./UnAuthenticatedSwitch";
 import AuthenticatedSwitch from "./AuthenticatedSwitch";
 import axios from "axios";
@@ -12,12 +12,13 @@ import "./css/scrollBar.css";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState();
   const [collaborationTitle, setCollaborationTitle] = useState();
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-  const [showAlert, setShowAlert] = useState(() => Cookies.get("showAlert") === "false" ? false : true);
+  const [showAlert, setShowAlert] = useState(() =>
+    Cookies.get("showAlert") === "false" ? false : true,
+  );
   const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = () => {
@@ -31,7 +32,6 @@ export default function FrontDesk() {
         console.log("Error", error);
         setLoading(false);
         setIsLoggedIn(false);
-        setError(error.response.status);
       });
   };
 
@@ -83,7 +83,7 @@ export default function FrontDesk() {
   if (!isLoggedIn) {
     return (
       <>
-        {/* <GoogleTagManager /> */}
+        <GoogleTagManager />
         <UnauthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
