@@ -136,6 +136,16 @@ private static Integer cfInteger(JSONObject cfData, String key) {
     return null;
 }
 
+private static Double cfDouble(JSONObject cfData, String key) {
+    if (cfData == null) return null;
+    if (!cfData.has(key)) return null;
+    if (cfData.isNull(key)) return null;
+    try {
+        return cfData.getDouble(key);
+    } catch (Exception ex) {}
+    return null;
+}
+
 private static Map<String,String> relationshipMeta(Connection conn) throws SQLException, IOException {
     Object ss = siteSetting("relationship_type_roles", conn);
     Map<String,String> rtn = new HashMap<String,String>();
@@ -562,13 +572,13 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             //  these need to be hard-coded per migration
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
             String forestLayer = cfString(cfData, "8678a29c-408e-4485-aa4b-63e6f18c88da");
-            String elevation = cfString(cfData, "09991baf-fb19-4e5e-8608-0626fdb20615");
+            Double elevation = cfDouble(cfData, "09991baf-fb19-4e5e-8608-0626fdb20615");
             String popCode = cfString(cfData "ab45bf39-7e01-4f87-8176-6c090349d5d5");
             String surveyor = cfString(cfData "353f7017-9562-44ad-85d0-2d535ea36a2b");
 
             LabeledKeyword kwForestLayer = null;
             if (!stringEmpty(forestLayer)) kwForestLayer = myShepherd.getOrCreateLabeledKeyword("Forest layer", forestLayer, false);
-            Measurement elevMeas = null;  //FIXME
+            Measurement elevMeas = null;
 /*
             Map<String,String> cfMap = new HashMap<String,String>();
             cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
@@ -587,8 +597,14 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
                         ma.addKeyword(kwForestLayer);
                     }
                 }
-                if (elevMeas != null) enc.addMeasurement(elevMeas);
-                if (!stringEmpty(popCode)) enc.addComments("<p><b>Popluation code:</b> " + popCode + "</p>");
+                if (elevation != null) {
+                    Measurement meas = new Measurement(enc.getId(), "Elevation", elevation, "meters", null);
+                    enc.addMeasurement(meas);
+                }
+                if (!stringEmpty(popCode)) {
+                    enc.addComments("<p><b>Popluation code:</b> " + popCode + "</p>");
+                    enc.dynamicProperty("Popluation code", popCode);
+                }
                 if (!stringEmpty(surveyor)) enc.setPhotographerName(surveyor);
             }
 
