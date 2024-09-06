@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 import GoogleMapReact from "google-map-react";
 import BrutalismButton from "./BrutalismButton";
 import ThemeContext from "../ThemeColorProvider";
@@ -74,7 +74,14 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
     drawingRef.current = !drawingRef.current;
   };
 
-  const key = window?.wildbookGlobals?.gtmKey || "";
+  const [key, setKey] = useState(null);
+
+  useEffect(() => {
+    if (window?.wildbookGlobals?.gMapKey) {
+      setKey(window?.wildbookGlobals?.gMapKey);
+      console.log("key3", window?.wildbookGlobals?.gMapKey);
+    }
+  }, [window?.wildbookGlobals]);
 
   return (
     <div style={{ height: "400px", width: "100%" }}>
@@ -102,13 +109,25 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
           <FormattedMessage id="DRAW" />
         )}
       </BrutalismButton>
-      <GoogleMapReact
-        bootstrapURLKeys={{ key: key }}
-        defaultCenter={center}
-        defaultZoom={zoom}
-        yesIWantToUseGoogleMapApiInternals
-        onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
-      />
+      {key ? (
+        <GoogleMapReact
+          key={key}
+          bootstrapURLKeys={{ key: key }}
+          defaultCenter={center}
+          defaultZoom={zoom}
+          yesIWantToUseGoogleMapApiInternals
+          onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
+        />
+      ) : (
+        <div
+          className="d-flex justify-content-center align-items-center text-center w-100 h-100"
+          style={{
+            fontSize: "24px",
+          }}
+        >
+          <FormattedMessage id="MAP_LOADING" />
+        </div>
+      )}
     </div>
   );
 };
