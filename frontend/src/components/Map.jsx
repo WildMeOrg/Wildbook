@@ -79,7 +79,6 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
   useEffect(() => {
     if (window?.wildbookGlobals?.gMapKey) {
       setKey(window?.wildbookGlobals?.gMapKey);
-      console.log("key3", window?.wildbookGlobals?.gMapKey);
     }
   }, [window?.wildbookGlobals]);
 
@@ -125,7 +124,7 @@ const MapComponent = ({ center, zoom = 10, setBounds, setTempBounds }) => {
             fontSize: "24px",
           }}
         >
-          <FormattedMessage id="MAP_LOADING" />
+          <FormattedMessage id="MAP_IS_LOADING" />
         </div>
       )}
     </div>
