@@ -423,6 +423,9 @@ private static void migrateEncounters(JspWriter out, Shepherd myShepherd, Connec
     ResultSet res = st.executeQuery("SELECT encounter.*, complex_date_time.datetime, complex_date_time.timezone, complex_date_time.specificity FROM encounter JOIN complex_date_time ON (time_guid = complex_date_time.guid) ORDER BY guid");
     int ct = 0;
 
+    Map<String,String> mapSizeClass = new HashMap<String,String>();
+    Map<String,String> mapChirality = new HashMap<String,String>();
+
     while (res.next()) {
         ct++;
         if (ct > batchMax()) break;
@@ -485,14 +488,8 @@ System.out.println("TIME: ts=" + ts);
                 enc.setDynamicProperty("Host plant", hostPlant);
                 enc.addComments("<p><b>Host plant:</b> " + hostPlant + "</p>");
             }
-            LabeledKeyword kwSizeClass = null;
-            if (!stringEmpty(sizeClass)) {
-                kwSizeClass = myShepherd.getOrCreateLabeledKeyword("Size class", sizeClass, false);
-            }
-            LabeledKeyword kwChirality = null;
-            if (!stringEmpty(chirality)) {
-                kwChirality = myShepherd.getOrCreateLabeledKeyword("Chirality", chirality, false);
-            }
+            if (!stringEmpty(sizeClass)) mapSizeClass.put(enc.getId(), sizeClass);
+            if (!stringEmpty(chirality)) mapChirality.put(enc.getId(), chirality);
 
             myShepherd.storeNewEncounter(enc, guid);
 
@@ -519,8 +516,16 @@ System.out.println("TIME: ts=" + ts);
         ct++;
         enc.addAnnotation(ann);
         MediaAsset ma = ann.getMediaAsset();
-        if (kwSizeClass != null) ma.addKeyword(kwSizeClass);
-        if (kwChirality != null) ma.addKeyword(kwChirality);
+        String sizeClass = mapSizeClass.get(enc.getId());
+        if (sizeClass != null) {
+            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Size class", sizeClass, false);
+            ma.addKeyword(kw);
+        }
+        String chirality = mapChirality.get(enc.getId());
+        if (chirality != null) {
+            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword("Chirality", chirality, false);
+            ma.addKeyword(kw);
+        }
     }
     out.println("<p>joined " + ct + " enc/ann pairs</p>");
 }
@@ -573,8 +578,8 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
             JSONObject cfData = cleanJSONObject(res.getString("custom_fields"));
             String forestLayer = cfString(cfData, "8678a29c-408e-4485-aa4b-63e6f18c88da");
             Double elevation = cfDouble(cfData, "09991baf-fb19-4e5e-8608-0626fdb20615");
-            String popCode = cfString(cfData "ab45bf39-7e01-4f87-8176-6c090349d5d5");
-            String surveyor = cfString(cfData "353f7017-9562-44ad-85d0-2d535ea36a2b");
+            String popCode = cfString(cfData, "ab45bf39-7e01-4f87-8176-6c090349d5d5");
+            String surveyor = cfString(cfData, "353f7017-9562-44ad-85d0-2d535ea36a2b");
 
             LabeledKeyword kwForestLayer = null;
             if (!stringEmpty(forestLayer)) kwForestLayer = myShepherd.getOrCreateLabeledKeyword("Forest layer", forestLayer, false);
@@ -599,11 +604,11 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
                 }
                 if (elevation != null) {
                     Measurement meas = new Measurement(enc.getId(), "Elevation", elevation, "meters", null);
-                    enc.addMeasurement(meas);
+                    enc.setMeasurement(meas, myShepherd);
                 }
                 if (!stringEmpty(popCode)) {
                     enc.addComments("<p><b>Popluation code:</b> " + popCode + "</p>");
-                    enc.dynamicProperty("Popluation code", popCode);
+                    enc.setDynamicProperty("Popluation code", popCode);
                 }
                 if (!stringEmpty(surveyor)) enc.setPhotographerName(surveyor);
             }
@@ -1173,6 +1178,7 @@ File dataDir = CommonConfiguration.getDataDirectory(getServletContext(), context
 
 
 Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+if (props != null) return;
 
 JSONObject locJson = locationJson(conn);
 // hard-coded file path, but life is rough
@@ -1202,9 +1208,8 @@ migrateSocialGroups(out, myShepherd, conn);
 
 migratePendingSightings(out, myShepherd, conn, request);
 
-*/
-
 migrateCollaborations(out, myShepherd, conn, request);
+*/
 
 myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
