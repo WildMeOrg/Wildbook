@@ -26,10 +26,10 @@ jobs:
         mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
         mvn -B package --file pom.xml
 
-# Publishing to the 
-    - name: Publish to GitHub Packages
-      if: github.event_name == 'push' 
-      run: mvn -B deploy -Dversion=development
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Publishing to git is disabld for Development branch
+    #- name: Publish to GitHub Packages
+    #if: github.event_name == 'push' 
+    #run: mvn -B deploy -Dversion=development
+    #env:
+    #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
