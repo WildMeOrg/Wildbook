@@ -239,5 +239,6 @@
     "CITATION_CITATION_DETAILS_1": "S.Gero, J. Levenson, J. Van Oast., J Holmberg, A. Marine-Biologist, C. Researcher, O. Cean. (2016). Collaborative dataset from: Flukebook.org. Consolidated and downloaded: June 15, 2016.",
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: https://www.flukebook.org",
     "CITATION_FORWARD": "To forward the citation of any publication / report that made use of the data / tools provided by Wild Me for inclusion in our list of references by submitting to info@wildme.org.",
-    "CITATION_DISCLAIMER": "Not to hold Wild Me or the original data providers liable for errors in the data. While we have made every effort to ensure the quality of the database, we cannot guarantee the accuracy of these datasets."
+    "CITATION_DISCLAIMER": "Not to hold Wild Me or the original data providers liable for errors in the data. While we have made every effort to ensure the quality of the database, we cannot guarantee the accuracy of these datasets.",
+    "MAP_IS_LOADING" : "Map is loading"
 }
