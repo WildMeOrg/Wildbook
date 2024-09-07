@@ -17,9 +17,13 @@
 1. create a folder `react` under deployed `wildbook/` dir
 
 ### steps to build and deploy react
+#### using npm to build and deploy to your local deployment
+If you have your dev environment set up correctly, this will build the React app and copy it into your local deployment directory for you.
+1. cd to `REPO/frontend/`
+2. run `npm run deploy-dev`
+3. refresh your browser page by visiting either `http://localhost:81/react/` for local testing or `https://public.url.example.com/react/` for the public-facing deployment
+
+#### manually building and deploying
 1. cd to `REPO/frontend/` and run `npm run build`
 2. copy everything under `frontend/build/` to the deployed `wildbook/react/` directory you created during setup
 3. refresh your browser page by visiting either `http://localhost:81/react/` for local testing or `https://public.url.example.com/react/` for the public-facing deployment
-
-
-
