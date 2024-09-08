@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Container, Row, Col, Form } from "react-bootstrap";
+import { Container, Row, Col, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import BrutalismButton from "../components/BrutalismButton";
 import { useIntl } from "react-intl";
@@ -9,11 +9,15 @@ import WildmeLogo from "../components/svg/WildmeLogo";
 import { Alert } from "react-bootstrap";
 import { useContext } from "react";
 import ThemeColorContext from "../ThemeColorProvider";
+import IconButton from '@mui/material/IconButton';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 function LoginPage() {
   useDocumentTitle("SIGN_IN");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const intl = useIntl();
   const { authenticate, error, setError, loading } = useLogin();
   const actionDisabled = loading || username === "" || password === "";
@@ -31,6 +35,10 @@ function LoginPage() {
     setError(null);
     setShow(false);
     authenticate(username, password);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -138,15 +146,27 @@ function LoginPage() {
                     id: "LOGIN_PASSWORD",
                   })}
                 </Form.Label>
-                <Form.Control
-                  autoComplete="current-password"
-                  type="password"
-                  placeholder="Password"
-                  onChange={(e) => {
+                <div style={{ position: "relative" }}>
+                  <Form.Control
+                    autoComplete="current-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    onChange={(e) => {
                     setPassword(e.target.value);
                     setError(null);
                   }}
-                />
+                  />
+                  <IconButton onClick={togglePasswordVisibility}
+                    style={{
+                      position: "absolute",
+                      right: "0.5rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      padding: 0,
+                    }}>
+                    {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  </IconButton>
+                </div>
               </Form.Group>
 
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
