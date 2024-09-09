@@ -741,6 +741,14 @@
 		 			 	"lat":-20.902437,
 		 			 	"long":15.864258
 		 			 }
+				},
+				{
+					"name": "Onduli",
+					"id": "Onduli",
+					"geospatialInfo":{
+						"lat": -20.678786,
+						"long": 14.638947
+					}
 				}
 			]
 		},
