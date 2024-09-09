@@ -559,6 +559,16 @@
 		<url-pattern>/api/v3/home</url-pattern>
 	</servlet-mapping>
 
+
+  <servlet>
+    <servlet-name>ApiProjects</servlet-name>
+    <servlet-class>org.ecocean.api.Projects</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>ApiProjects</servlet-name>
+    <url-pattern>/api/v3/projects/*</url-pattern>
+</servlet-mapping>
+
 	<servlet>
 		<servlet-name>SearchApi</servlet-name>
 		<servlet-class>org.ecocean.api.SearchApi</servlet-class>
