@@ -1,0 +1,88 @@
+{
+	"_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
+	"_global": {
+		"_note": "according to drew, these are not used and should be set within _confs below!",
+		"add_images": "http://wbia:5000/api/image/json/",
+		"add_annotations": "http://wbia:5000/api/annot/json/",
+		"start_identify": "http://wbia:5000/api/engine/query/graph/",
+		"identify_review": "http://wbia:5000/api/review/query/graph/",
+		"start_detect": "http://wbia:5000/api/engine/detect/cnn/lightnet/",
+		"detect_review": "http://wbia:5000/api/review/detect/cnn/yolo/",
+		"get_job_status": "http://wbia:5000/api/engine/job/status/",
+		"get_job_result": "http://wbia:5000/api/engine/job/result/"
+	},
+	"_default": "@Giraffa.camelopardalis.reticulata",
+
+
+	"Giraffa": {
+		"reticulata": "@Giraffa.tippelskirchi",
+
+		"giraffa": {
+			"angolensis": "@Giraffa.tippelskirchi",
+			"giraffa": "@Giraffa.tippelskirchi",
+
+			"_note": "below this is to handle the case where taxonomy = 'Giraffa.giraffa' (no 3rd term)",
+			"_detect_conf": "@Giraffa.tippelskirchi._detect_conf",
+			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
+			"giraffe_reticulated": "@Giraffa.tippelskirchi.giraffe_reticulated",
+			"giraffe_masai": "@Giraffa.tippelskirchi.giraffe_masai",
+			"giraffe_whole": "@Giraffa.tippelskirchi.giraffe_whole"
+		},
+
+		"camelopardalis": {
+			"camelopardalis": "@Giraffa.tippelskirchi",
+			"antiquorum": "@Giraffa.tippelskirchi",
+			"peralta": "@Giraffa.tippelskirchi",
+
+			"_note": "below this is to handle the case where taxonomy = 'Giraffa.camelopardalis' (no 3rd term)",
+			"_detect_conf": "@Giraffa.tippelskirchi._detect_conf",
+			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
+			"giraffe_reticulated": "@Giraffa.tippelskirchi.giraffe_reticulated",
+			"giraffe_masai": "@Giraffa.tippelskirchi.giraffe_masai",
+			"giraffe_whole": "@Giraffa.tippelskirchi.giraffe_whole"
+		},
+
+		"tippelskirchi": {
+			"thornicrofti": "@Giraffa.tippelskirchi",
+			"_detect_conf": [
+				{
+					"xclass": "giraffe_reticulated",
+					"start_detect": "http://wbia:5000/api/engine/detect/cnn/lightnet/",
+					"labeler_algo": "densenet",
+                    			"labeler_model_tag": "giraffe_v1",
+                    			"model_tag": "giraffe_v1",
+                    			"nms_thresh": 0.5,
+                    			"sensitivity": 0.58
+				}
+			],
+			"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf",
+
+			"giraffe_reticulated": {
+				"_save_as": "giraffe_whole",
+				"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf"
+			},
+			"giraffe_masai": {
+				"_save_as": "giraffe_whole",
+				"_id_conf": "@Giraffa.tippelskirchi.giraffe_whole._id_conf"
+			},
+
+			"giraffe_whole": {
+				"_id_conf": [
+					{
+					  "query_config_dict": {
+						 "pipeline_root": "MiewId"
+					  },
+					  "description": "MiewID Matcher",
+										  "default": true
+					},
+					{
+						"query_config_dict": {
+							"sv_on": true
+						},
+						"description": "HotSpotter pattern-matcher"
+					}
+				]
+			}
+		}
+	}
+}

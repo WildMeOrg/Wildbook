@@ -1,0 +1,11 @@
+.custom-nav-dropdown {
+    position: relative;
+  }
+  
+  .custom-nav-dropdown .dropdown-menu {
+    position: absolute;
+    top: 90%;  
+    left: 0; 
+    transform: translateX(-68%); 
+  }
+  
