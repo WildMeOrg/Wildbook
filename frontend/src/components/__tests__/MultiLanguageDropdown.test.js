@@ -30,6 +30,6 @@ test("renders MultiLanguageDropdown and changes language on click", () => {
   expect(getByAltText("fr").src).toContain(
     `/react/flags/${localeMap["fr"]}.png`,
   );
-
   expect(mockOnLocaleChange).toHaveBeenCalledWith("fr");
+  expect(getByText(languageMap["fr"])).toMatchSnapshot();
 });

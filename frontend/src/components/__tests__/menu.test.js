@@ -23,5 +23,5 @@ test('renders "Submit" in the menu and matches snapshot', () => {
   );
 
   expect(getByText("SUBMIT")).toBeInTheDocument();
-  expect(getByText).toMatchSnapshot();
+  expect(getByText("SUBMIT")).toMatchSnapshot();
 });
