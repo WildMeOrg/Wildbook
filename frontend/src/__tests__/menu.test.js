@@ -1,10 +1,10 @@
 import React from "react";
 import { render } from "@testing-library/react";
-import Menu from "../header/Menu";
+import Menu from "../components/header/Menu";
 import { IntlProvider } from "react-intl";
 import "@testing-library/jest-dom";
 
-jest.mock("../../constants/navMenu", () => ({
+jest.mock("../constants/navMenu", () => ({
   authenticatedMenu: () => [
     {
       submit: [{ name: "Submit", href: "/submit" }],

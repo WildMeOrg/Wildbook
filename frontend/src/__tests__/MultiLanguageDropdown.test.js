@@ -1,8 +1,8 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react";
-import MultiLanguageDropdown from "../navBar/MultiLanguageDropdown";
-import LocaleContext from "../../IntlProvider";
-import { localeMap, languageMap } from "../../constants/locales";
+import MultiLanguageDropdown from "../components/navBar/MultiLanguageDropdown";
+import LocaleContext from "../IntlProvider";
+import { localeMap, languageMap } from "../constants/locales";
 import "@testing-library/jest-dom"; // Ensure you have this installed for extended matchers
 import Cookies from "js-cookie";
 
