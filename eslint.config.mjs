@@ -58,21 +58,15 @@ export default [
     },
   },
   {
-    files: ['frontend/babel.config.js', 'frontend/jest.config.js'],  // Specify the config files
+    files: ['frontend/babel.config.js', 'frontend/jest.config.js', 'babel.config.js'],  // Specify the config files
     languageOptions: {
       globals: {
-        require: "readonly",  // Define Node.js globals
+        require: "readonly",  
         module: "readonly",
-        __dirname: "readonly",  // Other common Node.js globals if necessary
+        __dirname: "readonly",  
         process: "readonly",
-        jest: "readonly",
-        test: "readonly",
-        expect: "readonly",
       },
-    },
-    // env: {
-    //   node: true,  // Enable Node.js environment
-    // },
+    },    
   },
   {
     files: ["**/__tests__/**/*.{js,jsx}", "**/*.test.{js,jsx}"],
@@ -84,7 +78,7 @@ export default [
       },
     },
     rules: {
-      "react/react-in-jsx-scope": 0,  // Disable React in scope for JSX if using React 17+
+      "react/react-in-jsx-scope": 0,  // Disable React in scope for JSX cuz we are using React 17+
     }
   }
 ];
