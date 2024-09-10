@@ -15,7 +15,8 @@
 							"geospatialInfo": {
 								"lat": -22.335196,
 								"long": 28.889281
-							}
+							},
+							"locationID":[]
 						},
 						{
 							"name": "Northern Tuli Game Reserve",
@@ -23,7 +24,8 @@
 							"geospatialInfo": {
 								"lat": -22.149146,
 								"long": 29.120104
-							}
+							},
+							"locationID":[]
 						}
 					]
 				}
@@ -46,7 +48,8 @@
 					"geospatialInfo":{
 		 			 	"lat":1.270203,
 		 			 	"long":37.382723
-		 			 }
+		 			 },
+					  "locationID":[]
 				},
 				{
 					"name": "Faro National Park",
@@ -54,7 +57,8 @@
 					"geospatialInfo": {
 						"lat": 8.193,
 						"long": 12.714
-					}
+					},
+					"locationID":[]
 				}
 			]
 		},
@@ -68,7 +72,8 @@
 					"geospatialInfo":{
 		 			 	"lat":10.847778,
 		 			 	"long":19.647778
-		 			 }
+		 			 },
+					"locationID":[]
 				}
 			]
 		},
@@ -80,7 +85,8 @@
 				{
 					"name": "Garamba",
 					"id": "Garamba",
-					"description": "Garamba"
+					"description": "Garamba",
+					"locationID":[]
 				}
 			]
 		},
@@ -96,7 +102,8 @@
 					"name": "Amboseli Ecosystem",
 					"id": "Amboseli Ecosystem",
 					"prefix": "KEN_AMNP_",
-					"prefixDigitPadding": 4
+					"prefixDigitPadding": 4,
+					"locationID":[]
 				},
 				{
     "name": "Athi-Kapiti Plains",
@@ -106,47 +113,56 @@
 		{
             "name": "Astra Ranch",
             "id": "Astra Ranch",
-            "description": "Astra Ranch"
+            "description": "Astra Ranch",
+			"locationID":[]
         },
 		{
             "name": "Kapiti Plains Estate",
             "id": "Kapiti Plains Estate",
-            "description": "Kapiti Plains Estate"
+            "description": "Kapiti Plains Estate",
+			"locationID":[]
         },
 		{
             "name": "Lisa Ranch",
             "id": "Lisa Ranch",
-            "description": "Lisa Ranch"
+            "description": "Lisa Ranch",
+			"locationID":[]
         },
 		{
             "name": "Lukenya Hill Conservancy",
             "id": "Lukenya Hill Conservancy",
-            "description": "Lukenya Hill Conservancy"
+            "description": "Lukenya Hill Conservancy",
+			"locationID":[]
         },
         {
             "name": "Lukenya Wildlife Conservancy",
             "id": "Lukenya Wildlife Conservancy",
-            "description": "Lukenya Wildlife Conservancy"
+            "description": "Lukenya Wildlife Conservancy",
+			"locationID":[]
         },
 		{
             "name": "Maanzoni Wildlife Conservancy",
             "id": "Maanzoni Wildlife Conservancy",
-            "description": "Maanzoni Wildlife Conservancy"
+            "description": "Maanzoni Wildlife Conservancy",
+			"locationID":[]
         },
         {
             "name": "Machakos Ranching",
             "id": "Machakos Ranching",
-            "description": "Machakos Ranching"
+            "description": "Machakos Ranching",
+			"locationID":[]
         },
 		{
             "name": "Mwambi Hill Conservancy",
             "id": "Mwambi Hill Conservancy",
-            "description": "Mwambi Hill Conservancy"
+            "description": "Mwambi Hill Conservancy",
+			"locationID":[]
         },
 		{
             "name": "Swara Plains Conservancy",
             "id": "Swara Plains Conservancy",
-            "description": "Swara Plains Conservancy"
+            "description": "Swara Plains Conservancy",
+			"locationID":[]
         }
         
     ]
@@ -154,7 +170,8 @@
 				{
 					"name": "Garissa",
 					"id": "Garissa",
-					"description": "Garissa"
+					"description": "Garissa",
+					"locationID":[]
 				},
 				{
 					"name": "Naivasha",
@@ -163,172 +180,206 @@
 						{
 							"name": "Bilashaka Farm",
 							"id": "Bilashaka Farm",
-							"description": "Bilashaka Farm"
+							"description": "Bilashaka Farm",
+							"locationID":[]
 						},
 						{
 							"name": "Colour Crops Farm",
 							"id": "Colour Crops Farm",
-							"description": "Colour Crops Farm"
+							"description": "Colour Crops Farm",
+							"locationID":[]
 						},
 					{
 						"name": "Crater Lake Game Sanctuary",
 						"id": "Crater Lake Game Sanctuary",
-						"description": "Crater Lake Game Sanctuary"
+						"description": "Crater Lake Game Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Crescent Island Game Sanctuary",
 						"id": "Crescent Island Game Sanctuary",
-						"description": "Crescent Island Game Sanctuary"
+						"description": "Crescent Island Game Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Gideon Moi Farm",
 						"id": "Gideon Moi Farm",
-						"description": "Gideon Moy Farm"
+						"description": "Gideon Moy Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Hells Gate National Park",
 						"id": "Hells Gate National Park",
-						"description": "Hells Gate National Park"
+						"description": "Hells Gate National Park",
+						"locationID":[]
 					},
 					{
 						"name": "Hippo Point Farm",
 						"id": "Hippo Point Farm",
-						"description": "Hippo Point Farm"
+						"description": "Hippo Point Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Karlo Farm",
 						"id": "Karlo Farm",
-						"description": "Karlo Farm"
+						"description": "Karlo Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Kedong Ranch",
 						"id": "Kedong Ranch",
-						"description": "Kedong Ranch"
+						"description": "Kedong Ranch",
+						"locationID":[]
 					},
 					{
 						"name": "Kilimandege Bird Sanctuary",
 						"id": "Kilimandege Bird Sanctuary",
-						"description": "Kilimandege Bird Sanctuary"
+						"description": "Kilimandege Bird Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Kimata Farm",
 						"id": "Kimata Farm",
-						"description": "Kimata Farm"
+						"description": "Kimata Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Kinja Farm",
 						"id": "Kinja Farm",
-						"description": "Kinja Farm"
+						"description": "Kinja Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Kipkulei Farm",
 						"id": "Kipkulei Farm",
-						"description": "Kipkulei Farm"
+						"description": "Kipkulei Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Kongoni Game Valley",
 						"id": "Kongoni Game Valley",
-						"description": "Kongoni Game Valley"
+						"description": "Kongoni Game Valley",
+						"locationID":[]
 					},
 					{
 						"name": "Lake Naivasha",
 						"id": "Lake Naivasha",
-						"description": "Lake Naivasha"
+						"description": "Lake Naivasha",
+						"locationID":[]
 					},
 					{
 						"name": "Loldia Farm",
 						"id": "Loldia Farm",
-						"description": "Loldia Farm"
+						"description": "Loldia Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Manera Farm",
 						"id": "Manera Farm",
-						"description": "Manera Farm"
+						"description": "Manera Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Marula Farm",
 						"id": "Marula Farm",
-						"description": "Marula Farm"
+						"description": "Marula Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Morendat Farm",
 						"id": "Morendat Farm",
-						"description": "Morendat Farm"
+						"description": "Morendat Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Mt Longonot National Park",
 						"id": "Mt Longonot National Park",
-						"description": "Mt Longonot National Park"
+						"description": "Mt Longonot National Park",
+						"locationID":[]
 					},
 					{
 						"name": "Mundui Farm",
 						"id": "Mundui Farm",
-						"description": "Mundui Farm"
+						"description": "Mundui Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Nini Flower Farm",
 						"id": "Nini Flower Farm",
-						"description": "Nini Flower Farm"
+						"description": "Nini Flower Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Olerai House Sanctuary",
 						"id": "Olerai House Sanctuary",
-						"description": "Olerai House Sanctuary"
+						"description": "Olerai House Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Olsuswa Eco Park",
 						"id": "Olsuswa Eco Park",
-						"description": "Olsuswa Eco ParK"
+						"description": "Olsuswa Eco ParK",
+						"locationID":[]
 					},
 					{
 						"name": "Oserengoni Wildlife Sanctuary",
 						"id":"Oserengoni Wildlife Sanctuary",
-						"description": "Oserengoni Wildlife Sanctuary"
+						"description": "Oserengoni Wildlife Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Sanctuary Farm",
 						"id": "Sanctuary Farm",
-						"description": "Sanctuary Farm"
+						"description": "Sanctuary Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Sara Higgin's Farm",
 						"id": "Sara Higgins Farm",
-						"description": "Sara Higgins Farm:"
+						"description": "Sara Higgins Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Sirocco Wildlife Sanctuary",
 						"id": "Sirocco Wildlife Sanctuary",
-						"description": "Sirocco Wildlife Sanctuary"
+						"description": "Sirocco Wildlife Sanctuary",
+						"locationID":[]
 					},
 					{
 						"name": "Sopa Lodge",
 						"id": "Sopa Lodge",
-						"description": "Sopa Lodge"
+						"description": "Sopa Lodge",
+						"locationID":[]
 					},
 					{
 						"name": "Wanjugu Farm",
 						"id": "Wanjugu Farm",
-						"description": "Wanjugu Farm"
+						"description": "Wanjugu Farm",
+						"locationID":[]
 					},
 					{
 						"name": "Wileli Wildlife Sanctuary",
 						"id": "Wileli Wildlife Sanctuary",
-						"description": "Wileli Wildlife Sanctuary:"
+						"description": "Wileli Wildlife Sanctuary:",
+						"locationID":[]
 					},
 					{
 						"name": "WRTI",
 						"id": "WRTI",
-						"description": "WRTI"
+						"description": "WRTI",
+						"locationID":[]
 					},
 					{
 						"name": "WRTI Annex",
 						"id": "WRTI Annex",
-						"description": "WRTI Annex"
+						"description": "WRTI Annex",
+						"locationID":[]
 					},
 					{
 						"name": "WRTI Game Farm",
 						"id": "WRTI Game Farm",
-						"description": "WRTI Game Farm"
+						"description": "WRTI Game Farm",
+						"locationID":[]
 					}
 					 ]
 				},
@@ -349,70 +400,80 @@
 							"id": "Isaaten Conservancy",
 							"prefix": "isa",
 							"prefixDigitPadding": 3,
-							"description": "Isaaten Conservancy"
+							"description": "Isaaten Conservancy",
+							"locationID":[]
 						},
 						{
 							"name": "Mara North",
 							"id": "Mara North",
 							"prefix": "mnc",
 							"prefixDigitPadding": 3,
-							"description": "Mara North"
+							"description": "Mara North",
+							"locationID":[]
 						},
 						{
 							"name": "Mara Triangle Conservancy",
 							"id": "Mara Triangle Conservancy",
 							"prefix": "mtc",
 							"prefixDigitPadding": 3,
-							"description": "Mara Triangle Conservancy"
+							"description": "Mara Triangle Conservancy",
+							"locationID":[]
 						},
 						{
 							"name": "Maasai Mara National Reserve",
 							"id": "Maasai Mara National Reserve",
 							"prefix": "mmnr",
 							"prefixDigitPadding": 3,
-							"description": "Maasai Mara National Reserve"
+							"description": "Maasai Mara National Reserve",
+							"locationID":[]
 						},
 						{
 							"name": "Naboisho",
 							"id": "Naboisho",
 							"prefix": "nab",
 							"prefixDigitPadding": 3,
-							"description": "Naboisho"
+							"description": "Naboisho",
+							"locationID":[]
 						},
 						{
 							"name": "Ol Kinyei",
 							"id": "Ol Kinyei",
 							"prefix": "olk",
 							"prefixDigitPadding": 3,
-							"description": "Ol Kinyei"
+							"description": "Ol Kinyei",
+							"locationID":[]
 						},
 						{
 							"name": "Olare Motorogi Conservancy",
 							"prefix": "omc",
 							"prefixDigitPadding": 3,
 							"id": "Olare Motorogi Conservancy",
-							"description": "Olare Motorogi Conservancy"
+							"description": "Olare Motorogi Conservancy",
+							"locationID":[]
 						},
 						{
 							"name": "Olarro",
 							"prefix": "olc",
 							"prefixDigitPadding": 3,
 							"id": "Olarro",
-							"description": "Olarro"
+							"description": "Olarro",
+							"locationID":[]
 						},
 						{
 							"name": "Olderkesi Conservancy",
 							"id": "Olderkesi Conservancy",
 							"prefix": "old",
 							"prefixDigitPadding": 3,
-							"description": "Olderkesi Conservancy"
+							"description": "Olderkesi Conservancy",
+							"locationID":[]
 						},
 						{
 							"name": "Siana Conservancy",
 							"id": "Siana Conservancy",
 							"prefix": "sia",
 							"prefixDigitPadding": 3,
-							"description": "Siana Conservancy"
+							"description": "Siana Conservancy",
+							"locationID":[]
 						}
 					]
 				},
@@ -422,7 +483,8 @@
 					"prefix": "MWE",
 					"prefixDigitPadding": 3,
 					"id": "Mwea NR",
-					"description": "Mwea NR"
+					"description": "Mwea NR",
+					"locationID":[]
 				},
 				{
 					"name": "Northern Kenya",
@@ -439,13 +501,15 @@
 							"name": "Borana",
 							"id": "Borana",
 							"prefix": "bor",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Buffalo Springs National Reserve",
 							"id": "Buffalo Springs National Reserve",
 							"prefix": "BSNR",
-							"prefixDigitPadding": 4
+							"prefixDigitPadding": 4,
+							"locationID":[]
 						},
 						{
 							"name": "Chololo Ranch",
@@ -469,25 +533,29 @@
 							"name": "Ilmotiok",
 							"id": "Ilmotiok",
 							"prefix": "Ilmo",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Il Ngwesi",
 							"id": "Il Ngwesi",
 							"prefix": "IlNg",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Kinna Conservancy",
 							"id": "Kinna Conservancy",
 							"prefix": "KIN",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Kirimon",
 							"id": "Kirimon",
 							"prefix": "kir",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Lewa",
@@ -497,7 +565,8 @@
 							"geospatialInfo":{
 								"lat":0.2,
 								"long":37.41
-							 }
+							 },
+							 "locationID":[]
 						},
 						{
 							"name": "Loisaba",
@@ -507,25 +576,29 @@
 							"geospatialInfo":{
 								"lat":0.612208,
 								"long":36.802823
-							 }
+							 },
+							 "locationID":[]
 						},
 						{
 							"name": "Loldaiga",
 							"id": "Loldaiga",
 							"prefix": "lol",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Melako Conservancy",
 							"id": "Melako Conservancy",
 							"prefix": "MEL",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Meru National Park",
 							"prefix": "mer",
 							"prefixDigitPadding": 3,
-							"id": "Meru National Park"
+							"id": "Meru National Park",
+							"locationID":[]
 						},
 						{
 							"name": "Mpala",
@@ -539,13 +612,15 @@
 							"geospatialInfo":{
 								"lat":0.2,
 								"long":37.41
-							}
+							},
+							"locationID":[]
 						},
 						{
 							"name": "Naibunga",
 							"id": "Naibunga",
 							"prefix": "NAI",
-							"prefixDigitPadding": 4
+							"prefixDigitPadding": 4,
+							"locationID":[]
 						},
 						{
 							"name": "Namunyak",
@@ -556,25 +631,29 @@
 							"geospatialInfo":{
 								"lat":1.270203,
 								"long":37.382723
-							}		
+							},
+							"locationID":[]		
 						},
 						{
 							"name": "Nareto",
 							"id": "Nareto",
 							"prefix": "nar",
-							"prefixDigitPadding": 3	
+							"prefixDigitPadding": 3,
+							"locationID":[]	
 						},
 						{
 							"name": "Nasuulu",
 							"id": "Nasuulu",
 							"prefix": "nas",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "National Reserve",
 							"prefix": "nat",
 							"prefixDigitPadding": 3,
-							"id": "National Reserve"
+							"id": "National Reserve",
+							"locationID":[]
 						},
 						{
 							"name": "Ol Jogi",
@@ -585,14 +664,16 @@
 							"geospatialInfo":{
 								"lat":0.3,
 								"long":37
-							 }
+							 },
+							 "locationID":[]
 						},
 						{
 							"name": "Ol Malo",
 							"id": "Ol Malo",
 							"description": "Ol Malo",
 							"prefix": "OlMa",
-							"prefixDigitPadding": 4
+							"prefixDigitPadding": 4,
+							"locationID":[]
 						},
 						{
 							"name": "Ol Pejeta",
@@ -602,44 +683,51 @@
 							"geospatialInfo":{
 								"lat":0.0,
 								"long":37
-							 }
+							 },
+							 "locationID":[]
 						},
 						{
 							"name": "Samburu National Reserve",
 							"id": "Samburu National Reserve",
 							"prefix": "SNR",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Segera",
 							"id": "Segera",
 							"prefix": "SEG",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Sera Conservancy",
 							"id": "Sera Conservancy",
 							"description": "Sera Conservancy",
 							"prefix": "SER",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},
 						{
 							"name": "Shaba National Reserve",
 							"id": "Shaba National Reserve",
 							"prefix": "SHA",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},	
 						{
 							"name": "Shurr Conservancy",
 							"id": "Shurr Conservancy",
 							"prefix": "SHU",
-							"prefixDigitPadding": 3
+							"prefixDigitPadding": 3,
+							"locationID":[]
 						},			
 						{
 							"name": "Solio Ranch Conservancy",
 							"prefix": "sol",
 							"prefixDigitPadding": 3,
-							"id": "Solio Ranch Conservancy"
+							"id": "Solio Ranch Conservancy",
+							"locationID":[]
 						}
 					
 					
@@ -650,12 +738,14 @@
 					"id": "Ruma NP",
 					"prefix": "RUMA",
 					"prefixDigitPadding": 3,
-					"description": "Ruma NP"
+					"description": "Ruma NP",
+					"locationID":[]
 				},
 				{
 					"name": "Soysambu Conservancy",
 					"id": "Soysambu Conservancy",
-					"description": "Soysambu Conservancy"
+					"description": "Soysambu Conservancy",
+					"locationID":[]
 				},
 				{
 					"name": "Tsavo National Park",
@@ -669,14 +759,16 @@
 						"id": "Tsavo East National Park",
 						"prefix": "TSAVO",
 						"prefixDigitPadding": 3,
-						"description": "Tsavo East National Park"
+						"description": "Tsavo East National Park",
+						"locationID":[]
 						},
 						{
 						"name": "Tsavo West National Park",
 						"id": "Tsavo West National Park",
 						"prefix": "TSAVO",
 						"prefixDigitPadding": 3,
-						"description": "Tsavo West National Park"
+						"description": "Tsavo West National Park",
+						"locationID":[]
 						}
 		
 					
@@ -691,22 +783,24 @@
             "locationID": [
                 {
                     "name": "Majete Wildlife Reserve",
-                    "id": "Majete Wildlife Reserve"
+                    "id": "Majete Wildlife Reserve",
+					"locationID":[]
                 }
              ]
         }, 
 		{
 			"name": "Mozambique",
 			"id": "Mozambique",
-
 			"locationID": [
 				{
 					"name": "Karingani Wildlife Reserve",
-					"id": "Karingani Wildlife Reserve"
+					"id": "Karingani Wildlife Reserve",
+					"locationID":[]
 				},
 				{
 					"name": "Zinave National Park",
-					"id": "Zinave National Park"
+					"id": "Zinave National Park",
+					"locationID":[]
 				}
 			]
 		},
@@ -726,13 +820,15 @@
 					{
 						"name": "Etosha Heights Private Reserve",
 						"id": "Etosha Heights Private Reserve",
-						"description": "Etosha Heights Private Reserve"
+						"description": "Etosha Heights Private Reserve",
+						"locationID":[]
 					}
 				]
 			},
 				{
 					"name": "Kuzikus Wildlife Reserve",
-					"id": "Kuzikus Wildlife Reserve"
+					"id": "Kuzikus Wildlife Reserve",
+					"locationID":[]
 				},
 				{
 					"name": "North-western Namibia",
@@ -740,7 +836,8 @@
 					"geospatialInfo":{
 		 			 	"lat":-20.902437,
 		 			 	"long":15.864258
-		 			 }
+		 			 },
+					  "locationID":[]
 				},
 				{
 					"name": "Onduli",
@@ -748,7 +845,8 @@
 					"geospatialInfo":{
 						"lat": -20.678786,
 						"long": 14.638947
-					}
+					},
+					"locationID":[]
 				}
 			]
 		},
@@ -762,12 +860,14 @@
 			{
 				"name": "Gadabedji",
 				"id": "Gadabedji",
-				"description": "Gadabedji"
+				"description": "Gadabedji",
+				"locationID":[]
 			},
 			{
 				"name": "Giraffe Zone",
 				"id": "Giraffe Zone",
-				"description": "Giraffe Zone"
+				"description": "Giraffe Zone",
+				"locationID":[]
 			}
 		]
 	},
@@ -782,7 +882,8 @@
 					"id": "Akagera",
 					"prefix": "aka",
 					"prefixDigitPadding": 3,
-					"description": "Akagera"
+					"description": "Akagera",
+					"locationID":[]
 				}
 			]
 		},
@@ -797,7 +898,8 @@
 				{
 					"name": "Areena",
 					"id": "Areena",
-					"description": "Areena"
+					"description": "Areena",
+					"locationID":[]
 				},
 				{
 					"name": "Endalweni",
@@ -807,69 +909,82 @@
 				{
 					"name": "EV Krull",
 					"id": "EV Krull",
-					"description": "EV Krull"
+					"description": "EV Krull",
+					"locationID":[]
 				},
 				{
 					"name": "Gareths",
 					"id": "Gareths",
-					"description": "Gareths"
+					"description": "Gareths",
+					"locationID":[]
 				},
 				{
 					"name": "Inkwenkwezi",
 					"id": "Inkwenkwezi",
-					"description": "Inkwenkwezi"
+					"description": "Inkwenkwezi",
+					"locationID":[]
 				},
 				{
 					"name": "Kariega Game Reserve",
 					"id": "Kariega Game Reserve",
-					"description": "Kariega Game Reserve"
+					"description": "Kariega Game Reserve",
+					"locationID":[]
 				},
 				{
 					"name": "Kruger National Park",
 					"id": "Kruger National Park",
 					"prefix": "knp",
 					"prefixDigitPadding": 4,
-					"description": "Kruger National Park"
+					"description": "Kruger National Park",
+					"locationID":[]
 				},
 				{
 					"name": "Kwandwe",
 					"id": "Kwandwe",
-					"description": "Kwandwe"
+					"description": "Kwandwe",
+					"locationID":[]
 				},
 				{
 					"name": "Matola",
 					"id": "Matola",
-					"description": "Matola"
+					"description": "Matola",
+					"locationID":[]
 				},
 				{
 					"name": "Mpongo",
 					"id": "Mpongo",
-					"description": "Mpongo"
+					"description": "Mpongo",
+					"locationID":[]
 				},
 				{
 					"name": "Oceana",
 					"id": "Oceana",
-					"description": "Oceana"
+					"description": "Oceana",
+					"locationID":[]
 				},
 				{
 					"name": "Pilanesberg National Park",
 					"id": "Pilanesberg National Park",
-					"description": "Pilanesberg National Park"
+					"description": "Pilanesberg National Park",
+					"locationID":[]
 				},
 				{
 					"name": "Sibuya",
 					"id": "Sibuya",
-					"description": "Sibuya"
+					"description": "Sibuya",
+					"locationID":[]
 				},
 				{
 					"name": "Siyafunda",
 					"id": "Siyafunda",
-					"description": "Siyafunda"
+					"description": "Siyafunda",
+					"locationID":[]
 				},
 				{
 					"name": "UmPhafa Private Nature Reserve",
 					"id": "UmPhafa Private Nature Reserve",
-					"description": "UmPhafa Private Nature Reserve"
+					"description": "UmPhafa Private Nature Reserve",
+					"locationID":[]
 				}
 			 ]
 		},
@@ -899,7 +1014,8 @@
 					"geospatialInfo":{
 		 			 	"lat":-3.2,
 		 			 	"long":36.8
-		 			 }
+		 			 },
+					  "locationID":[]
 				},
 				{
 					"name": "RNP",
@@ -908,7 +1024,8 @@
 					"geospatialInfo":{
 		 			 	"lat":-7.5,
 		 			 	"long":35.0
-	 			 }
+					},
+					"locationID":[]
 				},
 				{
 					"name": "SGR",
@@ -917,7 +1034,8 @@
 					"geospatialInfo":{
 		 			 	"lat":-9.0,
 		 			 	"long":37.5
-		 			 }
+		 			 },
+					"locationID":[]
 				}
 			]
 		},
@@ -931,7 +1049,8 @@
 					"geospatialInfo":{
 		 			 	"lat":3.9,
 		 			 	"long":33.85
-		 			 }
+		 			 },
+					"locationID":[]
 				},
 				{
 					"name": "Lake Mburo",
@@ -939,19 +1058,23 @@
 					"geospatialInfo":{
 		 			 	"lat":-0.627778,
 		 			 	"long":30.966667
-		 			 }
+		 			 },
+					"locationID":[]
 				},
 				{
 					"name": "Murchison Falls North",
-					"id": "Murchison Falls North"
+					"id": "Murchison Falls North",
+					"locationID":[]
 				},
 				{
 					"name": "Murchison Falls South",
-					"id": "Murchison Falls South"
+					"id": "Murchison Falls South",
+					"locationID":[]
 				},
 				{
 					"name": "Pian Upe",
-					"id": "Pian Upe"
+					"id": "Pian Upe",
+					"locationID":[]
 				}
 			]
 		},
@@ -968,21 +1091,25 @@
 						{
 							"name": "Luangwa North",
 							"id": "Luangwa North",
-							"description": "Luangwa North"
+							"description": "Luangwa North",
+							"locationID":[]
 						},
 						{
 							"name": "Luambe",
-							"id": "Luambe"
+							"id": "Luambe",
+							"locationID":[]
 						},
 						{
 							"name": "Luangwa South",
 							"id": "Luangwa South",
-							"description": "Luangwa South"
+							"description": "Luangwa South",
+							"locationID":[]
 						},
 						{
 							"name": "Lower Luangwa",
 							"id": "Lower Luangwa",
-							"description": "Lower Luangwa"
+							"description": "Lower Luangwa",
+							"locationID":[]
 						}
 
 					]
@@ -997,12 +1124,19 @@
 				{
 					"name": "Greater Mapungubwe Transfrontier Conservation Area",
 					"id": "Greater Mapungubwe Transfrontier Conservation Area",
-					"description": "Greater Mapungubwe Transfrontier Conservation Area"
+					"description": "Greater Mapungubwe Transfrontier Conservation Area",
+					"locationID":[]
+				},
+				{
+					"name": "Imire Conservancy",
+					"id": "Imire Conservancy",
+					"locationID":[]
 				},
 				{
 					"name": "Save Valley",
 					"id": "Save Valley",
-					"description": "Save Valley"
+					"description": "Save Valley",
+					"locationID":[]
 				}
 			]
 		}
