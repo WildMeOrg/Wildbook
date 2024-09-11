@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.ContextConfiguration;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
@@ -102,6 +103,10 @@ public class SiteSettings extends ApiBase {
             orgs.put(org.getId(), org.getName());
         }
         settings.put("organizations", orgs);
+
+        JSONObject system = new JSONObject();
+        system.put("wildbookVersion", ContextConfiguration.getVersion());
+        settings.put("system", system);
 
         sortArray = myShepherd.getAllSocialUnitNames().toArray();
         Arrays.sort(sortArray);

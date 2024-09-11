@@ -9,6 +9,7 @@ import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/EncounterSearch";
+import Citation from "./pages/Citation";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { data } = useGetMe();
@@ -47,6 +48,7 @@ export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
       >
         <Routes>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/citation" element={<Citation />} />
           <Route path="/home" element={<Home />} />
           <Route path="/encounter-search" element={<EncounterSearch />} />
           <Route path="/login" element={<Login />} />

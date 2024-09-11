@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.ecocean.ai.nmt.azure.DetectTranslate;
-import org.ecocean.ai.utilities.ParseDateLocation;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
@@ -562,9 +561,11 @@ public class TwitterBot {
         if ((originTweet == null) || (anns == null)) return;
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
 
+        // ParseDateLocation has been deprecated
         // use NLP to get Date/Location if available in Tweet
-        String newDetectedDate = ParseDateLocation.parseDate(rootDir, myShepherd.getContext(),
-            originTweet);
+        // String newDetectedDate = ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
+        String newDetectedDate = null;
+
         for (Annotation ann : anns) {
             Encounter enc = ann.findEncounter(myShepherd);
             if (enc == null) continue;
