@@ -28,6 +28,7 @@ import org.json.JSONObject;
 
 public class SiteSettings extends ApiBase {
     public static String[] VALUES_SEX = { "unknown", "male", "female" };
+    public static String[] VALUES_ENCOUNTER_STATES = { "unapproved", "approved", "unidentifiable"};
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -68,8 +69,9 @@ public class SiteSettings extends ApiBase {
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
         // TODO: there was some discussion in slack about this being derived differently
-        settings.put("encounterState",
-            CommonConfiguration.getIndexedPropertyValues("encounterState", context));
+        // NOTE: historically this list was generated via CommonConfiguration using 
+        //       List<String> states = CommonConfiguration.getIndexedPropertyValues("encounterState",context)
+        settings.put("encounterState", VALUES_ENCOUNTER_STATES);
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         Object[] iac = iaConfig.getAllIAClasses().toArray();
