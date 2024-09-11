@@ -1,7 +1,14 @@
-name: Maven build and package
+name: Maven build and package for master
 
-on: push
-
+on: 
+    push:
+       branches:
+          - master
+          - 'releases/**'
+       tags:
+          - 'v**'
+    release:
+          types: [created]
 jobs:
   build:
     name: Maven build and deploy
@@ -10,10 +17,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
+    - name: Set up JDK 8*
+      uses: actions/setup-java@v4
       with:
-        java-version: 1.8
+        distribution: 'zulu'
+        java-version: 8
 
     - name: Build with Maven
       run: |
