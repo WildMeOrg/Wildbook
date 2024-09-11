@@ -9,9 +9,6 @@ import WildmeLogo from "../components/svg/WildmeLogo";
 import { Alert } from "react-bootstrap";
 import { useContext } from "react";
 import ThemeColorContext from "../ThemeColorProvider";
-import IconButton from '@mui/material/IconButton';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 function LoginPage() {
   useDocumentTitle("SIGN_IN");
@@ -146,27 +143,20 @@ function LoginPage() {
                     id: "LOGIN_PASSWORD",
                   })}
                 </Form.Label>
-                <div style={{ position: "relative" }}>
+                <InputGroup>
                   <Form.Control
                     autoComplete="current-password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Password"
+                    value={password}
                     onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError(null);
-                  }}
+                      setPassword(e.target.value);
+                    }}
                   />
-                  <IconButton onClick={togglePasswordVisibility}
-                    style={{
-                      position: "absolute",
-                      right: "0.5rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      padding: 0,
-                    }}>
-                    {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                  </IconButton>
-                </div>
+                  <InputGroup.Text onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
+                    <i className={showPassword ? 'bi bi-eye-fill' :  'bi bi-eye-slash-fill'}></i>
+                  </InputGroup.Text>
+                </InputGroup>
               </Form.Group>
 
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
