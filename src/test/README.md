@@ -29,7 +29,30 @@ mvn test -Dtest=TestClass1,TestClass2   # only these two classes
 mvn test -Dtest=TestClass#method        # test a specific method
 ```
 
+## Jest and React Testing Library for Frontend Unit Testing
 
-## Integration Testing, Frontend Testing
+Wildbook uses [Jest] for frontend unit testing, along with React Testing Library to help test React components. Tests should be run automatically with `npm run test`.
+
+All new components and functions should have appropriate unit tests written to ensure they are working as expected. Be sure to test both positive and negative scenarios, including edge cases, invalid data, and failure/exception cases.
+
+Tests should be created in the `/frontend/src/__tests__/` directory, corresponding to the components or functions being tested. The test file name should follow the convention of adding the suffix `.test.js` to the component or function name, such as `LoginPage.test.js` for tests of the `LoginPage.js` component.
+
+### Running Tests
+To run all tests, `cd` to `/frontend` and use the following command:
+
+`npm run test`      # runs all tests
+You can also run tests in watch mode to re-run tests after changes:
+
+`npm run test -- --watch`
+Running Specific Tests
+You can run specific test files or even specific tests within a file using Jest's options:
+
+`npm run test -- LoginPage.test.js `                  # run a specific test file
+`npm run test -- LoginPage.test.js -t 'renders login'` # run a specific test case\
+
+Writing Tests with React Testing Library
+Tests for React components should focus on how the component behaves from the user's perspective, rather than testing implementation details. Testing Library helps you do this by providing tools to interact with your components the way users would.
+
+## Integration Testing
 
 TODO
