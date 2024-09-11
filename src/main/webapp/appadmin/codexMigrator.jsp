@@ -583,7 +583,6 @@ private static void migrateOccurrences(JspWriter out, Shepherd myShepherd, Conne
 
             LabeledKeyword kwForestLayer = null;
             if (!stringEmpty(forestLayer)) kwForestLayer = myShepherd.getOrCreateLabeledKeyword("Forest layer", forestLayer, false);
-            Measurement elevMeas = null;
 /*
             Map<String,String> cfMap = new HashMap<String,String>();
             cfMap.put("Seen in Artificial Nest", cfString(cfData, "34a8f03e-d282-4fef-b1ed-9eeebaaa887e"));
