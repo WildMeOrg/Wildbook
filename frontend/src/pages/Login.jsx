@@ -42,8 +42,9 @@ function LoginPage() {
     <Container fluid className="p-0">
       <Row className="vh-100">
         <Col
-          md={6}
-          className="d-none d-md-block bg-image p-0"
+          lg={5}
+          md={{ span: 5 }}
+          className="d-none d-lg-block d-md-block bg-image p-0"
           style={{
             position: "relative",
           }}
@@ -101,7 +102,7 @@ function LoginPage() {
           </div>
         </Col>
 
-        <Col md={6} className="my-auto">
+        <Col lg={5} md={{ span: 5, offset: 1 }} className="my-auto">
           <div
             style={{
               width: "100%",
@@ -146,15 +147,22 @@ function LoginPage() {
                 <InputGroup>
                   <Form.Control
                     autoComplete="current-password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
                     }}
                   />
-                  <InputGroup.Text onClick={togglePasswordVisibility} style={{ cursor: 'pointer' }}>
-                    <i className={showPassword ? 'bi bi-eye-fill' :  'bi bi-eye-slash-fill'}></i>
+                  <InputGroup.Text
+                    onClick={togglePasswordVisibility}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <i
+                      className={
+                        showPassword ? "bi bi-eye-fill" : "bi bi-eye-slash-fill"
+                      }
+                    ></i>
                   </InputGroup.Text>
                 </InputGroup>
               </Form.Group>
