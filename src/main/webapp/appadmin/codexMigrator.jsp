@@ -227,7 +227,7 @@ private static Map<String,String> locationMap(JSONObject data, Map<String,String
 
 
 private static int batchMax() {
-    return 00;
+    return 10;
 }
 
 private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection conn) throws SQLException, IOException {
@@ -1178,9 +1178,9 @@ File dataDir = CommonConfiguration.getDataDirectory(getServletContext(), context
 
 
 Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
-if (props != null) return;
 
 JSONObject locJson = locationJson(conn);
+
 // hard-coded file path, but life is rough
 if (locJson != null) Util.writeToFile(locJson.toString(4), "/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/locationID.json");
 
@@ -1191,8 +1191,11 @@ migrateUsers(out, myShepherd, conn);
 migrateMediaAssets(out, myShepherd, conn, request, new File(dataDir, assetGroupDir));
 
 migrateAnnotations(out, myShepherd, conn);
+*/
+
 
 migrateEncounters(out, myShepherd, conn);
+/*
 
 migrateOccurrences(out, myShepherd, conn);
 
