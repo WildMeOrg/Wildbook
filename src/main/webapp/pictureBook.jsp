@@ -22,7 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 250;
+  int maxPages = 600;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
