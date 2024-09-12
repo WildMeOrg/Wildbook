@@ -156,6 +156,7 @@ import org.json.JSONObject;
         }
         jgen.writeEndArray();
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
     }
 
     public static JSONObject opensearchQuery(final String indexname, final JSONObject query,
