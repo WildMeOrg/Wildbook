@@ -1,0 +1,575 @@
+{
+  "_global": {
+    "add_images": "https://snails.hydra.dyn.wildme.io/api/image/json/",
+    "add_annotations": "https://snails.hydra.dyn.wildme.io/api/annot/json/",
+    "start_identify": "https://snails.hydra.dyn.wildme.io/api/engine/query/graph/",
+    "identify_review": "https://snails.hydra.dyn.wildme.io/api/review/query/graph/",
+    "start_detect": "https://snails.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://snails.hydra.dyn.wildme.io/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://snails.hydra.dyn.wildme.io/api/engine/job/status/",
+    "get_job_result": "https://snails.hydra.dyn.wildme.io/api/engine/job/result/"
+  },
+
+  "_xxxxdefault": "@Halichoerus.grypus.grey_seal_unknown",
+
+
+  "Achatinella": {
+    "apexfulva": {
+      "_common_name": "Oahu Treesnail",
+      "_common_names": [
+        "Oahu Treesnail"
+      ],
+      "_itis_id": 7342715,
+      "_detect_conf": [
+        {
+          "start_detect": "https://snails.hydra.dyn.wildme.io/api/engine/detect/cnn/lightnet/",
+          "labeler_algo": "efficientnet",
+          "labeler_model_tag": "snail_effnet_v0",
+          "model_tag": "snail_v0",
+          "nms_thresh": 0.4,
+          "orienter_algo": "plugin:orientation",
+          "orienter_model_tag": "snail_v0",
+          "sensitivity": 0.65,
+          "use_labeler_species": false
+        }
+      ],
+      "snail": {
+        "_id_conf": [
+          {
+            "query_config_dict": {
+              "sv_on": true
+            },
+            "description": "HotSpotter pattern-matcher",
+            "default": true
+          }
+        ]
+      }
+    },
+
+    "bulimoides": {
+      "_common_name": "Achatinella bulimoides",
+      "_common_names": [
+        "Achatinella bulimoides"
+      ],
+      "_itis_id": 7342713,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "byronii": {
+      "_common_name": "Achatinella byronii",
+      "_common_names": [
+        "Achatinella byronii"
+      ],
+      "_itis_id": 5782908,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "concavospira": {
+      "_common_name": "Achatinella concavospira",
+      "_common_names": [
+        "Achatinella concavospira"
+      ],
+      "_itis_id": 5782925,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "decipiens": {
+      "_common_name": "Achatinella decipiens",
+      "_common_names": [
+        "Achatinella decipiens"
+      ],
+      "_itis_id": 5782913,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "fulgens": {
+      "_common_name": "Achatinella fulgens",
+      "_common_names": [
+        "Achatinella fulgens"
+      ],
+      "_itis_id": 5782902,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "fuscobasis": {
+      "_common_name": "Achatinella fuscobasis",
+      "_common_names": [
+        "Achatinella fuscobasis"
+      ],
+      "_itis_id": 5782923,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "lila": {
+      "_common_name": "Achatinella lila",
+      "_common_names": [
+        "Achatinella lila"
+      ],
+      "_itis_id": 5782904,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "livida": {
+      "_common_name": "Achatinella livida",
+      "_common_names": [
+        "Achatinella livida"
+      ],
+      "_itis_id": 5782929,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "mustelina": {
+      "_common_name": "Achatinella mustelina",
+      "_common_names": [
+        "Achatinella mustelina"
+      ],
+      "_itis_id": 5782912,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "sowerbyana": {
+      "_common_name": "Achatinella sowerbyana",
+      "_common_names": [
+        "Achatinella sowerbyana"
+      ],
+      "_itis_id": 5782930,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Auriculela": {
+    "ambusta": {
+      "_common_name": "Auriculela ambusta",
+      "_common_names": [
+        "Auriculela ambusta"
+      ],
+      "_itis_id": -9999375494,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Laminella": {
+    "sanguinea": {
+      "_common_name": "Laminella sanguinea",
+      "_common_names": [
+        "Laminella sanguinea"
+      ],
+      "_itis_id": 5783136,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "venusta": {
+      "_common_name": "Laminella venusta",
+      "_common_names": [
+        "Laminella venusta"
+      ],
+      "_itis_id": 8912654,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Newcombia": {
+    "canaliculata": {
+      "_common_name": "Newcombia canaliculata",
+      "_common_names": [
+        "Newcombia canaliculata"
+      ],
+      "_itis_id": 8997851,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "cumingi": {
+      "_common_name": "Newcombia cumingi",
+      "_common_names": [
+        "Newcombia cumingi"
+      ],
+      "_itis_id": 5782948,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Partlulina": {
+    "species": {
+      "_common_name": "Partlulina species",
+      "_common_names": [
+        "Partlulina species"
+      ],
+      "_itis_id": -9999201464,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Partula": {
+    "gibba": {
+      "_common_name": "Fat Guam Partula",
+      "_common_names": [
+        "Fat Guam Partula",
+        "Tree Snail"
+      ],
+      "_itis_id": 5783059,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "lutaensis_rota": {
+      "_common_name": "Partula lutaensis (Rota)",
+      "_common_names": [
+        "Partula lutaensis (Rota)"
+      ],
+      "_itis_id": -9999457578,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "radiolata": {
+      "_common_name": "Radiolate Partula",
+      "_common_names": [
+        "Radiolate Partula",
+        "Tree Snail"
+      ],
+      "_itis_id": 5782998,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Partulina": {
+    "anceyana": {
+      "_common_name": "Partulina anceyana",
+      "_common_names": [
+        "Partulina anceyana"
+      ],
+      "_itis_id": 11146968,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "crocea": {
+      "_common_name": "Partulina crocea",
+      "_common_names": [
+        "Partulina crocea"
+      ],
+      "_itis_id": 10681979,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "fusoidea": {
+      "_common_name": "Partulina fusoidea",
+      "_common_names": [
+        "Partulina fusoidea"
+      ],
+      "_itis_id": 5782880,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "induta": {
+      "_common_name": "Partulina induta",
+      "_common_names": [
+        "Partulina induta"
+      ],
+      "_itis_id": 9145302,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "marmorata": {
+      "_common_name": "Partulina marmorata",
+      "_common_names": [
+        "Partulina marmorata"
+      ],
+      "_itis_id": 9049386,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "mighelsiana": {
+      "_common_name": "Partulina mighelsiana",
+      "_common_names": [
+        "Partulina mighelsiana"
+      ],
+      "_itis_id": 5782887,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "perdix": {
+      "_common_name": "Partulina perdix",
+      "_common_names": [
+        "Partulina perdix"
+      ],
+      "_itis_id": 5782890,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "physa": {
+      "_common_name": "Partulina physa",
+      "_common_names": [
+        "Partulina physa"
+      ],
+      "_itis_id": 5782886,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "porcellana": {
+      "_common_name": "Partulina porcellana",
+      "_common_names": [
+        "Partulina porcellana"
+      ],
+      "_itis_id": 5782884,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "proxima": {
+      "_common_name": "Partulina proxima",
+      "_common_names": [
+        "Partulina proxima"
+      ],
+      "_itis_id": 5782895,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "redfieldi": {
+      "_common_name": "Partulina redfieldi",
+      "_common_names": [
+        "Partulina redfieldi"
+      ],
+      "_itis_id": 5782883,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "semicarinata": {
+      "_common_name": "Partulina semicarinata",
+      "_common_names": [
+        "Partulina semicarinata"
+      ],
+      "_itis_id": 5782894,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "splendida": {
+      "_common_name": "Splendid Partulina",
+      "_common_names": [
+        "Splendid Partulina"
+      ],
+      "_itis_id": 5782877,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "tappaniana": {
+      "_common_name": "Partulina tappaniana",
+      "_common_names": [
+        "Partulina tappaniana"
+      ],
+      "_itis_id": 5782893,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "tesselata": {
+      "_common_name": "Partulina tesselata",
+      "_common_names": [
+        "Partulina tesselata"
+      ],
+      "_itis_id": -9999671394,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "variabilis": {
+      "_common_name": "Partulina variabilis",
+      "_common_names": [
+        "Partulina variabilis"
+      ],
+      "_itis_id": 5782891,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "virgulata": {
+      "_common_name": "Partulina virgulata",
+      "_common_names": [
+        "Partulina virgulata"
+      ],
+      "_itis_id": 4597942,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Perdicella": {
+    "helena": {
+      "_common_name": "Perdicella helena",
+      "_common_names": [
+        "Perdicella helena"
+      ],
+      "_itis_id": 5782859,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "ornata": {
+      "_common_name": "Perdicella ornata",
+      "_common_names": [
+        "Perdicella ornata"
+      ],
+      "_itis_id": 5782853,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "zebra": {
+      "_common_name": "Perdicella zebra",
+      "_common_names": [
+        "Perdicella zebra"
+      ],
+      "_itis_id": 5782852,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "Samoana": {
+    "fragilis": {
+      "_common_name": "Fragile tree snail",
+      "_common_names": [
+        "Fragile tree snail",
+        "Tree Snail"
+      ],
+      "_itis_id": 5783090,
+      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "snail": {
+          "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    }
+  },
+
+  "_xxxxdetectors": {
+    "snail_v0": {
+      "config_dict": {
+        "labeler_algo": "efficientnet",
+        "labeler_model_tag": "snail_effnet_v0",
+        "model_tag": "snail_v0",
+        "nms_thresh": 0.4,
+        "orienter_algo": "plugin:orientation",
+        "orienter_model_tag": "snail_v0",
+        "sensitivity": 0.65,
+        "use_labeler_species": false
+      },
+      "description": "Snail detector (v0) with orientation plugin",
+      "name": "snail_v0 detector"
+    }
+  },
+  "_xxxxidentifiers": {
+    "hotspotter_nosv": {
+      "frontend": {
+        "description": "HotSpotter pattern-matcher"
+      },
+      "sage": {
+        "query_config_dict": {}
+      }
+    }
+  }
+}
