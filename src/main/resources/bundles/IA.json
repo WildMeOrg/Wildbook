@@ -52,7 +52,7 @@
         "Achatinella bulimoides"
       ],
       "_itis_id": 7342713,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -64,7 +64,7 @@
         "Achatinella byronii"
       ],
       "_itis_id": 5782908,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -76,7 +76,7 @@
         "Achatinella concavospira"
       ],
       "_itis_id": 5782925,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -88,7 +88,7 @@
         "Achatinella decipiens"
       ],
       "_itis_id": 5782913,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -100,7 +100,7 @@
         "Achatinella fulgens"
       ],
       "_itis_id": 5782902,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -112,7 +112,7 @@
         "Achatinella fuscobasis"
       ],
       "_itis_id": 5782923,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -124,7 +124,7 @@
         "Achatinella lila"
       ],
       "_itis_id": 5782904,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -136,7 +136,7 @@
         "Achatinella livida"
       ],
       "_itis_id": 5782929,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -148,7 +148,7 @@
         "Achatinella mustelina"
       ],
       "_itis_id": 5782912,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -160,7 +160,7 @@
         "Achatinella sowerbyana"
       ],
       "_itis_id": 5782930,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -174,7 +174,7 @@
         "Auriculela ambusta"
       ],
       "_itis_id": -9999375494,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -188,7 +188,7 @@
         "Laminella sanguinea"
       ],
       "_itis_id": 5783136,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -200,7 +200,7 @@
         "Laminella venusta"
       ],
       "_itis_id": 8912654,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -214,7 +214,7 @@
         "Newcombia canaliculata"
       ],
       "_itis_id": 8997851,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -226,7 +226,7 @@
         "Newcombia cumingi"
       ],
       "_itis_id": 5782948,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -240,7 +240,7 @@
         "Partlulina species"
       ],
       "_itis_id": -9999201464,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -255,7 +255,7 @@
         "Tree Snail"
       ],
       "_itis_id": 5783059,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -267,7 +267,7 @@
         "Partula lutaensis (Rota)"
       ],
       "_itis_id": -9999457578,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -280,7 +280,7 @@
         "Tree Snail"
       ],
       "_itis_id": 5782998,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -294,7 +294,7 @@
         "Partulina anceyana"
       ],
       "_itis_id": 11146968,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -306,7 +306,7 @@
         "Partulina crocea"
       ],
       "_itis_id": 10681979,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -318,7 +318,7 @@
         "Partulina fusoidea"
       ],
       "_itis_id": 5782880,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -330,7 +330,7 @@
         "Partulina induta"
       ],
       "_itis_id": 9145302,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -342,7 +342,7 @@
         "Partulina marmorata"
       ],
       "_itis_id": 9049386,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -354,7 +354,7 @@
         "Partulina mighelsiana"
       ],
       "_itis_id": 5782887,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -366,7 +366,7 @@
         "Partulina perdix"
       ],
       "_itis_id": 5782890,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -378,7 +378,7 @@
         "Partulina physa"
       ],
       "_itis_id": 5782886,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -390,7 +390,7 @@
         "Partulina porcellana"
       ],
       "_itis_id": 5782884,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -402,7 +402,7 @@
         "Partulina proxima"
       ],
       "_itis_id": 5782895,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -414,7 +414,7 @@
         "Partulina redfieldi"
       ],
       "_itis_id": 5782883,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -426,7 +426,7 @@
         "Partulina semicarinata"
       ],
       "_itis_id": 5782894,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -438,7 +438,7 @@
         "Splendid Partulina"
       ],
       "_itis_id": 5782877,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -450,7 +450,7 @@
         "Partulina tappaniana"
       ],
       "_itis_id": 5782893,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -462,7 +462,7 @@
         "Partulina tesselata"
       ],
       "_itis_id": -9999671394,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -474,7 +474,7 @@
         "Partulina variabilis"
       ],
       "_itis_id": 5782891,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -486,7 +486,7 @@
         "Partulina virgulata"
       ],
       "_itis_id": 4597942,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -500,7 +500,7 @@
         "Perdicella helena"
       ],
       "_itis_id": 5782859,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -512,7 +512,7 @@
         "Perdicella ornata"
       ],
       "_itis_id": 5782853,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -524,7 +524,7 @@
         "Perdicella zebra"
       ],
       "_itis_id": 5782852,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
@@ -539,7 +539,7 @@
         "Tree Snail"
       ],
       "_itis_id": 5783090,
-      "_detect_conf": "@Achatinella.apexfulva.snail._detect_conf",
+      "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
       }
