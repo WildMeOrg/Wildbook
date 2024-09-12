@@ -185,7 +185,7 @@ h2.vidcap {
         
    <div id="fullScreenDiv">
         <div id="videoDiv">           
-            <img src="images/snailhero.jpeg" style="width: 100%; height: auto;" />
+            <img src="images/snailhero.jpg" style="width: 100%; height: auto;" />
         </div>
         <div id="messageBox"> 
             <div>
