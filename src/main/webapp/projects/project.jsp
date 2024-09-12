@@ -94,7 +94,7 @@
 	                  </div>
 	                  <div id="table-div" style="display: none;">
 	                              <p>Total encounters: <%=encounters.size() %></p>
-	                    <table class="row project-style js-sort-table" style="width: 100%" >
+	                    <table class="row project-style js-sort-table" >
 	                      <thead>
 	                        <tr>
 	                          <th class="project-style" style="max-width: 180px; word-break: break-all; over-flow:hidden"><%= projectProps.getProperty("OccurrenceTableHeader")%></th>
