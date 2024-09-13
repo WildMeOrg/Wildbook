@@ -3,7 +3,7 @@ name: Development Build
 on:
   push:
       branches-ignore:
-          - master
+          - main
       tags-ignore:
           - v*
 jobs:
