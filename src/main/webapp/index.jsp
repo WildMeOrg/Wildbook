@@ -207,9 +207,7 @@ h2.vidcap {
   	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
-  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="images/snail-annotation.png" />
-		  	
+  	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>		  	
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
@@ -222,7 +220,7 @@ h2.vidcap {
   	
   	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
   	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
-  	
+  	<p>Fragile tree snail, Fat Guam Partula, Partulina fusoidea, Achatinella concavospira, Achatinella mustelina  </p>
   	<p class="lead"><%=props.getProperty("moreSoon") %></p>
 
 </section>
@@ -409,8 +407,7 @@ h2.vidcap {
                    
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <p class="lead">
-                            Snail copy.
+                        <p class="lead">In face of the 6th mass extinction, we aim to support all wildlife in support of ecological stability.</p>
                     </div>
                 </div>
             </article>
