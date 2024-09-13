@@ -261,7 +261,7 @@
       }
     },
 
-    "lutaensis_rota": {
+    "lutaensis rota": {
       "_common_name": "Partula lutaensis (Rota)",
       "_common_names": [
         "Partula lutaensis (Rota)"
@@ -270,6 +270,20 @@
       "_detect_conf": "@Achatinella.apexfulva._detect_conf",
       "snail": {
           "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+      }
+    },
+
+    "lutaensis": {
+      "rota": {
+        "_common_name": "Partula lutaensis (Rota)",
+        "_common_names": [
+          "Partula lutaensis (Rota)"
+        ],
+        "_itis_id": -9999457578,
+        "_detect_conf": "@Achatinella.apexfulva._detect_conf",
+        "snail": {
+            "_id_conf": "@Achatinella.apexfulva.snail._id_conf"
+        }
       }
     },
 
