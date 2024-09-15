@@ -1,3 +1,5 @@
+// TODO before PR: remove this whole file? Or at least post()? Seems like it
+// only does tapir link stuff but I don't have context on the product
 package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
