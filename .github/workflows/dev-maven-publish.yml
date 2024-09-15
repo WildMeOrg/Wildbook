@@ -33,7 +33,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t wildme/wildbook:base devops/deploy/Dockerfile
+        docker build -t wildme/wildbook:base -f devops/deploy/Dockerfile .
 
     - name: Push Docker image
       run: |
