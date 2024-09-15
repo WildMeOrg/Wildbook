@@ -25,7 +25,19 @@ jobs:
         mvn dependency:resolve -B -U
         mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
         mvn -B package --file pom.xml
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: wildmeorg
+        password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN  }}
 
+    - name: Build Docker image
+      run: |
+        docker build -t wildme/wildbook:base /devops/deploy/Dockerfile
+
+    - name: Push Docker image
+      run: |
+        docker push wildme/wildbook:base
     # Publishing to git is disabld for Development branch
     #- name: Publish to GitHub Packages
     #if: github.event_name == 'push' 
