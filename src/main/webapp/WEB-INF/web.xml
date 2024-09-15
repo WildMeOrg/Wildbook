@@ -203,7 +203,6 @@
 				/appadmin/batch* = authc, roles[admin]
 				/EncounterSetSubmitterID = authc, roles[researcher]
 
-				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
 				/individualSearchResultsExport.jsp = authc, roles[researcher]
 				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
@@ -366,7 +365,6 @@
 				/MediaAssetAttach= authc, roles[researcher]
 				/EncounterResetDate = authc, roles[researcher]
 				/IndividualSearchExportCapture = authc, roles[researcher]
-				/EncounterSetTapirLinkExposure = authc, roles[researcher]
 				/EncounterSetLocation = authc, roles[researcher]
 				/EncounterSetLocationID = authc, roles[researcher]
 				/CRCExportReport = authc, roles[researcher]
@@ -1226,12 +1224,6 @@
 	<servlet>
     <servlet-name>EncounterAnnotationExportExcelFile</servlet-name>
     <servlet-class>org.ecocean.servlet.export.EncounterAnnotationExportExcelFile</servlet-class>
-  </servlet>
-
-
-  <servlet>
-    <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterSetTapirLinkExposure</servlet-class>
   </servlet>
 
   <servlet>
@@ -2606,12 +2598,6 @@
     <url-pattern>/RemoveEmailAddress</url-pattern>
   </servlet-mapping>
   -->
-  <servlet-mapping>
-    <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
-    <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
-  </servlet-mapping>
-
-
 
   <servlet-mapping>
     <servlet-name>IndividualSetSex</servlet-name>

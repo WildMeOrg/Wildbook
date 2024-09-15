@@ -234,9 +234,6 @@ public class Encounter extends Base implements java.io.Serializable {
     // whether this encounter has a right-side spot image extracted
     // public boolean hasRightSpotImage = false;
 
-    // Indicates whether this record can be exposed via TapirLink
-    private boolean okExposeViaTapirLink = false;
-
     // whether this encounter has been approved for public display
     // private boolean approved = true;
     // integers of the latitude and longitude degrees
@@ -1165,7 +1162,6 @@ public class Encounter extends Base implements java.io.Serializable {
 /*
    public void approve() {
     approved = true;
-    okExposeViaTapirLink = true;
    }
  */
 /**
@@ -1463,12 +1459,10 @@ public class Encounter extends Base implements java.io.Serializable {
 
        public void reject() {
        unidentifiable = true;
-       //okExposeViaTapirLink=false;
        }
 
        public void reaccept() {
        unidentifiable = false;
-       //okExposeViaTapirLink=true;
        }
      */
     public String getGPSLongitude() {
@@ -2073,14 +2067,6 @@ public class Encounter extends Base implements java.io.Serializable {
             return Double.toString(decimalLongitude);
         }
         return null;
-    }
-
-    public boolean getOKExposeViaTapirLink() {
-        return okExposeViaTapirLink;
-    }
-
-    public void setOKExposeViaTapirLink(boolean ok) {
-        okExposeViaTapirLink = ok;
     }
 
     public void setAlternateID(String newID) {

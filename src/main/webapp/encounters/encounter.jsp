@@ -3072,54 +3072,6 @@ else {
 
 <!-- END USER ATTRIBUTE -->
 
-<!-- START TAPIRLINK DISPLAY AND SETTER -->
-<%
-if (isOwner || encounterCanBeEditedByAnyLoggedInUser){
-%>
-<script type="text/javascript">
-  $(window).on('load',function() {
-    $("#tapirApprove").click(function(event) {
-      event.preventDefault();
-
-
-      var number = $("#tapirNumber").val();
-      var action = $("#tapirAction").val();
-
-      $.post("../EncounterSetTapirLinkExposure", {"number": number, "action": action},
-      function(response) {
-        $("#tapirResultDiv").show();
-        $("#tapirError").hide();
-        $("#tapirSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#tapirResultDiv").show();
-        $("#tapirSuccess").hide();
-        $("#tapirError").html(response.responseText);
-      });
-    });
-  });
-</script>
-    <div>
-      <div id="tapirResultDiv" class="resultMessageDiv">
-        <span id="tapirSuccess" class="successHighlight"></span>
-        <span id="tapirError" class="highlight"></span>
-      </div>
-      <form name="setTapirLink" class="editFormMeta">
-        <input name="action" type="hidden" id="tapirAction" value="tapirLinkExpose" />
-        <input name="number" type="hidden" value="<%=num%>" id="tapirNumber"/>
-        <%
-        String tapirCheckIcon="cancel.gif";
-        if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
-        %>
-        <label>TapirLink:</label>&nbsp;
-        <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
-      </form>
-    </div>
-
-<!-- END TAPIRLINK DISPLAY AND SETTER -->
-<%
-}
-%>
 
 <!-- START AUTOCOMMENTS -->
 <%
