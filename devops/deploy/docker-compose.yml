@@ -31,40 +31,18 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    image: tomcat:9.0.85-jre8-temurin-jammy
+    image: wildme/wildbook:base
     depends_on:
       db:
         condition: service_healthy
     labels:
       - autoheal=true
-    entrypoint: /docker-entrypoint.sh
-    volumes:
-      # lets let this live in /webapps/ instead
-      #- wildbook-var:/usr/local/tomcat/webapps/wildbook_data_dir
-      - .dockerfiles/docker-entrypoint.sh:/docker-entrypoint.sh
-      - .dockerfiles/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
-      - .dockerfiles/tomcat/watermark.png:/usr/local/tomcat/watermark.png
-      - .dockerfiles/tomcat/IA.json:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.json
-      - .dockerfiles/tomcat/IA.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/IA.properties
-      - .dockerfiles/tomcat/commonConfiguration.properties:/usr/local/tomcat/webapps/wildbook_data_dir/WEB-INF/classes/bundles/commonConfiguration.properties
-      - "$WILDBOOK_BASE_DIR/webapps/:/usr/local/tomcat/webapps/"
-      - "$WILDBOOK_BASE_DIR/logs/:/usr/local/tomcat/logs/"
+
     networks:
       - intranet
     ports:
       # FIXME: exposed for developer verification
       - "81:8080"
-    environment:
-      DB_USER: "${WILDBOOK_DB_USER}"
-      DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
-      DB_CONNECTION_URL: "${WILDBOOK_DB_CONNECTION_URL}"
-      # Admin user created on startup,
-      # https://github.com/WildMeOrg/Wildbook/commit/6d65e70e43691f1b281bb76edf151e5c7cdb7403
-      ADMIN_EMAIL: "${EDM_AUTHENTICATIONS_USERNAME__DEFAULT}"
-      ADMIN_PASSWORD: "${EDM_AUTHENTICATIONS_PASSWORD__DEFAULT}"
-      SERVER_URL: "${SERVER_URL}"
-      # JAVA_OPTS from old-world wildbook, which gives us 4G heap memory
-      JAVA_OPTS: "-Djava.awt.headless=true -Xms4096m -Xmx4096m"
 
   wbia:
     # https://github.com/WildMeOrg/wildbook-ia
