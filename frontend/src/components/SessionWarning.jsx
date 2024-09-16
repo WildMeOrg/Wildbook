@@ -1,0 +1,144 @@
+import React, { useState, useEffect } from "react";
+import { Modal, Button } from "react-bootstrap";
+import { useIntl } from "react-intl";
+
+const SessionWarningModal = ({
+  sessionWarningTime = 0.1,
+  sessionCountdownTime = 0.1,
+}) => {
+  const intl = useIntl();
+  const originalContent = intl.formatMessage({ id: "SESSION_WARNING_CONTENT" });
+  const countdownContent = intl.formatMessage({
+    id: "SESSION_WARNING_COUNTDOWN",
+  });
+  const extendButton = intl.formatMessage({ id: "EXTEND" });
+  const loginButton = intl.formatMessage({ id: "LOGIN" });
+
+  const [showModal, setShowModal] = useState(false);
+  const [countdown, setCountdown] = useState(sessionCountdownTime * 60);
+  const [countdownInterval, setCountdownInterval] = useState(null);
+  const [extendButtonText, setExtendButtonText] = useState(extendButton);
+  const [modalText, setModalText] = useState(originalContent);
+  const [action, setAction] = useState("extendSession");
+
+  const activityTimeout = sessionWarningTime * 60 * 1000;
+
+  const showWarning = () => {
+    const now = Date.now();
+    const lastActivityTimestamp = localStorage.getItem("lastActivity");
+    const timeSinceLastActivity = now - lastActivityTimestamp;
+
+    if (timeSinceLastActivity < activityTimeout) {
+      setShowModal(false);
+      startSessionTimer();
+      return;
+    }
+
+    setShowModal(true);
+    startCountdown();
+  };
+
+  const handleSessionButtonClick = () => {
+    if (action === "login") {
+      window.open(`/react/login/`, "_blank");
+    } else {
+      fetch(`${window.wildbookGlobals?.baseUrl}../ExtendSession`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          localStorage.setItem("sessionExtended", Date.now().toString());
+          setShowModal(false);
+          clearInterval(countdownInterval);
+          resetActivity();
+        })
+        .catch((error) => console.warn("Error extending session:", error));
+    }
+  };
+
+  const startSessionTimer = () => {
+    setExtendButtonText(extendButton);
+    setAction("extendSession");
+    setModalText(originalContent);
+    setShowModal(false);
+    clearTimeout(countdownInterval);
+    setCountdownInterval(setTimeout(showWarning, activityTimeout));
+  };
+
+  const resetActivity = () => {
+    const now = Date.now();
+    localStorage.setItem("lastActivity", now.toString());
+    startSessionTimer();
+  };
+
+  const startCountdown = () => {
+    const warningCountdownTime = sessionCountdownTime * 60 * 1000;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const lastActivityTimestamp = parseInt(
+        localStorage.getItem("lastActivity"),
+        10,
+      );
+      const countdownTime =
+        lastActivityTimestamp + activityTimeout + warningCountdownTime - now;
+      const secondsRemaining = Math.floor(countdownTime / 1000);
+
+      if (countdownTime < 0) {
+        clearInterval(interval);
+        setExtendButtonText(loginButton);
+        setAction("login");
+        setModalText(countdownContent);
+        setCountdown(0);
+      } else {
+        setCountdown(secondsRemaining);
+      }
+    }, 1000);
+
+    setCountdownInterval(interval);
+  };
+
+  const formatCountdown = () => {
+    const minutes = Math.floor(countdown / 60);
+    const secondsLeft = countdown % 60;
+    return `${minutes}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
+  };
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === "lastActivity") {
+        startSessionTimer();
+      } else if (e.key === "sessionExtended") {
+        resetActivity();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    resetActivity();
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
+  return (
+    <>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{"Warning"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{modalText}</p>
+          <p id="countdown">{formatCountdown()}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleSessionButtonClick}>
+            {extendButtonText}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+};
+
+export default SessionWarningModal;
