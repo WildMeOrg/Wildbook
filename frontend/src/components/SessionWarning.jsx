@@ -7,12 +7,15 @@ const SessionWarningModal = ({
   sessionCountdownTime = 0.1,
 }) => {
   const intl = useIntl();
+
+  const title = intl.formatMessage({ id: "SESSION_WARNING_TITLE" });
   const originalContent = intl.formatMessage({ id: "SESSION_WARNING_CONTENT" });
   const countdownContent = intl.formatMessage({
-    id: "SESSION_WARNING_COUNTDOWN",
+    id: "SESSION_LOGIN_MODAL_CONTENT",
   });
-  const extendButton = intl.formatMessage({ id: "EXTEND" });
-  const loginButton = intl.formatMessage({ id: "LOGIN" });
+  const extendButton = intl.formatMessage({ id: "SESSION_EXTEND" });
+  const loginButton = intl.formatMessage({ id: "SESSION_LOGIN" });
+  const closeButtonText = intl.formatMessage({ id: "SESSION_CLOSE" });
 
   const [showModal, setShowModal] = useState(false);
   const [countdown, setCountdown] = useState(sessionCountdownTime * 60);
@@ -20,6 +23,7 @@ const SessionWarningModal = ({
   const [extendButtonText, setExtendButtonText] = useState(extendButton);
   const [modalText, setModalText] = useState(originalContent);
   const [action, setAction] = useState("extendSession");
+  const [showCountdown, setShowCountdown] = useState(true);
 
   const activityTimeout = sessionWarningTime * 60 * 1000;
 
@@ -34,8 +38,9 @@ const SessionWarningModal = ({
       return;
     }
 
-    setShowModal(true);
     startCountdown();
+    setShowCountdown(true);
+    setShowModal(true);
   };
 
   const handleSessionButtonClick = () => {
@@ -88,6 +93,7 @@ const SessionWarningModal = ({
         setExtendButtonText(loginButton);
         setAction("login");
         setModalText(countdownContent);
+        setShowCountdown(false);
         setCountdown(0);
       } else {
         setCountdown(secondsRemaining);
@@ -125,15 +131,27 @@ const SessionWarningModal = ({
     <>
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>{"Warning"}</Modal.Title>
+          <Modal.Title>{title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>{modalText}</p>
-          <p id="countdown">{formatCountdown()}</p>
+          <p>
+            {modalText}
+            {showCountdown && formatCountdown()}
+          </p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={handleSessionButtonClick}>
             {extendButtonText}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowModal(false);
+              clearInterval(countdownInterval);
+              resetActivity();
+            }}
+          >
+            {closeButtonText}
           </Button>
         </Modal.Footer>
       </Modal>
