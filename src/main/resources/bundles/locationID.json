@@ -506,6 +506,21 @@
 					}
 				]
 			},
+					{
+				"name": "Remscheid",
+				"id": "Remscheid",
+				"locationID": [
+					{
+						"name": "Eschbach",
+						"id": "Eschbach",
+						"geospatialInfo": {
+							"lat": 51.160653,
+							"long": 7.211977
+						},
+						"locationID": []
+					}
+				]
+			},
 			{
 				"name": "Rheinland-Pfalz",
 				"id": "Rheinland-Pfalz",
@@ -528,6 +543,66 @@
 			"name": "Wolbecker Tiergarten",
 			"id": "Wolbecker Tiergarten",
 			"locationID": []
+		  },
+				  {
+			"name": "Wuppertal",
+			"id": "Wuppertal",
+			"locationID": [
+				{
+					"name": "Bendahler Bach",
+					"id": "Bendahler Bach",
+					"geospatialInfo": {
+						"lat": 51.248670,
+						"long": 7.164826
+					},
+					"locationID": []
+				},
+				{
+					"name": "Burgholz",
+					"id": "Burgholz",
+					"geospatialInfo": {
+						"lat": 51.214565,
+						"long": 7.119249
+					},
+					"locationID": []
+				},
+				{
+					"name": "Kothen",
+					"id": "Kothen",
+					"geospatialInfo": {
+						"lat": 51.257106,
+						"long": 7.187970
+					},
+					"locationID":[]
+				},
+				{
+					"name": "Kupferhammer",
+					"id": "Kupferhammer",
+					"geospatialInfo": {
+						"lat": 51.252608,
+						"long": 7.228016
+					},
+					"locationID": []
+				},
+				{
+					"name": "Murmelbach",
+					"id": "Murmelbach",
+					"geospatialInfo": {
+						"lat": 51.261847,
+						"long": 7.220412
+					},
+					"locationID": []
+				},
+				{
+					"name": "Rheinbach",
+					"id": "Rheinbach",
+					"geospatialInfo": {
+						"lat": 51.197139,
+						"long": 7.140769
+					},
+					"locationID": []
+				}
+			]
 		  },
 		  {
 			"name": "Zwickau",
