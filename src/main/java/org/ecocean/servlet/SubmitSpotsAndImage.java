@@ -141,7 +141,7 @@ System.out.println("====> params = " + params);
     //WB-1841 only whale sharks are currently matchable via this method
     if(speciesString!=null && speciesString.equals("Rhincodon typus")) {
       ann.setMatchAgainst(true);
-      String iaClass = "whalesharkCR"; // should we change this?
+      String iaClass = "whaleshark"; // should we change this?
       ann.setIAClass(iaClass);
     }
     else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
