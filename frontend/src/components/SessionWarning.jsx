@@ -3,8 +3,8 @@ import { Modal, Button } from "react-bootstrap";
 import { useIntl } from "react-intl";
 
 const SessionWarningModal = ({
-  sessionWarningTime = 0.1,
-  sessionCountdownTime = 0.1,
+  sessionWarningTime = 20,
+  sessionCountdownTime = 10,
 }) => {
   const intl = useIntl();
 
@@ -23,7 +23,6 @@ const SessionWarningModal = ({
   const [extendButtonText, setExtendButtonText] = useState(extendButton);
   const [modalText, setModalText] = useState(originalContent);
   const [action, setAction] = useState("extendSession");
-  const [showCountdown, setShowCountdown] = useState(true);
 
   const activityTimeout = sessionWarningTime * 60 * 1000;
 
@@ -39,7 +38,6 @@ const SessionWarningModal = ({
     }
 
     startCountdown();
-    setShowCountdown(true);
     setShowModal(true);
   };
 
@@ -70,6 +68,7 @@ const SessionWarningModal = ({
   };
 
   const resetActivity = () => {
+    setCountdown(0);
     const now = Date.now();
     localStorage.setItem("lastActivity", now.toString());
     startSessionTimer();
@@ -93,7 +92,6 @@ const SessionWarningModal = ({
         setExtendButtonText(loginButton);
         setAction("login");
         setModalText(countdownContent);
-        setShowCountdown(false);
         setCountdown(0);
       } else {
         setCountdown(secondsRemaining);
@@ -104,6 +102,9 @@ const SessionWarningModal = ({
   };
 
   const formatCountdown = () => {
+    if (countdown === 0) {
+      return "";
+    }
     const minutes = Math.floor(countdown / 60);
     const secondsLeft = countdown % 60;
     return `${minutes}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
@@ -136,7 +137,7 @@ const SessionWarningModal = ({
         <Modal.Body>
           <p>
             {modalText}
-            {showCountdown && formatCountdown()}
+            {formatCountdown()}
           </p>
         </Modal.Body>
         <Modal.Footer>
@@ -147,8 +148,9 @@ const SessionWarningModal = ({
             variant="secondary"
             onClick={() => {
               setShowModal(false);
-              clearInterval(countdownInterval);
-              resetActivity();
+              // setCountdown(0);
+              // clearInterval(countdownInterval);
+              // resetActivity();
             }}
           >
             {closeButtonText}
