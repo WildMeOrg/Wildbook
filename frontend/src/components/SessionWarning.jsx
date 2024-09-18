@@ -47,8 +47,7 @@ const SessionWarningModal = ({
     } else {
       fetch(`${window.wildbookGlobals?.baseUrl}../ExtendSession`)
         .then((res) => res.json())
-        .then((data) => {
-          console.log(data);
+        .then(() => {
           localStorage.setItem("sessionExtended", Date.now().toString());
           setShowModal(false);
           clearInterval(countdownInterval);
