@@ -10,6 +10,10 @@ import GoogleTagManager from "./GoogleTagManager";
 import Cookies from "js-cookie";
 import "./css/scrollBar.css";
 import SessionWarning from "./components/SessionWarning";
+import {
+  sessionWarningTime,
+  sessionCountdownTime,
+} from "./constants/sessionWarning";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -73,7 +77,10 @@ export default function FrontDesk() {
         }}
       >
         <GoogleTagManager />
-        <SessionWarning />
+        <SessionWarning
+          sessionWarningTime={sessionWarningTime}
+          sessionCountdownTime={sessionCountdownTime}
+        />
         <AuthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
