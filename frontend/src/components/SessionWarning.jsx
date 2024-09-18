@@ -43,7 +43,7 @@ const SessionWarningModal = ({
 
   const handleSessionButtonClick = () => {
     if (action === "login") {
-      window.open(`/react/login/`, "_blank");
+      window.open(`${process.env.PUBLIC_URL}/login/`, "_blank");
     } else {
       fetch(`${window.wildbookGlobals?.baseUrl}../ExtendSession`)
         .then((res) => res.json())
