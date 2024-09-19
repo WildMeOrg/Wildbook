@@ -51,7 +51,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/react/citation",
+        href: `${process.env.PUBLIC_URL}/citation`,
       },
       {
         name: (
@@ -76,7 +76,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="My Encounters"
           />
         ),
-        href: `/react/encounter-search?username=${username}`,
+        href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}`,
         sub: [
           {
             name: (
@@ -85,7 +85,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Approved Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=approved`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=approved`,
           },
           {
             name: (
@@ -94,7 +94,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Unapproved Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=unapproved`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=unapproved`,
           },
           {
             name: (
@@ -103,7 +103,7 @@ const authenticatedMenu = (username) => [
                 defaultMessage="My Unidentifiable Animals"
               />
             ),
-            href: `/react/encounter-search?username=${username}&state=unidentifiable`,
+            href: `${process.env.PUBLIC_URL}/encounter-search?username=${username}&state=unidentifiable`,
           },
         ],
       },
@@ -154,7 +154,7 @@ const authenticatedMenu = (username) => [
             defaultMessage="Encounters"
           />
         ),
-        href: "/react/encounter-search",
+        href: `${process.env.PUBLIC_URL}/encounter-search`,
       },
       {
         name: (
@@ -314,7 +314,7 @@ const unAuthenticatedMenu = [
             defaultMessage="Citing Wildbook"
           />
         ),
-        href: "/react/citation",
+        href: `${process.env.PUBLIC_URL}/citation`,
       },
       {
         name: (
