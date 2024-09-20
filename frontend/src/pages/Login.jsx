@@ -50,7 +50,7 @@ function LoginPage() {
           }}
         >
           <img
-            src="/react/images/signin.png"
+            src={`${process.env.PUBLIC_URL}/images/signin.png`}
             alt=""
             style={{
               position: "absolute",

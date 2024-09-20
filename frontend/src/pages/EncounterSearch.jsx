@@ -229,7 +229,7 @@ export default function EncounterSearch() {
       className="encounter-search container-fluid"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/react/images/encounter_search_background.png')",
+          `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${process.env.PUBLIC_URL}/images/encounter_search_background.png')`,
         backgroundSize: "cover",
         minHeight: "800px",
         width: "100%",

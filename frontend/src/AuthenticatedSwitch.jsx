@@ -14,7 +14,7 @@ import Citation from "./pages/Citation";
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { data } = useGetMe();
   const username = data?.username;
-  const avatar = data?.imageURL || "/react/images/Avatar.png";
+  const avatar = data?.imageURL || `${process.env.PUBLIC_URL}/images/Avatar.png`;
   const [header, setHeader] = React.useState(true);
 
   return (
