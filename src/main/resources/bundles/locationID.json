@@ -55,7 +55,18 @@
             {
                "id" : "Spyglass",
                "name" : "Spyglass",
-               "locationID" : []
+               "locationID" : [
+					{
+						"name" : "Home",
+						"id" : "Home"
+					},
+					{
+						"name" : "NMR",
+						"id" : "NMR"
+					}
+			   
+			   
+			   ]
             }
          ]
       }
