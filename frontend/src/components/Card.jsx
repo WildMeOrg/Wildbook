@@ -21,10 +21,10 @@ export default function Card({
       }}
     >
       {icon}
-      <div>
+      <div className="d-flex flex-column align-items-center justify-content-center ">
         <h5>{title}</h5>
         <p>{content}</p>
-        <div className="d-flex justify-content-center">
+        <div>
           {buttonText && (
             <MainButton
               link={link}
