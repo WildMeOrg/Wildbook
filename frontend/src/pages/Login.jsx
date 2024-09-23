@@ -17,7 +17,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const intl = useIntl();
   const { authenticate, error, setError, loading } = useLogin();
-  const actionDisabled = loading || username === "" || password === "";
+  const actionDisabled = loading;
   const [show, setShow] = useState(false);
   const theme = useContext(ThemeColorContext);
 
