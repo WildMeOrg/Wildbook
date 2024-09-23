@@ -239,5 +239,11 @@
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast y J. Holmberg. 2015. Flukebook: herramientas de análisis de identificación fotográfica basadas en la nube para la investigación de mamíferos marinos. Disponible en: https://www.flukebook.org",
     "CITATION_FORWARD": "Reenviar la cita de cualquier publicación / informe que haya utilizado los datos / herramientas proporcionados por Wild Me para su inclusión en nuestra lista de referencias enviándola a info@wildme.org.",
     "CITATION_DISCLAIMER": "No responsabilizar a Wild Me ni a los proveedores de datos originales por errores en los datos. Aunque hemos hecho todo lo posible por garantizar la calidad de la base de datos, no podemos garantizar la exactitud de estos conjuntos de datos.",
-    "MAP_IS_LOADING" : "El mapa se está cargando"
+    "MAP_IS_LOADING" : "El mapa se está cargando",
+    "SESSION_WARNING_CONTENT" : "Tu sesión está a punto de expirar.",
+    "SESSION_WARNING_TITLE" : "Advertencia de tiempo de sesión",
+    "SESSION_LOGIN_MODAL_CONTENT" : "Has sido desconectado del sistema.",
+    "SESSION_EXTEND" : "Extender",
+    "SESSION_LOGIN" : "Iniciar sesión",
+    "SESSION_CLOSE" : "Cerrar"
 }
