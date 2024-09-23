@@ -8,6 +8,11 @@ export SITE_NAME="Test Site Name"
 npm install react-app-rewired
 
 cd frontend
+
+# Use `npm ci` for consistent and faster installs in production, as it installs exact versions 
+# from `package-lock.json` without modifying it, ensuring stability across environments.
+npm ci
+
 npm run build
 
 rsync -a build/ ../src/main/webapp/react
