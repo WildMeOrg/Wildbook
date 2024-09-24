@@ -52,7 +52,6 @@ export default function FrontDesk() {
   };
 
   useEffect(() => {
-    getAllNotifications();
     checkLoginStatus();
     const intervalId = setInterval(() => {
       checkLoginStatus();
@@ -60,6 +59,12 @@ export default function FrontDesk() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getAllNotifications();
+    }
+  }, [isLoggedIn]);
 
   if (loading) return <LoadingScreen />;
 
