@@ -409,10 +409,10 @@ if(request.getUserPrincipal()!=null){
 
         <!-- ****header**** -->
         <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
-          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #190066; ">
             <div class="nav-bar-wrapper" style="background-color: transparent">
               <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
-                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">        
+                <a class="nav-brand" target="_blank" href="https://seadragonsearch.org">        
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
@@ -448,15 +448,24 @@ if(request.getUserPrincipal()!=null){
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
-                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
+                        	<%
+							if(request.getUserPrincipal()!=null && !loggingOut){
+							%>
+                          	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
+                            	
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
                             <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                            <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
+                            <%
+							}
+                            %>
+                             <li><a target="_blank" href="https://www.wildme.org/wildbook.html"><%=props.getProperty("learnAboutShepherd")%></a></li>
                           <%-- <li class="divider"></li> --%>
                         </ul>
                       </li>
+                        <%
+						if(request.getUserPrincipal()!=null && !loggingOut){
+						%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -500,6 +509,12 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                         </ul>
                       </li>
+                      <%
+						}
+
+						if(request.getUserPrincipal()!=null && !loggingOut){
+						%>
+                      %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
@@ -526,6 +541,17 @@ if(request.getUserPrincipal()!=null){
                         </ul>
 
                       </li>
+                      <%
+						}
+						if(request.getUserPrincipal()==null){
+                      %>
+                       <li class="dropdown">
+                        <a class="dropdown-toggle" href="//wildbook.seadragonsearch.org/contactus.jsp" aria-expanded="false">Contact Us </a>
+                      </li>
+						<%
+						} 
+						%>
+                      
                       <div class="search-and-secondary-wrapper d-flex" >
                         <!-- notifications -->
                         <div id="notifications">

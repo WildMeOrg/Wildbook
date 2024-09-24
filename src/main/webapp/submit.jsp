@@ -670,7 +670,7 @@ boolean useCustomProperties = User.hasCustomProperties(request); // don't want t
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+          <%=LocationID.getHTMLSelector(false,(String)null,qualifier,"locationID","locationID","form-control") %>
       </div>
     </div>
 
