@@ -20,81 +20,36 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("footer.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
 
-// 'sets serverInfo if necessary
-CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-myShepherd.setAction("footer.jsp");
-myShepherd.beginDBTransaction();
 
-String username = null;
-User user = null;
-boolean indocetUser = false;
-
-try {
-  if(request.getUserPrincipal()!=null){
-    user = myShepherd.getUser(request);
-    username = (user!=null) ? user.getUsername() : null;
-    indocetUser = (user!=null && user.hasAffiliation("indocet"));
-  }
-}
-catch(Exception e){
-  System.out.println("Exception on indocetCheck in footer.jsp:");
-  e.printStackTrace();
-
-}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
         %>
 
         <!-- footer -->
-        <footer class="page-footer">
-
-            <div class="container-fluid">
-              <div class="container main-section">
-
-                <div class="row">
-                  <div class="col-sm-6" style="margin-top:40px;">
-                    <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
-                  <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
-                  </div>
-                  <div class="col-sm-6">
-                    <%if (indocetUser) {%>
-                      <p>
-                      <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">
-                        <img src="<%=urlLoc %>/cust/indocet/logo_FFEM.png" alt=" logo" style="margin-top:40px;" />
-                      </a>
-                      <a href="commissionoceanindien.org" class="col-sm-4" title="Funded in part by COI">
-                        <img src="<%=urlLoc %>/cust/indocet/logo_COI.png" alt=" logo" style="margin-top:40px;" />
-                      </a>
-                    </p>
-                    <%}%>
-
-                    <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
-                      <img src="<%=urlLoc %>/images/WildMe-Logo-02.svg" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
-                    </a>
+        <div class="container d-flex flex-column align-items-center footer-font footer-container">
+            <div class="row w-100 text-center text-lg-left">
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me" class="footer-link text-reset px-2 footer-text">Donate</a>
+                    <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html" class="footer-link footer-text">Documentation</a>
                 </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
+                    <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
                 </div>
-              </div>
+                <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
+                    <a href="https://www.instagram.com/conservationxlabs" class="footer-link text-reset px-2 footer-text">Instagram</a>
+                    <a href="https://www.facebook.com/ConservationXLabs" class="footer-link text-reset px-2 footer-text">Facebook</a>
+                    <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
+                    <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+                </div>
             </div>
+            <div class="footer-text w-100 py-3 text-center">2024 © Conservation X Labs | All Rights Reserved</div>
+        </div>
 
-            <script>
-				  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-				  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-				  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-				  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-				  ga('create', 'UA-30944767-5', 'auto');
-				  ga('send', 'pageview');
 
-			</script>
-
-        </footer>
         <!-- /footer -->
     </body>
 </html>

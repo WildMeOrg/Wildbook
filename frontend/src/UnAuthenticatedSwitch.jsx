@@ -1,49 +1,51 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import ErrorPage from "./pages/errorPages/ErrorPage";
 import Login from "./pages/Login";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
 import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import NotFound from "./pages/errorPages/NotFound";
-import Forbidden from "./pages/errorPages/Forbidden";
 import Unauthorized from "./pages/errorPages/Unauthorized";
-import ServerError from "./pages/errorPages/ServerError";
-import BadRequest from "./pages/errorPages/BadRequest";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
-  console.log("UnAuthenticatedSwitch", showAlert);
+  const [header, setHeader] = React.useState(true);
 
   return (
-    <main className="d-flex flex-column">
+    <div className="d-flex flex-column min-vh-100">
       <div
-        className="position-fixed top-0 mx-auto w-100"
-        style={{ maxWidth: "1440px", zIndex: 100 }}
+        id="header"
+        className="position-fixed top-0 w-100"
+        style={{
+          zIndex: "100",
+          height: "50px",
+          backgroundColor: "#303336",
+        }}
       >
         {showAlert && <AlertBanner setShowAlert={setShowAlert} />}
-        <UnAuthenticatedAppHeader
-          showAlert={showAlert}
-          setShowAlert={setShowAlert}
-        />
+        <UnAuthenticatedAppHeader />
       </div>
+
       <div
-        className="position-absolute top-0 start-0 justify-content-center w-100"
+        id="main-content"
+        className="flex-grow-1 d-flex justify-content-center"
         style={{
-          overflow: "hidden",
           boxSizing: "border-box",
-          minHeight: "calc(100vh - 64px)", // Assuming the header height is 64px
+          overflow: "hidden",
+          paddingTop: header ? "48px" : "0",
         }}
       >
         <Routes>
-          {/* <Route path="/about" element={<Login />} /> */}
-          <Route path="/home" element={<Unauthorized />} />
+          <Route
+            path="/home"
+            element={<Unauthorized setHeader={setHeader} />}
+          />
+          <Route path="/encounter-search" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound setHeader={setHeader} />} />
         </Routes>
-        <Footer />
       </div>
-    </main>
+      <Footer />
+    </div>
   );
 }

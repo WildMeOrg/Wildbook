@@ -180,7 +180,7 @@ if(request.getParameter("scDate")==null){
       <ul id="tabmenu">
 
         <li><a
-          href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
+          href="../react/encounter-search?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
         </a></li>
         <li><a
           href="../encounters/projectManagement.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("projectManagement")%>

@@ -469,8 +469,7 @@ public class Shepherd {
      * @see Encounter
      */
     public void throwAwayEncounter(Encounter enc) {
-        String number = enc.getEncounterNumber();
-
+        enc.opensearchUnindexQuiet();
         pm.deletePersistent(enc);
     }
 
@@ -539,8 +538,9 @@ public class Shepherd {
         pm.deletePersistent(word);
     }
 
-    public void throwAwayOccurrence(Occurrence word) {
-        pm.deletePersistent(word);
+    public void throwAwayOccurrence(Occurrence occ) {
+        occ.opensearchUnindexQuiet();
+        pm.deletePersistent(occ);
     }
 
     public void throwAwayProject(Project project) {
@@ -562,7 +562,7 @@ public class Shepherd {
      * @see MarkedIndividual
      */
     public void throwAwayMarkedIndividual(MarkedIndividual bye_bye_sharky) {
-        // String name=bye_bye_sharky.getName();
+        bye_bye_sharky.opensearchUnindexQuiet();
         pm.deletePersistent(bye_bye_sharky);
     }
 
@@ -950,6 +950,18 @@ public class Shepherd {
         return mships;
     }
 
+    public List<String> getAllMembershipRoles() {
+        List<String> all = new ArrayList<String>();
+        Query query = pm.newQuery(
+            "SELECT role FROM org.ecocean.social.Membership WHERE role != null");
+
+        query.setResult("distinct role");
+        query.setOrdering("role");
+        Collection c = (Collection)(query.execute());
+        if (c != null) all = new ArrayList<String>(c);
+        return all;
+    }
+
     public SocialUnit getSocialUnit(String name) {
         return getCommunity(name);
     }
@@ -1049,13 +1061,13 @@ public class Shepherd {
     }
 
     public User getUser(String username) {
+        if (username == null) return null;
         User user = null;
         String filter = "SELECT FROM org.ecocean.User WHERE username == \"" + username.trim() +
             "\"";
         Query query = getPM().newQuery(filter);
         Collection c = (Collection)(query.execute());
         Iterator it = c.iterator();
-
         if (it.hasNext()) {
             user = (User)it.next();
         }
@@ -4142,6 +4154,22 @@ public class Shepherd {
                 pm.currentTransaction().begin();
             }
             ShepherdPMF.setShepherdState(action + "_" + shepherdID, "begin");
+
+            pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
+
+/* this as unnecessary but holding for further possible use
+            // https://www.datanucleus.org/products/accessplatform_4_1/jdo/transactions.html#isolation
+            tx = pm.currentTransaction();
+            tx.setSynchronization(new javax.transaction.Synchronization() {
+                public void beforeCompletion() {
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> BEFORE");
+                }
+                public void afterCompletion(int status) {
+                    //javax.transaction.Status.STATUS_COMMITTED
+                    System.out.println("###########>>>>>>>>>>>>>>>>>> AFTER status=" + status);
+                }
+            });
+ */
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
@@ -5716,12 +5744,19 @@ public class Shepherd {
     }
 
     public ArrayList<Annotation> getAnnotationsWithACMId(String acmId) {
-        String filter = "this.acmId == \"" + acmId + "\"";
-        Extent annClass = pm.getExtent(Annotation.class, true);
-        Query anns = pm.newQuery(annClass, filter);
+        return getAnnotationsWithACMId(acmId, false);
+    }
+
+    public ArrayList<Annotation> getAnnotationsWithACMId(String acmId,
+        boolean enforceEncounterAssociation) {
+        String filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\"";
+
+        if (enforceEncounterAssociation)
+            filter = "select from org.ecocean.Annotation where acmId == \"" + acmId +
+                "\" && enc.annotations.contains(this) VARIABLES org.ecocean.Encounter enc";
+        Query anns = pm.newQuery(filter);
         Collection c = (Collection)(anns.execute());
         ArrayList<Annotation> al = new ArrayList(c);
-
         anns.closeAll();
         if ((al != null) && (al.size() > 0)) {
             return al;

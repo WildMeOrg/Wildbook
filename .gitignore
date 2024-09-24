@@ -43,3 +43,5 @@ catalina.base_IS_UNDEFINED
 /frontend/.env
 /frontend/build
 /frontend/.env
+/frontend/src/serviceWorkerRegistration.js
+/frontend/src/serviceWorker.js

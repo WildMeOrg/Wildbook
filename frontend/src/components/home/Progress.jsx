@@ -5,15 +5,11 @@ export default function Progress({
   name,
   encounters,
   progress,
-  children,
   href,
   style,
   disabled = false,
   noUnderline = false,
-  external = false,
   newTab = false,
-  onClick,
-  ...rest
 }) {
   const styles = {
     color: disabled ? "grey" : "unset",
@@ -49,6 +45,7 @@ export default function Progress({
             color: styles.color,
             cursor: styles.cursor,
           }}
+          rel="noreferrer"
         >
           <h5>{name}</h5>
           <span>

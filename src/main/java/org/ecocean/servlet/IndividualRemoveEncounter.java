@@ -107,6 +107,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
                 }
                 if (!locked) {
                     myShepherd.commitDBTransaction();
+                    if (enc2remove != null) enc2remove.opensearchIndex();
                     out.println(ServletUtilities.getHeader(request));
                     response.setStatus(HttpServletResponse.SC_OK);
                     out.println("<strong>Success:</strong> Encounter #" +
