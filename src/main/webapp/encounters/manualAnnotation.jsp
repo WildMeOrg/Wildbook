@@ -5,6 +5,8 @@
     java.util.Arrays,
 		java.util.Iterator,
 		java.util.List,
+		java.util.Set,
+		java.util.LinkedHashSet,
 		org.json.JSONObject,
 		org.ecocean.media.*,
 		org.ecocean.Annotation,
@@ -13,7 +15,8 @@
 		java.nio.charset.StandardCharsets,
 		java.io.UnsupportedEncodingException,
 		org.ecocean.identity.IBEISIA,
-		java.util.ArrayList
+		java.util.ArrayList,
+		org.apache.commons.collections4.CollectionUtils
 		"
 %>
 
@@ -45,8 +48,8 @@ try {
 catch (NumberFormatException nex) {}
 
 String iaClass = request.getParameter("iaClass");
-String maparam = request.getParameter("matchAgainst");
-boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+//String maparam = request.getParameter("matchAgainst");
+//boolean matchAgainst = Util.booleanNotFalse(maparam);
 String rtparam = request.getParameter("removeTrivial");
 boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
@@ -149,6 +152,7 @@ $(document).ready(function() {
         $('.axis').hide();
     }).on('click', function(ev) {
       let mainImgWidth = $('#main-img').width();
+       if (rotated) mainImgWidth = $('#main-img').height();
       let widthScale = maWidth/mainImgWidth;
         if (boxStart) {
             var w = Math.abs(ev.offsetX - boxStart[0]);
@@ -191,8 +195,9 @@ myShepherd.beginDBTransaction();
 
 try{
 	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
-	Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
-	List results = (List)q.execute();
+	final String noViewpoint = "----------";
+	vlist += "<option value=\"\"" + (viewpoint == null || viewpoint.equals("") ? " selected" : "") + ">" + noViewpoint + "</option>";
+	final Set<String> results = new LinkedHashSet<>(Annotation.getAllValidViewpoints());
 	Iterator it = results.iterator();
 	while (it.hasNext()) {
 	    String v = (String)it.next();
@@ -200,7 +205,6 @@ try{
 	    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
 	}
 	vlist += "</select></p>";
-	q.closeAll();
 
 	//ok, we now know that we have a MediaAsset
 	//now let's check if we need to force Encounter cloning
@@ -216,27 +220,28 @@ try{
 	    }
 	}
 
-	if(viewpoint!=null){
-		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
-		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
-		//results = (List)q2.execute();
-		IAJsonProperties iaj=new IAJsonProperties();
-		List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
+	clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" class=\"notranslate\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+	//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+	//results = (List)q2.execute();
+	IAJsonProperties iaj=new IAJsonProperties();
+	List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
 
-		Iterator<String> it2 = results2.iterator();
-		while (it2.hasNext()) {
-		    String v = (String)it2.next();
-		    //System.out.println("Encooded v: "+v);
-		    if (!Util.stringExists(v)) continue;
-		    //if(IBEISIA.validIAClassForIdentification(v, context)){
-		    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
-		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
-		    //}
-		}
-		clist += "</select></p>";
-		//q2.closeAll();
+	Iterator<String> it2 = results2.iterator();
+	while (it2.hasNext()) {
+	    String v = (String)it2.next();
+	    //System.out.println("Encooded v: "+v);
+	    if (!Util.stringExists(v)) continue;
+	    //if(IBEISIA.validIAClassForIdentification(v, context)){
+	    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
+	    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+	    //}
 	}
-
+	if (CollectionUtils.isEmpty(results2)) {
+		final String noneConfigured = "none_configured";
+		clist += "<option value=" + noneConfigured + (noneConfigured.equals(iaClass) ? " selected" : "") + ">" + "none configured" + "</option>";
+	}
+	clist += "</select></p>";
+	//q2.closeAll();
 
 	Feature ft = null;
 	MediaAsset ma = null;
@@ -282,9 +287,8 @@ try{
 
 	//we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
 	//also don't clone if this is a part
-	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
+	if(annots.size()>1 && iaClass!=null){
 		cloneEncounter=true;
-		
 	}
 	//also don't clone if this is a part
 	//if the one annot isn't trivial, then we have to clone the encounter as well
@@ -292,13 +296,21 @@ try{
 		cloneEncounter=true;
 		
 		//exception case - if there is only one annotation and it is a part
-		if(annots.size()==1){
+		Annotation annot1 = annots.get(0);
+		if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
+			cloneEncounter=false;
+		}
+
+		
+	}
+	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")>-1){
+		//exception case - if there is only one annotation and it is a part
+
 			Annotation annot1 = annots.get(0);
 			if(annot1.getIAClass()!=null && annot1.getIAClass().indexOf("+")!=-1){
-				cloneEncounter=false;
+				cloneEncounter=true;
 			}
-		}
-		
+
 	}
 
 
@@ -338,14 +350,15 @@ try{
 	<p>
 	MediaAsset <b><a title="<%=ma.toString()%><%=(ma.isRotated90Or270() ? " -- adjusted for ROTATION &#128257;" : "")%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
 
-	<script>scale = <%=scale%>;
-        maWidth = <%=maWidth%>;
+	<script>var scale = <%=scale%>;
+        var maWidth = <%=maWidth%>;
+        var rotated = <%=ma.isRotated90Or270()%>;
         var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
 
 	function pulldownUpdate(el) {
 	//console.info('%o', el.name);
 	    var u = window.location.href;
-	    var m = u.match(new RegExp(el.name + '=\\w+'));
+	    var m = u.match(new RegExp(el.name + '=\\w*'));
 	    if (!m) {  //was not (yet) in url
 	        u += '&' + el.name + '=' + encodeURIComponent(el.value);
 	    } else {
@@ -389,7 +402,7 @@ try{
 	<b><%=vlist%></b>
 	<%
 	}
-	if(!save && viewpoint!=null){
+	if(!save){
 	%>
 	<b><%=clist%></b>
 	<%
@@ -421,7 +434,10 @@ try{
 	    ma.addFeature(ft);
 	    ma.setDetectionStatus("complete");
 	    Annotation ann = new Annotation(null, ft, iaClass);
-	    ann.setMatchAgainst(matchAgainst);
+		IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+	    if (IBEISIA.validForIdentification(ann, context) && iaConf.isValidIAClass(enc.getTaxonomy(myShepherd), iaClass)) {
+            ann.setMatchAgainst(true);
+        }
 	    ann.setViewpoint(viewpoint);
 	    String encMsg = "(no encounter)";
 	    if (enc != null) {

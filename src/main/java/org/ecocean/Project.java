@@ -1,7 +1,7 @@
 package org.ecocean;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Project implements java.io.Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String id;
@@ -23,13 +22,13 @@ public class Project implements java.io.Serializable {
     private Long dateCreatedLong;
     private Long dateLastModifiedLong;
 
-    //reference to a user in the user array, so we don't link to that table twice
+    // reference to a user in the user array, so we don't link to that table twice
     private String ownerId;
     private List<User> users = null;
 
     private int nextIndividualIdIncrement = 0;
 
-    //empty constructor used by the JDO enhancer
+    // empty constructor used by the JDO enhancer
     public Project() {}
 
     public Project(final String projectIdPrefix) {
@@ -45,7 +44,8 @@ public class Project implements java.io.Serializable {
         System.out.println("the correct constructor is called");
     }
 
-    public Project(final String projectIdPrefix, final String researchProjectName, final List<Encounter> encs) {
+    public Project(final String projectIdPrefix, final String researchProjectName,
+        final List<Encounter> encs) {
         this.encounters = new ArrayList<>();
         this.id = Util.generateUUID();
         this.projectIdPrefix = projectIdPrefix;
@@ -64,6 +64,7 @@ public class Project implements java.io.Serializable {
 
     public String getNextIncrementalIndividualIdAndAdvance() {
         String nextId = getNextIncrementalIndividualId();
+
         nextIndividualIdIncrement++;
         setTimeLastModified();
         return nextId;
@@ -73,53 +74,56 @@ public class Project implements java.io.Serializable {
         if (!projectIdPrefix.contains("#")) {
             return projectIdPrefix + nextIndividualIdIncrement;
         }
-        String nextName = projectIdPrefix.replace("#","0");
-        int poundCount = StringUtils.countMatches(projectIdPrefix,"#");
+        String nextName = projectIdPrefix.replace("#", "0");
+        int poundCount = StringUtils.countMatches(projectIdPrefix, "#");
         int currentDigits = String.valueOf(nextIndividualIdIncrement).length();
-        if (poundCount>currentDigits) {
+        if (poundCount > currentDigits) {
             nextName = nextName.substring(0, nextName.length() - currentDigits);
         } else {
             nextName = nextName.replace("0", "");
         }
-        return nextName+nextIndividualIdIncrement;
+        return nextName + nextIndividualIdIncrement;
     }
 
     public void adjustIncrementalIndividualId(int adjustment) {
-        System.out.println("[WARN]: Project Individual Id Increment for "+projectIdPrefix+" has been adjusted by "+adjustment+", likely for error handling.");
+        System.out.println("[WARN]: Project Individual Id Increment for " + projectIdPrefix +
+            " has been adjusted by " + adjustment + ", likely for error handling.");
         nextIndividualIdIncrement = nextIndividualIdIncrement + adjustment;
         setTimeLastModified();
     }
 
-    public Double getPercentWithIncrementalIds(){
-      double numEncounters = encounters.size();
-      double hasIncrementalId = 0.0;
-      for (Encounter enc : encounters) {
-          if (enc.getIndividual()!=null) {
-              MarkedIndividual thisIndividual = enc.getIndividual();
-              if (thisIndividual.hasNameKey(getProjectIdPrefix())) {
-                  hasIncrementalId++;
-              }
-          }
-      }
-      if (numEncounters==0.0||hasIncrementalId==0.0) return 0.0;
-      double percentWithIncrementalIds = 100 * (hasIncrementalId / numEncounters);
-      return Math.round(percentWithIncrementalIds * 10.0)/10.0;
-  }
+    public Double getPercentWithIncrementalIds() {
+        double numEncounters = encounters.size();
+        double hasIncrementalId = 0.0;
 
-    public  Double getPercentIdentified(Shepherd myShepherd){
-        if (numEncounters()>0&&numIndividuals(myShepherd)>0) {
-            double numIncremented = nextIndividualIdIncrement;
-            double numEncounters = numEncounters();
-            if(numEncounters>0){ // avoid potential divide by zero error
-              return (Double) Math.floor(100.0 * numIncremented/numEncounters);
+        for (Encounter enc : encounters) {
+            if (enc.getIndividual() != null) {
+                MarkedIndividual thisIndividual = enc.getIndividual();
+                if (thisIndividual.hasNameKey(getProjectIdPrefix())) {
+                    hasIncrementalId++;
+                }
             }
         }
-        return (Double) 0.0;
+        if (numEncounters == 0.0 || hasIncrementalId == 0.0) return 0.0;
+        double percentWithIncrementalIds = 100 * (hasIncrementalId / numEncounters);
+        return Math.round(percentWithIncrementalIds * 10.0) / 10.0;
+    }
+
+    public Double getPercentIdentified(Shepherd myShepherd) {
+        if (numEncounters() > 0 && numIndividuals(myShepherd) > 0) {
+            double numIncremented = nextIndividualIdIncrement;
+            double numEncounters = numEncounters();
+            if (numEncounters > 0) { // avoid potential divide by zero error
+                return (Double)Math.floor(100.0 * numIncremented / numEncounters);
+            }
+        }
+        return (Double)0.0;
     }
 
     public void addUser(User user) {
         List<User> userArr = new ArrayList<User>();
-        if (user!=null) {
+
+        if (user != null) {
             userArr.add(user);
             addUsers(userArr);
             setTimeLastModified();
@@ -127,8 +131,8 @@ public class Project implements java.io.Serializable {
     }
 
     public void addUsers(List<User> users) {
-        if (users!=null) {
-            if (this.users==null) {
+        if (users != null) {
+            if (this.users == null) {
                 this.users = new ArrayList<>();
             }
             for (User user : users) {
@@ -138,7 +142,8 @@ public class Project implements java.io.Serializable {
                 }
             }
         } else {
-            System.out.println("[WARN]: Project.addUser() or addUsers() for "+projectIdPrefix+" was passed a null.");
+            System.out.println("[WARN]: Project.addUser() or addUsers() for " + projectIdPrefix +
+                " was passed a null.");
         }
     }
 
@@ -154,7 +159,7 @@ public class Project implements java.io.Serializable {
     }
 
     public void setOwner(User owner) {
-        if (owner!=null) {
+        if (owner != null) {
             addUser(owner);
             ownerId = owner.getId();
             setTimeLastModified();
@@ -190,13 +195,19 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
+    public Long getTimeLastModifiedLongNonNull() {
+        if (dateLastModifiedLong != null) return dateLastModifiedLong;
+        return -1L;
+    }
+
     public void setResearchProjectName(final String researchProjectName) {
         setTimeLastModified();
         this.researchProjectName = researchProjectName;
     }
 
     public String getResearchProjectName() {
-        if (researchProjectName==null || "".equals(researchProjectName)) return getProjectIdPrefix();
+        if (researchProjectName == null || "".equals(researchProjectName))
+            return getProjectIdPrefix();
         return researchProjectName;
     }
 
@@ -215,13 +226,14 @@ public class Project implements java.io.Serializable {
 
     public void addEncounter(final Encounter enc) {
         setTimeLastModified();
-        if(encounters==null){
-          encounters = new ArrayList<Encounter>();
+        if (encounters == null) {
+            encounters = new ArrayList<Encounter>();
         }
-        if (enc != null && encounters!=null && !encounters.contains(enc)) {
+        if (enc != null && encounters != null && !encounters.contains(enc)) {
             encounters.add(enc);
         } else {
-            System.out.println("[INFO]: Project.addEncounter(): The selected Project id="+id+" already contains encounter id="+enc.getID()+", skipping.");
+            System.out.println("[INFO]: Project.addEncounter(): The selected Project id=" + id +
+                " already contains encounter id=" + enc.getID() + ", skipping.");
         }
     }
 
@@ -242,7 +254,7 @@ public class Project implements java.io.Serializable {
     }
 
     public int numEncounters() {
-        if (encounters!=null) {
+        if (encounters != null) {
             return encounters.size();
         }
         return 0;
@@ -250,7 +262,8 @@ public class Project implements java.io.Serializable {
 
     public int numIndividuals(Shepherd myShepherd) {
         List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(this);
-        if (individuals!=null) {
+
+        if (individuals != null) {
             return individuals.size();
         }
         return 0;
@@ -264,7 +277,8 @@ public class Project implements java.io.Serializable {
         return asJSONObject("addEncounterMetadata", myShepherd, null);
     }
 
-    public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd, HttpServletRequest request) {
+    public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd,
+        HttpServletRequest request) {
         return asJSONObject("addEncounterMetadata", myShepherd, request);
     }
 
@@ -272,10 +286,12 @@ public class Project implements java.io.Serializable {
         return asJSONObject(modifier, myShepherd, null);
     }
 
-    private JSONObject asJSONObject(String modifier, Shepherd myShepherd, HttpServletRequest request) {
-        //System.out.println("Here json1");  
-      
+    private JSONObject asJSONObject(String modifier, Shepherd myShepherd,
+        HttpServletRequest request) {
+        // System.out.println("Here json1");
+
         JSONObject j = new JSONObject();
+
         j.put("id", id);
         j.put("ownerId", ownerId);
         j.put("researchProjectName", researchProjectName);
@@ -283,32 +299,32 @@ public class Project implements java.io.Serializable {
         j.put("dateCreatedLong", dateCreatedLong);
         j.put("dateLastModifiedLong", dateLastModifiedLong);
         JSONArray usersJSONArr = new JSONArray();
-        if(users!=null) {
-          //System.out.println("Here json2");
-          for (User user : users) {
-              JSONObject userJSON = new JSONObject();
-              userJSON.put("username", user.getUsername());
-              userJSON.put("id", user.getId());
-              usersJSONArr.put(userJSON);
-          }
+        if (users != null) {
+            // System.out.println("Here json2");
+            for (User user : users) {
+                JSONObject userJSON = new JSONObject();
+                userJSON.put("username", user.getUsername());
+                userJSON.put("id", user.getId());
+                usersJSONArr.put(userJSON);
+            }
         }
         j.put("users", usersJSONArr);
         JSONArray encArr = new JSONArray();
-        if (encounters!=null) {
-          //System.out.println("Here json3");
+        if (encounters != null) {
+            // System.out.println("Here json3");
             for (final Encounter enc : encounters) {
-                if (modifier!=null&&"addEncounterMetadata".equals(modifier)) {
-                  //System.out.println("Here json3a");  
-                  JSONObject encMetadata = new JSONObject();
+                if (modifier != null && "addEncounterMetadata".equals(modifier)) {
+                    // System.out.println("Here json3a");
+                    JSONObject encMetadata = new JSONObject();
                     String individualName = "";
                     String individualUUID = "";
                     String occurrenceUUID = "";
-                    if(enc.getOccurrenceID()!=null)occurrenceUUID=enc.getOccurrenceID();
+                    if (enc.getOccurrenceID() != null) occurrenceUUID = enc.getOccurrenceID();
                     String individualProjectId = "";
                     boolean hasNameKeyMatchingProject = false;
                     MarkedIndividual individual = enc.getIndividual();
-                    if (individual!=null&&Util.stringExists(individual.getDisplayName())) {
-                        if (request!=null) {
+                    if (individual != null && Util.stringExists(individual.getDisplayName())) {
+                        if (request != null) {
                             individualName = individual.getDisplayName(request, myShepherd);
                         } else {
                             individualName = individual.getDisplayName();
@@ -319,7 +335,7 @@ public class Project implements java.io.Serializable {
                             individualProjectId = individual.getDisplayName(projectIdPrefix);
                         }
                     }
-                    //System.out.println("Here json3b");
+                    // System.out.println("Here json3b");
                     encMetadata.put("individualUUID", individualUUID);
                     encMetadata.put("occurrenceUUID", occurrenceUUID);
                     encMetadata.put("individualDisplayName", individualName);
@@ -330,37 +346,39 @@ public class Project implements java.io.Serializable {
                     encMetadata.put("encounterId", enc.getID());
                     encMetadata.put("individualProjectId", individualProjectId);
                     JSONArray allProjectIds = new JSONArray();
-                    //WB-1615 turn off due to poor performance
+                    // WB-1615 turn off due to poor performance
                     /*
-                    if(myShepherd.getProjectIdPrefixsForEncounter(enc)!=null) {
-                      System.out.println("Here json4");
-                      for (String projectId : myShepherd.getProjectIdPrefixsForEncounter(enc)) {
+                       if(myShepherd.getProjectIdPrefixsForEncounter(enc)!=null) {
+                       System.out.println("Here json4");
+                       for (String projectId : myShepherd.getProjectIdPrefixsForEncounter(enc)) {
                           allProjectIds.put(projectId);
-                      }
-                    }
-                    */
+                       }
+                       }
+                     */
                     encMetadata.put("allProjectIds", allProjectIds);
-                    //System.out.println("Here json5");
+                    // System.out.println("Here json5");
                     encArr.put(encMetadata);
                 } else {
-                  //System.out.println("Here json6");
+                    // System.out.println("Here json6");
                     encArr.put(enc.getID());
                 }
             }
         }
         j.put("encounters", encArr);
-        //System.out.println("Here json7");
+        // System.out.println("Here json7");
         return j;
     }
 
     public JSONArray getAllACMIdsJSON() {
         JSONArray allACMIds = new JSONArray();
         List<String> allACMIDsStr = new ArrayList<String>();
+
         for (Encounter enc : encounters) {
             if (enc.hasAnnotations()) {
                 List<Annotation> anns = enc.getAnnotations();
                 for (Annotation ann : anns) {
-                    if (ann.hasAcmId()&&!ann.isTrivial()&&!allACMIDsStr.contains(ann.getAcmId())){
+                    if (ann.hasAcmId() && !ann.isTrivial() &&
+                        !allACMIDsStr.contains(ann.getAcmId())) {
                         allACMIDsStr.add(ann.getAcmId());
                         allACMIds.put(ann.getAcmId());
                     }
@@ -369,22 +387,24 @@ public class Project implements java.io.Serializable {
         }
         return allACMIds;
     }
+
     public JSONArray getAllAnnotIdsJSON() {
-      JSONArray allAnnotIds = new JSONArray();
-      List<String> allAnnotIDsStr = new ArrayList<String>();
-      for (Encounter enc : encounters) {
-          if (enc.hasAnnotations()) {
-              List<Annotation> anns = enc.getAnnotations();
-              for (Annotation ann : anns) {
-                  if (!ann.isTrivial()&&!allAnnotIDsStr.contains(ann.getId())){
-                      allAnnotIDsStr.add(ann.getId());
-                      allAnnotIds.put(ann.getId());
-                  }
-              }
-          }
-      }
-      return allAnnotIds;
-  }
+        JSONArray allAnnotIds = new JSONArray();
+        List<String> allAnnotIDsStr = new ArrayList<String>();
+
+        for (Encounter enc : encounters) {
+            if (enc.hasAnnotations()) {
+                List<Annotation> anns = enc.getAnnotations();
+                for (Annotation ann : anns) {
+                    if (!ann.isTrivial() && !allAnnotIDsStr.contains(ann.getId())) {
+                        allAnnotIDsStr.add(ann.getId());
+                        allAnnotIds.put(ann.getId());
+                    }
+                }
+            }
+        }
+        return allAnnotIds;
+    }
 
     public String toString() {
         return this.asJSONObject().toString();
@@ -392,8 +412,8 @@ public class Project implements java.io.Serializable {
 
     public boolean doesUserOwnProject(Shepherd myShepherd, HttpServletRequest request) {
         User user = myShepherd.getUser(request);
-        if (user!=null&&ownerId.equals(user.getId())) return true;
+
+        if (user != null && ownerId.equals(user.getId())) return true;
         return false;
     }
-
 }

@@ -1,178 +1,334 @@
-<!--
-  ~ Wild Me - A Mark-Recapture Framework  ~ Copyright (C) 2014 Jason Holmberg
-  ~  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.  ~
-  ~ This program is distributed in the hope that it will be useful,  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  ~ GNU General Public License for more details.
-  ~  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  -->
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-  xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Wildbook </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="shortcut icon" href="images/favicon.ico" />
-    <link href="http://fonts.googleapis.com/css?family=Oswald:400,300,700" rel="stylesheet"
+<head>
+  <title>Wildbook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="shortcut icon" href="images/favicon.ico" />
+  <link href="http://fonts.googleapis.com/css?family=Oswald:400,300,700" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
+  <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 
-      type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
-      <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="cust/mantamatcher/css/manta.css" />
+  <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
+  <link href="tools/hello/css/zocial.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
-    <link rel="stylesheet" href="cust/mantamatcher/css/manta.css" />
-    <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
-    <link href="tools/hello/css/zocial.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="tools/jquery-ui/css/themes/smoothness/jquery-ui.css"
+  <link rel="stylesheet" href="css/createadoption.css">
+  <script type="text/javascript" src="javascript/jquery.blockUI.js"></script>
+  <script type="text/javascript" src="javascript/jquery.cookie.js"></script>
 
-      type="text/css" />
+  <script type="text/javascript" src="tools/bootstrap/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="javascript/core.js"></script>
 
-      <link rel="stylesheet" href="css/createadoption.css">
+  <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
+  <script type="text/javascript" src="JavascriptGlobals.js"></script>
+  <script type="text/javascript" src="javascript/collaboration.js"></script>
+  <script type="text/javascript" src="javascript/notifications.js"></script>
+  <script type="text/javascript" src="cust/mantamatcher/js/behaviour.js"></script>
+  <link rel="stylesheet" href="css/header.css" type="text/css" />
+  <link rel="stylesheet" href="css/footer.css" type="text/css" />
+</head>
+
+<body>
+  <!-- ****header**** -->
+  <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
+    <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+      <div class="nav-bar-wrapper" style="height: 100%; background-color: transparent">
+        <div class="container"
+          style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+          <a class="nav-brand" target="_blank" href="/">
+            <!-- <img src="cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo"> -->
+          </a>
+          <a class="site-name" target="_blank" href="/">
+            SITE_NAME
+          </a>
+
+          <div class="navbar-header clearfix">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+              aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+
+          <div id="navbar" class="navbar-collapse collapse" style="width: 800px">
+
+            <ul class="nav navbar-nav">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Submit
+                  <span class="svg-placeholder"></span></a>
+                <ul class="dropdown-menu" role="menu">
+
+                  <li><a href="submit.jsp">Report an encounter</a></li>
+
+                  <li class="dropdown"><a href="import/instructions.jsp">Bulk Import</a></li>
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                  aria-expanded="false">Learn<span class="svg-placeholder"></span></a>
+                <ul class="dropdown-menu" role="menu">
+
+                  <li class="dropdown"><a href="overview.jsp">Overview</a></li>
+                  <li><a href="contactus.jsp">Contact Us</a></li>
+                  <li><a href="/react/citation">Citing Flukebook</a></li>
+                  <li><a href="photographing.jsp">How to photograph</a></li>
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">My Data
+                  <span class="svg-placeholder"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li class="dropdown-submenu">
+                    <a class="d-flex align-items-center justify-space-between" tabindex="-1"
+                      href="/react/encounter-search?username=USER_NAME">My Encounters
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-chevron-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                          d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+                      </svg>
+                    </a>
+
+                    <ul class="dropdown-menu">
+                      <li><a href="/react/encounter-search?username=USER_NAME&state=approved">My
+                          Approved Animals</a></li>
+                      <li><a href="/react/encounter-search?username=USER_NAME&state=unapproved">My
+                          Unapproved Animals"</a></li>
+                      <li><a href="/react/encounter-search?username=USER_NAME&state=unidentifiable">
+                          My Unidentifiable Animals </a></li>
+
+                    </ul>
+                  </li>
+
+                  <li><a href="individualSearchResults.jsp?username=USER_NAME">My Individuals</a></li>
+                  <li><a href="occurrenceSearchResults.jsp?submitterID=USER_NAME">My Sightings</a></li>
+                  <li><a href="imports.jsp">My BulkImports</a></li>
+                  <li><a href="projects/projectList.jsp">My Projects</a></li>
+
+                </ul>
+              </li>
 
 
-    <script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
-    <script type="text/javascript" src="tools/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="javascript/core.js"></script>
-    <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
-    <script type="text/javascript" src="JavascriptGlobals.js"></script>
-    <script type="text/javascript" src="javascript/collaboration.js"></script>
-    <script type="text/javascript" src="javascript/notifications.js"></script>
-    <script type="text/javascript" src="cust/mantamatcher/js/behaviour.js"></script>
-  </head>
-  <body>
-    <!-- ****header**** -->
-    <header class="page-header clearfix">
-      <nav class="navbar navbar-default navbar-fixed-top">
-        <div class="header-top-wrapper">
-          <div class="container"> <a href="http://www.wildme.org" id="wild-me-badge">A
-              Wild me project</a>
-            <div class="search-and-secondary-wrapper">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                  Search<span class="svg-placeholder"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="/react/encounter-search">Encounters</a></li>
 
-              <div class="search-wrapper"> <label class="search-field-header">
-                  <form name="form2" method="get" action="individuals.jsp">
-                    <input type="text" id="search-site" placeholder="nickname or animal id, encounter nr., etc."
+                  <li><a href="individualSearch.jsp">Individuals</a></li>
+                  <li><a href="occurrenceSearch.jsp">Sightings</a></li>
 
-                      class="search-query form-control navbar-search ui-autocomplete-input"
+                </ul>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                  Animals <span class="svg-placeholder"></span>
+                </a>
+                <ul class="dropdown-menu" role="menu">
 
-                      autocomplete="off" name="number" /> <input type="hidden"
+                  <li><a href="gallery.jsp">Individual Gallery</a></li>
+                  <li><a href="xcalendar/calendar.jsp">Encounter Calendar</a></li>
+                </ul>
+              </li>
 
-                      name="langCode" value="en" /> <input type="submit" value="search" />
-                  </form>
-                </label> </div>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                  aria-expanded="false">Administer<span class="svg-placeholder"></span> </a>
+                <ul class="dropdown-menu" role="menu">
+
+                  <li><a href="myUsers.jsp">My Accounts</a></li>
+                  <li><a href="appadmin/users.jsp?context=context0">User Management</a></li>
+                  <li><a href="appadmin/admin.jsp">Library Administration</a></li>
+                  <li><a href="appadmin/logs.jsp">Logs</a></li>
+                  <li><a href="appadmin/kwAdmin.jsp">Photo Keywords</a></li>
+                  <li><a href="product-docs/en/wildbook/introduction/">Software Documentation</a></li>
+                  <li><a href="appadmin/dataIntegrity.jsp">Data Integrity</a></li>
+                  <li><a href="imports.jsp">Bulk Import Logs</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+          <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+              console.log("Document ready!");
+
+              document.querySelectorAll('.navbar .dropdown').forEach(function (dropdown) {
+                dropdown.addEventListener('mouseenter', function () {
+                  var dropdownMenu = this.querySelector('.dropdown-menu');
+                  if (dropdownMenu) {
+                    dropdownMenu.style.display = 'block';
+                    setTimeout(function () {
+                      dropdownMenu.style.opacity = 1;
+                    }, 250);
+                  }
+                });
+
+                dropdown.addEventListener('mouseleave', function () {
+                  var dropdownMenu = this.querySelector('.dropdown-menu');
+                  if (dropdownMenu) {
+                    setTimeout(function () {
+                      dropdownMenu.style.display = 'none';
+                      dropdownMenu.style.opacity = 0;
+                    }, 100);
+                  }
+                });
+              });
+
+              document.querySelectorAll('.lang_selector').forEach(function (element) {
+                var langCode = element.getAttribute('data-lang');
+                var imgUrl = "/images/flag_" + langCode + ".gif";
+                element.addEventListener('click', function (event) {
+                  console.log("Language selector clicked!");
+                  selectItem(element, langCode, imgUrl);
+                });
+              });
+            });
+          </script>
+
+
+          <script type="text/javascript">
+
+            function toggleDropdown() {
+              var items = document.querySelector('.custom-select-items');
+              items.classList.toggle('hidden');
+            }
+
+            function selectItem(element, langCode, imgUrl) {
+              var selectedDiv = document.querySelector('.custom-select-selected');
+              selectedDiv.setAttribute('data-lang', langCode);
+              document.querySelector('.custom-select-items').classList.add('hidden');
+              document.cookie = "wildbookLangCode=" + encodeURIComponent(langCode) + "; path=/";
+              location.reload(true);
+            }
+
+          </script>
+
+          <script async src="https://www.googletagmanager.com/gtag/js?id=GA_ID"></script>
+
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+
+            gtag('config', 'GA_ID');
+          </script>
+
+          <script>
+            function logoutAndRedirect() {
+              window.location.href = '/header.jsp?action=logout';
+            }
+          </script>
+
+          <!-- Google Tag Manager -->
+          <script>(function (w, d, s, l, i) {
+              w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                  new Date().getTime(), event: 'gtm.js'
+              }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                  'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+            })(window, document, 'script', 'dataLayer', 'GTM_KEY');</script>
+          <!-- End Google Tag Manager -->
+
+          <script>
+            var mySvg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                </svg>
+                `;
+
+            document.addEventListener("DOMContentLoaded", function () {
+              var elements = document.getElementsByClassName('svg-placeholder');
+              for (var i = 0; i < elements.length; i++) {
+                elements[i].innerHTML = mySvg;
+              }
+            });
+          </script>
+          <div class="search-and-secondary-wrapper">
+            <div id="notifications">
+
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell"
+                viewBox="0 0 16 16">
+                <path
+                  d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+              </svg>
+              NOTIFICATION_DETAILS
+
             </div>
-            <a class="navbar-brand" target="_blank" href="/">Wildbook
-              for Mark-Recapture Studies</a> </div>
-        </div>
-        <div class="nav-bar-wrapper">
-          <div class="container">
-            <div class="navbar-header clearfix"> <button type="button" class="navbar-toggle collapsed"
 
-                data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+            <div class="custom-select-wrapper">
+              <div class="custom-select" onclick="toggleDropdown()">
+                <div class="custom-select-selected">
+                  <div class="selected-item" style="background-image: url('SELECTED_IMAGE_URL');"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
+                    class="bi bi-chevron-down" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                      d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                  </svg>
+                </div>
+                <div class="custom-select-items hidden">
+                  LANGUAGE_SELECTOR
+                </div>
+              </div>
+            </div>
 
-                aria-controls="navbar"> <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span> <span class="icon-bar"></span> <span
-
-                  class="icon-bar"></span> </button> </div>
-            <div id="navbar" class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
-                <!--                -->
-                <li class="active home text-hide"><a href="index.jsp">Home</a></li>
-                <li><a href="submit.jsp">Report an encounter</a></li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Learn <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li class="dropdown"><a href="overview.jsp">About Your
-                        Project</a></li>
-                    <li><a href="photographing.jsp">How to Photograph</a></li>
-                    <li><a target="_blank" href="http://www.wildbook.org">Learn
-                        about Wildbook</a></li>
-                  </ul>
-                </li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Participate <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="adoptananimal.jsp">Adoption</a></li>
-                    <li><a href="userAgreement.jsp">User Agreement</a></li>
-                    <!--  examples of navigation dividers
-                          <li class="divider"></li>                          <li class="dropdown-header">Nav header</li>
-                           -->
-                  </ul>
-                </li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="individualSearchResults.jsp">View All</a></li>
-                  </ul>
-                </li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Encounters <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li class="dropdown-header">By State</li>
-                    <!-- list encounters by state -->
-                    <li><a href="encounters/searchResults.jsp?state=unapproved">View
-                        Unapproved Encounters</a></li>
-                    <li><a href="encounters/searchResults.jsp?state=approved">View
-                        Approved Encounters</a></li>
-                    <li><a href="encounters/searchResults.jsp?state=unidentifiable">View
-                        Unidentifiable Encounters</a></li>
-                    <li class="divider"><br />
-                    </li>
-                    <li><a href="encounters/thumbnailSearchResults.jsp?noQuery=true">View
-                        Images</a></li>
-                    <li><a href="xcalendar/calendar.jsp">Encounter Calendar</a></li>
-                  </ul>
-                </li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Search <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                    <li><a href="encounters/encounterSearch.jsp">Encounter
-                        Search</a></li>
-                    <li><a href="individualSearch.jsp">Individual Search</a></li>
-                  </ul>
-                </li>
-                <li> <a href="contactus.jsp">Contact Us </a> </li>
-                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-
-                    role="button" aria-expanded="false">Administer <span class="caret"></span></a>
-                  <ul class="dropdown-menu" role="menu">
-                  </ul>
-                </li>
+            <div class="profile-wrapper">
+              <div class="profile-icon" style="background-image: url('PROFILE_PHOTO_URL');"></div>
+              <ul class="dropdown-menu">
+                <li><a href="react/">Landing Page</a></li>
+                <li><a href="myAccount.jsp">User Profile</a></li>
+                <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
               </ul>
             </div>
+
           </div>
         </div>
-      </nav>
-    </header>
-    <!-- ****/header**** -->
-    <div class="container maincontent">
-      <h1 class="intro">Action results</h1>
-      <p align="left">INSERT_HERE</p>
-      <!-- end maintext --> </div>
-    <!-- footer -->
-    <footer class="page-footer">
-      <div class="container-fluid">
-        <div class="container main-section">
-          <hr />
-          <div class="row">
-            <p class="col-sm-8 col-md-8 col-lg-8"> <small>This software is
-                distributed under the GPL v2 license and is intended to support
-                mark-recapture field studies.</small> </p>
-            <a title="This site is Powered by Wildbook" class="col-sm-4 col-md-4 col-lg-4"
-
-              href="http://www.wildbook.org"> <img class="pull-right" alt=" logo"
-
-                src="images/logo_wildbook.jpg" /> </a> </div>
-        </div>
       </div>
-    </footer>
-    <!-- /footer -->
-  </body>
+
+
+    </nav>
+  </header>
+  <!-- ****/header**** -->
+  <div class="container maincontent">
+    <h1 class="intro">Action results</h1>
+    <p align="left">INSERT_HERE</p>
+    <!-- end maintext -->
+  </div>
+  <!-- footer -->
+  <div class="container d-flex flex-column align-items-center justify-content-center footer-font footer-container">
+    <div class="footer-row">
+      <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+        <a href="https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me" class="footer-link text-reset px-2 footer-text">Donate</a>
+        <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html"
+          class="footer-link footer-text">Documentation</a>
+      </div>
+      <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+        <a href="https://community.wildme.org/" class="footer-link text-reset px-2 footer-text">Community Forum</a>
+        <a href="https://github.com/WildMeOrg" class="footer-link text-reset px-2 footer-text">GitHub</a>
+      </div>
+      <div class="col-xs-12 col-lg-4 align-items-center py-2 footer-col">
+        <a href="https://www.instagram.com/conservationxlabs"
+          class="footer-link text-reset px-2 footer-text">Instagram</a>
+        <a href="https://www.facebook.com/ConservationXLabs"
+          class="footer-link text-reset px-2 footer-text">Facebook</a>
+        <a href="https://twitter.com/conservationx" class="footer-link text-reset px-2 footer-text">X (Twitter)</a>
+        <a href="https://www.linkedin.com/company/conservationxlabs/"
+          class="footer-link text-reset px-2 footer-text">LinkedIn</a>
+      </div>
+    </div>
+    <div class="footer-text justify-content-center">2024 © Conservation X Labs | All Rights Reserved</div>
+  </div>
+  <!-- /footer -->
+</body>
+
 </html>

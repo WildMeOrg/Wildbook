@@ -60,7 +60,7 @@ int numUsers=0;
 myShepherd.beginDBTransaction();
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-//String url = "login.jsp";
+//String url = "/react/login";
 //response.sendRedirect(url);
 //RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 //dispatcher.forward(request, response);
@@ -147,7 +147,7 @@ h2.vidcap {
 	   /* Set the height to match that of the viewport. */
 	    
 	    width: auto;
-	    padding-top:50px!important;
+	    padding-top:-10px!important;
 	    margin: 0!important;
 	    position: relative;
 	}
@@ -166,7 +166,7 @@ h2.vidcap {
 	   /* Set the height to match that of the viewport. */
 	    
 	    width: auto;
-	    padding-top:150px!important;
+	    padding-top:-10px!important;
 	    margin: 0!important;
 	    position: relative;
 	}
@@ -350,7 +350,7 @@ h2.vidcap {
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
+                    <a href="/react/encounter-search?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">

@@ -1,0 +1,35 @@
+name: Development Build
+
+on:
+  push:
+      branches-ignore:
+          - main
+      tags-ignore:
+          - v*
+jobs:
+  build:
+    name: Maven build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 8*
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: 8
+
+    - name: Build with Maven
+      run: |
+        mvn dependency:resolve -B -U
+        mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
+        mvn -B package --file pom.xml
+
+    # Publishing to git is disabld for Development branch
+    #- name: Publish to GitHub Packages
+    #if: github.event_name == 'push' 
+    #run: mvn -B deploy -Dversion=development
+    #env:
+    #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      

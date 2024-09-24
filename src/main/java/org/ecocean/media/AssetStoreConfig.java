@@ -1,21 +1,3 @@
-/*
- * This file is a part of Wildbook.
- * Copyright (C) 2015 WildMe
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Foobar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Wildbook.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package org.ecocean.media;
 
 import java.io.File;
@@ -33,15 +15,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 /**
- * AssetStoreConfig manages configuration variables for subclasses of
- * AssetStore.
+ * AssetStoreConfig manages configuration variables for subclasses of AssetStore.
  */
 public class AssetStoreConfig implements java.io.Serializable {
     private static final long serialVersionUID = 3467831207510138929L;
-//stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
+// stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
     private static Logger log = LoggerFactory.getLogger(AssetStoreConfig.class);
     private Map<String, String> config;
-
 
     /**
      * Create an empty config.
@@ -54,7 +34,8 @@ public class AssetStoreConfig implements java.io.Serializable {
      * Create a config by deserializing a string.
      */
     public AssetStoreConfig(final String configString) {
-        Type type = new TypeToken<HashMap<String, String>>() {}.getType();
+        Type type = new TypeToken<HashMap<String, String> >() {}
+        .getType();
 
         config = new Gson().fromJson(configString, type);
     }
@@ -69,8 +50,7 @@ public class AssetStoreConfig implements java.io.Serializable {
     }
 
     /**
-     * Return a config variable of the URL type, or null if it doesn't
-     * exist or cannot be converted to a URL.
+     * Return a config variable of the URL type, or null if it doesn't exist or cannot be converted to a URL.
      */
     public URL getURL(final String key) {
         String value = config.get(key);
@@ -114,5 +94,4 @@ public class AssetStoreConfig implements java.io.Serializable {
     public String toString() {
         return configString();
     }
-
 }
