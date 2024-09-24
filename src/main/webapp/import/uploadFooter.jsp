@@ -52,8 +52,17 @@ if (!committing) {
 %>
 	<p>If you are adding many images and encounters (more than a couple hundred if each) this may take a while. You will be redirected to a status page as the process completes.</p>
 	<p><a onclick="sendAndRedirect('<%=uploadAction %>','<%=uuid %>')"><button id="commitButton" onclick="confirmCommit()">Commit these results.</button></a></p>
+	<script>
+		console.log("Commit count: "+errorCount);
+		if(errorCount>0){
+			var commitButton = document.getElementById('commitButton');
+			commitButton.setAttribute("disabled", "disabled");
+		}
+	</script>
 <%
 }
 %>
+
+
 
 </div></div><!-- container maincontent -->

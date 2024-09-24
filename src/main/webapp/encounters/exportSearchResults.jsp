@@ -118,7 +118,7 @@
 
 		 <ul id="tabmenu">
 
-		   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
+		   <li><a href="/react/encounter-search?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
 		   </a></li>
        <li><a
          href="projectManagement.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("projectManagement")%>
@@ -148,6 +148,9 @@
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 
 		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		</p>
+
+		<p><br>Encounter Annotation Export <a href="<%=serverUrl%>/EncounterAnnotationExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 
 
