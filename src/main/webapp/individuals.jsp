@@ -2314,14 +2314,6 @@ if (sharky.getNames() != null) {
 	        <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
 	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
       	      </div>
-              <div class="coOccurrenceSliderWrapper">
-	        <label for="temporal">Temporal Threshold (Hours) - <span class="sliderLabel" id="temporalVal"></span></label>
-	  	<input type="range" min=0 class="graphSlider" id="temporal">
-      	      </div>
-      	      <div class="coOccurrenceSliderWrapper">
-	        <label for="spatial">Spatial Threshold (Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
-		<input type="range" min=0 class="graphSlider" id="spatial">
-      	      </div>
     	    </div>
 	      <script type="text/javascript">
 	        let querier = new JSONQuerier(wildbookGlobals);
@@ -2541,7 +2533,7 @@ if (sharky.getNames() != null) {
             <p>
               <form action="IndividualAddComment" method="post" name="addComments">
                 <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-                <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+                <input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
                 <input name="action" type="hidden" value="comments" id="action">
 
                   <p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
@@ -2598,6 +2590,16 @@ if (sharky.getNames() != null) {
 
    </script>
 
+   <script type="text/javascript">
+		function encountTableAuxClick(el) {
+			goToEncounterURL(el.getAttribute("class"));
+			return false;
+		}
+		function cooccurTableAuxClick(el) {
+			goToWhaleURL(el.getAttribute("class"));
+    		return false;
+		}
+   </script>
 
 </div>
 

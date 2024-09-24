@@ -31,8 +31,29 @@
              java.util.Properties,
              org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
-             org.ecocean.ContextConfiguration
+             org.ecocean.ContextConfiguration,
+             org.slf4j.Logger,org.slf4j.LoggerFactory
               "
+%>
+
+<%
+    if ("logout".equals(request.getParameter("action"))) {
+        System.out.println("Logging out");
+        response.setHeader("Cache-Control", "no-cache"); 
+        response.setHeader("Cache-Control", "no-store"); 
+        response.setDateHeader("Expires", 0); 
+        response.setHeader("Pragma", "no-cache"); 
+
+        Logger log = LoggerFactory.getLogger(getClass());
+
+        if (request.getRemoteUser() != null) {
+            log.info(request.getRemoteUser() + " logged out.");
+        }
+        session.invalidate();
+
+        response.sendRedirect(request.getContextPath() + "/react/login/");
+        return;
+    }
 %>
 
 <%
@@ -41,14 +62,12 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
+String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
 int sessionWarningTime = CommonConfiguration.getSessionWarningTime(context);
 int sessionCountdownTime = CommonConfiguration.getSessionCountdownTime(context);
 
-if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
 if (pageTitle == null) {
@@ -63,39 +82,35 @@ String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 // we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
 boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
-boolean indocetUser = false;
-String organization = request.getParameter("organization");
-if (organization!=null && organization.toLowerCase().equals("indocet"))  {
-  indocetUser = true;
-}
 String notifications="";
-myShepherd.beginDBTransaction();
-try {
-
-	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
-  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
-    user = myShepherd.getUser(request);
-    username = (user!=null) ? user.getUsername() : null;
-    String orgName = "indocet";
-    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
-    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
-  	if(user.getUserImage()!=null){
-  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-  	}
+//check if user is logged in and has pending notifications
+if(request.getUserPrincipal()!=null){
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("header.jsp");
+  myShepherd.beginDBTransaction();
+  try {
+  
+    notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+  
+    if(request.getUserPrincipal()!=null && !loggingOut){
+      user = myShepherd.getUser(request);
+      username = (user!=null) ? user.getUsername() : null;
+      if(user.getUserImage()!=null){
+        profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+      }
+    }
   }
-}
-catch(Exception e){
-  System.out.println("Exception on indocetCheck in header.jsp:");
-  e.printStackTrace();
-  myShepherd.closeDBTransaction();
-}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
+  catch(Exception e){
+    System.out.println("Exception on indocetCheck in header.jsp:");
+    e.printStackTrace();
+    myShepherd.closeDBTransaction();
+  }
+  finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  }
 
-
+}
 %>
 
 
@@ -103,14 +118,20 @@ finally{
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=<%=gaId %>"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'UA-30944767-12');
+        gtag('config', '<%=gaId %>');
+      </script>
+
+      <script>
+        function logoutAndRedirect() {
+            window.location.href = 'header.jsp?action=logout';
+        }
       </script>
 
       <!-- Google Tag Manager -->
@@ -137,29 +158,22 @@ finally{
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
-
-      <%
-      if (indocetUser) {
-        %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
-      }
-      %>
+      
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
-
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
-     <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
-    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-     <%
-     }
-     %>
+      <%
+      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+      %>
+       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+      <%
+      }
+      %>
 
 
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
-	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+      <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
@@ -167,15 +181,23 @@ finally{
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 
-        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
-        <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+      <link rel="stylesheet" href="<%=urlLoc %>/css/header.css" type="text/css"/>
+      <link rel="stylesheet" href="<%=urlLoc %>/css/footer.css" type="text/css"/>
 
-     <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
-	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 
-	 <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+
+      <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+
+      <%
+      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+      %>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <%
       }
@@ -190,8 +212,21 @@ finally{
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
-
+    
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $('.navbar .dropdown').hover(
+            function() {
+              $(this).find('.dropdown-menu').first().stop(true, true).delay(250).show();
+            },
+            function() {
+              $(this).find('.dropdown-menu').first().stop(true, true).delay(100).hide();
+            }
+          );
+        });
+      </script>
+
       <%
         if(user != null && !loggingOut){
       %>
@@ -199,7 +234,7 @@ finally{
 
         $(document).ready(function()
 
-        {
+        {  
             var warningTime = <%= sessionWarningTime %>; // Session warning time in minutes.
             var activityTimeout = warningTime * 60 * 1000; // Convert warning time to milliseconds.
             var activityCheckInterval = 1000; // Frequency to check for activity in milliseconds.
@@ -321,35 +356,32 @@ finally{
 
 
 
-    </script>
+      </script>
       <%
         }
       %>
 
 
 
- 	<!-- Start Open Graph Tags -->
- 	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
-  	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->
+      <!-- Start Open Graph Tags -->
+        <meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+        <meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
+      <!-- End Open Graph Tags -->
 
 
-	<!-- Clockpicker on creatSurvey jsp -->
-    <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+      <!-- Clockpicker on creatSurvey jsp -->
+      <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
+      <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
 
-    <style>
-      ul.nav.navbar-nav {
-        width: 100%;
-      }
-
-    </style>
+      <style>
+        ul.nav.navbar-nav {
+          width: 100%;
+        }
+      </style>
 
     </head>
 
     <body role="document">
-
-
 
     <div class="modal fade" id="sessionModal" tabindex="-1" role="dialog" aria-labelledby="sessionModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -369,477 +401,283 @@ finally{
         </div>
     </div>
 
+
       <!-- Google Tag Manager (noscript) -->
       <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<%=gtmKey %>" height="0" width="0"
           style="display:none;visibility:hidden"></iframe></noscript>
       <!-- End Google Tag Manager (noscript) -->
 
         <!-- ****header**** -->
-        <header class="page-header clearfix" style="padding-top: 0px;padding-bottom:0px;">
-            <nav class="navbar navbar-default navbar-fixed-top">
-              <div class="header-top-wrapper">
-                <div class="container">
-                <div class="search-and-secondary-wrapper">
-                    <ul class="secondary-nav hor-ul no-bullets">
+        <header class="page-header clearfix header-font" style="padding-top: 0px;padding-bottom:0px; ">
+          <nav class="navbar navbar-default navbar-fixed-top" style="background-color: #303336; ">
+            <div class="nav-bar-wrapper" style="background-color: transparent">
+              <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
+                <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
+                  <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
+                </a>
+                <a class="site-name" target="_blank" href="<%=urlLoc %>">
+                    <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
+                </a>                        
+              
+                <div class="navbar-header clearfix">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
 
-
-                      <%
-	                      if(user != null && !loggingOut){
-	                          try {
-  		                    	  String fullname=request.getUserPrincipal().toString();
-                              if (user.getFullName()!=null) fullname=user.getFullName();
-
-
-		                  %>
-
-		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="<%=props.getProperty("yourAccount") %>" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
-
-		                      		<%
-	                          }
-	                          catch(Exception e){e.printStackTrace();}
-	                      }
-	                      else{
-	                      %>
-
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
-	                      <%
-	                      }
-
-                      %>
-
-
-
-
-
-                      <%
-                      if (CommonConfiguration.getWikiLocation(context)!=null) {
-                      %>
-                        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <%
-                      }
-
-
-
-                      List<String> contextNames=ContextConfiguration.getContextNames();
-                		int numContexts=contextNames.size();
-                		if(numContexts>1){
-                		%>
-
-                		<li>
-                						<form>
-                						<%=props.getProperty("switchContext") %>&nbsp;
-                							<select style="color: black;" id="context" name="context">
-			                					<%
-			                					for(int h=0;h<numContexts;h++){
-			                						String selected="";
-			                						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
-			                					%>
-
-			                						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
-			                					<%
-			                					}
-			                					%>
-                							</select>
-                						</form>
-                			</li>
-                			<script type="text/javascript">
-
-	                			$( "#context" ).change(function() {
-
-		                  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
-		                  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
-		                  			   path    : '/',          //The value of the path attribute of the cookie
-		                  			                           //(default: path of page that created the cookie).
-
-		                  			   secure  : false          //If set to true the secure attribute of the cookie
-		                  			                           //will be set and the cookie transmission will
-		                  			                           //require a secure protocol (defaults to false).
-		                  			});
-
-		                  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-		                  			location.reload(true);
-
-	                			});
-
-                			</script>
-                			<%
-                		}
-                		%>
-                		   <!-- Can we inject language functionality here? -->
-                    <%
-
-            		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
-            		int numSupportedLanguages=supportedLanguages.size();
-
-            		if(numSupportedLanguages>1){
-            		%>
-            			<li>
-
-
-            					<%
-            					for(int h=0;h<numSupportedLanguages;h++){
-            						String selected="";
-            						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
-            						String myLang=supportedLanguages.get(h);
-            					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
-            						<script type="text/javascript">
-
-            							$( "#flag_<%=myLang%>" ).click(function() {
-
-            								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
-            								$.cookie("wildbookLangCode", "<%=myLang%>", {
-            			   						path    : '/',          //The value of the path attribute of the cookie
-            			                           //(default: path of page that created the cookie).
-
-            			   						secure  : false          //If set to true the secure attribute of the cookie
-            			                           //will be set and the cookie transmission will
-            			                           //require a secure protocol (defaults to false).
-            								});
-
-            								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
-            								location.reload(true);
-
-            							});
-
-            						</script>
-            					<%
-            					}
-            					%>
-
-            		</li>
-            		<%
-            		}
-            		%>
-            		<!-- end language functionality injection -->
-
-
-
-
-                    </ul>
-
-
-                    <style type="text/css">
-                      #header-search-button, #header-search-button:hover {
-                        color: inherit;
-                        background-color: inherit;
-                        padding: 0px;
-                        margin: 0px;
-                      }
-                    </style>
-                    <script>
-                      $('#header-search-button').click(function() {
-                        document.forms['header-search'].submit();
-                      })
-                    </script>
-
-
-                    <div class="search-wrapper">
-                      <label class="search-field-header">
-                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
-                              <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-                              <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <span class="el el-lg el-search"></span>
-                          </form>
-                      </label>
-                    </div>
-                  </div>
-                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
-                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
-
-                </div>
-              </div>
-
-              <div class="nav-bar-wrapper">
-                <div class="container">
-                  <div class="navbar-header clearfix">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                      <span class="sr-only">Toggle navigation</span>
-                      <span class="icon-bar"></span>
-                      <span class="icon-bar"></span>
-                      <span class="icon-bar"></span>
-                    </button>
-                  </div>
-
-                  <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%=notifications %></div>
+                  <div id="navbar" class="navbar-collapse collapse">                
                     <ul class="nav navbar-nav">
 
-                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-
-                        <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
-                      </li>
+                      <%-- <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
+                      </li> --%>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="svg-placeholder"></span></a>
+                        <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                            <li><a href="<%=urlLoc %>/submit.jsp" ><%=props.getProperty("report")%></a></li>
 
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                         </ul>
+                        </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
+                        <ul class="dropdown-menu" role="menu">
 
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
-
-                            <!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
-
-                            <li><a href="<%=urlLoc %>/aboutUs.jsp"><%=props.getProperty("aboutUs")%></a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
-                            <li class="divider"></li>
-                            <li><a target="_blank" href="<%=urlLoc %>/learnMore.jsp"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                            <li><a target="_blank" href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
-                            <li><a target="_blank" href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li>
-                        	<li class="divider"></li>
+                            <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+                            <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                            <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
+                          <%-- <li class="divider"></li> --%>
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
-                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
-
-                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
-                        </ul>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("occurrences")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
-                          <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("search")%></a></li>
-
-                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
-                        </ul>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
-                          <li class="dropdown-header"><%=props.getProperty("states")%></li>
-
-                        <!-- list encounters by state -->
-                          <% boolean moreStates=true;
-                             int cNum=0;
-                             while(moreStates) {
-                                 String currentLifeState = "encounterState"+cNum;
-                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
-                                 <% cNum++;
-                                 } else {
-                                     moreStates=false;
-                                 }
-                            } //end while %>
-                          <li class="divider"></li>
-                          <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
-                          <% if(request.getUserPrincipal()!=null) { %>
-                            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
-                          <% } %>
-                        </ul>
-                      </li>
-
-
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
-                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                              <!--
-                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
-                           	  -->
-                           </ul>
-                      </li>
-
-
-                      <%
-                      if(request.getUserPrincipal()!=null) {
-                      %>
-                      <li class="dropdown">
-
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu solid-menu-background" role="menu">
-                            <%
-                            if(request.getUserPrincipal()!=null) {
-                            %>
-                              <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
-                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
-
-                              <li class="divider"></li>
-                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
-                              <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
-                              <li class="divider"></li>
-                              <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                              
-                            <% }
-                            if(request.isUserInRole("orgAdmin")) { 
-                            %>
-                            <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-								 
-							<%
-                            }
-                            if(request.isUserInRole("admin")) { %>
-                                <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
-                                <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                               <li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
-
-                                <%
-                                if (CommonConfiguration.getIPTURL(context) != null) {
-                                %>
-                                  <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
-                                <%
-                                }
-                                %>
-
-                                <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
-
-                                <%
-                                if(CommonConfiguration.allowAdoptions(context)){
-                                %>
-                                  <li class="divider"></li>
-                                  <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
-                                  <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
-                                  <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
-                                  <li class="divider"></li>
-                                <% } %>
-
-
-                                <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
-                                
-                                <%
-                            } //end if admin
-
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
-                              %>
-                                  <li class="divider"></li>
-                            	    <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                            	    <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           <% } 
-                             
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("myData")%> <span class="svg-placeholder"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li class="dropdown-submenu">
+                            <a class="d-flex align-items-center justify-space-between" tabindex="-1" href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myEncounters")%>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                            </a>
                             
+                            <ul class="dropdown-menu">
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=approved"><%=props.getProperty("myApprovedAnimals")%></a></li>
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unapproved"><%=props.getProperty("myUnapprovedAnimals")%></a></li>
+                                <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>&state=unidentifiable"><%=props.getProperty("myUnidentifiableAnimals")%></a></li> 
+                          
+                            </ul>
+                            </li>
+                          
+                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("myIndividuals")%></a></li>
+                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp?submitterID=<%=request.getRemoteUser()%>"><%=props.getProperty("mySightings")%></a></li>
+                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("myBulkImports")%></a></li>
+                          <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("myProjects")%></a></li>
+
+                        </ul>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%><span class="svg-placeholder"></span> </a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounters")%></a></li>
+
+                          <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individuals")%></a></li>
+                          <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("sightings")%></a></li>
+
+                        </ul>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("animals")%> <span class="svg-placeholder"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+
+                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("individualGallery")%></a></li>
+                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                        </ul>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
+                        <ul class="dropdown-menu" role="menu">
+
+                          <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageMyAccounts")%></a></li>
+                          <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+                          <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("libraryAdministration")%></a></li>
+                          <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+                          <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
+                          <li><a href="<%=urlLoc %>/product-docs/en/wildbook/introduction/"><%=props.getProperty("softwareDocumentation")%></a></li>
+                          <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("bulkImportLogs")%></a></li>
+
+                            <%
                             if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>
-                            	<li class="divider"></li>
-                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                              <li class="divider"></li>
+                              <li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                              <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                              <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                             <%
                             }
                             %>
-                          </ul>
-                        </li>
-                      </ul>
+                        </ul>
 
-                      <%
-                      }
-                      %>
+                      </li>
+                      <div class="search-and-secondary-wrapper d-flex" >
+                        <!-- notifications -->
+                        <div id="notifications">
+                          <% if(user != null && !loggingOut)
+                            {  
+                          %>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
+                              <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
+                            </svg><%=notifications %>
+                          <%
+                            } 
+                          %>
+                        </div>
+                        <!-- end of notifications -->
+                        
+                        <!-- language -->
+                        <%
 
+                          List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
+                          int numSupportedLanguages=supportedLanguages.size();
 
+                          if(numSupportedLanguages>1){
+                        %>                
+                        <div class="custom-select-wrapper">
+                          <div class="custom-select" onclick="toggleDropdown()">
+                            <%                           
+                              String selectedLangCode = "en";
+                              Cookie[] cookies = request.getCookies(); 
 
+                              if (cookies != null) {
+                                  for (Cookie cookie : cookies) {
+                                      if ("wildbookLangCode".equals(cookie.getName())) {
+                                          selectedLangCode = cookie.getValue(); 
+                                          break;
+                                      }
+                                  }
+                              }
+
+                              
+                              String selectedImgURL = "";
+                              if (selectedLangCode != null) {
+                                  selectedImgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + selectedLangCode + ".gif";
+                              }
+                            %>
+                            
+                            <div class="custom-select-selected" >
+                              <div class="selected-item" style="background-image: url('<%= selectedImgURL %>');"></div>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                              </svg>
+                            </div>
+                            <div class="custom-select-items hidden">
+                                <% for(int h=0;h<numSupportedLanguages;h++){
+                                    String myLang = supportedLanguages.get(h);
+                                    String langName = CommonConfiguration.getProperty(myLang, context);
+                                    String imgURL = "//" + CommonConfiguration.getURLLocation(request) + "/images/flag_" + myLang + ".gif";
+                                %>
+                                  <div onclick="selectItem(this, '<%= myLang %>', '<%= imgURL %>')">
+                                    <img src="<%= imgURL %>" alt="Flag" style="margin-right: 10px">
+                                    <%= langName %>
+                                  </div>
+                                <%
+                                } 
+                                %>
+                            </div>
+                          </div>
+                        </div>
+                        <%
+                        }
+                        %>
+                        <!-- end of language -->
+
+                        
+                      </div>
+                    </ul>
                   </div>
+                  <!-- start profile wrapper -->
+                        <%
+                          if(user != null && !loggingOut){
+                              try {
+                                String fullname=request.getUserPrincipal().toString();
+                                if (user.getFullName()!=null) fullname=user.getFullName();
+                        %>
+                                <div class="profile-wrapper">
+                                  <div class="profile-icon" style="background-image: url('<%=profilePhotoURL %>');"></div>
+                                  
+                                  <ul class="dropdown-menu">
+                                      <li><a href="<%=urlLoc %>/react/">Landing Page</a></li>
+                                      <li><a href="<%=urlLoc %>/myAccount.jsp">User Profile</a></li>
+                                      <li><a href="#" onclick="logoutAndRedirect()">Logout</a></li>
+                                  </ul>   
+                                </div>              
 
-                </div>
-              </div>
-            </nav>
+                                <%
+                              }
+                              catch(Exception e){e.printStackTrace();}
+                          }
+                          else{
+                            %>
+                              <a href="<%= request.getContextPath() %>/react/login/" title="" style="white-space: nowrap"><%= props.getProperty("login") %></a>
+                        <%
+                          }
+
+                        %>
+                  <!-- end profile wrapper -->              
+                </div> 
+                                
+
+              </div>              
+
+                <script>
+                  var mySvg = `
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                  </svg>
+                  `;
+
+                  document.addEventListener("DOMContentLoaded", function() {
+                      var elements = document.getElementsByClassName('svg-placeholder');
+                      for (var i = 0; i < elements.length; i++) {
+                          elements[i].innerHTML = mySvg;
+                      }
+                  });
+                </script>
+            </div>               
+          </nav>
+
+          <script type="text/javascript">
+                          
+            function toggleDropdown() {
+                var items = document.querySelector('.custom-select-items');
+                items.classList.toggle('hidden');
+            }
+
+            function selectItem(element, langCode, imgUrl) {
+                var selectedDiv = document.querySelector('.custom-select-selected');
+                selectedDiv.setAttribute('data-lang', langCode); 
+                document.querySelector('.custom-select-items').classList.add('hidden');
+
+                console.log("Language changed to: " + langCode);
+
+                $.cookie("wildbookLangCode", langCode, {
+                    path: '/',
+                    secure: false
+                });
+
+                location.reload(true);
+            }
+              
+          </script>
         </header>
 
-        <script>
-        $('#search-site').autocomplete({
-            // sortResults: true, // they're already sorted
-            appendTo: $('#navbar-top'),
-            response: function(ev, ui) {
-                if (ui.content.length < 1) {
-                    $('#search-help').show();
-                } else {
-                    $('#search-help').hide();
-                }
-            },
-            select: function(ev, ui) {
-                if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "encounter") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
-                }
-                else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
-                }
-                /*
-                //restore user later
-                else if (ui.item.type == "user") {
-                    window.location.replace("/user/" + ui.item.value);
-                }
-                else {
-                    alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
-                }
-                */
-                return false;
-            },
-            //source: app.config.wildbook.proxyUrl + "/search"
-            source: function( request, response ) {
-                $.ajax({
-                    url: '<%=("//" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function( data ) {
-                        var res = $.map(data, function(item) {
-                            var label="";
-                            var nickname="";
-                            if ((item.type == "individual")&&(item.species!=null)) {
-//                                label = item.species + ": ";
-                            }
-                            else if (item.type == "user") {
-                                label = "User: ";
-                            } else {
-                                label = "";
-                            }
-
-                            if(item.nickname != null){
-                            	nickname = " ("+item.nickname+")";
-                            }
-
-                            return {label: label + item.label+nickname,
-                                    value: item.value,
-                                    type: item.type,
-                                    nickname: nickname};
-                            });
-
-                        response(res);
-                    }
-                });
-            }
-        });
-        //prevent enter key on tyeahead
-        $('#search-site').keydown(function (e) {
-                	    if (e.keyCode == 13) {
-                	        e.preventDefault();
-                	        return false;
-                	    }
-        });
-
-
-        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
-        let urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has("organization")) {
-          let orgParam = urlParams.get("organization");
-          $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',
-              secure  : false,
-              expires : 1
-          });
-        }
-
-
-        </script>
-
         <!-- ****/header**** -->
+

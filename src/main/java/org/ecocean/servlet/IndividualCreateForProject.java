@@ -3,34 +3,36 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.MarkedIndividual;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.JSONObject;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 
 public class IndividualCreateForProject extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
 
-    public void init(ServletConfig config) throws ServletException {
+    public void init(ServletConfig config)
+    throws ServletException {
         super.init(config);
     }
 
-    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doOptions(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         doPost(request, response);
     }
 
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -38,7 +40,7 @@ public class IndividualCreateForProject extends HttpServlet {
 
         System.out.println("==> In IndividualCreateForProject Servlet ");
 
-        String context= ServletUtilities.getContext(request);
+        String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IndividualCreateForProject.java");
         myShepherd.beginDBTransaction();
@@ -53,16 +55,13 @@ public class IndividualCreateForProject extends HttpServlet {
             addErrorMessage(res, "IOException unpacking JSON from request");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
-
         try {
-            res.put("success",false);
+            res.put("success", false);
             String encounterId = j.optString("encounterId", null);
             String projectId = j.optString("projectIdPrefix", null);
-
-            if (Util.stringExists(encounterId)&&Util.stringExists(projectId)) {
-
+            if (Util.stringExists(encounterId) && Util.stringExists(projectId)) {
                 Encounter enc = myShepherd.getEncounter(encounterId);
-                if (enc!=null) {
+                if (enc != null) {
                     Project project = null;
                     projectId = projectId.trim();
                     if (Util.isUUID(projectId)) {
@@ -70,8 +69,9 @@ public class IndividualCreateForProject extends HttpServlet {
                     } else {
                         project = myShepherd.getProjectByProjectIdPrefix(projectId);
                     }
-                    if (project!=null) {
-                        MarkedIndividual individual = new MarkedIndividual(project.getNextIncrementalIndividualId(), enc);
+                    if (project != null) {
+                        MarkedIndividual individual = new MarkedIndividual(
+                            project.getNextIncrementalIndividualId(), enc);
                         myShepherd.storeNewMarkedIndividual(individual);
                         individual.addIncrementalProjectId(project);
                         myShepherd.updateDBTransaction();
@@ -80,9 +80,10 @@ public class IndividualCreateForProject extends HttpServlet {
 
                         res.put("newIndividualId", individual.getId());
                         res.put("newIndividualName", individual.getName(projectId));
-                        res.put("success",true);
+                        res.put("success", true);
                     } else {
-                        addErrorMessage(res, "there was not a valid project for the Id or projectIdPrefix provided");
+                        addErrorMessage(res,
+                            "there was not a valid project for the Id or projectIdPrefix provided");
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
                 } else {
@@ -90,13 +91,12 @@ public class IndividualCreateForProject extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
             } else {
-                addErrorMessage(res, "not enough information was sent to the server to create a new project individual");
+                addErrorMessage(res,
+                    "not enough information was sent to the server to create a new project individual");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-
             out.println(res);
             out.close();
-
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -104,7 +104,7 @@ public class IndividualCreateForProject extends HttpServlet {
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
@@ -119,6 +119,4 @@ public class IndividualCreateForProject extends HttpServlet {
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
     }
-
-
 }

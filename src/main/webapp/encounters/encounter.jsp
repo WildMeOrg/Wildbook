@@ -674,8 +674,9 @@ var encounterNumber = '<%=num%>';
 
 				//let's see if this user has ownership and can make edits
       			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request,myShepherd);
-            boolean isPublic = ServletUtilities.isEncounterOwnedByPublic(enc) && request.getUserPrincipal() != null; //should at least be logged in
-      			pageContext.setAttribute("editable", (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context));
+            boolean encounterIsPublic = ServletUtilities.isEncounterOwnedByPublic(enc);
+            boolean encounterCanBeEditedByAnyLoggedInUser = encounterIsPublic && request.getUserPrincipal() != null;
+            pageContext.setAttribute("editable", (isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context));
       			boolean loggedIn = false;
       			try{
       				if(request.getUserPrincipal()!=null){loggedIn=true;}
@@ -705,7 +706,7 @@ $(function() {
 
       <%
       //set a default date if we cann
-      if(isOwner && enc.getDateInMilliseconds()!=null){
+      if((isOwner || encounterIsPublic) && enc.getDateInMilliseconds()!=null){
 
     	  //LocalDateTime jodaTime = new LocalDateTime(enc.getDateInMilliseconds());
 
@@ -834,7 +835,7 @@ $(function() {
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 <%-- START LOCATION --%>
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
 	<img src="../images/2globe_128.gif" width="20px" height="20px" align="absmiddle"/>
   <%=encprops.getProperty("location") %>
@@ -879,7 +880,7 @@ else {
 
 
 <%
-if(isOwner && enc.getLocation()!=null){
+if((isOwner || encounterIsPublic) && enc.getLocation()!=null){
 %>
 	<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
@@ -898,7 +899,7 @@ if(isOwner && enc.getLocation()!=null){
 	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
 	int sizeHier=hier.size();
 	String displayPath="";
-	if(isOwner || isPublic){
+	if(isOwner || encounterIsPublic){
 		for(int q=0;q<sizeHier;q++){
 			if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
 			else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
@@ -922,7 +923,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 %>
 
   <%
-  if(isOwner && enc.getCountry()!=null){
+  if((isOwner || encounterIsPublic) && enc.getCountry()!=null){
   %>
   <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
@@ -1290,6 +1291,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
     <script type="text/javascript">
         var markers = [];
+        var lat = <%=enc.getDecimalLatitude()%>;
+        var lon = <%=enc.getDecimalLongitude()%>;
         var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
         //bounds.extend(latLng);
          	<%
@@ -1321,12 +1324,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	   		<%
 	   		if(((enc.getDecimalLatitude()==null)||(enc.getDecimalLongitude()==null))||(!visible)){
 	   		%>
-	   			marker.setVisible(false);
+
+	   			marker.setVisible(true);
 
 	   		<%
 	   		}
  			%>
-
        markers.push(marker);
        //map.fitBounds(bounds);
 
@@ -1373,7 +1376,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   String laty="";
   if(enc.getLatitudeAsDouble()!=null){
     laty=enc.getLatitudeAsDouble().toString();
-    if (!isOwner && !isPublic) {
+    if (!isOwner && !encounterIsPublic) {
       BigDecimal latBD = new BigDecimal(laty);
       latBD = latBD.setScale(1, RoundingMode.HALF_UP);
       laty = latBD.toString();
@@ -1382,7 +1385,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   }
   if(enc.getLongitudeAsDouble()!=null){
     longy=enc.getLongitudeAsDouble().toString();
-    if (!isOwner && !isPublic) {
+    if (!isOwner && !encounterIsPublic) {
       BigDecimal lonBD = new BigDecimal(longy);
       lonBD = lonBD.setScale(1, RoundingMode.HALF_UP);
       longy = lonBD.toString();
@@ -1409,7 +1412,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 
 <%
- 	if(isOwner || isPublic){
+ 	if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 %>
 
       <script type="text/javascript">
@@ -1537,7 +1540,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
-        <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+        <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
 	        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
@@ -1723,6 +1726,10 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
+
+                      $('#selectCode').select2({width: '100%', height:'50px'});
+                      $('#selectCountry').select2({width: '100%', height:'50px'});
+
                       populateNewIndWithDisabledButton();
                       populateAddToExistingIndWithDisabledButton();
                       setUpIdActionOnClick();
@@ -2125,7 +2132,7 @@ function checkIdDisplay() {
 
               <%
                 //Remove from occurrence if assigned
-                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && (isOwner || isPublic)) {
+                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && (isOwner || encounterCanBeEditedByAnyLoggedInUser)) {
               %>
               <script type="text/javascript">
                 $(window).on('load',function() {
@@ -2185,7 +2192,7 @@ function checkIdDisplay() {
                 }
                 //create new Occurrence with name
 
-                if( (isOwner || isPublic) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                if((isOwner || encounterCanBeEditedByAnyLoggedInUser) && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
                 <script type="text/javascript">
                   $(window).on('load',function() {
@@ -2313,7 +2320,8 @@ function checkIdDisplay() {
         <div>
 
 
-          <% if ( (isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+          <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) {
+            %>
           <h2>
             <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
             <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
@@ -2360,7 +2368,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(isOwner && enc.getSubmitters()!=null){
+	       if((isOwner || encounterIsPublic) && enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2383,7 +2391,7 @@ function checkIdDisplay() {
 				            <span id="displaySubmitName"><%=name %></span>
 				            <%
 
-				          if (isOwner || isPublic) {
+				          if (isOwner || encounterIsPublic){
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2405,7 +2413,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic) {
+					         if(isOwner|| encounterCanBeEditedByAnyLoggedInUser) {
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2431,7 +2439,7 @@ function checkIdDisplay() {
 
 			</p> <!--  End submitters paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2444,7 +2452,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(isOwner && enc.getPhotographers()!=null){
+	       if((isOwner || encounterIsPublic) && enc.getPhotographers()!=null){
 	    	   %>
 
 	    	   <table id="photographers" width="100%">
@@ -2468,7 +2476,7 @@ function checkIdDisplay() {
 				            <span id="displaySubmitName"><%=name%></span>
 				            <%
 
-				          if (isOwner || isPublic) {
+				          if (isOwner || encounterIsPublic) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2490,7 +2498,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic){
+					         if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2513,7 +2521,7 @@ function checkIdDisplay() {
 			%>
 			</p> <!--  End photographers paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -2531,7 +2539,7 @@ function checkIdDisplay() {
 
 
 							<%
-		                    if(isOwner || isPublic){
+		                    if(isOwner || encounterIsPublic){
 
 		                    %>
 
@@ -2562,7 +2570,7 @@ function checkIdDisplay() {
 				            	<%
 			   				}
 
-				          if (isOwner || isPublic) {
+				          if (isOwner || encounterCanBeEditedByAnyLoggedInUser) {
 
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
@@ -2584,7 +2592,7 @@ function checkIdDisplay() {
 					         </td>
 					         <td style="display: table;vertical-align:middle;">
 					         <%
-					         if(isOwner || isPublic){
+					         if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 					         %>
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
@@ -2607,7 +2615,7 @@ function checkIdDisplay() {
 			%>
 			</p> <!--  End informOthers paragraph -->
 			<%
-			if(isOwner || isPublic){
+			if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 			%>
 			<div name="addUser" class="editFormUsers editUsers">
 				<input type="hidden" name="encounter" value="<%=enc.getCatalogNumber() %>" />
@@ -3051,7 +3059,7 @@ else {
 
 <!-- START TAPIRLINK DISPLAY AND SETTER -->
 <%
-if (isOwner) {
+if (isOwner || encounterCanBeEditedByAnyLoggedInUser){
 %>
 <script type="text/javascript">
   $(window).on('load',function() {
@@ -3157,7 +3165,7 @@ if(request.getUserPrincipal()!=null){
 
 <!-- START DELETE ENCOUNTER FORM -->
 <%
-if (isOwner) {
+if (isOwner || encounterCanBeEditedByAnyLoggedInUser) {
 %>
 <table width="100%" border="0" cellpadding="1">
     <tr>
@@ -3206,9 +3214,9 @@ itq.closeAll();
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
-%>
-
-<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+  %>
+  
+<% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
   <c:out value="${measurementTitle}"></c:out>
@@ -3375,7 +3383,7 @@ else {
 
 
 
-<% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
   <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
@@ -3622,7 +3630,7 @@ else {
     <tr>
     <td width="560px" style="vertical-align:top;">
 
-      <% if ((isOwner||isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+      <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) {%>
       <h2>
         <img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
         <button class="btn btn-md" type="button" name="button" id="editDate">Edit</button>
@@ -3661,7 +3669,7 @@ else {
        <%}%>
 
     <p>
-    <%if(isOwner && visible && enc.getDateInMilliseconds()!=null){ %>
+    <%if(isOwner|| encounterIsPublic && visible && enc.getDateInMilliseconds()!=null){ %>
       <a
         href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
@@ -3901,7 +3909,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
       	</jsp:include>
 
 		<%
-		if(isOwner || isPublic){
+		if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 		%>
           <br/>
           <br>
@@ -3954,7 +3962,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
-  <% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+  <% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
   <h2>
     <img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %>
     <button class="btn btn-md" type="button" name="button" id="editObservation">Edit</button>
@@ -4800,7 +4808,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 <!-- START DYNAMIC PROPERTIES -->
 
-<% if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) { %>
+<% if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
   <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
    <%=encprops.getProperty("dynamicProperties") %>
@@ -4838,7 +4846,7 @@ else {
 
 
 <%
-if(isOwner || isPublic){
+if(isOwner || encounterCanBeEditedByAnyLoggedInUser){
 %>
 
 <%
@@ -5046,6 +5054,7 @@ button#upload-button {
 
   var keyToFilename = {};
   var filenames = [];
+    var userFilenames = [];
   var pendingUpload = -1;
 
   $("button#add-image").click(function(){$(".flow-box").show()})
@@ -5062,6 +5071,7 @@ button#upload-button {
 
   flow.on('fileAdded', function(file, event){
     $('#file-activity').show();
+    file.userFilename = file.name;
     if(file && file.name){
       file.name = file.name.replace(/[^a-zA-Z0-9\. ]/g, "");
     }
@@ -5081,8 +5091,9 @@ button#upload-button {
     var el = findElement(file.name, file.size);
     updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
     console.log('success %o %o', file, message);
-    console.log('filename: '+file.name);
+    console.log('filename: %o | userFilename: %o', file.name, file.userFilename);
     filenames.push(file.name);
+    userFilenames.push(file.userFilename);
     pendingUpload--;
     if (pendingUpload == 0) uploadFinished();
   });
@@ -5166,7 +5177,7 @@ button#upload-button {
   }
   function uploadFinished() {
     if (filenames.length > 0) {
-      console.log("creating mediaAsset for filename "+filenames[0]);
+      console.log("creating mediaAsset for filename=[%o] userFilename=[%o]", filenames[0], userFilenames[0]);
 
       let locationID = '<%=enc.getLocationID()%>';
       console.log("locationID for new asset: "+locationID);
@@ -5179,7 +5190,10 @@ button#upload-button {
         data: JSON.stringify({
           "MediaAssetCreate": [
             {"assets": [
-               {"filename": filenames[0] }
+               {
+                    "filename": filenames[0],
+                    "userFilename": userFilenames[0],
+               }
               ]
             }
           ],
@@ -5283,7 +5297,7 @@ if(loggedIn){
     </p>
 
 <%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser)  && CommonConfiguration.isCatalogEditable(context)){
 %>
 <div id="dialogSample" title="<%=encprops.getProperty("setTissueSample")%>" style="display:none">
 
@@ -5537,7 +5551,7 @@ for(int j=0;j<numTissueSamples;j++){
 
 
 							<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
@@ -5664,7 +5678,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
         </a>
 
 				<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start genetic sex popup -->
 <script type="text/javascript">
@@ -5808,13 +5822,8 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 				%>
 
 					</span>
-
-
-
-
-
 															<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 
 <!-- start ms marker popup -->
@@ -5964,8 +5973,8 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 				%>
 				</span></td><td style="border-style: none;"><a class="launchPopup toggleBtn" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
-						<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+<%
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start biomeasure popup -->
 <div id="dialogSetBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setBiologicalMeasurement")%>" style="display:none">
@@ -6157,15 +6166,16 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		</table>
 
     <script type="text/javascript">
-      $(window).on('load',function() {
+    $(window).on('load',function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-          var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
-          if (x.style.display === "none") {
-            x.style.display = "block";
-          } else {
-            x.style.display = "none";
-          }
-      });
+            var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        });
+    });
     </script>
 		<p>
       <span class="caption">
@@ -6176,7 +6186,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
     </span>
   </p>
 		<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start haplotype popup -->
 <script type="text/javascript">
@@ -6280,7 +6290,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
       </span>
     </p>
 <%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start sat tag metadata -->
 <script type="text/javascript">
@@ -6406,7 +6416,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
 </p>
 
 <%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 
 <!-- start genetic sex popup -->
@@ -6530,7 +6540,7 @@ if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
   </p>
 
 		<%
-if ((isOwner || isPublic) && CommonConfiguration.isCatalogEditable(context)) {
+if ((isOwner || encounterCanBeEditedByAnyLoggedInUser) && CommonConfiguration.isCatalogEditable(context)){
 %>
 <!-- start genetic sex -->
 <script type="text/javascript">
@@ -6781,18 +6791,23 @@ function iaMatchFilterGo() {
     Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
 Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
-for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
-    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
-        String key = idOpt.toString();
-        if (identConfigs.containsKey(key)) {
-            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
-        } else {
-            JSONArray iac = new JSONArray();
-            iac.put(iaClass);
-            idOpt.put("_iaClasses", iac);
-            identConfigs.put(key, idOpt);
+try {
+    for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+        for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+            String key = idOpt.toString();
+            if (identConfigs.containsKey(key)) {
+                identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+            } else {
+                JSONArray iac = new JSONArray();
+                iac.put(iaClass);
+                idOpt.put("_iaClasses", iac);
+                identConfigs.put(key, idOpt);
+            }
         }
     }
+} catch (Exception ex) {
+    out.println("// <!-- identConfigs/iaConfig ERROR: " + ex.toString() + "; please see catalina.out -->");
+    ex.printStackTrace();
 }
 
 //we need to keep this in the same order so we can get values out in the same way

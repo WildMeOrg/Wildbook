@@ -408,7 +408,7 @@ try{
 	}
 	
 	
-	Set<String> locationIds = new HashSet<String>();
+	ArrayList<String> locationIds = new ArrayList<String>();
 
 	    out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
 	    out.println("<br>Data Import Status: <em>"+itask.getStatus()+"</em>");
@@ -447,7 +447,7 @@ try{
 	    	ArrayList<MediaAsset> fixACMIDAssets=new ArrayList<MediaAsset>();
 	       
 	    	JSONArray jarr=new JSONArray();
-	    	if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
+	    	if (enc.getLocationID() != null && !locationIds.contains(enc.getLocationID())) locationIds.add(enc.getLocationID());
 	        out.println("<tr>");
 	        out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
 	        out.println("<td>" + enc.getDate() + "</td>");
@@ -824,15 +824,16 @@ try{
 	function resendToID() {
 	    if (!confirmCommitID()) return;
 	    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
-	    var locationIds = $('#id-locationids').val();
+	    //var locationIds = $('#id-locationids').val();
 	    var locationIds = '';
-	    $("#id-locationids > option").each(function(){
+	    $("#id-locationids option:selected").each(function(){
 	    	locationIds+='&locationID='+this.value;
 	    });
 	    if(locationIds.indexOf('ALL locations')>-1)locationIds='';
 	    //if (locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
 	
 	    console.log('resendToID() SENDING: locationIds=%o', locationIds);
+	    
 	    $.ajax({
 	        url: wildbookGlobals.baseUrl + '/appadmin/resendBulkImportID.jsp?importIdTask=<%=taskId%>'+locationIds,
 	        dataType: 'json',
@@ -847,6 +848,7 @@ try{
 		    }
 	        }
 	    });
+	    
 	}
 	 
 	</script>
@@ -889,10 +891,7 @@ try{
 		%>
 		 <div style="margin-bottom: 20px;">   	
 		    	<a class="button" style="margin-left: 20px;" onClick="resendToID(); return false;">Send to identification</a> matching against <b>location(s):</b>
-		    	<select multiple id="id-locationids" style="vertical-align: top;">
-		        	<option selected><%= String.join("</option><option>", locationIds) %></option>
-		        	<option value="">ALL locations</option>
-		    	</select>
+                        <%=LocationID.getHTMLSelector(true, locationIds, null, "id-locationids", "locationID", "") %>
 		   </div>
 		    	
 		    <%

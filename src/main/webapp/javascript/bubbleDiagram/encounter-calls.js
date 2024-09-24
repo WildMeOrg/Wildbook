@@ -1,6 +1,6 @@
 // lang  dictionary contains all language specific text. It is loaded in individuals jsp and contains
 // all the necessary keys from individuals.properties with the same syntax.
-var dict = {};
+var dict = {}; 
 var languageTable = function(words) {
     dict = words;
 }
@@ -11,6 +11,7 @@ var getIndividualIDFromEncounterToString = function(encToString) {
     //var id = encToString.split("individualID=")[1].split(",")[0];
     var id = encToString.displayName; // since this is for display, and individualIDs are UUIDs now
     if (!id) return false;
+    id = id.concat(" id=", encToString.individualID); // appending UUID, which is needed while forming the co-occurrence table URL
     return id;
 }
 
@@ -18,6 +19,7 @@ var getData = function(individualID, displayName) {
     var occurrenceObjectArray = [];
     var items = [];
     var encounterArray = [];
+    var encArrWithUUID = [];
     var occurrenceArray = [];
     var dataObject = {};
 
@@ -25,7 +27,7 @@ var getData = function(individualID, displayName) {
 
     //d3.json(wildbookGlobals.baseUrl + "/api?useProjectContext=true&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
 	d3.json(wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?individualID='+individualID, function(error, json) {
-
+	
 	if(error) {
             console.log("error")
 	}
@@ -42,17 +44,18 @@ var getData = function(individualID, displayName) {
 				var haplotype=thisOcc.encounters[j].haplotype;
 				var location=thisOcc.encounters[j].locationID;
 				//console.log("thisEncIndID="+thisEncIndID);
-
+		
 				//var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 				//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-				if (!thisEncIndID || (thisEncIndID===displayName)) continue;  //unknown indiv -> false
-				if(encounterArray.includes(thisEncIndID)) {
-				}
-				else {
-		    		encounterArray.push(thisEncIndID);
+				if (!thisEncIndID) continue;
+				var individualName = thisEncIndID.split(" id=")[0];
+				if (individualName === displayName) continue;  //unknown indiv -> false
+				if(!encounterArray.includes(individualName)) {
+					encounterArray.push(individualName);
+					encArrWithUUID.push(thisEncIndID);
 				}
             }
-            occurrenceArray = occurrenceArray.concat(encounterArray);
+            occurrenceArray = occurrenceArray.concat(encArrWithUUID);
             var occurrenceID = jsonData[i].occurrenceID;
             var index = encounterArray.indexOf(individualID.toString());
             if (~index) {
@@ -61,12 +64,13 @@ var getData = function(individualID, displayName) {
             var occurrenceObject = new Object();
             if(encounterArray.length > 0) {
 				occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
-            }
+            } 
 			else {
 				occurrenceObject = {occurrenceID: "", occurringWith: ""};
             }
 			occurrenceObjectArray.push(occurrenceObject);
             encounterArray = [];
+            encArrWithUUID = [];
 	}
 
 	for(var i = 0; i < occurrenceArray.length; ++i) {
@@ -77,18 +81,20 @@ var getData = function(individualID, displayName) {
 	for (var prop in dataObject) {
             var whale = new Object();
             whale = {text:prop, count:dataObject[prop], sex: sex, location: location};
-            items.push(whale);
+            items.push(whale);	
 	}
 	//if (items.length > 0) {
     //        getSexHaploData(individualID, items);
 	//}
-
+	
 	makeTable(items, "#coHead", "#coBody", null,["occurringWith", "occurrenceNumber","sex","location"]);
-	$('#cooccurrenceTable tr').click(function() {
-            selectedWhale = ($(this).attr("class"));
-            goToWhaleURL(selectedWhale);
-	});
-
+	$('#cooccurrenceTable tr').attr("onClick", "return cooccurTableAuxClick(this);")
+							  .attr("onAuxClick", "return cooccurTableAuxClick(this);")
+							  .each(function() {
+								indivUrl = "individuals.jsp?number=" + ($(this).attr("class"));
+								$(this).find("td").first().wrapInner("<a href=\""+indivUrl+"\"></a>");
+							  });
+	
 	getEncounterTableData(occurrenceObjectArray, individualID);
     });
 };
@@ -97,7 +103,7 @@ var getData = function(individualID, displayName) {
 var getSexHaploData = function(individualID, items) {
     //d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
 	d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == '" + individualID + "'"), function(error, json) {
-
+	
 	if(error) {
 	    console.log("error")
 	}
@@ -110,7 +116,7 @@ var getSexHaploData = function(individualID, items) {
 	    result.sex = jsonData[i].sex;
 	    result.haplotype = jsonData[i].localHaplotypeReflection;
 	}
-
+	
 	makeTable(items, "#coHead", "#coBody", null,["occurringWith", "occurrenceNumber","sex","location"]);
 	$('#cooccurrenceTable tr').click(function() {
             selectedWhale = ($(this).attr("class"));
@@ -125,9 +131,9 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
     refreshTable(sortOn);
 
     function refreshTable(sortOn) {
-
+	
 	if(keys==null) {keys=d3.keys(items[0]);}
-
+	
 	if(tableHeadLocation == "#encountHead"){
 	    keys.shift();
 	}
@@ -177,7 +183,17 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		    return refreshTable(d);
 		}
 	    });
-
+	
+	var indivArray = [];
+	if(tableBodyLocation == "#coBody") {
+		for (var i = 0; i < items.length; i++) {
+			var nameIdArr = items[i].text.split(" id=");
+			var individual = { name: nameIdArr[0], uuid: nameIdArr[1] }
+			indivArray.push(individual);
+			items[i].text = nameIdArr[0];
+		}
+	}
+	
 	//console.log("ITEMS", items)
 	var tr = d3.select(tableBodyLocation).selectAll("tr")
 	    .data(items).enter()
@@ -186,9 +202,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 		if(d.relationshipID !=null && d.relationshipID != 'undefined') {
 		    return d.relationshipID;
 		}
+		if(tableBodyLocation == "#coBody") {
+			return indivArray.find(indiv => (indiv.name == d3.values(d)[0])).uuid;
+		}
 		return d3.values(d)[0];
 	    });
-
+	
 	//console.log("TR", tr.selectAll("td"))
 	var td = tr.selectAll("td")
 	    .data(function(d){
@@ -198,48 +217,44 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 	    	    smaller.shift();
 	    	    return smaller;
 		}
-
+		
 		return d3.values(d);
     	    })
 	    .enter().append("td")
 	    .html(function(d) {
 		//console.log("D", d);
-
+		
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
-		}
+		} 
 		if(d == 'image') {
 		    return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-		}
+		} 
 		if(d == 'youtube-image') {
 		    return "<img class='encounterImg' src='images/youtube.png'/>"
-		}
+		} 
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
 		}
-
 		if(typeof d == "object") {
-			console.log("Dxm it's an object", typeof d);
 		    if(d.length <= 2) {
-		    	console.log("Dxp it's an array");
-		    	console.log("Dxo", d);
 			if(d[0] == 'edit'){
-				console.log("Dxl it's an edit", d);
-			    return "XXY<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
+			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
 			} if(d[0] == 'remove') {
 			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 			}
 			return d[0].italics() + "-" + d[1];
 		    }
 		    if(d.length > 2) {
-			return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+			return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
 		    }
 		}
-
-		console.log("Dxz",d);
-		return d;
+		if(d == "GOS") {
+		    return "<a href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+		}
+		return d; 
 	    });
-
+	
 	if(sortOn !== null) {
 	    console.log("sorting on: "+sortOn);
 	    if(sortOn != previousSort){
@@ -252,32 +267,15 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 	    td.html(function(d) {
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
-		}
+		} 
 		if(d == 'image') {
 		    return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-		}
+		} 
 		if(d == 'youtube-image') {
 		    return "<img class='encounterImg' src='images/youtube.png'/>"
-		}
+		} 
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
-		}
-		if(typeof d == "object") {
-			//console.log("Dxm it's an object", typeof d);
-		    if(d.length <= 2) {
-		    	//console.log("Dxp it's an array");
-		    	//console.log("Dxo", d);
-			if(d[0] == 'edit'){
-				//console.log("Dxl it's an edit", d);
-			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
-			} if(d[0] == 'remove') {
-			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
-			}
-			return d[0].italics() + "-" + d[1];
-		    }
-		    if(d.length > 2) {
-			return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
-		    }
 		}
 		return d;
 	    });
@@ -304,12 +302,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn, ke
 	    return b ? 1 : a ? -1 : 0;
 	}
     }
-
+    
     function unixCrunch(date) {
 	date = date.replace("-","/");
 	return new Date(date).getTime()/1000;
     }
-
+    
 };
 
 var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
@@ -319,7 +317,7 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 
     function refreshRelTable(sortOn) {
 		//console.log("Refreshing rel table")
-
+	
 		//var keys=d3.keys(items[0]);
 		var keys=["roles", "relationshipWith", "type", "socialUnit", "edit", "remove"];
 		//console.log("keys",keys);
@@ -332,55 +330,55 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 				//console.log("relTable header");
 				if(d === "text") {
 		    		return dict['occurringWith'];
-				}
+				} 
 				if (d === "occurrenceNumber"){
 		    		return dict['occurrenceNumber'];
-				}
+				} 
 				if (d === "behavior") {
 		    		return dict['behavior'];
-				}
+				} 
 				if(d === "alternateID") {
 		    		return dict['alternateID'];
 				}
 				if (d === "sex") {
 		    		return dict['sex'];
-				}
+				} 
 				if (d === "haplotype") {
 		    		return dict['haplotype'];
-				}
+				} 
 				if (d === "location") {
 		    		return dict['location'];
-				}
+				} 
 				if (d === "dataTypes") {
 		    		return dict['dataTypes'];
-				}
+				} 
 				if (d === "date") {
 		    		return dict['date'];
-				}
+				} 
 				if(d === "occurringWith") {
 		    		return dict['occurringWith'];
-				}
+				} 
 				if(d === "catalogNumber") {
 		    		//return dict['catalogNumber'];
-				}
+				} 
 				if(d === "roles") {
 		    		return dict['roles'];
-				}
+				} 
 				if(d === "relationshipWith") {
 		    		return dict['relationshipWith'];
-				}
+				} 
 				if(d === "type") {
 		    		return dict['type'];
-				}
+				} 
 				if(d === "socialUnit") {
 		    		return dict['socialUnit'];
-				}
+				} 
 				if(d === "edit") {
 		    		return dict['edit'];
-				}
+				} 
 				if(d === "remove") {
 		    		return dict['remove'];
-				}
+				} 
 				if(d === "relationshipID") {
 		    		return  dict['relationshipID'];
 				}
@@ -411,43 +409,43 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 		    	    smaller.shift();
 		    	    return smaller;
 				}
-
+			
 				return d3.values(d);
     	    })
 	    	.enter().append("td")
 	    	.html(function(d) {
-
+			
 				if(whatIsIt(d)==="Array") {
 					console.log("AN ARRAY!!!:", d)
 			    	//if(d.length <= 2) {
 					if(d[0] == "edit"){
 						console.log("yo edit!");
 				    	return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
-					}
+					} 
 					if(d[0] == 'remove') {
 				    	return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 					}
 					if(d.length > 2) {
-						return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+						return "<a href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + (d[1] ?? "")+ "</span><br><span>" + dict['alternateID'] + ": " + (d[2] ?? "") + "</span><br><span>" + dict['sex'] + ": " + (d[3] ?? "") + "</span><br><span>" + dict['haplotype'] +": " + (d[4] ?? "") + "</span>";
 			    	}
 					return d[0].italics() + "-" + d[1];
 			    	//}
-
+			    
 				}
 				if(d == "socialUnit") {
-			    	return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+			    	return "<a href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
 				}
-
+			
 				//couldn't find it so dump it as text
-				return d;
+				return d; 
 	   	 	});
-
+	
 			if(sortOn !== null && items.length > 0) {
 	    		console.log("relSorting on: "+sortOn);
 	    		if(sortOn != previousSort){
 					tr.sort(function(a,b){return sort(a[sortOn], b[sortOn]);});
 					previousSort = sortOn;
-	    		}
+	    		} 
 				else {
 					tr.sort(function(a,b){return sort(b[sortOn], a[sortOn]);});
 					previousSort = null;
@@ -469,22 +467,22 @@ var makeRelTable = function(items, tableHeadLocation, tableBodyLocation, sortOn)
 				var whaleA = parseA;
 				var whaleB = unixCrunch(b);
 				return whaleA < whaleB ? 1 : whaleA == whaleB ? 0 : -1;
-	    	}
+	    	} 
 			else return a.localeCompare(b);
-		}
+		} 
 		else if(typeof a == "number") {
 	    	return a > b ? 1 : a == b ? 0 : -1;
-		}
+		} 
 		else if(typeof a == "boolean") {
 	    	return b ? 1 : a ? -1 : 0;
 		}
     }
-
+    
     function unixCrunch(date) {
 		date = date.replace("-","/");
 		return new Date(date).getTime()/1000;
     }
-
+    
 };
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
@@ -500,8 +498,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             for(var j = 0; j < occurrenceObjectArray.length; j++) {
 				if (typeof occurrenceObjectArray[j].occurrenceID !== 'undefined' && typeof jsonData.encounters[i].occurrenceID !== 'undefined' && occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
 			    	if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
-
-			    	}
+						
+			    	} 
 					else {
 						var occurringWith = occurrenceObjectArray[j].occurringWith;
 						console.log("occurringWith: "+occurringWith+" in "+jsonData.encounters[i].occurrenceID+" and "+occurrenceObjectArray[j].occurrenceID);
@@ -518,8 +516,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		//console.log("Tryin plaintext...");
 		date = jsonData.encounters[i].year;
 		if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
-		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;}
-            } else {
+		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
+            } else {  
 		date = dict['unknown'];
             }
 
@@ -533,12 +531,12 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
 		if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
                     var dataTypes = "both"
-		}
+		} 
 		else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
 		    var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-		}
+		} 
 		else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-
+		    
         	    if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
         		var dataTypes = "youtube-image";
         	    }
@@ -546,7 +544,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         	    else{
         		var dataTypes = "image";
         	    }
-
+        	    
 		}
 		else {
 		    var dataTypes = "";
@@ -564,19 +562,23 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             encounterData.push(encounter);
 	}
 	makeTable(encounterData, "#encountHead", "#encountBody", "date", null);
-	$('#encountTable tr').click(function() {
-            selectedWhale = ($(this).attr("class"));
-            goToEncounterURL(selectedWhale);
-	});
+	$('#encountTable tr').attr("onClick", "return encountTableAuxClick(this);")
+						 .attr("onAuxClick", "return encountTableAuxClick(this);")
+						 .each(function() {
+							encountUrl = "encounters/encounter.jsp?number=" + ($(this).attr("class"));
+							$(this).find("td").first().wrapInner("<a href=\""+encountUrl+"\"></a>");
+						 });
     });
 }
 
 var goToEncounterURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
+	var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+    window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale, target);
 }
 
 var goToWhaleURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale);
+	var target = (event.metaKey && event.button == 0) || (event.button == 1) ? '_blank' : '_self';
+    window.open(wildbookGlobals.baseUrl + "/individuals.jsp?number=" + selectedWhale, target);
 }
 
 var getRelationshipData = function(relationshipID) {
@@ -597,7 +599,7 @@ var getRelationshipData = function(relationshipID) {
 
 	var startTime;
 	var endTime;
-
+	
 	if (jsonData.startTime == "-1") {
     	    startTime = null;;
 	} else {
@@ -662,11 +664,11 @@ var getRelationshipTableData = function(individualID) {
 	    	var endTime = jsonData[i].endTime;
 	    	if (startTime == "-1") {
 				startTime = "Start Time";
-	    	}
+	    	} 
 	    	if (endTime == "-1") {
 				endTime = "End Time";
 	    	}
-
+	    
 	    	if(jsonData[i].markedIndividualName1 != individualID) {
 				var whaleID = jsonData[i].markedIndividualName1;
 				var markedIndividual = jsonData[i].markedIndividualName2;
@@ -685,48 +687,53 @@ var getRelationshipTableData = function(individualID) {
 	    	relationship = {"roles": [markedIndividualRole, relationshipWithRole], "relationshipWith": [whaleID], "type": type, "socialUnit": relatedSocialUnitName, "edit": ["edit", relationshipID], "remove": ["remove", relationshipID]};
 	    	relationshipArray.push(relationship);
 		}
-		getIndividualData(relationshipArray);
-		console.log("gonna makeRelTable");
-		makeRelTable(relationshipArray, "#relationshipHead", "#relationshipBody", "text");
+		getIndividualData(relationshipArray, function (relationshipTableData) {
+			console.log("All data has been processed:", JSON.stringify(relationshipTableData));
+			makeRelTable(relationshipTableData, "#relationshipHead", "#relationshipBody", "text");
+		});
+
     });
 }
 
-var getIndividualData = function(relationshipArray) {
-	console.log("getIndividualData");
-    var relationshipTableData = [];
-    for(var i=0; i < relationshipArray.length; i++) {
-	d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function(error, json) {
-	    if(error) {
-		console.log("error")
-	    }
-	    //console.log("json: "+JSON.stringify(json));
-	    let jsonData = json;
-	    var individualInfo = relationshipArray.filter(function(obj) {
-		return obj.relationshipWith[0] === jsonData.individualID;
-	    })[0];
-	    console.log(individualInfo.relationshipWith);
-	    individualInfo.relationshipWith[1] = jsonData.nickName;
-	    individualInfo.relationshipWith[2] = jsonData.alternateid;
-	    individualInfo.relationshipWith[3] = jsonData.sex;
-	    individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
-	    individualInfo.relationshipWith[5] = jsonData.displayName;
-	    relationshipTableData.push(individualInfo);
+var getIndividualData = function (relationshipArray, onComplete) {
+	var relationshipTableData = [];
+	var completedRequests = 0;
 
-	    if(relationshipTableData.length == relationshipArray.length) {
-		for(var j = 0; j < relationshipArray.length; j++) {
-		    if(relationshipArray[j].relationshipWith.length == 1) {
-			relationshipArray[j].relationshipWith[1] = jsonData.nickName;
-			relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
-			relationshipArray[j].relationshipWith[3] = jsonData.sex;
-			relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
-			relationshipArray[j].relationshipWith[5] = jsonData.displayName;
-		    }
-		}
+	for (var i = 0; i < relationshipArray.length; i++) {
+		d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function (error, json) {
+			if (error) {
+				console.log("Error loading data");
+				return;
+			}
 
-	    }
-	});
-    }
+			let jsonData = json;
+			var individualInfo = relationshipArray.filter(function (obj) {
+				return obj.relationshipWith[0] === jsonData.individualID;
+			})[0];
 
+			individualInfo.relationshipWith[1] = jsonData.nickName;
+			individualInfo.relationshipWith[2] = jsonData.alternateid;
+			individualInfo.relationshipWith[3] = jsonData.sex;
+			individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
+			individualInfo.relationshipWith[5] = jsonData.displayName;
+
+			relationshipTableData.push(individualInfo);
+			completedRequests++;
+
+			if (completedRequests === relationshipArray.length) {
+				for (var j = 0; j < relationshipArray.length; j++) {
+					if (relationshipArray[j].relationshipWith.length == 1) {
+						relationshipArray[j].relationshipWith[1] = jsonData.nickName;
+						relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
+						relationshipArray[j].relationshipWith[3] = jsonData.sex;
+						relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
+						relationshipArray[j].relationshipWith[5] = jsonData.displayName;
+					}
+				}
+				onComplete(relationshipTableData);
+			}
+		});
+	}
 }
 
 function whatIsIt(object) {
