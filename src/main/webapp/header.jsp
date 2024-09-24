@@ -514,7 +514,7 @@ if(request.getUserPrincipal()!=null){
 
 						if(request.getUserPrincipal()!=null && !loggingOut){
 						%>
-                      %>
+                
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%><span class="svg-placeholder"></span> </a>
                         <ul class="dropdown-menu" role="menu">
