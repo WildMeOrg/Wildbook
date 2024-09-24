@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Container, Row, Col, Form } from "react-bootstrap";
+import { Container, Row, Col, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import BrutalismButton from "../components/BrutalismButton";
 import { useIntl } from "react-intl";
@@ -14,6 +14,7 @@ function LoginPage() {
   useDocumentTitle("SIGN_IN");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const intl = useIntl();
   const { authenticate, error, setError, loading } = useLogin();
   const actionDisabled = loading || username === "" || password === "";
@@ -33,12 +34,17 @@ function LoginPage() {
     authenticate(username, password);
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <Container fluid className="p-0">
       <Row className="vh-100">
         <Col
-          md={6}
-          className="d-none d-md-block bg-image p-0"
+          lg={5}
+          md={{ span: 5 }}
+          className="d-none d-lg-block d-md-block bg-image p-0"
           style={{
             position: "relative",
           }}
@@ -96,7 +102,7 @@ function LoginPage() {
           </div>
         </Col>
 
-        <Col md={6} className="my-auto">
+        <Col lg={5} md={{ span: 5, offset: 1 }} className="my-auto">
           <div
             style={{
               width: "100%",
@@ -138,15 +144,27 @@ function LoginPage() {
                     id: "LOGIN_PASSWORD",
                   })}
                 </Form.Label>
-                <Form.Control
-                  autoComplete="current-password"
-                  type="password"
-                  placeholder="Password"
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError(null);
-                  }}
-                />
+                <InputGroup>
+                  <Form.Control
+                    autoComplete="current-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                    }}
+                  />
+                  <InputGroup.Text
+                    onClick={togglePasswordVisibility}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <i
+                      className={
+                        showPassword ? "bi bi-eye-fill" : "bi bi-eye-slash-fill"
+                      }
+                    ></i>
+                  </InputGroup.Text>
+                </InputGroup>
               </Form.Group>
 
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
