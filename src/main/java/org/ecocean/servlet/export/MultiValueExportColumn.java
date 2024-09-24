@@ -79,28 +79,7 @@ public class MultiValueExportColumn extends ExportColumn {
     }
 
 
-    public void writeLabel(List<String> sortedKeys, MultiValue names, int rowNum, Sheet sheet) throws InvocationTargetException, IllegalAccessException {
-      if (names==null || sortedKeys.size()<(nameNum+1)) {
-        return; // out of bounds for this names list
-      }
-      String key = sortedKeys.get(nameNum);
-      String value = names.getValue(key);
-      if (!Util.stringExists(value)) return; // don't print out names without values
 
-      String writeValue = (isLabel) ? key : value; // are we writing the key or value
-      writeValue = cleanWriteValue(writeValue);
-
-
-      // Ensure the row exists in the sheet
-      Row row = sheet.getRow(rowNum);
-      if (row == null) {
-          row = sheet.createRow(rowNum);
-      }
-  
-      Cell cell = row.createCell(colNum, Cell.CELL_TYPE_STRING);
-      cell.setCellValue(writeValue);  
-
-    }
 
     private String cleanWriteValue(String writeValue) {
         if (MultiValue.DEFAULT_KEY_VALUE.equals(writeValue)) return "Default";
