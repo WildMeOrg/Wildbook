@@ -49,14 +49,16 @@ props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 <style type="text/css">
 .full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
+	position: absolute !important;
+	top: 0px !important;
+	left: 0px !important;
+	z-index: 1 !imporant;
+	width: 100% !important;
+	height: 100% !important;
+	margin-top: 0px !important;
+	margin-bottom: 8px !important;
+}
+
 </style>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
@@ -365,7 +367,7 @@ finally{
    myShepherd.closeDBTransaction();
 }
 %>
-<section class="hero container-fluid splash-section relative">
+<section class="hero container-fluid splash-section relative" style="height: 600px;">
 	<!--
 	<div class="center-block">
 	</div>
@@ -379,7 +381,7 @@ finally{
 	</div>
 	-->
 </section>
-<section class="hero-bottom container-fluid splash-section relative">
+<section class="hero-bottom container-fluid splash-section relative" style="height: 800px;">
 	<a class="splash-submit" href="submit.jsp">
 		<button class="index-submit-button"><%= props.getProperty("reportEncounter") %><span class="button-icon index-button-icon" aria-hidden="true"></button>
 	</a>
