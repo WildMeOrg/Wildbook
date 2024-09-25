@@ -10,12 +10,22 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.movement.*,
 
 java.net.URL,
-java.util.Vector,
+java.util.Vector,javax.jdo.*,
 java.util.ArrayList,
 org.json.JSONObject,
 org.json.JSONArray,
 java.util.Properties,
 java.util.List" %>
+
+<%!
+List<Task> getTasks(Annotation ann,Shepherd myShepherd) {
+    Query tq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(ann) && ann.id=='" + ann.getId() + "'");
+    java.util.Collection c = (java.util.Collection) tq.execute();
+    List tasks = new ArrayList<Task>(c);
+    tq.closeAll();
+    return tasks;
+  }
+%>
 
 <%!
 	//public Shepherd myShepherd = null;
@@ -141,7 +151,8 @@ java.util.List" %>
                 if (!Annotation.isValidViewpoint(vp)) vp = "<span title=\"INVALID viewpoint value\" style=\"background-color: #F88; font-size: 0.8em; padding: 0 8px;\">" + vp + "</span>";
 		String h = "<div class=\"annotation\">Annotation <b>" + ann.getId() + "</b><ul>";
 
-        List<Task> tasks = myShepherd.getTasks(ann);
+        //List<Task> tasks = myShepherd.getTasks(ann);
+        List<Task> tasks = getTasks(ann,myShepherd);
         h += "<li>IA Tasks:<ul>";
         for (Task task: tasks) {
             String taskLink = "obrowse.jsp?type=Task&id=" + task.getId();
