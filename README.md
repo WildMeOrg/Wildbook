@@ -3,13 +3,9 @@
 Wildbook is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
 
 - provides a scalable and collaborative platform for intelligent wildlife data storage and management, including advanced, consolidated searching
-
 - provides an easy-to-use software suite of functionality that can be extended to meet the needs of wildlife projects, especially where individual identification is used
-
 - provides an API to support the easy export of data to cross-disciplinary analysis applications (e.g., GenePop ) and other software (e.g., Google Earth)
-
 - provides a platform that supports the exposure of data in biodiversity databases (e.g., GBIF and OBIS)
-
 - provides a platform for animal biometrics that supports easy data access and facilitates matching application deployment for multiple species
 
 ## Getting Started with Wildbook
@@ -43,12 +39,10 @@ You will want to work in a branch when doing any feature development you want to
 ### Set Up Development Environment with Docker
 For easiest development, you will need to set up your development environment to work with Docker. See [`devops/README.md`](devops/README.md) for detailed instructions.
 
-### Deploy frontend
-To setup frontend, we need to deploy the React build to Wildbook, please follow the detailed instructions provided in the `frontend/README.md` file within the project directory.
-
 ### Making Local Changes
-Make the code changes necessary for the issue you're working on. The following git commands may prove useful.
+Make the code changes necessary for the issue you're working on. You will need to either redeploy your war file (see [`devops/README.md`](devops/README.md)) or redeploy your front end directly (see [`frontend.README.md`](frontend/README.md)) for testing locally. 
 
+The following git commands may prove useful.
 * `git log`: lastest commits of current branch
 * `git status`: current staged and unstaged modifications
 * `git diff --staged`:  the differences between the staging area and the last commit
