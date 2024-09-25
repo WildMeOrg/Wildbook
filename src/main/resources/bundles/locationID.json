@@ -108,6 +108,11 @@
 
 				{ "name":"Southern California", "id":"Southern California", "locationID":[
 					{
+						"name": "Channel Islands",
+						"id": "Channel Islands",
+						"locationID": []
+					},
+					{
 						"name": "La Jolla Shores",
 						"id": "La Jolla Shores",
 						"locationID": []
