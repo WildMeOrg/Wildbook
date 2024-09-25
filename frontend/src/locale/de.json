@@ -246,5 +246,6 @@
     "SESSION_LOGIN_MODAL_CONTENT" : "Sie wurden vom System abgemeldet.",
     "SESSION_EXTEND" : "Verlängern",
     "SESSION_LOGIN" : "Anmelden",
-    "SESSION_CLOSE" : "Schließen"
+    "SESSION_CLOSE" : "Schließen",
+    "LOADING" : "Laden"
 }

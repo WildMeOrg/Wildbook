@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Container, Row, Col, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import BrutalismButton from "../components/BrutalismButton";
-import { useIntl } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import useLogin from "../models/auth/useLogin";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import WildmeLogo from "../components/svg/WildmeLogo";
@@ -206,7 +206,7 @@ function LoginPage() {
                     className="spinner-border spinner-border-sm ms-1"
                     role="status"
                   >
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden"><FormattedMessage id="LOADING"/></span>
                   </div>
                 )}
               </BrutalismButton>
