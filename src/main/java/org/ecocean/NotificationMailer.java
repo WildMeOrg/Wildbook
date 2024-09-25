@@ -543,31 +543,6 @@ public final class NotificationMailer implements Runnable {
     }
 
     /**
-     * Creates a basic tag map for the specified adoption. This map can subsequently be enhanced with extra tags. Adoption tags included:
-     * <ul>
-     * <li>&#64;INDIVIDUAL_LINK&#64;</li>
-     * <li>&#64;INDIVIDUAL_ID&#64;</li>
-     * <li>&#64;INDIVIDUAL_ALT_ID&#64;</li>
-     * <li>&#64;INDIVIDUAL_SEX&#64;</li>
-     * <li>&#64;INDIVIDUAL_NAME&#64;</li>
-     * <li>&#64;INDIVIDUAL_NICKNAME&#64;</li>
-     * <li>&#64;INDIVIDUAL_NICKNAMER&#64;</li>
-     * <li>&#64;INDIVIDUAL_COMMENTS&#64;</li>
-     * </ul>
-     *
-     * @param req servlet request for data reference
-     * @param ind MarkedIndividual for which to add tag data
-     * @return map instance for tag replacement in email template
-     */
-    public static Map<String, String> createBasicTagMap(HttpServletRequest req, Adoption adp,
-        String scheme) {
-        Map<String, String> map = new HashMap<>();
-
-        addTags(map, req, adp, scheme);
-        return map;
-    }
-
-    /**
      * Creates a basic tag map for the specified encounter. This map can subsequently be enhanced with extra tags. Individual tags included:
      * <ul>
      * <li>&#64;INDIVIDUAL_LINK&#64;</li>
@@ -652,39 +627,6 @@ public final class NotificationMailer implements Runnable {
         return createBasicTagMap(req, ind, enc, req.getScheme());
     }
 
-    public static Map<String, String> createBasicTagMap(HttpServletRequest req,
-        MarkedIndividual ind, Adoption adp, String scheme) {
-        Map<String, String> map = new HashMap<>();
-
-        addTags(map, req, ind, scheme);
-        addTags(map, req, adp, scheme);
-        return map;
-    }
-
-    public static Map<String, String> createBasicTagMap(HttpServletRequest req,
-        MarkedIndividual ind, Adoption adp) {
-        return createBasicTagMap(req, ind, adp, req.getScheme());
-    }
-
-    public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc,
-        Adoption adp, String scheme) {
-        Map<String, String> map = new HashMap<>();
-
-        addTags(map, req, enc, scheme);
-        addTags(map, req, adp, scheme);
-        return map;
-    }
-
-    public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc,
-        Adoption adp, MarkedIndividual ind, String scheme) {
-        Map<String, String> map = new HashMap<>();
-
-        addTags(map, req, enc, scheme);
-        addTags(map, req, adp, scheme);
-        addTags(map, req, ind, scheme);
-        return map;
-    }
-
     /**
      * Adds info tags for the specified encounter.
      *
@@ -710,45 +652,6 @@ public final class NotificationMailer implements Runnable {
             map.put("@INDIVIDUAL_NICKNAMER@", ind.getNickNamer());
             map.put("@INDIVIDUAL_COMMENTS@", ind.getComments());
             map.put("@INDIVIDUAL_SPECIES@", ind.getTaxonomyString());
-        }
-    }
-
-    /**
-     * Adds info tags for the specified adoption.
-     *
-     * @param req servlet request for data reference
-     * @param ind Adoption for which to add tag data
-     * @param map map to which to add tag data
-     */
-    private static void addTags(Map<String, String> map, HttpServletRequest req, Adoption adp,
-        String scheme) {
-        Objects.requireNonNull(map);
-        if (!map.containsKey("@URL_LOCATION@"))
-            map.put("@URL_LOCATION@",
-                String.format(scheme + "://%s", CommonConfiguration.getURLLocation(req)));
-        if (adp != null) {
-            map.put("@ADOPTION_CANCELLATION_LINK@",
-                String.format(
-                "%s/adoptions/emailCancelAdoption.jsp?number=%s&stripeID=%s&adoption=%s",
-                map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(),
-                adp.getID()));
-            map.put("@ADOPTION_ALTERATION_LINK@",
-                String.format(
-                "%s/adoptions/emailAlterAdoption.jsp?number=%s&stripeID=%s&adoption=%s",
-                map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(),
-                adp.getID()));
-            map.put("@ADOPTION_ID@", adp.getID());
-            map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
-            map.put("@ADOPTER_NAME@", adp.getAdopterName());
-            map.put("@ADOPTER_EMAIL@", adp.getAdopterEmail());
-            map.put("@ADOPTER_ADDRESS@", adp.getAdopterAddress());
-            map.put("@ADOPTER_QUOTE@", adp.getAdopterQuote());
-            map.put("@ADOPTION_MANAGER@", adp.getAdoptionManager());
-            map.put("@ADOPTION_INDIVIDUAL@", adp.getMarkedIndividual());
-            map.put("@ADOPTION_ENCOUNTER@", adp.getEncounter());
-            map.put("@ADOPTION_NOTES@", adp.getNotes());
-            map.put("@ADOPTION_TYPE@", adp.getAdoptionType());
-            map.put("@ADOPTION_START@", adp.getAdoptionStartDate());
         }
     }
 
