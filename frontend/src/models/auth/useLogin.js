@@ -2,9 +2,11 @@ import { useState } from "react";
 import axios from "axios";
 import { get } from "lodash-es";
 import { useIntl } from "react-intl";
+import { useLocation } from "react-router-dom";
 
 export default function useLogin() {
   const intl = useIntl();
+  const location = useLocation();
 
   const errorMessage = intl.formatMessage({
     id: "LOGIN_INVALID_EMAIL_OR_PASSWORD",
@@ -25,20 +27,12 @@ export default function useLogin() {
         },
       });
 
-      const nextLocation = get(response, "data.redirectUrl", null);
-
+      const nextLocation = get(response, "data.redirectUrl", null) || `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")}`;
       const successful = get(response, "data.success", false);
-
-      console.log("nextLocation", nextLocation);
 
       if (successful) {
         let url = `${process.env.PUBLIC_URL}/home`;
         if (nextLocation) {
-          // url = nextLocation?.pathname;
-          // url = nextLocation?.search
-          //   ? url + nextLocation.search
-          //   : url;
-          // url = nextLocation?.hash ? url + nextLocation.hash : url;
           window.location.href = nextLocation;
         } else window.location.href = url;
         // Fun quirk - a reload is required if there is a hash in the URL.
