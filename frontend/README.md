@@ -1,5 +1,5 @@
 ## Frontend Setup
-The frontend is currently split between native tomcat functions, jsp pages, and a react app. New development is targeting a full react app rewrite. This setup is focused on the react specific requirements. However, you must do the full system setup referenced in the [development README](../devops/development/README.md) for these to work.
+The frontend is currently split between native tomcat functions, jsp pages, and a react app. New development is targeting a full react app rewrite. This setup is focused on the react specific requirements. However, you must do the full system setup referenced in the [development README](../devops/README.md) for these to work.
 
 ### Build and deploy react-only changes
 If you are working on react-only work, you can test your changes without updating the full war file.
