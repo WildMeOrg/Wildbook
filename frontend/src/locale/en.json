@@ -246,5 +246,6 @@
     "SESSION_LOGIN_MODAL_CONTENT" : "You've been logged out of the system.",
     "SESSION_EXTEND" : "Extend",
     "SESSION_LOGIN" : "Login",
-    "SESSION_CLOSE" : "Close"
+    "SESSION_CLOSE" : "Close",
+    "LOADING" : "Loading"
 }

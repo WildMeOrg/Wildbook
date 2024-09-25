@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Container, Row, Col, Form, InputGroup } from "react-bootstrap";
 import { useState } from "react";
 import BrutalismButton from "../components/BrutalismButton";
-import { useIntl } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import useLogin from "../models/auth/useLogin";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import WildmeLogo from "../components/svg/WildmeLogo";
@@ -194,14 +194,21 @@ function LoginPage() {
                 type="submit"
                 onClick={handleSubmit}
                 color={theme.primaryColors.primary500}
-                // color='#00ACCE'
-                // borderColor='#00ACCE'
                 borderColor={theme.primaryColors.primary500}
                 disabled={actionDisabled}
               >
                 {intl.formatMessage({
                   id: "LOGIN_SIGN_IN",
                 })}
+
+                {loading && (
+                  <div
+                    className="spinner-border spinner-border-sm ms-1"
+                    role="status"
+                  >
+                    <span className="visually-hidden"><FormattedMessage id="LOADING"/></span>
+                  </div>
+                )}
               </BrutalismButton>
 
               {show && error && (
