@@ -35,11 +35,6 @@ export default function useLogin() {
           ? `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")}${location.hash}`
           : null);
 
-      const nextLocation = get(response, "data.redirectUrl", null)
-        || (new URLSearchParams(location.search).get("redirect")?.startsWith("/")
-          ? `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")}${location.hash}`
-          : null);
-
       if (successful) {
         let url = nextLocation || `${process.env.PUBLIC_URL}/home`;
         window.location.href = url;
