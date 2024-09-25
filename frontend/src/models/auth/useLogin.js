@@ -28,7 +28,7 @@ export default function useLogin() {
       const successful = get(response, 'data.success', false);
 
       if (successful) {
-        let url = '/react/home';
+        let url = `${process.env.PUBLIC_URL}/home`;
         if (nextLocation) {
           url = nextLocation?.pathname;
           url = nextLocation?.search
