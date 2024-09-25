@@ -36,12 +36,4 @@ public class DataUtilities {
     public static String createUniqueEncounterId() {
         return Util.generateUUID();
     }
-
-    /**
-     * Creates a unique ID string for adoptions.
-     * @return unique ID string
-     */
-    public static String createUniqueAdoptionId() {
-        return "adpt" + createUniqueId();
-    }
 }
