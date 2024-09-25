@@ -194,14 +194,21 @@ function LoginPage() {
                 type="submit"
                 onClick={handleSubmit}
                 color={theme.primaryColors.primary500}
-                // color='#00ACCE'
-                // borderColor='#00ACCE'
                 borderColor={theme.primaryColors.primary500}
                 disabled={actionDisabled}
               >
                 {intl.formatMessage({
                   id: "LOGIN_SIGN_IN",
                 })}
+
+                {loading && (
+                  <div
+                    className="spinner-border spinner-border-sm ms-1"
+                    role="status"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                )}
               </BrutalismButton>
 
               {show && error && (
