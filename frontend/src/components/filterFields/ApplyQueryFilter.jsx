@@ -52,7 +52,7 @@ export default function ApplyQueryFilter() {
           onClick={() => {
             if (queryId) {
               // navigate(`/encounter-search?searchQueryId=${queryId}`);
-              window.location.href = `/react/encounter-search?searchQueryId=${queryId}`;
+              window.location.href = `${process.env.PUBLIC_URL}/encounter-search?searchQueryId=${queryId}`;
             }
           }}
         >

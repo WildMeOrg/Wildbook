@@ -131,7 +131,7 @@ export default function AuthenticatedAppHeader() {
                 padding: 5,
                 // marginRight: "10%",
               }}
-              href={"/react/login"}
+              href={`${process.env.PUBLIC_URL}/login`}
             >
               {<FormattedMessage id="LOGIN_LOGIN" />}
             </Button>
