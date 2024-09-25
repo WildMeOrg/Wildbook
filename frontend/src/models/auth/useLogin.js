@@ -29,7 +29,11 @@ export default function useLogin() {
 
       // use .startsWith("/") to prevent open redirects
       const successful = get(response, "data.success", false);
-      const nextLocation = get(response, "data.redirectUrl", null) || `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")?.startsWith("/")}`;
+
+      const nextLocation = get(response, "data.redirectUrl", null)
+        || (new URLSearchParams(location.search).get("redirect")?.startsWith("/")
+          ? `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")}${location.hash}`
+          : null);
 
       if (successful) {
         let url = nextLocation || `${process.env.PUBLIC_URL}/home`;
