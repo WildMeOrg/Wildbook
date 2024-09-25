@@ -328,16 +328,6 @@ public class CommonConfiguration {
         }
     }
 
-    public static String getAdoptionCampaignUrl(String context) {
-        try {
-            return getProperty("adoptionCampaignUrl", context).trim();
-        } catch (NullPointerException e) {
-            System.out.println(
-                "NPE in getAdoptionCampaignUrl. Returning blank string as a default.");
-            return "";
-        }
-    }
-
     public static String getAnimalSingular(String context) {
         try {
             return getProperty("animalSingular", context).trim();
@@ -585,22 +575,6 @@ public class CommonConfiguration {
         if ((getProperty(thisString, context) != null) && (getProperty(thisString,
             context).equals("false"))) { return false; }
         return true;
-    }
-
-    /**
-     * This configuration option defines whether adoptions of MarkedIndividual or encounter objects are allowed. Generally adoptions are used as a
-     * fundraising or public awareness tool.
-     *
-     * @return true if adoption functionality should be displayed. False if adoptions are not supported in this catalog.
-     */
-    public static boolean allowAdoptions(String context) {
-        initialize(context);
-        boolean canAdopt = true;
-        if ((getProperty("allowAdoptions", context) != null) && (getProperty("allowAdoptions",
-            context).equals("false"))) {
-            canAdopt = false;
-        }
-        return canAdopt;
     }
 
     public static Double getCenterLat(String context) {
