@@ -46,7 +46,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/" element={<Login />} />
           <Route
             path = "*"
-            element={<Navigate to={`/login?redirect=${location.pathname}`}/>}
+            element={<Navigate to={`/login?redirect=${location.pathname}${location.search}${location.hash}`}/>}
           />
         </Routes>
       </div>
