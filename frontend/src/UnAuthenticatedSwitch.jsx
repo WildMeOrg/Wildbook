@@ -48,7 +48,6 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
             path = "*"
             element={<Navigate to={`/login?redirect=${location.pathname}`}/>}
           />
-          {/* <Route path="*" element={<NotFound setHeader={setHeader} />} /> */}
         </Routes>
       </div>
       <Footer />

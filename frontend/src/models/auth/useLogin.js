@@ -27,14 +27,14 @@ export default function useLogin() {
         },
       });
 
-      const nextLocation = get(response, "data.redirectUrl", null) || `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")}`;
+      // use .startsWith("/") to prevent open redirects
       const successful = get(response, "data.success", false);
+      const nextLocation = get(response, "data.redirectUrl", null) || `${new URL(process.env.PUBLIC_URL).pathname}${new URLSearchParams(location.search).get("redirect")?.startsWith("/")}`;
 
       if (successful) {
-        let url = `${process.env.PUBLIC_URL}/home`;
-        if (nextLocation) {
-          window.location.href = nextLocation;
-        } else window.location.href = url;
+        let url = nextLocation || `${process.env.PUBLIC_URL}/home`;
+        window.location.href = url;
+
         // Fun quirk - a reload is required if there is a hash in the URL.
         // https://stackoverflow.com/questions/10612438/javascript-reload-the-page-with-hash-value
         if (nextLocation?.hash) window.location.reload();
