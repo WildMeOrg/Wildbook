@@ -4,52 +4,73 @@ We provide two different containerized Wildbooks using Docker. Unless you are se
 
 ## Development Docker
 
-All support materials are found in the `devops/development/` subdirectory. This launches docker containers sufficient for you to deploy a `wildbook.war` file which you have developed
-via your own Java environment. 
+All support materials are found in the `devops/development/` subdirectory. This launches docker containers sufficient for you to deploy a `wildbook.war` file which you have developed via your own Java environment. 
 
 ### Overview of docker containers deployed
 
 - **db** - postgresql database for storing Wildbook data
 - **wildbook** -- the tomcat (java server) container which runs Wildbook
 - **opensearch** -- runs OpenSearch to support searching in Wildbook
-- **smtp** -- handles outgoing email (for password reset etc.) It is beyond the scope of this current document to address setting up email relays on the open internet.
-Environment variables for this are set in `.env` file - see below.
+- **smtp** -- handles outgoing email (for password reset etc.) It is beyond the scope of this current document to address setting up email relays on the open internet. Environment variables for this are set in `.env` file.
 - ~~**wbia**~~ - Presently, this _does not_ start a local WBIA (image analysis) docker container. The current roadmap is focused on removing WBIA as a requirement as we modernize our machine learning tech.
 
-### Setup and running
+## Prereqs
+You need the following installed on your system:
+* `default-jdk`
+* `build-essential`
+* `maven`
+* `npm`
+* `node`
+* `docker-compose`
 
+## System setup
 1. Run `sudo sysctl -w vm.max_map_count=262144` (A requirement for OpenSearch, it only needs to be run once on your system.)
-1. In `devops/development/` folder, create a `.env` file with a copy the contents of `_env.template`. By default, no changes should be needed, but you can edit this new file if needed.
-1. In your terminal, create your base directory (value of `WILDBOOK_BASE_DIR` from `.env` file above) and the required subdirectories. The default is `~/wildbook-dev/`). For example:
-	```
-	mkdir -p ~/wildbook-dev/webapps/wildbook
-	mkdir ~/wildbook-dev/logs
-	```
-1. Deploy your `.war` file (see section below) in the above `wildbook/` directory, using `jar`:
-	```
-	cd ~/wildbook-dev/webapps/wildbook
-	jar -xvf /path/to/wildbook-xxx.war
-	```
-1. Return to the `devops/development/` directory in the wildbook repo
-1. Run `docker-compose up [-d]`, which launches all of the aforementioned docker images
-1. To verify successful launch, open in browser http://localhost:81/ when tomcat has started. Default login of username/password `tomcat`/`tomcat123` should work.
+1. Run `npm install react-app-rewired`
+1. `git clone` the Wildbook repo (referred to as the **code directory** going forward)
 
-### Development environment setup for compiling Wildbook
+### Code directory setup
+1. In `devops/development/`, create a `.env` file with a copy the contents of `_env.template`. By default, no changes should be needed.
+1. `cd` to the root of the code directory
+1. run `npm install`
+1. run `chmod +x .husky/pre-commit` to enable husky linting
+1. `cd /frontend`
+1. run `npm install` to install all dependencies
+1. create a `.env` for React environment variables.
+    1. Add the public URL: PUBLIC_URL= /react/
+    1. Add the site name: SITE_NAME=Amphibian Wildbook
 
+### Deploy directory setup
+1. Create your **deploy directory**, matching the value of `WILDBOOK_BASE_DIR` in the .env file. The default is `~/wildbook-dev/`)
+1. Create the necessary subdirectories
+```
+wildbook-dev
+|--logs
+|--webapps
+   |--wildbook
+```
+
+### Build war file
 To run Wildbook in the development docker environment, even to try out the software, you need a "war file" which is made by compiling the Wildbook java project.
-This requires some software to be set up on your development machine:
 
-- Java JDK (`openjdk`) and `build-essential` linux package, as well as `maven` <span style="background-color: yellow;">[probably a link to generic setup doc elsewhere?]</span>
-- node and npm for React build <span style="background-color: yellow;">[likewise, link to generic help?]</span>, more details in [frontend/README.md](../frontend/README.md).
+To create the war file:
+1. `cd` to the root of the code directory
+1. Build your war file with `mvn clean install`
+1. verify the war file was created in `target/wildbook-X.Y.Z.war` (where X.Y.Z is the current version number).
+1. cd to the deploy directory `cd ~/wildbook-dev/webapps/wildbook` 
+1. deploy your warfile `jar -xvf /code/directory/Wildbook/target/wildbook-X.Y.Z.war`
 
-#### Compiling
+### Deploy
+1. `cd` to the `devops/development` directory in the code repo
+1. run `docker-compose up [-d]`
+1. To verify successful launch, open in browser `http://localhost:81/` when tomcat has started. Default login of username/password `tomcat`/`tomcat123` should work.
 
-Once the above requirements are met, the war file can be created by running `mvn clean install`. This creates the war file to be used in `target/wildbook-X.Y.Z.war` (with current version number).
+Note: if you're running docker as root, you may way to explicitly set your deploy directory path to include your user, i.e., `WILDBOOK_BASE_DIR=~USER/wildbook-dev`
 
-If you make code changes and compile new war files, they can be deployed into the `wildbook` dir (as in step 3 above) and then tomcat restarted with
-`docker-compose restart wildbook`.
+### Rebuild war file for local testing
 
----
+If you make code changes and want to test them locally, you can create and deploy a new war file using the Build war file and Deploy instructions above. Then use `docker-compose restart wildbook` to test your changes.
+
+Note: If you are only making changes to the React frontend code, see the [frontend/README.md](../frontend/README.md) for a way to rebuild and deploy the frontend changes only.
 
 ## Deploy (e.g. Production) Docker Image - DRAFT
 
