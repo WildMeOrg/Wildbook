@@ -60,6 +60,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     private String seriesCode = "None";
 
     // the default is what was previously returned by .getNickName(), not the actual val
+    // these values are left for "historical record" even though adoptions are being sunset in issue 283
     public final String DEFAULT_NICKNAME = "Unassigned";
     private String nickName = "", nickNamer = "";
 
@@ -893,16 +894,13 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         this.addNameByKey(NAMES_KEY_NICKNAME, newName);
     }
 
+    // setter removed by issue 283 (adoption retirement)
     public String getNickNamer() {
         if (nickNamer != null) {
             return nickNamer;
         } else {
             return "Unknown";
         }
-    }
-
-    public void setNickNamer(String newNamer) {
-        nickNamer = newNamer;
     }
 
     public void setName(String newName) {
