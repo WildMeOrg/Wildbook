@@ -245,5 +245,6 @@
     "SESSION_LOGIN_MODAL_CONTENT" : "Vous avez été déconnecté du système.",
     "SESSION_EXTEND" : "Prolonger",
     "SESSION_LOGIN" : "Connexion",
-    "SESSION_CLOSE" : "Fermer"
+    "SESSION_CLOSE" : "Fermer",
+    "LOADING" : "Chargement"
 }

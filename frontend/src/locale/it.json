@@ -245,5 +245,6 @@
     "SESSION_LOGIN_MODAL_CONTENT" : "Sei stato disconnesso dal sistema.",
     "SESSION_EXTEND" : "Estendi",
     "SESSION_LOGIN" : "Accedi",
-    "SESSION_CLOSE" : "Chiudi"
+    "SESSION_CLOSE" : "Chiudi",
+    "LOADING" : "Caricamento"
 }
