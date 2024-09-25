@@ -20,7 +20,8 @@ export default [
       react: {
         version: "detect"
       }
-    },
+    },  
+      
     rules: {
       "semi": 2,
       "react/prop-types": 0,
@@ -56,4 +57,28 @@ export default [
       
     },
   },
+  {
+    files: ['frontend/babel.config.js', 'frontend/jest.config.js', 'babel.config.js'],  // Specify the config files
+    languageOptions: {
+      globals: {
+        require: "readonly",  
+        module: "readonly",
+        __dirname: "readonly",  
+        process: "readonly",
+      },
+    },    
+  },
+  {
+    files: ["**/__tests__/**/*.{js,jsx}", "**/*.test.{js,jsx}"],
+    languageOptions: {
+      globals: {
+        jest: "readonly",    // Define Jest-specific globals
+        test: "readonly",
+        expect: "readonly",
+      },
+    },
+    rules: {
+      "react/react-in-jsx-scope": 0,  // Disable React in scope for JSX cuz we are using React 17+
+    }
+  }
 ];

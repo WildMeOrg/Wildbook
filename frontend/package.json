@@ -3,8 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.18",
     "axios": "^1.7.4",
@@ -47,7 +45,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
+    "test": "react-app-rewired test --transformIgnorePatterns \"node_modules/(?!axios|react)/\"",
     "eject": "react-scripts eject",
     "deploy-dev": "npm run build && node scripts/deploy-dev.js"
   },
@@ -72,6 +70,8 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@eslint/js": "^9.9.1",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
     "bootstrap-icons": "^1.11.3",
     "css-loader": "^6.10.0",
     "date-fns": "^3.6.0",
@@ -80,6 +80,7 @@
     "globals": "^15.9.0",
     "html-webpack-plugin": "^5.6.0",
     "husky": "^9.0.11",
+    "jest": "^27.5.1",
     "react-app-rewired": "^2.2.1",
     "react-bootstrap-icons": "^1.11.3",
     "react-query": "^3.39.3",
@@ -87,7 +88,7 @@
     "styled-components": "^6.1.8",
     "terser-webpack-plugin": "^5.3.10",
     "unused-webpack-plugin": "^2.4.0",
-    "webpack": "^5.90.3",
+    "webpack": "^5.94.0",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
