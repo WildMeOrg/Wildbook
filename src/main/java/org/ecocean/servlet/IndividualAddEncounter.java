@@ -264,20 +264,6 @@ public class IndividualAddEncounter extends HttpServlet {
             // System.out.println("Emailing cOthers member:" +emailTo);
             es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
         }
-        // Notify adopters
-        Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
-        Query query = myShepherd.getPM().newQuery(encClass);
-        List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query,
-            ServletUtilities.handleNullString(addToMe.getIndividualID()));
-        query.closeAll();
-        cAdopters.removeAll(allAssociatedEmails);
-        for (String emailTo : cAdopters) {
-            tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
-            tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-            tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
-            es.execute(new NotificationMailer(context, langCode, emailTo,
-                emailTemplate + "-adopter", tagMap));
-        }
         String rssTitle = request.getParameter("individual") + " Resight";
         String rssLink = request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) +
             "/encounters/encounter.jsp?number=" + request.getParameter("number");
