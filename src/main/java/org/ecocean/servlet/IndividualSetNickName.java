@@ -46,7 +46,6 @@ public class IndividualSetNickName extends HttpServlet {
             MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
             try {
                 myShark.setNickName(nickname);
-                myShark.setNickNamer(namer);
             } catch (Exception le) {
                 locked = true;
                 myShepherd.rollbackDBTransaction();
