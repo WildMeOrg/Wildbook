@@ -19,6 +19,7 @@
     "MENU_LEARN_TERMSOFUSE": "Conditions d'utilisation",
     "MENU_LEARN_LEARNMORE": "En savoir plus sur Wildbook",
     "MENU_LEARN_REPORTENCOUNTER": "Signaler une observation",
+    "MENU_LEARN_REPORTENCOUNTER_CLASSIC" : "Signaler une observation (classique)",
     "MENU_LEARN_BULKIMPORT": "Importation en masse",
     "MENU_LEARN_MYENCOUNTERS": "Mes rencontres",
     "MENU_LEARN_APPROVEDANIMALS": "Mes animaux approuvés",
