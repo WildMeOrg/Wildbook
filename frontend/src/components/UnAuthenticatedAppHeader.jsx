@@ -8,16 +8,9 @@ import MultiLanguageDropdown from "./navBar/MultiLanguageDropdown";
 import { FormattedMessage } from "react-intl";
 import NotificationButton from "./navBar/NotificationButton";
 import FooterVisibilityContext from "../FooterVisibilityContext";
+import Logo from "./svg/Logo";
 
 export default function AuthenticatedAppHeader({ showAlert }) {
-  const location = window.location;
-  const path = location.pathname.endsWith("/")
-    ? location.pathname
-    : location.pathname + "/";
-  const homePage = path === "/react/home/" || path === "/react/";
-  const [backgroundColor, setBackgroundColor] = useState(
-    homePage ? "transparent" : "#00a1b2",
-  );
   const { visible } = useContext(FooterVisibilityContext);
 
   const [dropdownShows, setDropdownShows] = useState({
@@ -37,40 +30,37 @@ export default function AuthenticatedAppHeader({ showAlert }) {
     setDropdownBorder((prev) => ({ ...prev, [id]: "2px solid transparent" }));
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (homePage && currentScrollY > 40) {
-        setBackgroundColor("#00a1b2");
-      } else if (homePage) {
-        setBackgroundColor("transparent");
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
   return visible ? (
     <Navbar
       variant="dark"
       expand="lg"
       style={{
-        backgroundColor: "#00a1b2",
-        height: "43px",
+        backgroundColor: "#303336",
+        maxHeight: "60px",
+        padding: 0,
         fontSize: "1rem",
         position: "fixed",
         top: showAlert ? 60 : 0,
         maxWidth: "1440px",
         marginLeft: "auto",
         marginRight: "auto",
-        zIndex: "100",
+        zIndex: "200",
         width: "100%",
       }}
     >
-      <Navbar.Brand href="/" style={{ marginLeft: "1rem" }}>
+      <Navbar.Brand
+        className="d-flex flex-row align-items-center"
+        href="/"
+        style={{ marginLeft: "1rem" }}
+      >
+        <Logo />
         {process.env.SITE_NAME}
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: "40%" }}>
+      <Navbar.Collapse
+        id="basic-navbar-nav"
+        // style={{ marginLeft: "40%" }}
+      >
         <Nav
           className="mr-auto"
           style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
@@ -111,22 +101,21 @@ export default function AuthenticatedAppHeader({ showAlert }) {
           ))}
         </Nav>
         <MultiLanguageDropdown />
-        <NotificationButton />
-        <Button
-          variant="basic"
-          style={{
-            backgroundColor: "transparent",
-            color: "white",
-            border: "none",
-            width: "100px",
-            whiteSpace: "nowrap",
-            padding: 5,
-          }}
-          href={"/react/login"}
-        >
-          {<FormattedMessage id="LOGIN_LOGIN" />}
-        </Button>
       </Navbar.Collapse>
+      <Button
+        variant="basic"
+        style={{
+          backgroundColor: "transparent",
+          color: "white",
+          border: "none",
+          width: "100px",
+          whiteSpace: "nowrap",
+          padding: 5,
+        }}
+        href={"/react/login"}
+      >
+        {<FormattedMessage id="LOGIN_LOGIN" />}
+      </Button>
     </Navbar>
   ) : null;
 }

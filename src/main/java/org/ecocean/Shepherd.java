@@ -5716,12 +5716,15 @@ public class Shepherd {
     }
 
     public ArrayList<Annotation> getAnnotationsWithACMId(String acmId) {
-        String filter = "this.acmId == \"" + acmId + "\"";
-        Extent annClass = pm.getExtent(Annotation.class, true);
-        Query anns = pm.newQuery(annClass, filter);
+    	return getAnnotationsWithACMId(acmId,false);
+    }
+    
+    public ArrayList<Annotation> getAnnotationsWithACMId(String acmId, boolean enforceEncounterAssociation) {  	
+    	String filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\"";
+        if(enforceEncounterAssociation)filter = "select from org.ecocean.Annotation where acmId == \"" + acmId + "\" && enc.annotations.contains(this) VARIABLES org.ecocean.Encounter enc";   
+        Query anns = pm.newQuery(filter);
         Collection c = (Collection)(anns.execute());
         ArrayList<Annotation> al = new ArrayList(c);
-
         anns.closeAll();
         if ((al != null) && (al.size() > 0)) {
             return al;

@@ -22,6 +22,7 @@ import java.util.Vector;
 
 import javax.jdo.Query;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,7 +53,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
  * @author Jason Holmberg
  * @version 2.0
  */
-public class Encounter implements java.io.Serializable {
+public class Encounter extends Base implements java.io.Serializable {
     static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
@@ -791,13 +792,22 @@ public class Encounter implements java.io.Serializable {
         mmaCompatible = b;
     }
 
+	/**
+	 * Returns Occurrence Remarks.
+	 * 
+	 * @return Occurrence Remarks String
+	 */
+    @Override
     public String getComments() {
         return occurrenceRemarks;
     }
 
     /**
      * Sets the initially submitted comments about markings and additional details on the shark.
+     * 
+     * @param newComments Occurrence remarks to set
      */
+    @Override
     public void setComments(String newComments) {
         occurrenceRemarks = newComments;
     }
@@ -816,6 +826,7 @@ public class Encounter implements java.io.Serializable {
      *
      * @param newComments any additional comments to be added to the encounter
      */
+    @Override
     public void addComments(String newComments) {
         if ((researcherComments != null) && (!(researcherComments.equals("None")))) {
             researcherComments += newComments;
@@ -2050,22 +2061,50 @@ public class Encounter implements java.io.Serializable {
         this.maximumElevationInMeters = newElev;
     }
 
+    /**
+	 * Retrieves the Catalog Number.
+	 * 
+	 * @return Catalog Number String
+	 */
+    @Override
     public String getId() {
         return catalogNumber;
     }
+    
+    /**
+	 * Sets the Catalog Number.
+	 * 
+	 * @param newNumber The Catalog Number to set.
+	 */
+    @Override
+    public void setId(String newNumber) {
+    	this.catalogNumber = newNumber;
+    }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getCatalogNumber() {
         return catalogNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setCatalogNumber(String newNumber) {
         this.catalogNumber = newNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class getId() method
+     */
     public String getID() {
         return catalogNumber;
     }
 
+    /**
+     * ##DEPRECATED #509 - Base class setId() method
+     */
     public void setID(String newNumber) {
         this.catalogNumber = newNumber;
     }
@@ -3988,4 +4027,9 @@ public class Encounter implements java.io.Serializable {
         if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode(); // random(ish) so we dont get two identical for null values
         return this.getCatalogNumber().hashCode();
     }
+    
+	@Override
+	public long getVersion() {
+		return Util.getVersionFromModified(modified);
+	}
 }

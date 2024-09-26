@@ -1,17 +1,16 @@
-
-const locales = ['en', 'es', 'fr', 'it'];
+const locales = ["en", "es", "fr", "it"];
 const localeMap = {
-    en: 'UK',
-    es: 'ES',
-    fr: 'FR',
-    it: 'IT',
+  en: "en",
+  es: "es",
+  fr: "fr",
+  it: "it",
 };
 
 const languageMap = {
-    en: 'English',
-    es: 'Español',
-    fr: 'Francés',
-    it: 'Italiano',
+  en: "English",
+  es: "Español",
+  fr: "Français",
+  it: "Italiano",
 };
 
 export { locales, localeMap, languageMap };

@@ -8,6 +8,7 @@ import getCollaborationNotifications from "./models/notifications/getCollaborati
 import NotFound from "./pages/errorPages/NotFound";
 import ServerError from "./pages/errorPages/ServerError";
 import LoadingScreen from "./components/LoadingScreen";
+import GoogleTagManager from "./GoogleTagManager";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -71,6 +72,7 @@ export default function FrontDesk() {
           getAllNotifications,
         }}
       >
+        <GoogleTagManager />
         <AuthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
@@ -81,10 +83,13 @@ export default function FrontDesk() {
 
   if (!isLoggedIn) {
     return (
-      <UnauthenticatedSwitch
-        showAlert={showAlert}
-        setShowAlert={setShowAlert}
-      />
+      <>
+        <GoogleTagManager />
+        <UnauthenticatedSwitch
+          showAlert={showAlert}
+          setShowAlert={setShowAlert}
+        />
+      </>
     );
   }
 
