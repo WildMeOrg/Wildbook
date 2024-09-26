@@ -413,7 +413,7 @@ if(request.getUserPrincipal()!=null){
             <div class="nav-bar-wrapper" style="background-color: transparent">
               <div class="container " style="height: 100%; display: flex; flex-direction: row; align-items: center; justify-content: space-between">
                 <a class="nav-brand" target="_blank" href="<%=urlLoc %>">                
-                  <img src="<%=urlLoc %>/cust/mantamatcher/img/flukebook_logo_white.svg" alt="Logo">                
+                  <img src="<%=urlLoc %>/cust/mantamatcher/img/acw_puppy_logo_stacked_left.svg" alt="Logo" style="height: 45px;">                
                 </a>
                 <a class="site-name" target="_blank" href="<%=urlLoc %>">
                     <%= props.getProperty("siteName") != null ? props.getProperty("siteName") : "Wildbook" %>
