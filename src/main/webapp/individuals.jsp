@@ -498,6 +498,7 @@ $(document).ready(function() {
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
+                  <%
                   if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
