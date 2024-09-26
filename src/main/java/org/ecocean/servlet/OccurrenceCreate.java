@@ -120,7 +120,7 @@ public class OccurrenceCreate extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> An occurrence with this identifier already exists in the database. Select a different identifier and try again.");
+        out.println("<strong>Error:</strong> You are trying to create a new sighting ID, but the sighting ID already exists.");
         //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
         //out.println(ServletUtilities.getFooter(context));
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

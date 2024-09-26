@@ -1723,6 +1723,10 @@ function resetIdButtons() {
 }
 
                     $(document).ready(function() {
+
+                      $('#selectCode').select2({width: '100%', height:'50px'});
+                      $('#selectCountry').select2({width: '100%', height:'50px'});
+
                       populateNewIndWithDisabledButton();
                       populateAddToExistingIndWithDisabledButton();
                       setUpIdActionOnClick();

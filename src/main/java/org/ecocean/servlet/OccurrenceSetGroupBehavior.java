@@ -27,7 +27,7 @@ public class OccurrenceSetGroupBehavior extends HttpServlet {
   }
 
 
-  private void setDateLastModified(Occurrence enc) {
+  protected void setDateLastModified(Occurrence enc) {
     String strOutputDateTime = ServletUtilities.getDate();
     enc.setDWCDateLastModified(strOutputDateTime);
   }

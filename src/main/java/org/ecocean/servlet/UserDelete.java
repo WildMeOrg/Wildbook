@@ -66,7 +66,7 @@ public class UserDelete extends HttpServlet {
       }
         
         //remove the User from Encounters
-        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad, myShepherd);
+        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad);
         
         for(int l=0;l<encs.size();l++){
           Encounter enc=encs.get(l);
