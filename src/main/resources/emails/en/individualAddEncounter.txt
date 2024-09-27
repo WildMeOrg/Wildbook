@@ -12,6 +12,6 @@ Previously identified record: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@
 New encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help!
+Thanks again for your critical help! To keep this project alive, consider donating: https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me
 
         

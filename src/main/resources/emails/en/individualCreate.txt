@@ -12,6 +12,6 @@ Newly marked: @INDIVIDUAL_ID@
 Encounter: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
-Thanks again for your critical help!
+Thanks again for your critical help! To keep this project alive, consider donating: https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me
 
         
