@@ -252,11 +252,6 @@
 						/EncounterAddImage = authc, roles[researcher]
 						/KeywordHandler = authc, roles[researcher]
 
-						/AdoptionAction = authc, roles[admin]
-						/AdoptionForm = authc, roles[admin]
-						/DeleteAdoption = authc, roles[admin]
-						/ResurrectDeletedAdoption = authc, roles[admin]
-
 						 /EncounterSetState = authc, roles[researcher]
 						 /EncounterDelete = authc, roles[researcher]
 
@@ -370,7 +365,6 @@
 				/EncounterSetLocation = authc, roles[researcher]
 				/EncounterSetLocationID = authc, roles[researcher]
 				/CRCExportReport = authc, roles[researcher]
-				/DeleteAdoption = authc, roles[adoption]
 			    /IndividualSetSex = authc, roles[researcher]
 
 				/EncounterSetSex = authc, roles[researcher]
@@ -458,9 +452,6 @@
 			/iaResultsSetID.jsp = authc, roles[researcher]
 			
 
-			/adoptions/** = authc, roles[admin]
-			/AdoptionAction = authc, roles[admin]
-
 			/TranslationsGet = authc
 			/ImportIA = authc, roles[researcher]
 		    /UpdateStandard = authc, roles[researcher]
@@ -475,8 +466,6 @@
 		  /GetCurrentIAInfo = authc
 		  /error_generic.jsp = authc
 		  /myCollabLog.jsp = authc
-		  /adoptions/allAdoptions.jsp = authc, roles[admin]
-		  /adoptions/editSuccess.jsp = authc, roles[admin]
 		  /submitSurvey.jsp = authc, roles[researcher]
 		  /dl.jsp = authc
 		  /projects/editProject.jsp = authc, roles[researcher]
@@ -971,11 +960,6 @@
     <servlet-class>org.ecocean.servlet.EncounterAddSpotFile</servlet-class>
   </servlet>
 
-    <servlet>
-    <servlet-name>AdoptionAction</servlet-name>
-    <servlet-class>org.ecocean.servlet.AdoptionAction</servlet-class>
-  </servlet>
-
 
 	<servlet>
 		<servlet-name>ResumableUpload</servlet-name>
@@ -1386,11 +1370,6 @@
   	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
   </servlet>
 -->
-
-  <servlet>
-    <servlet-name>DeleteAdoption</servlet-name>
-    <servlet-class>org.ecocean.servlet.DeleteAdoption</servlet-class>
-  </servlet>
 
   <servlet>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
@@ -2631,16 +2610,6 @@
   </servlet-mapping>
 
 
-
-  <servlet-mapping>
-    <servlet-name>DeleteAdoption</servlet-name>
-    <url-pattern>/DeleteAdoption</url-pattern>
-  </servlet-mapping>
-
-   <servlet-mapping>
-    <servlet-name>AdoptionAction</servlet-name>
-    <url-pattern>/AdoptionAction</url-pattern>
-  </servlet-mapping>
 
 <!--
   <servlet-mapping>
