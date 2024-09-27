@@ -31,7 +31,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
         <div class="container d-flex flex-column align-items-center footer-font footer-container">
             <div class="row w-100 text-center text-lg-left">
                 <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
-                    <a href="https://secure.givelively.org/donate/conservation-x-labs-inc/wild-me" class="footer-link text-reset px-2 footer-text">Donate</a>
+                    <a href="https://seadragonsearch.org/support-dragonsearch/" class="footer-link text-reset px-2 footer-text">Donate</a>
                     <a href="https://wildbook.docs.wildme.org/getting-started-with-wildbook.html" class="footer-link footer-text">Documentation</a>
                 </div>
                 <div class="footer-col col-12 col-sm-6 col-lg-4 py-2">
