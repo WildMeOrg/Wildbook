@@ -176,6 +176,8 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 		e.printStackTrace();
 	}
 
+        boolean isNewIndiv = false;
+
 	// allow flow either way if one or the other has an ID
 	//if ((indiv == null || indiv2 == null) && (enc != null)) {
         if ((indiv == null || (otherIndivs.size() == 0)) && (enc != null)) {
@@ -202,6 +204,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 					}
 					if (indiv==null) {
 						indiv = new MarkedIndividual(individualID, enc);
+                                                isNewIndiv = true;
 					}
 
 
@@ -235,9 +238,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
                     }
                     indiv.refreshNamesCache();
 
-                    // FIXME add these emails back in
-                    //if(enc2!=null)IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc2, context, langCode);
-                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,true, enc, context, langCode);
+                    if ((indiv != null) && (enc != null)) IndividualAddEncounter.executeEmails(myShepherd, request, indiv, isNewIndiv, enc, context, langCode);
 
 
 				} else {
@@ -257,7 +258,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 				myShepherd.updateDBTransaction();
 				// if(enc2!=null){
                                 for (Encounter oenc : otherEncs) {
-                                    //IndividualAddEncounter.executeEmails(myShepherd, request,indiv,false, oenc, context, langCode);
+                                    IndividualAddEncounter.executeEmails(myShepherd, request, indiv, false, oenc, context, langCode);
                                     setImportTaskComplete(myShepherd, oenc);
                                 }
 			}
@@ -273,7 +274,7 @@ if ((request.getParameter("taskId") != null) && (request.getParameter("number") 
 				res.put("individualName", oindiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 
-				//IndividualAddEncounter.executeEmails(myShepherd, request,oindiv ,false, enc, context, langCode);
+				IndividualAddEncounter.executeEmails(myShepherd, request, oindiv, false, enc, context, langCode);
                                 setImportTaskComplete(myShepherd, enc);
 			}
 
