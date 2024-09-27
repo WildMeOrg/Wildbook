@@ -213,7 +213,7 @@ export default function EncounterSearch() {
         {
           clause: "filter",
           filterId: "state",
-          filterKey: "Encounter Status",
+          filterKey: "Encounter State",
           query: {
             term: {
               state: paramsObject.state,
