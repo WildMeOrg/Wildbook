@@ -33,11 +33,11 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t wildme/wildbook:base -f devops/deploy/Dockerfile devops/deploy/
+        docker build -t wildme/wildbook:main  -f devops/deploy/Dockerfile devops/deploy/
 
     - name: Push Docker image
       run: |
-        docker push wildme/wildbook:base
+        docker push wildme/wildbook:main  
     # Publishing to git is disabld for Development branch
     #- name: Publish to GitHub Packages
     #if: github.event_name == 'push' 
