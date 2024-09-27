@@ -450,12 +450,9 @@ if(request.getUserPrincipal()!=null){
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%><span class="svg-placeholder"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutWildbook")%></a></li>
-                            <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
-                            <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
-                            <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                            <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
-                          <%-- <li class="divider"></li> --%>
+                          	<li><a target="_blank" href="https://www.wildme.org/wildbook.html"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                          	 <li><a target="_blank" href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
+                            <li><a target="_blank" href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li> <%-- <li class="divider"></li> --%>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -512,8 +509,9 @@ if(request.getUserPrincipal()!=null){
                           <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
                           <li><a href="<%=urlLoc %>/product-docs/en/wildbook/introduction/"><%=props.getProperty("softwareDocumentation")%></a></li>
                           <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                          <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("bulkImportLogs")%></a></li>
-
+                           	<li class="divider"></li>
+                           	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                           	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                             <%
                             if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>
