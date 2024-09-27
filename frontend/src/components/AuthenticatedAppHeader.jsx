@@ -1,18 +1,21 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { Navbar, Nav } from 'react-bootstrap';
-import '../css/dropdown.css';
-import NotificationButton from './navBar/NotificationButton';
-import MultiLanguageDropdown from './navBar/MultiLanguageDropdown';
-import AuthContext from '../AuthProvider';
-import AvatarAndUserProfile from './header/AvatarAndUserProfile';
-import { debounce } from 'lodash';
-import Menu from './header/Menu';
+import React, { useContext, useEffect, useState } from "react";
+import { Navbar, Nav } from "react-bootstrap";
+import "../css/dropdown.css";
+import NotificationButton from "./navBar/NotificationButton";
+import MultiLanguageDropdown from "./navBar/MultiLanguageDropdown";
+import AuthContext from "../AuthProvider";
+import AvatarAndUserProfile from "./header/AvatarAndUserProfile";
+import { debounce } from "lodash";
+import Menu from "./header/Menu";
+import FooterVisibilityContext from "../FooterVisibilityContext";
+import Logo from "./svg/Logo";
 
-export default function AuthenticatedAppHeader({ username, avatar, showAlert}) {
-  const location = window.location;
-  const path = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
-  const homePage = path === '/react/home/' || path === '/react/';
-  const [backgroundColor, setBackgroundColor] = useState(homePage ? 'transparent' : '#00a1b2');
+export default function AuthenticatedAppHeader({
+  username,
+  avatar,
+  showAlert,
+}) {
+  const { visible } = useContext(FooterVisibilityContext);
 
   const {
     count,
@@ -22,41 +25,37 @@ export default function AuthenticatedAppHeader({ username, avatar, showAlert}) {
     getAllNotifications,
   } = useContext(AuthContext);
 
-  useEffect(() => {
-    const handleScroll = debounce(() => {
-      const currentScrollY = window.scrollY;
-      setBackgroundColor(homePage && currentScrollY > 40 ? '#00a1b2' : 'transparent');
-    }, 200);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-
-  return (
-    <Navbar variant="dark" expand="lg"
+  return visible ? (
+    <Navbar
+      variant="dark"
+      expand="lg"
       style={{
-        backgroundColor: backgroundColor,
-        height: '43px',
-        fontSize: '1rem',
-        position: 'fixed',
-        top: showAlert? 60 : 0,
-        maxWidth: '1440px',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        zIndex: '100',
-        width: '100%',
-        paddingRight: '20px',
+        backgroundColor: "#303336",
+        maxHeight: "60px",
+        padding: 0,
+        fontSize: "1rem",
+        position: "fixed",
+        top: showAlert ? 60 : 0,
+        maxWidth: "1440px",
+        marginLeft: "auto",
+        marginRight: "auto",
+        zIndex: "200",
+        width: "100%",
+        // paddingRight: "20px",
       }}
     >
-      <Navbar.Brand href="/" style={{ marginLeft: '1rem' }}>{process.env.SITE_NAME}</Navbar.Brand>
+      <Navbar.Brand
+        className="d-flex flex-row align-items-center"
+        href="/"
+        style={{ marginLeft: "1rem", padding: 0 }}
+      >
+        <Logo />
+        {process.env.SITE_NAME}
+      </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav" style={{ marginLeft: '20%' }}>
-        <Nav className="mr-auto" id='nav' style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          width: '100%',
-        }}>
-          <Menu username={username}/>
+      <Navbar.Collapse id="basic-navbar-nav">
+        <Nav className="mr-auto w-100 d-flex justify-content-end" id="nav">
+          <Menu username={username} />
         </Nav>
         <NotificationButton
           collaborationTitle={collaborationTitle}
@@ -66,7 +65,14 @@ export default function AuthenticatedAppHeader({ username, avatar, showAlert}) {
           getAllNotifications={getAllNotifications}
         />
         <MultiLanguageDropdown />
-        <AvatarAndUserProfile username={username} avatar={avatar} />
+        {/* <AvatarAndUserProfile username={username} avatar={avatar} /> */}
       </Navbar.Collapse>
-    </Navbar>)
+      <div
+        className="avatar-container d-flex align-items-center"
+        style={{ marginRight: "1rem" }}
+      >
+        <AvatarAndUserProfile username={username} avatar={avatar} />
+      </div>
+    </Navbar>
+  ) : null;
 }

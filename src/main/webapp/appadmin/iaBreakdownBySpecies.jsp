@@ -11,7 +11,7 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 
 public ArrayList<String> getIAClassesForSpecies(String genus, String specificEpithet, Shepherd myShepherd){
 	
-	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT iaClass FROM org.ecocean.Annotation where enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT iaClass FROM org.ecocean.Annotation where enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 	Collection c=(Collection)q.execute();
 	ArrayList<String> al=new ArrayList<String>(c);
 	q.closeAll();
@@ -21,12 +21,12 @@ public ArrayList<String> getIAClassesForSpecies(String genus, String specificEpi
 public Long countIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
 	Long myValue=new Long(0);
 	if(iaClass==null || iaClass.equals("null")){
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 	}
 	else{
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 		
@@ -37,12 +37,12 @@ public Long countIAClassInstances(String genus, String specificEpithet, String i
 public Long countMatchableIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
 	Long myValue=new Long(0);
 	if(iaClass==null || iaClass.equals("null")){
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 	}
 	else{
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 		
@@ -53,12 +53,12 @@ public Long countMatchableIAClassInstances(String genus, String specificEpithet,
 public Long countACMIDIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
 	Long myValue=new Long(0);
 	if(iaClass==null || iaClass.equals("null")){
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 	}
 	else{
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 		
@@ -72,7 +72,7 @@ public Long countViewpointIAClassInstances(String genus, String specificEpithet,
 		//do nothing
 	}
 	else{
-		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && viewpoint != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && viewpoint != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
 
@@ -82,7 +82,7 @@ public Long countViewpointIAClassInstances(String genus, String specificEpithet,
 
 public HashMap<String, Long> getMediaAssetDetectionStatusesForSpecies(String genus, String specificEpithet, Shepherd myShepherd){
 	HashMap<String, Long> map=new HashMap<String, Long>();
-	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 	Collection c=(Collection)q.execute();
 	ArrayList<String> al=new ArrayList<String>(c);
 	q.closeAll();
@@ -90,13 +90,13 @@ public HashMap<String, Long> getMediaAssetDetectionStatusesForSpecies(String gen
 		//System.out.println(str);
 		Long myValue=new Long(0);
 		if(str==null || str.equals("null")){
-			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus==null && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus==null && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 			myValue=(Long) q2.execute();
 			q2.closeAll();
 			map.put("null", myValue);
 		}
 		else{
-			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus=='"+str+"' && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus=='"+str+"' && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 			myValue=(Long) q2.execute();
 			q2.closeAll();
 			map.put(str, myValue);
@@ -108,7 +108,7 @@ public HashMap<String, Long> getMediaAssetDetectionStatusesForSpecies(String gen
 
 public HashMap<String, Long> getMediaAssetDetectionStatusesForSpeciesByACMID(String genus, String specificEpithet, Shepherd myShepherd){
 	HashMap<String, Long> map=new HashMap<String, Long>();
-	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 	Collection c=(Collection)q.execute();
 	ArrayList<String> al=new ArrayList<String>(c);
 	q.closeAll();
@@ -116,13 +116,13 @@ public HashMap<String, Long> getMediaAssetDetectionStatusesForSpeciesByACMID(Str
 		//System.out.println(str);
 		Long myValue=new Long(0);
 		if(str==null || str.equals("null")){
-			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus==null && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus==null && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 			myValue=(Long) q2.execute();
 			q2.closeAll();
 			map.put("null", myValue);
 		}
 		else{
-			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus=='"+str+"' && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus=='"+str+"' && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet.replaceAll("_"," ")+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
 			myValue=(Long) q2.execute();
 			q2.closeAll();
 			map.put(str, myValue);

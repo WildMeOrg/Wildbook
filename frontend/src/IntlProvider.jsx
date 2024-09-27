@@ -1,5 +1,4 @@
-// LocaleContext.js
-import React from 'react';
+import React from "react";
 
 const LocaleContext = React.createContext();
 
