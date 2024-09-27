@@ -54,14 +54,14 @@ export default function MetadataFilter({
       <FormGroupMultiSelect
         isMulti={true}
         noDesc={true}
-        label="FILTER_ENCOUNTERS_STATUS"
+        label="FILTER_ENCOUNTERS_STATE"
         options={encounterStatusOptions}
         onChange={onChange}
         term="terms"
         field="state"
         setFormFilters={setFormFilters}
         formFilters={formFilters}
-        filterKey={"Encounter Status"}
+        filterKey={"Encounter State"}
       />
       <FormGroupText
         label="FILTER_SUBMITTER"
