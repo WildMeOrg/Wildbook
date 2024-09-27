@@ -51,14 +51,6 @@ if(request.getParameter("locationCodeField")!=null){
 	locationCodeFieldString="&locationCodeField="+request.getParameter("locationCodeField");
 }
 
-//params from donorbox
-String donorboxId = Util.getRequestParamIfExists(request, "id");
-String donorboxFirstName = Util.getRequestParamIfExists(request, "first_name");
-String donorboxLastName = Util.getRequestParamIfExists(request, "last_name");
-String donorboxAmnt = Util.getRequestParamIfExists(request, "amount");
-String donorboxCurrency = Util.getRequestParamIfExists(request, "currency");
-String donorboxDuration = Util.getRequestParamIfExists(request, "duration");
-
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
