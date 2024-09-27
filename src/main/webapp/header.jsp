@@ -456,6 +456,8 @@ if(request.getUserPrincipal()!=null){
                             <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
                             <li><a href="<%=urlLoc %>/react/citation"><%=props.getProperty("citing")%></a></li>
                             <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                            <li><a href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
+                            <li><a href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li>
                             <%-- <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li> --%>
                           <%-- <li class="divider"></li> --%>
                         </ul>

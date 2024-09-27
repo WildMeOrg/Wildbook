@@ -116,46 +116,7 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
-	if(useCustomStyle){
-		//do nothing unusual
-	}else{
-		defaultSelectItem = null;
-		defaultSelectItemId = null;
-		loggedOutDefaultDesired = false;
-	}
-	// if(options.length<1){
-	// 	isVisible=false;
-	// }
-		let projectNameHtml = '';
-		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
-		}
-		if(isVisible){
-			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}else{
-			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
-		}
-		projectNameHtml += '<option value=""></option>';
-		if(defaultSelectItem){
-			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
-			options = options.remove(defaultSelectItem);
-		}
-		for(let i=0; i<options.length; i++){
-			if(options[i] === selectedOption){
-				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
-			}else{
-				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
-			}
-		}
-		projectNameHtml += '</div>';
-		$("#proj-id-dropdown-container").empty();
-		$("#proj-id-dropdown-container").append(projectNameHtml);
-}
+
 
 Array.prototype.remove = function() {
     var what, a = arguments, L = a.length, ax;
@@ -168,25 +129,13 @@ Array.prototype.remove = function() {
     return this;
 };
 
-function getDefaultSelectedProject(){
-	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
-	return defaultProject;
-}
 
-function getDefaultProjectOrganizationParameter(){
-	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
-	return defaultProjectOrganizationParameter;
-}
 
-function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
-	return defaultProjectId;
-}
 
-function getLoggedOutDefaultDesired(){
-	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	return loggedOutDefaultDesired;
-}
+
+
+
+
 
 function doAjaxForProject(requestJSON,userId){
 	$.ajax({
@@ -862,7 +811,10 @@ if(CommonConfiguration.showReleaseDate(context)){
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+      		<%
+      		String selectedLocationID=null;
+      		%>
+          <%=LocationID.getHTMLSelector(false, selectedLocationID,qualifier,"locationID","locationID","form-control") %>
 
       </div>
     </div>
