@@ -2,7 +2,7 @@ name: Development Build
 
 on:
   push:
-      branches-ignore:
+      branches:
           - main
       tags-ignore:
           - v*
