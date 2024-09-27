@@ -43,7 +43,7 @@ export default function AvatarAndUserProfile({ avatar }) {
         }}
         show={shows}
       >
-        <NavDropdown.Item href={"/react/home/"} style={{ color: "black" }}>
+        <NavDropdown.Item href={`${process.env.PUBLIC_URL}/home/`} style={{ color: "black" }}>
           <FormattedMessage id="LANDING_PAGE" />
         </NavDropdown.Item>
         <NavDropdown.Item href={"/myAccount.jsp"} style={{ color: "black" }}>

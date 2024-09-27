@@ -6,7 +6,7 @@ export default function Header() {
       className="position-relative overflow-hidden"
       style={{
         height: "500px",
-        backgroundImage: `url('/react/images/forest.png')`,
+        backgroundImage: `url('${process.env.PUBLIC_URL}/images/forest.png')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
