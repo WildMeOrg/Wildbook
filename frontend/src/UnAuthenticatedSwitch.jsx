@@ -11,6 +11,8 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
 
+  const redirParam = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <div
@@ -46,7 +48,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
           <Route path="/" element={<Login />} />
           <Route
             path = "*"
-            element={<Navigate to={`/login?redirect=${location.pathname}${location.search}${location.hash}`}/>}
+            element={<Navigate to={`/login?redirect=${redirParam}`}/>}
           />
         </Routes>
       </div>
