@@ -31,7 +31,7 @@ services:
       WILDBOOK_DB_PASSWORD: "${WILDBOOK_DB_PASSWORD}"
 
   wildbook:
-    image: wildme/wildbook:base
+    image: wildme/wildbook:main
     depends_on:
       db:
         condition: service_healthy
