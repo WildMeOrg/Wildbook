@@ -6,6 +6,7 @@ import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import Citation from "./pages/Citation";
+import ReportEncounter from "./pages/ReportEncounter";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
@@ -43,7 +44,7 @@ export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
             element={<Unauthorized setHeader={setHeader} />}
           />
           <Route path="/citation" element={<Citation />} />
-          
+          <Route path="/report" element={<ReportEncounter/>}/>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
           <Route
