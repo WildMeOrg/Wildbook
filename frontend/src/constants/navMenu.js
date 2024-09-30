@@ -11,6 +11,15 @@ const authenticatedMenu = (username) => [
             defaultMessage="Report an Encounter"
           />
         ),
+        href: `${process.env.PUBLIC_URL}/report`,
+      },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+            defaultMessage="Report an Encounter(Classic)"
+          />
+        ),
         href: "/submit.jsp",
       },
       {
@@ -281,6 +290,15 @@ const unAuthenticatedMenu = [
           <FormattedMessage
             id="MENU_LEARN_REPORTENCOUNTER"
             defaultMessage="Report an Encounter"
+          />
+        ),
+        href: `${process.env.PUBLIC_URL}/report`,
+      },
+      {
+        name: (
+          <FormattedMessage
+            id="MENU_LEARN_REPORTENCOUNTER_CLASSIC"
+            defaultMessage="Report an Encounter(Classic)"
           />
         ),
         href: "/submit.jsp",
