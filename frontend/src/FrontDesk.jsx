@@ -97,7 +97,7 @@ export default function FrontDesk() {
   if (!isLoggedIn) {
     return (
       <>
-        <GoogleTagManager />
+        {/* <GoogleTagManager /> */}
         <UnauthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}

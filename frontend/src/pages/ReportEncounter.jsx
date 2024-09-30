@@ -1,38 +1,90 @@
 import React, { useContext } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import ThemeColorContext from "../ThemeColorProvider";
+import { Alert } from "react-bootstrap";
+import MainButton from "../components/MainButton";
 
 export default function ReportEncounter() {
 
     const themeColor = useContext(ThemeColorContext);
+    const menu = [
+        { title: "Photos" },
+        { title: "Videos" },
+        { title: "Text" },
+        { title: "Location" },
+        { title: "Date" },
+        { title: "Time" },
+        { title: "Species" },
+    ]
     return (
         <Container>
-            <Row>
-                <Col className="col-lg-5 col-md-6 col-sm-12 col-12 d-flex flex-column justify-content-center">
-                    <h1>Report an Encounter</h1>
-                    <p>
-                        Please use the online form below to record the details of your encounter. Be as accurate and specific as possible.                     </p>
-                    <div className="w-100"
+            <Row >
+                <h1>Report an Encounter</h1>
+                <p>
+                    Please use the online form below to record the details of your encounter. Be as accurate and specific as possible.                     </p>
+                <Alert
+                    variant="warning"
+                    onClose={() => {}}
+                    dismissible
+                >
+                    <i className="bi bi-info-circle-fill" style={{ marginRight: '8px', color: '#7b6a00' }}></i>
+                    You are not signed in. If you want this encounter associated with your account, be sure to{' '}
+                    <a href="/signin" style={{ color: '#337ab7', textDecoration: 'underline' }}>
+                        sign in!
+                    </a>
+                </Alert>
+            </Row>
+
+            <Row >
+                <Col className="col-lg-4 col-md-6 col-sm-12 col-12">
+                    <Alert variant="light" className="d-inline-block p-2" style={{ backgroundColor: '#fff5f5', color: '#dc3545' }}>
+                        <strong>*</strong> required fields
+                    </Alert>
+                    <div
                         style={{
-                            backgroundColor: themeColor.statusColors.yellow100,
-                            color: '#721c24',
-                            padding: '20px',
-                            marginBottom: '20px'
+                            backgroundImage: `url(${process.env.PUBLIC_URL}/images/report_an_encounter.png)`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: '25px',
+                            padding: "10px",
+                            height: '500px',
+                            width: '350px',
+                            color: 'white',
                         }}
                     >
-                        Note
-                        The Fields with ** are required fields
-                    </div>
-                    <img src={`${process.env.PUBLIC_URL}/images/report_an_encounter.png`}
-                        className="img-fluid" alt="Report an encounter"
-                        style={{ 
-                            borderRadius: '25px',
-                            padding: "-10px",
-                        }}
-                    ></img>
-                </Col>
-                <Col className="col-lg-7 col-md-6 col-sm-12 col-12">
+                        {
+                            menu.map(data => {
+                                return <div
+                                    className="d-flex justify-content-between"
+                                    style={{
+                                        padding: '15px',
+                                        fontSize: '20px',
+                                        fontWeight: '500',
 
+                                    }}>
+                                    {data.title}<i class="bi bi-chevron-right" style={{ fontSize: "14px", fontWeight: "500" }}></i>
+                                </div>
+
+                            })
+
+                        }
+
+                       <MainButton 
+                        backgroundColor={themeColor.wildMeColors.cyan600}
+                        color={themeColor.defaultColors.white}
+                        shadowColor={themeColor.defaultColors.white}
+                        style={{
+                            width: "calc(100% - 20px)",
+                            fontSize: "20px",
+                        }}
+                        
+                       >
+                            Submit Encounter
+                        </MainButton> 
+
+                    </div>
+                </Col>
+                <Col className="col-lg-8 col-md-6 col-sm-12 col-12">
                     <Form>
                         <Form.Group controlId="formBasicEmail">
                             <Form.Label>Location</Form.Label>
