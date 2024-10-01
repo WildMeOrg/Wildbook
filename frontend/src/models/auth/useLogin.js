@@ -32,7 +32,7 @@ export default function useLogin() {
       const decodedRedirect = decodeURIComponent(new URLSearchParams(location.search).get("redirect"));
       const nextLocation = get(response, "data.redirectUrl", null)
         || decodedRedirect.startsWith("/")
-          ? `${new URL(process.env.PUBLIC_URL).pathname}${decodedRedirect}${location.hash}`
+          ? `${process.env.PUBLIC_URL}${decodedRedirect}${location.hash}`
           : null;
 
       if (successful) {
