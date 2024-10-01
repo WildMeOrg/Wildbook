@@ -30,10 +30,13 @@ export default function useLogin() {
       // use .startsWith("/") to prevent open redirects
       const successful = get(response, "data.success", false);
       const decodedRedirect = decodeURIComponent(new URLSearchParams(location.search).get("redirect"));
-      const nextLocation = get(response, "data.redirectUrl", null)
-        || decodedRedirect.startsWith("/")
-          ? `${new URL(process.env.PUBLIC_URL).pathname}${decodedRedirect}${location.hash}`
-          : null;
+
+      const backendRedirect = get(response, "data.redirectUrl", null);
+      const reactRedirect = decodedRedirect.startsWith("/")
+      ? `${process.env.PUBLIC_URL}${decodedRedirect}${location.hash}`
+      : null;
+      
+      const nextLocation = backendRedirect || reactRedirect;
 
       if (successful) {
         let url = nextLocation || `${process.env.PUBLIC_URL}/home`;
