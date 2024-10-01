@@ -51,7 +51,9 @@ function App() {
     setFilters({});
   };
 
-  const publicUrl = process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL).pathname : "/";
+  const publicUrl = process.env.PUBLIC_URL 
+  ? (process.env.PUBLIC_URL.startsWith('http') ? new URL(process.env.PUBLIC_URL).pathname : process.env.PUBLIC_URL)
+  : "/";
 
   return (
     <QueryClientProvider client={queryClient}>
