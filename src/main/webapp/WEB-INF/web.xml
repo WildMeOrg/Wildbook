@@ -457,7 +457,6 @@
 		    /UpdateStandard = authc, roles[researcher]
 			/WebImport = authc, roles[researcher]
            /import/upload = authc, roles[researcher]
-		   /ResumableUpload = authc, roles[researcher]
           /upload  = authc, roles[researcher]
 
 
