@@ -75,6 +75,13 @@ public class UploadServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         System.out.println("UploadServlet.java. About to Print Params");
         ServletUtilities.printParams(request);
         System.out.println("(Those were the params)");
@@ -100,7 +107,6 @@ public class UploadServlet extends HttpServlet {
                 break; // we only do first one.  ?
             }
         }
-        if (!ReCAPTCHA.sessionIsHuman(request)) throw new IOException("failed sessionIsHuman()");
         if (fileChunk == null) throw new IOException("doPost could not find file chunk");
         System.out.println("Do Post");
 
@@ -168,6 +174,13 @@ public class UploadServlet extends HttpServlet {
  */
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!accessAllowed(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().print("{\"success\": false}");
+            response.getWriter().close();
+            return;
+        }
         if (!ServletFileUpload.isMultipartContent(request))
             throw new IOException("doGet is not multipart");
         ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
@@ -302,5 +315,11 @@ public class UploadServlet extends HttpServlet {
             throw new ServletException("Invalid request params.");
         }
         return info;
+    }
+
+    // a simple wrapper, in case we want to change the logic here
+    private boolean accessAllowed(HttpServletRequest request) {
+        // note: this will return true for logged-in user (indifferent to captcha)
+        return ReCAPTCHA.sessionIsHuman(request);
     }
 }
