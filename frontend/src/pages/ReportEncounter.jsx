@@ -3,17 +3,18 @@ import { Container, Row, Col, Form, Alert } from "react-bootstrap";
 import ThemeColorContext from "../ThemeColorProvider";
 import MainButton from "../components/MainButton";
 import AuthContext from "../AuthProvider";
+import { FormattedMessage } from "react-intl";
 
 export default function ReportEncounter() {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const encounterCategories = [
-    "photos",
-    "date and time",
-    "place",
-    "species",
-    "additional comments",
-    "followup information",
+    "PHOTOS_SECTION",
+    "DATETIME_SECTION",
+    "PLACE_SECTION",
+    "SPECIES",
+    "ADDITIONAL_COMMENTS_SECTION",
+    "FOLLOWUP_SECTION",
   ];
   const menu = encounterCategories.map((category, index) => ({
     id: index,
@@ -25,7 +26,6 @@ export default function ReportEncounter() {
   const isScrollingByClick = useRef(false);
   const scrollTimeout = useRef(null);
 
-  // Scroll into view when category is selected by click
   const handleClick = (id) => {
     clearTimeout(scrollTimeout.current);
     setSelectedCategory(id);
@@ -43,7 +43,6 @@ export default function ReportEncounter() {
     }, 1000);
   };
 
-  // Function to update the selected category when scrolling, but only if it's not triggered by a click
   const handleScroll = () => {
     if (isScrollingByClick.current) return;
 
@@ -60,10 +59,11 @@ export default function ReportEncounter() {
   return (
     <Container>
       <Row>
-        <h3 className="pt-4">Report an Encounter</h3>
+        <h3 className="pt-4">
+          <FormattedMessage id="REPORT_AN_ENCOUNTER" />
+        </h3>
         <p>
-          Please use the online form below to record the details of your
-          encounter. Be as accurate and specific as possible.
+          <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
         {!isLoggedIn ? (
           <Alert variant="warning" dismissible>
@@ -81,18 +81,34 @@ export default function ReportEncounter() {
             </a>
           </Alert>
         ) : null}
+        <Alert variant="warning" dismissible>
+          <i
+            className="bi bi-info-circle-fill"
+            style={{ marginRight: "8px", color: "#7b6a00" }}
+          ></i>
+          <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
+          <a
+            href="/signin"
+            style={{ color: "#337ab7", textDecoration: "underline" }}
+          >
+            sign in!
+          </a>
+        </Alert>
       </Row>
       <Row>
         <Alert
           variant="light"
           className="d-inline-block p-2"
           style={{
-            backgroundColor: "#fff5f5",
+            // backgroundColor: "#fff5f5",
             color: "#dc3545",
             width: "auto",
+            border: "none",
           }}
         >
-          <strong>* required fields</strong>
+          <strong>
+            <FormattedMessage id="REQUIRED_FIELDS_KEY" />
+          </strong>
         </Alert>
       </Row>
 
@@ -129,7 +145,7 @@ export default function ReportEncounter() {
                 }}
                 onClick={() => handleClick(data.id)}
               >
-                {data.title}
+                <FormattedMessage id={data.title} />
                 <i
                   className="bi bi-chevron-right"
                   style={{ fontSize: "14px", fontWeight: "500" }}
@@ -168,7 +184,9 @@ export default function ReportEncounter() {
                 ref={(el) => (formRefs.current[index] = el)}
                 style={{ paddingBottom: "20px" }}
               >
-                <h4>{category}</h4>
+                <h4>
+                  <FormattedMessage id={category} />
+                </h4>
                 <Form.Group>
                   <Form.Label>Details for {category}</Form.Label>
                   <Form.Control
