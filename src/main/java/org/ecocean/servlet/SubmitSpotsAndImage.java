@@ -146,7 +146,7 @@ System.out.println("====> params = " + params);
     }
     else if(speciesString!=null && speciesString.equals("Stegostoma tigrinum")) {
       ann.setMatchAgainst(true);
-      String iaClass = "leopardsharkCR"; // should we change this?
+      String iaClass = "leopard_shark"; // should we change this?
       ann.setIAClass(iaClass);
     }
     else if(speciesString!=null && speciesString.equals("Scyliorhinus stellaris")) {
