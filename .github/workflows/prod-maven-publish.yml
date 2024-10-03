@@ -1,11 +1,10 @@
-name: Development Build
+name: Production Build
 
 on:
   push:
       branches:
-          - main
-      tags-ignore:
-          - v*
+          - production
+
 jobs:
   build:
     name: Maven build and deploy
@@ -33,11 +32,11 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t wildme/wildbook:main  -f devops/deploy/Dockerfile devops/deploy/
+        docker build -t wildme/wildbook:production  -f devops/deploy/Dockerfile devops/deploy/
 
     - name: Push Docker image
       run: |
-        docker push wildme/wildbook:main  
+        docker push wildme/wildbook:production  
     # Publishing to git is disabld for Development branch
     #- name: Publish to GitHub Packages
     #if: github.event_name == 'push' 
