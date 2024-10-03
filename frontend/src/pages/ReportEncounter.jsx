@@ -4,21 +4,46 @@ import ThemeColorContext from "../ThemeColorProvider";
 import MainButton from "../components/MainButton";
 import AuthContext from "../AuthProvider";
 import { FormattedMessage } from "react-intl";
+import ImageSection from "../components/ImageSection";
+import DateTimeSection from "../components/DateTimeSection";
+import PlaceSection from "../components/PlaceSection";
+import SpeciesSection from "../components/SpeciesSection";
+import AdditionalCommentsSection from "../components/AdditionalCommentsSection";
+import FollowUpSection from "../components/FollowUpSection";
 
 export default function ReportEncounter() {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const encounterCategories = [
-    "PHOTOS_SECTION",
-    "DATETIME_SECTION",
-    "PLACE_SECTION",
-    "SPECIES",
-    "ADDITIONAL_COMMENTS_SECTION",
-    "FOLLOWUP_SECTION",
+    {
+      title: "PHOTOS_SECTION",
+      section: <ImageSection />,
+    },
+    {
+      title: "DATETIME_SECTION",
+      section: <DateTimeSection />,
+    },
+    {
+      title: "PLACE_SECTION",
+      section: <PlaceSection />,
+    },
+    {
+      title: "SPECIES",
+      section: <SpeciesSection />,
+    },
+
+    {
+      title: "ADDITIONAL_COMMENTS_SECTION",
+      section: <AdditionalCommentsSection />,
+    },
+    {
+      title: "FOLLOWUP_SECTION",
+      section: <FollowUpSection />,
+    },
   ];
   const menu = encounterCategories.map((category, index) => ({
     id: index,
-    title: category,
+    title: category.title,
   }));
 
   const [selectedCategory, setSelectedCategory] = useState(0);
@@ -127,31 +152,35 @@ export default function ReportEncounter() {
               marginBottom: "20px",
             }}
           >
-            {menu.map((data) => (
-              <div
-                key={data.id}
-                className="d-flex justify-content-between"
-                style={{
-                  padding: "10px",
-                  marginTop: "10px",
-                  fontSize: "20px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  borderRadius: "10px",
-                  backgroundColor:
-                    selectedCategory === data.id
-                      ? "rgba(255,255,255,0.5)"
-                      : "transparent",
-                }}
-                onClick={() => handleClick(data.id)}
-              >
-                <FormattedMessage id={data.title} />
-                <i
-                  className="bi bi-chevron-right"
-                  style={{ fontSize: "14px", fontWeight: "500" }}
-                ></i>
-              </div>
-            ))}
+            {menu.map((data) => {
+              console.log(data);
+
+              return (
+                <div
+                  key={data.id}
+                  className="d-flex justify-content-between"
+                  style={{
+                    padding: "10px",
+                    marginTop: "10px",
+                    fontSize: "20px",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    borderRadius: "10px",
+                    backgroundColor:
+                      selectedCategory === data.id
+                        ? "rgba(255,255,255,0.5)"
+                        : "transparent",
+                  }}
+                  onClick={() => handleClick(data.id)}
+                >
+                  <FormattedMessage id={data.title} />
+                  <i
+                    className="bi bi-chevron-right"
+                    style={{ fontSize: "14px", fontWeight: "500" }}
+                  ></i>
+                </div>
+              );
+            })}
 
             <MainButton
               backgroundColor={themeColor.wildMeColors.cyan600}
@@ -184,26 +213,8 @@ export default function ReportEncounter() {
                 ref={(el) => (formRefs.current[index] = el)}
                 style={{ paddingBottom: "20px" }}
               >
-                <h4>
-                  <FormattedMessage id={category} />
-                </h4>
-                <Form.Group>
-                  <Form.Label>Details for {category}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder={`Enter ${category} details`}
-                  />
-                  <Form.Label>Details for {category}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder={`Enter ${category} details`}
-                  />
-                  <Form.Label>Details for {category}</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder={`Enter ${category} details`}
-                  />
-                </Form.Group>
+                <h4>{/* <FormattedMessage id={index} /> */}</h4>
+                {category.section}
               </div>
             ))}
           </Form>
