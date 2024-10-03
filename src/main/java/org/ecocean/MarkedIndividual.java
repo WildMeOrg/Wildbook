@@ -2865,11 +2865,30 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
 
     public void opensearchIndexDeep()
     throws IOException {
-        if (this.encounters != null)
-            for (Encounter enc : this.encounters) {
-                enc.opensearchIndex();
-            }
         this.opensearchIndex();
+        Vector<Encounter> encs = this.encounters;
+        if ((encs != null) && (encs.size() > 0)) {
+            int total = encs.size();
+            System.out.println("opensearchIndexDeep() backgrounding " + encs.size() + " encs for " + this);
+            String indId = this.getId();
+            Runnable rn = new Runnable() {
+                public void run() {
+                    int ct = 0;
+                    for (Encounter enc : encs) {
+                        ct++;
+                        System.out.println("opensearchIndexDeep() background indexing " + enc.getId() + " via " + indId + " [" + ct + "/" + total + "]");
+                        try {
+                            enc.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " + enc.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                System.out.println("opensearchIndexDeep() backgrounding " + indId + " finished.");
+                }
+            };
+            new Thread(rn).start();
+        }
     }
 
     public String toString() {
