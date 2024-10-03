@@ -7,7 +7,7 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
-import Flow from "@flowjs/flow.js"; // 或者使用 require 导入
+import Flow from "@flowjs/flow.js";
 
 const FileUploader = () => {
   const [files, setFiles] = useState([]);
@@ -16,16 +16,14 @@ const FileUploader = () => {
   const [uploading, setUploading] = useState(false);
   const [fileActivity, setFileActivity] = useState(false);
   const [previewSrc, setPreviewSrc] = useState("");
-  const fileInputRef = useRef(null); // 使用 useRef 来获取文件选择器
+  const fileInputRef = useRef(null);
 
-  // 在组件挂载时初始化 flow.js 实例
   useEffect(() => {
     if (!flow && fileInputRef.current) {
       initializeFlow();
     }
   }, [flow, fileInputRef]);
 
-  // 初始化 Flow.js
   const initializeFlow = () => {
     const flowInstance = new Flow({
       target: "ResumableUpload",
@@ -33,7 +31,7 @@ const FileUploader = () => {
       testChunks: false,
     });
 
-    flowInstance.assignBrowse(fileInputRef.current); // 确保文件选择器绑定正确
+    flowInstance.assignBrowse(fileInputRef.current);
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
@@ -88,7 +86,7 @@ const FileUploader = () => {
             id="file-chooser"
             multiple
             accept="audio/*,video/*,image/*"
-            ref={fileInputRef} // 使用 ref 绑定文件选择器
+            ref={fileInputRef}
             style={{ display: fileActivity ? "none" : "block" }}
           />
           {fileActivity && (
