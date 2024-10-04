@@ -108,6 +108,17 @@
 			"long": 151.30526
 		}
 	},
+	{
+		"name": "NSW-Sydney-Bondi",
+		"id": "NSW-Sydney-Bondi",
+		"locationID": [],
+		"prefix": "NSW-",
+		"prefixDigitPadding": 4,
+		"geospatialInfo": {
+			"lat": -33.89444,
+			"long": 151.28333
+		}
+	},
 	{ 
 		"name": "NSW-Sydney-Cabbage Tree Bay", 
 		"id": "NSW-Sydney-Cabbage Tree Bay", 
