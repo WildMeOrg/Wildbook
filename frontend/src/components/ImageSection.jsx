@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   Button,
   ProgressBar,
@@ -9,6 +9,7 @@ import {
 } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
+import ThemeContext from "../ThemeColorProvider";
 
 const FileUploader = () => {
   const [files, setFiles] = useState([]);
@@ -18,7 +19,7 @@ const FileUploader = () => {
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
 
-  console.log("files", files);
+  const theme = useContext(ThemeContext);
 
   useEffect(() => {
     if (!flow && fileInputRef.current) {
@@ -28,7 +29,7 @@ const FileUploader = () => {
 
   const initializeFlow = () => {
     const flowInstance = new Flow({
-      target: "ResumableUpload",
+      target: "/ResumableUpload",
       forceChunkSize: true,
       testChunks: false,
     });
@@ -61,8 +62,8 @@ const FileUploader = () => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: percentage }
-            : preview,
-        ),
+            : preview
+        )
       );
     });
 
@@ -72,9 +73,13 @@ const FileUploader = () => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: 100 }
-            : preview,
-        ),
+            : preview
+        )
       );
+      setFiles([]);
+      setPreviewData([]);
+      setFileActivity(false);
+      setUploading(false);
       console.log("Upload success:", file);
     });
 
@@ -100,20 +105,44 @@ const FileUploader = () => {
 
   return (
     <Container>
-      <Row>
-        <Col>
-          <input
-            type="file"
-            id="file-chooser"
-            multiple
-            accept="audio/*,video/*,image/*"
-            ref={fileInputRef}
-            style={{ display: fileActivity ? "none" : "block" }}
-          />
+      <Row className="justify-content-center">
+        <Col md={8} className="w-100">
+          <div id="drop-area"
+            className="d-flex flex-column align-items-center justify-content-center p-4 w-100"
+            style={{
+              border: "2px dashed #00a1e0",
+              borderRadius: "8px",
+              backgroundColor: "#e8f7fc",
+              textAlign: "center",
+            }}
+          >
+            <p style={{ fontWeight: "bold" }}>Photos *</p>
+            <p>We support .jpg, .jpeg, .png, and .bmp. Videos can be stored, but not used for image analysis.</p>
+            <div className="mb-3">
+              <i className="fas fa-image" style={{ fontSize: "2rem", color: "#007bff" }}></i>
+            </div>
+            <p>Drag and drop your files here or browse</p>
+            <Button
+              variant="primary"
+              onClick={() => fileInputRef.current.click()}
+              disabled={uploading}
+            >
+              Browse
+            </Button>
+            <input
+              type="file"
+              id="file-chooser"
+              multiple
+              accept="audio/*,video/*,image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+            />
+          </div>
         </Col>
       </Row>
+
       {previewData.length > 0 && (
-        <Row>
+        <Row className="mt-4">
           {previewData.map((preview, index) => (
             <Col
               key={index}
@@ -148,16 +177,11 @@ const FileUploader = () => {
           ))}
         </Row>
       )}
+
       {fileActivity && (
         <Row>
           <Col>
-            <Button
-              id="reselect-button"
-              variant="secondary"
-              onClick={handleMoreFilesClick}
-            >
-              <FormattedMessage id="ADD_MORE_FILES" />
-            </Button>
+
             <Button
               id="upload-button"
               variant="primary"

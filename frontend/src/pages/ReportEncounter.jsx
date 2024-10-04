@@ -105,20 +105,7 @@ export default function ReportEncounter() {
               sign in!
             </a>
           </Alert>
-        ) : null}
-        <Alert variant="warning" dismissible>
-          <i
-            className="bi bi-info-circle-fill"
-            style={{ marginRight: "8px", color: "#7b6a00" }}
-          ></i>
-          <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
-          <a
-            href="/signin"
-            style={{ color: "#337ab7", textDecoration: "underline" }}
-          >
-            sign in!
-          </a>
-        </Alert>
+        ) : null}        
       </Row>
       <Row>
         <Alert
@@ -153,8 +140,6 @@ export default function ReportEncounter() {
             }}
           >
             {menu.map((data) => {
-              console.log(data);
-
               return (
                 <div
                   key={data.id}
