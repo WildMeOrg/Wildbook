@@ -8,15 +8,17 @@ import {
   Col,
 } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
+import { FormattedMessage } from "react-intl";
 
 const FileUploader = () => {
   const [files, setFiles] = useState([]);
   const [flow, setFlow] = useState(null);
-  const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [fileActivity, setFileActivity] = useState(false);
-  const [previewSrc, setPreviewSrc] = useState("");
+  const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
+
+  console.log("files", files);
 
   useEffect(() => {
     if (!flow && fileInputRef.current) {
@@ -37,7 +39,15 @@ const FileUploader = () => {
     flowInstance.on("fileAdded", (file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewSrc(reader.result);
+        setPreviewData((prevPreviewData) => [
+          ...prevPreviewData,
+          {
+            src: reader.result,
+            fileName: file.name,
+            fileSize: file.size,
+            progress: 0,
+          },
+        ]);
       };
       reader.readAsDataURL(file.file);
 
@@ -47,12 +57,24 @@ const FileUploader = () => {
 
     flowInstance.on("fileProgress", (file) => {
       const percentage = (file._prevUploadedSize / file.size) * 100;
-      setProgress(percentage);
+      setPreviewData((prevPreviewData) =>
+        prevPreviewData.map((preview) =>
+          preview.fileName === file.name
+            ? { ...preview, progress: percentage }
+            : preview,
+        ),
+      );
     });
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
-      setProgress(100);
+      setPreviewData((prevPreviewData) =>
+        prevPreviewData.map((preview) =>
+          preview.fileName === file.name
+            ? { ...preview, progress: 100 }
+            : preview,
+        ),
+      );
       console.log("Upload success:", file);
     });
 
@@ -69,10 +91,9 @@ const FileUploader = () => {
     }
   };
 
-  const handleReselectClick = () => {
+  const handleMoreFilesClick = () => {
     setFiles([]);
-    setPreviewSrc("");
-    setProgress(0);
+    setPreviewData([]);
     setFileActivity(false);
     setUploading(false);
   };
@@ -89,30 +110,53 @@ const FileUploader = () => {
             ref={fileInputRef}
             style={{ display: fileActivity ? "none" : "block" }}
           />
-          {fileActivity && (
-            <div id="file-activity">
-              {files.map((file, index) => (
-                <div key={index}>
-                  <div>{file.name}</div>
-                  <div>{(file.size / (1024 * 1024)).toFixed(2)} MB</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {previewSrc && (
-            <Image id="thumb" src={previewSrc} width="200" alt="Preview" />
-          )}
         </Col>
       </Row>
+      {previewData.length > 0 && (
+        <Row>
+          {previewData.map((preview, index) => (
+            <Col
+              key={index}
+              className="mb-4 me-4 d-flex flex-column justify--between"
+              style={{ maxWidth: "200px" }}
+            >
+              <Image
+                id="thumb"
+                src={preview.src}
+                style={{ width: "220px", height: "150px", objectFit: "fill" }}
+                alt={`Preview ${index + 1}`}
+                thumbnail
+              />
+              <div
+                className="mt-2 "
+                style={{
+                  width: "200px",
+                  wordWrap: "break-word",
+                  whiteSpace: "normal",
+                }}
+              >
+                <div>{preview.fileName}</div>
+                <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+              </div>
+              <ProgressBar
+                now={preview.progress}
+                label={`${Math.round(preview.progress)}%`}
+                className="mt-2"
+                style={{ width: "200px" }}
+              />
+            </Col>
+          ))}
+        </Row>
+      )}
       {fileActivity && (
         <Row>
           <Col>
             <Button
               id="reselect-button"
               variant="secondary"
-              onClick={handleReselectClick}
+              onClick={handleMoreFilesClick}
             >
-              Choose a different file
+              <FormattedMessage id="ADD_MORE_FILES" />
             </Button>
             <Button
               id="upload-button"
@@ -122,13 +166,6 @@ const FileUploader = () => {
             >
               {uploading ? "Uploading..." : "Begin Upload"}
             </Button>
-          </Col>
-        </Row>
-      )}
-      {uploading && (
-        <Row>
-          <Col>
-            <ProgressBar now={progress} label={`${Math.round(progress)}%`} />
           </Col>
         </Row>
       )}
