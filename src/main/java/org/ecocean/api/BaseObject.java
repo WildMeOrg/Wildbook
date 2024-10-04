@@ -122,7 +122,7 @@ public class BaseObject extends ApiBase {
         if (!uploadDir.exists()) throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
 
         List<String> filenames = new ArrayList<String>();
-        JSONArray fnArr = payload.optJSONArray("imageFilenames");
+        JSONArray fnArr = payload.optJSONArray("assetFilenames");
         if (fnArr != null) {
             for (int i = 0 ; i < fnArr.length() ; i++) {
                 String fn = fnArr.optString(i, null);
