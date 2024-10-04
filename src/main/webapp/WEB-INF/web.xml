@@ -457,7 +457,6 @@
 		    /UpdateStandard = authc, roles[researcher]
 			/WebImport = authc, roles[researcher]
            /import/upload = authc, roles[researcher]
-		   /ResumableUpload = authc, roles[researcher]
           /upload  = authc, roles[researcher]
 
 
@@ -1008,6 +1007,12 @@
     <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
   </servlet>
 
+   <servlet-mapping>
+    <servlet-name>BatchUpload</servlet-name>
+    <url-pattern>/BatchUpload/*</url-pattern>
+  </servlet-mapping>
+    -->
+
 	<servlet>
 		<servlet-name>ReCAPTCHA</servlet-name>
 		<servlet-class>org.ecocean.servlet.ReCAPTCHA</servlet-class>
@@ -1016,12 +1021,6 @@
  		<servlet-name>ReCAPTCHA</servlet-name>
 		<url-pattern>/ReCAPTCHA</url-pattern>
 	</servlet-mapping>
-
-   <servlet-mapping>
-    <servlet-name>BatchUpload</servlet-name>
-    <url-pattern>/BatchUpload/*</url-pattern>
-  </servlet-mapping>
-    -->
 
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
