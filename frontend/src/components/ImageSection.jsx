@@ -10,6 +10,8 @@ import {
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../ThemeColorProvider";
+import MainButton from "./MainButton";
+import { v4 as uuidv4 } from "uuid";
 
 const FileUploader = () => {
   const [files, setFiles] = useState([]);
@@ -38,6 +40,15 @@ const FileUploader = () => {
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
+      const supportedTypes = ["image/jpeg", "image/png", "image/bmp"];
+
+      // Check if the file's type is supported
+      if (!supportedTypes.includes(file.file.type)) {
+        console.error("Unsupported file type:", file.file.type);
+        // Optionally show an error message to the user here
+        return false; // Prevent the file from being added to the upload queue
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewData((prevPreviewData) => [
@@ -54,6 +65,7 @@ const FileUploader = () => {
 
       setFiles((prevFiles) => [...prevFiles, file]);
       setFileActivity(true);
+      return true;
     });
 
     flowInstance.on("fileProgress", (file) => {
@@ -62,8 +74,8 @@ const FileUploader = () => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: percentage }
-            : preview
-        )
+            : preview,
+        ),
       );
     });
 
@@ -73,12 +85,9 @@ const FileUploader = () => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: 100 }
-            : preview
-        )
+            : preview,
+        ),
       );
-      setFiles([]);
-      setPreviewData([]);
-      setFileActivity(false);
       setUploading(false);
       console.log("Upload success:", file);
     });
@@ -91,97 +100,122 @@ const FileUploader = () => {
 
   const handleUploadClick = () => {
     if (flow) {
+      const submissionId = uuidv4();
+      const fileNames = files.map((file) => file.name);
+
+      const submissionData = {
+        submissionId,
+        fileNames,
+      };
+
+      console.log("Submission Data:", submissionData);
       setUploading(true);
       flow.upload();
     }
   };
 
-  const handleMoreFilesClick = () => {
-    setFiles([]);
-    setPreviewData([]);
-    setFileActivity(false);
-    setUploading(false);
-  };
-
   return (
     <Container>
-      <Row className="justify-content-center">
-        <Col md={8} className="w-100">
-          <div id="drop-area"
-            className="d-flex flex-column align-items-center justify-content-center p-4 w-100"
-            style={{
-              border: "2px dashed #00a1e0",
-              borderRadius: "8px",
-              backgroundColor: "#e8f7fc",
-              textAlign: "center",
-            }}
-          >
-            <p style={{ fontWeight: "bold" }}>Photos *</p>
-            <p>We support .jpg, .jpeg, .png, and .bmp. Videos can be stored, but not used for image analysis.</p>
-            <div className="mb-3">
-              <i className="fas fa-image" style={{ fontSize: "2rem", color: "#007bff" }}></i>
-            </div>
-            <p>Drag and drop your files here or browse</p>
-            <Button
-              variant="primary"
-              onClick={() => fileInputRef.current.click()}
-              disabled={uploading}
-            >
-              Browse
-            </Button>
-            <input
-              type="file"
-              id="file-chooser"
-              multiple
-              accept="audio/*,video/*,image/*"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-            />
-          </div>
-        </Col>
+      <Row>
+        <p style={{ fontWeight: "500", fontSize: "1.5rem" }}>
+          <FormattedMessage id="PHOTOS_SECTION" />
+        </p>
+        <p>
+          <FormattedMessage id="SUPPORTED_FILETYPES" />
+        </p>
       </Row>
+      <Row>
+        {
+          <Row className="mt-4">
+            {previewData.map((preview, index) => (
+              <Col
+                key={index}
+                className="mb-4 me-4 d-flex flex-column justify-content-between"
+                style={{ maxWidth: "200px" }}
+              >
+                <Image
+                  id="thumb"
+                  src={preview.src}
+                  style={{ width: "220px", height: "150px", objectFit: "fill" }}
+                  alt={`Preview ${index + 1}`}
+                  thumbnail
+                />
+                <div
+                  className="mt-2 "
+                  style={{
+                    width: "200px",
+                    wordWrap: "break-word",
+                    whiteSpace: "normal",
+                  }}
+                >
+                  <div>{preview.fileName}</div>
+                  <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                </div>
+                <ProgressBar
+                  now={preview.progress}
+                  label={`${Math.round(preview.progress)}%`}
+                  className="mt-2"
+                  style={{ width: "200px" }}
+                />
+              </Col>
+            ))}
 
-      {previewData.length > 0 && (
-        <Row className="mt-4">
-          {previewData.map((preview, index) => (
             <Col
-              key={index}
-              className="mb-4 me-4 d-flex flex-column justify--between"
-              style={{ maxWidth: "200px" }}
+              md={8}
+              style={{
+                width: fileActivity ? "220px" : "100%",
+              }}
             >
-              <Image
-                id="thumb"
-                src={preview.src}
-                style={{ width: "220px", height: "150px", objectFit: "fill" }}
-                alt={`Preview ${index + 1}`}
-                thumbnail
-              />
               <div
-                className="mt-2 "
+                id="drop-area"
+                className="d-flex flex-column align-items-center justify-content-center p-4"
                 style={{
-                  width: "200px",
-                  wordWrap: "break-word",
-                  whiteSpace: "normal",
+                  border: `1px dashed ${theme.primaryColors.primary500}`,
+                  borderRadius: "8px",
+                  backgroundColor: "#e8f7fc",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  height: fileActivity ? "200px" : "300px",
                 }}
               >
-                <div>{preview.fileName}</div>
-                <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                <div className="mb-3">
+                  <i
+                    className="bi bi-images"
+                    style={{
+                      fontSize: "2rem",
+                      color: theme.wildMeColors.cyan700,
+                    }}
+                  ></i>
+                </div>
+                <p>
+                  <FormattedMessage id="PHOTO_INSTRUCTION" />
+                </p>
+                <MainButton
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                  backgroundColor={theme.wildMeColors.cyan700}
+                  color={theme.defaultColors.white}
+                  noArrow={true}
+                >
+                  <FormattedMessage id="BROWSE" />
+                </MainButton>
+                <input
+                  type="file"
+                  id="file-chooser"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.bmp"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                />
               </div>
-              <ProgressBar
-                now={preview.progress}
-                label={`${Math.round(preview.progress)}%`}
-                className="mt-2"
-                style={{ width: "200px" }}
-              />
             </Col>
-          ))}
-        </Row>
-      )}
+          </Row>
+        }
+      </Row>
 
       {fileActivity && (
         <Row>
           <Col>
-
             <Button
               id="upload-button"
               variant="primary"
