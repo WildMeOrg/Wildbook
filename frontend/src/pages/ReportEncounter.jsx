@@ -2,9 +2,11 @@ import React, { useContext, useState, useRef } from "react";
 import { Container, Row, Col, Form, Alert } from "react-bootstrap";
 import ThemeColorContext from "../ThemeColorProvider";
 import MainButton from "../components/MainButton";
+import AuthContext from "../AuthProvider";
 
 export default function ReportEncounter() {
   const themeColor = useContext(ThemeColorContext);
+  const { isLoggedIn } = useContext(AuthContext);
   const encounterCategories = [
     "photos",
     "date and time",
@@ -63,20 +65,22 @@ export default function ReportEncounter() {
           Please use the online form below to record the details of your
           encounter. Be as accurate and specific as possible.
         </p>
-        <Alert variant="warning" dismissible>
-          <i
-            className="bi bi-info-circle-fill"
-            style={{ marginRight: "8px", color: "#7b6a00" }}
-          ></i>
-          You are not signed in. If you want this encounter associated with your
-          account, be sure to{" "}
-          <a
-            href="/signin"
-            style={{ color: "#337ab7", textDecoration: "underline" }}
-          >
-            sign in!
-          </a>
-        </Alert>
+        {!isLoggedIn ? (
+          <Alert variant="warning" dismissible>
+            <i
+              className="bi bi-info-circle-fill"
+              style={{ marginRight: "8px", color: "#7b6a00" }}
+            ></i>
+            You are not signed in. If you want this encounter associated with
+            your account, be sure to{" "}
+            <a
+              href="/react/login?redirect=%2Freport"
+              style={{ color: "#337ab7", textDecoration: "underline" }}
+            >
+              sign in!
+            </a>
+          </Alert>
+        ) : null}
       </Row>
       <Row>
         <Alert
