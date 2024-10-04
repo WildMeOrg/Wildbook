@@ -117,9 +117,7 @@ public class BaseObject extends ApiBase {
 
         Map<String, String> values = new HashMap<String, String>();
         values.put("submissionId", submissionId);
-        // this does not come in until 750 is merged; so its on hold basically  FIXME
-        // File uploadDir = new File(UploadServlet.getUploadDir(request, values));
-        File uploadDir = new File("/tmp/fakeupload");
+        File uploadDir = new File(UploadServlet.getUploadDir(request, values));
         System.out.println("findFiles() uploadDir=" + uploadDir);
         if (!uploadDir.exists()) throw new IOException("uploadDir for submissionId=" + submissionId + " does not exist");
 
