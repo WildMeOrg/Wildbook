@@ -96,13 +96,17 @@ export default function FrontDesk() {
 
   if (!isLoggedIn) {
     return (
-      <>
+      <AuthContext.Provider
+        value={{
+          isLoggedIn,
+        }}
+      >
         <GoogleTagManager />
         <UnauthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
         />
-      </>
+      </AuthContext.Provider>
     );
   }
 
