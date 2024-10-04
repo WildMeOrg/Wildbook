@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import org.ecocean.Organization;
 import org.ecocean.Project;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.Util.MeasurementDesc;
@@ -151,6 +153,11 @@ public class SiteSettings extends ApiBase {
         settings.put("showClassicSubmit",
             Util.booleanNotFalse(CommonConfiguration.getProperty("showClassicSubmit", context))
             );
+
+        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
+            context);
+        if (recaptchaProps != null)
+            settings.put("reCAPTCHASiteKey", recaptchaProps.getProperty("siteKey"));
         // these are sensitive settings, that anon users should not get (e.g. user lists)
         if (currentUser != null) {
             JSONArray jarr = new JSONArray();
