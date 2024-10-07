@@ -259,7 +259,7 @@
     "ADDITIONAL_COMMENTS_SECTION": "Commenti aggiuntivi",
     "FOLLOWUP_SECTION": "Informazioni di follow-up",
     "SUBMIT_ENCOUNTER": "Invia l'incontro",
-    "SUPPORTED_FILETYPES": "Supportiamo .jpg, .jpeg, .png e bmp. I video possono essere archiviati ma non utilizzati per l'analisi delle immagini.",
+    "SUPPORTED_FILETYPES": "Supportiamo .jpg, .jpeg, .png e bmp. I file non possono superare ",
     "PHOTO_INSTRUCTION": "Trascina e rilascia i tuoi file qui o sfoglia",
     "BROWSE": "Sfogliare",
     "DATE_INSTRUCTION": "Digitare o selezionare la data dell'incontro. Se si inserisce una data inferiore, è preferibile digitarla per evitare errori.",

@@ -259,7 +259,7 @@
     "ADDITIONAL_COMMENTS_SECTION": "Commentaires supplémentaires",
     "FOLLOWUP_SECTION": "Informations de suivi",
     "SUBMIT_ENCOUNTER": "Soumettre la rencontre",
-    "SUPPORTED_FILETYPES": "Nous acceptons les fichiers .jpg, .jpeg, .png et bmp. Les vidéos peuvent être stockées mais ne sont pas utilisées pour l'analyse des images.",
+    "SUPPORTED_FILETYPES": "Nous acceptons les fichiers .jpg, .jpeg, .png et bmp. Les fichiers ne peuvent pas dépasser ",
     "PHOTO_INSTRUCTION": "Glissez-déposez vos fichiers ici ou naviguez",
     "BROWSE": "Parcourir",
     "DATE_INSTRUCTION": "Saisissez ou sélectionnez la date de la consultation. Si vous entrez moins que la date, il est préférable de taper la date pour éviter les erreurs.",
