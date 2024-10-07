@@ -13,13 +13,27 @@ import ThemeContext from "../ThemeColorProvider";
 import MainButton from "./MainButton";
 import { v4 as uuidv4 } from "uuid";
 
-const FileUploader = () => {
+const FileUploader = (
+  {
+    required = true,
+    setUploadStatus = () => { },
+    setFormData = () => { },
+  },
+) => {
   const [files, setFiles] = useState([]);
+  // console.log("files", files);
   const [flow, setFlow] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [fileActivity, setFileActivity] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
+  const [ fileNames, setFileNames ] = useState([]);
+
+  useEffect(() => {
+    setFileNames(previewData.map((preview) => preview.fileName));
+  }, [previewData]);
+
+  console.log("fileNames", fileNames);
 
   const theme = useContext(ThemeContext);
 
@@ -41,14 +55,13 @@ const FileUploader = () => {
 
     flowInstance.on("fileAdded", (file) => {
       const supportedTypes = ["image/jpeg", "image/png", "image/bmp"];
-
+      
       // Check if the file's type is supported
       if (!supportedTypes.includes(file.file.type)) {
         console.error("Unsupported file type:", file.file.type);
         // Optionally show an error message to the user here
         return false; // Prevent the file from being added to the upload queue
       }
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewData((prevPreviewData) => [
@@ -89,28 +102,37 @@ const FileUploader = () => {
         ),
       );
       setUploading(false);
+      setUploadStatus(true);     
+
+      const submissionId = uuidv4();
+      setFormData((prevFormData) => ({  
+        ...prevFormData,
+        submissionId, 
+        "fileNames" : fileNames, }));        
       console.log("Upload success:", file);
     });
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
+      setPreviewData((prevPreviewData) =>
+        prevPreviewData.map((preview) =>
+          preview.fileName === file.name
+
+            ? { ...preview, progress: 0 }
+            : preview,
+        ),
+      );
+      setUploadStatus(false);
       console.error("Upload error:", message);
     });
   };
 
   const handleUploadClick = () => {
-    if (flow) {
-      const submissionId = uuidv4();
-      const fileNames = files.map((file) => file.name);
-
-      const submissionData = {
-        submissionId,
-        fileNames,
-      };
-
-      console.log("Submission Data:", submissionData);
+    if (files) {
       setUploading(true);
-      flow.upload();
+      files.forEach((file) => {
+        flow.upload(file);
+      });
     }
   };
 
@@ -118,7 +140,7 @@ const FileUploader = () => {
     <Container>
       <Row>
         <p style={{ fontWeight: "500", fontSize: "1.5rem" }}>
-          <FormattedMessage id="PHOTOS_SECTION" />
+          <FormattedMessage id="PHOTOS_SECTION" /> {required && "*"}
         </p>
         <p>
           <FormattedMessage id="SUPPORTED_FILETYPES" />
@@ -131,25 +153,50 @@ const FileUploader = () => {
               <Col
                 key={index}
                 className="mb-4 me-4 d-flex flex-column justify-content-between"
-                style={{ maxWidth: "200px" }}
+                style={{
+                  maxWidth: "200px",
+                  position: "relative",
+                }}
               >
-                <Image
-                  id="thumb"
-                  src={preview.src}
-                  style={{ width: "220px", height: "150px", objectFit: "fill" }}
-                  alt={`Preview ${index + 1}`}
-                  thumbnail
-                />
-                <div
-                  className="mt-2 "
-                  style={{
-                    width: "200px",
-                    wordWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
-                  <div>{preview.fileName}</div>
-                  <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                <div style={{ position: "relative" }}>
+                  <i class="bi bi-x-circle-fill"
+                    style={{
+                      position: "absolute",
+                      top: "0",
+                      right: "5px",
+                      cursor: "pointer",
+                      color: "white",
+                    }}
+                    onClick={() => {
+                      console.log("Delete file");
+                      setPreviewData((prevPreviewData) =>
+                        prevPreviewData.filter(
+                          (previewData) => previewData.fileName !== preview.fileName,
+                        ),
+                      );
+
+                      flow.removeFile(files.find(f => f.name === preview.fileName));
+                      setFiles((prevFiles) => prevFiles.filter((file) => file.name !== preview.fileName));
+                    }}
+                  ></i>
+                  <Image
+                    id="thumb"
+                    src={preview.src}
+                    style={{ width: "100%", height: "120px", objectFit: "fill" }}
+                    alt={`Preview ${index + 1}`}
+                    thumbnail
+                  />
+                  <div
+                    className="mt-2 "
+                    style={{
+                      width: "200px",
+                      wordWrap: "break-word",
+                      whiteSpace: "normal",
+                    }}
+                  >
+                    <div>{preview.fileName}</div>
+                    <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                  </div>
                 </div>
                 <ProgressBar
                   now={preview.progress}
@@ -163,7 +210,7 @@ const FileUploader = () => {
             <Col
               md={8}
               style={{
-                width: fileActivity ? "220px" : "100%",
+                width: fileActivity ? "200px" : "100%",
               }}
             >
               <div
@@ -175,10 +222,20 @@ const FileUploader = () => {
                   backgroundColor: "#e8f7fc",
                   textAlign: "center",
                   cursor: "pointer",
-                  height: fileActivity ? "200px" : "300px",
+                  height: fileActivity ? "120px" : "300px",
                 }}
               >
-                <div className="mb-3">
+                {fileActivity ? <div
+                  onClick={() => fileInputRef.current.click()}
+                ><i
+                  className="bi bi-images"
+                  style={{
+                    fontSize: "1rem",
+                    color: theme.wildMeColors.cyan700,
+                  }}
+                ></i>
+                  <p><FormattedMessage id="ADD_MORE_FILES" /></p>
+                </div> : <div className="mb-3">
                   <i
                     className="bi bi-images"
                     style={{
@@ -186,19 +243,21 @@ const FileUploader = () => {
                       color: theme.wildMeColors.cyan700,
                     }}
                   ></i>
-                </div>
-                <p>
-                  <FormattedMessage id="PHOTO_INSTRUCTION" />
-                </p>
-                <MainButton
-                  onClick={() => fileInputRef.current.click()}
-                  disabled={uploading}
-                  backgroundColor={theme.wildMeColors.cyan700}
-                  color={theme.defaultColors.white}
-                  noArrow={true}
-                >
-                  <FormattedMessage id="BROWSE" />
-                </MainButton>
+                  <p>
+                    <FormattedMessage id="PHOTO_INSTRUCTION" />
+                  </p>
+
+
+                  <MainButton
+                    onClick={() => fileInputRef.current.click()}
+                    disabled={uploading}
+                    backgroundColor={theme.wildMeColors.cyan700}
+                    color={theme.defaultColors.white}
+                    noArrow={true}
+                  >
+                    <FormattedMessage id="BROWSE" />
+                  </MainButton>
+                </div>}
                 <input
                   type="file"
                   id="file-chooser"
