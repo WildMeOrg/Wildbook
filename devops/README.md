@@ -20,7 +20,7 @@ You need the following installed on your system:
 * `build-essential`
 * `maven`
 * `npm`
-* `node`
+* `node` (minimum version: 18)
 * `docker-compose`
 
 ## System setup
@@ -36,8 +36,8 @@ You need the following installed on your system:
 1. `cd /frontend`
 1. run `npm install` to install all dependencies
 1. create a `.env` for React environment variables.
-    1. Add the public URL: PUBLIC_URL= /react/
-    1. Add the site name: SITE_NAME=Amphibian Wildbook
+    1. Add the public URL: `PUBLIC_URL= /react/`
+    1. Add the site name: `SITE_NAME=My Local Wildbook`
 
 ### Deploy directory setup
 1. Create your **deploy directory**, matching the value of `WILDBOOK_BASE_DIR` in the .env file. The default is `~/wildbook-dev/`)
