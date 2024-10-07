@@ -2746,7 +2746,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public Set<String> getTissueSampleIDs() {
         Set<String> ids = new HashSet<String>();
 
-        for (TissueSample ts : tissueSamples) {
+        if (tissueSamples != null) for (TissueSample ts : tissueSamples) {
             ids.add(ts.getSampleID());
         }
         return ids;
