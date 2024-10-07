@@ -16,21 +16,45 @@ export default function ReportEncounter() {
   const [species, setSpecies] = useState("");
   const [isValidForm, setIsValidForm] = useState(true);
   const { isLoggedIn } = useContext(AuthContext);
+  const [formData, setFormData] = useState({
+    encounter: {},
+    media: [],
+    encounterLocation: {},
+    encounterSpecies: ["giraffe"],
+    encounterFollowUp: {},
+  });
+  const [uploadStatus, setUploadStatus] = useState({});
+
+  console.log("form data", formData);
+
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: <ImageSection />,
+      section: <ImageSection
+        required={isLoggedIn ? false : true}
+        setFormData={setFormData}
+        setUploadStatus={setUploadStatus}
+      />,
     },
     {
       title: "DATETIME_SECTION",
-      section: <DateTimeSection />,
+      section: <DateTimeSection
+        required={true}
+        setFormData={setFormData}
+      />,
+
     },
     {
       title: "PLACE_SECTION",
-      section: <PlaceSection />,
+      section: <PlaceSection
+        required={true}
+        setFormData={setFormData}
+      />,
+
     },
     {
       title: "SPECIES",
+<<<<<<< HEAD
       section: (
         <SpeciesSection
           species={species}
@@ -38,16 +62,28 @@ export default function ReportEncounter() {
           isValidForm={isValidForm}
         />
       ),
+=======
+      section: <SpeciesSection 
+        required={true}
+        setFormData={setFormData}
+      />,      
+>>>>>>> submissionId and file names
     },
-
     {
       title: "ADDITIONAL_COMMENTS_SECTION",
-      section: <AdditionalCommentsSection />,
+      section: <AdditionalCommentsSection 
+        required={false}
+        setFormData={setFormData}
+      />,      
     },
     {
       title: "FOLLOWUP_SECTION",
-      section: <FollowUpSection />,
+      section: <FollowUpSection 
+        required={false}
+        setFormData={setFormData}
+      />
     },
+
   ];
   const menu = encounterCategories.map((category, index) => ({
     id: index,
