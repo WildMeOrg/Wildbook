@@ -1,8 +1,5 @@
 package org.ecocean;
-/*  NOTE: due to the authentication header stuff, this is effectively IBEIS-specific.  break this out later i guess!  TODO
-
-   2018-02-02 - i am starting to break this out into generic... but very much a work-in-progress.... see methods at the end of the file which will
-      hopefully allow control over auth stuff better....   -jon
+/*  NOTE: due to the authentication header stuff, this is effectively IBEIS-specific but starting to break this out into generic. Still a work-in-progress.... see methods at the end of the file which will hopefully allow control over auth stuff better
  */
 
 import java.io.BufferedReader;
@@ -33,7 +30,6 @@ import org.apache.commons.codec.binary.Base64;
  */
 
 public class RestClient {
-    ///TODO this is IBEIS-specific -- need to generalize for RestClient to be universal
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final int CONNECTION_TIMEOUT = 300000; // maybe this should be service-specific?
 
@@ -96,7 +92,7 @@ public class RestClient {
         conn.connect();
 
         boolean success = true;
-        // TODO the 600 response here is IBEIS-specific, so we need to genericize this
+        // the 600 response here is IBEIS-specific, so we need to genericize this
         if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK) &&
             (conn.getResponseCode() != 600)) {
             // conn.disconnnect();
@@ -105,13 +101,7 @@ public class RestClient {
             success = false;
         }
         BufferedReader br = null;
-/*
-        if (success) {
-            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-        } else {
-            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
-        }
- */
+
         try {
             br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
         } catch (IOException ioe) {
@@ -132,17 +122,6 @@ public class RestClient {
         if (jtext.equals("")) return null;
         return new JSONObject(jtext);
 
-/*
-      } catch (MalformedURLException e) {
-
-        e.printStackTrace();
-
-      } catch (IOException e) {
-
-        e.printStackTrace();
-
-     }
- */
     }
 
     public static JSONObject postStream(URL url, InputStream in)
@@ -156,7 +135,6 @@ public class RestClient {
         conn.setDoInput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        // conn.setRequestProperty("Authorization", getAuthorizationHeader(url.toString()));
         OutputStream os = conn.getOutputStream();
         byte[] buffer = new byte[10240];
         int len;
@@ -172,7 +150,6 @@ public class RestClient {
 
         boolean success = true;
         if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK)) {
-            // conn.disconnnect();
             System.out.println("!!!!!!!!!!!!!!!!!!! bad response code = " + conn.getResponseCode());
             success = false;
         }
@@ -181,24 +158,9 @@ public class RestClient {
             rtn.put("error", conn.getResponseCode());
             return rtn;
         }
-/*
-   InputStream is = request.getInputStream();
-   byte buffer[] = new byte[10240];
-   int i;
-   System.out.println("before....");
-   while ((i = is.read(buffer)) > 0) {
-    System.out.write(buffer, 0, i);
-   }
- */
 
         BufferedReader br = null;
-/*
-        if (success) {
-            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-        } else {
-            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
-        }
- */
+
         try {
             br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
         } catch (IOException ioe) {
@@ -211,19 +173,13 @@ public class RestClient {
             jtext += output;
         }
         br.close();
-        // conn.disconnect();
-/*
-        if (!success) {
-            System.out.println("========= anyMethod failed with code=" + conn.getResponseCode() + "\n" + jtext + "\n============");
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-        }
- */
+        
         if (jtext.equals("")) return null;
         System.out.println("======================== postStream -> " + jtext);
         return new JSONObject(jtext);
     }
 
-    ///TODO this chunk below is IBEIS-specific -- need to generalize for RestClient to be universal
+    // this chunk below is IBEIS-specific -- need to generalize for RestClient to be universal
 
     private static String getSignature(String key, byte[] messageToSendBytes)
     throws NoSuchAlgorithmException, InvalidKeyException {
@@ -242,7 +198,7 @@ public class RestClient {
         return appName + ":" + getSignature(appSecret, url.getBytes());
     }
 
-    ///// end TODO
+    // end IBEIS-specific
 
     private static String getPostDataString(JSONObject obj) {
         StringBuilder result = new StringBuilder();
@@ -283,9 +239,10 @@ public class RestClient {
     }
 
     /***********************************************************************************************
+       TODO evaluate strategy, rewrite as needed and define future actions that need to be taken to truly update
        some attempts to *truly* genericize these....
 
-       rather than authUsername/authPassword, we might want to have our own credential class that allows us to set headers etc accordingly!   TODO
+       rather than authUsername/authPassword, we might want to have our own credential class that allows us to set headers etc accordingly!
 
        note also that data passed in (for post) is a string, so encode it accordingly first one annoying thing we attempt to handle now is that there
           may be plain-text returned (not always json)
@@ -318,14 +275,12 @@ public class RestClient {
     throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException,
         InvalidKeyException {
         System.out.println("TRYING anyMethodGeneric(" + method + ") url -> " + url);
-        // System.setProperty("http.keepAlive", "false");
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         conn.setReadTimeout(ctimeout);
         conn.setConnectTimeout(ctimeout);
         conn.setDoOutput((data != null));
         conn.setDoInput(true);
         conn.setRequestMethod(method);
-        ////conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");  TODO should this be here for GET ???
         if ((authUsername != null) && (authPassword != null)) {
             byte[] authBytes = (authUsername + ":" + authPassword).getBytes("UTF-8");
             String authEncoded = javax.xml.bind.DatatypeConverter.printBase64Binary(authBytes);
@@ -341,7 +296,6 @@ public class RestClient {
 
         boolean success = true;
         if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            // conn.disconnnect();
             success = false;
         }
         BufferedReader br = null;
@@ -356,7 +310,6 @@ public class RestClient {
             jtext += output;
         }
         br.close();
-        // conn.disconnect();
         if (!success) {
             System.out.println("========= anyMethod failed with code=" + conn.getResponseCode() +
                 "\n" + jtext + "\n============");
@@ -403,7 +356,6 @@ public class RestClient {
             jtext += output;
         }
         br.close();
-        // conn.disconnect();
         if (!success) {
             System.out.println("WARNING: postRaw() on " + url + " failed with code=" +
                 conn.getResponseCode() + "\n" + jtext + "\n============");

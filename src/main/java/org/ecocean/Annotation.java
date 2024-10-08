@@ -1,7 +1,4 @@
-/*
-   TODO note: this is very ibeis-specific concept of "Annotation"
-     we should probably consider a general version which can be manipulated into an ibeis one somehow
- */
+
 package org.ecocean;
 
 import java.awt.Rectangle;
@@ -26,11 +23,9 @@ import org.ecocean.media.MediaAsset;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-// import java.time.LocalDateTime;
-
 public class Annotation implements java.io.Serializable {
-    public Annotation() {} // empty for jdo
-    private String id; // TODO java.util.UUID ?
+    public Annotation() {}
+    private String id;
     private static final String[][] VALID_VIEWPOINTS = new String[][] {
         { "up", "up", "up", "up", "up", "up", "up", "up", }, {
             "upfront", "upfrontright", "upright", "upbackright", "upback", "upbackleft", "upleft",
@@ -43,7 +38,7 @@ public class Annotation implements java.io.Serializable {
     };
     private String species;
 
-    private String iaClass; // This is just how it gonna be for now. Swap the methods to draw from Taxonomy later if ya like?
+    private String iaClass;
 
     private String name;
     private boolean isExemplar = false;
@@ -53,10 +48,10 @@ public class Annotation implements java.io.Serializable {
     protected String acmId;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
-    // hoping this will be obsoleted by ACM and friends
+    // TODO was this made obsolete by ACM and friends?
     private boolean matchAgainst = false;
 
-////// these will go away after transition to Features
+    // TODO can these (thru mediaAsset) be removed now that there Features? 
     private int x;
     private int y;
     private int width;
@@ -83,7 +78,7 @@ public class Annotation implements java.io.Serializable {
     // ~'annot_tags': 'TEXT',
 
     private MediaAsset mediaAsset = null;
-////// end of what will go away
+    // end of what will go away
 
     // the "trivial" Annotation - will have a single feature which references the total MediaAsset
     public Annotation(String species, MediaAsset ma) {
@@ -119,20 +114,6 @@ public class Annotation implements java.io.Serializable {
         this.features = f;
         this.iaClass = iaClass;
     }
-
-/*
-    public Annotation(MediaAsset ma, String species, int x, int y, int w, int h, float[] tm) {
-        this.id = org.ecocean.Util.generateUUID();
-        this.x = x;
-        this.y = y;
-        this.width = w;
-        this.height = h;
-        this.transformMatrix = tm;
-        this.theta = 0.0;
-        this.species = species;
-        this.mediaAsset = ma;
-    }
- */
 
     // this is for use *only* to migrate old-world Annotations to new-world
     public Feature migrateToFeatures() {
@@ -259,17 +240,13 @@ public class Annotation implements java.io.Serializable {
         return enc.getTaxonomy(myShepherd);
     }
 
-    // TODO this needs to be fixed to mean "has the unity feature"... i think(!?) -- but migrating to features needs a legacy-compatible version!
-    // ouch
-    // good luck on that one, jon
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
 
         if (ma == null) return false;
         for (Feature ft : getFeatures()) {
-            if (ft.isUnity()) return true; // TODO what *really* of multiple features?? does "just one unity" make sense?
+            if (ft.isUnity()) return true; 
         }
-        // see note above. this is to attempt to be backwards-compatible.  :/  "untested"
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) &&
                    (getHeight() == (int)ma.getHeight()));
     }
@@ -392,12 +369,11 @@ public class Annotation implements java.io.Serializable {
        NoSuchAlgorithmException, InvalidKeyException {
  */
 
-// FIXME this all needs to be deprecated once deployed sites are migrated
+// TODO Deprecate "all of this" now that deployed sites are migrated
     public MediaAsset __getMediaAsset() {
         return mediaAsset;
     }
 
-    // TODO what should we do for multiple features that point to more than one MediaAsset ?
     public MediaAsset getMediaAsset() {
         ArrayList<Feature> fts = getFeatures();
 
@@ -406,31 +382,16 @@ public class Annotation implements java.io.Serializable {
                 " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
             return __getMediaAsset();
         }
-        return fts.get(0).getMediaAsset(); // should this instead return first feature *that has a MediaAsset* ??
+        return fts.get(0).getMediaAsset();
     }
 
     public boolean hasMediaAsset() {
         return (getMediaAsset() != null);
     }
 
-/*  deprecated public void setMediaAsset(MediaAsset ma) {
-        mediaAsset = ma;
-    }
- */
-
-    // get the MediaAsset created using this Annotation  TODO make this happen
     public MediaAsset getDerivedMediaAsset() {
         return null;
     }
-
-/*
-    public void setMediaAsset(MediaAsset ma) {
-        mediaAsset = ma;
-        if ((ma.getAnnotationCount() == 0) || !ma.getAnnotations().contains(this)) {
-            ma.getAnnotations().add(this);
-        }
-    }
- */
 
     // detaches this Annotation from MediaAsset by removing the corresponding feature *from the MediaAsset*
     // (the Feature is deleted forever, tho!)
@@ -468,15 +429,13 @@ public class Annotation implements java.io.Serializable {
         return anns.indexOf(this);
     }
 
-    // standard -1, 0, 1 expected
-    // fbow, return 0 if "not comparable"... :/
-    // note that this does not assume they are the same MediaAsset... fwiw?
+    // standard -1, 0, 1 expected; return 0 if "not comparable"
+    // note that this does not assume they are the same MediaAsset
     public int comparePositional(Annotation other) {
         if (other == null) return 0;
         if ((Util.collectionSize(this.getFeatures()) * Util.collectionSize(other.getFeatures())) ==
-            0) return 0;                                                                                          // no features, oops
-        // i have *no idea* how we should handle *multiple Features* here... so i am just going to look for any non-zero response as "useful" :(
-        // thus we do NxM comparing all Feature combinations; which seems like it might suck but i think we "almost always" only have one!
+            0) return 0;
+        // We currently do NxM comparing all Feature combinations (potentially excessive but typically single feature so unneeded)
         for (Feature f1 : this.getFeatures()) {
             for (Feature f2 : other.getFeatures()) {
                 if (!f1.equals(f2)) {
@@ -601,31 +560,6 @@ public class Annotation implements java.io.Serializable {
         return bbox;
     }
 
-/*  TODO should this use the IBEIS-IA attribute names or what?
-    public JSONObject toJSONObject() {
-        JSONObject obj = new JSONObject();
-        obj.put("annot_uuid", annot_uuid);
-        obj.put("annot_xtl", annot_xtl);
-        obj.put("annot_ytl", annot_ytl);
-        obj.put("annot_width", annot_width);
-        obj.put("annot_height", annot_height);
-        obj.put("annot_theta", annot_theta);
-        obj.put("species_text", species_text);
-        obj.put("image_uuid", this.mediaAsset.getUUID());
-        obj.put("name_text", name_text);
-        return obj;
-    }
- */
-
-/*  we no longer make a MediaAsset "from an Annotation", but rather from its associated Feature(s) public MediaAsset createMediaAsset() throws
-   IOException {
-        if (mediaAsset == null) return null;
-        if (this.isTrivial()) return null;  //we shouldnt make a new MA that is identical, right?
-        HashMap<String,Object> hmap = new HashMap<String,Object>();
-        hmap.put("annotation", this);
-        return mediaAsset.updateChild("annotation", hmap);
-    }
- */
     public String getBboxAsString() {
         return Arrays.toString(this.getBbox());
     }
@@ -636,19 +570,8 @@ public class Annotation implements java.io.Serializable {
                    .append("species", species)
                    .append("iaClass", iaClass)
                    .append("bbox", getBbox())
-/*
-                //.append("transform", ((getTransformMatrix == null) ? null : Arrays.toString(getTransformMatrix())))
-                .append("transform", Arrays.toString(getTransformMatrix()))
-                .append("asset", mediaAsset)
- */
                    .toString();
     }
-
-/*
-    public MediaAsset getCorrespondingMediaAsset(Shepherd myShepherd) {
-        return MediaAsset.findByAnnotation(this, myShepherd);
-    }
- */
 
     // *for now* this will only(?) be called from an Encounter, which means that Encounter must be sanitized
     // so we assume this *must* be sanitized too.
@@ -680,11 +603,7 @@ public class Annotation implements java.io.Serializable {
         return this.sanitizeJson(request, false);
     }
 
-///////////////////// TODO fix this for Feature upgrade ////////////////////////
-    /**
-     * returns only the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query), all they want in return are
-     * MediaAssets TODO: add metadata?
-     **/
+    // returns only the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query), all they want in return are
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request,
         boolean fullAccess)
     throws org.datanucleus.api.rest.orgjson.JSONException {
@@ -821,7 +740,6 @@ public class Annotation implements java.io.Serializable {
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
-    // figgeritout
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
         Encounter enc = this.findEncounter(myShepherd);
 
@@ -831,7 +749,6 @@ public class Annotation implements java.io.Serializable {
     }
 
     // pass in a generic SELECT filter query string and get back Annotations
-    // currently not taking params, but we can add later if we find useful (for now just trusting filter!)
     static public ArrayList<Annotation> getMatchingSetForFilter(Shepherd myShepherd,
         String filter) {
         if (filter == null) return null;
@@ -877,11 +794,6 @@ public class Annotation implements java.io.Serializable {
         String[] viewpoints = this.getViewpointAndNeighbors();
 
         if (viewpoints == null) return "";
-        // else if(getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null &&
-        // getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus")) ||
-        // (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops sp.")) || (getSpecies(myShepherd)!=null &&
-        // getSpecies(myShepherd).equals("Delphinus delphis")) return "";
-        // if explicitly told to ignore viewpoint matching, skip this step
         else if (getTaxonomy(myShepherd) != null && IA.getProperty(myShepherd.getContext(),
             "ignoreViewpointMatching",
             getTaxonomy(myShepherd)) != null && IA.getProperty(myShepherd.getContext(),
@@ -939,25 +851,13 @@ public class Annotation implements java.io.Serializable {
                 }
             }
         }
-        // TODO we could have an option to skip expansion (i.e. not include children)
+
         List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
         String locFilter = "";
         if (expandedLocationIds.size() > 0) {
             // locFilter += "enc.locationID == ''";
             // loc ID's were breaking for Hawaiian names with apostrophe(s) and stuff, so overkill now
 
-            // OLD WAY
-            /*
-               for (int i = 0; i < expandedLocationIds.size(); i++) {
-               String orString = " || ";
-               if (locFilter.equals("")) orString = "";
-               String expandedLoc = expandedLocationIds.get(i);
-               expandedLoc = expandedLoc.replaceAll("'", "\\\\'");
-               locFilter += (orString + "enc.locationID == '" + expandedLoc + "'");
-               }
-             */
-
-            // NEW WAY
             String literal = "{";
             for (int i = 0; i < expandedLocationIds.size(); i++) {
                 if (i > 0) literal += ",";
@@ -982,7 +882,7 @@ public class Annotation implements java.io.Serializable {
                 if (opt.equals("me"))
                     f += " && user.uuid == '" + userId +
                         "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
-                ///TODO also handle "collab" (users you collab with)   :/
+                // TODO also handle user "collab"
             }
         }
         // add projectID to filter
@@ -1053,30 +953,11 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
-/* untested!
-    public Encounter findEncounterDeep(Shepherd myShepherd) {
-        Encounter enc = this.findEncounter(myShepherd);
-   System.out.println(">>>> findEncounterDeep(" + this + ") -> enc1 = " + enc);
-        if (enc != null) return enc;
-        MediaAsset ma = this.getMediaAsset();
-   System.out.println("  >> findEncounterDeep() -> ma = " + ma + " .... getting Annotations:");
-        if (ma == null) return null;
-        ArrayList<Annotation> anns = ma.getAnnotations();
-        for (Annotation ann : anns) {
-   System.out.println("  >> findEncounterDeep() -> ann = " + ann);
-            //question: do we *only* look for trivial here? seems like we would want that... cuz we crawl hierarchy only in weird video cases etc if
-               (ann.isTrivial()) return ann.findEncounterDeep(myShepherd); //recurse! (and effectively bottom-out here... do or die
-        }
-        return null;  //fall thru, no luck!
-    }
- */
-
     // this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
     // if it is new, its pretty straight forward (uses findEncounter) .. if not, creation is as follows:
     // look for "sibling" Annotations on same MediaAsset.  if one of them has an Encounter, we clone that.
     // additionally, if one is a trivial annotation, we drop it after.  if no siblings are found, we create
     // an Encounter based on this Annotation (which may get us something, e.g. species, date, loc)
-    // ######   NOTE: this is going away due to WB-945.  (see MediaAsset.assignEncounters() instead)   ######
     public Encounter toEncounterDEPRECATED(Shepherd myShepherd) {
         // fairly certain this will *never* happen as code currently stands.  this (Annotation) is always new, and
         // therefore unattached to any Encounter for sure.   so skipping this for now!
@@ -1098,14 +979,14 @@ public class Annotation implements java.io.Serializable {
 
             return enc;
         }
-        /*
+        /* TODO: evaluate what of these notes are necessary
             ok, we have sibling Annotations.  if one is trivial, we just go for it and replace that one.
             is this wise?   well, if it is the *only* sibling then probably the MediaAsset was attached to the Annotation using legacy (non-IA)
                methods, and we are "zooming in" on the actual animal.  or *one of* the actual animals -- if there are others, they should get added in
                subsequent iterations of toEncounter().
             in theory.
 
-            the one case that is still to be considered ( TODO ) is when (theoretically) detection *improves* and we will want a new detection to
+            the one case that is still to be considered is when (theoretically) detection *improves* and we will want a new detection to
                replace a *non-trivial* Annotation.  but we arent considering that just now!
          */
 
@@ -1132,7 +1013,6 @@ public class Annotation implements java.io.Serializable {
         // do we have an an encounter from the sibling?
         if (someEnc != null) {
             for (Annotation ann : sibs) {
-                // TODO lets make this better at handling part designation
                 if ((ann.getIAClass() == null || this.getIAClass() == null) ||
                     ann.getIAClass().equals(this.getIAClass())) { break; }
                 // if these two intersect and have a different detected class they are allowed to reside on the same encounter
@@ -1157,7 +1037,6 @@ public class Annotation implements java.io.Serializable {
                 newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
                 newEnc.setGenus(someEnc.getGenus());
                 newEnc.setSex(null);
-                // myShepherd.storeNewEncounter(newEnc);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1182,44 +1061,8 @@ public class Annotation implements java.io.Serializable {
         }
         return newEnc;
 
-/*   NOTE: for now i am snipping out this sibling stuff!  youtube-sourced frames used this but now doesnt... here for prosperity...
-   System.out.println(".toEncounter() on " + this + " found no Encounter.... trying to find one on siblings or make one....");
-        List<Annotation> sibs = this.getSiblings();
-        Annotation sourceSib = null;
-        Encounter sourceEnc = null;
-        if (sibs != null) {
-            //we look for one that has an Encounter, favoring the trivial one (so we can replace it) otherwise any will do for (Annotation sib : sibs)
-               {
-                sourceEnc = sib.findEncounter(myShepherd);
-                if (sourceEnc == null) continue;
-                sourceSib = sib;
-                if (sib.isTrivial()) break;  //we have a winner
-            }
-        }
-
-   System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc);
-        if (sourceSib == null) return new Encounter(this);  //from scratch it is then!
-
-        if (sourceSib.isTrivial()) {
-            System.out.println("INFO: annot.toEncounter() replaced trivial " + sourceSib + " with " + this + " on " + sourceEnc);
-            sourceEnc.addAnnotationReplacingUnityFeature(this);
-            sourceEnc.setSpeciesFromAnnotations();
-            return sourceEnc;
-        }
-
-        enc = sourceEnc.cloneWithoutAnnotations();
-        enc.addAnnotation(this);
-        enc.setSpeciesFromAnnotations();
-        return enc;
- */
     }
 
-/*  deprecated, maybe?
-    public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
-        if (mediaAsset == null) return "<!-- Annotation.toHtmlElement(): " + this + " has no MediaAsset -->";
-        return mediaAsset.toHtmlElement(request, myShepherd, this);
-    }
- */
     public Annotation revertToTrivial(Shepherd myShepherd)
     throws IOException {
         return this.revertToTrivial(myShepherd, false);
@@ -1264,12 +1107,12 @@ public class Annotation implements java.io.Serializable {
     }
 
     public static boolean isValidViewpoint(String vp) {
-        if (vp == null) return true; // ?? is this desired behavior?
+        if (vp == null) return true;
         return getAllValidViewpoints().contains(vp);
     }
 
     public static List<String> getAllValidViewpoints() {
-        // add code to limit based on IA.properties viewpoints enabled switches if you want i guess
+        // add code to limit based on IA.properties viewpoints enabled switches
         List<String> all = new ArrayList<>();
 
         for (int i = 0; i < VALID_VIEWPOINTS.length; i++) {
@@ -1299,7 +1142,7 @@ public class Annotation implements java.io.Serializable {
     }
 
 /*
-    these will update(/create) AnnotationLite.cache for this Annotation note: use sparingly?  i.e. should only happen when (related) taxonomy or
+    these will update(/create) AnnotationLite.cache for this Annotation. should only happen when (related) taxonomy or
        individual or validForIdentification changes
  */
     public void refreshLiteTaxonomy(String tax) {
@@ -1337,8 +1180,6 @@ public class Annotation implements java.io.Serializable {
         Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
         AnnotationLite.setCache(this.acmId, annl);
     }
-
-    // TODO ... other permutations?
 
     public boolean contains(Annotation ann) {
         Rectangle myRect = getRect(this);
