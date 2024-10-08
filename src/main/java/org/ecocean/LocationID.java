@@ -215,6 +215,15 @@ public class LocationID {
         return null;
     }
 
+    public static boolean isValidLocationID(String locationID) {
+        return isValidLocationID(locationID, null);
+    }
+
+    public static boolean isValidLocationID(String locationID, String qualifier) {
+        JSONObject j = recurseToFindID(locationID, getLocationIDStructure(qualifier));
+        return (j != null);
+    }
+
     public static String getPrefixForLocationID(String locationID, String qualifier) { // now a wrapper method
         if (locationID == null) return ""; // "" here for improved cosmetics on front end?
         String locPrefix = "";
