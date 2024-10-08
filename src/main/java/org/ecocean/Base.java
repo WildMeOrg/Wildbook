@@ -20,6 +20,10 @@ import org.json.JSONObject;
  */
 @JsonSerialize(using = BaseSerializer.class) @JsonDeserialize(using =
     BaseDeserializer.class) public abstract class Base {
+
+    public static String ERROR_RETURN_CODE_REQUIRED = "REQUIRED";
+    public static String ERROR_RETURN_CODE_INVALID = "INVALID";
+
     /**
      * Retrieves Id, such as:
      *
@@ -186,6 +190,11 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    // TODO should this be an abstract? will we need some base stuff?
+    public static JSONObject validateFieldValue(String fieldName, JSONObject data) {
+        return null;
     }
 
 /*
