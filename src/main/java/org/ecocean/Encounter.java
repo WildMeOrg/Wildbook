@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
 import org.ecocean.identity.IBEISIA;
@@ -4645,6 +4646,12 @@ public class Encounter extends Base implements java.io.Serializable {
         return rtn;
     }
 
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        return null;
+    }
+
     public static org.json.JSONObject validateFieldValue(String fieldName, org.json.JSONObject data) {
         if (data == null) data = new org.json.JSONObject(); // meh
         org.json.JSONObject error = new org.json.JSONObject();
@@ -4655,11 +4662,11 @@ public class Encounter extends Base implements java.io.Serializable {
         case "locationId":
             String val = data.optString(fieldName, null);
             if (val == null) {
-                error.put("code", Base.ERROR_RETURN_CODE_REQUIRED);
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                 return error;
             }
             if (!LocationID.isValidLocationID(val)) {
-                error.put("code", Base.ERROR_RETURN_CODE_INVALID);
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", val);
                 return error;
             }

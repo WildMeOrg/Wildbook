@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.jdo.Query;
+import org.ecocean.api.ApiException;
 import org.ecocean.OpenSearch;
 import org.json.JSONObject;
 
@@ -20,9 +22,6 @@ import org.json.JSONObject;
  */
 @JsonSerialize(using = BaseSerializer.class) @JsonDeserialize(using =
     BaseDeserializer.class) public abstract class Base {
-
-    public static String ERROR_RETURN_CODE_REQUIRED = "REQUIRED";
-    public static String ERROR_RETURN_CODE_INVALID = "INVALID";
 
     /**
      * Retrieves Id, such as:
@@ -190,6 +189,10 @@ import org.json.JSONObject;
         }
         query.closeAll();
         return rtn;
+    }
+
+    public static Base createFromApi(JSONObject payload, List<File> files) throws ApiException {
+        throw new ApiException("not yet supported");
     }
 
     // TODO should this be an abstract? will we need some base stuff?

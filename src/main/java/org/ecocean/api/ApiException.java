@@ -1,0 +1,24 @@
+package org.ecocean.api;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class ApiException extends Exception {
+    public static String ERROR_RETURN_CODE_REQUIRED = "REQUIRED";
+    public static String ERROR_RETURN_CODE_INVALID = "INVALID";
+    public static String ERROR_RETURN_CODE_UNKNOWN = "UNKNOWN";
+
+    private JSONArray errors = null;
+    public ApiException(String message) {
+        super(message);
+        this.errors = null;
+    }
+    public ApiException(String message, JSONArray errors) {
+        super(message);
+        this.errors = errors;
+    }
+    public JSONArray getErrors() {
+        return errors;
+    }
+}
+

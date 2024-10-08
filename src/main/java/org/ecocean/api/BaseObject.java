@@ -95,6 +95,13 @@ public class BaseObject extends ApiBase {
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
         List<File> files = findFiles(request, payload);
+/*
+        try {
+//cls.createFromApi(payload, files)
+        } catch (ApiException apiEx) {
+        }
+*/
+//cls.validateFieldValue(String fieldName, org.json.JSONObject data)
         return rtn;
     }
 
