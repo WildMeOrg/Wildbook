@@ -11,7 +11,11 @@ public class ApiException extends Exception {
     private JSONArray errors = null;
     public ApiException(String message) {
         super(message);
-        this.errors = null;
+        JSONObject err = new JSONObject();
+        err.put("code", ERROR_RETURN_CODE_UNKNOWN);
+        err.put("details", message);
+        this.errors = new JSONArray();
+        this.errors.put(err);
     }
     public ApiException(String message, JSONArray errors) {
         super(message);

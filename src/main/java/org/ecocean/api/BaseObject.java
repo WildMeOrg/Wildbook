@@ -23,6 +23,7 @@ import org.ecocean.Occurrence;
 import org.ecocean.Project;
 import org.ecocean.resumableupload.UploadServlet;
 import org.ecocean.servlet.importer.ImportTask;
+import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
@@ -47,65 +48,83 @@ public class BaseObject extends ApiBase {
         if (requestMethod.equals("POST")) {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
         }
-        String context = ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
 
-        myShepherd.setAction("api.BaseObject");
-        myShepherd.beginDBTransaction();
-
-        User currentUser = myShepherd.getUser(request);
-        if (currentUser == null) {
+        if (!ReCAPTCHA.sessionIsHuman(request)) {
             response.setStatus(401);
             response.setHeader("Content-Type", "application/json");
             response.getWriter().write("{\"success\": false}");
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             return;
         }
 
-        Class cls = null;
-        if (args[0].equals("encounters")) {
-            cls = Encounter.class;
-        } else if (args[0].equals("individuals")) {
-            cls = MarkedIndividual.class;
-        } else if (args[0].equals("occurences")) {
-            cls = Occurrence.class;
-        } else {
+/*
+        if (!(args[0].equals("encounters") || args[0].equals("individuals") || args[0].equals("occurrences")))
             throw new ServletException("Bad class");
-        }
+*/
+        payload.put("_class", args[0]);
 
         JSONObject rtn = null;
         if (requestMethod.equals("POST")) {
-            rtn = processPost(request, cls, args, payload);
+            rtn = processPost(request, args, payload);
         } else if (requestMethod.equals("GET")) {
-            rtn = processGet(request, cls, args);
+            rtn = processGet(request, args);
         } else {
             throw new ServletException("Invalid method");
         }
+        int statusCode = rtn.optInt("statusCode", 200);
 
-        response.setStatus(200);
+        response.setStatus(statusCode);
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Content-Type", "application/json");
         response.getWriter().write(rtn.toString());
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
     }
 
-    protected JSONObject processPost(HttpServletRequest request, Class cls, String[] args, JSONObject payload)
+    protected JSONObject processPost(HttpServletRequest request, String[] args, JSONObject payload)
     throws ServletException, IOException {
+        if (payload == null) throw new ServletException("empty payload");
         JSONObject rtn = new JSONObject();
+        rtn.put("success", false);
         List<File> files = findFiles(request, payload);
-/*
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("api.BaseObject.processPost");
+        myShepherd.beginDBTransaction();
+        User currentUser = myShepherd.getUser(request);
+
+        Base obj = null;
         try {
-//cls.createFromApi(payload, files)
+            String cls = payload.optString("_class");
+            switch (cls) {
+            case "encounters":
+                obj = Encounter.createFromApi(payload, files);
+                break;
+            case "occurrences":
+                obj = Occurrence.createFromApi(payload, files);
+                break;
+            case "individuals":
+                obj = MarkedIndividual.createFromApi(payload, files);
+                break;
+            default:
+                throw new ApiException("bad class");
+            }
+            rtn.put("id", obj.getId());
+            rtn.put("class", cls);
+            rtn.put("success", true);
+
         } catch (ApiException apiEx) {
+            rtn.put("statusCode", 400);
+            rtn.put("errors", apiEx.getErrors());
         }
-*/
-//cls.validateFieldValue(String fieldName, org.json.JSONObject data)
+
+        if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
+            myShepherd.commitDBTransaction();
+        } else {
+            myShepherd.rollbackDBTransaction();
+        }
+        myShepherd.closeDBTransaction();
         return rtn;
     }
 
-    protected JSONObject processGet(HttpServletRequest request, Class cls, String[] args)
+    protected JSONObject processGet(HttpServletRequest request, String[] args)
     throws ServletException, IOException {
         JSONObject rtn = new JSONObject();
         return rtn;
