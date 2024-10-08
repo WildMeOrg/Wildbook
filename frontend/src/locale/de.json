@@ -260,7 +260,7 @@
     "ADDITIONAL_COMMENTS_SECTION": "Zusätzliche Kommentare",
     "FOLLOWUP_SECTION": "Informationen zur Nachbereitung",
     "SUBMIT_ENCOUNTER": "Begegnung einreichen",
-    "SUPPORTED_FILETYPES": "Wir unterstützen .jpg, .jpeg, .png und bmp. Videos können gespeichert, aber nicht für die Bildanalyse verwendet werden.",
+    "SUPPORTED_FILETYPES": "Wir unterstützen .jpg, .jpeg, .png und bmp. Die Dateien können nicht größer sein als ",
     "PHOTO_INSTRUCTION": "Ziehen Sie Ihre Dateien per Drag & Drop hierher oder durchsuchen Sie sie",
     "BROWSE": "Durchsuchen",
     "DATE_INSTRUCTION": "Geben Sie das Datum der Untersuchung ein oder wählen Sie es aus. Wenn Sie weniger als das Datum eingeben, sollten Sie es tippen, um Fehler zu vermeiden.",
