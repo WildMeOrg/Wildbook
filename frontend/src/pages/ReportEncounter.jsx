@@ -13,6 +13,8 @@ import FollowUpSection from "../components/FollowUpSection";
 
 export default function ReportEncounter() {
   const themeColor = useContext(ThemeColorContext);
+  const [species, setSpecies] = useState("");
+  const [isValidForm, setIsValidForm] = useState(true);
   const { isLoggedIn } = useContext(AuthContext);
   const encounterCategories = [
     {
@@ -29,7 +31,13 @@ export default function ReportEncounter() {
     },
     {
       title: "SPECIES",
-      section: <SpeciesSection />,
+      section: (
+        <SpeciesSection
+          species={species}
+          setSpecies={setSpecies}
+          isValidForm={isValidForm}
+        />
+      ),
     },
 
     {
@@ -81,6 +89,15 @@ export default function ReportEncounter() {
     });
   };
 
+  const handleSubmit = () => {
+    if (!species) {
+      setIsValidForm(false);
+    } else {
+      setIsValidForm(true);
+      alert("Form Submit!");
+    }
+  };
+
   return (
     <Container>
       <Row>
@@ -105,7 +122,7 @@ export default function ReportEncounter() {
               sign in!
             </a>
           </Alert>
-        ) : null}        
+        ) : null}
       </Row>
       <Row>
         <Alert
@@ -177,6 +194,7 @@ export default function ReportEncounter() {
                 marginTop: "20px",
                 marginBottom: "20px",
               }}
+              onClick={handleSubmit}
             >
               Submit Encounter
             </MainButton>
@@ -191,7 +209,7 @@ export default function ReportEncounter() {
           }}
           onScroll={handleScroll}
         >
-          <Form>
+          <Form style={{ width: "80%" }}>
             {encounterCategories.map((category, index) => (
               <div
                 key={index}
