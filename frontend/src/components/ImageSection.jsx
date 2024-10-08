@@ -12,28 +12,27 @@ import { FormattedMessage } from "react-intl";
 import ThemeContext from "../ThemeColorProvider";
 import MainButton from "./MainButton";
 import { v4 as uuidv4 } from "uuid";
+import useGetSiteSettings from "../models/useGetSiteSettings";
+import { observer } from "mobx-react-lite";
 
-const FileUploader = (
-  {
-    required = true,
-    setUploadStatus = () => { },
-    setFormData = () => { },
-  },
-) => {
+export const FileUploader = observer((reportEncounterStore) => {
   const [files, setFiles] = useState([]);
-  // console.log("files", files);
   const [flow, setFlow] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [fileActivity, setFileActivity] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
-  const [ fileNames, setFileNames ] = useState([]);
+  const [fileNames, setFileNames] = useState([]);
+  const { data } = useGetSiteSettings();
+  const maxSize = data?.maximumMediaSizeMegabytes || 40;
 
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
+    if (previewData?.length > 0) {
+      const submissionId = uuidv4();
+    } else {
+    }
   }, [previewData]);
-
-  console.log("fileNames", fileNames);
 
   const theme = useContext(ThemeContext);
 
@@ -55,7 +54,6 @@ const FileUploader = (
 
     flowInstance.on("fileAdded", (file) => {
       const supportedTypes = ["image/jpeg", "image/png", "image/bmp"];
-      
       // Check if the file's type is supported
       if (!supportedTypes.includes(file.file.type)) {
         console.error("Unsupported file type:", file.file.type);
@@ -75,7 +73,6 @@ const FileUploader = (
         ]);
       };
       reader.readAsDataURL(file.file);
-
       setFiles((prevFiles) => [...prevFiles, file]);
       setFileActivity(true);
       return true;
@@ -102,14 +99,6 @@ const FileUploader = (
         ),
       );
       setUploading(false);
-      setUploadStatus(true);     
-
-      const submissionId = uuidv4();
-      setFormData((prevFormData) => ({  
-        ...prevFormData,
-        submissionId, 
-        "fileNames" : fileNames, }));        
-      console.log("Upload success:", file);
     });
 
     flowInstance.on("fileError", (file, message) => {
@@ -122,12 +111,14 @@ const FileUploader = (
             : preview,
         ),
       );
-      setUploadStatus(false);
       console.error("Upload error:", message);
     });
   };
 
   const handleUploadClick = () => {
+    // remove files that are larger than the max size
+    const files = flow.files.filter((file) => file.size <= maxSize * 1024 * 1024);
+
     if (files) {
       setUploading(true);
       files.forEach((file) => {
@@ -136,14 +127,16 @@ const FileUploader = (
     }
   };
 
+  console.log("reportEncounterStore", reportEncounterStore.speciesSection);
+
   return (
     <Container>
       <Row>
         <p style={{ fontWeight: "500", fontSize: "1.5rem" }}>
-          <FormattedMessage id="PHOTOS_SECTION" /> {required && "*"}
+          <FormattedMessage id="PHOTOS_SECTION" /> {reportEncounterStore.imageRequired && "*"}
         </p>
         <p>
-          <FormattedMessage id="SUPPORTED_FILETYPES" />
+          <FormattedMessage id="SUPPORTED_FILETYPES" />{`${" "}${maxSize} MB`}
         </p>
       </Row>
       <Row>
@@ -196,6 +189,11 @@ const FileUploader = (
                   >
                     <div>{preview.fileName}</div>
                     <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                    {(preview.fileSize / (1024 * 1024)).toFixed(2) > 0.1 && (
+                      <div style={{ color: "red" }}>
+                        <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <ProgressBar
@@ -235,7 +233,7 @@ const FileUploader = (
                   }}
                 ></i>
                   <p><FormattedMessage id="ADD_MORE_FILES" /></p>
-                </div> : <div className="mb-3">
+                </div> : <div className="mb-3 d-flex flex-column justify-content-center">
                   <i
                     className="bi bi-images"
                     style={{
@@ -247,13 +245,17 @@ const FileUploader = (
                     <FormattedMessage id="PHOTO_INSTRUCTION" />
                   </p>
 
-
                   <MainButton
                     onClick={() => fileInputRef.current.click()}
                     disabled={uploading}
                     backgroundColor={theme.wildMeColors.cyan700}
                     color={theme.defaultColors.white}
                     noArrow={true}
+                    style={{
+                      width: "auto",
+                      fontSize: "1rem",
+                      margin: "0 auto",
+                    }}
                   >
                     <FormattedMessage id="BROWSE" />
                   </MainButton>
@@ -288,6 +290,6 @@ const FileUploader = (
       )}
     </Container>
   );
-};
+});
 
 export default FileUploader;
