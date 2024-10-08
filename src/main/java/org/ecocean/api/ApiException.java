@@ -21,6 +21,11 @@ public class ApiException extends Exception {
         super(message);
         this.errors = errors;
     }
+    public ApiException(String message, JSONObject error) {
+        super(message);
+        this.errors = new JSONArray();
+        this.errors.put(error);
+    }
     public JSONArray getErrors() {
         return errors;
     }

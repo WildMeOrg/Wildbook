@@ -196,7 +196,7 @@ import org.json.JSONObject;
     }
 
     // TODO should this be an abstract? will we need some base stuff?
-    public static JSONObject validateFieldValue(String fieldName, JSONObject data) {
+    public static Object validateFieldValue(String fieldName, JSONObject data) throws ApiException {
         return null;
     }
 
