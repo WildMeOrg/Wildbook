@@ -4644,4 +4644,33 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
         return rtn;
     }
+
+    public static org.json.JSONObject validateFieldValue(String fieldName, org.json.JSONObject data) {
+        if (data == null) data = new org.json.JSONObject(); // meh
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+
+        switch (fieldName) {
+
+        case "locationId":
+            String val = data.optString(fieldName, null);
+            if (val == null) {
+                error.put("code", Base.ERROR_RETURN_CODE_REQUIRED);
+                return error;
+            }
+            if (!LocationID.isValidLocationID(val)) {
+                error.put("code", Base.ERROR_RETURN_CODE_INVALID);
+                error.put("value", val);
+                return error;
+            }
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" + fieldName);
+        }
+
+        // must be okay!
+        return null;
+    }
+
 }
