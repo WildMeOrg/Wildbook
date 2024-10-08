@@ -79,7 +79,6 @@ public class Cluster {
                 Node wnode = wlist.item(w);
                 if (wnode.getNodeType() != Node.ELEMENT_NODE) continue;
                 Element wel = (Element)wnode; // <waypoints id="4" x="37.4676312262241" y="0.278523922074831" time="11:00:40">
-///////TODO verify that this produces correct output
                 String x = wel.getAttribute("x");
                 Double decimalLongitude = strToDoubleNoExceptions(x);
                 String y = wel.getAttribute("y");
@@ -234,16 +233,6 @@ public class Cluster {
             }
             // persist the occ!
         }
-/*
-                        val.put("time", el.getAttribute("time"));
-                        NodeList anlist = el.getElementsByTagName("attributes");
-                                if (an.getNodeType() != Node.ELEMENT_NODE) continue;
-                                Element ael = (Element) an;
-                                String aval = "";
-                                NodeList vl = ael.getElementsByTagName("dValue");  //numeric if (vl.getLength() < 1) vl =
-                                   ael.getElementsByTagName("itemKey");  //string if (vl.getLength() > 0) aval = vl.item(0).getTextContent();
-   System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
- */
 
         return occs;
     }
@@ -423,11 +412,7 @@ public class Cluster {
         String output = runPythonCommand(command);
         int[] occNums = parseJonsOutput(output);
         List<List<MediaAsset> > occurrenceGroups = groupAssetsByJonsOutput(validAssets, occNums);
-        /*
-           for (List<MediaAsset> occGroup : occurrenceGroups) {
-           Occurrence occ = new Occurrence(occGroup);
-           myShepherd.storeNewOccurrence(occ);
-           }*/
+        
         for (int i = 0; i < occurrenceGroups.size(); i++) {
             List<MediaAsset> occGroup = occurrenceGroups.get(i);
             Occurrence occ = new Occurrence(occGroup, myShepherd);

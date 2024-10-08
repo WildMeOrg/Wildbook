@@ -414,10 +414,6 @@ public class User implements Serializable {
         Set<String> rtn = new HashSet<String>();
 
         rtn.add("_userId_:" + uuid); // kinda like "private" key?
-/*  these should migrate to Organizations!!
-        if (Util.stringExists(userProject)) rtn.add("_userProject_:" + userProject.toLowerCase());
-        if (Util.stringExists(affiliation)) rtn.add("_affiliation_:" + affiliation.toLowerCase());
- */
         // if the best context we have is a user, we add all the (toplevel) groups they are members of
         if (organizations != null) {}
         return rtn;

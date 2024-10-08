@@ -584,7 +584,7 @@ public class OpenSearch {
     }
 
     // TODO right now this respects index timestamp and only indexes objects with versions > timestamp.
-    // probably want to make an option to index everything and ignore version/timestamp.
+    // want to make an option to index everything and ignore version/timestamp.
     public void indexAll(Shepherd myShepherd, Base obj)
     throws IOException {
         String clause = "";
