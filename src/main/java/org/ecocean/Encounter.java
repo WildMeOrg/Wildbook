@@ -4649,28 +4649,32 @@ public class Encounter extends Base implements java.io.Serializable {
     public static Base createFromApi(org.json.JSONObject payload, List<File> files)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
-        String[] required = {"locationID", "taxonomy", "dateTime"};
+
+        String locationID = (String)validateFieldValue("locationID", payload);
         Encounter enc = new Encounter();
         return enc;
     }
 
-    public static org.json.JSONObject validateFieldValue(String fieldName, org.json.JSONObject data) {
-        if (data == null) data = new org.json.JSONObject(); // meh
+    public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
         org.json.JSONObject error = new org.json.JSONObject();
         error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
 
         switch (fieldName) {
 
         case "locationId":
-            String val = data.optString(fieldName, null);
-            if (val == null) {
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
-                return error;
+                throw new ApiException(exMessage, error);
             }
-            if (!LocationID.isValidLocationID(val)) {
+            if (!LocationID.isValidLocationID((String)returnValue)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
-                error.put("value", val);
-                return error;
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
             }
             break;
 
@@ -4679,7 +4683,7 @@ public class Encounter extends Base implements java.io.Serializable {
         }
 
         // must be okay!
-        return null;
+        return returnValue;
     }
 
 }
