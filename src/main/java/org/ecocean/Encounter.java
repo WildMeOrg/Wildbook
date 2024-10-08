@@ -4649,7 +4649,9 @@ public class Encounter extends Base implements java.io.Serializable {
     public static Base createFromApi(org.json.JSONObject payload, List<File> files)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
-        return null;
+        String[] required = {"locationID", "taxonomy", "dateTime"};
+        Encounter enc = new Encounter();
+        return enc;
     }
 
     public static org.json.JSONObject validateFieldValue(String fieldName, org.json.JSONObject data) {
