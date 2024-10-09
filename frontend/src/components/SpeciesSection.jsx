@@ -18,9 +18,7 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
     <div>
       <h4>
         <FormattedMessage id="SPECIES" />
-        <span style={{ color: "red" }}>
-          <FormattedMessage id="REQUIRED_ASTERISK" />
-        </span>
+        <span style={{ color: "red" }}> *</span>
       </h4>
       <p>
         <FormattedMessage id="SPECIES_REQUIRED_IA_WARNING" />
@@ -29,17 +27,9 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
       <Form.Group>
         <Form.Label>
           <FormattedMessage id="SPECIES" />
-          <span style={{ color: "red" }}>
-            <FormattedMessage id="REQUIRED_ASTERISK" />
-          </span>
+          <span style={{ color: "red" }}> *</span>
         </Form.Label>
-        <div
-          style={{
-            position: "relative",
-            display: "inline-block",
-            width: "100%",
-          }}
-        >
+        <div className="position-relative d-inline-block w-100">
           <Form.Control
             as="select"
             required="true"
@@ -59,16 +49,8 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
           </Form.Control>
 
           <i
-            className="bi bi bi-chevron-down"
-            style={{
-              position: "absolute",
-              right: "10px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              pointerEvents: "none",
-              fontSize: "1em",
-              color: "#6c757d",
-            }}
+            className="bi bi-chevron-down position-absolute top-50 translate-middle-y text-secondary"
+            style={{ right: "10px", pointerEvents: "none" }}
           ></i>
         </div>
         {!isValidForm && !species && (

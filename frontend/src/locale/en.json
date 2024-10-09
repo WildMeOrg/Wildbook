@@ -287,7 +287,5 @@
     "EMPTY_REQUIRED_FIELD": "Empty Required Field",
     "IMAGES_REQUIRED_ANON_WARNING": "Images are required for anonymous submission. Add images or sign in.",
     "CONTACT_OTHERS": "For others",
-    "EMPTY_REQUIRED_WARNING": "This field cannot be empty",
-    "REQUIRED_ASTERISK": " *",
-    "UNKNOWN": "Unknown"
+    "EMPTY_REQUIRED_WARNING": "This field cannot be empty"
 }
