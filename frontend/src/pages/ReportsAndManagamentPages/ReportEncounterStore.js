@@ -1,6 +1,7 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 
-export class ReportEncountStore {
+
+export class ReportEncounterStore {
   _imageSectionSubmissionId;
   _imageRequired;
   _imageSectionUploadSuccess;
@@ -11,6 +12,7 @@ export class ReportEncountStore {
   _placeSection;
   _followUpSection;
   _additionalCommentsSection;
+
   constructor() {
     this._imageSectionSubmissionId = "";
     this._imageRequired = true;
@@ -21,12 +23,10 @@ export class ReportEncountStore {
       value: "",
       error: false,
     };
-
     this._speciesSection = {
       value: "",
       error: false,
     };
-
     this._placeSection = {
       value: "",
       error: false,
@@ -38,6 +38,7 @@ export class ReportEncountStore {
     makeAutoObservable(this);
   }
 
+  // Getters
   get imageSectionSubmissionId() {
     return this._imageSectionSubmissionId;
   }
@@ -74,54 +75,72 @@ export class ReportEncountStore {
     return this._followUpSection;
   }
 
-  set imageSectionSubmissionId(value) {
+  // Actions
+  setImageSectionSubmissionId(value) {
     this._imageSectionSubmissionId = value;
   }
 
-  set imageRequired(value) {
+  setImageRequired(value) {
     this._imageRequired = value;
   }
 
-  set imageSectionUploadSuccess(value) {
+  setImageSectionUploadSuccess(value) {
     this._imageSectionUploadSuccess = value;
   }
 
-  set imageSectionFileNames(value) {
+  setImageSectionFileNames(value) {
     this._imageSectionFileNames = value;
   }
 
-  set startUpload(value) {
+  setStartUpload(value) {
     this._startUpload = value;
   }
 
-  set speciesSection(value) {
-    this._speciesSection = value;
+  setSpeciesSectionValue(value) {
+    this._speciesSection.value = value;
   }
 
-  set placeSection(value) {
+  setSpeciesSectionError(error) {
+    this._speciesSection.error = error;
+  }
+
+  setPlaceSection(value) {
     this._placeSection.value = value;
   }
 
-  set followUpSection(value) {
+  setFollowUpSection(value) {
     this._followUpSection.value = value;
   }
 
   validateFields() {
     let isValid = true;
-    if (!this.speciesSection.value) {
-      this.speciesSection.error = true;
+
+    if (!this._speciesSection.value) {
+      this._speciesSection.error = true;
       isValid = false;
+    } else {
+      this._speciesSection.error = false;
     }
 
-    // if(!this.placeSection.value) {
-    //   this.placeSection.error = true;
+    // Uncomment the place section validation if needed
+    // if (!this._placeSection.value) {
+    //   this._placeSection.error = true;
     //   isValid = false;
+    // } else {
+    //   this._placeSection.error = false;
     // }
 
     return isValid;
   }
 
   async submitReport() {
-    console.log("Report submitted", this.speciesSection.value);
+    if (this.validateFields()) {
+      console.log("Report submitted", this._speciesSection.value);
+      // Additional logic for report submission can be added here.
+    } else {
+      console.error("Validation failed");
+    }
   }
 }
+
+export default ReportEncounterStore;
