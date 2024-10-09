@@ -819,7 +819,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* TODO we do not have user-flavored Collaboration.canUserAccessOccurrence yet
+/* TODO: we do not have user-flavored Collaboration.canUserAccessOccurrence yet
             if ((user.getId() != null) && this.canUserAccess(user, myShepherd.getContext())) ids.add(user.getId());
  */
             if (user.getId() != null) ids.add(user.getId());
@@ -831,7 +831,7 @@ public class Occurrence extends Base implements java.io.Serializable {
         List<String> ids = new ArrayList<String>();
 
         for (User user : myShepherd.getAllUsers()) {
-/* TODO we do not have edit stuff for occurrence
+/* TODO: we do not have edit stuff for occurrence
             if ((user.getId() != null) && this.canUserEdit(user)) ids.add(user.getId());
  */
             if (user.getId() != null) ids.add(user.getId());

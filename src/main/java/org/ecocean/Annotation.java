@@ -48,10 +48,10 @@ public class Annotation implements java.io.Serializable {
     protected String acmId;
 
     // this is used to decide "should we match against this"  problem is: that is not very (IA-)algorithm agnostic
-    // TODO was this made obsolete by ACM and friends?
+    // TODO: was this made obsolete by ACM and friends?
     private boolean matchAgainst = false;
 
-    // TODO can these (thru mediaAsset) be removed now that there Features? 
+    // TODO: can these (thru mediaAsset) be removed now that there Features? 
     private int x;
     private int y;
     private int width;
@@ -369,7 +369,7 @@ public class Annotation implements java.io.Serializable {
        NoSuchAlgorithmException, InvalidKeyException {
  */
 
-// TODO Deprecate "all of this" now that deployed sites are migrated
+// TODO: Deprecate "all of this" now that deployed sites are migrated
     public MediaAsset __getMediaAsset() {
         return mediaAsset;
     }
@@ -882,7 +882,7 @@ public class Annotation implements java.io.Serializable {
                 if (opt.equals("me"))
                     f += " && user.uuid == '" + userId +
                         "' && (enc.submitters.contains(user) || enc.submitterID == user.username) ";
-                // TODO also handle user "collab"
+                // TODO: also handle user "collab"
             }
         }
         // add projectID to filter

@@ -18,7 +18,7 @@ org.ecocean.media.*
 this can use a little nginx magic to allow something like /imagedl/MEDIA_ASSET_ID/some_file_name.jpg to deliver
 the *master* image associated with some media asset.  nice for downloading as the original filename.
 
-TODO - should we require the user be logged in here?  i guess that could also be stopped with shiro
+should we require the user be logged in here?  i guess that could also be stopped with shiro
 
 	location ~ /imagedl/(.+)/(.+) {
 		include proxy_params;
@@ -74,7 +74,6 @@ if (ma == null) {
     return;
 }
 
-//TODO now, should we do the *safe* child or the *master* ????  going to go with master for now....
 ArrayList<MediaAsset> masters = ma.findChildrenByLabel(myShepherd, "_master");
 if ((masters == null) || (masters.size() < 1)) {
     response.setContentType("text/html");

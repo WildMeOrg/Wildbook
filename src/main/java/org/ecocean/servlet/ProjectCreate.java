@@ -56,8 +56,6 @@ public class ProjectCreate extends HttpServlet {
         String projectIdPrefix = null;
         String researchProjectName = null;
 
-        // TODO handle add users by organization
-
         try {
             res.put("success", "false");
             encsJSON = j.optJSONArray("encounterIds");

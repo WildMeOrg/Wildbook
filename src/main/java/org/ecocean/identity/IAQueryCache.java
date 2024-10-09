@@ -25,15 +25,13 @@ public class IAQueryCache {
         // qanns can "in theory" contain more than one annot, but we arent ready for that universe yet anyway...
         if ((qanns == null) || (qanns.size() < 1)) return -1; // :(
         // we want *non* excluding version of this:
-        // Shepherd myShepherd = new Shepherd(context);
-        // myShepherd.setAction("IAQueryCache.builtTargetAnnotationsCache");
         ArrayList<Annotation> anns = qanns.get(0).getMatchingSetForTaxonomy(myShepherd, null);
         if (anns == null) return -2;
         JSONObject jdata = new JSONObject();
         JSONArray idArr = new JSONArray();
         JSONArray nameArr = new JSONArray();
         for (Annotation ann : anns) {
-// TODO do we also filter on name conflicts etc here????????????????????????????
+            // Doesn't filter on name conflicts etc
             String name = ann.findIndividualId(myShepherd);
             if (name == null) name = IBEISIA.IA_UNKNOWN_NAME;
             nameArr.put(name);
@@ -60,9 +58,6 @@ public class IAQueryCache {
         QueryCache qc = QueryCacheFactory.getQueryCache(context);
         CachedQuery q = qc.getQueryByName(qname);
         if (q == null) {
-            // Shepherd myShepherd = new Shepherd(context);
-            // myShepherd.setAction("IAQueryCache.setTargetAnnotationsCache");
-            // myShepherd.beginDBTransaction();
             q = new CachedQuery(qname, jobj, true, myShepherd);
             qc.addCachedQuery(q);
             myShepherd.updateDBTransaction();
@@ -117,17 +112,12 @@ public class IAQueryCache {
 
         // weed out sibling (including ourself!) annots
         List<String> famAnnotIds = new ArrayList<String>();
-        // Shepherd myShepherd = new Shepherd(context);
-        // myShepherd.setAction("IAQueryCache.tryTargetAnnotationsCache");
-        // myShepherd.beginDBTransaction();
         Encounter enc = ann.findEncounter(myShepherd);
         if ((enc != null) && (enc.getAnnotations() != null)) { // second part is impossible (flw)
             for (Annotation ea : enc.getAnnotations()) {
                 famAnnotIds.add(ea.getAcmId());
             }
         }
-        // myShepherd.rollbackDBTransaction();
-        // TODO some other checks here, obviously????? (or will it just expire by itself)  (e.g. validAnnotation???)
         JSONObject postData = new JSONObject();
         JSONArray outIdArr = new JSONArray();
         JSONArray outNameArr = new JSONArray();
@@ -140,17 +130,6 @@ public class IAQueryCache {
             outIdArr.put(aid);
             outNameArr.put(an);
         }
-/*
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, matchingSet, queryConfigDict, userConfidence, myShepherd, annTaskId, baseUrl);
-            ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
-            taskRes.put("beginIdentify", sent);
-            String jobId = null;
-            if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false)) jobId =
-               sent.optString("response", null);
-            taskRes.put("jobId", jobId);
-            //validIds.toArray(new String[validIds.size()]) IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject("{\"_action\":
- \"initIdentify\"}"), context);
- */
         rtn.put("success", false); // tmp during development
         return rtn;
     }
@@ -170,13 +149,9 @@ public class IAQueryCache {
             log("WARNING: addTargetAnnotation() found empty current arrays!  weird.");
             return null;
         }
-        // Shepherd myShepherd = new Shepherd(context);
-        // myShepherd.setAction("IAQueryCache.addTargetAnnotation");
-        // myShepherd.beginDBTransaction();
+
         String indivId = ann.findIndividualId(myShepherd);
-        // myShepherd.rollbackDBTransaction();
         // cheap fix to handle name-conflict potential: we dont add an annot which is already on list in cache!
-        // TODO ... do this!  :)  :(
         if (indivId == null) {
             tNameArr.put(IBEISIA.IA_UNKNOWN_NAME);
         } else {
@@ -192,12 +167,7 @@ public class IAQueryCache {
     private static String generateQueryName(String context, Annotation ann, String type,
         Shepherd myShepherd) {
         if (ann == null) return null;
-        // Shepherd myShepherd = new Shepherd(context);
-        // myShepherd.setAction("IAQueryCache.generateQueryName");
-        // myShepherd.beginDBTransaction();
         Encounter enc = ann.findEncounter(myShepherd);
-        // myShepherd.rollbackDBTransaction();
-        // myShepherd.closeDBTransaction();
         if (enc == null) return null;
         String val = enc.getTaxonomyString();
         if (val == null) return null;
