@@ -33,8 +33,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
-    console.log("count", count);
-    console.log(previewData);
     if (count === previewData.length) {
       const submissionId = uuidv4();
       reportEncounterStore.setImageSectionSubmissionId(submissionId);
@@ -107,8 +105,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       setFileActivity(true);
       return true;
     });
-
-    console.log(previewData);
 
     flowInstance.on("fileProgress", (file) => {
       const percentage = (file._prevUploadedSize / file.size) * 100;
