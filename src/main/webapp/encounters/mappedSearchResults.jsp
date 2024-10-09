@@ -71,7 +71,6 @@
 
     List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
-    //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 

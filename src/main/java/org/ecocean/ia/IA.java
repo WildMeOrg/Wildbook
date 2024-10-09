@@ -220,8 +220,7 @@ public class IA {
                 }
                 if ((assetsWithMissingAcmids.size() >= batchThreshold) ||
                     count == mediaAssets.size()) {
-                    if (assetsWithMissingAcmids.size() > 0) { // if count gets to the end and assetsWithMissingAcmids is still empty, no need to do
-                                                              // any of this
+                    if (assetsWithMissingAcmids.size() > 0) { // if count gets to the end and assetsWithMissingAcmids is still empty, no need to do any of this
                         try {
                             IBEISIA.sendMediaAssetsNew(assetsWithMissingAcmids,
                                 myShepherd.getContext());
@@ -420,7 +419,6 @@ public class IA {
             myShepherd.storeNewTask(topTask);
             JSONObject opt = jin.optJSONObject("opt"); // should use this to decide how to branch differently than "default"
 
-            // for now (TODO) we just send MAs off to detection and annots off to identification
             JSONArray mlist = jin.optJSONArray("mediaAssetIds");
             if ((mlist != null) && (mlist.length() > 0)) {
                 System.out.println("MLIST: " + mlist);

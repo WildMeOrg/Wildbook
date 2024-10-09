@@ -14,7 +14,6 @@ import org.ecocean.Util;
 import org.json.JSONObject;
 
 /*
-
     TestPlugin is meant to a be "template" plugin to serve as a guide to creating other IA plugins.
     (As well as test out new ideas/features, perhaps.)
 
@@ -25,9 +24,6 @@ import org.json.JSONObject;
 
     A Queue is not strictly necessary.  The intake methods could have simply done whatever processing necessary (e.g. send the objects to a blackbox
        IA service) in real-time.  The Queue just demostrates how to allow intake methods to asynchronously stack up jobs in the background.
-
-    TODO -- mockup a TestPlugin callback, once we figure out how that will get routed thru IAGateway!!
-
  */
 public class TestPlugin extends IAPlugin {
     private String context = null;

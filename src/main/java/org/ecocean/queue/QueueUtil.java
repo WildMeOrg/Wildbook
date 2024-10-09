@@ -57,15 +57,14 @@ public class QueueUtil {
                         ioex.toString());
                     }
                 }
-//////System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
-                ////TODO what does !ok mean for us here????  we dont really have ACK like rabbitmq.... so... ????
+// System.out.println("count=" + count + "; handled-ok=" + ok + "; cont=" + cont + "; msg=" + message);
                 if (!cont) {
                     System.out.println(":::: " + queue.toString() +
                     " shutdown via discontinue signal ::::");
                     schedExec.shutdown();
                 }
             }
-        }, 1, // initial delay  ... TODO these could be configurable, obvs
+        }, 1, // initial delay
             1, // period delay *after* execution finishes
             TimeUnit.SECONDS);
 

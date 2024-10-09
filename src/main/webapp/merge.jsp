@@ -64,7 +64,6 @@ table.compareZone tr th {
   var projNamesBelongingToIndividuals = [];
   let projIdPrefixesBelongingToIndividuals = [];
 	$(document).ready(function() {
-		// highlightMergeConflicts(); //TODO add this back in -MF
 		replaceDefaultKeyStrings();
     let requestJsonForIndividualsProjects = {};
     requestJsonForIndividualsProjects['individualIdsForProj'] = [];
@@ -316,7 +315,7 @@ table.compareZone tr th {
       if($(this).children("td.diff_check").first().html()){
         let val1 = $(this).children("td.diff_check").first().html().trim();
         let val2 = $(this).children("td.diff_check").last().html().trim();
-        let val3 = $(this).find("input").val(); //TODO update
+        let val3 = $(this).find("input").val(); 
         console.log("index="+i+" val1="+val1+", val2="+val2+" and val3="+val3);
         if (val3!==val1 && val3!==val2) {
           $(this).addClass('needs_review');
@@ -580,7 +579,6 @@ table.compareZone tr th {
             System.out.println("attempting to assign Enc " + encId + " to " + markA);
             Encounter enc = myShepherd.getEncounter(encId);
             if (enc == null) throw new RuntimeException("Bad Encounter id=" + encId);
-            // TODO should we bail if already assigned?
             enc.setIndividual(markA);
         }
 

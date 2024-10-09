@@ -104,7 +104,7 @@ public class EncounterForm extends HttpServlet {
 
     private List<MetalTag> getMetalTags(Map formValues) {
         List<MetalTag> list = new ArrayList<MetalTag>();
-        List<String> keys = Arrays.asList("left", "right"); // TODO programatically build from form
+        List<String> keys = Arrays.asList("left", "right"); 
 
         for (String key : keys) {
             // The keys are the location
@@ -116,22 +116,8 @@ public class EncounterForm extends HttpServlet {
         return list;
     }
 
-    // private List<Project> getProjects(Map formValues){
-    // List<Project> projects = new ArrayList<Project>();
-    // String projectNames = getVal(formValues, "proj-id-dropdown");
-    // if(Util.stringExists(projectNames)){
-    // System.out.println("projectNames is: " + projectNames);
-    // }
-    // String defaultProject = getVal(formValues, "defaultSelection");
-    // if(Util.stringExists(defaultProject)){
-    // System.out.println("defaultProject is: " + defaultProject);
-    // }
-    // return projects;
-    // }
-
     private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
         List<Measurement> list = new ArrayList<Measurement>();
-        // List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
         // dynamically adapt to project-specific measurements
         List<String> keys = CommonConfiguration.getIndexedPropertyValues("measurement", context);
@@ -146,37 +132,11 @@ public class EncounterForm extends HttpServlet {
                     Double doubleVal = Double.valueOf(value);
                     list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
                 } catch (Exception ex) {
-                    // TODO was reporting via comments, but now how to handle?
                 }
             }
         }
         return list;
     }
-
-/*
-   got regular field (measurement(weight))=(111) got regular field (measurement(weightunits))=(kilograms) got regular field
-      (measurement(weightsamplingProtocol))=(samplingProtocol1) got regular field (measurement(length))=(222) got regular field
-      (measurement(lengthunits))=(meters) got regular field (measurement(lengthsamplingProtocol))=(samplingProtocol0) got regular field
-      (measurement(height))=(333) got regular field (measurement(heightunits))=(meters) got regular field
-      (measurement(heightsamplingProtocol))=(samplingProtocol0) Map<String, Object> measurements = theForm.getMeasurements();
-      for (String key : measurements.keySet()) {
-        if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
-          String value = ((String) measurements.get(key)).trim();
-          if (value.length() > 0) {
-            try {
-              Double doubleVal = Double.valueOf(value);
-              String units = (String) measurements.get(key + "units");
-              String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
-              Measurement measurement = new Measurement(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
-              enc.addMeasurement(measurement);
-            }
-            catch(Exception ex) {
-              enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
-            }
-          }
-        }
-      }
- */
 
     public static final String ERROR_PROPERTY_MAX_LENGTH_EXCEEDED =
         "The maximum upload length has been exceeded by the client.";
@@ -187,8 +147,7 @@ public class EncounterForm extends HttpServlet {
         List<Project> projects = new ArrayList<Project>();
         Map formValues = new HashMap();
 
-        // IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the
-        // reviewer
+        // IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the reviewer
         // Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(formValues,
         // "datepicker")+"</p>");
         StringBuffer processingNotes = new StringBuffer();
@@ -198,78 +157,8 @@ public class EncounterForm extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("EncounterForm.class");
         System.out.println("in context " + context);
-        // request.getSession()getServlet().getServletContext().getRealPath("/"));
         String rootDir = getServletContext().getRealPath("/");
         System.out.println("rootDir=" + rootDir);
-
-/*
-    Vector<String> fbImages = new Vector<String>();
-    int fbi = 0;
-    while (request.getParameter("socialphoto_" + fbi) != null) {
-        fbImages.add(request.getParameter("socialphoto_" + fbi));
-        fbi++;
-    }
-   System.out.println(fbImages);
-    if (fbImages.size() > 0) {
-        FacebookClient fbclient = null;
-        try {
-            fbclient = SocialAuth.getFacebookClient(context);
-        } catch (Exception ex) {
-            System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
-        }
-            WebContext ctx = new J2EContext(request, response);
-            //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/XXXSocialConnect?type=facebook";
-            if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
-            fbclient.setCallbackUrl(callbackUrl);
-            OAuthCredentials credentials = null;
-            try {
-                credentials = fbclient.getCredentials(ctx);
-            } catch (Exception ex) {
-                System.out.println("caught exception on facebook credentials: " + ex.toString());
-            }
-            if (credentials != null) {
-                FacebookProfile facebookProfile = fbclient.getUserProfile(credentials, ctx);
-                User fbuser = myShepherd.getUserBySocialId("facebook", facebookProfile.getId());
-                System.out.println("getId() = " + facebookProfile.getId() + " -> user = " + fbuser);
-   if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuser = " + fbuser.getUsername());
-                if ((fbuser != null) && (fbuser.getUsername().equals(user.getUsername())) && (request.getParameter("disconnect") != null)) {
-                    fbuser.unsetSocial("facebook");
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "disconnected from facebook");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-                } else if (fbuser != null) {
-                    session.setAttribute("error", "looks like this account is already connected to an account");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-                } else {  //lets do this user.setSocial("facebook", facebookProfile.getId());
-                    //myShepherd.getPM().makePersistent(user);
-                    session.setAttribute("message", "connected to facebook");
-                    response.sendRedirect("myAccount.jsp");
-                    return;
-                }
-            } else {
-   System.out.println("*** trying redirect?");
-                try {
-                    fbclient.redirect(ctx, false, false);
-                } catch (Exception ex) {
-                    System.out.println("caught exception on facebook processing: " + ex.toString());
-                }
-                return;
-            }
-    }
- */
-        // private Map<String, Object> measurements = new HashMap<String, Object>();
-        // Map<String, Object> metalTags = new HashMap<String, Object>();
-
-/*
-      private String acousticTagSerial = "";
-      private String acousticTagId = "";
-      private String satelliteTagSerial = "";
-      private String satelliteTagArgosPttNumber = "";
-      private String satelliteTagName = "";
- */
 
         // set up for response
         response.setContentType("text/html");
@@ -299,13 +188,7 @@ public class EncounterForm extends HttpServlet {
                     if (item.isFormField()) { // plain field
                         formValues.put(item.getFieldName(),
                             ServletUtilities.preventCrossSiteScriptingAttacks(item.getString(
-                            "UTF-8").trim()));                                                                                                   // TODO
-                                                                                                                                                 // do
-                                                                                                                                                 // we
-                                                                                                                                                 // want
-                                                                                                                                                 // trim()
-                                                                                                                                                 // here???
-                                                                                                                                                 // -jon
+                            "UTF-8").trim()));                                                                                               
                         if (item.getFieldName().equals("defaultProject")) {
                             if (!projectIdSelection.contains(item.getString().trim())) {
                                 projectIdSelection.add(item.getString().trim());
@@ -319,7 +202,7 @@ public class EncounterForm extends HttpServlet {
                     } else if (item.getName().startsWith("socialphoto_")) {
                         System.out.println(item.getName() + ": " + item.getString("UTF-8"));
                     } else { // file
-// System.out.println("content type???? " + item.getContentType());   TODO note, the helpers only check extension
+// System.out.println("content type???? " + item.getContentType()); note: the helpers only check extension
                         if (item.getSize() > maxSizeBytes) {
                             filesBad.put(item.getName(), "file is larger than " + maxSizeMB + "MB");
                         } else if (myShepherd.isAcceptableImageFile(item.getName()) ||
@@ -359,7 +242,6 @@ public class EncounterForm extends HttpServlet {
         if (formValues.get("social_files_id") != null) {
             System.out.println("BBB: Social_files_id: " + formValues.get("social_files_id"));
 
-            // TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context,
                 rootDir) + "/social_files/" + formValues.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
@@ -380,18 +262,8 @@ public class EncounterForm extends HttpServlet {
         if (badmsg.equals("")) { badmsg = "none"; }
         session.setAttribute("filesBadMessage", badmsg);
         if (fileSuccess) {
-//////////////////////////////////////////// START
 
-// {submitterID=tomcat, submitterProject=, photographerEmail=, metalTag(left)=, sex=unknown, measurement(weight)=34234, location=, acousticTagId=,
-// behavior=yow behavior..., measurement(weightunits)=kilograms, acousticTagSerial=, photographerName=, lifeStage=sub-adult, submitterAddress=,
-// satelliteTagSerial=, releaseDate=, photographerPhone=, measurement(lengthunits)=meters, measurement(weightsamplingProtocol)=samplingProtocol0,
-// measurement(length)=, submitterOrganization=, photographerAddress=, longitude=, year=2014, lat=,
-// measurement(lengthsamplingProtocol)=samplingProtocol0, submitterEmail=, minutes=00, elevation=, measurement(height)=,
-// measurement(heightsamplingProtocol)=samplingProtocol0, scars=None, submitterPhone=, submitterName=tomcat, hour=-1, livingStatus=alive, depth=,
-// country=, satelliteTagName=Wild Life Computers, metalTag(right)=, month=1, measurement(heightunits)=meters, Submit=Send encounter report,
-// informothers=, day=0, satelliteTagArgosPttNumber=, comments=}
-
-            // check for spamBots   TODO possibly move this to Util for general/global usage?
+            // check for spamBots 
             boolean spamBot = false;
             String[] spamFieldsToCheck = new String[] {
                 "submitterPhone", "submitterName", "photographerName", "" + "Phone", "location",
@@ -408,10 +280,6 @@ public class EncounterForm extends HttpServlet {
                 spamBot = true;
             }
             System.out.println("spambot: " + spamBot);
-            // else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
-            // else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
-            // else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
-            // else if((theForm.getSubmitterID()!=null)&&(theForm.getSubmitterID().equals("N%2FA"))) {spamBot=true;}
 
             String locCode = "";
             System.out.println(" **** here is what i think locationID is: " +
@@ -439,11 +307,9 @@ public class EncounterForm extends HttpServlet {
                 } catch (Exception props_e) {
                     props_e.printStackTrace();
                 }
-            } // end else
-              // end location code setter
+            } // end else and location code setter
             formValues.put("locCode", locCode);
 
-            // TODO this should live somewhere else as constant? (e.g. to build in form as well)
             String[] scarType = new String[] {
                 "None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin",
                     "Left pectoral fin", "Right pectoral fin", "Head", "Body"
@@ -465,16 +331,12 @@ public class EncounterForm extends HttpServlet {
             // need some ints for day/month/year/hour (other stuff seems to be strings)
             int day = 0, month = -1, year = 0, hour = 0;
             String minutes = "";
-            // try { day = Integer.parseInt(getVal(formValues, "day")); } catch (NumberFormatException e) { day = 0; }
-            // try { month = Integer.parseInt(getVal(formValues, "month")); } catch (NumberFormatException e) { month = 0; }
-            // try { year = Integer.parseInt(getVal(formValues, "year")); } catch (NumberFormatException e) { year = 0; }
 
             // switch to datepicker
             LocalDateTime dt = new LocalDateTime();
             if ((getVal(formValues, "datepicker") != null) && (!getVal(formValues,
                 "datepicker").trim().equals(""))) {
                 // System.out.println("Trying to read date: "+getVal(formValues, "datepicker").replaceAll(" ", "T"));
-                // boolean badDate=false;
                 try {
                     DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
                     LocalDateTime reportedDateTime = new LocalDateTime(parser1.parseMillis(getVal(
@@ -483,16 +345,13 @@ public class EncounterForm extends HttpServlet {
                         "datepicker").replaceAll(" ", "T"), "-");
                     int numTokens = str.countTokens();
                     if (numTokens >= 1) {
-                        // try {
                         year = reportedDateTime.getYear();
                         if (year > (dt.getYear() + 1)) {
-                            // badDate=true;
                             year = 0;
                             throw new Exception(
                                       "    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "
                                       + year + " > " + dt.getYear());
                         }
-                        // } catch (Exception e) { year=-1;}
                     }
                     if (numTokens >= 2) {
                         try { month = reportedDateTime.getMonthOfYear(); } catch (Exception e) {
@@ -542,10 +401,8 @@ public class EncounterForm extends HttpServlet {
                         "genusSpecies").toString(), " ");
                     if (tokenizer.countTokens() >= 2) {
                         genus = tokenizer.nextToken();
-                        // enc.setGenus(tokenizer.nextToken());
                         specificEpithet = tokenizer.nextToken().replaceAll(",", "").replaceAll("_",
                             " ");
-                        // enc.setSpecificEpithet(tokenizer.nextToken().replaceAll(",","").replaceAll("_"," "));
                     }
                     // handle malformed Genus Species formats
                     else {
@@ -562,7 +419,6 @@ public class EncounterForm extends HttpServlet {
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess,
                 getVal(formValues, "location"));
             boolean llSet = false;
-            // Encounter enc = new Encounter();
             // System.out.println("Submission detected date: "+enc.getDate());
             String encID = enc.generateEncounterNumber();
             if ((formValues.get("catalogNumber") != null) &&
@@ -574,8 +430,7 @@ public class EncounterForm extends HttpServlet {
             enc.setEncounterNumber(encID);
 
             // Adding to a project should not generate an error that blocks data capture
-            // throw exception and move on
-            // add encounter to projects
+            // throw exception and move on to add encounter to projects
             try {
                 if (projects != null) {
                     for (Project currentProject : projects) {
@@ -598,7 +453,6 @@ public class EncounterForm extends HttpServlet {
                 makeMediaAssetsFromJavaFileItemObject(item, encID, astore, enc, newAnnotations,
                     genus, specificEpithet);
             }
-            ///////////////////TODO social files also!!!
             System.out.println("BBB: Checking if we have social files...");
             if (socialFiles.size() > 0) {
                 int numSocialFiles = socialFiles.size();
@@ -648,7 +502,7 @@ public class EncounterForm extends HttpServlet {
                         User user = myShepherd.getUserByHashedEmailAddress(hashedTok);
                         submitters.add(user);
                     } else {
-                        User user = new User(tok, Util.generateUUID()); // TODO delete TODO comment if this is still here
+                        User user = new User(tok, Util.generateUUID()); // TODO: evaluate for deprecation and remove
                         user.setAffiliation(subO);
                         if ((numTokens == 1) && (subN != null)) { user.setFullName(subN); }
                         myShepherd.getPM().makePersistent(user);
@@ -679,7 +533,7 @@ public class EncounterForm extends HttpServlet {
                         }
                         photographers.add(user);
                     } else {
-                        User user = new User(tok, Util.generateUUID()); // TODO delete this TODO if still here
+                        User user = new User(tok, Util.generateUUID());
                         if ((numTokens == 1) && (photoN != null)) { user.setFullName(photoN); }
                         myShepherd.getPM().makePersistent(user);
                         myShepherd.commitDBTransaction();
@@ -714,32 +568,6 @@ public class EncounterForm extends HttpServlet {
             }
             enc.setInformOthers(informOthers);
             // end informOthers-user processing
-
-/*
-            String baseDir = ServletUtilities.dataDir(context, rootDir);
-            ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
-            for (FileItem item : formFiles) {
-                // this will actually write file to filesystem (or [FUTURE] wherever)
-                //  TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc.
-                try {
-                    //SinglePhotoVideo spv = new SinglePhotoVideo(encID, item, context, encDataDir);
-                    SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, baseDir);
-                    //images.add(spv);
-                    enc.addSinglePhotoVideo(spv);
-                } catch (Exception ex) {
-                    System.out.println("failed to save " + item.toString() + ": " + ex.toString());
-                }
-            }
-            for (File sf : socialFiles) {
-                                                                File encDir = new File(enc.dir(baseDir));
-                                                                if (!encDir.exists()) encDir.mkdirs();
-                File targetFile = new File(encDir, sf.getName());
-   System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.toString());
-                Files.copy(sf.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                SinglePhotoVideo spv = new SinglePhotoVideo(encID, targetFile);
-                enc.addSinglePhotoVideo(spv);
-            }
- */
 
             // now let's add our encounter to the database
 
@@ -793,8 +621,7 @@ public class EncounterForm extends HttpServlet {
                 MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
                 if (ind == null) {
                     ind = new MarkedIndividual(enc);
-                    ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name
-                                                 // off of the logged-in user
+                    ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
                     myShepherd.storeNewMarkedIndividual(ind);
                     ind.refreshNamesCache();
                     System.out.println("        ENCOUNTERFORM: created new individual " + indID);
@@ -867,7 +694,6 @@ public class EncounterForm extends HttpServlet {
                         double tempDouble = (new Double(formValues.get(
                             "elevation").toString())).doubleValue() / 3.3;
                         String truncElev = (new Double(tempDouble)).toString();
-                        // String truncElev = ((new Double(elevation)) / 3.3).toString();
                         sizePeriod = truncElev.indexOf(".");
                         truncElev = truncElev.substring(0, sizePeriod + 2);
                         formValues.put("elevation", (new Double(truncElev)).toString());
@@ -885,7 +711,6 @@ public class EncounterForm extends HttpServlet {
                         double tempDouble = (new Double(formValues.get(
                             "size").toString())).doubleValue() / 3.3;
                         String truncSize = (new Double(tempDouble)).toString();
-                        // String truncSize = ((new Double(size)) / 3.3).toString();
                         sizePeriod = truncSize.indexOf(".");
                         truncSize = truncSize.substring(0, sizePeriod + 2);
                         formValues.put("size", (new Double(truncSize)).toString());
@@ -938,23 +763,11 @@ public class EncounterForm extends HttpServlet {
             if ((formValues.get("lat") != null) && (formValues.get("longitude") != null) &&
                 !formValues.get("lat").toString().equals("") &&
                 !formValues.get("longitude").toString().equals("")) {
-                // enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
 
                 try {
                     double degrees = (new Double(formValues.get("lat").toString())).doubleValue();
                     double position = degrees;
-                    /*
-                       if (!gpsLatitudeMinutes.equals("")) {
-                       double minutes2 = ((new Double(gpsLatitudeMinutes)).doubleValue()) / 60;
-                       position += minutes2;
-                       }
-                       if (!gpsLatitudeSeconds.equals("")) {
-                       double seconds2 = ((new Double(gpsLatitudeSeconds)).doubleValue()) / 3600;
-                       position += seconds2;
-                       }
-                       if (latDirection.toLowerCase().equals("south")) {
-                       position = position * -1;
-                       }*/
+
                     enc.setDWCDecimalLatitude(position);
 
                     double degrees2 = (new Double(formValues.get(
@@ -967,14 +780,7 @@ public class EncounterForm extends HttpServlet {
                     e.printStackTrace();
                 }
             }
-            // enc.setMeasureUnits("Meters");
-            // enc.setSubmitterPhone(getVal(formValues, "submitterPhone"));
-            // enc.setSubmitterAddress(getVal(formValues, "submitterAddress"));
 
-            // enc.setPhotographerPhone(getVal(formValues, "photographerPhone"));
-            // enc.setPhotographerAddress(getVal(formValues, "photographerAddress"));
-            // enc.setPhotographerName(getVal(formValues, "photographerName"));
-            // enc.setPhotographerEmail(getVal(formValues, "photographerEmail"));
             enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() +
                 " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
             // enc.approved = false;
@@ -1091,8 +897,7 @@ public class EncounterForm extends HttpServlet {
                             parentTask.setParameters(tp);
                         }
                         Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(),
-                            parentTask);                                                                  // TODO are they *really* persisted for
-                                                                                                          // another thread (queue)
+                            parentTask);              
                         myShepherd.storeNewTask(task);
                         Logger log = LoggerFactory.getLogger(EncounterForm.class);
                         log.info("New encounter submission: <a href=\"" + request.getScheme() +
@@ -1215,18 +1020,6 @@ public class EncounterForm extends HttpServlet {
                                 es.execute(mailer);
                             }
                         }
-                        /*
-                           if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
-                           List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
-                           for (String emailTo : cOther) {
-                            String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
-                            tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                            NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
-                            mailer.setUrlScheme(request.getScheme());
-                            es.execute(mailer);
-                           }
-                           }
-                         */
 
                         es.shutdown();
                     } catch (Exception e) {
@@ -1310,7 +1103,6 @@ public class EncounterForm extends HttpServlet {
 // System.out.println("attempting to write uploaded file to " + tmpFile);
         try {
             FileUtilities.copyFile(item, tmpFile);
-            // item.write(tmpFile);
         } catch (Exception ex) {
             System.out.println("Could not write " + tmpFile + ": " + ex.toString());
         }

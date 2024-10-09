@@ -32,7 +32,7 @@ public class UserInfo extends ApiBase {
         }
         response.setStatus(200);
         response.setHeader("X-User-Id", currentUser.getId());
-        // TODO could also set: notification stuff? login time? etc?
+        // TODO: evaluate if other header information (notifications, login time) should be set here
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
     }

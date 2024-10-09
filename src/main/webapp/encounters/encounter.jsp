@@ -485,16 +485,6 @@ function setIndivAutocomplete(el) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-
-
-		//adding the fullscreen control to exit fullscreen
-	    	//  var fsControlDiv = document.createElement('DIV');
-	    	//  var fsControl = new FSControl(fsControlDiv, map);
-	    	//  fsControlDiv.index = 1;
-	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-
         }
 
 var encounterNumber = '<%=num%>';
@@ -6815,7 +6805,6 @@ console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
         wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
     iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
-    //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
 
@@ -6891,7 +6880,6 @@ $(window).on('load',function() {
     <div id="ia-match-filter-location" class="option-cols">
 
     	<div>
-	    	<!-- TODO maybe an option here to not recurse to children locations? -->
 	        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
 	            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
 	        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
@@ -6981,16 +6969,6 @@ $(".search-collapse-header").click(function(){
         <input type="checkbox" id="match-filter-owner-me" name="match-filter-owner" value="me" />
         <label for="match-filter-owner-me"><%=encprops.getProperty("matchFilterOwnershipMine")%></label>
     </div>
-<!--  not yet implemented!
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-collab" name="match-filter-owner" value="collab" />
-        <label for="match-filter-owner-collab"><%=encprops.getProperty("matchFilterOwnershipCollab")%></label>
-    </div>
-    <div class="item">
-        <input type="checkbox" id="match-filter-owner-none" name="match-filter-owner" value="__NULL__" />
-        <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
-    </div>
--->
 
   <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
   <%

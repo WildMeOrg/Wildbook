@@ -163,49 +163,6 @@ public class FixStandardImport extends HttpServlet {
 
     public Occurrence fixOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
         return null;
-
-        // Occurrence occ = getCurrentOccurrence(oldOcc, row);
-        //// would love to have a more concise way to write following couplets, c'est la vie
-
-        // Double seaSurfaceTemp = getDouble (row, "Occurrence.seaSurfaceTemperature");
-        // if (seaSurfaceTemp != null) occ.setSeaSurfaceTemp(seaSurfaceTemp);
-
-        // Integer individualCount = getInteger(row, "Occurrence.individualCount");
-        // if (individualCount!=null) occ.setIndividualCount(individualCount);
-
-        // Double decimalLatitiude = getDouble(row, "Encounter.decimalLatitiude");
-        // if (decimalLatitiude!=null) occ.setDecimalLatitude(decimalLatitiude);
-
-        // Double decimalLatitude = getDouble(row, "Encounter.decimalLatitude");
-        // if (decimalLatitude!=null) occ.setDecimalLatitude(decimalLatitude);
-
-        // Double decimalLongitude = getDouble(row, "Encounter.decimalLongitude");
-        // if (decimalLongitude!=null) occ.setDecimalLongitude(decimalLongitude);
-
-        // String fieldStudySite = getString(row, "Occurrence.fieldStudySite");
-        // if (fieldStudySite!=null) occ.setFieldStudySite(fieldStudySite);
-
-        // String groupComposition = getString(row, "Occurrence.groupComposition");
-        // if (groupComposition!=null) occ.setGroupComposition(groupComposition);
-
-        // String fieldSurveyCode = getString(row, "Survey.id");
-        // if (fieldSurveyCode!=null) occ.setFieldSurveyCode(fieldSurveyCode);
-
-        // String sightingPlatform = getString(row, "Survey.vessel");
-        // if (sightingPlatform!=null) occ.setSightingPlatform(sightingPlatform);
-
-        // String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
-        // if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
-
-        // Long millis = getLong(row, "Encounter.dateInMilliseconds");
-        // if (millis!=null) occ.setDateTimeLong(millis);
-
-        // String groupBehavior = getString(row, "Occurrence.groupBehavior");
-        // if (groupBehavior!=null) occ.setGroupBehavior(groupBehavior);
-
-        // if (enc!=null) occ.addEncounter(enc);
-
-        // return occ;
     }
 
     public Encounter fixEncounter(Row row) {
@@ -772,21 +729,5 @@ public class FixStandardImport extends HttpServlet {
 
     private AssetStore getAssetStore(Shepherd myShepherd) {
         return AssetStore.getDefault(myShepherd);
-
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 }

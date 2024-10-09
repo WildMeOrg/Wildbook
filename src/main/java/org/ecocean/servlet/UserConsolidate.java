@@ -239,7 +239,6 @@ public class UserConsolidate extends HttpServlet {
                             currentCollaboration.getUsername2());
                         System.out.println("currentCollaboration after swap is: " +
                             currentCollaboration.toString());
-                        // TODO I can't tell if this persists yet...
                     }
                     // now we know for sure that userName1 of the collaboration is our userToBeConsolidated.getUsername()...
                     if (Util.stringExists(userToRetain.getUsername())) {
@@ -364,13 +363,9 @@ public class UserConsolidate extends HttpServlet {
     public static void consolidateEncounterSubmitterIds(Shepherd myShepherd, User userToRetain,
         User userToBeConsolidated) {
         // System.out.println("dedupe consolidating encounter submitter IDs in encounters containing user: " + userToBeConsolidated.toString() + "
-        // into user: " + userToRetain.toString()); //TODO comment out
+        // into user: " + userToRetain.toString());
         if (Util.stringExists(userToBeConsolidated.getUsername()) &&
-            Util.stringExists(userToRetain.getUsername())) {                                                    // can't look it up if
-                                                                                                                // userToBeConsolidated doesn't have
-                                                                                                                // username and can't change it to
-                                                                                                                // something if userToRetain doesn't
-                                                                                                                // have username
+            Util.stringExists(userToRetain.getUsername())) {     // can't look it up if userToBeConsolidated doesn't have username and can't change it to something if  have username
             String filter = "SELECT FROM org.ecocean.Encounter WHERE this.submitterID=='" +
                 userToBeConsolidated.getUsername() + "' ";
             System.out.println("dedupe query is: " + filter);
@@ -450,10 +445,7 @@ public class UserConsolidate extends HttpServlet {
     }
 
     public static int consolidateUsersAndNameless(Shepherd myShepherd, User useMe,
-        List<User> dupes) {                                                                       // TODO this is not up-to-date with consolidateUser.
-                                                                                                  // Use that as a model when the time comes. Lots of
-                                                                                                  // wonky db commit weirdness, so be careful out
-                                                                                                  // there -MF
+        List<User> dupes) {
         PersistenceManager persistenceManager = myShepherd.getPM();
 
         dupes.remove(useMe);
@@ -477,14 +469,6 @@ public class UserConsolidate extends HttpServlet {
                         currentDupe);
                 }
             }
-            // TODO assign usernameless encounters to public maybe using the below, and maybe not
-            // List<Encounter> usernameLessEncounters= getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(myShepherd,currentDupe);
-            // for(int j=0;j<usernameLessEncounters.size();j++){
-            // Encounter currentEncounter=usernameLessEncounters.get(j);
-            //// System.out.println("dedupe usernameless encounter with catalog number: " + currentEncounter.getCatalogNumber() + " by " +
-            // currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
-            // consolidateUsernameless(myShepherd, currentEncounter, useMe, currentDupe);
-            // }
 
             List<Occurrence> submitterOccurrences = getOccurrencesForUser(persistenceManager,
                 currentDupe);
@@ -653,15 +637,12 @@ public class UserConsolidate extends HttpServlet {
 
     public static void consolidateUsernameless(Shepherd myShepherd, Encounter enc, User useMe,
         User currentUser) {
-        // TODO flesh this out when you have a "Public" user
         // System.out.println("dedupe assigning usernameless encounters with useMe's username for encounter: " + enc.getCatalogNumber());
         List<User> subs = enc.getSubmitters();
 
         if (subs.contains(currentUser) || subs.size() == 0) {
             // System.out.println("dedupe here’s what you’re removing: " + currentUser.getUsername());
             // System.out.println("dedupe here’s what you’re adding: " + useMe.getUsername());
-            // subs.remove(currentUser); //TODO comment back in
-            // subs.add(useMe); //TODO comment back in
         }
         enc.setSubmitters(subs);
         myShepherd.commitDBTransaction();
@@ -970,10 +951,7 @@ public class UserConsolidate extends HttpServlet {
             return size; // if it's indeterminable, it's false
         } else {
             String filter = "SELECT FROM org.ecocean.Encounter where this.submitterID==\"" +
-                user.getUsername() + "\"";                                                                      // don't check using email address
-                                                                                                                // because you are using this in an
-                                                                                                                // effort to deduplicate accounts with
-                                                                                                                // matching email addresses.
+                user.getUsername() + "\"";      // don't check using email address because you are using this in an effort to deduplicate accounts with matching email addresses.
             List<Encounter> encs = new ArrayList<Encounter>();
             Query query = persistenceManager.newQuery(filter);
             Collection c = (Collection)(query.execute());
@@ -1020,8 +998,7 @@ public class UserConsolidate extends HttpServlet {
                     "SELECT FROM org.ecocean.User where this.emailAddress.toLowerCase()==emailVal  PARAMETERS String emailVal";
             }
             Query query = persistenceManager.newQuery(filter);
-            Collection c = (Collection)(query.execute(emailAddress.toLowerCase())); // note for posterity: trying this query with ?1 variables or
-                                                                                    // named variables was not successful.
+            Collection c = (Collection)(query.execute(emailAddress.toLowerCase())); // note for posterity: trying this query with ?1 variables or named variables was not successful.
             if (c != null) {
                 returnUsers = new ArrayList<User>(c);
             }

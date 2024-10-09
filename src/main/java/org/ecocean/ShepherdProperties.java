@@ -154,8 +154,6 @@ public class ShepherdProperties {
         }
         Properties props = loadProperties(overridePathStr, defaultProps);
         if (!Util.stringExists(overridePrefix)) return (Properties)props;
-        // todo: now actually load the override string
-        // we Do have an overridePrefix so we need to load it now
         String customUserPathString = "webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
             overridePrefix;
         return (Properties)loadProperties(customUserPathString, props);

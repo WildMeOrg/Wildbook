@@ -58,10 +58,6 @@ QUnit.module('storeQueryAsDict()', {"beforeEach": () => jpCopy = cloneJP() }, ()
     });
 });
 
-//TODO parseNodes()
-
-//TODO processNodeData()
-
 setupMap = {
     "beforeEach": () => {
 	JSONParser.relationshipData = [{"markedIndividualName1": "a", "markedIndividualName2": "b"}]
@@ -94,10 +90,6 @@ QUnit.module('mapRelationships()', setupMap, () => {
 
 });
 
-//TODO parseLinks()
-
-//TODO modifyOccurrenceData()
-
 QUnit.module('getLinkId()', () => {
     QUnit.test('Unique IDs', t => {
 	let ids = [];
@@ -127,8 +119,6 @@ QUnit.module('updateNodeData()', () => {
 	t.equal(updatedNode.depth, 3);
     });
 });
-
-//TODO getRelationshipData()
 
 QUnit.module('getRelationType()', () => {
     QUnit.test('Maternal relation', t => {

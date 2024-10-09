@@ -341,7 +341,7 @@ var _options = {
 	modal: true,
 
 	// not fully implemented yet
-	scaleMode: 'fit' // TODO
+	scaleMode: 'fit' 
 };
 framework.extend(_options, options);
 
@@ -2687,7 +2687,7 @@ var _items,
 	_controllerDefaultOptions = {
 		index: 0,
 		errorMsg: '<div class="pswp__error-msg"><a href="%url%" target="_blank">The image</a> could not be loaded.</div>',
-		forceProgressiveLoading: false, // TODO
+		forceProgressiveLoading: false, 
 		preload: [1,1],
 		getNumItemsFn: function() {
 			return _items.length;
@@ -3404,7 +3404,6 @@ _registerModule('DesktopZoom', {
 				e.preventDefault();
 			}
 
-			// TODO: use rAF instead of mousewheel?
 			self.panTo(newPanX, newPanY);
 		},
 
@@ -3423,22 +3422,6 @@ _registerModule('DesktopZoom', {
 	}
 });
 
-
-/*>>desktop-zoom*/
-
-/*>>history*/
-/**
- *
- * history.js:
- *
- * - Back button to close gallery.
- * 
- * - Unique URL for each slide: example.com/&pid=1&gid=3
- *   (where PID is picture index, and GID and gallery index)
- *   
- * - Switch URL when slides change.
- * 
- */
 
 
 var _historyDefaultOptions = {

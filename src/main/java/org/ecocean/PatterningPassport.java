@@ -74,9 +74,9 @@ public class PatterningPassport implements java.io.Serializable {
                 CommonConfiguration.getDataDirectoryName(context));
 
             // Universal passport fields for the XML
-            String encounterUrlString = "foo/" + this.encounterId; // TODO -- generate URL
-            String mediaSourceUrlString = "foo/" + this.mediaId; // TODO -- generate URL
-            String passportXmlUrlString = "foo"; // TODO -- generate URL
+            String encounterUrlString = "foo/" + this.encounterId; // TODO: -- generate URL
+            String mediaSourceUrlString = "foo/" + this.mediaId; // TODO: -- generate URL
+            String passportXmlUrlString = "foo"; // TODO: -- generate URL
             String encounterDir = this.webappsDir + "/shepherd_data_dir/encounters/" +
                 this.encounterId;
             String xmlFilePathString = encounterDir + "/" + mediaId + "_pp.xml";
@@ -182,7 +182,7 @@ public class PatterningPassport implements java.io.Serializable {
      * @return the encounterUrl
      */
     public String getEncounterUrl() {
-        // TODO read it from XML if needed
+        // TODO: read it from XML if needed
         return encounterUrl;
     }
 
@@ -198,7 +198,7 @@ public class PatterningPassport implements java.io.Serializable {
      * @return the mediaUrl
      */
     public String getMediaUrl() {
-        // TODO read it from XML if needed
+        // TODO: read it from XML if needed
         return mediaUrl;
     }
 
@@ -214,7 +214,7 @@ public class PatterningPassport implements java.io.Serializable {
      * @return the patterningPassportXmlUrl
      */
     public String getPatterningPassportXmlUrl() {
-        // TODO read it from XML if needed
+        // TODO: read it from XML if needed
         return patterningPassportXmlUrl;
     }
 

@@ -19,7 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-// soon to be deprecated: https://github.com/WildMeOrg/Wildbook/issues/694
+// TODO: soon to be deprecated: https://github.com/WildMeOrg/Wildbook/issues/694
 
 /**
  * YouTubeAssetStore references MediaAssets that reside on YouTube.
@@ -74,7 +74,7 @@ public class YouTubeAssetStore extends AssetStore {
     }
 
     @Override public void deleteFrom(final MediaAsset ma) {
-        return; // TODO exception?
+        return; 
     }
 
     @Override public URL webURL(final MediaAsset ma) {
@@ -109,7 +109,7 @@ public class YouTubeAssetStore extends AssetStore {
     @Override public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
 
-        // will we even ever need this for a read-only system???  TODO so returning empty [or should be null?]
+        // will we even ever need this for a read-only system???  
         return p;
     }
 
@@ -131,7 +131,7 @@ public class YouTubeAssetStore extends AssetStore {
 
     // returns success (stuff grabbed and parsed)
     // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
-    // NOTE: wait is untested!  TODO
+    // NOTE: wait is untested!  
     public static boolean grabAndParse(Shepherd myShepherd, MediaAsset ma, boolean wait)
     throws IOException {
         boolean processing = ((ma.getDerivationMethod() != null) &&
@@ -193,9 +193,9 @@ public class YouTubeAssetStore extends AssetStore {
         throw new IOException("deprecated");
     }
 
-    // returns success (frames extracted) -- passed in parent/_original MA ... maybe later we would want to also allow _video child option?  TODO
+    // returns success (frames extracted) -- passed in parent/_original MA ... maybe later we would want to also allow _video child option?  
     // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
-    // NOTE: wait is untested!  TODO
+    // NOTE: wait is untested!  
     // note that uses same _processing derivation method as .grabAndParse() above.  this is cuz these should not be run simultaneous anyway
     public static boolean extractFramesAndParse(Shepherd myShepherd, MediaAsset ma, boolean wait)
     throws IOException {
@@ -337,7 +337,7 @@ public class YouTubeAssetStore extends AssetStore {
                 new JSONObject("{\"_processing\": true, \"timestamp\": " +
                 System.currentTimeMillis() + "}"));                                                                               // assume it will
                                                                                                                                   // be.... soon?
-            // TODO do actual grabAndProcess here???
+            //  do actual grabAndProcess here???
         }
         return new MediaAssetMetadata(data);
     }
@@ -356,7 +356,7 @@ public class YouTubeAssetStore extends AssetStore {
         note: this assumes the MediaAsset has been persisted, so we can create our own Shepherd object and affect it accordingly.... there are
            potentials for race conditions here for sure, especially if the caller has gone on to (or caused something to go on to) further alter the
            MediaAsset in memory etc.   use caution!
-        TODO perhaps for this reason we should have a synchronous version of this too?
+         perhaps for this reason we should have a synchronous version of this too?
      */
     public static void backgroundGrabAndParse(final MediaAsset otherMa,
         HttpServletRequest request) {

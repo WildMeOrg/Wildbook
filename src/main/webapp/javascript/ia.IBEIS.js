@@ -19,7 +19,7 @@ wildbook.IA.plugins.push({
         return 'unknown';
     },
 
-    //TODO handled passed in things (e.g. 'detection' or ... whatever!!!)
+    //does not handle passed in things (e.g. 'detection' or ... whatever!!!)
     isEnabled: function() {
         return (wildbookGlobals && wildbookGlobals.iaStatus && wildbookGlobals.iaStatus.map && wildbookGlobals.iaStatus.map.iaEnabled);
     },
@@ -44,7 +44,7 @@ wildbook.IA.plugins.push({
             function(enh) { return wildbook.IA.getPluginByType('IBEIS')._iaMenuHelper(enh, 'funcAnother'); }
         ]);
 
-        //TODO could have conditional etc to turn on/off visual matcher i guess
+        // does not have conditional etc to turn on/off visual matcher i guess
         items.push([
             function(enh) {  //the menu text
             	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
@@ -59,7 +59,6 @@ wildbook.IA.plugins.push({
                     imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before using visual matcher.');
                     return;
                 }
-                //TODO how should we *really* get encounter number!
                 wildbook.openInTab('encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid);
             }
         ]);

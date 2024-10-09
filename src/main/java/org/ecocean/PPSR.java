@@ -54,7 +54,6 @@ public class PPSR {
         // the rest of these are optional
         _setJSON(context, jobj, "twitter_name", "ProjectTwitter", null);
         _setJSON(context, jobj, "facebook_page", "ProjectFacebook", null);
-        ///////  etc!   add these later.... TODO
         /// note: "image"
 
         // self-promotion a little bit
@@ -140,18 +139,3 @@ public class PPSR {
         }
     }
 }
-
-/*
-
- * exhaustive* list of properties scistarter accepts.
-   https://scistarter.com/api#add for details
-
-   it appears that scistarter *also* supports all of these (untested) https://www.citsci.org/CWIS438/Websites/CitSci/PPSR_CORE_Documentation.php
-
-   in properties file, scistarter ones are prepended with "sciStarter." and PPSR with "ppsr."
-
-   name scistarter_id description url origin contact_name contact_affiliation contact_email contact_phone contact_address presenting_org rsvp address
- * city state zip country video_url blog_url twitter_name facebook_page status preregistration goal task image image_credit how_to_join
- * special_skills gear outdoors indoors time_commitment project_type audience regions region_label UN_regions
-
- */

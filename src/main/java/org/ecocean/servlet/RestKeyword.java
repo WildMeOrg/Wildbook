@@ -29,18 +29,13 @@ public class RestKeyword extends HttpServlet {
         super.init(config);
     }
 
-/*
-   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
-   }
- */
     public void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         JSONObject jin = ServletUtilities.jsonFromHttpServletRequest(request);
         JSONObject jout = new JSONObject("{\"success\": false}");
 
-        if (request.getUserPrincipal() == null) { // TODO use AccessControl...
+        if (request.getUserPrincipal() == null) {
             response.setStatus(401);
             jout.put("error", "access denied");
         } else if (jin.optJSONObject("onMediaAssets") != null) {
@@ -123,11 +118,9 @@ public class RestKeyword extends HttpServlet {
                             for (int i = 0; i < toAdd.size(); i++) {
                                 if (!mine.contains(toAdd.get(i))) newList.add(toAdd.get(i));
                                 // Here we also want to set IA viewpoint
-                                // TODO: generalize this
                                 Keyword kw = toAdd.get(i);
                                 String kwName = kw.getReadableName();
-                                // We could simply use kwName as the viewpoint, but
-                                // not sure if IA would play nicely with "Tail Fluke" for humpbacks
+                                // We could simply use kwName as the viewpoint, but not sure if IA would play nicely with "Tail Fluke" for humpbacks
                                 String viewpoint = getViewpoint(kwName);
                                 if (viewpoint != null) {
                                     ArrayList<Annotation> anns = ma.getAnnotations();
@@ -165,7 +158,6 @@ public class RestKeyword extends HttpServlet {
                         jout.put("results", jassigned);
                         jout.put("success", true);
                         myShepherd.commitDBTransaction();
-                        // myShepherd.closeDBTransaction();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -205,7 +197,6 @@ public class RestKeyword extends HttpServlet {
         return IA.getProperty(context, propKey);
     }
 
-    // TODO: make this one generic
     public static String getKwNameFromIaViewpoint(String iaViewpoint) {
         if (iaViewpoint == null) return null;
         String lower = iaViewpoint.toLowerCase();

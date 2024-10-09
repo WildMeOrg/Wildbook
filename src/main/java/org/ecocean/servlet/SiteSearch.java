@@ -70,9 +70,6 @@ public class SiteSearch extends HttpServlet {
                 hm.put("value", ind.getIndividualID());
                 hm.put("type", "individual");
 
-                //
-                // TODO: Read species from db. See SimpleIndividual
-                //
                 String gs = ind.getGenusSpeciesDeep();
                 if (gs != null) {
                     hm.put("species", gs);
@@ -105,9 +102,7 @@ public class SiteSearch extends HttpServlet {
         }
         String regex = ".*" + term.toLowerCase() + ".*";
 
-        //
         // Query on Individuals
-        //
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
@@ -122,9 +117,6 @@ public class SiteSearch extends HttpServlet {
                     hm.put("value", ind.getIndividualID());
                     hm.put("type", "individual");
 
-                    //
-                    // TODO: Read species from db. See SimpleIndividual
-                    //
                     String gs = ind.getGenusSpeciesDeep();
                     if (gs != null) {
                         hm.put("species", gs);
@@ -149,34 +141,6 @@ public class SiteSearch extends HttpServlet {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
         }
-        /*
-           //
-           // Query on Users
-           //
-           filter = "this.fullName.toLowerCase().matches('"
-         + regex
-         + "') || this.username.toLowerCase().matches('"
-         + regex + "')";
-
-           query = myShepherd.getPM().newQuery(User.class);
-           query.setFilter(filter);
-
-           @SuppressWarnings("unchecked") List<User> users = (List<User>) query.execute();
-
-           for (User user : users) {
-            HashMap<String, String> hm = new HashMap<String, String>();
-            if (StringUtils.isBlank(user.getFullName())) {
-                hm.put("label", user.getUsername());
-            } else {
-                hm.put("label", user.getFullName() + " (" + user.getUsername() + ")");
-            }
-            hm.put("value", user.getUsername());
-            hm.put("type", "user");
-            list.add(hm);
-           }
-
-           query.closeAll();
-         */
 
         // query locationIDs
         boolean moreLocationIDs = true;
@@ -198,10 +162,7 @@ public class SiteSearch extends HttpServlet {
             }
         }
         // end query locationIDs
-
-        //
         // return our results
-        //
         out.println(new Gson().toJson(list));
     }
 }

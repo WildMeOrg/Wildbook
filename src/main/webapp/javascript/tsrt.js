@@ -32,7 +32,7 @@ function SortTable(opts) {
 	};
 
 
-	//TODO lazyloaded values
+	// does not cover lazyloaded values
 	this.initValues = function() {
 		for (var i = 0 ; i < this.opts.data.length ; i++) {
 			this.values[i] = [];
@@ -70,8 +70,6 @@ function SortTable(opts) {
 
 
 
-//TODO cache the full slice until filter changes (per column)
-//TODO when no filter, just return the sorts[col]
 	this.slice = function(col, start, end, reverse) {
 		if ((end == undefined) || (end > this.matchesFilter.length)) end = this.matchesFilter.length;
 		if ((start == undefined) || (start > this.matchesFilter.length)) start = 0;
@@ -81,20 +79,6 @@ console.log('start %o end %o', start, end);
 
 		var at = -1;
 		var s = [];
-/*
-		var keys = [];
-		var map = {};
-		for (var i = start ; i <= end ; i++) {
-//console.log('%d %d %d', i, this.matchesFilter[i], this.sortsInd[col][this.matchesFilter[i]]);
-			var k = this.sortsInd[col][this.matchesFilter[i]];
-			keys.push(k);
-			map[k] = this.matchesFilter[i];
-		}
-		keys.sort(function(a,b) { return a - b; });
-		for (var i = 0 ; i < keys.length ; i++) {
-			s.push(map[keys[i]]);
-		}
-*/
 
 		if (!this._sortCache[col]) {
 			if (this.matchesFilter.length == this.opts.data.length) {  //we have not been filtered, so dont do too much work
@@ -115,16 +99,6 @@ console.log(this._sortCache[col]);
 
 		if (reverse) return this._sortCacheRev[col].slice(start, end);
 		return this._sortCache[col].slice(start, end);
-/*
-		for (var i = 0 ; i < this.opts.data.length ; i++) {
-			var offset = i;
-			if (reverse) offset = this.opts.data.length - i - 1;
-			if (this.matchesFilter.indexOf(this.sorts[col][offset]) < 0) continue;
-			at++;
-			if ((at < start) || (at > end)) continue;
-			s.push(this.sorts[col][offset]);
-		}
-*/
 
 		return s;
 	};
@@ -138,7 +112,6 @@ console.log(this._sortCache[col]);
 		this.opts.sliderElement.slider({
 			orientation: 'vertical',
 			value: 100,
-//TODO generalize this function!
 			slide: function(a, b) {
 				//var s = Math.floor((100 - b.value) / 100 * (me.opts.data.length - me.opts.perPage) + 0.5);
 				var s = Math.floor((100 - b.value) / 100 * (me.matchesFilter.length - me.opts.perPage) + 0.5);
@@ -178,7 +151,7 @@ console.log(this._sortCache[col]);
 		this._sortCache = [];
 		this._sortCacheRev = [];
 		if (s == undefined) {
-			//TODO this is a kinda hacky trick to get an array of ints 0..LENGTH-1 ... but is it cross-browser enough?
+			// this is a kinda hacky trick to get an array of ints 0..LENGTH-1 
 			this.matchesFilter = Object.keys(this.values);
 			return;
 		}

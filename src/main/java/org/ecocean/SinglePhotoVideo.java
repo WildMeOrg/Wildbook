@@ -1,3 +1,5 @@
+// TODO: remove any residual references to this and delete entirely
+
 package org.ecocean;
 
 import java.io.File;
@@ -25,11 +27,6 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     String correspondingStoryID;
 
     public String webURL;
-
-    /*
-       private String thumbnailFilename;
-       private String thumbnailFullFileSystemPath;
-     */
 
     private static String type = "SinglePhotoVideo";
     private String copyrightOwner;
@@ -59,14 +56,12 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 
     public SinglePhotoVideo(Encounter enc, FileItem formFile, String context, String dataDir)
     throws Exception {
-// TODO FUTURE: should use context to find out METHOD of storage (e.g. remote, amazon, etc) and switch accordingly?
         super(enc.getEncounterNumber(), type);
 
         String encID = enc.getEncounterNumber();
         if ((encID == null) || encID.equals("")) {
             throw new Exception("called SinglePhotoVideo(enc) with Encounter missing an ID");
         }
-        // TODO generalize this when we encorporate METHOD?
         // File dir = new File(dataDir + File.separator + correspondingEncounterNumber.charAt(0) + File.separator +
         // correspondingEncounterNumber.charAt(1), correspondingEncounterNumber);
         File dir = new File(enc.dir(dataDir));
@@ -76,7 +71,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 
         File file = new File(dir, this.filename);
         this.fullFileSystemPath = file.getAbsolutePath();
-        formFile.write(file); // TODO catch errors and return them, duh
+        formFile.write(file); 
         System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
     }
 
@@ -107,7 +102,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
             // string name of a
             url = (new File(url.substring(i + rootWebappPath.length())).getParentFile()).toString();
         } else {
-            url = "/unknownUrlPath"; // TODO handle this better
+            url = "/unknownUrlPath"; 
         }
         try {
             String serverUrl = request.getServerName();
@@ -117,14 +112,6 @@ public class SinglePhotoVideo extends DataCollectionEvent {
         }
     }
 
-    /*
-       public File getThumbnailFile(){
-       if(thumbnailFullFileSystemPath!=null){
-          return (new File(thumbnailFullFileSystemPath));
-       }
-       else{return null;}
-       }
-     */
     public String getFilename() { return filename; }
     public void setFilename(String newName) { this.filename = newName; }
 
@@ -137,14 +124,6 @@ public class SinglePhotoVideo extends DataCollectionEvent {
     public String getCopyrightStatement() { return copyrightStatement; }
     public void setCopyrightStatement(String statement) { copyrightStatement = statement; }
 
-    // public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
-
-    /*
-       public void setThumbnailFilename(String newName){this.thumbnailFilename=newName;}
-
-       public String getThumbnailFullFileSystemPath(){return thumbnailFullFileSystemPath;}
-       public void setThumbnailFullFileSystemPath(String newPath){this.thumbnailFullFileSystemPath=newPath;}
-     */
     public void addKeyword(Keyword dce) {
         if (keywords == null) { keywords = new ArrayList<Keyword>(); }
         if (!keywords.contains(dce)) { keywords.add(dce); }
@@ -231,21 +210,14 @@ public class SinglePhotoVideo extends DataCollectionEvent {
 
         if ((cmd == null) || cmd.equals("")) return false;
         String sourcePath = this.getFullFileSystemPath();
-/*
-                if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
-                ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform); //, clientWidth);
-                Thread t = new Thread(iproc);
-                t.start();
- */
+
         return true;
     }
 
     // *for now* this will only be called from an Encounter, which means that Encounter must be sanitized
-    // so we assume this *must* be sanitized too.  (TODO fix that when MediaAsset takes over, obvs)
+    // so we assume this *must* be sanitized too.  
     public JSONObject sanitizeJson(HttpServletRequest request, boolean fullAccess)
     throws JSONException {
-// System.out.println("um, i am sanitizing " + this);
-        // JSONObject jobj = new JSONObject(this);  //ugh JSONObject() is failing on Keywords, so lets start empty
         JSONObject jobj = new JSONObject();
         String urlPath = this.urlPath(request);
 

@@ -2130,7 +2130,7 @@ scheduler._render_x_header = function(i, left, d, h) {
   var head = document.createElement("DIV");
   head.className = "dhx_scale_bar";
   this.set_xy(head, this._cols[i] - 1, this.xy.scale_height - 2, left, 0);//-1 for border
-  head.innerHTML = this.templates[this._mode + "_scale_date"](d, this._mode); //TODO - move in separate method
+  head.innerHTML = this.templates[this._mode + "_scale_date"](d, this._mode);
   h.appendChild(head);
 }
 scheduler._reset_scale = function() {

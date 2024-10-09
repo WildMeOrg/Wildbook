@@ -49,8 +49,6 @@ public class JavascriptGlobals extends HttpServlet {
         String gtmKey = CommonConfiguration.getGoogleTagManagerKey(context);
         String gaId = CommonConfiguration.getGoogleAnalyticsId(context);
         String gMapKey = CommonConfiguration.getGoogleMapsKey(context);
-        // Properties props = new Properties();
-        // props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
         HashMap rtn = new HashMap();
 
         rtn.put("context", context);
@@ -66,7 +64,6 @@ public class JavascriptGlobals extends HttpServlet {
         HashMap props = new HashMap();
         HashMap lang = new HashMap();
 
-        // lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
         lang.put("visualMatcher",
             ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
 
@@ -93,14 +90,11 @@ public class JavascriptGlobals extends HttpServlet {
                 fhm.put(f.getName(), f.getType().getName());
             }
             defn.put("fields", fhm);
-            // HashMap ap = access.permissions(cls.getName(), request);
-            // defn.put("permissions", ap);
             defn.put("permissions", access.permissions(cls.getName(), request));
             classDefn.put(cls.getName(), defn);
         }
         rtn.put("classDefinitions", classDefn);
 
-        // TODO we could do this for all sorts of property files too?
         HashMap uploader = new HashMap();
         String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
         if (s3key == null) {
@@ -144,12 +138,10 @@ public class JavascriptGlobals extends HttpServlet {
         out.close();
     }
 
-// wildbookGlobals.properties.lang.collaboration.invitePromptOne
 
     public void propvalToHashMap(String name, String val, HashMap h) {
 // System.out.println("name->" + name);
-        if (name.equals("secret")) return; // TODO **totally** hactacular, but we dont want social secret keys sent out -- maybe pass in optional
-                                           // blacklist???
+        if (name.equals("secret")) return; 
         if (h == null) h = new HashMap();
         int i = name.indexOf(".");
         if (i < 0) {
@@ -159,7 +151,6 @@ public class JavascriptGlobals extends HttpServlet {
         String key = name.substring(0, i);
 // System.out.println("HASH key="+key);
         if (h.get(key) == null) h.put(key, new HashMap());
-/* TODO handle case where prop file might have foo.bar = 1 and then foo.bar.baz = 2 */
         HashMap sub = (HashMap)h.get(key);
         propvalToHashMap(name.substring(i + 1), val, sub);
     }

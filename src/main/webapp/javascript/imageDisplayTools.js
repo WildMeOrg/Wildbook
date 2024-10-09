@@ -15,7 +15,6 @@ var maLib = {};
  *
  */
 maLib.maJsonToFigureElem = function(maJson, intoElem) {
-  // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -115,7 +114,6 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
   caption = caption || '';
 
-  // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
 
   // have to check to make sure values exist
@@ -238,12 +236,10 @@ maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCapt
 
 maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
-  // TODO: genericize caption
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
 
   colSize = colSize || 6;
 
-  // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -324,7 +320,6 @@ console.log(maJson);
 
 
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
-  // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -361,7 +356,7 @@ maLib.hasLabel = function (maJson, _label) {
 }
 
 /**
- * BROKEN! TODO: fix this :^)
+ * BROKEN!
  * @param {JSON} maJson - a media asset
  * @param {string} _label - a label such as '_watermark', '_original' or '_thumbnail'
  * @return {JSON} the mediaAsset (or empty object) containing that child

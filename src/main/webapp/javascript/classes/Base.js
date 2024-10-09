@@ -16,7 +16,7 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
 /* note: some combinations may return more than one encounter, which should be a collection (e.g /individualID==something)
    however, we still should allow that type of arbitrary field matching to get ONE encounter... maybe return only first?   */
 	url: function() {
-		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
+		if (!this.id) return false;  
 		return wildbookGlobals.baseUrl + '/api/' + this.className() + '/' + this.id;
 	},
 
@@ -77,7 +77,7 @@ wildbook.Collection.BaseClass = Backbone.Collection.extend({
 			this._altUrl = this.model.prototype.className();
 			var arg = [];
 			for (var f in options.fields) {
-				arg.push(f + '=="' + options.fields[f] + '"');  //TODO probably need some kind of encoding here? or does .ajax take care of it?
+				arg.push(f + '=="' + options.fields[f] + '"');  
 			}
 			this._altUrl += '?' + arg.join('&&');
 		}

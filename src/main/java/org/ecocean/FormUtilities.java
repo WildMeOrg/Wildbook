@@ -90,7 +90,7 @@ public class FormUtilities {
             ArrayList<String> projOptions = new ArrayList<String>();
             ArrayList<String> projIds = new ArrayList<String>();
             if (projects != null && projects.size() > 0) {
-                for (int i = 0; i < projects.size(); i++) { // TODO DRY up
+                for (int i = 0; i < projects.size(); i++) {
                     Project currentProj = projects.get(i);
                     String currentProjName = currentProj.getResearchProjectName();
                     String currentProjId = currentProj.getId();
@@ -121,14 +121,12 @@ public class FormUtilities {
             String pattern = "(.*)";
             Pattern r = Pattern.compile(pattern);
             Matcher matcher = r.matcher("tmp");
-            for (Project currentProject : projects) { // TODO DRY up
-                // Project currentProject = projects.get(i);
+            for (Project currentProject : projects) {
                 pattern = "(.*;?.*)(" + currentProject.getProjectIdPrefix() + "\\d+)(.*)";
                 r = Pattern.compile(pattern);
                 List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(
                     currentProject);
                 for (MarkedIndividual currentIndividual : individuals) {
-                    // MarkedIndividual currentIndividual = individuals.get(j);
                     if (currentIndividual != null) {
                         List<String> namesList = currentIndividual.getNamesList(
                             currentProject.getProjectIdPrefix());
@@ -170,7 +168,7 @@ public class FormUtilities {
             } else { orgsUserBelongsTo = usr.getOrganizations(); }
             ArrayList<String> orgOptions = new ArrayList<String>();
             ArrayList<String> orgIds = new ArrayList<String>();
-            for (int i = 0; i < orgsUserBelongsTo.size(); i++) { // TODO DRY up
+            for (int i = 0; i < orgsUserBelongsTo.size(); i++) {
                 Organization currentOrg = orgsUserBelongsTo.get(i);
                 String currentOrgName = currentOrg.getName();
                 String currentOrgId = currentOrg.getId();

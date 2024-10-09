@@ -106,20 +106,7 @@ public class MergeIndividual extends HttpServlet {
             }
             // if we can't determine who is requeting this, no merge
             if (currentUsername != null) {
-                /*
-                   ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
-                   for (String user : mark2Users) {
-                   if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
-                    allUniqueUsers.add(user);
-                    System.out.println("unique user == "+user);
-                   }
-
-
-                   }//end for
-                 */
-                // WB-1017
-                // 1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database
-                // calls.
+                // 1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database calls.
                 // 2. if User has full edit access to every Encounter of both MarkedIndividuals, they are trusted to make this decision automatically
                 // if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
                 if (request.isUserInRole("admin") ||
@@ -187,8 +174,6 @@ public class MergeIndividual extends HttpServlet {
 
             // redirect to the confirm page
             try {
-                // WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
-
                 RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
                     ("/confirmSubmit.jsp?oldNameA=" + oldName1 + "&oldNameB=" + oldName2 +
                     "&newId=" + id1));
@@ -217,16 +202,12 @@ public class MergeIndividual extends HttpServlet {
         // out.println(ServletUtilities.getFooter(context));
         out.close();
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        // myShepherd.rollbackDBTransaction();
-        // myShepherd.closeDBTransaction();
     }
 
     private long twoWeeksFromNowLong() {
         // i know. this was really the least stupid way.
         final long twoWeeksInMillis = 1209600000;
 
-        // TODO restore desired delay after testing OR, add to task as variable
-        // final long twoWeeksInMillis = 60000;
         return System.currentTimeMillis() + twoWeeksInMillis;
     }
 }

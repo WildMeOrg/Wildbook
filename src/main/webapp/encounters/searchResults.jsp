@@ -859,7 +859,7 @@ function _colFileName(o) {
   var outStrings = [];
   for (id in o.get('annotations')) {
     var ann = o.get('annotations')[id];
-    //note: assuming 0th feature "may be bad" ?   TODO
+    //note: assuming 0th feature "may be bad" 
     if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
       outStrings.push(ann.features[0].mediaAsset.filename);
     }

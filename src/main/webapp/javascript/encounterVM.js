@@ -284,7 +284,7 @@ function nullIndividual(iid) {
 	return !(iid && (iid != '') && (iid != 'Unassigned'));
 }
 
-function candidatesOrder(carr, field) {  //TODO fieldSSSSS
+function candidatesOrder(carr, field) {  
 	return carr.sort(function(a,b) { return _csort(a,b,field); });
 }
 

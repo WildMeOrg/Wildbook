@@ -79,49 +79,11 @@ public class LightRestServlet extends HttpServlet {
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance(
         "DataNucleus.REST");
 
-    // Shepherd myShepherd;
-    // PersistenceManagerFactory pmf;
     PersistenceNucleusContext nucCtx;
     HttpServletRequest thisRequest;
 
-    /* (non-Javadoc)
-     * @see javax.servlet.GenericServlet#destroy()
-     */
-
-    /*
-       public void destroy()
-       {
-        if (pmf != null && !pmf.isClosed())
-        {
-            LOGGER_REST.info("REST : Closing PMF");
-            pmf.close();
-        }
-        super.destroy();
-       }
-     */
     public void init(ServletConfig config)
     throws ServletException {
-        /*
-           String factory = config.getInitParameter("persistence-context");
-           if (factory == null)
-           {
-               throw new ServletException("You haven't specified \"persistence-context\" property defining the persistence unit");
-           }
-
-
-           try
-           {
-               LOGGER_REST.info("REST : Creating PMF for factory=" + factory);
-               pmf = JDOHelper.getPersistenceManagerFactory(factory);
-               this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
-           }
-           catch (Exception e)
-           {
-               LOGGER_REST.error("Exception creating PMF", e);
-               throw new ServletException("Could not create internal PMF. See nested exception for details", e);
-           }
-         */
-
         super.init(config);
     }
 
@@ -229,15 +191,11 @@ public class LightRestServlet extends HttpServlet {
                         JSONArray jsonobj = convertToJson(req, (Collection)result,
                             ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext(),
                             myShepherd);
-                        // JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
-                        // ((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     } else {
                         JSONObject jsonobj = convertToJson(req, result,
                             ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext(),
                             myShepherd);
-                        // JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
-                        // ((JDOPersistenceManager)pm).getExecutionContext());
                         System.out.println("        LIGHTREST: has jsonobj, about to tryCompress ");
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
@@ -245,68 +203,19 @@ public class LightRestServlet extends HttpServlet {
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     myShepherd.commitDBTransaction();
-                    // ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "commit");
                 } catch (Exception e) {
                     System.out.println("Exception on lightRestServlet!");
                     e.printStackTrace();
                 } finally {
                     if (myShepherd.getPM().currentTransaction().isActive()) {
                         myShepherd.rollbackDBTransaction();
-                        // ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "rollback");
                     }
                     myShepherd.closeDBTransaction();
-                    // ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
-                    // ShepherdPMF.removeShepherdState("LightRestServlet.class"+"_"+servletID);
                 }
                 return;
             }
-            /*
-               else if (token.equalsIgnoreCase("jpql"))
-               {
-                // GET "/jpql?the_query_details" where "the_query_details" is "SELECT ... FROM ... WHERE ... ORDER BY ..."
-                String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
-                PersistenceManager pm = pmf.getPersistenceManager();
-                try
-                {
-                    pm.currentTransaction().begin();
-                    Query query = pm.newQuery("JPQL", queryString);
-                    if (fetchParam != null)
-                    {
-                        query.getFetchPlan().addGroup(fetchParam);
-                    }
-                    Object result = filterResult(query.execute());
-                    if (result instanceof Collection)
-                    {
-                        JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
-                            //((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(req, resp, jsonobj, useCompression);
-                    }
-                    else
-                    {
-                        JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
-                            //((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(req, resp, jsonobj, useCompression);
-                    }
-                    query.closeAll();
-                    resp.setHeader("Content-Type", "application/json");
-                    resp.setStatus(200);
-                    pm.currentTransaction().commit();
-                }
-                finally
-                {
-                    if (pm.currentTransaction().isActive())
-                    {
-                        pm.currentTransaction().rollback();
-                    }
-                    pm.close();
-                }
-                return;
-               }
-             */
+            
             else {
-                // GET "/{candidateclass}..."
                 String className = token;
                 ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(
                     LightRestServlet.class.getClassLoader());
@@ -322,7 +231,6 @@ public class LightRestServlet extends HttpServlet {
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
-                    // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                     return;
                 }
                 Object id = getId(req);
@@ -337,7 +245,6 @@ public class LightRestServlet extends HttpServlet {
                                 queryString += " WHERE " + URLDecoder.decode(req.getQueryString(),
                                     "UTF-8");
                             }
-                            // PersistenceManager pm = pmf.getPersistenceManager();
                             if (fetchParam != null) {
                                 myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                             }
@@ -348,19 +255,15 @@ public class LightRestServlet extends HttpServlet {
                                 JSONArray jsonobj = convertToJson(req, result,
                                     ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext(),
                                     myShepherd);
-                                // JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result,
-                                // ((JDOPersistenceManager)pm).getExecutionContext());
                                 tryCompress(req, resp, jsonobj, useCompression);
                                 query.closeAll();
                                 resp.setHeader("Content-Type", "application/json");
                                 resp.setStatus(200);
-                                // pm.currentTransaction().commit();
                             } finally {
                                 if (myShepherd.getPM().currentTransaction().isActive()) {
                                     myShepherd.rollbackDBTransaction();
                                 }
                                 myShepherd.closeDBTransaction();
-                                // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                             }
                             return;
                         } catch (NucleusUserException e) {
@@ -369,7 +272,6 @@ public class LightRestServlet extends HttpServlet {
                             resp.getWriter().write(error.toString());
                             resp.setStatus(400);
                             resp.setHeader("Content-Type", "application/json");
-                            // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                             myShepherd.rollbackDBTransaction();
                             myShepherd.closeDBTransaction();
                             return;
@@ -379,7 +281,6 @@ public class LightRestServlet extends HttpServlet {
                             resp.getWriter().write(error.toString());
                             resp.setStatus(404);
                             resp.setHeader("Content-Type", "application/json");
-                            // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                             myShepherd.rollbackDBTransaction();
                             myShepherd.closeDBTransaction();
                             return;
@@ -392,7 +293,6 @@ public class LightRestServlet extends HttpServlet {
                             resp.setHeader("Content-Type", "application/json");
                             myShepherd.rollbackDBTransaction();
                             myShepherd.closeDBTransaction();
-                            // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                             return;
                         }
                     } else {
@@ -402,14 +302,11 @@ public class LightRestServlet extends HttpServlet {
                         resp.getWriter().write(error.toString());
                         resp.setStatus(400);
                         resp.setHeader("Content-Type", "application/json");
-                        // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
                         return;
                     }
                 }
-                // GET "/{candidateclass}/id" - Find object by id
-                // PersistenceManager pm = pmf.getPersistenceManager();
                 if (fetchParam != null) {
                     myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                 }
@@ -419,12 +316,8 @@ public class LightRestServlet extends HttpServlet {
                     JSONObject jsonobj = convertToJson(req, result,
                         ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext(),
                         myShepherd);
-                    // JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
-                    // ((JDOPersistenceManager)pm).getExecutionContext());
                     tryCompress(req, resp, jsonobj, useCompression);
-                    // resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type", "application/json");
-                    // pm.currentTransaction().commit();
                 } catch (NucleusObjectNotFoundException ex) {
                     resp.setContentLength(0);
                     resp.setStatus(404);
@@ -439,7 +332,6 @@ public class LightRestServlet extends HttpServlet {
                         myShepherd.rollbackDBTransaction();
                     }
                     myShepherd.closeDBTransaction();
-                    // ShepherdPMF.removeShepherdState("LightRestServlet.class");
                     return;
                 }
             }
@@ -483,7 +375,6 @@ public class LightRestServlet extends HttpServlet {
         req.getReader().read(buffer);
         String str = new String(buffer);
         JSONObject jsonobj;
-        // PersistenceManager pm = pmf.getPersistenceManager();
         ExecutionContext ec = ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext();
         try {
             myShepherd.beginDBTransaction();
@@ -513,34 +404,11 @@ public class LightRestServlet extends HttpServlet {
                 }
             }
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-            // boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-            boolean restAccessOk = false; // TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
-/*
-   System.out.println(jsonobj);
-   System.out.println("+++++");
+            boolean restAccessOk = false; 
 
-                        Method restAccess = null;
-                        boolean restAccessOk = true;
-                        try {
-                            restAccess = pc.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class });
-                        } catch (NoSuchMethodException nsm) {
-                            //nothing to do
-                        }
-
-                        if (restAccess != null) {
-                            try {
-                                restAccess.invoke(pc, req);
-                            } catch (Exception ex) {
-                                restAccessOk = false;
-                                //this is the expected result when we are blocked (user not allowed) System.out.println("got Exception trying to
-                                   invoke restAccess: " + ex.toString());
-                            }
-                        }
- */
             if (restAccessOk) {
                 Object obj = myShepherd.getPM().makePersistent(pc);
                 JSONObject jsonobj2 = convertToJson(req, obj, ec, myShepherd);
-                // JSONObject jsonobj2 = RESTUtils.getJSONObjectFromPOJO(obj, ec);
                 resp.getWriter().write(jsonobj2.toString());
                 resp.setHeader("Content-Type", "application/json");
                 myShepherd.getPM().currentTransaction().commit();
@@ -602,8 +470,6 @@ public class LightRestServlet extends HttpServlet {
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException {
-        // getPMF(req);
-        // PersistenceManager pm = pmf.getPersistenceManager();
         Shepherd myShepherd = new Shepherd(req);
 
         myShepherd.setAction("LightRestServlet.class.Delete");
@@ -638,14 +504,7 @@ public class LightRestServlet extends HttpServlet {
                 myShepherd.commitDBTransaction();
                 q.closeAll();
             } else {
-                // we disable any delete for now, until permission testing complete   TODO
                 throw new NucleusUserException("DELETE access denied");
-/*
-                // Delete the object with the supplied id pm.currentTransaction().begin();
-                Object obj = pm.getObjectById(id);
-                pm.deletePersistent(obj);
-                pm.currentTransaction().commit();
- */
             }
         } catch (NucleusObjectNotFoundException ex) {
             try {
@@ -690,97 +549,6 @@ public class LightRestServlet extends HttpServlet {
         resp.setStatus(204); // created
     }
 
-    /*
-       protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
-       {
-        //getPMF(req);
-        String className = getNextTokenAfterSlash(req);
-        ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
-        AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
-        try
-        {
-            if (cmd == null)
-            {
-                cmd = nucCtx.getMetaDataManager().getMetaDataForClass(className, clr);
-            }
-        }
-        catch (ClassNotResolvedException ex)
-        {
-            resp.setStatus(404);
-            return;
-        }
-
-        Object id = getId(req);
-        if (id == null)
-        {
-            // no id provided try
-            {
-                // get the whole extent String queryString = "SELECT FROM " + cmd.getFullClassName();
-                if (req.getQueryString() != null)
-                {
-                    // query by filter queryString += " WHERE " + URLDecoder.decode(req.getQueryString(), "UTF-8");
-                }
-                //PersistenceManager pm = pmf.getPersistenceManager();
-                try
-                {
-                    pm.currentTransaction().begin();
-                    Query query = pm.newQuery("JDOQL", queryString);
-                    query.execute();
-                    resp.setStatus(200);
-                    pm.currentTransaction().commit();
-                    query.closeAll();
-                }
-                finally
-                {
-                    if (pm.currentTransaction().isActive())
-                    {
-                        pm.currentTransaction().rollback();
-                    }
-                    pm.close();
-                }
-                return;
-            }
-            catch (NucleusUserException e)
-            {
-                resp.setStatus(400);
-                return;
-            }
-            catch (NucleusException ex)
-            {
-                resp.setStatus(404);
-                return;
-            }
-            catch (RuntimeException ex)
-            {
-                resp.setStatus(404);
-                return;
-            }
-        }
-
-        PersistenceManager pm = pmf.getPersistenceManager();
-        try
-        {
-            pm.currentTransaction().begin();
-            pm.getObjectById(id);
-            resp.setStatus(200);
-            pm.currentTransaction().commit();
-            return;
-        }
-        catch (NucleusException ex)
-        {
-            resp.setStatus(404);
-            return;
-        }
-        finally
-        {
-            if (pm.currentTransaction().isActive())
-            {
-                pm.currentTransaction().rollback();
-            }
-            pm.close();
-        }
-       }
-     */
     boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
         System.out.println(jsonobj.toString());
         System.out.println(obj);
@@ -895,33 +663,13 @@ public class LightRestServlet extends HttpServlet {
         for (Object o : coll) {
             if (o instanceof Collection) {
                 jarr.put(convertToJson(req, (Collection)o, ec, myShepherd));
-            } else { // TODO can it *only* be an JSONObject-worthy object at this point?
+            } else { 
                 jarr.put(convertToJson(req, o, ec, myShepherd));
             }
         }
         return jarr;
     }
 
-/*
-        //jo can be either JSONObject or JSONArray Object scrubJson(HttpServletRequest req, Object jo) throws JSONException {
-   System.out.println("scrubJson");
-            if (jo instanceof JSONArray) {
-                JSONArray newArray = new JSONArray();
-                JSONArray ja = (JSONArray)jo;
-   System.out.println("- JSON Array " + ja);
-                for (int i = 0 ; i < ja.length() ; i++) {
-                    newArray.put(scrubJson(req, ja.getJSONObject(i)));
-                }
-                return newArray;
-
-            } else {
-                JSONObject jobj = (JSONObject)jo;
-   System.out.println("- JSON Object " + jobj);
-   System.out.println("- scrubJson reporting class=" + jobj.get("class").toString());
-                return jobj;
-            }
-        }
- */
     void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp)
     throws IOException, JSONException {
         System.out.println("??? TRY COMPRESS ??");
@@ -940,16 +688,6 @@ public class LightRestServlet extends HttpServlet {
         }
     }
 
-    /*
-       private void getPMF(HttpServletRequest req){
-        String context="context0";
-        context=ServletUtilities.getContext(req);
-        ShepherdPMF.setShepherdState("LightRestServlet.class", "new");
-        pmf=ShepherdPMF.getPMF(context);
-        this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
-        thisRequest = req;
-       }
-     */
     private JSONObject getEncLightJson(Encounter enc, HttpServletRequest req, Shepherd myShepherd) {
         String context = ServletUtilities.getContext(req);
 

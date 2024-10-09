@@ -185,7 +185,7 @@ if(request.getUserPrincipal()!=null){
       <link rel="stylesheet" href="<%=urlLoc %>/css/footer.css" type="text/css"/>
 
       <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
-      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  
 
       <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>

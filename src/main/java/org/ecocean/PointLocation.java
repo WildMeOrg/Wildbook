@@ -186,7 +186,6 @@ public class PointLocation implements java.io.Serializable {
     }
 
     // distance squared
-    // TODO maybe also take into account time? elev? etc?
     public Double diff2(PointLocation p2) {
         if (p2 == null) return null;
         if ((this.longitude == null) || (this.latitude == null) || (p2.longitude == null) ||

@@ -108,7 +108,6 @@ public class OrganizationEdit extends HttpServlet {
             response.sendError(401, "access denied");
 
             // only "admin" can create a new **top-level** org, otherwise user must create under an existing one
-            // we need to have some sort of OrgSuperUser Role i suppose?   TODO
         } else if ((org == null) && (orgId == null) && isAdmin && (jsonIn.optString("create",
             null) != null)) {
             Organization newOrg = new Organization(jsonIn.getString("create"));

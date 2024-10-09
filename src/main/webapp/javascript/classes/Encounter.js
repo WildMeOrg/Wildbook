@@ -1,29 +1,20 @@
 
 wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
-	idAttribute: 'catalogNumber',   //TODO put this in classDefinitions from java (somehow)
+	idAttribute: 'catalogNumber', 
 
 	refClass: {
 		measurements: 'Measurements',
 		images: 'MediaAssets',
 	},
 
-/*
-	defaults: _.extend({}, wildbook.Model.BaseClass.prototype.defaults, {
-		someOther: 'default',
-	}),
-*/
-
 	// this allows calls to the enc rest api to use the lightweight rest server
 	url: function() {
 		console.log("Encounter-specific url function called!");
-		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
+		if (!this.id) return false;  
 		return wildbookGlobals.baseUrl + '/lightRest/' + this.className() + '/' + this.id;
 	},
 
-
-
-        //TODO have special way to get which Annotation
 	thumbUrl: function() {
                 if (!this.get('annotations') || (this.get('annotations').length < 1)) return '';
                 var ma = this.get('annotations')[0].mediaAsset;
@@ -69,7 +60,6 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		var M = this.get('minutes');
 		if (H < 0) H = 0;
 		if (M < 0) M = 0;
-//TODO wonder if we should instead trust .dateInMilliseconds ???
 //console.log('%o %o %o %o %o', y, m, d, H, M);
 		var d = new Date(y, m, d, H, M, 0);
 		if (!wildbook.isValidDate(d)) return false;
@@ -83,7 +73,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 		var m = this.get('month') - 1;
 		if ((m < 0) || (m > 11)) m = 0;
 		var d = this.get('day');
-		if (d < 1) d = 1;  //TODO max day varies per month, grr
+		if (d < 1) d = 1;
 		var H = this.get('hour');
 		var M = this.get('minutes');
 		if (H < 0) H = 0;

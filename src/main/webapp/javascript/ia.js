@@ -20,7 +20,7 @@ wildbook.IA = {
 console.info('>>>>> %o', task);
         if (typeof task.parameters != 'object') return '__NULL__';
 
-        //TODO fix weakness that earlier plugins can basically hijack this logic (possible fix: let everyone vote etc?)
+        // Note: earlier plugins can basically hijack this logic (possible fix: let everyone vote etc?)
         for (var i = 0 ; i < wildbook.IA.plugins.length ; i++) {
 console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[i].code, wildbook.IA.plugins[i].name);
             var found = wildbook.IA.plugins[i].isMyTask(task);
@@ -76,7 +76,6 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
         return res;
     },
 
-    //TODO we need to bust this out to plugin-type based decision making.  but for now i use this really hacky decision of only leaf nodes
     //   note this will skip detection results (which has children) ... boo obvs
     needTaskResults: function(task) {
         return !wildbook.IA.hasChildren(task);
@@ -106,7 +105,6 @@ console.log(' . . . . getPluginType[%d] trying %s | %s', i, wildbook.IA.plugins[
         wildbook.IA.appendDebugDom(task, res);
 
         if (wildbook.IA.hasChildren(task)) {
-            //TODO not sure if this whole .parent thing is a good idea, but for now.........
             //var parentTask = Object.assign({}, task);  //a shallow copy, but sufficient since we want to lose the children for this purpose
             //delete(parentTask.children);  //lets cut out the loopiness plz
             for (var i = 0 ; i < task.children.length ; i++) {

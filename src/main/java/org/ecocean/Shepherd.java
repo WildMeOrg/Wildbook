@@ -46,45 +46,27 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 
 /**
- * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd
- * project applications. The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
- * Any application seeking access to	whale shark	data must invoke an	instance of	shepherd first and use it to retrieve any data stored
+ * Shepherd is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd
+ * project applications. The shepherd class interacts directly with the database and all persistent objects stored within it.
+ * Any application seeking access to encounter	data must invoke an	instance of	shepherd first and use it to retrieve any data stored
  * in the database.
- * <p/>
- * While	a <code>shepherd</code>	object is easily invoked with a	single,	simple constructor,	no data can be retrieved until a new
- * Transaction has been	started. Changes made using the Transaction must be committed (store changes) or rolled back (ignore changes) before the
- * application can finish. Example:
- * <p align="center"><code>
- * <p/>
- * shepherd myShepherd=new shepherd();<br>
- * myShepherd.beginDBTransaction();
- * <p align="center">Now	make any changes to	the	database objects that are needed.
- * <p align="center">
- * <p/>
- * myShepherd.commitDBTransaction();
- * *myShepherd.closeDBTransaction();
- * </code>
- * <p/>
  *
  * @author Jason Holmberg
  * @version alpha-2
  * @see shark, encounter, superSpot,	spot
  */
+
 public class Shepherd {
     private PersistenceManager pm;
     public static Vector matches = new Vector();
-    // private PersistenceManagerFactory pmf;
     private String localContext;
 
     private String action = "undefined";
     private String shepherdID = "";
 
-    /**
-     * Constructor to create a new shepherd thread object
-     */
+    // Constructor to create a new shepherd thread object
     public Shepherd(String context) {
         if (pm == null || pm.isClosed()) {
-            // PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
             localContext = context;
             try {
                 pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
@@ -96,7 +78,6 @@ public class Shepherd {
                     "Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
                 e.printStackTrace();
             }
-            // pmf=null;
         }
     }
 
@@ -135,10 +116,6 @@ public class Shepherd {
         return CommonConfiguration.getDataDirectoryName(getContext());
     }
 
-    // public PersistenceManagerFactory getPMF() {
-    // return pmf;
-    // }
-
     /**
      * Stores a new, unassigned encounter in the database for later retrieval and analysis. Each new encounter is assigned a unique number which is
      * also its unique retrievable ID in the database. This method will be the primary method used for future web submissions to shepherd from
@@ -170,7 +147,6 @@ public class Shepherd {
     }
 
     public String storeNewAnnotation(Annotation enc) {
-        // enc.setOccurrenceID(uniqueID);
         beginDBTransaction();
         try {
             pm.makePersistent(enc);
@@ -206,7 +182,6 @@ public class Shepherd {
     }
 
     public void storeNewOccurrence(Occurrence enc) {
-        // enc.setOccurrenceID(uniqueID);
         beginDBTransaction();
         try {
             pm.makePersistent(enc);
@@ -475,36 +450,16 @@ public class Shepherd {
     }
 
     public void throwAwayTissueSample(TissueSample genSample) {
-        // String removedParameters = genSample.getHTMLString();
-        // List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
-        /*
-           for(int i=0;i<list.size();i++){
-           GeneticAnalysis gen=list.get(i);
-           genSample.removeGeneticAnalysis(gen);
-           pm.deletePersistent(gen);
-           i--;
-           }*/
         pm.deletePersistent(genSample);
-        // return removedParameters;
     }
 
     public void throwAwayGeneticAnalysis(GeneticAnalysis analysis) {
         // String removedParameters = analysis.getHTMLString();
         pm.deletePersistent(analysis);
-        // return removedParameters;
     }
 
     public void throwAwayMicrosatelliteMarkersAnalysis(MicrosatelliteMarkersAnalysis analysis) {
-        // String removedParameters = analysis.getHTMLString();
-        /*
-           while(analysis.getLoci().size()>0){
-           Locus l=analysis.getLoci().get(0);
-           analysis.getLoci().remove(0);
-           pm.deletePersistent(l);
-           }
-         */
         pm.deletePersistent(analysis);
-        // return removedParameters;
     }
 
     public void throwAwayAnnotation(Annotation ad) {
@@ -752,32 +707,6 @@ public class Shepherd {
         }
     }
 
-    // like above but filters on Workspace.isImageSet
-    /*
-       public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) {
-       String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\'");
-
-       String isImageSetBit = isImageSet ? "1" : "0";
-
-       String filter = "this.owner == "+quotedOwner+" && this.isImageSet == "+isImageSetBit;
-
-       Extent allWorkspaces = pm.getExtent(Workspace.class, true);
-       Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
-       workspaceQuery.setOrdering("accessed descending");
-
-       try {
-        Collection results = (Collection) (workspaceQuery.execute());
-        ArrayList<Workspace> resultList = new ArrayList<Workspace>();
-        if (results!=null) {
-          resultList = new ArrayList<Workspace>(results);
-        }
-        workspaceQuery.closeAll();
-        return resultList;
-       } catch (Exception npe) {
-        npe.printStackTrace();
-        return null;
-       }
-       }*/
     public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet)
     throws JSONException {
         ArrayList<Workspace> unfilteredSpaces = getWorkspacesForUser(owner);
@@ -883,10 +812,6 @@ public class Shepherd {
         }
         return tempCom;
     }
-
-    // public ArrayList<Membership> getMembershipsForMarkedIndividual(MarkedIndividual mi) {
-
-    // }
 
     public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual indie) {
         String filter2use =
@@ -1098,9 +1023,6 @@ public class Shepherd {
     }
 
     public String storeNewOrganization(Organization org) {
-        // enc.setOccurrenceID(uniqueID);
-        // boolean transactionWasActive = isDBTransactionActive();
-        // beginDBTransaction();
         try {
             pm.makePersistent(org);
             commitDBTransaction();
@@ -1112,10 +1034,6 @@ public class Shepherd {
             e.printStackTrace();
             return "fail";
         }
-        // finally {
-        // closeDBTransaction();
-        // }
-        // if (transactionWasActive) beginDBTransaction();
         return (org.getId());
     }
 
@@ -1498,7 +1416,6 @@ public class Shepherd {
     }
 
     public String storeNewTaxonomy(Taxonomy enc) {
-        // enc.setOccurrenceID(uniqueID);
         boolean transactionWasActive = isDBTransactionActive();
 
         beginDBTransaction();
@@ -1579,7 +1496,6 @@ public class Shepherd {
 
         while (keywords.hasNext()) {
             Keyword kw = keywords.next();
-            // if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
             if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
                 inCommon.add(kw.getReadableName());
             }
@@ -1999,9 +1915,9 @@ public class Shepherd {
     }
 
     /**
-     * Adds a new shark to the database
+     * Adds a new individual to the database TODO: newShark -> newIndividual
      *
-     * @param newShark the new shark to be added to the database
+     * @param newShark the new individual to be added to the database
      * @see MarkedIndividual
      */
     public boolean addMarkedIndividual(MarkedIndividual newShark) {
@@ -2015,15 +1931,7 @@ public class Shepherd {
      * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
      * @see encounter, java.util.Iterator
      */
-    /*
-       public Iterator getUnassignedEncounters() {
-       String filter = "this.individual == null";
-       Extent encClass = pm.getExtent(Encounter.class, true);
-       Query orphanedEncounters = pm.newQuery(encClass, filter);
-       Collection c = (Collection) (orphanedEncounters.execute());
-       return c.iterator();
-       }
-     */
+
     public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
         String filter =
             "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == " +
@@ -2038,40 +1946,7 @@ public class Shepherd {
         return al;
     }
 
-    /*
-       public Iterator getUnassignedEncountersIncludingUnapproved() {
-       String filter = "this.individual == null";
-       Extent encClass = pm.getExtent(Encounter.class, true);
-       Query orphanedEncounters = pm.newQuery(encClass, filter);
-       Collection c = (Collection) (orphanedEncounters.execute());
-       return c.iterator();
-       }
-     */
-
-/*
-   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individual == null && this.state != \"unidentifiable\"";
-    //Extent encClass=pm.getExtent(encounter.class, true);
-    orphanedEncounters.setFilter(filter);
-    Collection c = (Collection) (orphanedEncounters.execute());
-    return c.iterator();
-   }
- */
     public Iterator<Encounter> getAllEncountersNoFilter() {
-        /*Collection c;
-           Extent encClass = pm.getExtent(Encounter.class, true);
-           Query acceptedEncounters = pm.newQuery(encClass);
-           try {
-           c = (Collection) (acceptedEncounters.execute());
-           //ArrayList list = new ArrayList(c);
-           Iterator it = c.iterator();
-           return it;
-           } catch (Exception npe) {
-           System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a
-              transaction to use.");
-           npe.printStackTrace();
-           return null;
-           }*/
         return getAllEncountersNoQuery();
     }
 
@@ -2248,21 +2123,6 @@ public class Shepherd {
      * @see encounter, java.util.Iterator
      */
     public Iterator<Encounter> getAllEncounters() {
-        /*Collection c;
-           //String filter = "!this.state == \"unidentifiable\" && this.state == \"approved\"";
-           Extent encClass = pm.getExtent(Encounter.class, true);
-           Query acceptedEncounters = pm.newQuery(encClass);
-           try {
-           c = (Collection) (acceptedEncounters.execute());
-           ArrayList list = new ArrayList(c);
-           Iterator it = list.iterator();
-           return it;
-           } catch (Exception npe) {
-           System.out.println("Error encountered when trying to execute getAllEncounters. Returning a null collection because I didn't have a
-              transaction to use.");
-           npe.printStackTrace();
-           return null;
-           }*/
         return getAllEncountersNoQuery();
     }
 
@@ -2494,28 +2354,6 @@ public class Shepherd {
         }
     }
 
-/**
-   public Iterator<Encounter> getAllEncountersAndUnapproved() {
-    Collection c;
-    String filter = "this.state != \"unidentifiable\"";
-    Extent encClass = pm.getExtent(Encounter.class, true);
-    Query acceptedEncounters = pm.newQuery(encClass, filter);
-    try {
-      c = (Collection) (acceptedEncounters.execute());
-      ArrayList list = new ArrayList(c);
-      int wr = list.size();
-      Iterator it = list.iterator();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncounters. Returning a null collection because I didn't have a transaction
-         to use.");
-      npe.printStackTrace();
-      return null;
-    }
-
-   }
- */
-
     /**
      * Retrieves all encounters that are stored in the database in the order specified by the input String
      *
@@ -2716,21 +2554,6 @@ public class Shepherd {
             if (id.equals(users.get(i).getSocial(service))) return users.get(i);
         }
         return null;
-
-/*   TODO figure out how to query on HashMaps within fields String filter="SELECT FROM org.ecocean.User WHERE social_" + service + " == \"" + id +
-   "\"";
-    Query query=getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    Iterator it = c.iterator();
-
-    while(it.hasNext()){
-      User myUser=(User)it.next();
-      query.closeAll();
-      return myUser;
-    }
-    query.closeAll();
-    return null;
- */
     }
 
     public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
@@ -2813,7 +2636,7 @@ public class Shepherd {
                     }
                 }
             }
-        } // end if
+        }
 
         ArrayList<Map.Entry> as = new ArrayList<Map.Entry>(hmap.entrySet());
         if (as.size() > 0) {
@@ -2896,17 +2719,6 @@ public class Shepherd {
         return myArray;
     }
 
-/*
-   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
-          String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname ==
- \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
-      Query samples = pm.newQuery(keywordQueryString);
-          Collection c = (Collection) (samples.execute());
-            ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
-            samples.closeAll();
-            return myArray;
-          }
- */
     public ArrayList<MediaAsset> getAllMediAssetsWithKeyword(Keyword word0) {
         String keywordQueryString =
             "SELECT FROM org.ecocean.media.MediaAsset WHERE ( this.keywords.contains(word0) && ( word0.indexname == \""
@@ -3048,8 +2860,6 @@ public class Shepherd {
     public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
         String startStr = String.valueOf(start);
         String endStr = String.valueOf(end);
-        // String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" &&
-        // dateInMilliseconds <= "+endStr+" ";
         String keywordQueryString =
             "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "
             + startStr + " && dwcDateAddedLong <= " + endStr + " ";
@@ -3620,8 +3430,6 @@ public class Shepherd {
 
     public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharks) {
         Collection c = (Collection)(sharks.execute());
-        // ArrayList list = new ArrayList(c);
-        // Collections.reverse(list);
         Iterator it = c.iterator();
 
         return it;
@@ -3644,7 +3452,6 @@ public class Shepherd {
         sharkies.setOrdering(order);
         Collection c = (Collection)(sharkies.executeWithMap(params));
         ArrayList list = new ArrayList(c);
-        // Collections.reverse(list);
         Iterator it = list.iterator();
         return it;
     }
@@ -4016,19 +3823,6 @@ public class Shepherd {
 
             pm.addInstanceLifecycleListener(new WildbookLifecycleListener(), null);
 
-/* this as unnecessary but holding for further possible use
-            // https://www.datanucleus.org/products/accessplatform_4_1/jdo/transactions.html#isolation
-            tx = pm.currentTransaction();
-            tx.setSynchronization(new javax.transaction.Synchronization() {
-                public void beforeCompletion() {
-                    System.out.println("###########>>>>>>>>>>>>>>>>>> BEFORE");
-                }
-                public void afterCompletion(int status) {
-                    //javax.transaction.Status.STATUS_COMMITTED
-                    System.out.println("###########>>>>>>>>>>>>>>>>>> AFTER status=" + status);
-                }
-            });
- */
         } catch (JDOUserException jdoe) {
             jdoe.printStackTrace();
         } catch (NullPointerException npe) {
@@ -4044,8 +3838,7 @@ public class Shepherd {
     /**
      * Commits (makes permanent) any changes made to an open database
      */
-//////////// TODO it seems like this should either (a) throw an exception itself; or (b) return boolean of success.  obviously the latter was
-// disabled(?).  whassup?  -jon 20140619
+    // TODO: Either (a) throw an exception itself or (b) return boolean of success (the latter was disabled, needs investigation)
     public void commitDBTransaction() {
         try {
             // System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");
@@ -4249,13 +4042,6 @@ public class Shepherd {
         return al;
     }
 
-    /*
-       public Iterator<Keyword> getAllKeywords() {
-       Extent allKeywords = pm.getExtent(Keyword.class);
-       Query acceptedKeywords = pm.newQuery(allKeywords);
-       return getAllKeywords(acceptedKeywords);
-       }
-     */
     public Iterator<Keyword> getAllKeywords() {
         Extent allOccurs = null;
         Iterator<Keyword> it = null;
@@ -4300,12 +4086,6 @@ public class Shepherd {
         }
     }
 
-/*
-   public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {
-    List<Keyword> words = getSortedKeywordList(acceptedKeywords);
-    return ((words==null) ? null : words.iterator());
-   }
- */
     // allows keywords to be defined in properties file and appear at the top
     // of the list of all keywords
     public List<Keyword> getSortedKeywordList() {
@@ -4448,11 +4228,8 @@ public class Shepherd {
                                     Keyword word = getKeyword(keywords[n]);
                                     if ((images.get(i).getKeywords() != null) &&
                                         images.get(i).getKeywords().contains(word)) {
-                                        // if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-
-                                        hasKeyword = true;
-                                        // System.out.println("member of: "+word.getReadableName());
-                                    }
+                                            hasKeyword = true;
+                                        }
                                 } else {
                                     hasKeyword = true;
                                 }
@@ -4526,10 +4303,7 @@ public class Shepherd {
                                         Keyword word = getKeyword(keywords[n]);
                                         if ((images.get(i).getKeywords() != null) &&
                                             images.get(i).getKeywords().contains(word)) {
-                                            // if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
-
-                                            hasKeyword = true;
-                                            // System.out.println("member of: "+word.getReadableName());
+                                                hasKeyword = true;
                                         }
                                     } else {
                                         hasKeyword = true;
@@ -4609,11 +4383,7 @@ public class Shepherd {
                     }
                 }
                 if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                    // m_thumb="http://"+CommonConfiguration.getURLLocation()+"/images/video.jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
-                    // thumbs.add(m_thumb);
                 } else if (hasKeyword && isAcceptableImageFile(imageName)) {
-                    // m_thumb=enc.getEncounterNumber()+"/"+(i+1)+".jpg"+"BREAK"+enc.getEncounterNumber()+"BREAK"+imageName;
-                    // thumbs.add(m_thumb);
                 } else {
                     count--;
                 }
@@ -5260,7 +5030,6 @@ public class Shepherd {
     }
 
     public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName) {
-        // ArrayList<Relationship> relies=new ArrayList<Relationship>();
         Extent encClass = pm.getExtent(Relationship.class, true);
         String filter2use = "this.communityName == \"" + commName + "\"";
         Query acceptedEncounters = pm.newQuery(encClass, filter2use);
@@ -5370,7 +5139,6 @@ public class Shepherd {
     }
 
     public User getRandomUserWithPhotoAndStatement() {
-        // (username.toLowerCase().indexOf('demo') == -1)
         String filter =
             "fullName != null && userImage != null && userStatement != null && (username.toLowerCase().indexOf('demo') == -1) && (username.toLowerCase().indexOf('test') == -1)";
         Extent encClass = pm.getExtent(User.class, true);
@@ -5745,7 +5513,7 @@ public class Shepherd {
         if (u != null) return u;
         u = getUserByUUID(value);
         if (u != null) return u;
-        return getUserByEmailAddress(value); // see note below about uniqueness, alas
+        return getUserByEmailAddress(value);
     }
 
     public JSONArray getAllProjectACMIdsJSON(String projectId) {
@@ -5765,4 +5533,4 @@ public class Shepherd {
         }
         return allAnnotIds;
     }
-} // end Shepherd class
+}

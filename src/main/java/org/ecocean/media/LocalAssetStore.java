@@ -107,11 +107,6 @@ public class LocalAssetStore extends AssetStore {
         Path subpath = pathFromParameters(params, false); // file can not exist (for sake of subsequent copyIn() being called) ... sorry?
 
         if (subpath == null) return null;
-/*
-        Path root = root();
-        Path subpath = ensurePath(root, path);
-   System.out.println("create() has subpath = " + subpath);
- */
         params.put("path", subpath.toString()); // always store it relative, not absolute
         try {
             return new MediaAsset(this, params);
@@ -150,25 +145,15 @@ public class LocalAssetStore extends AssetStore {
         if (params == null) throw new IllegalArgumentException("null path");
         Object p = getParameter(params, "path");
         if (p == null) {
-            // if ((params == null) || !params.has("path") || (params.get("path") == null)) {
             logger.warn("pathFromParameters(): Invalid parameters");
             throw new IllegalArgumentException("null path");
         }
-        // Path passed = Paths.get(params.getString("path"));
         Path passed = Paths.get(p.toString());
         Path path = null;
         if (checkExists) {
             path = ensurePath(root(), passed);
         } else {
             path = checkPath(root(), passed);
-/*
-   System.out.println("root = " + root);
-   System.out.println(params.getString("path") + " is .path");
-            path = new File(params.getString("path")).toPath();
-   System.out.println("path = " + path);
-            Path subpath = ensurePath(root, path);
-   System.out.println("subpath = " + subpath);
- */
         }
         return path;
     }
@@ -179,8 +164,6 @@ public class LocalAssetStore extends AssetStore {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
         Path subpath = pathFromParameters(params);
         if (subpath == null) throw new IOException("no path passed in parameters");
-        // Path root = root();
-        // Path subpath = ensurePath(root, path);
         Path fullpath = root().resolve(subpath);
         fullpath.getParent().toFile().mkdirs();
         logger.debug("copying from " + file + " to " + fullpath);
@@ -199,11 +182,11 @@ public class LocalAssetStore extends AssetStore {
             !(toMA.getStore() instanceof LocalAssetStore))
             throw new IOException("invalid AssetStore type(s)");
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
-        throw new IOException("oops, LocalAssetStore.copyAsset() still not implemented. :/"); // TODO
+        throw new IOException("oops, LocalAssetStore.copyAsset() still not implemented. :/"); 
     }
 
     @Override public void deleteFrom(final MediaAsset ma) {
-        if (!this.contains(ma)) return; // TODO ?? exception
+        if (!this.contains(ma)) return; 
         if (!this.writable) return;
         File file = localPath(ma).toFile();
         System.out.println("LocalAssetStore attempting to delete file=" + file);
@@ -211,14 +194,6 @@ public class LocalAssetStore extends AssetStore {
             return;
         }
         file.delete();
-
-/*   TODO not sure if we should remove empty parent dirs?  maybe some other spaghetti depends on it?
-        File parentDir = file.getParentFile();
-
-        File[] files = parentDir.listFiles();
-        if (files == null || files.length == 0) { //some JVMs return null for empty dirs parentDir.delete();
-        }
- */
     }
 
     /**

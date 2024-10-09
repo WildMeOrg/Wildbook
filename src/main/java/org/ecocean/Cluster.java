@@ -1,3 +1,5 @@
+// TODO: #825 evaluate and remove as deprecated
+
 package org.ecocean;
 
 import org.joda.time.DateTime;
@@ -79,7 +81,6 @@ public class Cluster {
                 Node wnode = wlist.item(w);
                 if (wnode.getNodeType() != Node.ELEMENT_NODE) continue;
                 Element wel = (Element)wnode; // <waypoints id="4" x="37.4676312262241" y="0.278523922074831" time="11:00:40">
-///////TODO verify that this produces correct output
                 String x = wel.getAttribute("x");
                 Double decimalLongitude = strToDoubleNoExceptions(x);
                 String y = wel.getAttribute("y");
@@ -105,47 +106,6 @@ public class Cluster {
                     System.out.println(" - valid observation found at waypoint id=" +
                         wel.getAttribute("id"));
 
-/* here is an example of stuff we have in an animal observation.  not sure if this is exhaustive??
-    a whole bunch of these were implemented for lewa in "previous ibeis branch" on the occurrence, such as:
-        occ.setNumBachMales(int);   see Occurrence.java for those... which will need to be ported... :/   TODO
-
-                <observations categoryKey="animals.liveanimals.">
-                    <attributes attributeKey="species">
-                        <itemKey>chordata_rl.mammalia_rl.perissodactyla_rl.equidae_rl.equus_rl.equusgrevyi_rl7950.</itemKey>
-                    </attributes>
-                    <attributes attributeKey="habitat">
-                        <itemKey>openwoodland</itemKey>
-                    </attributes>
-                    <attributes attributeKey="groupsize">
-                        <dValue>6.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="noofbm">
-                        <dValue>6.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="nooftm">
-                        <dValue>1.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="distancem">
-                        <dValue>51.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="noofnlf">
-                        <dValue>7.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="nooflf">
-                        <dValue>2.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="numberof612monthsfemales">
-                        <dValue>2.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="bearing">
-                        <dValue>30.0</dValue>
-                    </attributes>
-                    <attributes attributeKey="photonumber">
-                        <sValue>1</sValue>
-                    </attributes>
-                </observations>
-
- */
                     Occurrence occ = new Occurrence();
                     occ.setOccurrenceID(Util.generateUUID());
                     occ.setDecimalLatitude(decimalLatitude);
@@ -154,7 +114,6 @@ public class Cluster {
 
                     Integer photoOffset = null;
                     NodeList alist = oel.getElementsByTagName("attributes");
-                    // TODO this is where we would build out the Occurrence
                     if (alist.getLength() > 0) {
                         for (int a = 0; a < alist.getLength(); a++) {
                             Node anode = alist.item(a);
@@ -173,37 +132,7 @@ public class Cluster {
                                                 " > assets.size() " + assets.size());
                                 }
                                 break;
-                                /* legacy zebra stuff
-                                   case "habitat":
-                                    occ.setHabitat(getValueString(ael));
-                                    break;
-                                   case "bearing":
-                                    occ.setBearing(getValueDouble(ael));
-                                    break;
-                                   case "groupsize":
-                                    occ.setGroupSize(getValueDoubleAsInt(ael));
-                                    break;
-                                   case "noofbm":
-                                    occ.setNumBachMales(getValueDoubleAsInt(ael));
-                                    break;
-                                   case "nooftm":
-                                    occ.setNumTerMales(getValueDoubleAsInt(ael));
-                                    break;
-                                   case "distancem":
-                                    occ.setDistance(getValueDouble(ael));
-                                    break;
-                                   case "noofnlf":
-                                    occ.setNumNonLactFemales(getValueDoubleAsInt(ael));
-                                    break;
-                                   case "nooflf":
-                                    occ.setNumLactFemales(getValueDoubleAsInt(ael));
-                                    break;
-                                   case "numberof612monthsfemales":
-                                    //
-                                    break;
-                                 */
                             }
-                            // TODO ... do something with the value!
                         }
                     }
                     System.out.println(" - created Occurrence " + occ);
@@ -234,16 +163,6 @@ public class Cluster {
             }
             // persist the occ!
         }
-/*
-                        val.put("time", el.getAttribute("time"));
-                        NodeList anlist = el.getElementsByTagName("attributes");
-                                if (an.getNodeType() != Node.ELEMENT_NODE) continue;
-                                Element ael = (Element) an;
-                                String aval = "";
-                                NodeList vl = ael.getElementsByTagName("dValue");  //numeric if (vl.getLength() < 1) vl =
-                                   ael.getElementsByTagName("itemKey");  //string if (vl.getLength() > 0) aval = vl.item(0).getTextContent();
-   System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
- */
 
         return occs;
     }
@@ -423,11 +342,7 @@ public class Cluster {
         String output = runPythonCommand(command);
         int[] occNums = parseJonsOutput(output);
         List<List<MediaAsset> > occurrenceGroups = groupAssetsByJonsOutput(validAssets, occNums);
-        /*
-           for (List<MediaAsset> occGroup : occurrenceGroups) {
-           Occurrence occ = new Occurrence(occGroup);
-           myShepherd.storeNewOccurrence(occ);
-           }*/
+        
         for (int i = 0; i < occurrenceGroups.size(); i++) {
             List<MediaAsset> occGroup = occurrenceGroups.get(i);
             Occurrence occ = new Occurrence(occGroup, myShepherd);

@@ -84,18 +84,14 @@ public class EncounterVMData extends HttpServlet {
                                 candEnc.setMatchedBy("Visual Matcher");
                                 indiv.addEncounter(candEnc);
                             }
-                            // myShepherd.addMarkedIndividual(indiv);
                         } else {
                             enc.setIndividual(indiv);
                         }
-                        // enc.assignToMarkedIndividual(matchID);
                         enc.addComments("<p><em>" + request.getRemoteUser() + " on " +
                             (new java.util.Date()).toString() + "</em><br>" + "Added to " +
                             matchID + ".</p>");
                         enc.setMatchedBy("Visual Matcher");
-                        // myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
                         myShepherd.commitDBTransaction();
-                        // myShepherd.closeDBTransaction();
                         redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
                     } else {
                         rtn.put("error", "unauthorized");
@@ -110,7 +106,7 @@ public class EncounterVMData extends HttpServlet {
                     String[] fields = { "locationID", "sex", "patterningCode" };
                     for (String f : fields) {
                         String val = request.getParameter(f);
-                        if (val != null) filter += " && " + f + " == '" + val + "'"; // TODO safely quote!  sql injection etc
+                        if (val != null) filter += " && " + f + " == '" + val + "'"; 
                     }
                     String mma = request.getParameter("mmaCompatible");
                     if ((mma != null) && !mma.equals("")) {
@@ -138,10 +134,7 @@ public class EncounterVMData extends HttpServlet {
                         (System.currentTimeMillis() - startTime) +
                         " milliseconds. Result set was: " + resultsSize);
                     int numConsidered = 0;
-                    // Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
-                    // while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
                     for (int i = 0; ((i < resultsSize) && (candidates.size() < MAX_MATCH)); i++) {
-                        // Encounter cand = all.next();
                         System.out.println("     i=" + i);
                         Encounter cand = results.get(i);
                         numConsidered++;
@@ -192,7 +185,6 @@ public class EncounterVMData extends HttpServlet {
                     }
                     rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
                     rtn.put("mmaCompatible", enc.getMmaCompatible());
-                    // if (!images.isEmpty()) rtn.put("images", images);
                 }
             } // end try
             catch (Exception e) {
@@ -230,7 +222,6 @@ public class EncounterVMData extends HttpServlet {
         for (MediaAsset ma : enc.getMedia()) {
             HashMap i = new HashMap();
             i.put("id", ma.getId());
-            // URL safe = ma.safeURL(myShepherd, request);
             URL safe = ma.webURL();
             i.put("url", safe);
             i.put("thumbUrl", safe);

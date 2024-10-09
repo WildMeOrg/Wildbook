@@ -25,7 +25,7 @@ public class FileQueue extends Queue {
     private File queueDir = null;
 
     public static boolean isAvailable(String context) {
-        return true; // TODO until we come up with a scenario where it wont work?
+        return true; 
     }
 
     public FileQueue(final String name)
@@ -34,7 +34,7 @@ public class FileQueue extends Queue {
         if (queueBaseDir == null)
             throw new IOException("FileQueue.init() has not yet been called!");
         this.type = TYPE_NAME;
-        queueDir = new File(queueBaseDir, name); // TODO scrub name of invalid chars
+        queueDir = new File(queueBaseDir, name); 
         if (!queueDir.exists() || !queueDir.isDirectory()) {
             boolean ok = queueDir.mkdirs();
             if (!ok) throw new IOException("FileQueue failed to create " + queueDir.toString());
@@ -55,7 +55,6 @@ public class FileQueue extends Queue {
         String qd = Queue.getProperty(context, "filequeue_basedir");
         if (qd == null) qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0"); // legacy
         if (qd == null) { // lets try to make one *somewhere*
-            // queueBaseDir = Files.createTempDirectory("WildbookFileQueue").toFile();
             queueBaseDir = new File("/tmp/WildbookFileQueue");
             System.out.println("INFO: default (temporary) queueBaseDir being used: " +
                 queueBaseDir);
@@ -95,13 +94,11 @@ public class FileQueue extends Queue {
         if (activeFile.exists()) {
             System.out.println("WARNING: " + this.toString() + " wanted to create " +
                 activeFile.toString() + " but it exists; skipping");
-            // TODO keep a count maybe then skip over for real after N tries?  something like that....
             return null;
         }
         if (!nextFile.renameTo(activeFile)) {
             System.out.println("WARNING: " + this.toString() + " wanted to create " +
                 activeFile.toString() + " but rename failed; skipping");
-            // TODO ditto above comment
             return null;
         }
         System.out.println("INFO: " + this.toString() + " successfully engaged file " +
@@ -120,13 +117,11 @@ public class FileQueue extends Queue {
         if (completedFile.exists()) {
             System.out.println("WARNING: " + this.toString() + " wanted to create " +
                 completedFile.toString() + " but it exists; skipping");
-            // TODO ditto
             return null;
         }
         if (!activeFile.renameTo(completedFile)) {
             System.out.println("WARNING: " + this.toString() + " wanted to create " +
                 completedFile.toString() + " but rename failed; skipping");
-            // TODO ditto
             return null;
         }
         if (this.isConsumerShutdownMessage(fcontents))

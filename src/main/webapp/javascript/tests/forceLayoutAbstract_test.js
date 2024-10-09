@@ -62,10 +62,6 @@ QUnit.module('defineArrows()', defineArrowsEventHooks, () => {
 
 //updateGraph() - Wrapper function, not tested
 
-//TODO - updateLinks()
-
-//TODO - updateNodes()
-
 QUnit.module('applyForces()', () => {
     QUnit.test('Default forces', t => {
 	let linkData = [];
@@ -246,37 +242,6 @@ QUnit.module('releaseNode()', releaseNodeEventHooks, () => {
     });
 });
 
-//TODO - Fix
-/*QUnit.module('handleFilter()', copyFaObj, () => {
-    QUnit.test('Reset graph', t => {
-	faCopy.shiftKey = () => true;
-	faCopy.ctrlKey = () => true;
-	faCopy.resetGraph = () => faCopy.reset = true;
-	faCopy.handleFilter();
-	t.ok(faCopy.reset);
-    });
-
-    QUnit.test('Filter inverse family', t => {
-	faCopy.shiftKey = () => true;
-	faCopy.ctrlKey = () => false;
-	faCopy.filterGraph = (groupNum, nodeFilter, linkFilter, type) => {
-	    if (type === 'inverse_family') faCopy.filter = 'inverse_family';
-	};
-	faCopy.handleFilter();
-	t.equal(faCopy.filter, 'inverse_family');
-    });
-
-    QUnit.test('Filter family', t => {
-	faCopy.shiftKey = () => false;
-	faCopy.ctrlKey = () => true;
-	faCopy.filterGraph = (groupNum, nodeFilter, linkFilter, type) => {
-	    if (type === 'family') faCopy.filter = 'family';
-	};
-	faCopy.handleFilter();
-	t.equal(faCopy.filter, 'family');
-    });
-});*/
-
 let resetGraphEventHooks = Object.assign(copyFaObj, {'afterEach': () => $('#test').empty()});
 QUnit.module('resetGraph()', resetGraphEventHooks, () => {
     QUnit.test('Full reset', t => {
@@ -294,70 +259,6 @@ QUnit.module('resetGraph()', resetGraphEventHooks, () => {
 	nodes.forEach(node => t.ok(!node.filtered))
     });
 });
-
-//TODO - Fix
-/*Object.assign(copyFaObj, {'afterEach': () => {
-    $('#test').empty();
-    d3.selectAll('.node').remove();
-}});
-QUnit.module('filterGraph()', resetGraphEventHooks, () => {
-    QUnit.test('Reversing filter', t => {
-	faCopy.nodeData = [{'val': 0}, {'val': 1}, {'val': 2}];
-	faCopy.prevNodeData = [];
-	let filteredNode = {'filtered': true};
-	let unfilteredNode = {'filtered': false};
-	faCopy.linkData = [{'val': 0, 'source': unfilteredNode, 'target': unfilteredNode },
-			   {'val': 1, 'source': unfilteredNode, 'target': unfilteredNode },
-			   {'val': 2, 'source': filteredNode, 'target': filteredNode }];
-	faCopy.prevLinkData = [];
-	let nodeFilter = d => d.val < 1;
-	let linkFilter = d => d.val < 1;
-	faCopy.filtered = {'test': {1: true }}
-	faCopy.svg = d3.select('#test')
-	    .data(faCopy.nodeData).append('g')
-	    .attr('class', 'node');
-	faCopy.updateGraph = (linkData, nodeData) => faCopy.updated = true;
-	faCopy.filterGraph(1, nodeFilter, linkFilter, 'test', 'test');
-	faCopy.nodeData.forEach((d, idx) => {
-	    if (idx === 0) t.equal(d.filtered, undefined);
-	    else t.notOk(d.filtered);
-	});
-	t.equal(faCopy.prevNodeData.length, 2);
-	t.equal(faCopy.prevNodeData[0].val, 1);
-	t.equal(faCopy.prevNodeData[1].val, 2);
-	t.equal(faCopy.prevLinkData.length, 1);
-	t.equal(faCopy.prevLinkData[0].val, 1);
-	t.equal($('.node').length, 1);
-	t.ok(faCopy.updated);
-    });
-
-    QUnit.test('Applying filter', t => {
-	faCopy.nodeData = [{'val': 0}, {'val': 1}, {'val': 2}];
-	faCopy.prevNodeData = faCopy.nodeData;
-	let filteredNode = {'filtered': true};
-	let unfilteredNode = {'filtered': false};
-	faCopy.linkData = [{'val': 0, 'source': unfilteredNode, 'target': unfilteredNode },
-			   {'val': 1, 'source': unfilteredNode, 'target': unfilteredNode },
-			   {'val': 2, 'source': filteredNode, 'target': filteredNode }];
-	faCopy.prevLinkData = faCopy.linkData;
-	let nodeFilter = d => d.val < 1;
-	let linkFilter = d => d.val < 1;
-	faCopy.filtered = {'test': {}}
-	faCopy.updateGraph = (linkData, nodeData) => faCopy.updated = true;
-	faCopy.filterGraph(1, nodeFilter, linkFilter, 'test', 'test');
-	t.ok(faCopy.filtered.test[1]);
-	faCopy.nodeData.forEach((d, idx) => {
-	    if (idx >= 1) t.ok(d.filtered);
-	    else t.notOk(d.filtered);
-	});
-	t.equal(faCopy.prevNodeData.length, 1);
-	t.equal(faCopy.prevNodeData[0].val, 0);
-	t.equal(faCopy.prevLinkData.length, 1);
-	t.equal(faCopy.prevLinkData[0].val, 0);
-	t.ok(faCopy.updated);
-	
-    });
-});*/
 
 QUnit.module('isAssignedKeyBinding()', {'beforeEach': () => d3.event = {} }, () => {
     QUnit.test('shiftKey', t => {

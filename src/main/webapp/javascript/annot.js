@@ -1,5 +1,5 @@
 
-//TODO "remember" previous settings (e.g. scale) in case they were not default
+// Does not "remember" previous settings (e.g. scale) in case where they were not default
 function zoomToFeature(imgEl, feat) {
     if ((imgEl == null) || (typeof feat != 'object')) return;
     if (!feat.parameters || (typeof feat.parameters != 'object')) return;
