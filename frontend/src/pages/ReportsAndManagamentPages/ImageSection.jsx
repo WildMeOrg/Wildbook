@@ -29,12 +29,23 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;
 
+  const [count, setCount] = useState(0);
+
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
-  }, [previewData]);
+    console.log("count", count);
+    console.log(previewData);
+    if (count === previewData.length) {
+      const submissionId = uuidv4();
+      reportEncounterStore.setImageSectionSubmissionId(submissionId);
+      reportEncounterStore.setImageSectionUploadSuccess(true);
+      console.log("All files uploaded successfully.");
+    }
+  }, [previewData, count]);
 
   useEffect(() => {
     if (reportEncounterStore.startUpload) {
+      console.log("Start upload");
       handleUploadClick();
     }
   }, [reportEncounterStore.startUpload]);
@@ -97,6 +108,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       return true;
     });
 
+    console.log(previewData);
+
     flowInstance.on("fileProgress", (file) => {
       const percentage = (file._prevUploadedSize / file.size) * 100;
       setPreviewData((prevPreviewData) =>
@@ -110,6 +123,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
+      setCount((prevCount) => prevCount + 1);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -117,10 +131,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             : preview
         )
       );
-      
-      const submissionId = uuidv4();
-      reportEncounterStore.imageSectionSubmissionId = submissionId;
-      reportEncounterStore.imageSectionUploadSuccess = true;
+
     });
 
     flowInstance.on("fileError", (file, message) => {
@@ -131,7 +142,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         )
       );
       console.error("Upload error:", message);
-      reportEncounterStore.imageSectionUploadSuccess = false;
+      reportEncounterStore.setImageSectionUploadSuccess(false);
     });
 
     setupDragAndDropListeners(flowInstance);
@@ -163,7 +174,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     e.dataTransfer.dropEffect = "copy";
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = updatedBorder;
-    }  
+    }
   };
 
   const handleDragLeave = (e) => {
@@ -171,7 +182,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     e.stopPropagation();
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = originalBorder;
-    }  
+    }
   };
 
   const handleDrop = (e, flowInstance) => {
@@ -190,6 +201,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   };
 
   const handleUploadClick = () => {
+    // console.log("Uploading files:", files);
     const validFiles = flow.files.filter(
       (file) => file.size <= maxSize * 1024 * 1024
     );
@@ -197,6 +209,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     if (validFiles.length > 0) {
       setUploading(true);
       validFiles.forEach((file) => {
+        // console.log("Uploading file:", file);
         flow.upload(file);
       });
     }
@@ -354,7 +367,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         </Row>
       </Row>
 
-      {fileActivity && (
+      {/* {fileActivity && (
         <Row>
           <Col>
             <Button
@@ -367,7 +380,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             </Button>
           </Col>
         </Row>
-      )}
+      )} */}
     </Container>
   );
 });

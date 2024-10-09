@@ -37,8 +37,8 @@ export const ReportEncounterSpeciesSection = observer(({ reportEncounterStore })
             required="true"
             style={{ paddingRight: "30px" }}
             onChange={(e) => {
-              reportEncounterStore.speciesSection.value = e.target.value;
-              reportEncounterStore.speciesSection.error = e.target.value ? false : true;
+              reportEncounterStore.setSpeciesSectionValue(e.target.value);
+              reportEncounterStore.setSpeciesSectionError(e.target.value ? false : true);
             }}
           >
             <option value="">
