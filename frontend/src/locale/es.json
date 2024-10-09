@@ -286,5 +286,7 @@
     "EMPTY_REQUIRED_FIELD": "Campo obligatorio vacío",
     "IMAGES_REQUIRED_ANON_WARNING": "Las imágenes son necesarias para el envío anónimo. Añade imágenes o inicia sesión.",
     "CONTACT_OTHERS": "Para otros",
-    "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío"
+    "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío",
+    "FILE_SIZE_EXCEEDED": "Las imágenes que superen el límite no se subirán",
+    "ADD_MORE_FILES": "Añadir más archivos"
 }
