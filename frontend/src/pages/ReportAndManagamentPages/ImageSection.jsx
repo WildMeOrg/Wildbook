@@ -9,10 +9,10 @@ import {
 } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
-import ThemeContext from "../ThemeColorProvider";
-import MainButton from "../components/MainButton";
+import ThemeContext from "../../ThemeColorProvider";
+import MainButton from "../../components/MainButton";
 import { v4 as uuidv4 } from "uuid";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 
 export const FileUploader = observer(({ reportEncounterStore }) => {

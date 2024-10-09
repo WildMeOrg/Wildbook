@@ -1,8 +1,8 @@
 import React, { useContext, useState, useRef } from "react";
 import { Container, Row, Col, Form, Alert } from "react-bootstrap";
-import ThemeColorContext from "../ThemeColorProvider";
-import MainButton from "../components/MainButton";
-import AuthContext from "../AuthProvider";
+import ThemeColorContext from "../../ThemeColorProvider";
+import MainButton from "../../components/MainButton";
+import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "../components/ImageSection";
 import DateTimeSection from "../components/DateTimeSection";
@@ -10,6 +10,14 @@ import PlaceSection from "../components/PlaceSection";
 import SpeciesSection from "../components/SpeciesSection";
 import AdditionalCommentsSection from "../components/AdditionalCommentsSection";
 import FollowUpSection from "../components/FollowUpSection";
+import ImageSection from "./ImageSection"
+import DateTimeSection from "../../components/DateTimeSection";
+import PlaceSection from "../../components/PlaceSection";
+import AdditionalCommentsSection from "../../components/AdditionalCommentsSection";
+import FollowUpSection from "../../components/FollowUpSection";
+import { observer, useLocalObservable } from "mobx-react-lite";
+import {ReportEncountStore} from "./ReportEncountStore";
+import {ReportEncounterSpeciesSection} from "./SpeciesSection";
 
 export default function ReportEncounter() {
   const themeColor = useContext(ThemeColorContext);
