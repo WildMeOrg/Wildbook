@@ -54,7 +54,6 @@ export default function ReportEncounter() {
     },
     {
       title: "SPECIES",
-<<<<<<< HEAD
       section: (
         <SpeciesSection
           species={species}
@@ -62,12 +61,6 @@ export default function ReportEncounter() {
           isValidForm={isValidForm}
         />
       ),
-=======
-      section: <SpeciesSection 
-        required={true}
-        setFormData={setFormData}
-      />,      
->>>>>>> submissionId and file names
     },
     {
       title: "ADDITIONAL_COMMENTS_SECTION",
