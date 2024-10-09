@@ -1,9 +1,11 @@
 import React from "react";
 import { Form, Alert } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
-import useGetSiteSettings from "../models/useGetSiteSettings";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { observer } from "mobx-react-lite";
 
-export default function SpeciesSection({ species, setSpecies, isValidForm }) {
+
+export const ReportEncounterSpeciesSection = observer(({ reportEncounterStore }) => {
   const { data } = useGetSiteSettings();
   let speciesList =
     data?.siteTaxonomies?.map((item) => {
@@ -18,7 +20,7 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
     <div>
       <h4>
         <FormattedMessage id="SPECIES" />
-        <span style={{ color: "red" }}> *</span>
+        <span>*</span>
       </h4>
       <p>
         <FormattedMessage id="SPECIES_REQUIRED_IA_WARNING" />
@@ -27,7 +29,7 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
       <Form.Group>
         <Form.Label>
           <FormattedMessage id="SPECIES" />
-          <span style={{ color: "red" }}> *</span>
+          <span>*</span>
         </Form.Label>
         <div className="position-relative d-inline-block w-100">
           <Form.Control
@@ -35,7 +37,8 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
             required="true"
             style={{ paddingRight: "30px" }}
             onChange={(e) => {
-              setSpecies(e.target.value);
+              reportEncounterStore.setSpeciesSectionValue(e.target.value);
+              reportEncounterStore.setSpeciesSectionError(e.target.value ? false : true);
             }}
           >
             <option value="">
@@ -53,7 +56,7 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
             style={{ right: "10px", pointerEvents: "none" }}
           ></i>
         </div>
-        {!isValidForm && !species && (
+        {reportEncounterStore.speciesSection.error && (
           <Alert
             variant="danger"
             style={{
@@ -70,4 +73,4 @@ export default function SpeciesSection({ species, setSpecies, isValidForm }) {
       </Form.Group>
     </div>
   );
-}
+});
