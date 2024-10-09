@@ -3838,7 +3838,7 @@ public class Shepherd {
     /**
      * Commits (makes permanent) any changes made to an open database
      */
-    // TODO Either (a) throw an exception itself or (b) return boolean of success (the latter was disabled, needs investigation)
+    // TODO: Either (a) throw an exception itself or (b) return boolean of success (the latter was disabled, needs investigation)
     public void commitDBTransaction() {
         try {
             // System.out.println("     shepherd:"+identifyMe+" is trying to commit a transaction");

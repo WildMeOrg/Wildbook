@@ -84,7 +84,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
     // first sighting
     private String dateFirstIdentified;
 
-    // points to thumbnail (usually of most recent encounter) - TODO evaluate and remove if has been superceded by MediaAsset
+    // points to thumbnail (usually of most recent encounter) - TODO: evaluate and remove if has been superceded by MediaAsset
     private String thumbnailUrl;
 
     // a Vector of Strings of email addresses to notify when this MarkedIndividual is modified
@@ -637,7 +637,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return false;
     }
 
-    // TODO evaluate and remove if deprecated
+    // TODO: evaluate and remove if deprecated
     public double averageLengthInYear(int year) {
         int numLengths = 0;
         double total = 0;
@@ -657,7 +657,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return avg;
     }
 
-    // TODO evaluate and remove if deprecated
+    // TODO: evaluate and remove if deprecated
     public double averageMeasuredLengthInYear(int year, boolean allowGuideGuess) {
         int numLengths = 0;
         double total = 0;
@@ -804,7 +804,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return names.getValue(keyHint);
     }
 
-    // TODO evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
+    // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public String getIndividualID() {
         return individualID;
     }
@@ -841,7 +841,7 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
         return legacyIndividualID;
     }
 
-    // TODO evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
+    // TODO: evaluate and remove if deprecated:  ##DEPRECATED #509 - Base class getId() method
     public void setIndividualID(String id) {
         individualID = id;
     }

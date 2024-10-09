@@ -35,31 +35,6 @@ public class TestJunit {
         this.wLogin = 22;
         this.woLogin = 9;
         this.encsInWildbook = 32;
-        // TODO: FIGURE THIS OUT
-        // Read input from file (cannot find file for some reason)
-        // File myFile = new File("databaseDump.txt");
-        // Scanner sc = new Scanner(myFile);
-        // boolean reachedUserSection = false;
-
-        // while(sc.hasNextLine())
-        // {
-        // if(reachedUserSection)
-        // {
-        // try
-        // {
-        // this.usersInWildbook = Integer.parseInt(sc.nextLine());
-        // this.wLogin = Integer.parseInt(sc.nextLine());
-        // this.woLogin = Integer.parseInt(sc.nextLine());
-        // }
-        // catch(Exception e) {}
-        // reachedUserSection = false;
-        // }
-        // else if(sc.hasNext("NumberOfUsers"))
-        // {
-        // reachedUserSection = true;
-        // }
-        // sc.nextLine();
-        // }
     }
 
     @Test public void testPrintMessage() {
@@ -67,24 +42,9 @@ public class TestJunit {
     }
 
     @Test public void testSetNumberOfUsers() {
-        // this.myShepherd.beginDBTransaction();
-        // run method
-        // this.promObject.setNumberOfUsers();
-        // int s = this.myShepherd.getNumUsers();
-        // assertEquals((int) this.promObject.numUsersInWildbook.get(), this.usersInWildbook);
-        // assertEquals((int) this.promObject.numUsersWithLogin.get(), this.wLogin);
-        // assertEquals((int) this.promObject.numUsersWithoutLogin.get(), this.woLogin);
-        // TODO: get active users metric is pending
-
-        // this.myShepherd.closeDBTransaction();
     }
 
     @Test public void testSetNumberOfEncounters() {
-        // this.myShepherd.closeDBTransaction();
-        // this.promObject.setNumberOfEncounters();
-        // assertEquals((int) this.promObject.encs.get(), this.encsInWildbook);
-        // TODO: The rest of the metrics for this method
-        // this.myShepherd.closeDBTransaction();
     }
 
     @Test public void testSetNumberOfIndividuals() {

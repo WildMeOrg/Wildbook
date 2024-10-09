@@ -239,7 +239,7 @@ public class RestClient {
     }
 
     /***********************************************************************************************
-       TODO evaluate strategy, rewrite as needed and define future actions that need to be taken to truly update
+       TODO: evaluate strategy, rewrite as needed and define future actions that need to be taken to truly update
        some attempts to *truly* genericize these....
 
        rather than authUsername/authPassword, we might want to have our own credential class that allows us to set headers etc accordingly!

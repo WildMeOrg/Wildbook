@@ -382,7 +382,7 @@ public class User implements Serializable {
         social.remove(type);
     }
 
-    // TODO this needs to be dealt with better.  see: rant about saving usernames from forms
+    // TODO: this needs to be dealt with better.  see: rant about saving usernames from forms
     public static boolean isUsernameAnonymous(String uname) {
         return ((uname == null) || uname.trim().equals("") || uname.equals("N/A") ||
                    uname.equals("public"));

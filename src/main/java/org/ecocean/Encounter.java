@@ -1752,7 +1752,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public void setSurvey() {
     }
 
-    // TODO Get all this lat lon over to Locations
+    // TODO: Get all this lat lon over to Locations
 
     public void setDWCDecimalLatitude(double lat) {
         if (lat == -9999.0) {
@@ -2156,7 +2156,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // hacky (as generates new Taxonomy -- with random uuid) but still should work for tax1.equals(tax2);
-    // TODO FIXME this should be superceded by the getter for Taxonomy property in the future....
+    // TODO: FIXME this should be superceded by the getter for Taxonomy property in the future....
     public Taxonomy getTaxonomy(Shepherd myShepherd) {
         String sciname = this.getTaxonomyString();
 
@@ -2624,7 +2624,7 @@ public class Encounter extends Base implements java.io.Serializable {
         for (Annotation ann : annotations) {
             if (ann.getIAClass() != null) classes.add(ann.getIAClass());
         }
-        // TODO we should find out how/where bunk iaClass values are getting set
+        // TODO: we should find out how/where bunk iaClass values are getting set
         // and stop the via isValidIAClass() or similar
         // also should be considered for any data integrity/repair tools
         classes.remove("____");
@@ -3302,7 +3302,7 @@ public class Encounter extends Base implements java.io.Serializable {
         return true;
     }
 
-///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
+///////// these are bunk now - dont use Features  TODO: fix these - perhaps by crawlng thru ma.getAnnotations() ?
     public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
         String queryString =
             "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id =="
@@ -3487,7 +3487,7 @@ public class Encounter extends Base implements java.io.Serializable {
     }
 
     // this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
-    // TODO figure out what this really means
+    // TODO: figure out what this really means
     public void setMatchingOnly() {
         this.setState(STATE_MATCHING_ONLY);
     }
@@ -3501,7 +3501,7 @@ public class Encounter extends Base implements java.io.Serializable {
     /*
        note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really this
           probably should be upon some (mythical) BASE CLASS!!!! ... for now, this Encounter variation kinda fudges with existing "ownership" stuff,
-          namely, the submitterID - which maps (in theory!) to a User username. TODO much much much  ... incl call via constructor maybe ??  etc.
+          namely, the submitterID - which maps (in theory!) to a User username. TODO: much much much  ... incl call via constructor maybe ??  etc.
      */
     // NOTE: not going to currently persist the AccessControl object yet, but create on the fly...  clever? stupid?
     public AccessControl getAccessControl() {
