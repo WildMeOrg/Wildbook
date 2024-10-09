@@ -10,7 +10,7 @@ import useGetMe from "./models/auth/users/useGetMe";
 import AlertBanner from "./components/AlertBanner";
 import EncounterSearch from "./pages/EncounterSearch";
 import Citation from "./pages/Citation";
-import ReportEncounter from "./pages/ReportEncounter";
+import ReportEncounter from "./pages/ReportAndManagamentPages/ReportEncounter";
 
 export default function AuthenticatedSwitch({ showAlert, setShowAlert }) {
   const { data } = useGetMe();
