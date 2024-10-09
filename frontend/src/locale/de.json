@@ -287,5 +287,8 @@
     "EMPTY_REQUIRED_FIELD": "Leeres Pflichtfeld",
     "IMAGES_REQUIRED_ANON_WARNING": "Bilder sind für die anonyme Übermittlung erforderlich. Fügen Sie Bilder hinzu oder melden Sie sich an.",
     "CONTACT_OTHERS": "Für andere",
-    "EMPTY_REQUIRED_WARNING": "Dieses Feld darf nicht leer sein"
+    "EMPTY_REQUIRED_WARNING": "Dieses Feld darf nicht leer sein",
+    "FILE_SIZE_EXCEEDED": "Bilder, die das Limit überschreiten, werden nicht hochgeladen",
+    "ADD_MORE_FILES": "Weitere Dateien hinzufügen"
+
 }
