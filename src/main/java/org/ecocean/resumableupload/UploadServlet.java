@@ -241,7 +241,6 @@ public class UploadServlet extends HttpServlet {
     }
 
     public static String getUploadDir(HttpServletRequest request, Map<String, String> values) {
-        System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
         ServletUtilities.printParams(request);
         String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir",
             request);

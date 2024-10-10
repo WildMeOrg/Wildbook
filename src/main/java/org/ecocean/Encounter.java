@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
 import org.ecocean.identity.IBEISIA;
@@ -4644,4 +4645,45 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
         return rtn;
     }
+
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+
+        String locationID = (String)validateFieldValue("locationID", payload);
+        Encounter enc = new Encounter();
+        return enc;
+    }
+
+    public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+
+        switch (fieldName) {
+
+        case "locationId":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!LocationID.isValidLocationID((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" + fieldName);
+        }
+
+        // must be okay!
+        return returnValue;
+    }
+
 }
