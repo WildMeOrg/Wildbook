@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
@@ -95,6 +96,28 @@ public class BaseObject extends ApiBase {
             String cls = payload.optString("_class");
             switch (cls) {
             case "encounters":
+                Map<File, MediaAsset> mas = makeMediaAssets(files);
+                JSONArray assetsArr = new JSONArray();
+                JSONArray invalidFilesArr = new JSONArray();
+                for (File file : mas.keySet()) {
+                    MediaAsset ma = mas.get(file);
+                    JSONObject el = new JSONObject();
+                    if (ma == null) {
+                        el.put("filename", file.getName());
+                        invalidFilesArr.put(el);
+                    } else {
+                        el.put("id", ma.getId());
+                        assetsArr.put(el);
+                    }
+                }
+                rtn.put("assets", assetsArr);
+                rtn.put("invalidFiles", invalidFilesArr);
+                if ((assetsArr.length() < 1) && (currentUser == null)) {
+                    JSONObject error = new JSONObject();
+                    error.put("fieldName", "assetFilenames");
+                    error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                    throw new ApiException("anonymous submission requires valid files", error);
+                }
                 obj = Encounter.createFromApi(payload, files);
                 break;
             case "occurrences":
@@ -111,11 +134,13 @@ public class BaseObject extends ApiBase {
             rtn.put("success", true);
 
         } catch (ApiException apiEx) {
+            System.out.println("BaseObject.processPost() returning 400 due to " + apiEx + " [errors=" + apiEx.getErrors() + "] on payload " + payload);
             rtn.put("statusCode", 400);
             rtn.put("errors", apiEx.getErrors());
         }
 
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
+            System.out.println("BaseObject.processPost() success (200) creating " + obj + " from payload " + payload);
             myShepherd.commitDBTransaction();
         } else {
             myShepherd.rollbackDBTransaction();
@@ -129,7 +154,6 @@ public class BaseObject extends ApiBase {
         JSONObject rtn = new JSONObject();
         return rtn;
     }
-
 
     private List<File> findFiles(HttpServletRequest request, JSONObject payload)
     throws IOException {
@@ -168,4 +192,10 @@ public class BaseObject extends ApiBase {
         System.out.println("findFiles(): files=" + files);
         return files;
     }
+    private Map<File, MediaAsset> makeMediaAssets(List<File> files)
+    throws ApiException {
+        Map<File, MediaAsset> results = new HashMap<File, MediaAsset>();
+        return results;
+    }
+
 }
