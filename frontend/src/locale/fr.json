@@ -286,5 +286,7 @@
     "EMPTY_REQUIRED_FIELD": "Champ obligatoire vide",
     "IMAGES_REQUIRED_ANON_WARNING": "Des images sont requises pour les soumissions anonymes. Ajoutez des images ou connectez-vous.",
     "CONTACT_OTHERS": "Pour les autres",
-    "EMPTY_REQUIRED_WARNING": "Ce champ ne peut pas être vide"
+    "EMPTY_REQUIRED_WARNING": "Ce champ ne peut pas être vide",
+    "FILE_SIZE_EXCEEDED": "Les images dépassant la limite ne seront pas téléchargées",
+    "ADD_MORE_FILES": "Ajouter plus de fichiers"
 }

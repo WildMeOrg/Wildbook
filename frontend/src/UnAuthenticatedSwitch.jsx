@@ -6,7 +6,7 @@ import AlertBanner from "./components/AlertBanner";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import Unauthorized from "./pages/errorPages/Unauthorized";
 import Citation from "./pages/Citation";
-import ReportEncounter from "./pages/ReportEncounter";
+import ReportEncounter from "./pages/ReportsAndManagamentPages/ReportEncounter";
 
 export default function UnAuthenticatedSwitch({ showAlert, setShowAlert }) {
   const [header, setHeader] = React.useState(true);
