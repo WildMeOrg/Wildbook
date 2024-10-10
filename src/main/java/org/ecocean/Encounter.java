@@ -4650,8 +4650,10 @@ public class Encounter extends Base implements java.io.Serializable {
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
 
-        String locationID = (String)validateFieldValue("locationID", payload);
-        Encounter enc = new Encounter();
+        String locationID = (String)validateFieldValue("locationId", payload);
+        String dateTime = (String)validateFieldValue("dateTime", payload);
+        Encounter enc = new Encounter(false);
+        // TODO apply values etc
         return enc;
     }
 
@@ -4672,6 +4674,21 @@ public class Encounter extends Base implements java.io.Serializable {
                 throw new ApiException(exMessage, error);
             }
             if (!LocationID.isValidLocationID((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "dateTime":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // this is a kind of cheap test of validity of dateTime value; likely we will need to make an improved Util for this
+            long test = Util.getVersionFromModified((String)returnValue);
+            if (test < 1) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("value", returnValue);
                 throw new ApiException(exMessage, error);
