@@ -1,46 +1,87 @@
-import React, { useContext, useState, useRef } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import { Container, Row, Col, Form, Alert } from "react-bootstrap";
-import ThemeColorContext from "../ThemeColorProvider";
-import MainButton from "../components/MainButton";
-import AuthContext from "../AuthProvider";
+import ThemeColorContext from "../../ThemeColorProvider";
+import MainButton from "../../components/MainButton";
+import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
-import ImageSection from "../components/ImageSection";
-import DateTimeSection from "../components/DateTimeSection";
-import PlaceSection from "../components/PlaceSection";
-import SpeciesSection from "../components/SpeciesSection";
-import AdditionalCommentsSection from "../components/AdditionalCommentsSection";
-import FollowUpSection from "../components/FollowUpSection";
+import ImageSection from "./ImageSection"
+import DateTimeSection from "../../components/DateTimeSection";
+import PlaceSection from "../../components/PlaceSection";
+import AdditionalCommentsSection from "../../components/AdditionalCommentsSection";
+import FollowUpSection from "../../components/FollowUpSection";
+import { observer, useLocalObservable } from "mobx-react-lite";
+import {ReportEncounterStore} from "./ReportEncounterStore";
+import {ReportEncounterSpeciesSection} from "./SpeciesSection";
 
-export default function ReportEncounter() {
+export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
+  const store = useLocalObservable(() => new ReportEncounterStore());
+  
+  const handleSubmit = async () => {
+    if (store.validateFields()) {
+      console.log("Fields validated successfully.");
+      store.setStartUpload(true);
+    } else {
+      console.log("Field validation failed.");
+    }
+  };
+
+  useEffect(() => {
+    const checkUploadStatus = async () => {
+      if (store.startUpload && store.imageSectionUploadSuccess) {
+        console.log("Image uploaded successfully.");
+        await store.submitReport();
+        store.setStartUpload(false);
+        store.setImageSectionUploadSuccess(false);
+      } else if (store.startUpload && !store.imageSectionUploadSuccess) {
+        console.log("Please upload images before submitting.");
+      }
+    };
+    checkUploadStatus();
+  }, [store.imageSectionUploadSuccess, store.startUpload]);
+
+
+  // Categories for sections
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: <ImageSection />,
+      section: (
+        <ImageSection reportEncounterStore={store}/>
+      ),
     },
     {
       title: "DATETIME_SECTION",
-      section: <DateTimeSection />,
+      section: (
+        <DateTimeSection reportEncounterStore={store}/>
+      ),
     },
     {
       title: "PLACE_SECTION",
-      section: <PlaceSection />,
+      section: (
+        <PlaceSection reportEncounterStore={store}/>
+      ),
     },
     {
       title: "SPECIES",
-      section: <SpeciesSection />,
+      section: (
+        <ReportEncounterSpeciesSection reportEncounterStore={store} />
+      ),
     },
-
     {
       title: "ADDITIONAL_COMMENTS_SECTION",
-      section: <AdditionalCommentsSection />,
+      section: (
+        <AdditionalCommentsSection reportEncounterStore={store} />
+      ),
     },
     {
       title: "FOLLOWUP_SECTION",
-      section: <FollowUpSection />,
+      section: (
+        <FollowUpSection reportEncounterStore={store} />
+      ),
     },
   ];
+
   const menu = encounterCategories.map((category, index) => ({
     id: index,
     title: category.title,
@@ -105,14 +146,13 @@ export default function ReportEncounter() {
               sign in!
             </a>
           </Alert>
-        ) : null}        
+        ) : null}
       </Row>
       <Row>
         <Alert
           variant="light"
           className="d-inline-block p-2"
           style={{
-            // backgroundColor: "#fff5f5",
             color: "#dc3545",
             width: "auto",
             border: "none",
@@ -125,7 +165,7 @@ export default function ReportEncounter() {
       </Row>
 
       <Row>
-        <Col className="col-lg-5 col-md-6 col-sm-12 col-12 ps-0">
+        <Col className="col-lg-4 col-md-6 col-sm-12 col-12 ps-0">
           <div
             style={{
               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url(${process.env.PUBLIC_URL}/images/report_an_encounter.png)`,
@@ -134,38 +174,36 @@ export default function ReportEncounter() {
               borderRadius: "25px",
               padding: "20px",
               height: "470px",
-              width: "350px",
+              maxWidth: "350px",
               color: "white",
               marginBottom: "20px",
             }}
           >
-            {menu.map((data) => {
-              return (
-                <div
-                  key={data.id}
-                  className="d-flex justify-content-between"
-                  style={{
-                    padding: "10px",
-                    marginTop: "10px",
-                    fontSize: "20px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    borderRadius: "10px",
-                    backgroundColor:
-                      selectedCategory === data.id
-                        ? "rgba(255,255,255,0.5)"
-                        : "transparent",
-                  }}
-                  onClick={() => handleClick(data.id)}
-                >
-                  <FormattedMessage id={data.title} />
-                  <i
-                    className="bi bi-chevron-right"
-                    style={{ fontSize: "14px", fontWeight: "500" }}
-                  ></i>
-                </div>
-              );
-            })}
+            {menu.map((data) => (
+              <div
+                key={data.id}
+                className="d-flex justify-content-between"
+                style={{
+                  padding: "10px",
+                  marginTop: "10px",
+                  fontSize: "20px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  borderRadius: "10px",
+                  backgroundColor:
+                    selectedCategory === data.id
+                      ? "rgba(255,255,255,0.5)"
+                      : "transparent",
+                }}
+                onClick={() => handleClick(data.id)}
+              >
+                <FormattedMessage id={data.title} />
+                <i
+                  className="bi bi-chevron-right"
+                  style={{ fontSize: "14px", fontWeight: "500" }}
+                ></i>
+              </div>
+            ))}
 
             <MainButton
               backgroundColor={themeColor.wildMeColors.cyan600}
@@ -177,6 +215,8 @@ export default function ReportEncounter() {
                 marginTop: "20px",
                 marginBottom: "20px",
               }}
+              onClick={handleSubmit}  // Trigger file upload
+              // disabled={!formValid} 
             >
               Submit Encounter
             </MainButton>
@@ -184,7 +224,7 @@ export default function ReportEncounter() {
         </Col>
 
         <Col
-          className="col-lg-7 col-md-6 col-sm-12 col-12 h-100"
+          className="col-lg-8 col-md-6 col-sm-12 col-12 h-100"
           style={{
             maxHeight: "470px",
             overflow: "auto",
@@ -198,7 +238,6 @@ export default function ReportEncounter() {
                 ref={(el) => (formRefs.current[index] = el)}
                 style={{ paddingBottom: "20px" }}
               >
-                <h4>{/* <FormattedMessage id={index} /> */}</h4>
                 {category.section}
               </div>
             ))}
@@ -207,4 +246,6 @@ export default function ReportEncounter() {
       </Row>
     </Container>
   );
-}
+});
+
+export default ReportEncounter;
