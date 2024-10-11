@@ -4652,9 +4652,11 @@ public class Encounter extends Base implements java.io.Serializable {
 
         String locationID = (String)validateFieldValue("locationId", payload);
         String dateTime = (String)validateFieldValue("dateTime", payload);
+        String txStr = (String)validateFieldValue("taxonomy", payload);
         Encounter enc = new Encounter(false);
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
-        // TODO apply values etc
+        enc.setTaxonomyFromString(txStr);
+        // FIXME apply values etc set owner etc
         return enc;
     }
 
@@ -4694,6 +4696,15 @@ public class Encounter extends Base implements java.io.Serializable {
                 error.put("value", returnValue);
                 throw new ApiException(exMessage, error);
             }
+            break;
+
+        case "taxonomy":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // FIXME validate taxonomy
             break;
 
         default:
