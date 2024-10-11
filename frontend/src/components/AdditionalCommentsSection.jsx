@@ -1,9 +1,29 @@
 import React from "react";
+import { Form } from "react-bootstrap";
+import { FormattedMessage } from "react-intl";
+import { observer } from "mobx-react-lite";
+import { useIntl } from "react-intl";
 
-export default function AdditionalCommentsSection() {
-  return (
-    <div>
-      <h1>Additional Comments Section</h1>
-    </div>
-  );
-}
+export const AdditionalCommentsSection = observer(
+  ({ reportEncounterStore }) => {
+    const intl = useIntl();
+    return (
+      <div>
+        <h5>
+          <FormattedMessage id="ADDITIONAL_COMMENTS_SECTION" />
+        </h5>
+        <Form.Group>
+          <Form.Control
+            as="textarea"
+            rows={4}
+            maxLength={5000}
+            placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
+            onChange={(e) => {
+              reportEncounterStore.setCommentsSectionValue(e.target.value);
+            }}
+          />
+        </Form.Group>
+      </div>
+    );
+  },
+);
