@@ -16,8 +16,11 @@ import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
+  
   const store = useLocalObservable(() => new ReportEncounterStore());
 
+  store.setImageRequired(!isLoggedIn);
+  
   const handleSubmit = async () => {
     if (store.validateFields()) {
       console.log("Fields validated successfully.");
@@ -28,14 +31,26 @@ export const ReportEncounter = observer(() => {
   };
 
   useEffect(() => {
+    if(store.imageCount === 0 || !isLoggedIn){
+      store.setImageSectionError(true);
+    } 
+  }, [store.imageCount, isLoggedIn]);
+
+  useEffect(() => {
     const checkUploadStatus = async () => {
       if (store.startUpload && store.imageSectionUploadSuccess) {
         console.log("Image uploaded successfully.");
         await store.submitReport();
         store.setStartUpload(false);
         store.setImageSectionUploadSuccess(false);
-      } else if (store.startUpload && !store.imageSectionUploadSuccess) {
+      } else if (isLoggedIn && store.startUpload && !store.imageSectionUploadSuccess) {
+        console.log("ok you don't have to upload images before submitting.");
+        await store.submitReport();
+        store.setStartUpload(false);
+        store.setImageSectionUploadSuccess(false);
+      } else if (isLoggedIn && store.startUpload && !store.imageSectionUploadSuccess) {
         console.log("Please upload images before submitting.");
+        store.setStartUpload(false);
       }
     };
     checkUploadStatus();

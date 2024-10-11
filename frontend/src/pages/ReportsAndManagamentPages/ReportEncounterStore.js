@@ -1,8 +1,11 @@
 import { makeAutoObservable } from "mobx";
 
 export class ReportEncounterStore {
+  _isLoggedin;
   _imageSectionSubmissionId;
   _imageRequired;
+  _imageCount;
+  _imageSectionError;
   _imageSectionUploadSuccess;
   _imageSectionFileNames;
   _startUpload;
@@ -46,6 +49,9 @@ export class ReportEncounterStore {
       additionalEmails: "",
       error: false,
     };
+    this._imageRequired = true;
+    this._imageSectionError = false;
+    this._imageCount = 0;
     makeAutoObservable(this);
   }
 
@@ -58,12 +64,20 @@ export class ReportEncounterStore {
     return this._imageRequired;
   }
 
+  get imageSectionError() {
+    return this._imageSectionError;
+  }
+
   get imageSectionUploadSuccess() {
     return this._imageSectionUploadSuccess;
   }
 
   get imageSectionFileNames() {
     return this._imageSectionFileNames;
+  }
+
+  get imageCount() {
+    return this._imageCount;
   }
 
   get startUpload() {
@@ -93,6 +107,14 @@ export class ReportEncounterStore {
 
   setImageRequired(value) {
     this._imageRequired = value;
+  }
+
+  setImageSectionError(value) {
+    this._imageSectionError = value;
+  }
+
+  SetImageCount(value) {
+    this._imageCount = value;
   }
 
   setImageSectionUploadSuccess(value) {
@@ -188,6 +210,10 @@ export class ReportEncounterStore {
       console.log("Followup information validated");
     }
 
+    
+    if(this._imageSectionError) {
+      isValid = false;
+    }
     // Uncomment the place section validation if needed
     // if (!this._placeSection.value) {
     //   this._placeSection.error = true;
@@ -200,11 +226,11 @@ export class ReportEncounterStore {
   }
 
   async submitReport() {
-    if (this.validateFields()) {
-      console.log("Report submitted", this._speciesSection.value);
+    if (this.validateFields() && this._imageSectionUploadSuccess) {
+      console.log("Report submitted, calling api", this._speciesSection.value);
       // Additional logic for report submission can be added here.
     } else {
-      console.error("Validation failed");
+      console.error("Validation failed, please check the fields.");
     }
   }
 }
