@@ -1,5 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx";
-
+import { makeAutoObservable } from "mobx";
 
 export class ReportEncounterStore {
   _imageSectionSubmissionId;
@@ -34,6 +33,9 @@ export class ReportEncounterStore {
     this._followUpSection = {
       value: "",
       error: false,
+    };
+    this._additionalCommentsSection = {
+      value: "",
     };
     makeAutoObservable(this);
   }
@@ -110,6 +112,10 @@ export class ReportEncounterStore {
 
   setFollowUpSection(value) {
     this._followUpSection.value = value;
+  }
+
+  setCommentsSectionValue(value) {
+    this._additionalCommentsSection.value = value;
   }
 
   validateFields() {
