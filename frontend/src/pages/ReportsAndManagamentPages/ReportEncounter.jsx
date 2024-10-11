@@ -4,20 +4,20 @@ import ThemeColorContext from "../../ThemeColorProvider";
 import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
-import ImageSection from "./ImageSection"
+import ImageSection from "./ImageSection";
 import DateTimeSection from "../../components/DateTimeSection";
 import PlaceSection from "../../components/PlaceSection";
-import AdditionalCommentsSection from "../../components/AdditionalCommentsSection";
+import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import FollowUpSection from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
-import {ReportEncounterStore} from "./ReportEncounterStore";
-import {ReportEncounterSpeciesSection} from "./SpeciesSection";
+import { ReportEncounterStore } from "./ReportEncounterStore";
+import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const store = useLocalObservable(() => new ReportEncounterStore());
-  
+
   const handleSubmit = async () => {
     if (store.validateFields()) {
       console.log("Fields validated successfully.");
@@ -41,44 +41,31 @@ export const ReportEncounter = observer(() => {
     checkUploadStatus();
   }, [store.imageSectionUploadSuccess, store.startUpload]);
 
-
   // Categories for sections
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: (
-        <ImageSection reportEncounterStore={store}/>
-      ),
+      section: <ImageSection reportEncounterStore={store} />,
     },
     {
       title: "DATETIME_SECTION",
-      section: (
-        <DateTimeSection reportEncounterStore={store}/>
-      ),
+      section: <DateTimeSection reportEncounterStore={store} />,
     },
     {
       title: "PLACE_SECTION",
-      section: (
-        <PlaceSection reportEncounterStore={store}/>
-      ),
+      section: <PlaceSection reportEncounterStore={store} />,
     },
     {
       title: "SPECIES",
-      section: (
-        <ReportEncounterSpeciesSection reportEncounterStore={store} />
-      ),
+      section: <ReportEncounterSpeciesSection reportEncounterStore={store} />,
     },
     {
       title: "ADDITIONAL_COMMENTS_SECTION",
-      section: (
-        <AdditionalCommentsSection reportEncounterStore={store} />
-      ),
+      section: <AdditionalCommentsSection reportEncounterStore={store} />,
     },
     {
       title: "FOLLOWUP_SECTION",
-      section: (
-        <FollowUpSection reportEncounterStore={store} />
-      ),
+      section: <FollowUpSection reportEncounterStore={store} />,
     },
   ];
 
@@ -215,8 +202,8 @@ export const ReportEncounter = observer(() => {
                 marginTop: "20px",
                 marginBottom: "20px",
               }}
-              onClick={handleSubmit}  // Trigger file upload
-              // disabled={!formValid} 
+              onClick={handleSubmit} // Trigger file upload
+              // disabled={!formValid}
             >
               Submit Encounter
             </MainButton>
