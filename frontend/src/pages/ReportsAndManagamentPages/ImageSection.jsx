@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import {
-  Button,
-  ProgressBar,
-  Image,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { ProgressBar, Image, Row, Col } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
@@ -15,9 +8,6 @@ import { v4 as uuidv4 } from "uuid";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
-import ReportEncounterStore from "./ReportEncounterStore";
-import ReportEncounter from "./ReportEncounter";
-
 
 export const FileUploader = observer(({ reportEncounterStore }) => {
   const [files, setFiles] = useState([]);
@@ -33,21 +23,19 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;
 
+  console.log(fileNames);
+
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
     if (count === previewData.length && count > 0) {
-
       reportEncounterStore.setImageSectionUploadSuccess(true);
       console.log("All files uploaded successfully.");
     }
 
-    reportEncounterStore.SetImageCount(previewData);
-    
+    reportEncounterStore.SetImageCount(previewData.length);
   }, [previewData, count]);
-
-  
 
   useEffect(() => {
     if (reportEncounterStore.startUpload) {
@@ -70,7 +58,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       query: {
         submissionId: reportEncounterStore.imageSectionSubmissionId,
         // Add any additional query parameters here
-      }
+      },
     });
 
     flowInstance.assignBrowse(fileInputRef.current);
@@ -86,7 +74,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
       // Check if the file already exists in the files state
       const fileExists = files.some(
-        (f) => f.name === file.name && f.size === file.size
+        (f) => f.name === file.name && f.size === file.size,
       );
       if (fileExists) {
         console.warn("File already exists:", file.name);
@@ -124,8 +112,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: percentage }
-            : preview
-        )
+            : preview,
+        ),
       );
     });
 
@@ -136,18 +124,19 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: 100 }
-            : preview
-        )
+            : preview,
+        ),
       );
-
     });
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
-          preview.fileName === file.name ? { ...preview, progress: 0 } : preview
-        )
+          preview.fileName === file.name
+            ? { ...preview, progress: 0 }
+            : preview,
+        ),
       );
       console.error("Upload error:", message);
       reportEncounterStore.setImageSectionUploadSuccess(false);
@@ -199,7 +188,11 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = originalBorder;
     }
-    if (flowInstance && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (
+      flowInstance &&
+      e.dataTransfer.files &&
+      e.dataTransfer.files.length > 0
+    ) {
       const filesArray = Array.from(e.dataTransfer.files);
       filesArray.forEach((file) => {
         flowInstance.addFile(file); // Let flow handle the file addition and trigger fileAdded
@@ -211,10 +204,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const handleUploadClick = () => {
     console.log("Uploading files:", files);
     const validFiles = flow.files.filter(
-      (file) => file.size <= 1 * 1024 * 1024
+      (file) => file.size <= 1 * 1024 * 1024,
     );
-
-    
 
     if (validFiles.length > 0) {
       setUploading(true);
@@ -237,7 +228,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           {reportEncounterStore.imageRequired && "*"}
         </h5>
         <p>
-          <FormattedMessage id="SUPPORTED_FILETYPES" />{`${" "}${maxSize} MB`}
+          <FormattedMessage id="SUPPORTED_FILETYPES" />
+          {`${" "}${maxSize} MB`}
         </p>
       </div>
       <Row>
@@ -282,15 +274,15 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                   setPreviewData((prevPreviewData) =>
                     prevPreviewData.filter(
                       (previewData) =>
-                        previewData.fileName !== preview.fileName
-                    )
+                        previewData.fileName !== preview.fileName,
+                    ),
                   );
 
                   flow.removeFile(
-                    files.find((f) => f.name === preview.fileName)
+                    files.find((f) => f.name === preview.fileName),
                   );
                   setFiles((prevFiles) =>
-                    prevFiles.filter((file) => file.name !== preview.fileName)
+                    prevFiles.filter((file) => file.name !== preview.fileName),
                   );
                 }}
               ></i>
@@ -310,9 +302,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 }}
               >
                 <div>{preview.fileName}</div>
-                <div>
-                  {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
-                </div>
+                <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
                 {(preview.fileSize / (1024 * 1024)).toFixed(2) > 1 && (
                   <div style={{ color: "red" }}>
                     <FormattedMessage id="FILE_SIZE_EXCEEDED" />
@@ -396,7 +386,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           </div>
         </Col>
       </Row>
-
 
       {/* {fileActivity && (
         <Row>
