@@ -4653,6 +4653,7 @@ public class Encounter extends Base implements java.io.Serializable {
         String locationID = (String)validateFieldValue("locationId", payload);
         String dateTime = (String)validateFieldValue("dateTime", payload);
         Encounter enc = new Encounter(false);
+        if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
         // TODO apply values etc
         return enc;
     }

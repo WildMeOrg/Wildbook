@@ -18,7 +18,9 @@ import org.json.JSONObject;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Project;
@@ -71,7 +73,7 @@ public class BaseObject extends ApiBase {
         } else {
             throw new ServletException("Invalid method");
         }
-        int statusCode = rtn.optInt("statusCode", 200);
+        int statusCode = rtn.optInt("statusCode", 500);
 
         response.setStatus(statusCode);
         response.setCharacterEncoding("UTF-8");
@@ -96,29 +98,54 @@ public class BaseObject extends ApiBase {
             String cls = payload.optString("_class");
             switch (cls) {
             case "encounters":
-                Map<File, MediaAsset> mas = makeMediaAssets(files);
-                JSONArray assetsArr = new JSONArray();
+                // we need to know the id ahead of time for the file strucure
+                String encId = Util.generateUUID();
+                payload.put("_id", encId);
+                Map<File, MediaAsset> mas = makeMediaAssets(encId, files, myShepherd);
                 JSONArray invalidFilesArr = new JSONArray();
+                List<MediaAsset> validMAs = new ArrayList<MediaAsset>();
                 for (File file : mas.keySet()) {
                     MediaAsset ma = mas.get(file);
-                    JSONObject el = new JSONObject();
                     if (ma == null) {
+                        JSONObject el = new JSONObject();
                         el.put("filename", file.getName());
                         invalidFilesArr.put(el);
                     } else {
-                        el.put("id", ma.getId());
-                        assetsArr.put(el);
+                        validMAs.add(ma);
                     }
                 }
-                rtn.put("assets", assetsArr);
                 rtn.put("invalidFiles", invalidFilesArr);
-                if ((assetsArr.length() < 1) && (currentUser == null)) {
+                if ((validMAs.size() < 1) && (currentUser == null)) {
                     JSONObject error = new JSONObject();
                     error.put("fieldName", "assetFilenames");
                     error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
                     throw new ApiException("anonymous submission requires valid files", error);
                 }
+
                 obj = Encounter.createFromApi(payload, files);
+                Encounter enc = (Encounter)obj;
+                myShepherd.getPM().makePersistent(enc);
+
+                JSONArray assetsArr = new JSONArray();
+                List<Integer> maIds = new ArrayList<Integer>();
+                for (MediaAsset ma : validMAs) {
+                    MediaAssetFactory.save(ma, myShepherd);
+////// attach to enc!!!
+                    JSONObject maj = new JSONObject();
+                    maj.put("filename", ma.getFilename());
+                    maj.put("id", ma.getId());
+                    maj.put("uuid", ma.getUUID());
+                    maj.put("url", ma.safeURL(myShepherd));
+System.out.println(">>>>>> ma=" + maj);
+                    assetsArr.put(maj);
+                    maIds.add(ma.getId());
+                }
+                rtn.put("assets", assetsArr);
+                //MediaAsset.updateStandardChildrenBackground(context, maIds);
+                // these are needed for display in results
+                rtn.put("locationId", enc.getLocationID());
+                rtn.put("submissionDate", enc.getDWCDateAdded());
+                rtn.put("statusCode", 200);
                 break;
             case "occurrences":
                 obj = Occurrence.createFromApi(payload, files);
@@ -192,10 +219,75 @@ public class BaseObject extends ApiBase {
         System.out.println("findFiles(): files=" + files);
         return files;
     }
-    private Map<File, MediaAsset> makeMediaAssets(List<File> files)
+
+    private Map<File, MediaAsset> makeMediaAssets(String encounterId, List<File> files, Shepherd myShepherd)
     throws ApiException {
         Map<File, MediaAsset> results = new HashMap<File, MediaAsset>();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        for (File file : files) {
+            if (!AssetStore.isValidImage(file)) {
+                System.out.println("BaseObject.makeMediaAssets() failed isValidImage() on " + file);
+                results.put(file, null);
+                continue;
+            }
+            String sanitizedItemName = ServletUtilities.cleanFileName(file.getName());
+            JSONObject sp = astore.createParameters(new File(Encounter.subdir(encounterId) + File.separator + sanitizedItemName));
+            sp.put("userFilename", file.getName());
+            System.out.println("makeMediaAssets(): file=" + file + " => " + sp);
+            MediaAsset ma = new MediaAsset(astore, sp);
+            ma.addLabel("_original");
+System.out.println(">>>>>>>>>> ma => " + ma);
+            try {
+                ma.copyIn(file);
+                ma.validateSourceImage();
+                ma.updateMetadata();
+                results.put(file, ma);
+            } catch (IOException ioe) {
+                System.out.println("BaseObject.makeMediaAssets() failed on " + file + ": " + ioe);
+                ioe.printStackTrace();
+                results.put(file, null);
+            }
+        }
         return results;
     }
+
+/*
+    private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID,
+        AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus,
+        String specificEpithet) {
+        String sanitizedItemName = ServletUtilities.cleanFileName(item.getName());
+        JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator +
+            sanitizedItemName));
+
+        sp.put("userFilename", item.getName());
+        sp.put("key", Util.hashDirectories(encID) + "/" + sanitizedItemName);
+        MediaAsset ma = new MediaAsset(astore, sp);
+        File tmpFile = ma.localPath().toFile(); // conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+        File tmpDir = tmpFile.getParentFile();
+        if (!tmpDir.exists()) tmpDir.mkdirs();
+// System.out.println("attempting to write uploaded file to " + tmpFile);
+        try {
+            item.write(tmpFile);
+        } catch (Exception ex) {
+            System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+        }
+        if (tmpFile.exists()) {
+            try {
+                ma.addLabel("_original");
+                ma.copyIn(tmpFile);
+                ma.validateSourceImage();
+                ma.updateMetadata();
+                newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+            } catch (IOException ioe) {
+                System.out.println("Hit an IOException trying to transform file " + item.getName() +
+                    " into a MediaAsset in EncounterFom.class.");
+                ioe.printStackTrace();
+            }
+        } else {
+            System.out.println("failed to write file " + tmpFile);
+        }
+    }
+*/
+
 
 }
