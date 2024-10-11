@@ -12,15 +12,17 @@ import { FollowUpSection } from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
+import { useNavigate } from "react-router-dom";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
-  
+  const Navigate = useNavigate();
+
   const store = useLocalObservable(() => new ReportEncounterStore());
 
   store.setImageRequired(!isLoggedIn);
-  
+
   const handleSubmit = async () => {
     if (store.validateFields()) {
       console.log("Fields validated successfully.");
@@ -31,10 +33,16 @@ export const ReportEncounter = observer(() => {
   };
 
   useEffect(() => {
-    if(store.imageCount === 0 || !isLoggedIn){
-      store.setImageSectionError(true);
-    } 
-  }, [store.imageCount, isLoggedIn]);
+    console.log("Success: ", store.success, "Finished: ", store.finished);
+
+    if (store.success && store.finished) {
+      alert("Report submitted successfully.");
+      Navigate("/home");
+      // Navigate("/encountersconfirmation");
+    } else if (!store.success && store.finished) {
+      alert("Report submission failed");
+    }
+  }, [store.success, store.finished]);
 
   useEffect(() => {
     const checkUploadStatus = async () => {
@@ -43,12 +51,20 @@ export const ReportEncounter = observer(() => {
         await store.submitReport();
         store.setStartUpload(false);
         store.setImageSectionUploadSuccess(false);
-      } else if (isLoggedIn && store.startUpload && !store.imageSectionUploadSuccess) {
+      } else if (
+        isLoggedIn &&
+        store.startUpload &&
+        !store.imageSectionUploadSuccess
+      ) {
         console.log("ok you don't have to upload images before submitting.");
         await store.submitReport();
         store.setStartUpload(false);
         store.setImageSectionUploadSuccess(false);
-      } else if (isLoggedIn && store.startUpload && !store.imageSectionUploadSuccess) {
+      } else if (
+        !isLoggedIn &&
+        store.startUpload &&
+        !store.imageSectionUploadSuccess
+      ) {
         console.log("Please upload images before submitting.");
         store.setStartUpload(false);
       }
