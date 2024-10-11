@@ -15,6 +15,7 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.ecocean.Annotation;
 import org.ecocean.Base;
 import org.ecocean.Encounter;
 import org.ecocean.ia.Task;
@@ -93,6 +94,9 @@ public class BaseObject extends ApiBase {
         myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
 
+        // for background child assets, which has to be after all persisted
+        List<Integer> maIds = new ArrayList<Integer>();
+
         Base obj = null;
         try {
             String cls = payload.optString("_class");
@@ -125,23 +129,23 @@ public class BaseObject extends ApiBase {
                 obj = Encounter.createFromApi(payload, files);
                 Encounter enc = (Encounter)obj;
                 myShepherd.getPM().makePersistent(enc);
+                String txStr = enc.getTaxonomyString();
 
                 JSONArray assetsArr = new JSONArray();
-                List<Integer> maIds = new ArrayList<Integer>();
+                ArrayList<Annotation> anns = new ArrayList<Annotation>();
                 for (MediaAsset ma : validMAs) {
                     MediaAssetFactory.save(ma, myShepherd);
-////// attach to enc!!!
+                    anns.add(new Annotation(txStr, ma));
                     JSONObject maj = new JSONObject();
                     maj.put("filename", ma.getFilename());
                     maj.put("id", ma.getId());
                     maj.put("uuid", ma.getUUID());
-                    maj.put("url", ma.safeURL(myShepherd));
-System.out.println(">>>>>> ma=" + maj);
+                    maj.put("url", ma.webURL());
                     assetsArr.put(maj);
                     maIds.add(ma.getId());
                 }
                 rtn.put("assets", assetsArr);
-                //MediaAsset.updateStandardChildrenBackground(context, maIds);
+                enc.setAnnotations(anns);
                 // these are needed for display in results
                 rtn.put("locationId", enc.getLocationID());
                 rtn.put("submissionDate", enc.getDWCDateAdded());
@@ -169,6 +173,8 @@ System.out.println(">>>>>> ma=" + maj);
         if ((obj != null) && (rtn.optInt("statusCode", 0) == 200)) {
             System.out.println("BaseObject.processPost() success (200) creating " + obj + " from payload " + payload);
             myShepherd.commitDBTransaction();
+            MediaAsset.updateStandardChildrenBackground(context, maIds);
+//FIXME kick off detection etc
         } else {
             myShepherd.rollbackDBTransaction();
         }
@@ -236,7 +242,6 @@ System.out.println(">>>>>> ma=" + maj);
             System.out.println("makeMediaAssets(): file=" + file + " => " + sp);
             MediaAsset ma = new MediaAsset(astore, sp);
             ma.addLabel("_original");
-System.out.println(">>>>>>>>>> ma => " + ma);
             try {
                 ma.copyIn(file);
                 ma.validateSourceImage();
@@ -250,44 +255,5 @@ System.out.println(">>>>>>>>>> ma => " + ma);
         }
         return results;
     }
-
-/*
-    private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID,
-        AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus,
-        String specificEpithet) {
-        String sanitizedItemName = ServletUtilities.cleanFileName(item.getName());
-        JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator +
-            sanitizedItemName));
-
-        sp.put("userFilename", item.getName());
-        sp.put("key", Util.hashDirectories(encID) + "/" + sanitizedItemName);
-        MediaAsset ma = new MediaAsset(astore, sp);
-        File tmpFile = ma.localPath().toFile(); // conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-        File tmpDir = tmpFile.getParentFile();
-        if (!tmpDir.exists()) tmpDir.mkdirs();
-// System.out.println("attempting to write uploaded file to " + tmpFile);
-        try {
-            item.write(tmpFile);
-        } catch (Exception ex) {
-            System.out.println("Could not write " + tmpFile + ": " + ex.toString());
-        }
-        if (tmpFile.exists()) {
-            try {
-                ma.addLabel("_original");
-                ma.copyIn(tmpFile);
-                ma.validateSourceImage();
-                ma.updateMetadata();
-                newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
-            } catch (IOException ioe) {
-                System.out.println("Hit an IOException trying to transform file " + item.getName() +
-                    " into a MediaAsset in EncounterFom.class.");
-                ioe.printStackTrace();
-            }
-        } else {
-            System.out.println("failed to write file " + tmpFile);
-        }
-    }
-*/
-
 
 }
