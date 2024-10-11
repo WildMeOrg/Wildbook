@@ -30,12 +30,20 @@ export class ReportEncounterStore {
       value: "",
       error: false,
     };
-    this._followUpSection = {
-      value: "",
-      error: false,
-    };
     this._additionalCommentsSection = {
       value: "",
+    };
+    this._followUpSection = {
+      submitter: {
+        name: "",
+        email: "",
+      },
+      photographer: {
+        name: "",
+        email: "",
+      },
+      additionalEmails: "",
+      error: false,
     };
     makeAutoObservable(this);
   }
@@ -118,6 +126,51 @@ export class ReportEncounterStore {
     this._additionalCommentsSection.value = value;
   }
 
+  setSubmitterName(name) {
+    this._followUpSection.submitter.name = name;
+  }
+
+  setSubmitterEmail(email) {
+    this._followUpSection.submitter.email = email;
+  }
+
+  setPhotographerName(name) {
+    this._followUpSection.photographer.name = name;
+  }
+
+  setPhotographerEmail(email) {
+    this._followUpSection.photographer.email = email;
+  }
+
+  setAdditionalEmails(value) {
+    this._followUpSection.additionalEmails = value;
+  }
+
+  validateEmails() {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Question
+    // Do we need to store invalid email error,
+    if (this._followUpSection.submitter.email) {
+      if (!emailPattern.test(this._followUpSection.submitter.email))
+        return false;
+    }
+
+    if (this._followUpSection.photographer.email) {
+      if (!emailPattern.test(this._followUpSection.photographer.email))
+        return false;
+    }
+
+    if (this._followUpSection.additionalEmails) {
+      return this._followUpSection.additionalEmails
+        .split(",")
+        .every((email) => {
+          return emailPattern.test(email.trim());
+        });
+    }
+
+    return true;
+  }
+
   validateFields() {
     let isValid = true;
 
@@ -126,6 +179,13 @@ export class ReportEncounterStore {
       isValid = false;
     } else {
       this._speciesSection.error = false;
+    }
+
+    if (!this.validateEmails()) {
+      console.log("email validation failed");
+      isValid = false;
+    } else {
+      console.log("Followup information validated");
     }
 
     // Uncomment the place section validation if needed
