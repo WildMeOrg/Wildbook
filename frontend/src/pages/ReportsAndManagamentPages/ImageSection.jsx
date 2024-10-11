@@ -14,6 +14,10 @@ import MainButton from "../../components/MainButton";
 import { v4 as uuidv4 } from "uuid";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
+import { Alert } from "react-bootstrap";
+import ReportEncounterStore from "./ReportEncounterStore";
+import ReportEncounter from "./ReportEncounter";
+
 
 export const FileUploader = observer(({ reportEncounterStore }) => {
   const [files, setFiles] = useState([]);
@@ -33,13 +37,17 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
-    if (count === previewData.length) {
-      const submissionId = uuidv4();
-      reportEncounterStore.setImageSectionSubmissionId(submissionId);
+    if (count === previewData.length && count > 0) {
+
       reportEncounterStore.setImageSectionUploadSuccess(true);
       console.log("All files uploaded successfully.");
     }
+
+    reportEncounterStore.SetImageCount(previewData);
+    
   }, [previewData, count]);
+
+  
 
   useEffect(() => {
     if (reportEncounterStore.startUpload) {
@@ -59,6 +67,10 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       target: "/ResumableUpload",
       forceChunkSize: true,
       testChunks: false,
+      query: {
+        submissionId: reportEncounterStore.imageSectionSubmissionId,
+        // Add any additional query parameters here
+      }
     });
 
     flowInstance.assignBrowse(fileInputRef.current);
@@ -197,13 +209,18 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   };
 
   const handleUploadClick = () => {
-    // console.log("Uploading files:", files);
+    console.log("Uploading files:", files);
     const validFiles = flow.files.filter(
-      (file) => file.size <= maxSize * 1024 * 1024
+      (file) => file.size <= 1 * 1024 * 1024
     );
+
+    
 
     if (validFiles.length > 0) {
       setUploading(true);
+      const submissionId = uuidv4();
+      reportEncounterStore.setImageSectionSubmissionId(submissionId);
+      flow.opts.query.submissionId = submissionId;
       validFiles.forEach((file) => {
         // console.log("Uploading file:", file);
         flow.upload(file);
@@ -211,157 +228,175 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   };
 
+  console.log(reportEncounterStore.imageSectionError);
   return (
-    <Container>
-      <Row>
-        <p style={{ fontWeight: "500", fontSize: "1.5rem" }}>
+    <div>
+      <div>
+        <h5 style={{ fontWeight: "600" }}>
           <FormattedMessage id="PHOTOS_SECTION" />{" "}
           {reportEncounterStore.imageRequired && "*"}
-        </p>
+        </h5>
         <p>
           <FormattedMessage id="SUPPORTED_FILETYPES" />{`${" "}${maxSize} MB`}
         </p>
-      </Row>
+      </div>
       <Row>
-        <Row className="mt-4">
-          {previewData.map((preview, index) => (
-            <Col
-              key={index}
-              className="mb-4 me-4 d-flex flex-column justify-content-between"
-              style={{
-                maxWidth: "200px",
-                position: "relative",
-              }}
-            >
-              <div style={{ position: "relative" }}>
-                <i
-                  className="bi bi-x-circle-fill"
-                  style={{
-                    position: "absolute",
-                    top: "0",
-                    right: "5px",
-                    cursor: "pointer",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setPreviewData((prevPreviewData) =>
-                      prevPreviewData.filter(
-                        (previewData) =>
-                          previewData.fileName !== preview.fileName
-                      )
-                    );
+        {reportEncounterStore.imageSectionError && (
+          <Alert
+            variant="danger"
+            style={{
+              marginTop: "10px",
+            }}
+          >
+            <i
+              className="bi bi-info-circle-fill"
+              style={{ marginRight: "8px", color: "#560f14" }}
+            ></i>
+            you have to upload at least one image
+            {/* <FormattedMessage id="EMPTY_REQUIRED_WARNING" /> */}
+          </Alert>
+        )}
+      </Row>
 
-                    flow.removeFile(
-                      files.find((f) => f.name === preview.fileName)
-                    );
-                    setFiles((prevFiles) =>
-                      prevFiles.filter((file) => file.name !== preview.fileName)
-                    );
+      <Row className="mt-4 w-100">
+        {previewData.map((preview, index) => (
+          <Col
+            key={index}
+            className="mb-4 me-4 d-flex flex-column justify-content-between"
+            style={{
+              maxWidth: "200px",
+              position: "relative",
+            }}
+          >
+            <div style={{ position: "relative" }}>
+              <i
+                className="bi bi-x-circle-fill"
+                style={{
+                  position: "absolute",
+                  top: "0",
+                  right: "5px",
+                  cursor: "pointer",
+                  color: "white",
+                }}
+                onClick={() => {
+                  setPreviewData((prevPreviewData) =>
+                    prevPreviewData.filter(
+                      (previewData) =>
+                        previewData.fileName !== preview.fileName
+                    )
+                  );
+
+                  flow.removeFile(
+                    files.find((f) => f.name === preview.fileName)
+                  );
+                  setFiles((prevFiles) =>
+                    prevFiles.filter((file) => file.name !== preview.fileName)
+                  );
+                }}
+              ></i>
+              <Image
+                id="thumb"
+                src={preview.src}
+                style={{ width: "100%", height: "120px", objectFit: "fill" }}
+                alt={`Preview ${index + 1}`}
+                thumbnail
+              />
+              <div
+                className="mt-2 "
+                style={{
+                  width: "200px",
+                  wordWrap: "break-word",
+                  whiteSpace: "normal",
+                }}
+              >
+                <div>{preview.fileName}</div>
+                <div>
+                  {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
+                </div>
+                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 1 && (
+                  <div style={{ color: "red" }}>
+                    <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <ProgressBar
+              now={preview.progress}
+              label={`${Math.round(preview.progress)}%`}
+              className="mt-2"
+              style={{ width: "200px" }}
+            />
+          </Col>
+        ))}
+
+        <Col md={8} style={{ width: fileActivity ? "200px" : "100%" }}>
+          <div
+            id="drop-area"
+            className="d-flex flex-column align-items-center justify-content-center p-4"
+            style={{
+              border: originalBorder,
+              borderRadius: "8px",
+              backgroundColor: "#e8f7fc",
+              textAlign: "center",
+              cursor: "pointer",
+              height: fileActivity ? "120px" : "300px",
+              boxSizing: "border-box",
+            }}
+          >
+            {fileActivity ? (
+              <div onClick={() => fileInputRef.current.click()}>
+                <i
+                  className="bi bi-images"
+                  style={{
+                    fontSize: "1rem",
+                    color: theme.wildMeColors.cyan700,
                   }}
                 ></i>
-                <Image
-                  id="thumb"
-                  src={preview.src}
-                  style={{ width: "100%", height: "120px", objectFit: "fill" }}
-                  alt={`Preview ${index + 1}`}
-                  thumbnail
-                />
-                <div
-                  className="mt-2 "
+                <p>
+                  <FormattedMessage id="ADD_MORE_FILES" />
+                </p>
+              </div>
+            ) : (
+              <div className="mb-3 d-flex flex-column justify-content-center">
+                <i
+                  className="bi bi-images"
                   style={{
-                    width: "200px",
-                    wordWrap: "break-word",
-                    whiteSpace: "normal",
+                    fontSize: "2rem",
+                    color: theme.wildMeColors.cyan700,
+                  }}
+                ></i>
+                <p>
+                  <FormattedMessage id="PHOTO_INSTRUCTION" />
+                </p>
+
+                <MainButton
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                  backgroundColor={theme.wildMeColors.cyan700}
+                  color={theme.defaultColors.white}
+                  noArrow={true}
+                  style={{
+                    width: "auto",
+                    fontSize: "1rem",
+                    margin: "0 auto",
                   }}
                 >
-                  <div>{preview.fileName}</div>
-                  <div>
-                    {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
-                  </div>
-                  {(preview.fileSize / (1024 * 1024)).toFixed(2) > 0.1 && (
-                    <div style={{ color: "red" }}>
-                      <FormattedMessage id="FILE_SIZE_EXCEEDED" />
-                    </div>
-                  )}
-                </div>
+                  <FormattedMessage id="BROWSE" />
+                </MainButton>
               </div>
-              <ProgressBar
-                now={preview.progress}
-                label={`${Math.round(preview.progress)}%`}
-                className="mt-2"
-                style={{ width: "200px" }}
-              />
-            </Col>
-          ))}
-
-          <Col md={8} style={{ width: fileActivity ? "200px" : "100%" }}>
-            <div
-              id="drop-area"
-              className="d-flex flex-column align-items-center justify-content-center p-4"
-              style={{
-                border: originalBorder,
-                borderRadius: "8px",
-                backgroundColor: "#e8f7fc",
-                textAlign: "center",
-                cursor: "pointer",
-                height: fileActivity ? "120px" : "300px",
-                boxSizing: "border-box",
-              }}
-            >
-              {fileActivity ? (
-                <div onClick={() => fileInputRef.current.click()}>
-                  <i
-                    className="bi bi-images"
-                    style={{
-                      fontSize: "1rem",
-                      color: theme.wildMeColors.cyan700,
-                    }}
-                  ></i>
-                  <p>
-                    <FormattedMessage id="ADD_MORE_FILES" />
-                  </p>
-                </div>
-              ) : (
-                <div className="mb-3 d-flex flex-column justify-content-center">
-                  <i
-                    className="bi bi-images"
-                    style={{
-                      fontSize: "2rem",
-                      color: theme.wildMeColors.cyan700,
-                    }}
-                  ></i>
-                  <p>
-                    <FormattedMessage id="PHOTO_INSTRUCTION" />
-                  </p>
-
-                  <MainButton
-                    onClick={() => fileInputRef.current.click()}
-                    disabled={uploading}
-                    backgroundColor={theme.wildMeColors.cyan700}
-                    color={theme.defaultColors.white}
-                    noArrow={true}
-                    style={{
-                      width: "auto",
-                      fontSize: "1rem",
-                      margin: "0 auto",
-                    }}
-                  >
-                    <FormattedMessage id="BROWSE" />
-                  </MainButton>
-                </div>
-              )}
-              <input
-                type="file"
-                id="file-chooser"
-                multiple
-                accept=".jpg,.jpeg,.png,.bmp"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-              />
-            </div>
-          </Col>
-        </Row>
+            )}
+            <input
+              type="file"
+              id="file-chooser"
+              multiple
+              accept=".jpg,.jpeg,.png,.bmp"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+            />
+          </div>
+        </Col>
       </Row>
+
 
       {/* {fileActivity && (
         <Row>
@@ -377,7 +412,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           </Col>
         </Row>
       )} */}
-    </Container>
+    </div>
   );
 });
 
