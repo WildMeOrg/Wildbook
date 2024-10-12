@@ -25,6 +25,7 @@ export class ReportEncounterStore {
     this._speciesSection = {
       value: "",
       error: false,
+      required: true,
     };
     this._placeSection = {
       value: "",
@@ -148,8 +149,7 @@ export class ReportEncounterStore {
 
   validateEmails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // Question
-    // Do we need to store invalid email error,
+
     if (this._followUpSection.submitter.email) {
       if (!emailPattern.test(this._followUpSection.submitter.email))
         return false;
