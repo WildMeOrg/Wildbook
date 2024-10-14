@@ -2106,6 +2106,11 @@ public class IBEISIA {
                 "json_result");
             JSONArray rlist = j.optJSONArray("results_list");
             JSONArray ilist = j.optJSONArray("image_uuid_list");
+            
+            //restore assignments for wild dogs
+            boolean hasAssignments = j.optBoolean("has_assignments"); // this is returned from detection if the assigner was run
+            System.out.println("in processCallbackDetect, hasAssignments="+hasAssignments);
+            
 /* TODO lots to consider here:
     --1. how do we determine where the cutoff is for auto-creating the annotation?-- made some methods for this 2. if we do create (or dont!) how do
        we denote this for the sake of the user/ui querying status?
@@ -2171,7 +2176,67 @@ public class IBEISIA {
                     }
                     boolean needsReview = false;
                     boolean skipEncounters = asset.hasLabel("_frame");
+                    
+
+
+                    
+                    
                     for (int a = 0; a < janns.length(); a++) {
+
+                        if (hasAssignments) {
+                        	
+                            Encounter parentEnc = asset.getAnnotations().get(0).findEncounter(myShepherd);
+                            List<Encounter> assignedEncs = new ArrayList<Encounter>();
+                        	
+                            // in this case janns doesn't contain a list of anns, but a list of individuals, each of which is a list of anns
+                            JSONArray jind = janns.optJSONArray(a);
+                            System.out.println("ASSIGNER case; adding annots for individual "+a+", which has "+jind.length()+" anns.");
+                            ArrayList<Annotation> indAnnots = new ArrayList<Annotation>();
+                            for (int ind_ann = 0; ind_ann < jind.length(); ind_ann++) {
+                                JSONObject jann = jind.optJSONObject(ind_ann);
+                                if (jann == null) {
+                                    System.out.println("null jann case in processCallbackDetect, WITH assignments");
+                                    continue;
+                                }
+                                if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
+                                    needsReview = true;
+                                    continue;
+                                }
+                                //these are annotations we can make automatically from ia detection.  we also do the same upon review return
+                                //  note this creates other stuff too, like encounter
+                                //Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
+                                //WB-945 update: new version *will not* create encounter(s)
+                                Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir);
+                                if (ann == null) {
+                                    System.out.println("WARNING: IBEISIA detection callback could not create Annotation from " + asset + " and " + jann);
+                                    continue;
+                                }
+                                // first individual of the encounter, so we don't have to make a new one. Just add annotations to this
+                                if (a==0) parentEnc.addAnnotationAndRemoveTrivial(ann);
+                                allAnns.add(ann);  //this is cumulative over *all MAs*
+                                newAnns.put(ann.getId());
+                                indAnnots.add(ann);
+                                ///note: *removed* IA.intake (or IAIntake?) from here, as it needs to be done post-commit,
+                                ///  so we use 'annotations' in returned JSON to kick that off (since they all would have passed confidence)
+                                numCreated++;
+                            }
+                            if (a>0 && indAnnots.size()>0) { // IA (bc of its assigner) found multiple individuals in this image, so we need to make the encounters
+                                System.out.println("ASSIGNER: creating encounter "+a+" on mediaAsset "+asset);
+                                Encounter newEnc = parentEnc.cloneWithoutAnnotations(myShepherd);
+                                newEnc.setAnnotations(indAnnots);
+                                newEnc.setDWCDateAdded();
+                                newEnc.setDWCDateLastModified();
+                                newEnc.resetDateInMilliseconds();
+                                newEnc.setSpecificEpithet(parentEnc.getSpecificEpithet());
+                                newEnc.setGenus(parentEnc.getGenus());
+                                newEnc.setSex(null);
+                                myShepherd.getPM().makePersistent(newEnc);
+                                if (!assignedEncs.contains(newEnc)) assignedEncs.add(newEnc);
+                                System.out.println("ASSIGNER: created and committed enc "+a+": "+newEnc);
+                            }
+                       }	
+                    //normal non-assigner route	
+                    else {	
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) {
                             continue;
@@ -2200,6 +2265,9 @@ public class IBEISIA {
                         ///note: *removed* IA.intake (or IAIntake?) from here, as it needs to be done post-commit,
                         ///  so we use 'annotations' in returned JSON to kick that off (since they all would have passed confidence)
                         numCreated++;
+                    } //end else
+                        
+                        
                     }
                     if (needsReview) {
                         needReview.put(asset.getId());

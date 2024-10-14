@@ -4032,4 +4032,19 @@ public class Encounter extends Base implements java.io.Serializable {
 	public long getVersion() {
 		return Util.getVersionFromModified(modified);
 	}
+	
+	//restored for legacy compatibility with wild dog parts association
+    public void addAnnotationAndRemoveTrivial(Annotation newAnn) {
+        int newMaId = newAnn.getMediaAsset().getId();
+        Annotation trivialAnn = null;
+        for (Annotation oldAnn: this.getAnnotations()) {
+          if (oldAnn.isTrivial() && newMaId == oldAnn.getMediaAsset().getId()) {
+            trivialAnn = oldAnn;
+            break;
+          }
+        }
+        if (trivialAnn != null) replaceAnnotation(trivialAnn, newAnn);
+        else addAnnotation(newAnn);
+      }
+	
 }
