@@ -252,7 +252,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           >
             <i
               className="bi bi-info-circle-fill"
-              style={{ marginRight: "8px", color: "#560f14" }}
+              style={{ marginRight: "8px", color: theme.statusColors.red600 }}
             ></i>
             <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
             <a href="login">
@@ -280,7 +280,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                   top: "0",
                   right: "5px",
                   cursor: "pointer",
-                  color: "white",
+                  color: theme.defaultColors.white,
                 }}
                 onClick={() => {
                   setPreviewData((prevPreviewData) =>
@@ -316,7 +316,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 <div>{preview.fileName}</div>
                 <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
                 {(preview.fileSize / (1024 * 1024)).toFixed(2) > 1 && (
-                  <div style={{ color: "red" }}>
+                  <div style={{ color: theme.statusColors.red500 }}>
                     <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                   </div>
                 )}
@@ -338,7 +338,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             style={{
               border: originalBorder,
               borderRadius: "8px",
-              backgroundColor: "#e8f7fc",
+              backgroundColor: theme.primaryColors.primary50,
               textAlign: "center",
               cursor: "pointer",
               height: fileActivity ? "120px" : "300px",
