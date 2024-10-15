@@ -34,7 +34,7 @@ export const ReportEncounter = observer(() => {
     store.setStartUpload(true);
 
     try {
-      if (store.imageCount || !isLoggedIn) {
+      if (store.imageCount) {
         console.log("Waiting for image upload to complete...");
         await waitForImageUpload();
         console.log("Image upload completed.");
@@ -43,6 +43,8 @@ export const ReportEncounter = observer(() => {
       } else if (isLoggedIn && !store.imageCount) {
         console.log("No need to wait for image upload.");
         await store.submitReport();
+      } else if (!isLoggedIn) {
+        store.setImageSectionError(true);
       }
     } catch (error) {
       console.error("Error during submission: ", error);

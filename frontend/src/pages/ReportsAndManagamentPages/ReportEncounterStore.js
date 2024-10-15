@@ -19,7 +19,7 @@ export class ReportEncounterStore {
   _finished;
 
   constructor() {
-    this._imageSectionSubmissionId = "";
+    this._imageSectionSubmissionId = null;
     this._imageRequired = true;
     this._imageSectionUploadSuccess = false;
     this._imageSectionFileNames = [];
@@ -224,7 +224,7 @@ export class ReportEncounterStore {
       console.log("Followup information validated");
     }
 
-
+    console.log(this._imageSectionError);
     if (this._imageSectionError) {
       console.log(this._imageRequired, this._imageCount);
 
@@ -243,9 +243,8 @@ export class ReportEncounterStore {
       // } else {
       //   this._placeSection.error = false;
       // }
-
-      return isValid;
     }
+    return isValid;
   }
   async submitReport() {
     console.log("submitting");
