@@ -15,6 +15,8 @@ import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 
 export const ReportEncounter = observer(() => {
+  const UPLOAD_TIMEOUT = 30000;
+
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
@@ -24,12 +26,49 @@ export const ReportEncounter = observer(() => {
   store.setImageRequired(!isLoggedIn);
 
   const handleSubmit = async () => {
-    if (store.validateFields()) {
-      console.log("Fields validated successfully.");
-      store.setStartUpload(true);
-    } else {
+    if (!store.validateFields()) {
       console.log("Field validation failed.");
+      return;
     }
+    console.log("Fields validated successfully.");
+    store.setStartUpload(true);
+
+    try {
+      if (store.imageCount || !isLoggedIn) {
+        console.log("Waiting for image upload to complete...");
+        await waitForImageUpload();
+        console.log("Image upload completed.");
+        console.log("Submitting report...");
+        await store.submitReport();
+      } else if (isLoggedIn && !store.imageCount) {
+        console.log("No need to wait for image upload.");
+        await store.submitReport();
+      }
+    } catch (error) {
+      console.error("Error during submission: ", error);
+      alert("There was an issue with your submission. Please try again.");
+    }
+  };
+
+  const waitForImageUpload = () => {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("Image upload timed out. Please try again."));
+      }, UPLOAD_TIMEOUT);
+
+      const checkUploadStatus = () => {
+        if (store.imageSectionUploadSuccess) {
+          clearTimeout(timeout);
+          resolve();
+        } else if (!store.startUpload) {
+          clearTimeout(timeout);
+          reject(new Error("Image upload failed or was canceled."));
+        } else {
+          setTimeout(checkUploadStatus, 500);
+        }
+      };
+      checkUploadStatus();
+    });
   };
 
   useEffect(() => {
@@ -38,39 +77,10 @@ export const ReportEncounter = observer(() => {
     if (store.success && store.finished) {
       alert("Report submitted successfully.");
       Navigate("/home");
-      // Navigate("/encountersconfirmation");
     } else if (!store.success && store.finished) {
       alert("Report submission failed");
     }
   }, [store.success, store.finished]);
-
-  useEffect(() => {
-    const checkUploadStatus = async () => {
-      if (store.startUpload && store.imageSectionUploadSuccess) {
-        console.log("Image uploaded successfully.");
-        await store.submitReport();
-        store.setStartUpload(false);
-        store.setImageSectionUploadSuccess(false);
-      } else if (
-        isLoggedIn &&
-        store.startUpload &&
-        !store.imageSectionUploadSuccess
-      ) {
-        console.log("ok you don't have to upload images before submitting.");
-        await store.submitReport();
-        store.setStartUpload(false);
-        store.setImageSectionUploadSuccess(false);
-      } else if (
-        !isLoggedIn &&
-        store.startUpload &&
-        !store.imageSectionUploadSuccess
-      ) {
-        console.log("Please upload images before submitting.");
-        store.setStartUpload(false);
-      }
-    };
-    checkUploadStatus();
-  }, [store.imageSectionUploadSuccess, store.startUpload]);
 
   // Categories for sections
   const encounterCategories = [
@@ -155,13 +165,13 @@ export const ReportEncounter = observer(() => {
               className="bi bi-info-circle-fill"
               style={{ marginRight: "8px", color: "#7b6a00" }}
             ></i>
-            You are not signed in. If you want this encounter associated with
-            your account, be sure to{" "}
+            <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
             <a
               href="/react/login?redirect=%2Freport"
               style={{ color: "#337ab7", textDecoration: "underline" }}
             >
-              sign in!
+              <FormattedMessage id="LOGIN_SIGN_IN" />
+              {"!"}
             </a>
           </Alert>
         ) : null}
@@ -236,13 +246,13 @@ export const ReportEncounter = observer(() => {
               onClick={handleSubmit} // Trigger file upload
               // disabled={!formValid}
             >
-              Submit Encounter
+              <FormattedMessage id="SUBMIT_ENCOUNTER" />
             </MainButton>
           </div>
         </Col>
 
         <Col
-          className="col-lg-8 col-md-6 col-sm-12 col-12 h-100"
+          className="col-lg-8 col-md-6 col-sm-12 col-12 h-100 pe-4"
           style={{
             maxHeight: "470px",
             overflow: "auto",

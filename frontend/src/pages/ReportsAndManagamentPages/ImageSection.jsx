@@ -23,9 +23,9 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;
 
-  console.log(fileNames);
-
   const [count, setCount] = useState(0);
+  console.log("count", count);
+  console.log(fileNames);
 
   useEffect(() => {
     setFileNames(previewData.map((preview) => preview.fileName));
@@ -34,7 +34,9 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       console.log("All files uploaded successfully.");
     }
 
-    reportEncounterStore.SetImageCount(previewData.length);
+    reportEncounterStore.SetImageCount(
+      previewData.filter((file) => file.fileSize <= 1 * 1024 * 1024).length,
+    );
   }, [previewData, count]);
 
   useEffect(() => {
@@ -69,6 +71,11 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       if (!supportedTypes.includes(file.file.type)) {
         console.error("Unsupported file type:", file.file.type);
         flowInstance.removeFile(file);
+        return false;
+      }
+
+      if (file.size > 1 * 1024 * 1024) {
+        console.warn("File size exceeds limit:", file.name);
         return false;
       }
 
@@ -119,6 +126,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
+      console.log("File uploaded successfully:", file);
       setCount((prevCount) => prevCount + 1);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
@@ -131,6 +139,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
+      reportEncounterStore.setStartUpload(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -206,6 +215,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     const validFiles = flow.files.filter(
       (file) => file.size <= 1 * 1024 * 1024,
     );
+    console.log("validFiles:", validFiles);
 
     if (validFiles.length > 0) {
       setUploading(true);
@@ -213,16 +223,15 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       reportEncounterStore.setImageSectionSubmissionId(submissionId);
       flow.opts.query.submissionId = submissionId;
       validFiles.forEach((file) => {
-        // console.log("Uploading file:", file);
+        console.log("Uploading file+++++++++:", file);
         flow.upload(file);
       });
     }
   };
 
-  console.log(reportEncounterStore.imageSectionError);
   return (
-    <div>
-      <div>
+    <div className="p-2">
+      <Row>
         <h5 style={{ fontWeight: "600" }}>
           <FormattedMessage id="PHOTOS_SECTION" />{" "}
           {reportEncounterStore.imageRequired && "*"}
@@ -231,21 +240,24 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           <FormattedMessage id="SUPPORTED_FILETYPES" />
           {`${" "}${maxSize} MB`}
         </p>
-      </div>
+      </Row>
       <Row>
         {reportEncounterStore.imageSectionError && (
           <Alert
             variant="danger"
+            className="w-100 mt-1 mb-1 ms-2 me-4"
             style={{
-              marginTop: "10px",
+              border: "none",
             }}
           >
             <i
               className="bi bi-info-circle-fill"
               style={{ marginRight: "8px", color: "#560f14" }}
             ></i>
-            you have to upload at least one image
-            {/* <FormattedMessage id="EMPTY_REQUIRED_WARNING" /> */}
+            <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
+            <a href="login">
+              <FormattedMessage id="LOGIN_SIGN_IN" />
+            </a>
           </Alert>
         )}
       </Row>
@@ -386,21 +398,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
           </div>
         </Col>
       </Row>
-
-      {/* {fileActivity && (
-        <Row>
-          <Col>
-            <Button
-              id="upload-button"
-              variant="primary"
-              onClick={handleUploadClick}
-              disabled={uploading}
-            >
-              {uploading ? "Uploading..." : "Begin Upload"}
-            </Button>
-          </Col>
-        </Row>
-      )} */}
     </div>
   );
 });
