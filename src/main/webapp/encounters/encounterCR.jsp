@@ -227,7 +227,7 @@ margin-bottom: 8px !important;
 			controlEl: document.getElementById('cr-info')
 		});
 
-		//sometimes .toWork() doesnt fire via .init() above.  wtf?  TODO fix!
+		//sometimes .toWork() doesnt fire via .init() above.  wtf?
 		window.setTimeout(function() { CRtool.toWork(); }, 1100);
 	});
 

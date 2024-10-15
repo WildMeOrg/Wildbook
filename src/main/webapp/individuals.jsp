@@ -1227,7 +1227,6 @@ if (sharky.getNames() != null) {
     <%-- Main Column --%>
     <div class="col-md-12 mainColumn">
 
-      <%-- TODO does this vv go here? --%>
       <%
       if (sharky.getDynamicProperties() != null) {
       //let's create a TreeMap of the properties

@@ -81,7 +81,6 @@ public class ImportTask implements java.io.Serializable {
         return all;
     }
 
-    // TODO should we consider occ.assets ?
     public List<MediaAsset> getMediaAssets() {
         if (encounters == null) return null;
         List<MediaAsset> mas = new ArrayList<MediaAsset>();
