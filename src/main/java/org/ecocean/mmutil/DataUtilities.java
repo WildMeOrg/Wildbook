@@ -12,7 +12,7 @@ public class DataUtilities {
     private DataUtilities() {}
 
     /**
-     * Creates a unique ID string for encounters. Unique to millisecond precision. TODO: Further improve UID generation algorithm (UUID class?)
+     * Creates a unique ID string for encounters. Unique to millisecond precision. 
      * @return unique ID string
      */
     public static String createUniqueId() {

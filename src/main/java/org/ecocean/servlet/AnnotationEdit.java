@@ -43,7 +43,6 @@ public class AnnotationEdit extends HttpServlet {
         JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
 
-        // TODO we could make this check owner of Encounter(s) etc etc
         User user = AccessControl.getUser(request, myShepherd);
         boolean isAdmin = false;
         if (user != null)

@@ -30,7 +30,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
  * required argument.
  * @requestParameter query a mongo-query-syntax JSON object defining the search on 'class'.
  * @requestParameter rangeMin the start index of the results. E.g. rangeMin=10 returns search results starting with the 10th entry. Default 0. Note
- * that sorting options are required (TODO) for this to be as useful as we'd like, as results are currently returned in whatever order JDOQL needs.
+ * that sorting options are required for this to be as useful as we'd like, as results are currently returned in whatever order JDOQL needs.
  * @requestParameter range the end index of the results, similarly to rangeMin. Defaults to 100 because the server is slow on anything longer, and
  * it's hard to imagine a UI call that would need so many objects.
  * @returns a 2-item JSONObject: {assets: <JSONArray of MediaAssets>, queryMetadata: <JSONObject for populating UI fields e.g. captions>}

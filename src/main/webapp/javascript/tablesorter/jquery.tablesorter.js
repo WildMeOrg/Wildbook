@@ -592,17 +592,10 @@
                 var dynamicExp = "sortWrapper = function(a,b) {",
                     l = sortList.length;
 
-                // TODO: inline functions.
                 for (var i = 0; i < l; i++) {
 
                     var c = sortList[i][0];
                     var order = sortList[i][1];
-                    // var s = (getCachedSortType(table.config.parsers,c) == "text") ?
-                    // ((order == 0) ? "sortText" : "sortTextDesc") : ((order == 0) ?
-                    // "sortNumeric" : "sortNumericDesc");
-                    // var s = (table.config.parsers[c].type == "text") ? ((order == 0)
-                    // ? makeSortText(c) : makeSortTextDesc(c)) : ((order == 0) ?
-                    // makeSortNumeric(c) : makeSortNumericDesc(c));
                     var s = (table.config.parsers[c].type == "text") ? ((order == 0) ? makeSortFunction("text", "asc", c) : makeSortFunction("text", "desc", c)) : ((order == 0) ? makeSortFunction("numeric", "asc", c) : makeSortFunction("numeric", "desc", c));
                     var e = "e" + i;
 
