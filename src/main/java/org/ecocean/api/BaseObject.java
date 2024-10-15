@@ -193,8 +193,8 @@ public class BaseObject extends ApiBase {
         List<File> files = new ArrayList<File>();
         if (payload == null) return files;
         String submissionId = payload.optString("submissionId", null);
-        if (submissionId == null) {
-            System.out.println("WARNING: submissionId required; no files possible");
+        if (!Util.isUUID(submissionId)) {
+            System.out.println("WARNING: valid submissionId required; no files possible");
             return files;
         }
 
