@@ -20,7 +20,7 @@ export const ReportEncounterSpeciesSection = observer(
       <div>
         <h5>
           <FormattedMessage id="SPECIES" />
-          <span>*</span>
+          {reportEncounterStore.speciesSection.required && <span>*</span>}
         </h5>
         <p className="fs-6">
           <FormattedMessage id="SPECIES_REQUIRED_IA_WARNING" />
@@ -29,7 +29,7 @@ export const ReportEncounterSpeciesSection = observer(
         <Form.Group>
           <Form.Label>
             <FormattedMessage id="SPECIES" />
-            <span>*</span>
+            {reportEncounterStore.speciesSection.required && <span>*</span>}
           </Form.Label>
           <div className="position-relative d-inline-block w-100">
             <Form.Control
