@@ -8,7 +8,7 @@ import ImageSection from "./ImageSection";
 import DateTimeSection from "../../components/DateTimeSection";
 import PlaceSection from "../../components/PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
-import FollowUpSection from "../../components/FollowUpSection";
+import { FollowUpSection } from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
