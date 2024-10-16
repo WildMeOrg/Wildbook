@@ -7,9 +7,7 @@ export class ReportEncounterStore {
   _imageRequired;
   _imageCount;
   _imageSectionError;
-  _imageSectionUploadSuccess;
   _imageSectionFileNames;
-  _startUpload;
   _dateTimeSection;
   _speciesSection;
   _placeSection;
@@ -21,9 +19,7 @@ export class ReportEncounterStore {
   constructor() {
     this._imageSectionSubmissionId = null;
     this._imageRequired = true;
-    this._imageSectionUploadSuccess = false;
     this._imageSectionFileNames = [];
-    this._startUpload = false;
     this._dateTimeSection = {
       value: "",
       error: false,
@@ -73,20 +69,12 @@ export class ReportEncounterStore {
     return this._imageSectionError;
   }
 
-  get imageSectionUploadSuccess() {
-    return this._imageSectionUploadSuccess;
-  }
-
   get imageSectionFileNames() {
     return this._imageSectionFileNames;
   }
 
   get imageCount() {
     return this._imageCount;
-  }
-
-  get startUpload() {
-    return this._startUpload;
   }
 
   get dateTimeSection() {
@@ -130,16 +118,14 @@ export class ReportEncounterStore {
     this._imageCount = value;
   }
 
-  setImageSectionUploadSuccess(value) {
-    this._imageSectionUploadSuccess = value;
-  }
-
-  setImageSectionFileNames(value) {
-    this._imageSectionFileNames = value;
-  }
-
-  setStartUpload(value) {
-    this._startUpload = value;
+  setImageSectionFileNames(fileName, action = "add") {
+    if (action === "add") {
+      this._imageSectionFileNames = [...this._imageSectionFileNames, fileName];
+    } else if (action === "remove") {
+      this._imageSectionFileNames = this._imageSectionFileNames.filter(
+        (name) => name !== fileName,
+      );
+    }
   }
 
   setSpeciesSectionValue(value) {
@@ -220,21 +206,11 @@ export class ReportEncounterStore {
     if (!this.validateEmails()) {
       console.log("email validation failed");
       isValid = false;
-    } else {
-      console.log("Followup information validated");
     }
 
-    console.log(this._imageSectionError);
-    if (this._imageSectionError) {
-      console.log(this._imageRequired, this._imageCount);
-
-      if (this._imageRequired && this._imageCount === 0) {
-        this._imageSectionError = true;
-      }
-
-      if (this._imageSectionError) {
-        isValid = false;
-      }
+    if (this._imageRequired && this._imageSectionFileNames.length === 0) {
+      this._imageSectionError = true;
+      isValid = false;
 
       // Uncomment the place section validation if needed
       // if (!this._placeSection.value) {
@@ -249,7 +225,7 @@ export class ReportEncounterStore {
   async submitReport() {
     console.log("submitting");
     const readyCaseone =
-      this.validateFields() && this._imageSectionUploadSuccess;
+      this.validateFields() && this._imageSectionFileNames.length > 0;
     const readyCasetwo = this.validateFields() && !this._imageRequired;
     console.log(readyCaseone, readyCasetwo);
     if (readyCaseone || readyCasetwo) {
@@ -257,6 +233,7 @@ export class ReportEncounterStore {
       // Call the API here
       const response = await axios.post("/api/v3/encounters", {
         submissionId: this._imageSectionSubmissionId,
+        assetFilenames: this._imageSectionFileNames,
         dateTime: "2001-04-30T00:00",
         taxonomy: this._speciesSection.value,
         locationId: "Mpala.North",
@@ -272,9 +249,7 @@ export class ReportEncounterStore {
         this._dateTimeSection.value = "";
         this._imageSectionFileNames = [];
         this._imageSectionSubmissionId = "";
-        this._imageSectionUploadSuccess = false;
         this._imageCount = 0;
-        this._startUpload = false;
         this._imageSectionError = false;
         this._success = true;
         this._finished = true;
