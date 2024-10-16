@@ -15,8 +15,6 @@ import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 
 export const ReportEncounter = observer(() => {
-  const UPLOAD_TIMEOUT = 30000;
-
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
@@ -30,47 +28,8 @@ export const ReportEncounter = observer(() => {
       console.log("Field validation failed.");
       return;
     }
-    console.log("Fields validated successfully.");
-    store.setStartUpload(true);
-
-    try {
-      if (store.imageCount) {
-        console.log("Waiting for image upload to complete...");
-        await waitForImageUpload();
-        console.log("Image upload completed.");
-        console.log("Submitting report...");
-        await store.submitReport();
-      } else if (isLoggedIn && !store.imageCount) {
-        console.log("No need to wait for image upload.");
-        await store.submitReport();
-      } else if (!isLoggedIn) {
-        store.setImageSectionError(true);
-      }
-    } catch (error) {
-      console.error("Error during submission: ", error);
-      alert("There was an issue with your submission. Please try again.");
-    }
-  };
-
-  const waitForImageUpload = () => {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error("Image upload timed out. Please try again."));
-      }, UPLOAD_TIMEOUT);
-
-      const checkUploadStatus = () => {
-        if (store.imageSectionUploadSuccess) {
-          clearTimeout(timeout);
-          resolve();
-        } else if (!store.startUpload) {
-          clearTimeout(timeout);
-          reject(new Error("Image upload failed or was canceled."));
-        } else {
-          setTimeout(checkUploadStatus, 500);
-        }
-      };
-      checkUploadStatus();
-    });
+    console.log("Fields validated successfully. Submitting report.");
+    await store.submitReport();
   };
 
   useEffect(() => {

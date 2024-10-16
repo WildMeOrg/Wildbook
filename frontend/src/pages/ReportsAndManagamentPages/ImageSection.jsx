@@ -16,35 +16,28 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const [fileActivity, setFileActivity] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
-  const [fileNames, setFileNames] = useState([]);
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 40;
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;
 
+  const submissionId = useRef(uuidv4()).current;
+
   const [count, setCount] = useState(0);
   console.log("count", count);
-  console.log(fileNames);
 
   useEffect(() => {
-    setFileNames(previewData.map((preview) => preview.fileName));
     if (count === previewData.length && count > 0) {
-      reportEncounterStore.setImageSectionUploadSuccess(true);
       console.log("All files uploaded successfully.");
     }
 
     reportEncounterStore.SetImageCount(
-      previewData.filter((file) => file.fileSize <= 1 * 1024 * 1024).length,
+      previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
     );
-  }, [previewData, count]);
 
-  useEffect(() => {
-    if (reportEncounterStore.startUpload) {
-      console.log("Start upload");
-      handleUploadClick();
-    }
-  }, [reportEncounterStore.startUpload]);
+    handleUploadClick();
+  }, [previewData, count]);
 
   useEffect(() => {
     if (!flow && fileInputRef.current) {
@@ -74,18 +67,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         return false;
       }
 
-      if (file.size > 1 * 1024 * 1024) {
+      if (file.size > 5 * 1024 * 1024) {
         console.warn("File size exceeds limit:", file.name);
-        return false;
-      }
-
-      // Check if the file already exists in the files state
-      const fileExists = files.some(
-        (f) => f.name === file.name && f.size === file.size,
-      );
-      if (fileExists) {
-        console.warn("File already exists:", file.name);
-        flowInstance.removeFile(file);
         return false;
       }
 
@@ -126,7 +109,11 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
-      console.log("File uploaded successfully:", file);
+      console.log(
+        "File uploaded successfully1111111111111111111111111:",
+        file.name,
+      );
+      reportEncounterStore.setImageSectionFileNames(file.name, "add");
       setCount((prevCount) => prevCount + 1);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
@@ -210,19 +197,51 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   };
 
+  console.log(
+    "file names",
+    JSON.stringify(reportEncounterStore.imageSectionFileNames),
+  );
+
   const handleUploadClick = () => {
-    console.log("Uploading files:", files);
-    const validFiles = flow.files.filter(
-      (file) => file.size <= 1 * 1024 * 1024,
-    );
+    // console.log("Uploading files:", files);
+    const validFiles = flow?.files
+      ?.filter((file) => file.size <= 5 * 1024 * 1024)
+      .filter(
+        (file) =>
+          !reportEncounterStore.imageSectionFileNames?.includes(file.name),
+      );
+
     console.log("validFiles:", validFiles);
 
-    if (validFiles.length > 0) {
+    if (validFiles?.length > 0) {
       setUploading(true);
-      const submissionId = uuidv4();
       reportEncounterStore.setImageSectionSubmissionId(submissionId);
       flow.opts.query.submissionId = submissionId;
       validFiles.forEach((file) => {
+        const timeout = setTimeout(() => {
+          flow.removeFile(file);
+          reportEncounterStore.setImageSectionFileNames(file.name, "remove");
+          setPreviewData((prevPreviewData) =>
+            prevPreviewData.map((preview) =>
+              preview.fileName === file.name
+                ? { ...preview, progress: 0, error: true }
+                : preview,
+            ),
+          );
+          console.error(`File upload timed out: ${file.name}`);
+        }, 2000);
+
+        flow.on("fileSuccess", (uploadedFile) => {
+          if (uploadedFile.name === file.name) {
+            clearTimeout(timeout);
+          }
+        });
+
+        flow.on("fileError", (erroredFile) => {
+          if (erroredFile.name === file.name) {
+            clearTimeout(timeout);
+          }
+        });
         console.log("Uploading file+++++++++:", file);
         flow.upload(file);
       });
@@ -293,8 +312,13 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                   flow.removeFile(
                     files.find((f) => f.name === preview.fileName),
                   );
-                  setFiles((prevFiles) =>
-                    prevFiles.filter((file) => file.name !== preview.fileName),
+                  // setFiles((prevFiles) =>
+                  //   prevFiles.filter((file) => file.name !== preview.fileName),
+                  // );
+
+                  reportEncounterStore.setImageSectionFileNames(
+                    preview.fileName,
+                    "remove",
                   );
                 }}
               ></i>
@@ -314,8 +338,15 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 }}
               >
                 <div>{preview.fileName}</div>
+                <div>
+                  {preview.error && (
+                    <span style={{ color: theme.statusColors.red500 }}>
+                      <FormattedMessage id="UPLOAD_FAILED" />
+                    </span>
+                  )}
+                </div>
                 <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
-                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 1 && (
+                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 5 && (
                   <div style={{ color: theme.statusColors.red500 }}>
                     <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                   </div>
