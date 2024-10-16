@@ -1,23 +1,25 @@
 import { makeAutoObservable } from "mobx";
+import axios from "axios";
 
 export class ReportEncounterStore {
+  _isLoggedin;
   _imageSectionSubmissionId;
   _imageRequired;
-  _imageSectionUploadSuccess;
+  _imageCount;
+  _imageSectionError;
   _imageSectionFileNames;
-  _startUpload;
   _dateTimeSection;
   _speciesSection;
   _placeSection;
   _followUpSection;
   _additionalCommentsSection;
+  _success;
+  _finished;
 
   constructor() {
-    this._imageSectionSubmissionId = "";
+    this._imageSectionSubmissionId = null;
     this._imageRequired = true;
-    this._imageSectionUploadSuccess = false;
     this._imageSectionFileNames = [];
-    this._startUpload = false;
     this._dateTimeSection = {
       value: "",
       error: false,
@@ -46,6 +48,11 @@ export class ReportEncounterStore {
       additionalEmails: "",
       error: false,
     };
+    this._imageRequired = true;
+    this._imageSectionError = false;
+    this._imageCount = 0;
+    this._success = false;
+    this._finished = false;
     makeAutoObservable(this);
   }
 
@@ -58,16 +65,16 @@ export class ReportEncounterStore {
     return this._imageRequired;
   }
 
-  get imageSectionUploadSuccess() {
-    return this._imageSectionUploadSuccess;
+  get imageSectionError() {
+    return this._imageSectionError;
   }
 
   get imageSectionFileNames() {
     return this._imageSectionFileNames;
   }
 
-  get startUpload() {
-    return this._startUpload;
+  get imageCount() {
+    return this._imageCount;
   }
 
   get dateTimeSection() {
@@ -86,6 +93,14 @@ export class ReportEncounterStore {
     return this._followUpSection;
   }
 
+  get success() {
+    return this._success;
+  }
+
+  get finished() {
+    return this._finished;
+  }
+
   // Actions
   setImageSectionSubmissionId(value) {
     this._imageSectionSubmissionId = value;
@@ -95,16 +110,22 @@ export class ReportEncounterStore {
     this._imageRequired = value;
   }
 
-  setImageSectionUploadSuccess(value) {
-    this._imageSectionUploadSuccess = value;
+  setImageSectionError(value) {
+    this._imageSectionError = value;
   }
 
-  setImageSectionFileNames(value) {
-    this._imageSectionFileNames = value;
+  SetImageCount(value) {
+    this._imageCount = value;
   }
 
-  setStartUpload(value) {
-    this._startUpload = value;
+  setImageSectionFileNames(fileName, action = "add") {
+    if (action === "add") {
+      this._imageSectionFileNames = [...this._imageSectionFileNames, fileName];
+    } else if (action === "remove") {
+      this._imageSectionFileNames = this._imageSectionFileNames.filter(
+        (name) => name !== fileName,
+      );
+    }
   }
 
   setSpeciesSectionValue(value) {
@@ -172,6 +193,7 @@ export class ReportEncounterStore {
   }
 
   validateFields() {
+    console.log("Validating fields");
     let isValid = true;
 
     if (!this._speciesSection.value) {
@@ -184,24 +206,61 @@ export class ReportEncounterStore {
     if (!this.validateEmails()) {
       console.log("email validation failed");
       isValid = false;
-    } else {
-      console.log("Followup information validated");
     }
 
-    // Uncomment the place section validation if needed
-    // if (!this._placeSection.value) {
-    //   this._placeSection.error = true;
-    //   isValid = false;
-    // } else {
-    //   this._placeSection.error = false;
-    // }
+    if (this._imageRequired && this._imageSectionFileNames.length === 0) {
+      this._imageSectionError = true;
+      isValid = false;
 
+      // Uncomment the place section validation if needed
+      // if (!this._placeSection.value) {
+      //   this._placeSection.error = true;
+      //   isValid = false;
+      // } else {
+      //   this._placeSection.error = false;
+      // }
+    }
     return isValid;
   }
-
   async submitReport() {
-    if (this.validateFields()) {
-      console.log("Report submitted", this._speciesSection.value);
+    console.log("submitting");
+    const readyCaseone =
+      this.validateFields() && this._imageSectionFileNames.length > 0;
+    const readyCasetwo = this.validateFields() && !this._imageRequired;
+    console.log(readyCaseone, readyCasetwo);
+    if (readyCaseone || readyCasetwo) {
+      console.log("Report submitted, calling api", this._speciesSection.value);
+      // Call the API here
+      const response = await axios.post("/api/v3/encounters", {
+        submissionId: this._imageSectionSubmissionId,
+        assetFilenames: this._imageSectionFileNames,
+        dateTime: "2001-04-30T00:00",
+        taxonomy: this._speciesSection.value,
+        locationId: "Mpala.North",
+        // followUp: this._followUpSection.value,
+        // images: this._imageSectionFileNames,
+      });
+
+      if (response.status === 200) {
+        console.log("Report submitted successfully.", response);
+        this._speciesSection.value = "";
+        this._placeSection.value = "";
+        this._followUpSection.value = "";
+        this._dateTimeSection.value = "";
+        this._imageSectionFileNames = [];
+        this._imageSectionSubmissionId = "";
+        this._imageCount = 0;
+        this._imageSectionError = false;
+        this._success = true;
+        this._finished = true;
+
+        console.log(this._finished);
+      } else {
+        this._finished = true;
+        this._success = false;
+        console.error("Report submission failed");
+      }
+
       // Additional logic for report submission can be added here.
     } else {
       console.error("Validation failed");
