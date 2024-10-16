@@ -211,10 +211,12 @@ public class BaseObject extends ApiBase {
                 String fn = fnArr.optString(i, null);
                 if (fn != null) filenames.add(fn);
             }
+/*  right now we *require* explicitly listed assetFilenames, so we dont do this "add all" option
         } else {
             for (File f : uploadDir.listFiles()) {
                 filenames.add(f.getName());
             }
+*/
         }
         if (filenames.size() < 1) return files;
         for (String fname : filenames) {
