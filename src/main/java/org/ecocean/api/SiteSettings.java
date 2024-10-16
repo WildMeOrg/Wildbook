@@ -158,8 +158,10 @@ public class SiteSettings extends ApiBase {
 
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
             context);
-        if (recaptchaProps != null)
+        if (recaptchaProps != null) {
+            settings.put("reCAPTCHAEnterpriseSiteKey", recaptchaProps.getProperty("enterpriseSiteKey"));
             settings.put("reCAPTCHASiteKey", recaptchaProps.getProperty("siteKey"));
+        }
         // these are sensitive settings, that anon users should not get (e.g. user lists)
         if (currentUser != null) {
             JSONArray jarr = new JSONArray();
