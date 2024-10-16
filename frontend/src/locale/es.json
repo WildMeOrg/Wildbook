@@ -288,5 +288,6 @@
     "CONTACT_OTHERS": "Para otros",
     "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío",
     "FILE_SIZE_EXCEEDED": "Las imágenes que superen el límite no se subirán",
-    "ADD_MORE_FILES": "Añadir más archivos"
+    "ADD_MORE_FILES": "Añadir más archivos",
+    "UPLOAD_FAILED" : "Error al subir el archivo"
 }

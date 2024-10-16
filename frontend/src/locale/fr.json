@@ -288,5 +288,6 @@
     "CONTACT_OTHERS": "Pour les autres",
     "EMPTY_REQUIRED_WARNING": "Ce champ ne peut pas être vide",
     "FILE_SIZE_EXCEEDED": "Les images dépassant la limite ne seront pas téléchargées",
-    "ADD_MORE_FILES": "Ajouter plus de fichiers"
+    "ADD_MORE_FILES": "Ajouter plus de fichiers",
+    "UPLOAD_FAILED" : "Échec du téléchargement"
 }

@@ -289,6 +289,7 @@
     "CONTACT_OTHERS": "Für andere",
     "EMPTY_REQUIRED_WARNING": "Dieses Feld darf nicht leer sein",
     "FILE_SIZE_EXCEEDED": "Bilder, die das Limit überschreiten, werden nicht hochgeladen",
-    "ADD_MORE_FILES": "Weitere Dateien hinzufügen"
+    "ADD_MORE_FILES": "Weitere Dateien hinzufügen",
+    "UPLOAD_FAILED" : "Hochladen fehlgeschlagen"
 
 }
