@@ -288,6 +288,7 @@
     "CONTACT_OTHERS": "Per gli altri",
     "EMPTY_REQUIRED_WARNING": "Questo campo non può essere vuoto",
     "FILE_SIZE_EXCEEDED": "Le immagini che superano il limite non saranno caricate",
-    "ADD_MORE_FILES" : "Aggiungi altri file"
+    "ADD_MORE_FILES" : "Aggiungi altri file",
+    "UPLOAD_FAILED" : "Caricamento fallito"
     
 }

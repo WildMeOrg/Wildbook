@@ -289,6 +289,6 @@
     "CONTACT_OTHERS": "For others",
     "EMPTY_REQUIRED_WARNING": "This field cannot be empty",
     "FILE_SIZE_EXCEEDED" : "Images exceeding the limit will not be uploaded",
-    "ADD_MORE_FILES" : "Add more files"
-
+    "ADD_MORE_FILES" : "Add more files",
+    "UPLOAD_FAILED" : "Upload failed"
 }
