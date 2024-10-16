@@ -24,20 +24,13 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
   const submissionId = useRef(uuidv4()).current;
 
-  const [count, setCount] = useState(0);
-  console.log("count", count);
-
   useEffect(() => {
-    if (count === previewData.length && count > 0) {
-      console.log("All files uploaded successfully.");
-    }
-
     reportEncounterStore.SetImageCount(
       previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
     );
 
     handleUploadClick();
-  }, [previewData, count]);
+  }, [previewData]);
 
   useEffect(() => {
     if (!flow && fileInputRef.current) {
@@ -60,7 +53,12 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
-      const supportedTypes = ["image/jpeg", "image/png", "image/bmp"];
+      const supportedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+      ];
       if (!supportedTypes.includes(file.file.type)) {
         console.error("Unsupported file type:", file.file.type);
         flowInstance.removeFile(file);
@@ -109,12 +107,8 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
-      console.log(
-        "File uploaded successfully1111111111111111111111111:",
-        file.name,
-      );
+      console.log("File uploaded successfully", file.name);
       reportEncounterStore.setImageSectionFileNames(file.name, "add");
-      setCount((prevCount) => prevCount + 1);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -154,7 +148,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // e.target.style.border = "2px dashed red";
 
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = updatedBorder;
@@ -191,7 +184,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     ) {
       const filesArray = Array.from(e.dataTransfer.files);
       filesArray.forEach((file) => {
-        flowInstance.addFile(file); // Let flow handle the file addition and trigger fileAdded
+        flowInstance.addFile(file);
       });
       e.dataTransfer.clearData();
     }
@@ -203,15 +196,12 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   );
 
   const handleUploadClick = () => {
-    // console.log("Uploading files:", files);
     const validFiles = flow?.files
       ?.filter((file) => file.size <= 5 * 1024 * 1024)
       .filter(
         (file) =>
           !reportEncounterStore.imageSectionFileNames?.includes(file.name),
       );
-
-    console.log("validFiles:", validFiles);
 
     if (validFiles?.length > 0) {
       setUploading(true);
@@ -242,7 +232,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             clearTimeout(timeout);
           }
         });
-        console.log("Uploading file+++++++++:", file);
+        console.log("Uploading file", file);
         flow.upload(file);
       });
     }
@@ -312,9 +302,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                   flow.removeFile(
                     files.find((f) => f.name === preview.fileName),
                   );
-                  // setFiles((prevFiles) =>
-                  //   prevFiles.filter((file) => file.name !== preview.fileName),
-                  // );
 
                   reportEncounterStore.setImageSectionFileNames(
                     preview.fileName,
@@ -327,7 +314,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
                 alt={`Preview ${index + 1}`}
-                thumbnail
+                // thumbnail
               />
               <div
                 className="mt-2 "
@@ -357,7 +344,10 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
               now={preview.progress}
               label={`${Math.round(preview.progress)}%`}
               className="mt-2"
-              style={{ width: "200px" }}
+              style={{
+                width: "200px",
+                backgroundColor: theme.primaryColors.primary50,
+              }}
             />
           </Col>
         ))}
