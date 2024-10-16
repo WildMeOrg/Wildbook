@@ -43,7 +43,12 @@ public class ReCAPTCHA extends HttpServlet {
         response.setContentType("application/json");
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
-        out.println((j == null) ? null : jsonResults(request, j.optString("recaptchaValue", null)));
+        boolean useEnterprise = (j != null) && j.optBoolean("useEnterprise", false);
+        if (useEnterprise) {
+            out.println((j == null) ? null : jsonResultsEnterprise(request, j.optString("recaptchaToken", null)));
+        } else {
+            out.println((j == null) ? null : jsonResults(request, j.optString("recaptchaValue", null)));
+        }
         out.close();
     }
 
@@ -55,7 +60,7 @@ public class ReCAPTCHA extends HttpServlet {
             return rtn.toString();
         }
         boolean valid = captchaIsValid(ServletUtilities.getContext(request), recaptchaValue,
-            request.getRemoteAddr());
+            ServletUtilities.getRemoteHost(request));
         request.getSession().setAttribute(ATTRIBUTE_PASSED, valid);
         rtn.put("valid", valid);
         rtn.put("success", true);
@@ -95,7 +100,7 @@ public class ReCAPTCHA extends HttpServlet {
     // note: catcha can only be tested once.... see sessionIsHuman() below for sustained verification
     public static boolean captchaIsValid(HttpServletRequest request) {
         return captchaIsValid(ServletUtilities.getContext(request),
-                request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+                request.getParameter("g-recaptcha-response"), ServletUtilities.getRemoteHost(request));
     }
 
     public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
@@ -140,6 +145,74 @@ public class ReCAPTCHA extends HttpServlet {
         return valid;
     }
 
+    public static boolean captchaIsValidEnterprise(String context, String token, String remoteIP) {
+        String EXPECTED_ACTION = "VALIDATE";
+        if (context == null) context = "context0";
+        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "",
+            context);
+        if (recaptchaProps == null) {
+            System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
+            return false;
+        }
+        String siteKey = recaptchaProps.getProperty("enterpriseSiteKey");
+        String apiKey = recaptchaProps.getProperty("enterpriseApiKey");
+        if ((siteKey == null) || (apiKey == null)) {
+            System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
+            return false;
+        }
+        if (token == null) {
+            System.out.println("WARNING: recaptcha token is null in captchaIsValid(); failing");
+            return false;
+        }
+        JSONObject cdata = new JSONObject();
+        JSONObject cevent = new JSONObject();
+        cevent.put("token", token);
+        cevent.put("userIpAddress", remoteIP);
+        cevent.put("siteKey", siteKey);
+        cevent.put("expectedAction", EXPECTED_ACTION);
+        cdata.put("event", cevent);
+        JSONObject gresp = null;
+        try {
+            gresp = RestClient.postJSON(new URL("https://recaptchaenterprise.googleapis.com/v1/projects/wildme-dev/assessments?key=" + apiKey), cdata, null);
+        } catch (Exception ex) {
+            System.out.println(
+                "WARNING: exception calling captcha api in captchaIsValid(); failing: " +
+                ex.toString());
+            return false;
+        }
+        if (gresp == null) { // would this ever happen?
+            System.out.println(
+                "WARNING: null return from captcha api in captchaIsValid(); failing");
+            return false;
+        }
+        System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
+        JSONObject riskAnalysis = gresp.optJSONObject("riskAnalysis");
+        JSONObject tokenProperties = gresp.optJSONObject("tokenProperties");
+        JSONObject event = gresp.optJSONObject("event");
+        System.out.println(" > riskAnalysis " + riskAnalysis);
+        System.out.println(" > tokenProperties " + tokenProperties);
+        System.out.println(" > event " + event);
+        if ((riskAnalysis == null) || (tokenProperties == null) || (event == null)) return false;
+        if (riskAnalysis.optDouble("score", 0.0) < 0.5) return false;
+        return true;
+    }
+
+    private String jsonResultsEnterprise(HttpServletRequest request, String recaptchaToken) {
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+
+        if ((request == null) || (recaptchaToken == null)) {
+            rtn.put("error", "recaptchaToken not set (or bad request)");
+            return rtn.toString();
+        }
+        boolean valid = captchaIsValidEnterprise(ServletUtilities.getContext(request), recaptchaToken,
+            ServletUtilities.getRemoteHost(request));
+        request.getSession().setAttribute(ATTRIBUTE_PASSED, valid);
+        rtn.put("valid", valid);
+        rtn.put("success", true);
+        return rtn.toString();
+    }
+
+    // params & tagAttributes, see:  https://developers.google.com/recaptcha/docs/display#config
     /*
         this does best guess at "are we human"? based on one of two things:
         1. is the user logged in?  if so: YES 2. if not, did they previously pass ReCAPTCHA (based on session attribute)?
