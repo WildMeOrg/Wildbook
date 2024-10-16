@@ -251,7 +251,7 @@
     "LOADING": "Cargando",
     "REPORT_PAGE_TITLE": "Página para informar de un encuentro",
     "REPORT_PAGE_DESCRIPTION": "Háblenos del animal que vio y sea lo más específico posible. Al enviar datos e imágenes, usted autoriza el uso ilimitado de estos materiales únicamente con fines de investigación y conservación.",
-    "SIGNIN_REMINDER_BANNER": "No has iniciado sesión. Si quieres que este encuentro se asocie a tu cuenta, ¡asegúrate de iniciar sesión!",
+    "SIGNIN_REMINDER_BANNER": "No has iniciado sesión. Si quieres que este encuentro se asocie con tu cuenta, asegúrate de",
     "REQUIRED_FIELDS_KEY": "* Campos obligatorios",
     "PHOTOS_SECTION": "Fotos",
     "DATETIME_SECTION": "Fecha y hora",
@@ -284,9 +284,10 @@
     "SUBMIT_ANON_CONFIRM_DESCRIPTION": "Si envía sin iniciar sesión, no podrá asociar estos datos a su cuenta más adelante.",
     "SUBMIT_ANON_CONFIRM_BUTTON": "Enviar de todos modos",
     "EMPTY_REQUIRED_FIELD": "Campo obligatorio vacío",
-    "IMAGES_REQUIRED_ANON_WARNING": "Las imágenes son necesarias para el envío anónimo. Añade imágenes o inicia sesión.",
+    "IMAGES_REQUIRED_ANON_WARNING": "Se requieren imágenes para el envío anónimo. Agrega imágenes o",
     "CONTACT_OTHERS": "Para otros",
     "EMPTY_REQUIRED_WARNING": "Este campo no puede estar vacío",
     "FILE_SIZE_EXCEEDED": "Las imágenes que superen el límite no se subirán",
-    "ADD_MORE_FILES": "Añadir más archivos"
+    "ADD_MORE_FILES": "Añadir más archivos",
+    "UPLOAD_FAILED" : "Error al subir el archivo"
 }

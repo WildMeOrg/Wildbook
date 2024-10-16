@@ -12,34 +12,36 @@ import { FollowUpSection } from "../../components/FollowUpSection";
 import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
+import { useNavigate } from "react-router-dom";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
+  const Navigate = useNavigate();
+
   const store = useLocalObservable(() => new ReportEncounterStore());
 
+  store.setImageRequired(!isLoggedIn);
+
   const handleSubmit = async () => {
-    if (store.validateFields()) {
-      console.log("Fields validated successfully.");
-      store.setStartUpload(true);
-    } else {
+    if (!store.validateFields()) {
       console.log("Field validation failed.");
+      return;
     }
+    console.log("Fields validated successfully. Submitting report.");
+    await store.submitReport();
   };
 
   useEffect(() => {
-    const checkUploadStatus = async () => {
-      if (store.startUpload && store.imageSectionUploadSuccess) {
-        console.log("Image uploaded successfully.");
-        await store.submitReport();
-        store.setStartUpload(false);
-        store.setImageSectionUploadSuccess(false);
-      } else if (store.startUpload && !store.imageSectionUploadSuccess) {
-        console.log("Please upload images before submitting.");
-      }
-    };
-    checkUploadStatus();
-  }, [store.imageSectionUploadSuccess, store.startUpload]);
+    console.log("Success: ", store.success, "Finished: ", store.finished);
+
+    if (store.success && store.finished) {
+      alert("Report submitted successfully.");
+      Navigate("/home");
+    } else if (!store.success && store.finished) {
+      alert("Report submission failed");
+    }
+  }, [store.success, store.finished]);
 
   // Categories for sections
   const encounterCategories = [
@@ -124,13 +126,13 @@ export const ReportEncounter = observer(() => {
               className="bi bi-info-circle-fill"
               style={{ marginRight: "8px", color: "#7b6a00" }}
             ></i>
-            You are not signed in. If you want this encounter associated with
-            your account, be sure to{" "}
+            <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
             <a
               href="/react/login?redirect=%2Freport"
               style={{ color: "#337ab7", textDecoration: "underline" }}
             >
-              sign in!
+              <FormattedMessage id="LOGIN_SIGN_IN" />
+              {"!"}
             </a>
           </Alert>
         ) : null}
@@ -205,13 +207,13 @@ export const ReportEncounter = observer(() => {
               onClick={handleSubmit} // Trigger file upload
               // disabled={!formValid}
             >
-              Submit Encounter
+              <FormattedMessage id="SUBMIT_ENCOUNTER" />
             </MainButton>
           </div>
         </Col>
 
         <Col
-          className="col-lg-8 col-md-6 col-sm-12 col-12 h-100"
+          className="col-lg-8 col-md-6 col-sm-12 col-12 h-100 pe-4"
           style={{
             maxHeight: "470px",
             overflow: "auto",
