@@ -345,7 +345,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
               label={`${Math.round(preview.progress)}%`}
               className="mt-2"
               style={{
-                width: "200px",
+                width: "100%",
                 backgroundColor: theme.primaryColors.primary50,
               }}
             />
