@@ -13,11 +13,15 @@ import { observer, useLocalObservable } from "mobx-react-lite";
 import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
+import useGetSiteSettings from "../../models/useGetSiteSettings";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
+  const { data } = useGetSiteSettings();
+  const [human, setHuman] = useState(false);
+  const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
 
   const store = useLocalObservable(() => new ReportEncounterStore());
 
@@ -27,6 +31,12 @@ export const ReportEncounter = observer(() => {
     if (!store.validateFields()) {
       console.log("Field validation failed.");
       return;
+    } else if (!human) {
+      alert("Please verify that you are human.");
+      return;
+    } else {
+      console.log("Fields validated successfully. Submitting report.");
+      await store.submitReport();
     }
     console.log("Fields validated successfully. Submitting report.");
     const responseData = await store.submitReport();
@@ -113,6 +123,36 @@ export const ReportEncounter = observer(() => {
       }
     });
   };
+
+  function sendToServer() {
+    console.log("sending to server");
+    window.grecaptcha.enterprise.ready(async () => {
+      const token = await window.grecaptcha.enterprise.execute(
+        reCAPTCHAEnterpriseSiteKey,
+        { action: "VALIDATE" },
+      );
+      console.debug("captcha got token: " + token);
+      console.log(">>>>>>>>>>>>> token=%o", token);
+      let payload = { recaptchaToken: token, useEnterprise: true };
+      console.log("payload %o", payload);
+      console.debug("sending to server");
+      let res = await fetch("/ReCAPTCHA", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      let data = await res.json();
+      setHuman(data.valid);
+      console.log("res data %o", data);
+      console.debug("server thinks we are human? => " + JSON.stringify(data));
+    });
+  }
+
+  useEffect(() => {
+    if (!isLoggedIn && window.grecaptcha) {
+      sendToServer();
+    }
+  }, [isLoggedIn, window.grecaptcha]);
 
   return (
     <Container>
