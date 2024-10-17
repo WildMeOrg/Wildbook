@@ -14,6 +14,8 @@ import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
+import { Modal, Button } from "react-bootstrap";
+import "./recaptcha.css";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
@@ -33,6 +35,7 @@ export const ReportEncounter = observer(() => {
       return;
     } else if (!human) {
       alert("Please verify that you are human.");
+      store.setConfirmationModalShow(true);
       return;
     } else {
       console.log("Fields validated successfully. Submitting report.");
@@ -44,6 +47,8 @@ export const ReportEncounter = observer(() => {
       Navigate("/reportConfirm", { state: { responseData } });
     }
   };
+
+  console.log(store.confirmationModalShow);
 
   useEffect(() => {
     console.log("Success: ", store.success, "Finished: ", store.finished);
@@ -124,8 +129,58 @@ export const ReportEncounter = observer(() => {
     });
   };
 
+  function renderRecaptchaV2() {
+    console.log("falling back to v2");
+    if (
+      window.grecaptcha &&
+      window.grecaptcha.render &&
+      store.confirmationModalShow &&
+      !isLoggedIn
+    ) {
+      console.log("rendering v2");
+      window.grecaptcha.render("recaptcha-container", {
+        sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+        theme: "light",
+      });
+    } else {
+      console.error("Failed to load reCAPTCHA v2");
+    }
+  }
+
+  useEffect(() => {
+    const loadRecaptchaV2 = () => {
+      const script = document.createElement("script");
+      script.src = "https://www.google.com/recaptcha/api.js"; // For reCAPTCHA v2
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+
+      script.onload = () => {
+        console.log("reCAPTCHA v2 script loaded successfully");
+        if (store.confirmationModalShow && !isLoggedIn) {
+          renderRecaptchaV2();
+        } // Initialize the reCAPTCHA once the script has loaded
+      };
+
+      script.onerror = () => {
+        console.error("Failed to load reCAPTCHA v2 script");
+      };
+    };
+
+    loadRecaptchaV2();
+  }, [
+    store.confirmationModalShow,
+    isLoggedIn,
+    window.grecaptcha,
+    window.grecaptcha.render,
+  ]);
+
   function sendToServer() {
     console.log("sending to server");
+    if (!window.grecaptcha || !window.grecaptcha.enterprise) {
+      console.error("reCAPTCHA is not ready yet.");
+      return;
+    }
     window.grecaptcha.enterprise.ready(async () => {
       const token = await window.grecaptcha.enterprise.execute(
         reCAPTCHAEnterpriseSiteKey,
@@ -142,6 +197,7 @@ export const ReportEncounter = observer(() => {
         body: JSON.stringify(payload),
       });
       let data = await res.json();
+      // renderRecaptchaV2();
       setHuman(data.valid);
       console.log("res data %o", data);
       console.debug("server thinks we are human? => " + JSON.stringify(data));
@@ -149,17 +205,45 @@ export const ReportEncounter = observer(() => {
   }
 
   useEffect(() => {
-    if (!isLoggedIn && window.grecaptcha) {
+    if (!isLoggedIn && window.grecaptcha && reCAPTCHAEnterpriseSiteKey) {
       sendToServer();
     }
-  }, [isLoggedIn, window.grecaptcha]);
+  }, [isLoggedIn, window.grecaptcha, reCAPTCHAEnterpriseSiteKey]);
 
   return (
     <Container>
+      <Modal show={store.confirmationModalShow} centered>
+        <Modal.Header closeButton style={{ borderBottom: "none" }}>
+          <Modal.Title>
+            <FormattedMessage id="SUBMIT_ANON_CONFIRM_TITLE" />
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ borderTop: "none", padding: "10px" }}>
+          <FormattedMessage id="SUBMIT_ANON_CONFIRM_DESCRIPTION" />
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div id="recaptcha-container"></div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer style={{ borderTop: "none" }}>
+          <Button
+            variant="secondary"
+            onClick={() => store.setConfirmationModalShow(false)}
+          >
+            Login
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => store.setConfirmationModalShow(false)}
+          >
+            Submit anyways
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Row>
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
         </h3>
+
         <p>
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
