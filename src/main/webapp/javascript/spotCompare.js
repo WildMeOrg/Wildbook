@@ -40,8 +40,10 @@ function overlaps(arr1, arr2) {
 }
 
 function hashDir(dir) {
-    if (dir.length != 36) return dir;
-    return dir.substr(0,1) + '/' + dir.substr(1,1) + '/' + dir;
+	if (typeof dir !== 'undefined') {
+    	if (dir.length != 36) return dir;
+    	return dir.substr(0,1) + '/' + dir.substr(1,1) + '/' + dir;
+	}
 }
 
 function spotDisplayInit(xml) {
