@@ -1382,9 +1382,9 @@ console.info('qdata[%s] = %o', taskId, qdata);
                 }
                 if (indivId) imgInfo += ' <a class="indiv-link" title="open individual page"  href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
                 //add social unit name
-                if(socialUnitName){
-                	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
-                }
+                //if(socialUnitName){
+                //	thisResultLine.append('<a class="indiv-link"  href="socialUnit.jsp?name=' + socialUnitName + '" title="'+socialUnitName+'">' + socialUnitName.substring(0,10) + '</a>');
+                //}
             }
             imgInfo += '</li>';
         }
