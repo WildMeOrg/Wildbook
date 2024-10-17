@@ -190,10 +190,10 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   };
 
-  console.log(
-    "file names",
-    JSON.stringify(reportEncounterStore.imageSectionFileNames),
-  );
+  // console.log(
+  //   "file names",
+  //   JSON.stringify(reportEncounterStore.imageSectionFileNames),
+  // );
 
   const handleUploadClick = () => {
     const validFiles = flow?.files
