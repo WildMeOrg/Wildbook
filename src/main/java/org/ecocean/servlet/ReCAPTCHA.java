@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Properties;
+import java.util.Map;
+import java.util.HashMap;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,10 +14,16 @@ import javax.servlet.ServletException;
 import org.ecocean.*;
 import org.json.JSONObject;
 
-/* some ReCAPTCHA-related stuff .... note that this has some useful public utility functions, as well as is a servlet which can do standalone
-   verification */
+/*
+   captcha-related functionality
+   TODO: this should be eventually renamed captcha-agnostically, but for now code is being left in for ReCAPTCHA
+   backwards compatibility.
+
+   note that this has some useful public utility functions, as well as is a servlet which can do standalone
+   verification
+*/
 public class ReCAPTCHA extends HttpServlet {
-    private final static String ATTRIBUTE_PASSED = "reCAPTCHA-passed";
+    private final static String ATTRIBUTE_PASSED = "captcha-passed";
 
     public void init(ServletConfig config)
     throws ServletException {
@@ -33,7 +41,12 @@ public class ReCAPTCHA extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "*"); // allow us stuff from localhost
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-        out.println(jsonResults(request, request.getParameter("recaptchaValue")));
+        String procaptchaValue = request.getParameter("procaptchaValue");
+        if (procaptchaValue != null) {
+            out.println(jsonResultsProcaptcha(request, procaptchaValue));
+        } else {
+            out.println(jsonResults(request, request.getParameter("recaptchaValue")));
+        }
         out.close();
     }
 
@@ -43,9 +56,13 @@ public class ReCAPTCHA extends HttpServlet {
         response.setContentType("application/json");
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
+        String procaptchaValue = null;
+        if (j != null) procaptchaValue = j.optString("procaptchaValue", null);
         boolean useEnterprise = (j != null) && j.optBoolean("useEnterprise", false);
-        if (useEnterprise) {
-            out.println((j == null) ? null : jsonResultsEnterprise(request, j.optString("recaptchaToken", null)));
+        if (procaptchaValue != null) {
+            out.println(jsonResultsProcaptcha(request, procaptchaValue));
+        } else if (useEnterprise) {
+            out.println(jsonResultsEnterprise(request, j.optString("recaptchaToken", null)));
         } else {
             out.println((j == null) ? null : jsonResults(request, j.optString("recaptchaValue", null)));
         }
@@ -197,6 +214,46 @@ public class ReCAPTCHA extends HttpServlet {
         return true;
     }
 
+    public static boolean captchaIsValidProcaptcha(String context, String token) {
+        if (context == null) context = "context0";
+        Properties captchaProps = ShepherdProperties.getProperties("captcha.properties", "", context);
+        if (captchaProps == null) {
+            System.out.println("WARNING: no captcha.properties for captchaIsValid(); failing");
+            return false;
+        }
+        String secretKey = captchaProps.getProperty("procaptchaSecretKey");
+        //String siteKey = captchaProps.getProperty("procaptchaSiteKey");
+        if (secretKey == null) {
+            System.out.println("WARNING: could not determine secretKey for captchaIsValid(); failing");
+            return false;
+        }
+        if (token == null) {
+            System.out.println("WARNING: captcha token is null in captchaIsValid(); failing");
+            return false;
+        }
+        JSONObject cdata = new JSONObject();
+        cdata.put("token", token);
+        cdata.put("secret", secretKey);
+        JSONObject resp = null;
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("User-Agent", "Wildbook/wildme.org");  // :( we need this or we get a 403 from their api
+        try {
+            resp = RestClient.postJSON(new URL("https://api.prosopo.io/siteverify"), cdata, headers);
+        } catch (Exception ex) {
+            System.out.println(
+                "WARNING: exception calling captcha api in captchaIsValid(); failing: " +
+                ex.toString());
+            return false;
+        }
+        if (resp == null) { // would this ever happen?
+            System.out.println(
+                "WARNING: null return from captcha api in captchaIsValid(); failing");
+            return false;
+        }
+        System.out.println("INFO: captchaIsValid() api call returned: " + resp.toString());
+        return "ok".equals(resp.optString("status")) && resp.optBoolean("verified", false);
+    }
+
     private String jsonResultsEnterprise(HttpServletRequest request, String recaptchaToken) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
 
@@ -212,7 +269,20 @@ public class ReCAPTCHA extends HttpServlet {
         return rtn.toString();
     }
 
-    // params & tagAttributes, see:  https://developers.google.com/recaptcha/docs/display#config
+    private String jsonResultsProcaptcha(HttpServletRequest request, String value) {
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+
+        if ((request == null) || (value == null)) {
+            rtn.put("error", "value not set (or bad request)");
+            return rtn.toString();
+        }
+        boolean valid = captchaIsValidProcaptcha(ServletUtilities.getContext(request), value);
+        request.getSession().setAttribute(ATTRIBUTE_PASSED, valid);
+        rtn.put("valid", valid);
+        rtn.put("success", true);
+        return rtn.toString();
+    }
+
     /*
         this does best guess at "are we human"? based on one of two things:
         1. is the user logged in?  if so: YES 2. if not, did they previously pass ReCAPTCHA (based on session attribute)?
