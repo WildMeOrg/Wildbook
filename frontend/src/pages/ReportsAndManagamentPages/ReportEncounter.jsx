@@ -34,9 +34,9 @@ export const ReportEncounter = observer(() => {
       console.log("Field validation failed.");
       return;
     } else if (!human) {
-      alert("Please verify that you are human.");
-      store.setConfirmationModalShow(true);
-      return;
+      // alert("Please verify that you are human.");
+      // store.setConfirmationModalShow(true);
+      // return;
     } else {
       console.log("Fields validated successfully. Submitting report.");
       await store.submitReport();
@@ -48,7 +48,7 @@ export const ReportEncounter = observer(() => {
     }
   };
 
-  console.log(store.confirmationModalShow);
+  // console.log(store.confirmationModalShow);
 
   useEffect(() => {
     console.log("Success: ", store.success, "Finished: ", store.finished);
@@ -129,90 +129,173 @@ export const ReportEncounter = observer(() => {
     });
   };
 
-  function renderRecaptchaV2() {
-    console.log("falling back to v2");
-    if (
-      window.grecaptcha &&
-      window.grecaptcha.render &&
-      store.confirmationModalShow &&
-      !isLoggedIn
-    ) {
-      console.log("rendering v2");
-      window.grecaptcha.render("recaptcha-container", {
-        sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
-        theme: "light",
-      });
-    } else {
-      console.error("Failed to load reCAPTCHA v2");
-    }
-  }
+  // function renderRecaptchaV2() {
+  //   console.log("falling back to v2");
+  //   if (
+  //     window.grecaptcha &&
+  //     window.grecaptcha.render &&
+  //     store.confirmationModalShow &&
+  //     !isLoggedIn
+  //   ) {
+  //     console.log("rendering v2");
+  //     window.grecaptcha.render("recaptcha-container", {
+  //       sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
+  //       theme: "light",
+  //     });
+  //   } else {
+  //     console.error("Failed to load reCAPTCHA v2");
+  //   }
+  // }
 
+  // useEffect(() => {
+  //   const loadRecaptchaV2 = () => {
+  //     const script = document.createElement("script");
+  //     script.src = "https://www.google.com/recaptcha/api.js"; // For reCAPTCHA v2
+  //     script.async = true;
+  //     script.defer = true;
+  //     document.body.appendChild(script);
+
+  //     script.onload = () => {
+  //       console.log("reCAPTCHA v2 script loaded successfully");
+  //       if (store.confirmationModalShow && !isLoggedIn) {
+  //         renderRecaptchaV2();
+  //       } // Initialize the reCAPTCHA once the script has loaded
+  //     };
+
+  //     script.onerror = () => {
+  //       console.error("Failed to load reCAPTCHA v2 script");
+  //     };
+  //   };
+
+  //   loadRecaptchaV2();
+  // }, [
+  //   store.confirmationModalShow,
+  //   isLoggedIn,
+  //   window.grecaptcha,
+  //   window.grecaptcha.render,
+  // ]);
+
+  // function sendToServer() {
+  //   console.log("sending to server");
+  //   if (!window.grecaptcha || !window.grecaptcha.enterprise) {
+  //     console.error("reCAPTCHA is not ready yet.");
+  //     return;
+  //   }
+  //   window.grecaptcha.enterprise.ready(async () => {
+  //     const token = await window.grecaptcha.enterprise.execute(
+  //       reCAPTCHAEnterpriseSiteKey,
+  //       { action: "VALIDATE" },
+  //     );
+  //     console.debug("captcha got token: " + token);
+  //     console.log(">>>>>>>>>>>>> token=%o", token);
+  //     let payload = { recaptchaToken: token, useEnterprise: true };
+  //     console.log("payload %o", payload);
+  //     console.debug("sending to server");
+  //     let res = await fetch("/ReCAPTCHA", {
+  //       method: "POST",
+  //       headers: { "content-type": "application/json" },
+  //       body: JSON.stringify(payload),
+  //     });
+  //     let data = await res.json();
+  //     // renderRecaptchaV2();
+  //     setHuman(data.valid);
+  //     console.log("res data %o", data);
+  //     console.debug("server thinks we are human? => " + JSON.stringify(data));
+  //   });
+  // }
+
+  // useEffect(() => {
+  //   if (!isLoggedIn && window.grecaptcha && reCAPTCHAEnterpriseSiteKey) {
+  //     sendToServer();
+  //   }
+  // }, [isLoggedIn, window.grecaptcha, reCAPTCHAEnterpriseSiteKey]);
+
+  // const captchaContainer = document.getElementById('procaptcha-container')
+  // console.log('captchaContainer: %o', captchaContainer);
+
+  // useEffect(() => {
+
+  //   console.log('window.render: %o', window.render);
+  //   console.log('captchaContainer: %o', captchaContainer);
+  //   if (captchaContainer && window.render) {
+  //     console.log('rendering procaptcha');
+  //     window.render(captchaContainer, {
+  //       siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
+  //       callback: onCaptchaVerified,
+  //     });
+  //   }
+
+  // }, [captchaContainer, window.render]);
+
+  // const onCaptchaVerified = async (output) => {
+  //   console.log(' ' + JSON.stringify(output));
+
+  //   const payload = { procaptchaValue: output };
+  //   console.log('payload: %o', payload);
+
+  //   try {
+  //     const res = await fetch('/ReCAPTCHA', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     const data = await res.json();
+  //     console.log('data: %o', data);
+  //   } catch (error) {
+  //     console.error('error:', error);
+  //   }
+  // };
+
+
+
+  const captchaRef = useRef(null);
   useEffect(() => {
-    const loadRecaptchaV2 = () => {
-      const script = document.createElement("script");
-      script.src = "https://www.google.com/recaptcha/api.js"; // For reCAPTCHA v2
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
+    let isCaptchaRendered = false;
 
-      script.onload = () => {
-        console.log("reCAPTCHA v2 script loaded successfully");
-        if (store.confirmationModalShow && !isLoggedIn) {
-          renderRecaptchaV2();
-        } // Initialize the reCAPTCHA once the script has loaded
-      };
+    const loadProCaptcha = async () => {
+      if (isCaptchaRendered || !captchaRef.current) return;
 
-      script.onerror = () => {
-        console.error("Failed to load reCAPTCHA v2 script");
-      };
+      const { render } = await import('https://js.prosopo.io/js/procaptcha.bundle.js');
+
+      render(captchaRef.current, {
+        siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
+        callback: onCaptchaVerified,
+      });
+
+      isCaptchaRendered = true;
     };
 
-    loadRecaptchaV2();
-  }, [
-    store.confirmationModalShow,
-    isLoggedIn,
-    window.grecaptcha,
-    window.grecaptcha.render,
-  ]);
+    loadProCaptcha();
 
-  function sendToServer() {
-    console.log("sending to server");
-    if (!window.grecaptcha || !window.grecaptcha.enterprise) {
-      console.error("reCAPTCHA is not ready yet.");
-      return;
-    }
-    window.grecaptcha.enterprise.ready(async () => {
-      const token = await window.grecaptcha.enterprise.execute(
-        reCAPTCHAEnterpriseSiteKey,
-        { action: "VALIDATE" },
-      );
-      console.debug("captcha got token: " + token);
-      console.log(">>>>>>>>>>>>> token=%o", token);
-      let payload = { recaptchaToken: token, useEnterprise: true };
-      console.log("payload %o", payload);
-      console.debug("sending to server");
-      let res = await fetch("/ReCAPTCHA", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
+    return () => {
+      if (captchaRef.current) {
+        captchaRef.current.innerHTML = '';
+      }
+      isCaptchaRendered = false;
+    };
+  }, []);
+
+  const onCaptchaVerified = async (output) => {
+    console.log('Captcha verified, output: ' + JSON.stringify(output));
+    const payload = { procaptchaValue: output };
+
+    try {
+      const res = await fetch('/ReCAPTCHA', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      let data = await res.json();
-      // renderRecaptchaV2();
-      setHuman(data.valid);
-      console.log("res data %o", data);
-      console.debug("server thinks we are human? => " + JSON.stringify(data));
-    });
-  }
-
-  useEffect(() => {
-    if (!isLoggedIn && window.grecaptcha && reCAPTCHAEnterpriseSiteKey) {
-      sendToServer();
+      const data = await res.json();
+      console.log('Response data: ', data);
+    } catch (error) {
+      console.error('Error submitting captcha: ', error);
     }
-  }, [isLoggedIn, window.grecaptcha, reCAPTCHAEnterpriseSiteKey]);
+  };
 
   return (
     <Container>
-      <Modal show={store.confirmationModalShow} centered>
+      {/* <Modal show={store.confirmationModalShow} centered>
         <Modal.Header closeButton style={{ borderBottom: "none" }}>
           <Modal.Title>
             <FormattedMessage id="SUBMIT_ANON_CONFIRM_TITLE" />
@@ -222,6 +305,8 @@ export const ReportEncounter = observer(() => {
           <FormattedMessage id="SUBMIT_ANON_CONFIRM_DESCRIPTION" />
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <div id="recaptcha-container"></div>
+            <div id="procaptcha-container"></div>
+            <textarea ref={debugRef} style={{ width: '100em', height: '45em' }}></textarea>
           </div>
         </Modal.Body>
         <Modal.Footer style={{ borderTop: "none" }}>
@@ -238,12 +323,16 @@ export const ReportEncounter = observer(() => {
             Submit anyways
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
       <Row>
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
         </h3>
-
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          {/* <div id="recaptcha-container"></div> */}
+          <div id="procaptcha-container" ref={captchaRef}></div>
+          {/* <textarea ref={debugRef} style={{ width: '100em', height: '45em' }}></textarea> */}
+        </div>
         <p>
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
@@ -332,7 +421,7 @@ export const ReportEncounter = observer(() => {
                 marginBottom: "20px",
               }}
               onClick={handleSubmit} // Trigger file upload
-              // disabled={!formValid}
+            // disabled={!formValid}
             >
               <FormattedMessage id="SUBMIT_ENCOUNTER" />
             </MainButton>
