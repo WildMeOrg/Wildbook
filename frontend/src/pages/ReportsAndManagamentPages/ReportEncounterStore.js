@@ -15,6 +15,7 @@ export class ReportEncounterStore {
   _additionalCommentsSection;
   _success;
   _finished;
+  _confirmationModalShow;
 
   constructor() {
     this._imageSectionSubmissionId = null;
@@ -53,6 +54,7 @@ export class ReportEncounterStore {
     this._imageCount = 0;
     this._success = false;
     this._finished = false;
+    this._confirmationModalShow = true;
     makeAutoObservable(this);
   }
 
@@ -99,6 +101,10 @@ export class ReportEncounterStore {
 
   get finished() {
     return this._finished;
+  }
+
+  get confirmationModalShow() {
+    return this._confirmationModalShow;
   }
 
   // Actions
@@ -166,6 +172,10 @@ export class ReportEncounterStore {
 
   setAdditionalEmails(value) {
     this._followUpSection.additionalEmails = value;
+  }
+
+  setConfirmationModalShow(value) {
+    this._confirmationModalShow = value;
   }
 
   validateEmails() {
