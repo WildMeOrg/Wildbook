@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.ContextConfiguration;
 import org.ecocean.IAJsonProperties;
 import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
@@ -27,6 +28,7 @@ import org.json.JSONObject;
 
 public class SiteSettings extends ApiBase {
     public static String[] VALUES_SEX = { "unknown", "male", "female" };
+    public static String[] VALUES_ENCOUNTER_STATES = { "unapproved", "approved", "unidentifiable"};
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
@@ -67,8 +69,9 @@ public class SiteSettings extends ApiBase {
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
         // TODO: there was some discussion in slack about this being derived differently
-        settings.put("encounterState",
-            CommonConfiguration.getIndexedPropertyValues("encounterState", context));
+        // NOTE: historically this list was generated via CommonConfiguration using 
+        //       List<String> states = CommonConfiguration.getIndexedPropertyValues("encounterState",context)
+        settings.put("encounterState", VALUES_ENCOUNTER_STATES);
 
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         Object[] iac = iaConfig.getAllIAClasses().toArray();
@@ -102,6 +105,10 @@ public class SiteSettings extends ApiBase {
             orgs.put(org.getId(), org.getName());
         }
         settings.put("organizations", orgs);
+
+        JSONObject system = new JSONObject();
+        system.put("wildbookVersion", ContextConfiguration.getVersion());
+        settings.put("system", system);
 
         sortArray = myShepherd.getAllSocialUnitNames().toArray();
         Arrays.sort(sortArray);

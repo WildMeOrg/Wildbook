@@ -75,7 +75,7 @@ const PickUp = ({ data }) => {
           borderRadius: "10px",
           height: "450px",
           zIndex: 1,
-          backgroundImage: "url(/react/images/pick.png)",
+          backgroundImage: `url(${process.env.PUBLIC_URL}/images/pick.png)`,
         }}
       ></div>
     </div>

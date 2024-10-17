@@ -297,21 +297,6 @@ public class Shepherd {
         return true;
     }
 
-    public String storeNewAdoption(Adoption ad, String uniqueID) {
-        beginDBTransaction();
-        try {
-            pm.makePersistent(ad);
-            commitDBTransaction();
-        } catch (Exception e) {
-            rollbackDBTransaction();
-            System.out.println("I failed to create a new adoption in shepherd.storeNewAdoption().");
-            System.out.println("     uniqueID:" + uniqueID);
-            e.printStackTrace();
-            return "fail";
-        }
-        return (uniqueID);
-    }
-
     public String storeNewKeyword(Keyword kw) {
         beginDBTransaction();
         try {
@@ -520,12 +505,6 @@ public class Shepherd {
          */
         pm.deletePersistent(analysis);
         // return removedParameters;
-    }
-
-    public void throwAwayAdoption(Adoption ad) {
-        String number = ad.getID();
-
-        pm.deletePersistent(ad);
     }
 
     public void throwAwayAnnotation(Annotation ad) {
@@ -1400,18 +1379,6 @@ public class Shepherd {
         }
     }
 
-    public Adoption getAdoption(String num) {
-        Adoption tempEnc = null;
-
-        try {
-            tempEnc = ((Adoption)(pm.getObjectById(pm.newObjectIdInstance(Adoption.class,
-                num.trim()), true)));
-        } catch (Exception nsoe) {
-            return null;
-        }
-        return tempEnc;
-    }
-
     public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
         T dataCollectionEvent = null;
 
@@ -1438,19 +1405,6 @@ public class Shepherd {
             Encounter transmitEnc = null;
             try {
                 transmitEnc = (Encounter)pm.detachCopy(tempEnc);
-            } catch (Exception e) {}
-            return transmitEnc;
-        } else {
-            return null;
-        }
-    }
-
-    public Adoption getAdoptionDeepCopy(String num) {
-        if (isAdoption(num)) {
-            Adoption tempEnc = getAdoption(num.trim());
-            Adoption transmitEnc = null;
-            try {
-                transmitEnc = (Adoption)pm.detachCopy(tempEnc);
             } catch (Exception e) {}
             return transmitEnc;
         } else {
@@ -1927,16 +1881,6 @@ public class Shepherd {
         return null;
     }
 
-    public boolean isAdoption(String num) {
-        try {
-            Adoption tempEnc = ((org.ecocean.Adoption)(pm.getObjectById(pm.newObjectIdInstance(
-                Adoption.class, num.trim()), true)));
-        } catch (Exception nsoe) {
-            return false;
-        }
-        return true;
-    }
-
     public boolean isKeyword(String keywordDescription) {
         Iterator<Keyword> keywords = getAllKeywords();
 
@@ -2271,30 +2215,6 @@ public class Shepherd {
         }
     }
 
-    public Iterator<Adoption> getAllAdoptionsNoQuery() {
-        try {
-            Extent encClass = pm.getExtent(Adoption.class, true);
-            Iterator it = encClass.iterator();
-            return it;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute getAllAdoptionsNoQuery. Returning a null iterator.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
-    public Iterator<Adoption> getAllAdoptionsWithQuery(Query ads) {
-        try {
-            Collection c = (Collection)(ads.execute());
-            Iterator it = c.iterator();
-            return it;
-        } catch (Exception npe) {
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
     public Iterator<ScanTask> getAllScanTasksNoQuery() {
         try {
             Extent taskClass = pm.getExtent(ScanTask.class, true);
@@ -2574,26 +2494,6 @@ public class Shepherd {
         }
     }
 
-    public List<String> getAdopterEmailsForMarkedIndividual(Query query, String shark) {
-        Collection c;
-
-        // Extent encClass = getPM().getExtent(Adoption.class, true);
-        // Query query = getPM().newQuery(encClass);
-        query.setResult("adopterEmail");
-        String filter = "this.individual == '" + shark + "'";
-        query.setFilter(filter);
-        try {
-            c = (Collection)(query.execute());
-            ArrayList list = new ArrayList(c);
-            return list;
-        } catch (Exception npe) {
-            System.out.println(
-                "Error encountered when trying to execute shepherd.getAdopterEmailsForMarkedIndividual(). Returning a null collection.");
-            npe.printStackTrace();
-            return null;
-        }
-    }
-
 /**
    public Iterator<Encounter> getAllEncountersAndUnapproved() {
     Collection c;
@@ -2634,20 +2534,6 @@ public class Shepherd {
         Iterator it = listy.iterator();
         acceptedEncounters.closeAll();
         return it;
-    }
-
-    public List<Adoption> getAllAdoptionsForMarkedIndividual(String ind, String context) {
-        if (CommonConfiguration.allowAdoptions(context)) {
-            String filter = "this.individual == '" + ind + "'";
-            Extent encClass = pm.getExtent(Adoption.class, true);
-            Query acceptedEncounters = pm.newQuery(encClass, filter);
-            Collection c = (Collection)(acceptedEncounters.execute());
-            ArrayList listy = new ArrayList(c);
-            acceptedEncounters.closeAll();
-            return listy;
-        } else {
-            return (new ArrayList());
-        }
     }
 
     /*
@@ -2715,17 +2601,6 @@ public class Shepherd {
             return getAllUsersForOccurrence(foundOccur);
         }
         return relatedUsers;
-    }
-
-    public List<Adoption> getAllAdoptionsForEncounter(String shark) {
-        String filter = "this.encounter == '" + shark + "'";
-        Extent encClass = pm.getExtent(Adoption.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(acceptedEncounters.execute());
-        ArrayList listy = new ArrayList(c);
-
-        acceptedEncounters.closeAll();
-        return listy;
     }
 
     public Iterator<Encounter> getAllEncounters(Query acceptedEncounters, String order) {
@@ -3877,22 +3752,6 @@ public class Shepherd {
         }
     }
 
-    public int getNumAdoptions() {
-        pm.getFetchPlan().setGroup("count");
-        Extent encClass = pm.getExtent(Adoption.class, true);
-        Query acceptedEncounters = pm.newQuery(encClass);
-        try {
-            Collection c = (Collection)(acceptedEncounters.execute());
-            int num = c.size();
-            acceptedEncounters.closeAll();
-            return num;
-        } catch (javax.jdo.JDOException x) {
-            x.printStackTrace();
-            acceptedEncounters.closeAll();
-            return 0;
-        }
-    }
-
     public int getNumAssetStores() {
         Extent encClass = pm.getExtent(AssetStore.class, true);
         Query acceptedEncounters = pm.newQuery(encClass);
@@ -4848,28 +4707,6 @@ public class Shepherd {
         return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
     }
 
-    public Adoption getRandomAdoption() {
-        // get the random number
-        int numAdoptions = getNumAdoptions();
-        Random ran = new Random();
-        int ranNum = 0;
-
-        if (numAdoptions > 1) {
-            ranNum = ran.nextInt(numAdoptions);
-        }
-        // return the adoption
-        int currentPosition = 0;
-        Iterator<Adoption> it = getAllAdoptionsNoQuery();
-        while (it.hasNext()) {
-            Adoption ad = it.next();
-            if (currentPosition == ranNum) {
-                return ad;
-            }
-            currentPosition++;
-        }
-        return null;
-    }
-
     public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
         ArrayList al = new ArrayList();
 
@@ -5705,24 +5542,6 @@ public class Shepherd {
 
         sortedByValues.putAll(map);
         return sortedByValues;
-    }
-
-    public Adoption getRandomAdoptionWithPhotoAndStatement() {
-        String filter = "adopterName != null && adopterImage != null && adopterQuote != null";
-        Extent encClass = pm.getExtent(Adoption.class, true);
-        Query q = pm.newQuery(encClass, filter);
-        Collection c = (Collection)(q.execute());
-
-        if ((c != null) && (c.size() > 0)) {
-            ArrayList<Adoption> matchingAdoptions = new ArrayList<>(c);
-            q.closeAll();
-            int numUsers = matchingAdoptions.size();
-            Random rn = new Random();
-            int adoptNumber = rn.nextInt(numUsers);
-            return matchingAdoptions.get(adoptNumber);
-        }
-        q.closeAll();
-        return null;
     }
 
     public int getNumAnnotationsForEncounter(String encounterID) {
