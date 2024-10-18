@@ -822,6 +822,15 @@
 						"id": "Etosha Heights Private Reserve",
 						"description": "Etosha Heights Private Reserve",
 						"locationID":[]
+					},
+					{
+						"name": "Epacha Private Reserve",
+						"id": "Epacha Private Reserve",
+						"geospatialInfo":{
+							"lat": -19.390667,
+							"long": 15.684802
+						},
+						"locationID": []
 					}
 				]
 			},
@@ -1026,6 +1035,15 @@
 		 			 	"long":35.0
 					},
 					"locationID":[]
+				},
+				{
+					"name": "Saadani National Park",
+					"id": "Saadani National Park",
+					"geospatialInfo": {
+						"lat": -5.996711,
+						"long": -5.996711
+					},
+					"locationID": []
 				},
 				{
 					"name": "SGR",
