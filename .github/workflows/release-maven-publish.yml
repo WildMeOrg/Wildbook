@@ -37,10 +37,5 @@ jobs:
     - name: Push Docker image
       run: |
         docker push wildme/wildbook:${{ github.event.release.tag_name }}  
-    # Publishing to git is disabld for Development branch
-    #- name: Publish to GitHub Packages
-    #if: github.event_name == 'push' 
-    #run: mvn -B deploy -Dversion=development
-    #env:
-    #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       
