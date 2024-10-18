@@ -2608,6 +2608,17 @@ public class Encounter extends Base implements java.io.Serializable {
         this.dateInMilliseconds = ms;
     }
 
+    public void setDateFromISO8601String(String iso8601) {
+        if (iso8601 == null) return;
+        try {
+            String adjusted = Util.getISO8601Date(iso8601);
+            DateTime dt = new DateTime(adjusted);
+            this.setDateInMilliseconds(dt.getMillis());
+        } catch (Exception ex) {
+            System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+        }
+    }
+
     public Long getEndDateInMilliseconds() {
         return endDateInMilliseconds;
     }
@@ -4650,12 +4661,19 @@ public class Encounter extends Base implements java.io.Serializable {
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
 
+        // these need validation (will throw ApiException if fail)
         String locationID = (String)validateFieldValue("locationId", payload);
         String dateTime = (String)validateFieldValue("dateTime", payload);
         String txStr = (String)validateFieldValue("taxonomy", payload);
+
         Encounter enc = new Encounter(false);
+
         if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
+        enc.setLocationID(locationID);
+        enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
+        enc.setComments(payload.optString("comments", null));
+
         // FIXME apply values etc set owner etc
         return enc;
     }
