@@ -247,6 +247,7 @@ public class UploadServlet extends HttpServlet {
         String submissionId = null;
         if (values != null) submissionId = values.get("submissionId");
         if (Util.isUUID(submissionId)) {
+/*  for now we cannot use username due to the fact that a user can upload while anon, and login later! :(
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("UploadServlet.getUploadDir");
@@ -257,6 +258,8 @@ public class UploadServlet extends HttpServlet {
             } else {
                 subDir = username + "/submission/" + submissionId;
             }
+*/
+            subDir = "_anonymous/submission/" + submissionId;
         }
         System.out.println("UploadServlet got subdir " + subDir);
         if (subDir == null) { subDir = ""; } else { subDir = "/" + subDir; }
