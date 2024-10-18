@@ -93,6 +93,7 @@ public class BaseObject extends ApiBase {
         myShepherd.setAction("api.BaseObject.processPost");
         myShepherd.beginDBTransaction();
         User currentUser = myShepherd.getUser(request);
+        payload.put("_currentUser", currentUser); // hacky yes, but works. i am going to allow it.
 
         // for background child assets, which has to be after all persisted
         List<Integer> maIds = new ArrayList<Integer>();

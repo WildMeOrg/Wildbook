@@ -4660,6 +4660,7 @@ public class Encounter extends Base implements java.io.Serializable {
     public static Base createFromApi(org.json.JSONObject payload, List<File> files)
     throws ApiException {
         if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
 
         // these need validation (will throw ApiException if fail)
         String locationID = (String)validateFieldValue("locationId", payload);
@@ -4673,6 +4674,13 @@ public class Encounter extends Base implements java.io.Serializable {
         enc.setDateFromISO8601String(dateTime);
         enc.setTaxonomyFromString(txStr);
         enc.setComments(payload.optString("comments", null));
+
+        if (user == null) {
+            enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
+        } else {
+            enc.setSubmitterID(user.getUsername());
+            enc.addSubmitter(user);
+        }
 
         // FIXME apply values etc set owner etc
         return enc;
