@@ -293,25 +293,34 @@ export const ReportEncounter = observer(() => {
         {/* <div id="recaptcha-container"></div> */}
         {/* <div style={{ display: "flex", justifyContent: "flex-end" }}> */}
         {/* <div id="recaptcha-container"></div> */}
-        <div id="procaptcha-container" ref={captchaRef}></div>
+        
         {/* </div> */}
         <p>
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
         {!isLoggedIn ? (
+          
           <Alert variant="warning" dismissible>
+            <div className="d-flex flex-row justify-content-center align-items-center">
             <i
               className="bi bi-info-circle-fill"
               style={{ marginRight: "8px", color: "#7b6a00" }}
             ></i>
             <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
-            <a
-              href="/react/login?redirect=%2Freport"
-              style={{ color: "#337ab7", textDecoration: "underline" }}
-            >
               <FormattedMessage id="LOGIN_SIGN_IN" />
-              {" or pass !"}
-            </a>
+              {"!"}
+            {/* </a> */}
+            </div>
+            <Row className="d-flex flex-row justify-content-center align-items-center"
+              style={{
+                padding: "10px",
+                marginTop: "10px",
+              }}
+            >
+              <Button style={{width: "100px", height: "40px"}}>Sign In</Button>
+              <div id="procaptcha-container" ref={captchaRef} style={{width: "300px", marginLeft: "30px"}}></div>
+            </Row>
+            
           </Alert>
         ) : null}
       </Row>
