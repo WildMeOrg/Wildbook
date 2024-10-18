@@ -3,7 +3,7 @@ name: Development Build
 on:
   push:
       branches:
-          - main
+          - dockerhub-v7-image-build
       tags-ignore:
           - v*
 jobs:
