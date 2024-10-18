@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { Modal, Button } from "react-bootstrap";
 import "./recaptcha.css";
+// import { Captcha } from "./Captcha";
+
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
@@ -48,7 +50,7 @@ export const ReportEncounter = observer(() => {
     }
   };
 
-  // console.log(store.confirmationModalShow);
+  console.log(store.confirmationModalShow);
 
   useEffect(() => {
     console.log("Success: ", store.success, "Finished: ", store.finished);
@@ -210,44 +212,6 @@ export const ReportEncounter = observer(() => {
   //   }
   // }, [isLoggedIn, window.grecaptcha, reCAPTCHAEnterpriseSiteKey]);
 
-  // const captchaContainer = document.getElementById('procaptcha-container')
-  // console.log('captchaContainer: %o', captchaContainer);
-
-  // useEffect(() => {
-
-  //   console.log('window.render: %o', window.render);
-  //   console.log('captchaContainer: %o', captchaContainer);
-  //   if (captchaContainer && window.render) {
-  //     console.log('rendering procaptcha');
-  //     window.render(captchaContainer, {
-  //       siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
-  //       callback: onCaptchaVerified,
-  //     });
-  //   }
-
-  // }, [captchaContainer, window.render]);
-
-  // const onCaptchaVerified = async (output) => {
-  //   console.log(' ' + JSON.stringify(output));
-
-  //   const payload = { procaptchaValue: output };
-  //   console.log('payload: %o', payload);
-
-  //   try {
-  //     const res = await fetch('/ReCAPTCHA', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(payload),
-  //     });
-
-  //     const data = await res.json();
-  //     console.log('data: %o', data);
-  //   } catch (error) {
-  //     console.error('error:', error);
-  //   }
-  // };
-
-
 
   const captchaRef = useRef(null);
   useEffect(() => {
@@ -304,9 +268,7 @@ export const ReportEncounter = observer(() => {
         <Modal.Body style={{ borderTop: "none", padding: "10px" }}>
           <FormattedMessage id="SUBMIT_ANON_CONFIRM_DESCRIPTION" />
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div id="recaptcha-container"></div>
             <div id="procaptcha-container"></div>
-            <textarea ref={debugRef} style={{ width: '100em', height: '45em' }}></textarea>
           </div>
         </Modal.Body>
         <Modal.Footer style={{ borderTop: "none" }}>
@@ -328,11 +290,11 @@ export const ReportEncounter = observer(() => {
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
         </h3>
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          {/* <div id="recaptcha-container"></div> */}
-          <div id="procaptcha-container" ref={captchaRef}></div>
-          {/* <textarea ref={debugRef} style={{ width: '100em', height: '45em' }}></textarea> */}
-        </div>
+        {/* <div id="recaptcha-container"></div> */}
+        {/* <div style={{ display: "flex", justifyContent: "flex-end" }}> */}
+        {/* <div id="recaptcha-container"></div> */}
+        <div id="procaptcha-container" ref={captchaRef}></div>
+        {/* </div> */}
         <p>
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
@@ -348,7 +310,7 @@ export const ReportEncounter = observer(() => {
               style={{ color: "#337ab7", textDecoration: "underline" }}
             >
               <FormattedMessage id="LOGIN_SIGN_IN" />
-              {"!"}
+              {" or pass !"}
             </a>
           </Alert>
         ) : null}
