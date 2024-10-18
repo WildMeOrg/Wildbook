@@ -4,11 +4,6 @@ on:
     push:
        branches:
           - main
-          - 'releases/**'
-       tags:
-          - 'v**'
-    release:
-          types: [created]
 jobs:
   build:
     name: Maven build and deploy
@@ -30,7 +25,7 @@ jobs:
         mvn -B package --file pom.xml
 
     - name: Publish to GitHub Packages
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+      if: github.event_name == 'push' 
       run: mvn -B deploy
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
