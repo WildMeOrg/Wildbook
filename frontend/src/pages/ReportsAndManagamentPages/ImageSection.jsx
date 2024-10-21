@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import {
-  Button,
-  ProgressBar,
-  Image,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { ProgressBar, Image, Row, Col } from "react-bootstrap";
 import Flow from "@flowjs/flow.js";
 import { FormattedMessage } from "react-intl";
 import ThemeContext from "../../ThemeColorProvider";
@@ -14,6 +7,7 @@ import MainButton from "../../components/MainButton";
 import { v4 as uuidv4 } from "uuid";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
+import { Alert } from "react-bootstrap";
 
 export const FileUploader = observer(({ reportEncounterStore }) => {
   const [files, setFiles] = useState([]);
@@ -22,31 +16,21 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const [fileActivity, setFileActivity] = useState(false);
   const [previewData, setPreviewData] = useState([]);
   const fileInputRef = useRef(null);
-  const [fileNames, setFileNames] = useState([]);
   const { data } = useGetSiteSettings();
   const maxSize = data?.maximumMediaSizeMegabytes || 40;
   const theme = useContext(ThemeContext);
   const originalBorder = `1px dashed ${theme.primaryColors.primary500}`;
   const updatedBorder = `2px dashed ${theme.primaryColors.primary500}`;
 
-  const [count, setCount] = useState(0);
+  const submissionId = useRef(uuidv4()).current;
 
   useEffect(() => {
-    setFileNames(previewData.map((preview) => preview.fileName));
-    if (count === previewData.length) {
-      const submissionId = uuidv4();
-      reportEncounterStore.setImageSectionSubmissionId(submissionId);
-      reportEncounterStore.setImageSectionUploadSuccess(true);
-      console.log("All files uploaded successfully.");
-    }
-  }, [previewData, count]);
+    reportEncounterStore.SetImageCount(
+      previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
+    );
 
-  useEffect(() => {
-    if (reportEncounterStore.startUpload) {
-      console.log("Start upload");
-      handleUploadClick();
-    }
-  }, [reportEncounterStore.startUpload]);
+    handleUploadClick();
+  }, [previewData]);
 
   useEffect(() => {
     if (!flow && fileInputRef.current) {
@@ -59,26 +43,30 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       target: "/ResumableUpload",
       forceChunkSize: true,
       testChunks: false,
+      query: {
+        submissionId: reportEncounterStore.imageSectionSubmissionId,
+        // Add any additional query parameters here
+      },
     });
 
     flowInstance.assignBrowse(fileInputRef.current);
     setFlow(flowInstance);
 
     flowInstance.on("fileAdded", (file) => {
-      const supportedTypes = ["image/jpeg", "image/png", "image/bmp"];
+      const supportedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/bmp",
+      ];
       if (!supportedTypes.includes(file.file.type)) {
         console.error("Unsupported file type:", file.file.type);
         flowInstance.removeFile(file);
         return false;
       }
 
-      // Check if the file already exists in the files state
-      const fileExists = files.some(
-        (f) => f.name === file.name && f.size === file.size
-      );
-      if (fileExists) {
-        console.warn("File already exists:", file.name);
-        flowInstance.removeFile(file);
+      if (file.size > 5 * 1024 * 1024) {
+        console.warn("File size exceeds limit:", file.name);
         return false;
       }
 
@@ -112,30 +100,33 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: percentage }
-            : preview
-        )
+            : preview,
+        ),
       );
     });
 
     flowInstance.on("fileSuccess", (file) => {
       setUploading(false);
-      setCount((prevCount) => prevCount + 1);
+      console.log("File uploaded successfully", file.name);
+      reportEncounterStore.setImageSectionFileNames(file.name, "add");
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
             ? { ...preview, progress: 100 }
-            : preview
-        )
+            : preview,
+        ),
       );
-
     });
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
+      reportEncounterStore.setStartUpload(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
-          preview.fileName === file.name ? { ...preview, progress: 0 } : preview
-        )
+          preview.fileName === file.name
+            ? { ...preview, progress: 0 }
+            : preview,
+        ),
       );
       console.error("Upload error:", message);
       reportEncounterStore.setImageSectionUploadSuccess(false);
@@ -157,7 +148,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // e.target.style.border = "2px dashed red";
 
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = updatedBorder;
@@ -187,197 +177,249 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     if (e.currentTarget.id === "drop-area") {
       e.currentTarget.style.border = originalBorder;
     }
-    if (flowInstance && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (
+      flowInstance &&
+      e.dataTransfer.files &&
+      e.dataTransfer.files.length > 0
+    ) {
       const filesArray = Array.from(e.dataTransfer.files);
       filesArray.forEach((file) => {
-        flowInstance.addFile(file); // Let flow handle the file addition and trigger fileAdded
+        flowInstance.addFile(file);
       });
       e.dataTransfer.clearData();
     }
   };
 
-  const handleUploadClick = () => {
-    // console.log("Uploading files:", files);
-    const validFiles = flow.files.filter(
-      (file) => file.size <= maxSize * 1024 * 1024
-    );
+  console.log(
+    "file names",
+    JSON.stringify(reportEncounterStore.imageSectionFileNames),
+  );
 
-    if (validFiles.length > 0) {
+  const handleUploadClick = () => {
+    const validFiles = flow?.files
+      ?.filter((file) => file.size <= 5 * 1024 * 1024)
+      .filter(
+        (file) =>
+          !reportEncounterStore.imageSectionFileNames?.includes(file.name),
+      );
+
+    if (validFiles?.length > 0) {
       setUploading(true);
+      reportEncounterStore.setImageSectionSubmissionId(submissionId);
+      flow.opts.query.submissionId = submissionId;
       validFiles.forEach((file) => {
-        // console.log("Uploading file:", file);
+        const timeout = setTimeout(() => {
+          flow.removeFile(file);
+          reportEncounterStore.setImageSectionFileNames(file.name, "remove");
+          setPreviewData((prevPreviewData) =>
+            prevPreviewData.map((preview) =>
+              preview.fileName === file.name
+                ? { ...preview, progress: 0, error: true }
+                : preview,
+            ),
+          );
+          console.error(`File upload timed out: ${file.name}`);
+        }, 2000);
+
+        flow.on("fileSuccess", (uploadedFile) => {
+          if (uploadedFile.name === file.name) {
+            clearTimeout(timeout);
+          }
+        });
+
+        flow.on("fileError", (erroredFile) => {
+          if (erroredFile.name === file.name) {
+            clearTimeout(timeout);
+          }
+        });
+        console.log("Uploading file", file);
         flow.upload(file);
       });
     }
   };
 
   return (
-    <Container>
+    <div className="p-2">
       <Row>
-        <p style={{ fontWeight: "500", fontSize: "1.5rem" }}>
+        <h5 style={{ fontWeight: "600" }}>
           <FormattedMessage id="PHOTOS_SECTION" />{" "}
           {reportEncounterStore.imageRequired && "*"}
-        </p>
+        </h5>
         <p>
-          <FormattedMessage id="SUPPORTED_FILETYPES" />{`${" "}${maxSize} MB`}
+          <FormattedMessage id="SUPPORTED_FILETYPES" />
+          {`${" "}${maxSize} MB`}
         </p>
       </Row>
       <Row>
-        <Row className="mt-4">
-          {previewData.map((preview, index) => (
-            <Col
-              key={index}
-              className="mb-4 me-4 d-flex flex-column justify-content-between"
-              style={{
-                maxWidth: "200px",
-                position: "relative",
-              }}
-            >
-              <div style={{ position: "relative" }}>
-                <i
-                  className="bi bi-x-circle-fill"
-                  style={{
-                    position: "absolute",
-                    top: "0",
-                    right: "5px",
-                    cursor: "pointer",
-                    color: "white",
-                  }}
-                  onClick={() => {
-                    setPreviewData((prevPreviewData) =>
-                      prevPreviewData.filter(
-                        (previewData) =>
-                          previewData.fileName !== preview.fileName
-                      )
-                    );
-
-                    flow.removeFile(
-                      files.find((f) => f.name === preview.fileName)
-                    );
-                    setFiles((prevFiles) =>
-                      prevFiles.filter((file) => file.name !== preview.fileName)
-                    );
-                  }}
-                ></i>
-                <Image
-                  id="thumb"
-                  src={preview.src}
-                  style={{ width: "100%", height: "120px", objectFit: "fill" }}
-                  alt={`Preview ${index + 1}`}
-                  thumbnail
-                />
-                <div
-                  className="mt-2 "
-                  style={{
-                    width: "200px",
-                    wordWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
-                  <div>{preview.fileName}</div>
-                  <div>
-                    {(preview.fileSize / (1024 * 1024)).toFixed(2)} MB
-                  </div>
-                  {(preview.fileSize / (1024 * 1024)).toFixed(2) > 0.1 && (
-                    <div style={{ color: "red" }}>
-                      <FormattedMessage id="FILE_SIZE_EXCEEDED" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <ProgressBar
-                now={preview.progress}
-                label={`${Math.round(preview.progress)}%`}
-                className="mt-2"
-                style={{ width: "200px" }}
-              />
-            </Col>
-          ))}
-
-          <Col md={8} style={{ width: fileActivity ? "200px" : "100%" }}>
-            <div
-              id="drop-area"
-              className="d-flex flex-column align-items-center justify-content-center p-4"
-              style={{
-                border: originalBorder,
-                borderRadius: "8px",
-                backgroundColor: "#e8f7fc",
-                textAlign: "center",
-                cursor: "pointer",
-                height: fileActivity ? "120px" : "300px",
-                boxSizing: "border-box",
-              }}
-            >
-              {fileActivity ? (
-                <div onClick={() => fileInputRef.current.click()}>
-                  <i
-                    className="bi bi-images"
-                    style={{
-                      fontSize: "1rem",
-                      color: theme.wildMeColors.cyan700,
-                    }}
-                  ></i>
-                  <p>
-                    <FormattedMessage id="ADD_MORE_FILES" />
-                  </p>
-                </div>
-              ) : (
-                <div className="mb-3 d-flex flex-column justify-content-center">
-                  <i
-                    className="bi bi-images"
-                    style={{
-                      fontSize: "2rem",
-                      color: theme.wildMeColors.cyan700,
-                    }}
-                  ></i>
-                  <p>
-                    <FormattedMessage id="PHOTO_INSTRUCTION" />
-                  </p>
-
-                  <MainButton
-                    onClick={() => fileInputRef.current.click()}
-                    disabled={uploading}
-                    backgroundColor={theme.wildMeColors.cyan700}
-                    color={theme.defaultColors.white}
-                    noArrow={true}
-                    style={{
-                      width: "auto",
-                      fontSize: "1rem",
-                      margin: "0 auto",
-                    }}
-                  >
-                    <FormattedMessage id="BROWSE" />
-                  </MainButton>
-                </div>
-              )}
-              <input
-                type="file"
-                id="file-chooser"
-                multiple
-                accept=".jpg,.jpeg,.png,.bmp"
-                ref={fileInputRef}
-                style={{ display: "none" }}
-              />
-            </div>
-          </Col>
-        </Row>
+        {reportEncounterStore.imageSectionError && (
+          <Alert
+            variant="danger"
+            className="w-100 mt-1 mb-1 ms-2 me-4"
+            style={{
+              border: "none",
+            }}
+          >
+            <i
+              className="bi bi-info-circle-fill"
+              style={{ marginRight: "8px", color: theme.statusColors.red600 }}
+            ></i>
+            <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
+            <a href="login">
+              <FormattedMessage id="LOGIN_SIGN_IN" />
+            </a>
+          </Alert>
+        )}
       </Row>
 
-      {/* {fileActivity && (
-        <Row>
-          <Col>
-            <Button
-              id="upload-button"
-              variant="primary"
-              onClick={handleUploadClick}
-              disabled={uploading}
-            >
-              {uploading ? "Uploading..." : "Begin Upload"}
-            </Button>
+      <Row className="mt-4 w-100">
+        {previewData.map((preview, index) => (
+          <Col
+            key={index}
+            className="mb-4 me-4 d-flex flex-column justify-content-between"
+            style={{
+              maxWidth: "200px",
+              position: "relative",
+            }}
+          >
+            <div style={{ position: "relative" }}>
+              <i
+                className="bi bi-x-circle-fill"
+                style={{
+                  position: "absolute",
+                  top: "0",
+                  right: "5px",
+                  cursor: "pointer",
+                  color: theme.defaultColors.white,
+                }}
+                onClick={() => {
+                  setPreviewData((prevPreviewData) =>
+                    prevPreviewData.filter(
+                      (previewData) =>
+                        previewData.fileName !== preview.fileName,
+                    ),
+                  );
+
+                  flow.removeFile(
+                    files.find((f) => f.name === preview.fileName),
+                  );
+
+                  reportEncounterStore.setImageSectionFileNames(
+                    preview.fileName,
+                    "remove",
+                  );
+                }}
+              ></i>
+              <Image
+                id="thumb"
+                src={preview.src}
+                style={{ width: "100%", height: "120px", objectFit: "fill" }}
+                alt={`Preview ${index + 1}`}
+                // thumbnail
+              />
+              <div
+                className="mt-2 "
+                style={{
+                  width: "200px",
+                  wordWrap: "break-word",
+                  whiteSpace: "normal",
+                }}
+              >
+                <div>{preview.fileName}</div>
+                <div>
+                  {preview.error && (
+                    <span style={{ color: theme.statusColors.red500 }}>
+                      <FormattedMessage id="UPLOAD_FAILED" />
+                    </span>
+                  )}
+                </div>
+                <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
+                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 5 && (
+                  <div style={{ color: theme.statusColors.red500 }}>
+                    <FormattedMessage id="FILE_SIZE_EXCEEDED" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <ProgressBar
+              now={preview.progress}
+              label={`${Math.round(preview.progress)}%`}
+              className="mt-2"
+              style={{
+                width: "100%",
+                backgroundColor: theme.primaryColors.primary50,
+              }}
+            />
           </Col>
-        </Row>
-      )} */}
-    </Container>
+        ))}
+
+        <Col md={8} style={{ width: fileActivity ? "200px" : "100%" }}>
+          <div
+            id="drop-area"
+            className="d-flex flex-column align-items-center justify-content-center p-4"
+            style={{
+              border: originalBorder,
+              borderRadius: "8px",
+              backgroundColor: theme.primaryColors.primary50,
+              textAlign: "center",
+              cursor: "pointer",
+              height: fileActivity ? "120px" : "300px",
+              boxSizing: "border-box",
+            }}
+          >
+            {fileActivity ? (
+              <div onClick={() => fileInputRef.current.click()}>
+                <i
+                  className="bi bi-images"
+                  style={{
+                    fontSize: "1rem",
+                    color: theme.wildMeColors.cyan700,
+                  }}
+                ></i>
+                <p>
+                  <FormattedMessage id="ADD_MORE_FILES" />
+                </p>
+              </div>
+            ) : (
+              <div className="mb-3 d-flex flex-column justify-content-center">
+                <i
+                  className="bi bi-images"
+                  style={{
+                    fontSize: "2rem",
+                    color: theme.wildMeColors.cyan700,
+                  }}
+                ></i>
+                <p>
+                  <FormattedMessage id="PHOTO_INSTRUCTION" />
+                </p>
+
+                <MainButton
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={uploading}
+                  backgroundColor={theme.wildMeColors.cyan700}
+                  color={theme.defaultColors.white}
+                  noArrow={true}
+                  style={{
+                    width: "auto",
+                    fontSize: "1rem",
+                    margin: "0 auto",
+                  }}
+                >
+                  <FormattedMessage id="BROWSE" />
+                </MainButton>
+              </div>
+            )}
+            <input
+              type="file"
+              id="file-chooser"
+              multiple
+              accept=".jpg,.jpeg,.png,.bmp"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+            />
+          </div>
+        </Col>
+      </Row>
+    </div>
   );
 });
 
