@@ -16,21 +16,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-// import java.util.Vector;
-
 // adds spots to a new encounter
 public class InterconnectSubmitSpots extends HttpServlet {
     private void deleteOldScans(String side, String num) {
         try {
-            // File file=new File((new
-            // File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+side+"Scan.xml");
             File file = new File(getServletContext().getRealPath(("/encounters/" + num +
                 "/lastFull" + side + "Scan.xml")));
             if (file.exists()) {
                 file.delete();
             }
-            // file=new File((new
-            // File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+side+"I3SScan.xml");
             file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastFull" +
                 side + "I3SScan.xml")));
             if (file.exists()) {
@@ -117,18 +111,6 @@ public class InterconnectSubmitSpots extends HttpServlet {
                         refs.add(new SuperSpot(ref2x, ref2y));
                         refs.add(new SuperSpot(ref3x, ref3y));
 
-/*  TODO no more spots on Encounter -- FIXME if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-              side = "right";
-              enc.setRightSpots(superSpotArray2);
-              enc.setRightReferenceSpots(refs);
-              enc.setNumRightSpots(superSpotArray2.size());
-            } else {
-
-              enc.setSpots(superSpotArray2);
-              enc.setLeftReferenceSpots(refs);
-              enc.setNumLeftSpots(superSpotArray2.size());
-            }
- */
                         String user = "Unknown User";
                         if (request.getRemoteUser() != null) {
                             user = request.getRemoteUser();
