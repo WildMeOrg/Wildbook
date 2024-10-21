@@ -13,6 +13,8 @@
     "google-map-react": "^2.2.1",
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
+    "mobx": "6.13.3",
+    "mobx-react-lite": "^4.0.7",
     "postcss-cli": "^11.0.0",
     "rc-slider": "^10.6.2",
     "react": "^18.2.0",
@@ -42,9 +44,7 @@
     "workbox-range-requests": "^6.6.0",
     "workbox-routing": "^6.6.0",
     "workbox-strategies": "^6.6.0",
-    "workbox-streams": "^6.6.0",
-    "mobx": "6.13.3",
-    "mobx-react-lite": "4.0.7"
+    "workbox-streams": "^6.6.0"
   },
   "scripts": {
     "start": "react-app-rewired start",
