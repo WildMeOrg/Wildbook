@@ -547,6 +547,23 @@
 		<url-pattern>/api/v3/home</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>ApiBaseObject</servlet-name>
+		<servlet-class>org.ecocean.api.BaseObject</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiBaseObject</servlet-name>
+		<url-pattern>/api/v3/encounters/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiBaseObject</servlet-name>
+		<url-pattern>/api/v3/individuals/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ApiBaseObject</servlet-name>
+		<url-pattern>/api/v3/occurrences/*</url-pattern>
+	</servlet-mapping>
+
 
   <servlet>
     <servlet-name>ApiProjects</servlet-name>
