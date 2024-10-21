@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.ecocean.api.ApiException;
 import org.ecocean.genetics.*;
 import org.ecocean.ia.IA;
 import org.ecocean.identity.IBEISIA;
@@ -2607,6 +2608,17 @@ public class Encounter extends Base implements java.io.Serializable {
         this.dateInMilliseconds = ms;
     }
 
+    public void setDateFromISO8601String(String iso8601) {
+        if (iso8601 == null) return;
+        try {
+            String adjusted = Util.getISO8601Date(iso8601);
+            DateTime dt = new DateTime(adjusted);
+            this.setDateInMilliseconds(dt.getMillis());
+        } catch (Exception ex) {
+            System.out.println("setDateFromISO8601String(" + iso8601 + ") failed: " + ex);
+        }
+    }
+
     public Long getEndDateInMilliseconds() {
         return endDateInMilliseconds;
     }
@@ -4644,4 +4656,89 @@ public class Encounter extends Base implements java.io.Serializable {
         System.out.println("Encounter.opensearchSyncIndex() finished needRemoval");
         return rtn;
     }
+
+    public static Base createFromApi(org.json.JSONObject payload, List<File> files)
+    throws ApiException {
+        if (payload == null) throw new ApiException("empty payload");
+        User user = (User)payload.opt("_currentUser");
+
+        // these need validation (will throw ApiException if fail)
+        String locationID = (String)validateFieldValue("locationId", payload);
+        String dateTime = (String)validateFieldValue("dateTime", payload);
+        String txStr = (String)validateFieldValue("taxonomy", payload);
+
+        Encounter enc = new Encounter(false);
+
+        if (Util.isUUID(payload.optString("_id"))) enc.setId(payload.getString("_id"));
+        enc.setLocationID(locationID);
+        enc.setDateFromISO8601String(dateTime);
+        enc.setTaxonomyFromString(txStr);
+        enc.setComments(payload.optString("comments", null));
+
+        if (user == null) {
+            enc.setSubmitterID("public"); // this seems to be what EncounterForm servlet does so...
+        } else {
+            enc.setSubmitterID(user.getUsername());
+            enc.addSubmitter(user);
+        }
+
+        // FIXME apply values etc set owner etc
+        return enc;
+    }
+
+    public static Object validateFieldValue(String fieldName, org.json.JSONObject data)
+    throws ApiException {
+        if (data == null) throw new ApiException("empty payload");
+        org.json.JSONObject error = new org.json.JSONObject();
+        error.put("fieldName", fieldName);
+        String exMessage = "invalid value for " + fieldName;
+        Object returnValue = null;
+
+        switch (fieldName) {
+
+        case "locationId":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            if (!LocationID.isValidLocationID((String)returnValue)) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "dateTime":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // this is a kind of cheap test of validity of dateTime value; likely we will need to make an improved Util for this
+            long test = Util.getVersionFromModified((String)returnValue);
+            if (test < 1) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
+                error.put("value", returnValue);
+                throw new ApiException(exMessage, error);
+            }
+            break;
+
+        case "taxonomy":
+            returnValue = data.optString(fieldName, null);
+            if (returnValue == null) {
+                error.put("code", ApiException.ERROR_RETURN_CODE_REQUIRED);
+                throw new ApiException(exMessage, error);
+            }
+            // FIXME validate taxonomy
+            break;
+
+        default:
+            System.out.println("Encounter.validateFieldValue(): WARNING unsupported fieldName=" + fieldName);
+        }
+
+        // must be okay!
+        return returnValue;
+    }
+
 }
