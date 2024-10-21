@@ -298,7 +298,6 @@ public final class Geometry {
         double u = ((x - x0) * (x1 - x0) + (y - y0) * (y1 - y0)) / (length * length);
 
         // This is the intersection point of the normal.
-        // TODO: Might consider returning this as well.
         double xp = x0 + u * (x1 - x0);
         double yp = y0 + u * (y1 - y0);
 
@@ -672,7 +671,6 @@ public final class Geometry {
      */
     public static int findLineSegmentIntersection(double x0, double y0, double x1, double y1,
         double x2, double y2, double x3, double y3, double[] intersection) {
-        // TODO: Make limit depend on input domain
         final double LIMIT = 1e-5;
         final double INFINITY = 1e10;
         double x, y;
