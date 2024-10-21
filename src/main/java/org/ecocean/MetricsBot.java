@@ -287,6 +287,19 @@ public class MetricsBot {
                 "SELECT count(this) FROM org.ecocean.User WHERE username == null",
                 "wildbook_datacontributors_total", "Number of public data contributors", context,
                 contributorsLabels));
+            
+            //Issue 532 - find number Encounters owned by User 'public'
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == 'public'",
+                    "wildbook_encounters_public_owned_total", "Number of public owned encounters", context, encLabels));
+            
+            //Issue 532 - number of encounters submitted by researcher: encounters submitted by accounts that have researcher role
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == role.username && role.rolename=='researcher' VARIABLES org.ecocean.Role role",
+                    "wildbook_encounters_researcher_owned_total", "Number of researcher owned encounters", context, encLabels));
+            
+            //Issue 532 - number of encounters submitted by citizen scientist: encounters submitted by accounts that do not have a role
+            csvLines.add(buildGauge("SELECT count(this) FROM org.ecocean.Encounter where submitterID == null || submitterID == 'public' || !(select distinct username from org.ecocean.Role where rolename=='researcher').contains(submitterID)",
+                    "wildbook_encounters_citsci_contributed_total", "Number of citizen science contributed encounters", context, encLabels));
+
 
             // Machine learning tasks
             addTasksToCsv(csvLines, context);

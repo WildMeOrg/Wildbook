@@ -1,26 +1,16 @@
-### pre-reqs
+## Frontend Setup
+The frontend is currently split between native tomcat functions, jsp pages, and a react app. New development is targeting a full react app rewrite. This setup is focused on the react specific requirements. However, you must do the full system setup referenced in the [development README](../devops/README.md) for these to work.
 
-- node, npm
-- `npm install react-app-rewired`
+### Build and deploy react-only changes
+If you are working on react-only work, you can test your changes without updating the full war file.
 
+#### Use npm to build and deploy to your local deployment
+If you have your dev environment set up correctly, this will build the React app and copy it into your local deployment directory for you.
+1. cd to `REPO/frontend/`
+2. run `npm run deploy-dev`
+3. refresh your browser page by visiting either `http://localhost:81/react/` for local testing or `https://public.url.example.com/react/` for the public-facing deployment
 
-### steps to build and deploy react
-
-1. create a folder `react` under deployed `wildbook/` dir
-2. create a `.env` under the root of `REPO/frontend/`, add public-facing url like this:
-  - `PUBLIC_URL=http://localhost:8080/react/` (for local tomcat)
-  - `PUBLIC_URL=https://public.url.example.com/react/`
-   add site name like this:
-  - `SITE_NAME=Amphibian Wildbook`  
-3. cd to `REPO/frontend/` and run `npm run build`
-4. copy everything under `frontend/build/` to the `wildbook/react/` created in step 1
-5. refresh your browser page by visiting either `http://localhost:8080/react/` for local testing or `https://public.url.example.com/react/` for the public-facing deployment
-
-
-### steps to setup dev environment
-1. cd to the root folder of your codebase, for example `/Wildbook`
-2. run `npm install` 
-3. run `chmod +x .husky/pre-commit` to enable husky pre-commit hooks
-4. cd to the react folder `Wildbook/frontend/`,
-5. also run `npm install` to install all dependencies
-6. now you should be able to commit and Husky will check your code for any issues before each commit
+#### Manually build and deploy
+1. cd to `REPO/frontend/` and run `npm run build`
+2. copy everything under `frontend/build/` to the deployed `wildbook/react/` directory you created during setup
+3. refresh your browser page by visiting either `http://localhost:81/react/` for local testing or `https://public.url.example.com/react/` for the public-facing deployment

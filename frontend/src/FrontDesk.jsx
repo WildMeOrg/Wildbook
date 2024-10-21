@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import UnauthenticatedSwitch from "./UnAuthenticatedSwitch";
 import AuthenticatedSwitch from "./AuthenticatedSwitch";
 import axios from "axios";
@@ -9,15 +9,21 @@ import LoadingScreen from "./components/LoadingScreen";
 import GoogleTagManager from "./GoogleTagManager";
 import Cookies from "js-cookie";
 import "./css/scrollBar.css";
+import SessionWarning from "./components/SessionWarning";
+import {
+  sessionWarningTime,
+  sessionCountdownTime,
+} from "./constants/sessionWarning";
 
 export default function FrontDesk() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [error, setError] = useState();
   const [collaborationTitle, setCollaborationTitle] = useState();
   const [collaborationData, setCollaborationData] = useState([]);
   const [mergeData, setMergeData] = useState([]);
   const [count, setCount] = useState(0);
-  const [showAlert, setShowAlert] = useState(() => Cookies.get("showAlert") === "false" ? false : true);
+  const [showAlert, setShowAlert] = useState(() =>
+    Cookies.get("showAlert") === "false" ? false : true,
+  );
   const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = () => {
@@ -31,7 +37,6 @@ export default function FrontDesk() {
         console.log("Error", error);
         setLoading(false);
         setIsLoggedIn(false);
-        setError(error.response.status);
       });
   };
 
@@ -47,7 +52,6 @@ export default function FrontDesk() {
   };
 
   useEffect(() => {
-    getAllNotifications();
     checkLoginStatus();
     const intervalId = setInterval(() => {
       checkLoginStatus();
@@ -55,6 +59,12 @@ export default function FrontDesk() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getAllNotifications();
+    }
+  }, [isLoggedIn]);
 
   if (loading) return <LoadingScreen />;
 
@@ -72,6 +82,10 @@ export default function FrontDesk() {
         }}
       >
         <GoogleTagManager />
+        <SessionWarning
+          sessionWarningTime={sessionWarningTime}
+          sessionCountdownTime={sessionCountdownTime}
+        />
         <AuthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}
@@ -83,7 +97,7 @@ export default function FrontDesk() {
   if (!isLoggedIn) {
     return (
       <>
-        {/* <GoogleTagManager /> */}
+        <GoogleTagManager />
         <UnauthenticatedSwitch
           showAlert={showAlert}
           setShowAlert={setShowAlert}

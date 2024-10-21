@@ -1407,7 +1407,6 @@ public class IndividualQueryProcessor extends QueryProcessor {
                     allSharks = myShepherd.getAllMarkedIndividuals(query,
                         "dateTimeLatestSighting descending", paramMap);
                 }
-                // Added to show adoptable sharks in gallery.
                 else if (request.getParameter("sort").equals("dateTimeLatestSighting")) {
                     allSharks = myShepherd.getAllMarkedIndividuals(query,
                         "dateTimeLatestSighting descending", paramMap);

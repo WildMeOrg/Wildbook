@@ -475,8 +475,6 @@ public class FixStandardImport extends HttpServlet {
         String nickname = getString(row, "MarkedIndividual.nickname");
         if (nickname == null) nickname = getString(row, "MarkedIndividual.nickName");
         if (nickname != null) mark.setNickName(nickname);
-        String nicknamer = getString(row, "MarkedIndividual.nickNamer");
-        if (nicknamer != null) mark.setNickNamer(nicknamer);
         String alternateID = getString(row, "MarkedIndividual.alternateID");
         if (alternateID != null) mark.setAlternateID(alternateID);
         String genus = getString(row, "Encounter.genus");

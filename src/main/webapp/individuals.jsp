@@ -499,11 +499,6 @@ $(document).ready(function() {
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
                   <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
-                  <%
-                  }
                   if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
@@ -521,12 +516,6 @@ $(document).ready(function() {
             %>
             <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
-            if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md">
-                    <%= props.getProperty("nicknameMe") %><span class="button-icon" aria-hidden="true"></button></a>
-                  <%
-                  }
             if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
@@ -2405,24 +2394,6 @@ if (sharky.getNames() != null) {
           }
 		%>
 
-
-              <%-- Start Adoption --%>
-        <%
-          if (CommonConfiguration.allowAdoptions(context)) {
-        %>
-
-      <p><strong><%=props.getProperty("meetAdopters") %></strong></p>
-      <div style="width: 100%;">
-
-          <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-            <jsp:param name="name" value="<%=id%>"/>
-          </jsp:include>
-                </div>
-
-          <%
-           }
-        %>
-      <%-- End Adoption --%>
 
       <br>
       <%-- Start Collaborators --%>

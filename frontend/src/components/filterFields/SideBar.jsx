@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Button, Offcanvas } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { FormattedMessage } from 'react-intl';
-import Chip from '../Chip';
-import BrutalismButton from '../BrutalismButton';
-import ThemeContext from '../../ThemeColorProvider';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState } from "react";
+import { Button, Offcanvas } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { FormattedMessage } from "react-intl";
+import Chip from "../Chip";
+import BrutalismButton from "../BrutalismButton";
+import ThemeContext from "../../ThemeColorProvider";
+import { useSearchParams } from "react-router-dom";
 
 function Sidebar({
   formFilters,
@@ -20,103 +20,116 @@ function Sidebar({
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  // eslint-disable-next-line no-unused-vars
   const [searchParams, setSearchParams] = useSearchParams();
 
   const num = queryID ? 1 : formFilters.length;
 
   const handleCopy = () => {
-    console.log('Copied to clipboard: ', searchQueryId);
+    console.log("Copied to clipboard: ", searchQueryId);
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      
-      navigator.clipboard.writeText(searchQueryId)      
+      navigator.clipboard
+        .writeText(searchQueryId)
         .then(() => {
           alert(`Query ID: ${searchQueryId} copied to clipboard!`);
         })
-        .catch(err => {
-          console.error('Failed to copy text: ', err);
+        .catch((err) => {
+          console.error("Failed to copy text: ", err);
         });
     } else {
-      console.error('Clipboard API not supported or permissions denied.');
-      alert('Clipboard API not supported or permissions denied.');
+      console.error("Clipboard API not supported or permissions denied.");
+      alert("Clipboard API not supported or permissions denied.");
     }
-  }
+  };
 
   return (
     <>
       <Button
         onClick={handleShow}
         style={{
-          borderRadius: '0 0 5px 5px',
-          width: '200px',
-          height: '45px',
+          borderRadius: "0 0 5px 5px",
+          width: "200px",
+          height: "45px",
           backgroundColor: "white",
-          color: 'black',
+          color: "black",
           border: "none",
-          position: 'fixed',
-          fontWeight: '500',
-          top: '40%',
-          right: show ? `${sidebarWidth}px` : '0px',
-          zIndex: '1030',
-          transform: 'translateY(-50%) translateX(42%) rotate(90deg)',
-          transition: 'right 0.3s ease-in-out',
-          padding: '8px 10px',
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
+          position: "fixed",
+          fontWeight: "500",
+          top: "40%",
+          right: show ? `${sidebarWidth}px` : "0px",
+          zIndex: "1030",
+          transform: "translateY(-50%) translateX(42%) rotate(90deg)",
+          transition: "right 0.3s ease-in-out",
+          padding: "8px 10px",
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         <FormattedMessage id="APPLIED_FILTERS" />
-        <div style={{
-          width: "20px",
-          height: "20px",
-          borderRadius: "50%",
-          backgroundColor: 'red',
-          color: 'white',
-          marginLeft: "10px",
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>{num}</div>
+        <div
+          style={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            backgroundColor: "red",
+            color: "white",
+            marginLeft: "10px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {num}
+        </div>
       </Button>
 
-      <Offcanvas show={show} onHide={handleClose} placement="end" style={{ width: `${sidebarWidth}px`, borderRadius: '10px 0 0 10px' }}>
+      <Offcanvas
+        show={show}
+        onHide={handleClose}
+        placement="end"
+        style={{ width: `${sidebarWidth}px`, borderRadius: "10px 0 0 10px" }}
+      >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title><FormattedMessage id="APPLIED_FILTERS" /></Offcanvas.Title>
+          <Offcanvas.Title>
+            <FormattedMessage id="APPLIED_FILTERS" />
+          </Offcanvas.Title>
         </Offcanvas.Header>
-        <Offcanvas.Body style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-
-          {queryID ? <div
-            style={{
-                backgroundColor: '#e5f6ff',
-                color: 'black',
-                borderRadius: '15px',
-                padding: '10px 20px',
-                boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)',
-                marginTop: '10px',
-            }}
+        <Offcanvas.Body
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
         >
-            <p>
-            {`Search Query ID ${queryID} applied.`}
-          </p>
-        </div>
-            : <div style={{ overflowY: 'auto' }}>
+          {queryID ? (
+            <div
+              style={{
+                backgroundColor: "#e5f6ff",
+                color: "black",
+                borderRadius: "15px",
+                padding: "10px 20px",
+                boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+                marginTop: "10px",
+              }}
+            >
+              <p>{`Search Query ID ${queryID} applied.`}</p>
+            </div>
+          ) : (
+            <div style={{ overflowY: "auto" }}>
               {formFilters.map((filter, index) => (
-                <Chip key={index}>
-                  {filter}
-                </Chip>
+                <Chip key={index}>{filter}</Chip>
               ))}
             </div>
-          }
+          )}
 
-          <div className='d-flex justify-content-between align-items-center'
+          <div
+            className="d-flex justify-content-between align-items-center"
             style={{
-              padding: '10px 0',
-            }}>
+              padding: "10px 0",
+            }}
+          >
             <BrutalismButton
               onClick={() => {
                 handleClose();
@@ -125,7 +138,7 @@ function Sidebar({
               noArrow={true}
               backgroundColor={theme.primaryColors.primary700}
               borderColor={theme.primaryColors.primary700}
-              color='white'
+              color="white"
             >
               <FormattedMessage id="FILTER_COPY" defaultMessage={"Copy"} />
             </BrutalismButton>
@@ -136,10 +149,13 @@ function Sidebar({
               }}
               backgroundColor={theme.primaryColors.primary700}
               borderColor={theme.primaryColors.primary700}
-              color='white'
+              color="white"
               noArrow={true}
             >
-              <FormattedMessage id="FILTER_EDIT_FILTER" defaultMessage={"Edit"} />
+              <FormattedMessage
+                id="FILTER_EDIT_FILTER"
+                defaultMessage={"Edit"}
+              />
             </BrutalismButton>
             <BrutalismButton
               borderColor={theme.primaryColors.primary700}
@@ -154,11 +170,13 @@ function Sidebar({
                 window.location.reload();
               }}
             >
-              <FormattedMessage id="FILTER_RESET_FILTER" defaultMessage={"Reset"} />
+              <FormattedMessage
+                id="FILTER_RESET_FILTER"
+                defaultMessage={"Reset"}
+              />
             </BrutalismButton>
           </div>
         </Offcanvas.Body>
-
       </Offcanvas>
     </>
   );
