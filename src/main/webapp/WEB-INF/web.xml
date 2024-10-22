@@ -1900,10 +1900,7 @@
 
 
 
-  <servlet-mapping>
-    <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
-    <url-pattern>/OccurrenceSearchExportMetadataExcel</url-pattern>
-  </servlet-mapping>
+
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
