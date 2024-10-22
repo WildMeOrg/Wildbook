@@ -1898,10 +1898,7 @@
     <url-pattern>/TranslationsGet</url-pattern>
   </servlet-mapping>
 
-    <servlet-mapping>
-    <servlet-name>OccurrenceSearchExportGtm</servlet-name>
-    <url-pattern>/OccurrenceSearchExportGtm</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
