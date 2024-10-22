@@ -833,7 +833,12 @@
 						"locationID": []
 					}
 				]
-			},
+			},	
+				{
+					"name": "Gondwana Canyon Park",
+					"id": "Gondwana Canyon Park",
+					"locationID":[]
+				},
 				{
 					"name": "Kuzikus Wildlife Reserve",
 					"id": "Kuzikus Wildlife Reserve",
@@ -908,6 +913,11 @@
 					"name": "Areena",
 					"id": "Areena",
 					"description": "Areena",
+					"locationID":[]
+				},
+				{
+					"name": "Brandwacht Game Reserve",
+					"id": "Brandwacht Game Reserve",
 					"locationID":[]
 				},
 				{
