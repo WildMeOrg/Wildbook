@@ -823,9 +823,6 @@ public class LightRestServlet extends HttpServlet {
                 else if (cls.getName().equals("org.ecocean.Role"))
                     throw new NucleusUserException(
                               "Cannot access org.ecocean.Role objects at this time");
-                else if (cls.getName().equals("org.ecocean.Adoption"))
-                    throw new NucleusUserException(
-                              "Cannot access org.ecocean.Adoption objects at this time");
             }
         } else {
             cls = result.getClass();
@@ -835,9 +832,6 @@ public class LightRestServlet extends HttpServlet {
             else if (cls.getName().equals("org.ecocean.Role"))
                 throw new NucleusUserException(
                           "Cannot access org.ecocean.Role objects at this time");
-            else if (cls.getName().equals("org.ecocean.Adoption"))
-                throw new NucleusUserException(
-                          "Cannot access org.ecocean.Adoption objects at this time");
         }
         return out;
     }

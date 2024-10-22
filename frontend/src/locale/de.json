@@ -137,7 +137,8 @@
     "FILTER_OBSERVATION_ATTRIBUTE": "Beobachtungsattribut",
     "FILTER_OBSERVATION_ATTRIBUTE_DESC": "Verwenden Sie die folgenden Felder, um Ihre Suche nach beobachteten Attributen zu filtern",
     "FILTER_SEX": "Geschlecht",
-    "FILTER_LIFE_STATUS": "Lebensstatus",
+    "FILTER_LIVING_STATUS": "Lebensstatus",
+    "FILTER_LIFE_STAGE": "Lebensstadium",
     "FILTER_GENUS_AND_SPECIES": "Gattung und Art",
     "FILTER_SIGHTING_ID": "Sichtung ID",
     "FILTER_OBSERVATION_SEARCH": "Suche nach Beobachtungen",
@@ -197,7 +198,7 @@
     "FILTER_RELATIONSHIP_ROLE": "Soziale Beziehungsrolle",
     "FILTER_METADATA": "Metadaten",
     "FILTER_METADATA_DESC": "Verwenden Sie die nachstehenden Felder, um Ihre Suche auf der Grundlage plattformbezogener Daten einzuschränken",
-    "FILTER_ENCOUNTERS_STATUS": "Begegnungsstatus",
+    "FILTER_ENCOUNTERS_STATE": "Begegnungsstatus",
     "FILTER_SUBMITTER": "Einreicher, Fotograf oder E-Mail Adresse. Dieses Feld unterscheidet NICHT zwischen Groß- und Kleinschreibung",
     "FILTER_ORGANIZATION_ID": "Organisations-ID",
     "FILTER_PROJECT_NAME": "Projektname",
@@ -240,5 +241,12 @@
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast und J. Holmberg. 2015. Flukebook: cloudbasierte Foto-Identifikationsanalysetools für die Meeresforschung. Erreichbar unter: https://www.flukebook.org",
     "CITATION_FORWARD": "Um die Zitierung jeder Publikation / jedes Berichts, der / das die von Wild Me bereitgestellten Daten / Werkzeuge verwendet hat, zur Aufnahme in unsere Referenzliste an info@wildme.org weiterzuleiten.",
     "CITATION_DISCLAIMER": "Wild Me oder die ursprünglichen Datenanbieter nicht für Fehler in den Daten verantwortlich machen. Obwohl wir alle Anstrengungen unternommen haben, um die Qualität der Datenbank zu gewährleisten, können wir die Genauigkeit dieser Datensätze nicht garantieren.",
-    "MAP_IS_LOADING" : "Karte wird geladen"
+    "MAP_IS_LOADING" : "Karte wird geladen",
+    "SESSION_WARNING_CONTENT" : "Ihre Sitzung läuft bald ab.",
+    "SESSION_WARNING_TITLE" : "Sitzungszeit-Warnung",
+    "SESSION_LOGIN_MODAL_CONTENT" : "Sie wurden vom System abgemeldet.",
+    "SESSION_EXTEND" : "Verlängern",
+    "SESSION_LOGIN" : "Anmelden",
+    "SESSION_CLOSE" : "Schließen",
+    "LOADING" : "Laden"
 }

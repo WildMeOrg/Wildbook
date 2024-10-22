@@ -137,7 +137,8 @@
     "FILTER_OBSERVATION_ATTRIBUTE": "Observation Attribute",
     "FILTER_OBSERVATION_ATTRIBUTE_DESC": "Use the fields below to filter your search based on observed attributes",
     "FILTER_SEX": "Sex",
-    "FILTER_LIFE_STATUS": "Life Status",
+    "FILTER_LIVING_STATUS": "Living Status",
+    "FILTER_LIFE_STAGE": "Life Stage",
     "FILTER_GENUS_AND_SPECIES": "Genus and Species",
     "FILTER_SIGHTING_ID": "Sighting ID",
     "FILTER_OBSERVATION_SEARCH": "Observation Search",
@@ -197,7 +198,7 @@
     "FILTER_RELATIONSHIP_ROLE": "Social Relationship Role",
     "FILTER_METADATA": "Metadata",
     "FILTER_METADATA_DESC": "Use the fields below to limit your search based on platform-related data",
-    "FILTER_ENCOUNTERS_STATUS": "Encounter Status",
+    "FILTER_ENCOUNTERS_STATE": "Encounter State",
     "FILTER_SUBMITTER": "Submitter, Photographer, or Email Address. This field is NOT case-sensitive",
     "FILTER_ORGANIZATION_ID": "Organization ID",
     "FILTER_PROJECT_NAME": "Project Name",
@@ -240,5 +241,12 @@
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast, and J. Holmberg. 2015. Flukebook: a cloud-based photo-identification analysis tools for marine mammal research. Accessible at: https://www.flukebook.org",
     "CITATION_FORWARD": "To forward the citation of any publication / report that made use of the data / tools provided by Wild Me for inclusion in our list of references by submitting to info@wildme.org.",
     "CITATION_DISCLAIMER": "Not to hold Wild Me or the original data providers liable for errors in the data. While we have made every effort to ensure the quality of the database, we cannot guarantee the accuracy of these datasets.",
-    "MAP_IS_LOADING" : "Map is loading"
+    "MAP_IS_LOADING" : "Map is loading",
+    "SESSION_WARNING_CONTENT" : "Your session is about to expire. ",
+    "SESSION_WARNING_TITLE" : "Session Timeout Warning",
+    "SESSION_LOGIN_MODAL_CONTENT" : "You've been logged out of the system.",
+    "SESSION_EXTEND" : "Extend",
+    "SESSION_LOGIN" : "Login",
+    "SESSION_CLOSE" : "Close",
+    "LOADING" : "Loading"
 }

@@ -136,7 +136,8 @@
     "FILTER_OBSERVATION_ATTRIBUTE": "Atributo de Observación",
     "FILTER_OBSERVATION_ATTRIBUTE_DESC": "Utilice los campos a continuación para filtrar su búsqueda por atributos observados",
     "FILTER_SEX": "Sexo",
-    "FILTER_LIFE_STATUS": "Estado Vital",
+    "FILTER_LIVING_STATUS": "Estado de Vida",
+    "FILTER_LIFE_STAGE": "Etapa de Vida",
     "FILTER_GENUS_AND_SPECIES": "Género y Especie",
     "FILTER_SIGHTING_ID": "ID del Avistamiento",
     "FILTER_OBSERVATION_SEARCH": "Búsqueda de Observación",
@@ -196,7 +197,7 @@
     "FILTER_RELATIONSHIP_ROLE": "Rol de Relación Social",
     "FILTER_METADATA": "Metadatos",
     "FILTER_METADATA_DESC": "Utilice los campos a continuación para limitar su búsqueda basada en datos relacionados con la plataforma",
-    "FILTER_ENCOUNTERS_STATUS": "Estado del Encuentro",
+    "FILTER_ENCOUNTERS_STATE": "Estado del Encuentro",
     "FILTER_SUBMITTER": "Remitente, Fotógrafo o Dirección de Correo Electrónico. Este campo NO distingue entre mayúsculas y minúsculas",
     "FILTER_ORGANIZATION_ID": "ID de la Organización",
     "FILTER_PROJECT_NAME": "Nombre del Proyecto",
@@ -239,5 +240,12 @@
     "CITATION_CITATION_DETAILS_2": "J. Levenson, S. Gero, J. Van Oast y J. Holmberg. 2015. Flukebook: herramientas de análisis de identificación fotográfica basadas en la nube para la investigación de mamíferos marinos. Disponible en: https://www.flukebook.org",
     "CITATION_FORWARD": "Reenviar la cita de cualquier publicación / informe que haya utilizado los datos / herramientas proporcionados por Wild Me para su inclusión en nuestra lista de referencias enviándola a info@wildme.org.",
     "CITATION_DISCLAIMER": "No responsabilizar a Wild Me ni a los proveedores de datos originales por errores en los datos. Aunque hemos hecho todo lo posible por garantizar la calidad de la base de datos, no podemos garantizar la exactitud de estos conjuntos de datos.",
-    "MAP_IS_LOADING" : "El mapa se está cargando"
+    "MAP_IS_LOADING": "El mapa se está cargando",
+    "SESSION_WARNING_CONTENT": "Tu sesión está a punto de expirar.",
+    "SESSION_WARNING_TITLE": "Advertencia de tiempo de sesión",
+    "SESSION_LOGIN_MODAL_CONTENT": "Has sido desconectado del sistema.",
+    "SESSION_EXTEND": "Extender",
+    "SESSION_LOGIN": "Iniciar sesión",
+    "SESSION_CLOSE": "Cerrar",
+    "LOADING": "Cargando"
 }

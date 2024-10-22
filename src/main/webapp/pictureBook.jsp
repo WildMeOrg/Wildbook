@@ -284,14 +284,14 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			Encounter[] encs = mark.getDateSortedEncounters(encsPerTableLimit);
 			int numEncs = encs.length;
 			%>
-			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em><%=numEncs %> on table</em>
+			<h4 class="pictureBook-tableHeader">Sighting History</h4> <em>Most recent <%=numEncs %> encounters on table</em>
 			<table class="pictureBook-table">
 				<tr class="pictureBook-hr">
 					<th>Date</th>
 					<th>Biopsy</th>
 					<th>S. skin</th>
 					<th>Location</th>
-					<th>Nickname</th>
+					<th>Alternate ID</th>
 					<th>Sex</th>
 					<th>Satellite Tag</th>
 				</tr>
@@ -300,7 +300,12 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					if (enc==null) continue;
 					String dateStr = enc.getShortDate();
 					if ("Unknown".equals(dateStr)) dateStr = "";
-					boolean biopsy = enc.hasDynamicProperty("Biopsy collected"); // value set during ImportAcces.java
+					
+					
+					boolean biopsy = false;
+					if (enc.hasDynamicProperty("Biopsy collected")||(enc.getTissueSamples() != null) && (enc.getTissueSamples().size() > 0))biopsy=true;
+					
+					
 					boolean sloughedSkin = enc.hasDynamicProperty("Sloughed skin"); // value set during ImportAcces.java
 					String location = enc.getLocationID();
 					int flukePhoto = -1;
@@ -309,7 +314,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 					if ("Unassigned".equals(nickname)) nickname = "";
 					String sex = enc.getSex();
 					if (Util.shouldReplace(mark.getSex(), sex)) sex = mark.getSex();
-					boolean satelliteTag = enc.hasDynamicProperty("satelliteTag");
+					
+					boolean satelliteTag = false;
+					if(enc.hasDynamicProperty("satelliteTag") || enc.getSatelliteTag()!=null)satelliteTag = true;
 
 					%>
 					<tr class="pictureBook-tr clickable-row" data-href='<%=enc.getWebUrl(request) %>'>

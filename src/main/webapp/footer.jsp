@@ -45,10 +45,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <a href="https://www.linkedin.com/company/conservationxlabs/" class="footer-link text-reset px-2 footer-text">LinkedIn</a>
                 </div>
             </div>
-            <div class="footer-text w-100 py-3 text-center">2024 © Conservation X Labs | All Rights Reserved</div>
+            <div class="footer-text w-100 py-3 text-center"><a href="https://github.com/WildMeOrg/Wildbook/releases/tag/<%=ContextConfiguration.getVersion() %>" target="_blank" style="color: inherit; text-decoration: none">V<%=ContextConfiguration.getVersion() %></a> | 2024 © Conservation X Labs | All Rights Reserved</div>
         </div>
-
-
 
         <!-- /footer -->
     </body>
