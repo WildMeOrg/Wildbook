@@ -16,8 +16,7 @@ import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { Modal, Button } from "react-bootstrap";
 import "./recaptcha.css";
-// import { Captcha } from "./Captcha";
-
+import SignInModal from "./SignInModal";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
@@ -25,6 +24,7 @@ export const ReportEncounter = observer(() => {
   const Navigate = useNavigate();
   const { data } = useGetSiteSettings();
   const [human, setHuman] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
 
   const store = useLocalObservable(() => new ReportEncounterStore());
@@ -49,8 +49,6 @@ export const ReportEncounter = observer(() => {
       Navigate("/reportConfirm", { state: { responseData } });
     }
   };
-
-  console.log(store.confirmationModalShow);
 
   useEffect(() => {
     console.log("Success: ", store.success, "Finished: ", store.finished);
@@ -257,59 +255,44 @@ export const ReportEncounter = observer(() => {
     }
   };
 
+  // useEffect(() => {
+  //   if (!window.procaptcha) return;
+  //   let isCaptchaRendered = false;
+  //   if (isCaptchaRendered || !captchaRef.current) return;    
+
+  //   window.procaptcha.render(captchaRef.current, {
+  //     siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
+  //     callback: onCaptchaVerified,
+  //   });
+
+  //   isCaptchaRendered = true;
+
+  //   }, [window.procaptcha]);
+
   return (
     <Container>
-      {/* <Modal show={store.confirmationModalShow} centered>
-        <Modal.Header closeButton style={{ borderBottom: "none" }}>
-          <Modal.Title>
-            <FormattedMessage id="SUBMIT_ANON_CONFIRM_TITLE" />
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body style={{ borderTop: "none", padding: "10px" }}>
-          <FormattedMessage id="SUBMIT_ANON_CONFIRM_DESCRIPTION" />
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div id="procaptcha-container"></div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer style={{ borderTop: "none" }}>
-          <Button
-            variant="secondary"
-            onClick={() => store.setConfirmationModalShow(false)}
-          >
-            Login
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => store.setConfirmationModalShow(false)}
-          >
-            Submit anyways
-          </Button>
-        </Modal.Footer>
-      </Modal> */}
+      {/* <SignInModal 
+        showModal={showModal}
+        setShowModal={setShowModal}
+      /> */}
       <Row>
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
         </h3>
-        {/* <div id="recaptcha-container"></div> */}
-        {/* <div style={{ display: "flex", justifyContent: "flex-end" }}> */}
-        {/* <div id="recaptcha-container"></div> */}
-        
-        {/* </div> */}
         <p>
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
         {!isLoggedIn ? (
-          
-          <Alert variant="warning" dismissible>
+
+          <Alert variant="warning">
             <div className="d-flex flex-row justify-content-center align-items-center">
-            <i
-              className="bi bi-info-circle-fill"
-              style={{ marginRight: "8px", color: "#7b6a00" }}
-            ></i>
-            <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
+              <i
+                className="bi bi-info-circle-fill"
+                style={{ marginRight: "8px", color: "#7b6a00" }}
+              ></i>
+              <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
               <FormattedMessage id="LOGIN_SIGN_IN" />
               {"!"}
-            {/* </a> */}
             </div>
             <Row className="d-flex flex-row justify-content-center align-items-center"
               style={{
@@ -317,10 +300,12 @@ export const ReportEncounter = observer(() => {
                 marginTop: "10px",
               }}
             >
-              <Button style={{width: "100px", height: "40px"}}>Sign In</Button>
-              <div id="procaptcha-container" ref={captchaRef} style={{width: "300px", marginLeft: "30px"}}></div>
+              <Button style={{ width: "100px", height: "40px" }}
+              href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+              >Sign In</Button>
+              <div id="procaptcha-container" ref={captchaRef} style={{ width: "300px", marginLeft: "30px" }}></div>
             </Row>
-            
+
           </Alert>
         ) : null}
       </Row>
