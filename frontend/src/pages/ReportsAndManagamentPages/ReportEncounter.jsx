@@ -173,6 +173,7 @@ export const ReportEncounter = observer(() => {
     });
   };
 
+  // save google recaptcha v2 and v3 implementation for possible future use
   // function renderRecaptchaV2() {
   //   console.log("falling back to v2");
   //   if (
@@ -302,26 +303,23 @@ export const ReportEncounter = observer(() => {
     }
   };
 
+  // another way to implement procaptcha, recommended by the author
   // useEffect(() => {
   //   if (!window.procaptcha) return;
   //   let isCaptchaRendered = false;
   //   if (isCaptchaRendered || !captchaRef.current) return;
-
+  // if (procaptchaSiteKey) {
   //   window.procaptcha.render(captchaRef.current, {
-  //     siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
+  //     siteKey: procaptchaSiteKey,
   //     callback: onCaptchaVerified,
   //   });
 
   //   isCaptchaRendered = true;
-
-  //   }, [window.procaptcha]);
+  //  }
+  //   }, [window.procaptcha, procaptchaSiteKey]);
 
   return (
     <Container>
-      {/* <SignInModal 
-        showModal={showModal}
-        setShowModal={setShowModal}
-      /> */}
       <Row>
         <h3 className="pt-4">
           <FormattedMessage id="REPORT_AN_ENCOUNTER" />
@@ -334,11 +332,12 @@ export const ReportEncounter = observer(() => {
             <div className="d-flex flex-row justify-content-center align-items-center">
               <i
                 className="bi bi-info-circle-fill"
-                style={{ marginRight: "8px", color: "#7b6a00" }}
+                style={{
+                  marginRight: "8px",
+                  color: themeColor.statusColors.red600,
+                }}
               ></i>
-              <FormattedMessage id="SIGNIN_REMINDER_BANNER" />{" "}
-              <FormattedMessage id="LOGIN_SIGN_IN" />
-              {"!"}
+              <FormattedMessage id="SIGNIN_REMINDER_BANNER" /> {"!"}
             </div>
             <Row
               className="d-flex flex-row justify-content-center align-items-center"
@@ -396,7 +395,7 @@ export const ReportEncounter = observer(() => {
                   );
                 }}
               >
-                Sign In
+                <FormattedMessage id="LOGIN_SIGN_IN" />
               </Button>
               <div
                 id="procaptcha-container"
@@ -426,26 +425,22 @@ export const ReportEncounter = observer(() => {
       <Row>
         <Col className="col-lg-4 col-md-6 col-sm-12 col-12 ps-0">
           <div
+            className="p-4 mb-4"
             style={{
               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url(${process.env.PUBLIC_URL}/images/report_an_encounter.png)`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               borderRadius: "25px",
-              padding: "20px",
               height: "470px",
               maxWidth: "350px",
               color: "white",
-              marginBottom: "20px",
             }}
           >
             {menu.map((data) => (
               <div
                 key={data.id}
-                className="d-flex justify-content-between"
+                className="d-flex justify-content-between p-2 mt-2"
                 style={{
-                  padding: "10px",
-                  marginTop: "10px",
-                  fontSize: "20px",
                   fontWeight: "500",
                   cursor: "pointer",
                   borderRadius: "10px",
@@ -456,10 +451,12 @@ export const ReportEncounter = observer(() => {
                 }}
                 onClick={() => handleClick(data.id)}
               >
-                <FormattedMessage id={data.title} />
+                <h5>
+                  <FormattedMessage id={data.title} />
+                </h5>
                 <i
                   className="bi bi-chevron-right"
-                  style={{ fontSize: "14px", fontWeight: "500" }}
+                  style={{ fontSize: "1rem", fontWeight: "500" }}
                 ></i>
               </div>
             ))}
@@ -469,13 +466,11 @@ export const ReportEncounter = observer(() => {
               color={themeColor.defaultColors.white}
               shadowColor={themeColor.defaultColors.white}
               style={{
-                width: "calc(100% - 20px)",
-                fontSize: "20px",
-                marginTop: "20px",
-                marginBottom: "20px",
+                width: "100%",
+                fontSize: "1.25rem",
+                margin: "20px 0 20px 0",
               }}
-              onClick={handleSubmit} // Trigger file upload
-              // disabled={!formValid}
+              onClick={handleSubmit}
             >
               <FormattedMessage id="SUBMIT_ENCOUNTER" />
             </MainButton>

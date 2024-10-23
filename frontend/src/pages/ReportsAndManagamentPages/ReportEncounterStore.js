@@ -22,7 +22,6 @@ export class ReportEncounterStore {
     this._imageSectionSubmissionId = null;
     this._imageRequired = true;
     this._imageSectionFileNames = [];
-    this._imageRequired = true;
     this._imageSectionError = false;
     this._imageCount = 0;
     this._imagePreview = [];
@@ -53,7 +52,7 @@ export class ReportEncounterStore {
       },
       additionalEmails: "",
       error: false,
-    };    
+    };
     this._success = false;
     this._finished = false;
     this._signInModalShow = false;
@@ -136,7 +135,7 @@ export class ReportEncounterStore {
 
   setImagePreview(value) {
     this._imagePreview = value;
-  } 
+  }
 
   setImageSectionFileNames(fileName, action = "add") {
     if (action === "add") {

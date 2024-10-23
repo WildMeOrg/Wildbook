@@ -284,7 +284,58 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
               style={{ marginRight: "8px", color: theme.statusColors.red600 }}
             ></i>
             <FormattedMessage id="IMAGES_REQUIRED_ANON_WARNING" />{" "}
-            <a href="login">
+            <a
+              href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+              onClick={() => {
+                console.log("clicked");
+                localStorage.setItem(
+                  "species",
+                  reportEncounterStore.speciesSection.value,
+                );
+                localStorage.setItem(
+                  "followUpSection.submitter.name",
+                  reportEncounterStore.followUpSection.submitter.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.submitter.email",
+                  reportEncounterStore.followUpSection.submitter.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.name",
+                  reportEncounterStore.followUpSection.photographer.name,
+                );
+                localStorage.setItem(
+                  "followUpSection.photographer.email",
+                  reportEncounterStore.followUpSection.photographer.email,
+                );
+                localStorage.setItem(
+                  "followUpSection.additionalEmails",
+                  reportEncounterStore.followUpSection.additionalEmails,
+                );
+                localStorage.setItem(
+                  "additionalCommentsSection",
+                  reportEncounterStore.additionalCommentsSection.value,
+                );
+                localStorage.setItem(
+                  "uploadedFiles",
+                  JSON.stringify(reportEncounterStore.imagePreview),
+                );
+                // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
+                // localStorage.setItem("placeSection", store.placeSection.value);
+                localStorage.setItem(
+                  "submissionId",
+                  reportEncounterStore.imageSectionSubmissionId,
+                );
+                localStorage.setItem(
+                  "fileNames",
+                  JSON.stringify(reportEncounterStore.imageSectionFileNames),
+                );
+                console.log(
+                  "fileNames",
+                  JSON.stringify(reportEncounterStore.imageSectionFileNames),
+                );
+              }}
+            >
               <FormattedMessage id="LOGIN_SIGN_IN" />
             </a>
           </Alert>
