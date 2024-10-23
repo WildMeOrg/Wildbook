@@ -31,14 +31,41 @@ export const ReportEncounter = observer(() => {
 
   store.setImageRequired(!isLoggedIn);
 
+  useEffect(() => {
+    localStorage.getItem("species") && (store.setSpeciesSectionValue(localStorage.getItem("species")));
+    localStorage.getItem("followUpSection.submitter.name") && (store.setSubmitterName(localStorage.getItem("followUpSection.submitter.name")));
+    localStorage.getItem("followUpSection.submitter.email") && (store.setSubmitterEmail(localStorage.getItem("followUpSection.submitter.email")));
+    localStorage.getItem("followUpSection.photographer.name") && (store.setPhotographerName(localStorage.getItem("followUpSection.photographer.name")));
+    localStorage.getItem("followUpSection.photographer.email") && (store.setPhotographerEmail(localStorage.getItem("followUpSection.photographer.email")));
+    localStorage.getItem("followUpSection.additionalEmails") && (store.setAdditionalEmails(localStorage.getItem("followUpSection.additionalEmails")));
+    localStorage.getItem("additionalCommentsSection") && (store.setCommentsSectionValue(localStorage.getItem("additionalCommentsSection")));
+    localStorage.getItem("uploadedFiles") && (store.setImagePreview(JSON.parse(localStorage.getItem("uploadedFiles"))));
+    // localStorage.getItem("dateTimeSection") && (store.setDateTimeSectionValue(localStorage.getItem("dateTimeSection")));
+    // localStorage.getItem("placeSection") && (store.setPlaceSectionValue(localStorage.getItem("placeSection")));
+    localStorage.getItem("submissionId") && (store.setImageSectionSubmissionId(localStorage.getItem("submissionId")));
+    // localStorage.getItem("fileNames") && (store.setImageSectionFileNames(localStorage.getItem("fileNames")));    
+    localStorage.getItem("fileNames") && JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
+      store.setImageSectionFileNames(fileName, "add");
+    });
+    console.log("111111111111111111",JSON.parse(localStorage.getItem("fileNames")));
+
+    localStorage.removeItem("species");
+    localStorage.removeItem("followUpSection.submitter.name");
+    localStorage.removeItem("followUpSection.submitter.email");
+    localStorage.removeItem("followUpSection.photographer.name");
+    localStorage.removeItem("followUpSection.photographer.email");
+    localStorage.removeItem("followUpSection.additionalEmails");
+    localStorage.removeItem("additionalCommentsSection");
+    localStorage.removeItem("uploadedFiles");
+    localStorage.removeItem("dateTimeSection");
+    localStorage.removeItem("placeSection");
+
+  }, []);
+
   const handleSubmit = async () => {
     if (!store.validateFields()) {
       console.log("Field validation failed.");
       return;
-    } else if (!human) {
-      // alert("Please verify that you are human.");
-      // store.setConfirmationModalShow(true);
-      // return;
     } else {
       console.log("Fields validated successfully. Submitting report.");
       await store.submitReport();
@@ -65,7 +92,9 @@ export const ReportEncounter = observer(() => {
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: <ImageSection reportEncounterStore={store} />,
+      section: <ImageSection 
+      reportEncounterStore={store} 
+      />,
     },
     {
       title: "DATETIME_SECTION",
@@ -302,6 +331,21 @@ export const ReportEncounter = observer(() => {
             >
               <Button style={{ width: "100px", height: "40px" }}
               href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+              onClick={() => {
+                localStorage.setItem("species", store.speciesSection.value);
+                localStorage.setItem("followUpSection.submitter.name", store.followUpSection.submitter.name);
+                localStorage.setItem("followUpSection.submitter.email", store.followUpSection.submitter.email);
+                localStorage.setItem("followUpSection.photographer.name", store.followUpSection.photographer.name);
+                localStorage.setItem("followUpSection.photographer.email", store.followUpSection.photographer.email);
+                localStorage.setItem("followUpSection.additionalEmails", store.followUpSection.additionalEmails);
+                localStorage.setItem("additionalCommentsSection", store.additionalCommentsSection.value);
+                localStorage.setItem("uploadedFiles", JSON.stringify(store.imagePreview));
+                // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
+                // localStorage.setItem("placeSection", store.placeSection.value);
+                localStorage.setItem("submissionId", store.imageSectionSubmissionId);
+                localStorage.setItem("fileNames", JSON.stringify(store.imageSectionFileNames));
+                console.log("fileNames",JSON.stringify(store.imageSectionFileNames));
+              }}
               >Sign In</Button>
               <div id="procaptcha-container" ref={captchaRef} style={{ width: "300px", marginLeft: "30px" }}></div>
             </Row>

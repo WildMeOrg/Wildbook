@@ -6,6 +6,7 @@ export class ReportEncounterStore {
   _imageSectionSubmissionId;
   _imageRequired;
   _imageCount;
+  _imagePreview;
   _imageSectionError;
   _imageSectionFileNames;
   _dateTimeSection;
@@ -21,6 +22,10 @@ export class ReportEncounterStore {
     this._imageSectionSubmissionId = null;
     this._imageRequired = true;
     this._imageSectionFileNames = [];
+    this._imageRequired = true;
+    this._imageSectionError = false;
+    this._imageCount = 0;
+    this._imagePreview = [];
     this._dateTimeSection = {
       value: "",
       error: false,
@@ -48,10 +53,7 @@ export class ReportEncounterStore {
       },
       additionalEmails: "",
       error: false,
-    };
-    this._imageRequired = true;
-    this._imageSectionError = false;
-    this._imageCount = 0;
+    };    
     this._success = false;
     this._finished = false;
     this._signInModalShow = false;
@@ -77,6 +79,10 @@ export class ReportEncounterStore {
 
   get imageCount() {
     return this._imageCount;
+  }
+
+  get imagePreview() {
+    return this._imagePreview;
   }
 
   get dateTimeSection() {
@@ -107,6 +113,10 @@ export class ReportEncounterStore {
     return this._signInModalShow;
   }
 
+  get additionalCommentsSection() {
+    return this._additionalCommentsSection;
+  }
+
   // Actions
   setImageSectionSubmissionId(value) {
     this._imageSectionSubmissionId = value;
@@ -120,9 +130,13 @@ export class ReportEncounterStore {
     this._imageSectionError = value;
   }
 
-  SetImageCount(value) {
+  setImageCount(value) {
     this._imageCount = value;
   }
+
+  setImagePreview(value) {
+    this._imagePreview = value;
+  } 
 
   setImageSectionFileNames(fileName, action = "add") {
     if (action === "add") {
@@ -230,6 +244,7 @@ export class ReportEncounterStore {
       //   this._placeSection.error = false;
       // }
     }
+    console.log("Validation result", isValid);
     return isValid;
   }
   async submitReport() {
@@ -258,7 +273,7 @@ export class ReportEncounterStore {
         this._followUpSection.value = "";
         this._dateTimeSection.value = "";
         this._imageSectionFileNames = [];
-        this._imageSectionSubmissionId = "";
+        this._imageSectionSubmissionId = null;
         this._imageCount = 0;
         this._imageSectionError = false;
         this._success = true;
