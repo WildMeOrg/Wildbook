@@ -21,6 +21,7 @@ export const AdditionalCommentsSection = observer(
             onChange={(e) => {
               reportEncounterStore.setCommentsSectionValue(e.target.value);
             }}
+            value={reportEncounterStore.additionalCommentsSection?.value}
           />
         </Form.Group>
       </div>
