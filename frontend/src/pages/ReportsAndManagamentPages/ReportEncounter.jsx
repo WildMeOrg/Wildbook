@@ -14,40 +14,60 @@ import { ReportEncounterStore } from "./ReportEncounterStore";
 import { ReportEncounterSpeciesSection } from "./SpeciesSection";
 import { useNavigate } from "react-router-dom";
 import useGetSiteSettings from "../../models/useGetSiteSettings";
-import { Modal, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import "./recaptcha.css";
-import SignInModal from "./SignInModal";
 
 export const ReportEncounter = observer(() => {
   const themeColor = useContext(ThemeColorContext);
   const { isLoggedIn } = useContext(AuthContext);
   const Navigate = useNavigate();
   const { data } = useGetSiteSettings();
-  const [human, setHuman] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
+  // const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
+  const procaptchaSiteKey = data?.procaptchaSiteKey;
+
+  console.log("procaptchaSiteKey", procaptchaSiteKey);
 
   const store = useLocalObservable(() => new ReportEncounterStore());
 
   store.setImageRequired(!isLoggedIn);
 
   useEffect(() => {
-    localStorage.getItem("species") && (store.setSpeciesSectionValue(localStorage.getItem("species")));
-    localStorage.getItem("followUpSection.submitter.name") && (store.setSubmitterName(localStorage.getItem("followUpSection.submitter.name")));
-    localStorage.getItem("followUpSection.submitter.email") && (store.setSubmitterEmail(localStorage.getItem("followUpSection.submitter.email")));
-    localStorage.getItem("followUpSection.photographer.name") && (store.setPhotographerName(localStorage.getItem("followUpSection.photographer.name")));
-    localStorage.getItem("followUpSection.photographer.email") && (store.setPhotographerEmail(localStorage.getItem("followUpSection.photographer.email")));
-    localStorage.getItem("followUpSection.additionalEmails") && (store.setAdditionalEmails(localStorage.getItem("followUpSection.additionalEmails")));
-    localStorage.getItem("additionalCommentsSection") && (store.setCommentsSectionValue(localStorage.getItem("additionalCommentsSection")));
-    localStorage.getItem("uploadedFiles") && (store.setImagePreview(JSON.parse(localStorage.getItem("uploadedFiles"))));
+    localStorage.getItem("species") &&
+      store.setSpeciesSectionValue(localStorage.getItem("species"));
+    localStorage.getItem("followUpSection.submitter.name") &&
+      store.setSubmitterName(
+        localStorage.getItem("followUpSection.submitter.name"),
+      );
+    localStorage.getItem("followUpSection.submitter.email") &&
+      store.setSubmitterEmail(
+        localStorage.getItem("followUpSection.submitter.email"),
+      );
+    localStorage.getItem("followUpSection.photographer.name") &&
+      store.setPhotographerName(
+        localStorage.getItem("followUpSection.photographer.name"),
+      );
+    localStorage.getItem("followUpSection.photographer.email") &&
+      store.setPhotographerEmail(
+        localStorage.getItem("followUpSection.photographer.email"),
+      );
+    localStorage.getItem("followUpSection.additionalEmails") &&
+      store.setAdditionalEmails(
+        localStorage.getItem("followUpSection.additionalEmails"),
+      );
+    localStorage.getItem("additionalCommentsSection") &&
+      store.setCommentsSectionValue(
+        localStorage.getItem("additionalCommentsSection"),
+      );
+    localStorage.getItem("uploadedFiles") &&
+      store.setImagePreview(JSON.parse(localStorage.getItem("uploadedFiles")));
     // localStorage.getItem("dateTimeSection") && (store.setDateTimeSectionValue(localStorage.getItem("dateTimeSection")));
     // localStorage.getItem("placeSection") && (store.setPlaceSectionValue(localStorage.getItem("placeSection")));
-    localStorage.getItem("submissionId") && (store.setImageSectionSubmissionId(localStorage.getItem("submissionId")));
-    // localStorage.getItem("fileNames") && (store.setImageSectionFileNames(localStorage.getItem("fileNames")));    
-    localStorage.getItem("fileNames") && JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
-      store.setImageSectionFileNames(fileName, "add");
-    });
-    console.log("111111111111111111",JSON.parse(localStorage.getItem("fileNames")));
+    localStorage.getItem("submissionId") &&
+      store.setImageSectionSubmissionId(localStorage.getItem("submissionId"));
+    localStorage.getItem("fileNames") &&
+      JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
+        store.setImageSectionFileNames(fileName, "add");
+      });
 
     localStorage.removeItem("species");
     localStorage.removeItem("followUpSection.submitter.name");
@@ -59,7 +79,7 @@ export const ReportEncounter = observer(() => {
     localStorage.removeItem("uploadedFiles");
     localStorage.removeItem("dateTimeSection");
     localStorage.removeItem("placeSection");
-
+    localStorage.removeItem("fileNames");
   }, []);
 
   const handleSubmit = async () => {
@@ -92,9 +112,7 @@ export const ReportEncounter = observer(() => {
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: <ImageSection 
-      reportEncounterStore={store} 
-      />,
+      section: <ImageSection reportEncounterStore={store} />,
     },
     {
       title: "DATETIME_SECTION",
@@ -239,7 +257,6 @@ export const ReportEncounter = observer(() => {
   //   }
   // }, [isLoggedIn, window.grecaptcha, reCAPTCHAEnterpriseSiteKey]);
 
-
   const captchaRef = useRef(null);
   useEffect(() => {
     let isCaptchaRendered = false;
@@ -247,47 +264,51 @@ export const ReportEncounter = observer(() => {
     const loadProCaptcha = async () => {
       if (isCaptchaRendered || !captchaRef.current) return;
 
-      const { render } = await import('https://js.prosopo.io/js/procaptcha.bundle.js');
+      const { render } = await import(
+        "https://js.prosopo.io/js/procaptcha.bundle.js"
+      );
 
-      render(captchaRef.current, {
-        siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
-        callback: onCaptchaVerified,
-      });
+      if (procaptchaSiteKey) {
+        render(captchaRef.current, {
+          siteKey: procaptchaSiteKey,
+          callback: onCaptchaVerified,
+        });
 
-      isCaptchaRendered = true;
+        isCaptchaRendered = true;
+      }
     };
 
     loadProCaptcha();
 
     return () => {
       if (captchaRef.current) {
-        captchaRef.current.innerHTML = '';
+        captchaRef.current.innerHTML = "";
       }
       isCaptchaRendered = false;
     };
-  }, []);
+  }, [procaptchaSiteKey]);
 
   const onCaptchaVerified = async (output) => {
-    console.log('Captcha verified, output: ' + JSON.stringify(output));
+    console.log("Captcha verified, output: " + JSON.stringify(output));
     const payload = { procaptchaValue: output };
 
     try {
-      const res = await fetch('/ReCAPTCHA', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/ReCAPTCHA", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      console.log('Response data: ', data);
+      console.log("Response data: ", data);
     } catch (error) {
-      console.error('Error submitting captcha: ', error);
+      console.error("Error submitting captcha: ", error);
     }
   };
 
   // useEffect(() => {
   //   if (!window.procaptcha) return;
   //   let isCaptchaRendered = false;
-  //   if (isCaptchaRendered || !captchaRef.current) return;    
+  //   if (isCaptchaRendered || !captchaRef.current) return;
 
   //   window.procaptcha.render(captchaRef.current, {
   //     siteKey: '5FNwzzqEhmxNk4jeWLeteBCSd696DEX9YbttnsjJ6XkhbWCL',
@@ -312,7 +333,6 @@ export const ReportEncounter = observer(() => {
           <FormattedMessage id="REPORT_PAGE_DESCRIPTION" />
         </p>
         {!isLoggedIn ? (
-
           <Alert variant="warning">
             <div className="d-flex flex-row justify-content-center align-items-center">
               <i
@@ -323,33 +343,70 @@ export const ReportEncounter = observer(() => {
               <FormattedMessage id="LOGIN_SIGN_IN" />
               {"!"}
             </div>
-            <Row className="d-flex flex-row justify-content-center align-items-center"
+            <Row
+              className="d-flex flex-row justify-content-center align-items-center"
               style={{
                 padding: "10px",
                 marginTop: "10px",
               }}
             >
-              <Button style={{ width: "100px", height: "40px" }}
-              href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
-              onClick={() => {
-                localStorage.setItem("species", store.speciesSection.value);
-                localStorage.setItem("followUpSection.submitter.name", store.followUpSection.submitter.name);
-                localStorage.setItem("followUpSection.submitter.email", store.followUpSection.submitter.email);
-                localStorage.setItem("followUpSection.photographer.name", store.followUpSection.photographer.name);
-                localStorage.setItem("followUpSection.photographer.email", store.followUpSection.photographer.email);
-                localStorage.setItem("followUpSection.additionalEmails", store.followUpSection.additionalEmails);
-                localStorage.setItem("additionalCommentsSection", store.additionalCommentsSection.value);
-                localStorage.setItem("uploadedFiles", JSON.stringify(store.imagePreview));
-                // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
-                // localStorage.setItem("placeSection", store.placeSection.value);
-                localStorage.setItem("submissionId", store.imageSectionSubmissionId);
-                localStorage.setItem("fileNames", JSON.stringify(store.imageSectionFileNames));
-                console.log("fileNames",JSON.stringify(store.imageSectionFileNames));
-              }}
-              >Sign In</Button>
-              <div id="procaptcha-container" ref={captchaRef} style={{ width: "300px", marginLeft: "30px" }}></div>
+              <Button
+                style={{ width: "100px", height: "40px" }}
+                href={`${process.env.PUBLIC_URL}/login?redirect=%2Freport`}
+                onClick={() => {
+                  localStorage.setItem("species", store.speciesSection.value);
+                  localStorage.setItem(
+                    "followUpSection.submitter.name",
+                    store.followUpSection.submitter.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.submitter.email",
+                    store.followUpSection.submitter.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.name",
+                    store.followUpSection.photographer.name,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.photographer.email",
+                    store.followUpSection.photographer.email,
+                  );
+                  localStorage.setItem(
+                    "followUpSection.additionalEmails",
+                    store.followUpSection.additionalEmails,
+                  );
+                  localStorage.setItem(
+                    "additionalCommentsSection",
+                    store.additionalCommentsSection.value,
+                  );
+                  localStorage.setItem(
+                    "uploadedFiles",
+                    JSON.stringify(store.imagePreview),
+                  );
+                  // localStorage.setItem("dateTimeSection", store.dateTimeSection.value);
+                  // localStorage.setItem("placeSection", store.placeSection.value);
+                  localStorage.setItem(
+                    "submissionId",
+                    store.imageSectionSubmissionId,
+                  );
+                  localStorage.setItem(
+                    "fileNames",
+                    JSON.stringify(store.imageSectionFileNames),
+                  );
+                  console.log(
+                    "fileNames",
+                    JSON.stringify(store.imageSectionFileNames),
+                  );
+                }}
+              >
+                Sign In
+              </Button>
+              <div
+                id="procaptcha-container"
+                ref={captchaRef}
+                style={{ width: "300px", marginLeft: "30px" }}
+              ></div>
             </Row>
-
           </Alert>
         ) : null}
       </Row>
@@ -421,7 +478,7 @@ export const ReportEncounter = observer(() => {
                 marginBottom: "20px",
               }}
               onClick={handleSubmit} // Trigger file upload
-            // disabled={!formValid}
+              // disabled={!formValid}
             >
               <FormattedMessage id="SUBMIT_ENCOUNTER" />
             </MainButton>
