@@ -9,8 +9,7 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
 
-export const FileUploader = observer(({ reportEncounterStore,
-}) => {
+export const FileUploader = observer(({ reportEncounterStore }) => {
   const [files, setFiles] = useState([]);
   const [flow, setFlow] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -27,9 +26,12 @@ export const FileUploader = observer(({ reportEncounterStore,
 
   useEffect(() => {
     reportEncounterStore.setImageCount(
-      previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
+      previewData.filter((file) => file.fileSize <= maxSize * 1024 * 1024)
+        .length,
     );
-    const data = previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024)
+    const data = previewData.filter(
+      (file) => file.fileSize <= maxSize * 1024 * 1024,
+    );
     reportEncounterStore.setImagePreview(data);
     handleUploadClick();
   }, [previewData]);
@@ -45,7 +47,10 @@ export const FileUploader = observer(({ reportEncounterStore,
     if (savedFiles) {
       setPreviewData(savedFiles);
     }
-    localStorage.getItem("submissionId") && (reportEncounterStore.setImageSectionSubmissionId(localStorage.getItem("submissionId")));    
+    localStorage.getItem("submissionId") &&
+      reportEncounterStore.setImageSectionSubmissionId(
+        localStorage.getItem("submissionId"),
+      );
     localStorage.removeItem("submissionId");
     localStorage.removeItem("uploadedFiles");
   }, []);
@@ -76,7 +81,7 @@ export const FileUploader = observer(({ reportEncounterStore,
         return false;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > maxSize * 1024 * 1024) {
         console.warn("File size exceeds limit:", file.name);
         return false;
       }
@@ -94,7 +99,7 @@ export const FileUploader = observer(({ reportEncounterStore,
         //   fileSize: file.size,
         //   src: reader.result,
         // };
-        // const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles")) || [];        
+        // const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles")) || [];
 
         // setPreviewData((prevPreviewData) => [...prevPreviewData, fileData]);
         // Update preview data, avoiding duplicates
@@ -208,7 +213,7 @@ export const FileUploader = observer(({ reportEncounterStore,
 
   const handleUploadClick = () => {
     const validFiles = flow?.files
-      ?.filter((file) => file.size <= 5 * 1024 * 1024)
+      ?.filter((file) => file.size <= maxSize * 1024 * 1024)
       .filter(
         (file) =>
           !reportEncounterStore.imageSectionFileNames?.includes(file.name),
@@ -217,10 +222,11 @@ export const FileUploader = observer(({ reportEncounterStore,
     if (validFiles?.length > 0) {
       setUploading(true);
       if (reportEncounterStore.imageSectionSubmissionId) {
-        flow.opts.query.submissionId = reportEncounterStore.imageSectionSubmissionId;
+        flow.opts.query.submissionId =
+          reportEncounterStore.imageSectionSubmissionId;
       } else {
         reportEncounterStore.setImageSectionSubmissionId(submissionId);
-        flow.opts.query.submissionId = submissionId
+        flow.opts.query.submissionId = submissionId;
       }
       validFiles.forEach((file) => {
         const timeout = setTimeout(() => {
@@ -234,7 +240,7 @@ export const FileUploader = observer(({ reportEncounterStore,
             ),
           );
           console.error(`File upload timed out: ${file.name}`);
-        }, 2000);
+        }, 30000);
 
         flow.on("fileSuccess", (uploadedFile) => {
           if (uploadedFile.name === file.name) {
@@ -328,7 +334,7 @@ export const FileUploader = observer(({ reportEncounterStore,
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
                 alt={`Preview ${index + 1}`}
-              // thumbnail
+                // thumbnail
               />
               <div
                 className="mt-2 "
@@ -347,7 +353,7 @@ export const FileUploader = observer(({ reportEncounterStore,
                   )}
                 </div>
                 <div>{(preview.fileSize / (1024 * 1024)).toFixed(2)} MB</div>
-                {(preview.fileSize / (1024 * 1024)).toFixed(2) > 5 && (
+                {(preview.fileSize / (1024 * 1024)).toFixed(2) > maxSize && (
                   <div style={{ color: theme.statusColors.red500 }}>
                     <FormattedMessage id="FILE_SIZE_EXCEEDED" />
                   </div>
