@@ -24,9 +24,6 @@ export const ReportEncounter = observer(() => {
   const { data } = useGetSiteSettings();
   // const reCAPTCHAEnterpriseSiteKey = data?.reCAPTCHAEnterpriseSiteKey;
   const procaptchaSiteKey = data?.procaptchaSiteKey;
-
-  console.log("procaptchaSiteKey", procaptchaSiteKey);
-
   const store = useLocalObservable(() => new ReportEncounterStore());
 
   store.setImageRequired(!isLoggedIn);
