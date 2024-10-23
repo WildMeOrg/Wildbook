@@ -9,7 +9,8 @@ import useGetSiteSettings from "../../models/useGetSiteSettings";
 import { observer } from "mobx-react-lite";
 import { Alert } from "react-bootstrap";
 
-export const FileUploader = observer(({ reportEncounterStore }) => {
+export const FileUploader = observer(({ reportEncounterStore,
+}) => {
   const [files, setFiles] = useState([]);
   const [flow, setFlow] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -25,10 +26,11 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
   const submissionId = useRef(uuidv4()).current;
 
   useEffect(() => {
-    reportEncounterStore.SetImageCount(
+    reportEncounterStore.setImageCount(
       previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024).length,
     );
-
+    const data = previewData.filter((file) => file.fileSize <= 5 * 1024 * 1024)
+    reportEncounterStore.setImagePreview(data);
     handleUploadClick();
   }, [previewData]);
 
@@ -38,6 +40,16 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   }, [flow, fileInputRef]);
 
+  useEffect(() => {
+    const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
+    if (savedFiles) {
+      setPreviewData(savedFiles);
+    }
+    localStorage.getItem("submissionId") && (reportEncounterStore.setImageSectionSubmissionId(localStorage.getItem("submissionId")));    
+    localStorage.removeItem("submissionId");
+    localStorage.removeItem("uploadedFiles");
+  }, []);
+
   const initializeFlow = () => {
     const flowInstance = new Flow({
       target: "/ResumableUpload",
@@ -45,7 +57,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
       testChunks: false,
       query: {
         submissionId: reportEncounterStore.imageSectionSubmissionId,
-        // Add any additional query parameters here
       },
     });
 
@@ -78,6 +89,14 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
       const reader = new FileReader();
       reader.onloadend = () => {
+        // const fileData = {
+        //   fileName: file.name,
+        //   fileSize: file.size,
+        //   src: reader.result,
+        // };
+        // const savedFiles = JSON.parse(localStorage.getItem("uploadedFiles")) || [];        
+
+        // setPreviewData((prevPreviewData) => [...prevPreviewData, fileData]);
         // Update preview data, avoiding duplicates
         setPreviewData((prevPreviewData) => [
           ...prevPreviewData.filter((p) => p.fileName !== file.name),
@@ -120,7 +139,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     flowInstance.on("fileError", (file, message) => {
       setUploading(false);
-      reportEncounterStore.setStartUpload(false);
       setPreviewData((prevPreviewData) =>
         prevPreviewData.map((preview) =>
           preview.fileName === file.name
@@ -129,9 +147,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
         ),
       );
       console.error("Upload error:", message);
-      reportEncounterStore.setImageSectionUploadSuccess(false);
     });
-
     setupDragAndDropListeners(flowInstance);
   };
 
@@ -190,11 +206,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
     }
   };
 
-  // console.log(
-  //   "file names",
-  //   JSON.stringify(reportEncounterStore.imageSectionFileNames),
-  // );
-
   const handleUploadClick = () => {
     const validFiles = flow?.files
       ?.filter((file) => file.size <= 5 * 1024 * 1024)
@@ -205,8 +216,12 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
 
     if (validFiles?.length > 0) {
       setUploading(true);
-      reportEncounterStore.setImageSectionSubmissionId(submissionId);
-      flow.opts.query.submissionId = submissionId;
+      if (reportEncounterStore.imageSectionSubmissionId) {
+        flow.opts.query.submissionId = reportEncounterStore.imageSectionSubmissionId;
+      } else {
+        reportEncounterStore.setImageSectionSubmissionId(submissionId);
+        flow.opts.query.submissionId = submissionId
+      }
       validFiles.forEach((file) => {
         const timeout = setTimeout(() => {
           flow.removeFile(file);
@@ -232,7 +247,6 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
             clearTimeout(timeout);
           }
         });
-        console.log("Uploading file", file);
         flow.upload(file);
       });
     }
@@ -314,7 +328,7 @@ export const FileUploader = observer(({ reportEncounterStore }) => {
                 src={preview.src}
                 style={{ width: "100%", height: "120px", objectFit: "fill" }}
                 alt={`Preview ${index + 1}`}
-                // thumbnail
+              // thumbnail
               />
               <div
                 className="mt-2 "
