@@ -29,6 +29,7 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               onChange={(e) => {
                 reportEncounterStore.setSubmitterName(e.target.value);
               }}
+              value={reportEncounterStore.followUpSection?.submitter?.name}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -43,6 +44,7 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               onChange={(e) => {
                 reportEncounterStore.setSubmitterEmail(e.target.value);
               }}
+              value={reportEncounterStore.followUpSection?.submitter?.email}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -63,6 +65,7 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               onChange={(e) => {
                 reportEncounterStore.setPhotographerName(e.target.value);
               }}
+              value={reportEncounterStore.followUpSection?.photographer?.name}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -77,6 +80,7 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               onChange={(e) => {
                 reportEncounterStore.setPhotographerEmail(e.target.value);
               }}
+              value={reportEncounterStore.followUpSection?.photographer?.email}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -97,6 +101,7 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
           onChange={(e) => {
             reportEncounterStore.setAdditionalEmails(e.target.value);
           }}
+          value={reportEncounterStore.followUpSection?.additionalEmails}
         />
       </Form.Group>
     </div>
