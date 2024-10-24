@@ -5,147 +5,73 @@
 		{
 		"name": "Pacific Ocean",
 		"locationID": [
-			 {
-			  "name": "Bering Sea", "id": "Bering Sea" },
-			 {
-			  "name": "Bismarck Sea",  "id": "Bismarck Sea" },
-			 {
-			  "name": "Bohai Sea", "id": "Bohai Sea" },
-			 {
-			  "name": "Bohol Sea", "id": "Bohol Sea" },
-			  
-			  {
-			  "name": "French Polynesia", "id": "French Polynesia", "locationID":[
-					{"name": "Bora Bora", "id": "Bora Bora" }
-			  
-			  
+			 {"name": "Bering Sea", "id": "Bering Sea" },
+			 {"name": "Bismarck Sea",  "id": "Bismarck Sea" },
+			 {"name": "Bohai Sea", "id": "Bohai Sea" },
+			 {"name": "Bohol Sea", "id": "Bohol Sea" },
+			 {"name": "French Polynesia", "id": "French Polynesia", "locationID":[
+				{"name": "Bora Bora", "id": "Bora Bora" }
 			  ] },
-			  
-			 {
-			  "name": "Mindanao Sea", "id": "Mindanao Sea" },
-			 {
-			  "name": "Camotes Sea", "id": "Camotes Sea" },
-			 {
-			  "name": "Chilean Sea","id":"Chilean Sea" },
-			 {
-			  "name": "Sea of Chiloé", "id": "Sea of Chiloé" },
-			 {
-			  "name": "Coral Sea", "id": "Coral Sea"  },
-			 {
-			  "name": "East China Sea", "id": "East China Sea"  },
-
-			 {
-			  "name": "Gulf of Thailand", "id": "Gulf of Thailand" },
-			 {
-			  "name": "Koro Sea", "id": "Koro Sea"  },
-			 {
-			  "name": "Mar de Grau", "id": "Mar de Grau" },
-			 {
-			  "name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
-
+			 {"name": "Mindanao Sea", "id": "Mindanao Sea" },
+			 {"name": "Camotes Sea", "id": "Camotes Sea" },
+			 {"name": "Chilean Sea","id":"Chilean Sea" },
+			 {"name": "Sea of Chiloé", "id": "Sea of Chiloe" },
+			 {"name": "Coral Sea", "id": "Coral Sea"  },
+			 {"name": "East China Sea", "id": "East China Sea"  },
+			 {"name": "Gulf of Thailand", "id": "Gulf of Thailand" },
+			 {"name": "Koro Sea", "id": "Koro Sea"  },
+			 {"name": "Mar de Grau", "id": "Mar de Grau" },
+			 {"name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
 				{"name":"Mexico","id":"Mexico","locationID":[
-
 					{ "name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[] },
 					{ "name":"Guamilule", "id":"Guamilule", "locationID":[] },
 					{ "name":"Ixtapa", "id":"Ixtapa", "locationID":[] },
 					{ "name":"Laguna Valentin", "id":"Laguna Valentin", "locationID":[] },
 					{ "name":"Manzanillo", "id":"Manzanillo", "locationID":[] },
-					{ "name":"Mexico (Pacific)-Unspecified", "id":"Mexico", "locationID":[] },
-					{ "name":"Mexico-BLA", "id":"Mexico-BLA", "locationID":[] },
-					{ "name":"Mexico-BLP", "id":"Mexico-BLP", "locationID":[] },
+					{ "name":"Bahia Los Angeles", "id":"Bahia Los Angeles", "locationID":[] },
 					{ "name":"Morros", "id":"Morros", "locationID":[] },
-					{ "name":"PB", "id":"PB", "locationID":[] },
 					{ "name":"Playa Blanca", "id":"Playa Blanca", "locationID":[] },
-
 					{ "name":"Playa Larga", "id":"Playa Larga", "locationID":[] },
-
 					{ "name":"Playa Tortuga", "id":"Playa Tortuga", "locationID":[] },
-
 					{ "name":"Playa Valentin", "id":"Playa Valentin", "locationID":[] },
-
 					{ "name":"Playa Viva", "id":"Playa Viva", "locationID":[] },
-
-					{
-					"name": "Sea of Cortés", "id":"sea of cortes",
-					"locationID":[
-						{
-						"name": "Baja California", "id":"Baja California" }
+					{"name": "Sea of Cortés", "id":"Sea of Cortes", "locationID":[
+						{"name": "Baja California", "id":"Baja California" }
 					]},
-
 					{ "name":"Troncones", "id":"Troncones", "locationID":[] },
 					{ "name":"Valentin", "id":"Valentin", "locationID":[] },
 					{ "name":"Yucatan", "id":"Yucatan", "locationID":[] },
 					{ "name":"Zihuatanejo", "id":"Zihuatanejo", "locationID":[] }
-
 			]},
 			{ "name":"Central America", "id":"Central America", "locationID":[
-
 				{ "name":"Honduras", "id":"Honduras", "locationID":[] }
-
 			] },
-
 			{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[
 				{ "name":"Golfo de Papagayo", "id":"Golfo de Papagayo", "locationID":[] },
 				{ "name":"Southern Costa Rica", "id":"Southern Costa Rica", "locationID":[] },
 				{ "name":"Ostional", "id":"Ostional", "locationID":[] }
 			] },
 			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
-
             { "name":"US - West Coast", "id":"US - West Coast", "locationID":[
 				{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
-
 				{ "name":"Northern California", "id":"Northern California", "locationID":[] },
-
 				{ "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
-
                 {"name": "Salish Sea", "id": "Salish Sea" },
-
 				{"name": "San Gabriel River", "id": "San Gabriel River" },
-
 				{ "name":"Santa Barbara Channel", "id":"Santa Barbara Channel", "locationID":[] },
-
 				{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[] },
-
 				{ "name":"Southern California", "id":"Southern California", "locationID":[
-					{
-						"name": "Channel Islands",
-						"id": "Channel Islands",
-						"locationID": []
-					},
-					{
-						"name": "La Jolla Shores",
-						"id": "La Jolla Shores",
-						"locationID": []
-					},
-					{
-						"name": "San Diego Bay",
-						"id": "San Diego Bay",
-						"locationID": []
-					},
-					{
-						"name": "San Gabriel River",
-						"id": "San Gabriel River",
-						"locationID": []
-					},
-					{
-						"name": "Seal Beach Wildlife Refuge",
-						"id": "Seal Beach Wildlife Refuge",
-						"locationID": []
-					}
-				] },
-
-				{ "name":"Southern Central California", "id":"Southern Central California", "locationID":[] },
-
-				{ "name":"Southern-Central California", "id":"Southern-Central California", "locationID":[] }
-
+					{"name": "Channel Islands", "id": "Channel Islands", "locationID": []},
+					{"name": "La Jolla Shores", "id": "La Jolla Shores", "locationID": []},
+					{"name": "San Diego Bay", "id": "San Diego Bay", "locationID": []},
+					{"name": "San Gabriel River", "id": "San Gabriel River", "locationID": []},
+					{"name": "Seal Beach Wildlife Refuge", "id": "Seal Beach Wildlife Refuge", "locationID": []}
+				] }
             ] }
-
 			  ]},
-
 			{"name":"North Pacific","id":"North Pacific","locationID":[
 				{"name": "Japan", "id": "Japan" }
 			] },
-
 			{"name":"South Pacific","id":"South Pacific","locationID":[
 				{"name": "Galapagos Islands", "id": "Galapagos Islands" },
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
@@ -160,11 +86,8 @@
 	{
 		"name": "Atlantic Ocean",
 		"locationID": [
-			 {
-			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
-
-				  { "name":"2h", "id":"2h", "locationID":[] },
-
+			 {"name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
+				{ "name":"2h", "id":"2h", "locationID":[] },
 				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
 				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
 				{ "name":"Dominica", "id":"Dominica", "locationID":[
@@ -172,7 +95,6 @@
 					{"name": "Londonderry Beach", "id": "Londonderry Beach" },
 					{"name": "Point Gunard", "id": "Point Gunard" },
 					{"name": "Rosalie", "id": "Rosalie" }
-
 				] },
 				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
 				{ "name": "Gulf of Mexico", "id": "Gulf of Mexico", "locationID": [
@@ -182,37 +104,25 @@
 				{"name": "Mexico (Atlantic)", 
 				"id": "Mexico Atlantic", 
 				"locationID": [
-					{
-						"name": "Quintana Roo",
-						"id": "Quintana Roo",
-						"locationID": [
-							{
-								"name": "Mahahual",
-								"id": "Mahahual",
-								"locationID": []
-							}
+					{"name": "Quintana Roo", "id": "Quintana Roo", "locationID": [
+							{"name": "Mahahual", "id": "Mahahual", "locationID": []}
 						]
 					}
 				]},
 				{ "name":"Panama", "id":"Panama", "locationID":[] }
 			  ]
 			  },
-
               {"name":"South Atlantic","id":"South Atlantic","locationID":[
-
 				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
 				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
 				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
 			  ]},
-
 			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[
 				{ "name":"Florida", "id":"Florida", "locationID":[] }
 			  ]},
-
 			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[
 				{ "name":"Maho", "id":"Maho", "locationID":[] }
 			  ]}
-
 		],
 		"id": "AtlanticOcean",
 		"defaultLatitude": 0.0,
@@ -289,14 +199,10 @@
 		  ]}
 		]
 	},
-
 	{ "name":"Brazil", "id":"Brazil", "locationID":[
-	
 		{ "name":"Fernando de Noronha", "id":"Fernando de Noronha", "locationID":[] },
 		{ "name":"Rio de Janeiro, Arraial do Cabo", "id":"Rio de Janeiro, Arraial do Cabo", "locationID":[] }
-		
 	] },
-
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 
 	{ "name":"Australia", "id":"Australia", "locationID":[
@@ -308,15 +214,14 @@
 				{ "name":"Sunshine Coast", "id":"Sunshine Coast", "locationID":[] }
 		] }
 	] },
-
 	{ "name":"Hawaii", "id":"Hawaii", "locationID":[
 		{ "name":"Maui", "id":"Maui", "locationID":[] },
-		{ "name":"Moloka'i", "id":"Moloka'i", "locationID":[] },
+		{ "name":"Moloka'i", "id":"Molokai", "locationID":[] },
 		{ "name":"Lana'i", "id":"Lana'i", "locationID":[] },
 		{ "name":"Kaua'i", "id":"Kaua'i", "locationID":[] },
-		{ "name":"O'ahu", "id":"O'ahu", "locationID":[] },
+		{ "name":"O'ahu", "id":"Oahu", "locationID":[] },
 		{ "name":"NWHI", "id":"NWHI", "locationID":[] },
-		{ "name":"Kaho'olawe", "id":"Kaho'olawe", "locationID":[] },
+		{ "name":"Kaho'olawe", "id":"Kahoolawe", "locationID":[] },
 		{ "name":"HI Isle", "id":"HI Isle", "locationID":[] }
 	],
 	"defaultLongitude": 0.0,
@@ -334,169 +239,71 @@
 },
 
 	{ "name":"Misc - Legacy Wildbook IDs", "id":"Misc", "locationID":[
-					 {
-			  "name": "1", "id": "1" },
-			 {
-			  "name": "1a", "id": "1a" },
-			 {
-			  "name": "1a1", "id": "1a1" },
-			  {
-			  "name": "1a2", "id": "1a2" },
-			  {
-			  "name": "1a4", "id": "1a3" },
-
-			  {
-			  "name": "ChristmasIsland", "id": "ChristmasIsland" },
-
-			  {
-			  "name": "Malaysia", "id": "Malaysia" },
-
-			  {
-			  "name": "Thailand", "id": "Thailand" },
-
-			  {
-			  "name": "Myanmar", "id": "Myanmar" },
-
-			  {
-			  "name": "1g", "id": "1g" },
-
-			  {
-			  "name": "2", "id": "2" },
-
-			  {
-			  "name": "2a", "id": "2a" },
-
-			{
-			  "name": "2b", "id": "2b" },
-			{
-			  "name": "2c", "id": "2c" },
-
-			  {
-			  "name": "2d", "id": "2d" },
-
-			  {
-			  "name": "2e", "id": "2e" },
-
-			  {
-			  "name": "2e1", "id": "2e1" },
-
-			  {
-			  "name": "2f", "id": "2f" },
-
-			  {
-			  "name": "2g", "id": "2g" },
-
-			  {
-			  "name": "2h", "id": "2h" },
-
-			  {
-			  "name": "2h1", "id": "2h1" },
-
-			  {
-			  "name": "2h2", "id": "2h2" },
-
-			  {
-			  "name": "2h3", "id": "2h3" },
-
-			  {
-			  "name": "4a", "id": "4a" },
-
-			  			  {
-			  "name": "4a1", "id": "4a1" },
-
-			  			  {
-			  "name": "4a2", "id": "4a2" },
-
-			  			  {
-			  "name": "Tanzania", "id": "Tanzania" },
-
-			  {"name": "Kenya", "id": "Kenya", "locationID":[
-				{"name": "Chale Island", "id": "Chale Island" },
-				{"name": "Diani Beach", "id": "Diani Beach" },
-				{"name": "Galu", "id": "Galu" },
-				{"name": "Igloo", "id": "Igloo" },
-				{"name": "Jadini", "id": "Jadini" },
-				{"name": "Kisima Mungu", "id": "Kisima Mungu" },
-				{"name": "Kisite-Mpunguti Marine National Park", "id": "Kisite-Mpunguti Marine National Park" },
-				{"name": "Kongo", "id": "Kongo" },
-				{"name": "Milele", "id": "Milele" },
-				{"name": "Milele North", "id": "Milele North" },
-				{"name": "Mombasa Marine Park", "id": "Mombasa Marine Park" },
-				{"name": "Mwanyaza", "id": "Mwanyaza" },
-				{"name": "Mwanamochi", "id": "Mwanamochi" },
-				{"name": "Tiwi Reef", "id": "Tiwi Reef" }
+		{"name": "1", "id": "1" },
+		{"name": "1a", "id": "1a" },
+		{"name": "1a1", "id": "1a1" },
+		{"name": "1a2", "id": "1a2" },
+		{"name": "1a4", "id": "1a3" },
+		{"name": "Christmas Island", "id": "Christmas Island" },
+		{"name": "Malaysia", "id": "Malaysia" },
+		{"name": "Thailand", "id": "Thailand" },
+		{"name": "Myanmar", "id": "Myanmar" },
+		{"name": "1g", "id": "1g" },
+		{"name": "2", "id": "2" },
+		{"name": "2a", "id": "2a" },
+		{"name": "2b", "id": "2b" },
+		{"name": "2c", "id": "2c" },
+		{"name": "2d", "id": "2d" },
+		{"name": "2e", "id": "2e" },
+		{"name": "2e1", "id": "2e1" },
+		{"name": "2f", "id": "2f" },
+		{"name": "2g", "id": "2g" },
+		{"name": "2h", "id": "2h" },
+		{"name": "2h1", "id": "2h1" },
+		{"name": "2h2", "id": "2h2" },
+		{"name": "2h3", "id": "2h3" },
+		{"name": "4a", "id": "4a" },
+		{"name": "4a1", "id": "4a1" },
+		{"name": "4a2", "id": "4a2" },
+		{"name": "Tanzania", "id": "Tanzania" },
+		{"name": "Kenya", "id": "Kenya", "locationID":[
+			{"name": "Chale Island", "id": "Chale Island" },
+			{"name": "Diani Beach", "id": "Diani Beach" },
+			{"name": "Galu", "id": "Galu" },
+			{"name": "Igloo", "id": "Igloo" },
+			{"name": "Jadini", "id": "Jadini" },
+			{"name": "Kisima Mungu", "id": "Kisima Mungu" },
+			{"name": "Kisite Mpunguti Marine National Park", "id": "Kisite Mpunguti Marine National Park" },
+			{"name": "Kongo", "id": "Kongo" },
+			{"name": "Milele", "id": "Milele" },
+			{"name": "Milele North", "id": "Milele North" },
+			{"name": "Mombasa Marine Park", "id": "Mombasa Marine Park" },
+			{"name": "Mwanyaza", "id": "Mwanyaza" },
+			{"name": "Mwanamochi", "id": "Mwanamochi" },
+			{"name": "Tiwi Reef", "id": "Tiwi Reef" }
 			  ]},
-
-			  			  {
-			  "name": "SouthAfrica", "id": "SouthAfrica" },
-
-			  			  {
-			  "name": "Djibouti", "id": "Djibouti" },
-
-			  			  {
-			  "name": "RedSea", "id": "RedSea" },
-
-
-			   {
-			  "name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" },
-
-			   {
-			  "name": "4h", "id": "4h" },
-
-			   {
-			  "name": "4h1", "id": "4h1" },
-
-			   {
-			  "name": "4h1a", "id": "4h1a" },
-
-			   {
-			  "name": "4h2", "id": "4h2" },
-
-			   {
-			  "name": "4h2a", "id": "4h2a" },
-
-			  			   {
-			  "name": "4h2b", "id": "4h2b" },
-
-			  {
-			  "name": "4h2c", "id": "4h2c" },
-
-			  {
-			  "name": "4h3", "id": "4h3" },
-
-			  {
-			  "name": "4h4", "id": "4h4" },
-
-			  {
-			  "name": "6a", "id": "6a" },
-
-			  {
-			  "name": "6a1", "id": "6a1" },
-
-			  {
-			  "name": "6a2", "id": "6a2" },
-
-			  {
-			  "name": "6a3", "id": "6a3" },
-
-			  {
-			  "name": "6b", "id": "6b" },
-
-			  {
-			  "name": "7", "id": "7" },
-
-			  {
-			  "name": "7a", "id": "7a" },
-
-			  {
-			  "name": "7b", "id": "7b" },
-			  {
-			  "name": "7c", "id": "7c" },
-			   {
-			  "name": "7d", "id": "7d" },
-			   {
-			  "name": "8a", "id": "8a" }
+			  {"name": "Djibouti", "id": "Djibouti" },
+			  {"name": "Red Sea Shib Habil", "id": "Red Sea Shib Habil" },
+			  {"name": "4h", "id": "4h" },
+			  {"name": "4h1", "id": "4h1" },
+			  {"name": "4h1a", "id": "4h1a" },
+			  {"name": "4h2", "id": "4h2" },
+			  {"name": "4h2a", "id": "4h2a" },
+			  {"name": "4h2b", "id": "4h2b" },
+			  {"name": "4h2c", "id": "4h2c" },
+			  {"name": "4h3", "id": "4h3" },
+			  {"name": "4h4", "id": "4h4" },
+			  {"name": "6a", "id": "6a" },
+			  {"name": "6a1", "id": "6a1" },
+			  {"name": "6a2", "id": "6a2" },
+			  {"name": "6a3", "id": "6a3" },
+			  {"name": "6b", "id": "6b" },
+			  {"name": "7", "id": "7" },
+			  {"name": "7a", "id": "7a" },
+			  {"name": "7b", "id": "7b" },
+			  {"name": "7c", "id": "7c" },
+			  {"name": "7d", "id": "7d" },
+			  {"name": "8a", "id": "8a" }
 	] }
-
   ]
 }
