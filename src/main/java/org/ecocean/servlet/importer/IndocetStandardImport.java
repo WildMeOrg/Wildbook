@@ -636,14 +636,6 @@ public class IndocetStandardImport extends HttpServlet {
         ArrayList<Keyword> kws = getKeywordsForAsset(row, i);
         ma.setKeywords(kws);
 
-        // Keyword keyword = null;
-        // String keywordI = getString(row, "Encounter.keyword"+i);
-        // if (keywordI!=null) keyword = myShepherd.getOrCreateKeyword(keywordI);
-        // String keywordOIKey = "Encounter.keyword0"+i;
-        // String keywordOI = getString(row, keywordOIKey);
-        // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
-        // if (keyword!=null) ma.addKeyword(keyword);
-
         return ma;
     }
 
@@ -1044,20 +1036,5 @@ public class IndocetStandardImport extends HttpServlet {
         // return AssetStore.getDefault(myShepherd);
         return AssetStore.get(myShepherd, 5);
 
-        // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-        //// TODO: fix this for flukebook
-        //// String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-        // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-        // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-        // if (committing) {
-        // myShepherd.beginDBTransaction();
-        // myShepherd.getPM().makePersistent(as);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
-        // }
-
-        // return as;
     }
 }

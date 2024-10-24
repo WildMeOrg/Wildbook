@@ -81,8 +81,6 @@ public class RabbitMQQueue extends Queue {
 
     public void publish(String msg)
     throws java.io.IOException {
-// TODO check connection *and* channel??
-        // channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, null, msg.getBytes());
         channel.basicPublish(EXCHANGE_NAME, this.queueName, null, msg.getBytes());
         System.out.println("[INFO] " + this.toString() + " published to {" + this.queueName +
             "}: " + msg);

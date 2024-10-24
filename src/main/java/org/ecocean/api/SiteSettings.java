@@ -68,7 +68,7 @@ public class SiteSettings extends ApiBase {
         settings.put("measurement",
             CommonConfiguration.getIndexedPropertyValues("measurement", context));
 
-        // TODO: there was some discussion in slack about this being derived differently
+        // TODO: evaluate deriving this differently
         // NOTE: historically this list was generated via CommonConfiguration using 
         //       List<String> states = CommonConfiguration.getIndexedPropertyValues("encounterState",context)
         settings.put("encounterState", VALUES_ENCOUNTER_STATES);

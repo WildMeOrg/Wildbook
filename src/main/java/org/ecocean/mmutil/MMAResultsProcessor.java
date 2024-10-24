@@ -241,7 +241,6 @@ public final class MMAResultsProcessor {
      */
     private static void parseMatchResultsSummary(Shepherd shepherd, MMAResult result, String text)
     throws ParseException {
-        // TODO: implement
     }
 
     /**
