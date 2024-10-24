@@ -265,7 +265,7 @@ private static void migrateUsers(JspWriter out, Shepherd myShepherd, Connection 
                 myShepherd.getPM().makePersistent(role);
             }
 
-            // TODO Organizations
+            // TODO: Organizations
 
             String msg = "created user [" + ct + "] [" + String.join(",", roles) + "] " + user;
             out.println("<b>" + msg + "</b>");
@@ -324,7 +324,7 @@ private static void migrateMediaAssets(JspWriter out, Shepherd myShepherd, Conne
                 break;
             }
             ma.setUUID(guid);
-            // TODO revision from codex?
+            // TODO: revision from codex?
             ma.setAcmId(res.getString("content_guid"));
             ma.updateMetadata();
             ma.addLabel("_original");
@@ -389,7 +389,7 @@ private static void migrateAnnotations(JspWriter out, Shepherd myShepherd, Conne
             // 99.9% sure species doesnt matter any more, so setting as null
             ann = new Annotation(null, feat, res.getString("ia_class"));
             ann.setId(guid);
-            // TODO id status?
+            // TODO: id status?
             ann.setAcmId(res.getString("content_guid"));
             ann.setViewpoint(res.getString("viewpoint"));
             ann.setMatchAgainst(true);
@@ -941,7 +941,7 @@ private static void migratePendingSightings(JspWriter out, Shepherd myShepherd, 
 
             occ = new Occurrence();
             occ.setId(guid);
-            // TODO something with asset_group_guid ?
+            // TODO: something with asset_group_guid ?
 
             occ.setEncounters(new ArrayList<Encounter>()); //grrr
             for (int i = 0 ; i < earr.length() ; i++) {

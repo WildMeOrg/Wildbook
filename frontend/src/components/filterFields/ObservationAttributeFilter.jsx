@@ -22,6 +22,13 @@ export default function ObservationAttributeFilter({ onChange, data }) {
         label: item,
       };
     }) || [];
+  const lifeStageOptions =
+    data?.lifeStage?.map((item) => {
+      return {
+        value: item,
+        label: item,
+      };
+    }) || [];
   const genusAndSpeciesOptions =
     data?.siteTaxonomies?.map((item) => {
       return {
@@ -70,13 +77,23 @@ export default function ObservationAttributeFilter({ onChange, data }) {
       />
       <FormGroupMultiSelect
         isMulti={true}
-        label="FILTER_LIFE_STATUS"
+        label="FILTER_LIFE_STAGE"
+        noDesc={true}
+        options={lifeStageOptions}
+        onChange={onChange}
+        field="lifeStage"
+        term="terms"
+        filterKey="Life Stage"
+      />
+      <FormGroupMultiSelect
+        isMulti={true}
+        label="FILTER_LIVING_STATUS"
         noDesc={true}
         options={livingStatusOptions}
         onChange={onChange}
         field="livingStatus"
         term="terms"
-        filterKey="Life Status"
+        filterKey="Living Status"
       />
 
       <FormGroupMultiSelect

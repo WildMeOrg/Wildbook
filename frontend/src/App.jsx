@@ -51,6 +51,10 @@ function App() {
     setFilters({});
   };
 
+  const publicUrl = process.env.PUBLIC_URL 
+  ? (process.env.PUBLIC_URL.startsWith('http') ? new URL(process.env.PUBLIC_URL).pathname : process.env.PUBLIC_URL)
+  : "/";
+
   return (
     <QueryClientProvider client={queryClient}>
       <LocaleContext.Provider
@@ -60,7 +64,7 @@ function App() {
           className="App mx-auto w-100 position-relative"
           style={containerStyle}
         >
-          <BrowserRouter basename="/react">
+          <BrowserRouter basename={publicUrl}>
             <IntlProvider
               locale={locale}
               defaultLocale="en"
