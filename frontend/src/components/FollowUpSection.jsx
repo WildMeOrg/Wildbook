@@ -4,7 +4,7 @@ import { Col, Form, Row } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 import { useIntl } from "react-intl";
 
-export const FollowUpSection = observer(({ reportEncounterStore }) => {
+export const FollowUpSection = observer(({ store }) => {
   const intl = useIntl();
   return (
     <div>
@@ -27,9 +27,9 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               type="text"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
-                reportEncounterStore.setSubmitterName(e.target.value);
+                store.setSubmitterName(e.target.value);
               }}
-              value={reportEncounterStore.followUpSection?.submitter?.name}
+              value={store.followUpSection?.submitter?.name}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -42,9 +42,9 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               type="text"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
-                reportEncounterStore.setSubmitterEmail(e.target.value);
+                store.setSubmitterEmail(e.target.value);
               }}
-              value={reportEncounterStore.followUpSection?.submitter?.email}
+              value={store.followUpSection?.submitter?.email}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -63,9 +63,9 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               type="text"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
-                reportEncounterStore.setPhotographerName(e.target.value);
+                store.setPhotographerName(e.target.value);
               }}
-              value={reportEncounterStore.followUpSection?.photographer?.name}
+              value={store.followUpSection?.photographer?.name}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -78,9 +78,9 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
               type="text"
               placeholder={intl.formatMessage({ id: "TYPE_HERE" })}
               onChange={(e) => {
-                reportEncounterStore.setPhotographerEmail(e.target.value);
+                store.setPhotographerEmail(e.target.value);
               }}
-              value={reportEncounterStore.followUpSection?.photographer?.email}
+              value={store.followUpSection?.photographer?.email}
             ></Form.Control>
           </Form.Group>
         </Col>
@@ -99,9 +99,9 @@ export const FollowUpSection = observer(({ reportEncounterStore }) => {
           maxLength={5000}
           placeholder={intl.formatMessage({ id: "CSL_EMAILS_EXAMPLE" })}
           onChange={(e) => {
-            reportEncounterStore.setAdditionalEmails(e.target.value);
+            store.setAdditionalEmails(e.target.value);
           }}
-          value={reportEncounterStore.followUpSection?.additionalEmails}
+          value={store.followUpSection?.additionalEmails}
         />
       </Form.Group>
     </div>

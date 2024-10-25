@@ -5,7 +5,7 @@ import MainButton from "../../components/MainButton";
 import AuthContext from "../../AuthProvider";
 import { FormattedMessage } from "react-intl";
 import ImageSection from "./ImageSection";
-import DateTimeSection from "../../components/DateTimeSection";
+import { DateTimeSection } from "./DateTimeSection";
 import PlaceSection from "../../components/PlaceSection";
 import { AdditionalCommentsSection } from "../../components/AdditionalCommentsSection";
 import { FollowUpSection } from "../../components/FollowUpSection";
@@ -65,6 +65,9 @@ export const ReportEncounter = observer(() => {
       JSON.parse(localStorage.getItem("fileNames")).forEach((fileName) => {
         store.setImageSectionFileNames(fileName, "add");
       });
+    localStorage.getItem("datetime") && store.setDateTimeSectionValue(new Date(localStorage.getItem("datetime")));
+    localStorage.getItem("exifDateTime") && store.setExifDateTime(localStorage.getItem("exifDateTime"));
+
 
     localStorage.removeItem("species");
     localStorage.removeItem("followUpSection.submitter.name");
@@ -77,6 +80,8 @@ export const ReportEncounter = observer(() => {
     localStorage.removeItem("dateTimeSection");
     localStorage.removeItem("placeSection");
     localStorage.removeItem("fileNames");
+    localStorage.removeItem("datetime");
+    localStorage.removeItem("exifDateTime");
   }, []);
 
   const handleSubmit = async () => {
@@ -95,8 +100,6 @@ export const ReportEncounter = observer(() => {
   };
 
   useEffect(() => {
-    console.log("Success: ", store.success, "Finished: ", store.finished);
-
     if (store.success && store.finished) {
       alert("Report submitted successfully.");
       Navigate("/home");
@@ -109,27 +112,27 @@ export const ReportEncounter = observer(() => {
   const encounterCategories = [
     {
       title: "PHOTOS_SECTION",
-      section: <ImageSection reportEncounterStore={store} />,
+      section: <ImageSection store={store} />,
     },
     {
       title: "DATETIME_SECTION",
-      section: <DateTimeSection reportEncounterStore={store} />,
+      section: <DateTimeSection store={store} />,
     },
     {
       title: "PLACE_SECTION",
-      section: <PlaceSection reportEncounterStore={store} />,
+      section: <PlaceSection store={store} />,
     },
     {
       title: "SPECIES",
-      section: <ReportEncounterSpeciesSection reportEncounterStore={store} />,
+      section: <ReportEncounterSpeciesSection store={store} />,
     },
     {
       title: "ADDITIONAL_COMMENTS_SECTION",
-      section: <AdditionalCommentsSection reportEncounterStore={store} />,
+      section: <AdditionalCommentsSection store={store} />,
     },
     {
       title: "FOLLOWUP_SECTION",
-      section: <FollowUpSection reportEncounterStore={store} />,
+      section: <FollowUpSection store={store} />,
     },
   ];
 
@@ -389,10 +392,11 @@ export const ReportEncounter = observer(() => {
                     "fileNames",
                     JSON.stringify(store.imageSectionFileNames),
                   );
-                  console.log(
-                    "fileNames",
-                    JSON.stringify(store.imageSectionFileNames),
+                  localStorage.setItem(
+                    "datetime",
+                    store.dateTimeSection.value.toISOString(),
                   );
+                  localStorage.setItem("exifDateTime", store.exifDateTime);
                 }}
               >
                 <FormattedMessage id="LOGIN_SIGN_IN" />
