@@ -2604,29 +2604,32 @@ public class MarkedIndividual extends Base implements java.io.Serializable {
                 Shepherd bgShepherd = new Shepherd("context0");
                 bgShepherd.setAction("MarkedIndividual.opensearchIndexDeep");
                 bgShepherd.beginDBTransaction();
-                MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
-                if ((indiv == null) || (indiv.getEncounters() == null)) {
-                    bgShepherd.rollbackAndClose();
-                    executor.shutdown();
-                    return;
-                }
-                int total = indiv.getNumEncounters();
-                int ct = 0;
-                for (Encounter enc : indiv.getEncounters()) {
-                    ct++;
-                    System.out.println("opensearchIndexDeep() background indexing " + enc.getId() +
-                        " via " + indivId + " [" + ct + "/" + total + "]");
-                    try {
-                        enc.opensearchIndex();
-                    } catch (Exception ex) {
-                        System.out.println("opensearchIndexDeep() background indexing " +
-                            enc.getId() + " FAILED: " + ex.toString());
-                        ex.printStackTrace();
+                try {
+                    MarkedIndividual indiv = bgShepherd.getMarkedIndividual(indivId);
+                    if ((indiv == null) || (indiv.getEncounters() == null)) {
+                        bgShepherd.rollbackAndClose();
+                        executor.shutdown();
+                        return;
                     }
+                    int total = indiv.getNumEncounters();
+                    int ct = 0;
+                    for (Encounter enc : indiv.getEncounters()) {
+                        ct++;
+                        System.out.println("opensearchIndexDeep() background indexing " +
+                            enc.getId() + " via " + indivId + " [" + ct + "/" + total + "]");
+                        try {
+                            enc.opensearchIndex();
+                        } catch (Exception ex) {
+                            System.out.println("opensearchIndexDeep() background indexing " +
+                                enc.getId() + " FAILED: " + ex.toString());
+                            ex.printStackTrace();
+                        }
+                    }
+                } finally {
+                    bgShepherd.rollbackAndClose();
                 }
                 System.out.println("opensearchIndexDeep() backgrounding MarkedIndividual " +
                     indivId + " finished.");
-                bgShepherd.rollbackAndClose();
                 executor.shutdown();
             }
         };
